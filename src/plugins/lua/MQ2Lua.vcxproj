@@ -139,6 +139,7 @@
     <ClCompile Include="bindings\lua_ImGuiEnums.cpp" />
     <ClCompile Include="bindings\lua_ImGuiWidgets.cpp" />
     <ClCompile Include="bindings\lua_ImGuiUserTypes.cpp" />
+    <ClCompile Include="bindings\lua_ImPlot.cpp" />
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQMacroData.cpp" />
     <ClCompile Include="LuaActor.cpp" />

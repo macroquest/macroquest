@@ -754,6 +754,20 @@ public:
 };
 
 //============================================================================
+// MQ2InvSlotWindowType
+
+class MQInvSlotWindowType : public MQ2Type
+{
+public:
+	MQInvSlotWindowType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+};
+
+//============================================================================
 // MQ2MenuType
 
 class MQ2MenuType : public MQ2Type

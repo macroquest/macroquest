@@ -1229,7 +1229,7 @@ public:
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 6);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
 		ImGui::PushFont(mq::imgui::ConsoleFont);
 

@@ -589,7 +589,7 @@ void DoMainThreadInitialization()
 
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
-	InitializeMouseHooks();
+	InitializeInputAPI();
 	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
@@ -801,12 +801,11 @@ void MQ2Shutdown()
 	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
-	ShutdownMQ2DInput();
+	ShutdownInputAPI();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMouseHooks();
 	ShutdownMQ2CrashHandler();
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
@@ -915,8 +914,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 		Sleep(500);
 	}
-
-	InitializeMQ2DInput();
 
 	DebugSpewAlways("%s", LoadedString);
 

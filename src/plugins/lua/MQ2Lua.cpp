@@ -1536,7 +1536,7 @@ static void DrawLuaSettings()
 
 	ImGui::Text("Lua Require Paths");
 	{
-		if (ImGui::ListBoxHeader("##luarequirepaths", ImVec2(-1.0f, 80.0f)))
+		if (ImGui::BeginListBox("##luarequirepaths", ImVec2(-1.0f, 80.0f)))
 		{
 			if (s_configNode[KEY_LUA_REQUIRE_PATHS].IsSequence())
 			{
@@ -1578,7 +1578,7 @@ static void DrawLuaSettings()
 				}
 			}
 
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 
 			static char lua_req_buf[256] = { 0 };
 			ImGui::SetNextItemWidth(-1.0f);
@@ -1594,7 +1594,7 @@ static void DrawLuaSettings()
 
 	ImGui::Text("DLL Require Paths");
 	{
-		if (ImGui::ListBoxHeader("##dllrequirepaths", ImVec2(-1.0f, 80.0f)))
+		if (ImGui::BeginListBox("##dllrequirepaths", ImVec2(-1.0f, 80.0f)))
 		{
 			if (s_configNode[KEY_DLL_REQUIRE_PATHS].IsSequence())
 			{
@@ -1635,7 +1635,7 @@ static void DrawLuaSettings()
 					}
 				}
 			}
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 
 			static char dll_req_buf[256] = { 0 };
 			ImGui::SetNextItemWidth(-1.0f);
@@ -1970,7 +1970,7 @@ PLUGIN_API void OnUpdateImGui()
 
 		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)))
 		{
-			IGFD_OpenPaneDialog2(
+			IGFD_OpenDialogWithPane2(
 				s_scriptLaunchDialog,
 				"ChooseScriptKey",
 				"Select Lua Script to Run",
@@ -1988,8 +1988,8 @@ PLUGIN_API void OnUpdateImGui()
 		{
 			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
-				auto selection = IGFD_GetSelection(s_scriptLaunchDialog);
-				auto selected_file = selection.table->filePathName;
+				IGFD_Selection selection = IGFD_GetSelection(s_scriptLaunchDialog, IGFD_ResultMode_KeepInputFile);
+				char* selected_file = selection.table->filePathName;
 
 				std::error_code ec;
 				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
@@ -2008,7 +2008,7 @@ PLUGIN_API void OnUpdateImGui()
 						return std::string(s);
 					};
 
-					auto script_name = rootEnd != lua_path.end()
+					std::string script_name = rootEnd != lua_path.end()
 						? script_path
 						: clean_name(std::string(scriptEnd, script_path.end()));
 

@@ -1,3 +1,12 @@
+Dec 18, 2023:
+- Update ImGui to 1.90
+- Update ImPlot to 0.17
+- lua: ImGui and ImPlot lua bindings fully refreshed with 100% coverage of definitions.
+- lua: mq-definitions VSCode extension available at https://marketplace.visualstudio.com/items?itemName=ZenithCodeForge.mq-defs
+- datatypes: add TradeskillDepot.DepositItem
+- datatypes: add Type.InheritedType
+- datatypes: add Me.LaurionInnVoucher, Me.ShalowainsPrivateReserve
+
 Dec 13, 2023:
 - test: Updated for latest patch
 

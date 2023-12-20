@@ -255,9 +255,6 @@ EQSwitch* pDoorTarget = nullptr;
 // Alternatively, move it into the macro block.
 int gParserVersion = 1;
 
-MOUSESPOOF* gMouseData = nullptr;
-bool bDetMouse = true;
-
 // EQ Functions Initialization
 fEQCommand cmdHelp = nullptr;
 fEQCommand cmdWho = nullptr;

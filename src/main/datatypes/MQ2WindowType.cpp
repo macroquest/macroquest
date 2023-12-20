@@ -34,6 +34,7 @@ enum class WindowMembers
 	HScrollMax,
 	HScrollPct,
 	HScrollPos,
+	InvSlot,
 	Items,
 	List,
 	Minimized,
@@ -100,6 +101,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMember(WindowMembers, HScrollMax);
 	ScopedTypeMember(WindowMembers, HScrollPct);
 	ScopedTypeMember(WindowMembers, HScrollPos);
+	ScopedTypeMember(WindowMembers, InvSlot);
 	ScopedTypeMember(WindowMembers, Items);
 	ScopedTypeMember(WindowMembers, List);
 	ScopedTypeMember(WindowMembers, Minimized);
@@ -630,6 +632,15 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return false;
 	}
 
+	case WindowMembers::InvSlot:
+		if (pWnd->GetType() == UI_InvSlot)
+		{
+			Dest.Type = pInvSlotWindowType;
+			Dest.Ptr = VarPtr.Ptr;
+			return true;
+		}
+		return false;
+
 	case WindowMembers::Name:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
@@ -760,7 +771,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		if (pWnd->GetType() == UI_TabBox && Index[0])
 		{
 			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
-			
+
 			if (IsNumber(Index))
 			{
 				int tabIndex = GetIntFromString(Index, 0) - 1;
@@ -858,6 +869,170 @@ bool MQ2WindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
 	}
 
 	return false;
+}
+
+/* SubWindow Type: MQ2InvSlotWindowType */
+enum class InvSlotWindowMembers
+{
+	Background,
+	ItemLocation,
+	ItemIndexSlot,
+	Item,
+	ItemOffsetX,
+	ItemOffsetY,
+	ItemTexture,
+	Quantity,
+	Selected,
+	FindSelected,
+	HotButton,
+	InventorySlotLinked,
+	Text,
+	Mode,
+};
+
+MQInvSlotWindowType::MQInvSlotWindowType() : MQ2Type("invslotwindow")
+{
+	ScopedTypeMember(InvSlotWindowMembers, Background);
+	ScopedTypeMember(InvSlotWindowMembers, ItemLocation);
+	ScopedTypeMember(InvSlotWindowMembers, ItemIndexSlot);
+	ScopedTypeMember(InvSlotWindowMembers, Item);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetX);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetY);
+	ScopedTypeMember(InvSlotWindowMembers, Quantity);
+	ScopedTypeMember(InvSlotWindowMembers, Selected);
+	ScopedTypeMember(InvSlotWindowMembers, FindSelected);
+	ScopedTypeMember(InvSlotWindowMembers, HotButton);
+	ScopedTypeMember(InvSlotWindowMembers, InventorySlotLinked);
+	ScopedTypeMember(InvSlotWindowMembers, Text);
+	ScopedTypeMember(InvSlotWindowMembers, Mode);
+}
+
+bool MQInvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+	if (!VarPtr.Ptr)
+		return false;
+
+	if (pWnd->GetType() != UI_InvSlot)
+		return false;
+
+	CInvSlotWnd* pInvWnd = static_cast<CInvSlotWnd*>(pWnd);
+
+	MQTypeMember* pMember = MQInvSlotWindowType::FindMember(Member);
+	if (!pMember)
+		return false;
+
+	switch (static_cast<InvSlotWindowMembers>(pMember->ID))
+	{
+
+	case InvSlotWindowMembers::Background:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->pBackground->GetName().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::ItemLocation:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemLocation.GetLocation();
+		return true;
+
+	case InvSlotWindowMembers::ItemIndexSlot:
+		if (IsNumber(Index))
+		{
+			int nIndex = GetIntFromString(Index, 0);
+			Dest.Type = pIntType;
+			Dest.DWord = pInvWnd->ItemLocation.GetIndex().GetSlot(nIndex);
+			return true;
+		}
+		return false;
+
+	case InvSlotWindowMembers::Item:
+		Dest.Type = pItemType;
+		Dest = pItemType->MakeTypeVar(pInvWnd->LinkedItem ? pInvWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pInvWnd->ItemLocation));
+		return true;
+
+	case InvSlotWindowMembers::ItemOffsetX:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemOffsetX;
+		return true;
+
+	case InvSlotWindowMembers::ItemOffsetY:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemOffsetY;
+		return true;
+
+	case InvSlotWindowMembers::ItemTexture:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->ptItem->GetName().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::Quantity:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->Quantity;
+		return true;
+
+	case InvSlotWindowMembers::Selected:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bSelected;
+		return true;
+
+	case InvSlotWindowMembers::FindSelected:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bFindSelected;
+		return true;
+
+	case InvSlotWindowMembers::HotButton:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bHotButton;
+		return true;
+
+	case InvSlotWindowMembers::InventorySlotLinked:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bInventorySlotLinked;
+		return true;
+
+	case InvSlotWindowMembers::Text:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->pTextObject->GetText().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::Mode:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->Mode;
+		return true;
+	}
+	return false;
+}
+
+bool MQInvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	CInvSlotWnd* pWnd = static_cast<CInvSlotWnd*>(VarPtr.Ptr);
+	bool bFound = false;
+
+	if (pWnd)
+	{
+		ItemPtr pItem = pWnd->LinkedItem ? pWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pWnd->ItemLocation);
+
+		if (pItem && pWnd->IsVisible())
+		{
+			strcpy_s(Destination, MAX_STRING, pItem->GetName());
+			bFound = true;
+		}
+		else
+			strcpy_s(Destination, MAX_STRING, "NULL");
+	}
+	return bFound;
+}
+
+bool MQInvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
+{
+	if (Source.Type != pInvSlotWindowType)
+		return false;
+
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 } // namespace mq::datatypes

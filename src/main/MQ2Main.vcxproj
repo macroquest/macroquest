@@ -518,7 +518,7 @@
     <ClCompile Include="MQ2CommandAPI.cpp" />
     <ClCompile Include="MQ2Commands.cpp" />
     <ClCompile Include="MQ2DeveloperTools.cpp" />
-    <ClCompile Include="MQ2DInput.cpp" />
+    <ClCompile Include="MQInputAPI.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQActorAPI.cpp" />
     <ClCompile Include="MQDataAPI.cpp" />
@@ -535,7 +535,6 @@
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
-    <ClCompile Include="MQ2Mouse.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
