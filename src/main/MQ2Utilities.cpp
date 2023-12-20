@@ -1360,6 +1360,8 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
 	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
 	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
+	if (!_stricmp(szName, "Laurion Inn Voucher")) return ALTCURRENCY_LAURIONINNVOUCHER;
+	if (!_stricmp(szName, "Shalowains Private Reserve")) return ALTCURRENCY_SHALOWAINSPRIVATERESERVE;
 	return -1;
 }
 
@@ -6492,7 +6494,11 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
+	if (HasExpansion(EXPANSION_LS))
+	{
+		MaxLevel = 125;
+	}
+	else if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
 	{
 		MaxLevel = 120;
 	}

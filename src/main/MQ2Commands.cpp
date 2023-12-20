@@ -17,6 +17,7 @@
 
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
+#include "MQPostOffice.h"
 #include "mq/base/WString.h"
 
 #pragma warning(push)

@@ -1493,14 +1493,16 @@ bool MQ2RangeType::dataRange(const char* szIndex, MQTypeVar& Ret)
 
 enum class TypeMembers
 {
-	Name = 1,
-	Member = 2,
+	Name,
+	Member,
+	InheritedType,
 };
 
 MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 {
 	ScopedTypeMember(TypeMembers, Name);
 	ScopedTypeMember(TypeMembers, Member);
+	ScopedTypeMember(TypeMembers, InheritedType);
 }
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1512,7 +1514,6 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	MQTypeMember* pMember = MQ2TypeType::FindMember(Member);
 	if (!pMember)
 		return false;
-
 
 	switch (static_cast<TypeMembers>(pMember->ID))
 	{
@@ -1547,6 +1548,15 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			}
 		}
 
+		return false;
+
+	case TypeMembers::InheritedType:
+		if (pType->GetParent())
+		{
+			Dest.Type = pTypeType;
+			Dest.Ptr = pType->GetParent();
+			return true;
+		}
 		return false;
 
 	default: break;

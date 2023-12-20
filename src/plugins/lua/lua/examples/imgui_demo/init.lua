@@ -1,6 +1,6 @@
----@type Mq
+---@diagnostic disable: empty-block
+
 local mq = require('mq')
----@type ImGui
 local imgui = require 'ImGui'
 
 local ShowDemoWindowWidgets = require '_demo_widgets'
@@ -45,6 +45,28 @@ local ImGuiDemo = {
     no_bring_to_front = false,
     no_docking = false,
     unsaved_document = false,
+
+    window_flag_options = {
+        { name = "No titlebar", key = 'no_titlebar' },
+        { name = "No scrollbar", key = 'no_scrollbar' },
+        { name = "No menu", key = 'no_menu' },
+        { name = "No move", key = 'no_move' },
+        { name = "No resize", key = 'no_resize' },
+        { name = "No collapse", key = 'no_collapse' },
+        { name = "No close", key = 'no_close' },
+        { name = "No nav", key = 'no_nav' },
+        { name = "No background", key = 'no_background' },
+        { name = "No bring to front", key = 'no_bring_to_front' },
+        { name = "No docking", key = 'no_docking' },
+        { name = "Unsaved document", key = 'unsaved_document' },
+    },
+
+    menu_state = {
+        enabled = true,
+        f = 0.5,
+        n = 1,
+        b = true,
+    },
 
     constrained_resize_state = {
         test_desc = {
@@ -126,7 +148,7 @@ function ImGuiDemo:ShowDemoWindow(open)
     if self.no_move then            window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoMove) end
     if self.no_resize then          window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoResize) end
     if self.no_collapse then        window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoCollapse) end
-    if self.no_nav then             window_flags = bit32.bor(window_flags, ImGuiWindowFlags.no_nav) end
+    if self.no_nav then             window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoNav) end
     if self.no_background then      window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoBackground) end
     if self.no_bring_to_front then  window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoBringToFrontOnFocus) end
     if self.no_docking then         window_flags = bit32.bor(window_flags, ImGuiWindowFlags.NoDocking) end
@@ -203,24 +225,66 @@ function ImGuiDemo:ShowDemoWindow(open)
     --
 
     if imgui.CollapsingHeader("Help") then
-        ImGui.Text("ABOUT THIS DEMO:");
-        ImGui.BulletText("Sections below are demonstrating many aspects of the library.");
-        ImGui.BulletText("The \"Examples\" menu above leads to more demo contents.");
-        ImGui.BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n" ..
+        imgui.SeparatorText("ABOUT THIS DEMO:");
+        imgui.BulletText("Sections below are demonstrating many aspects of the library.");
+        imgui.BulletText("The \"Examples\" menu above leads to more demo contents.");
+        imgui.BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n" ..
                          "and Metrics/Debugger (general purpose Dear ImGui debugging tool).");
-        ImGui.Separator();
 
-        ImGui.Text("PROGRAMMER GUIDE:");
-        ImGui.BulletText("See the ShowDemoWindow() code in examples/imgui_demo.lua. <- you are here!");
-        ImGui.BulletText("See comments in imgui.cpp.");
-        ImGui.BulletText("See example applications in the examples/ folder.");
-        ImGui.BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
-        ImGui.BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
-        ImGui.BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
-        ImGui.Separator();
+        imgui.SeparatorText("PROGRAMMER GUIDE:");
+        imgui.BulletText("See the ShowDemoWindow() code in examples/imgui_demo.lua. <- you are here!");
+        imgui.BulletText("See comments in imgui.cpp.");
+        imgui.BulletText("See example applications in the examples/ folder.");
+        imgui.BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
+        imgui.BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
+        imgui.BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
 
-        ImGui.Text("USER GUIDE:");
-        ImGui.ShowUserGuide();
+        imgui.SeparatorText("USER GUIDE:");
+        imgui.ShowUserGuide();
+    end
+
+    --
+    -- Configuration
+    -- We purposefully leave a few low level things out here relating to the platform integration
+    --
+
+    if imgui.CollapsingHeader('Configuration') then
+        if imgui.TreeNode('Style') then
+            imgui.HelpMarker("The same contents can be accessed in 'Tools->Style Editor' or by calling the ShowStyleEditor() function.")
+            imgui.ShowStyleEditor()
+            imgui.TreePop()
+            imgui.Spacing()
+        end
+
+        if imgui.TreeNode('Capture/Logging') then
+            imgui.HelpMarker(
+                "The logging API redirects all text output so you can easily capture the content of " ..
+                "a window or a block. Tree nodes can be automatically expanded.\n" ..
+                "Try opening any of the contents below in this window and then click one of the \"Log To\" button.")
+            imgui.LogButtons();
+
+            imgui.HelpMarker("You can also call ImGui::LogText() to output directly to the log without a visual output.")
+            if imgui.Button('Copy \"Hello, world!\" to clipboard') then
+                imgui.LogToClipboard()
+                imgui.LogText('Hello, world!')
+                imgui.LogFinish()
+            end
+            imgui.TreePop()
+        end
+    end
+
+    --
+    -- Window options
+    --
+
+    if imgui.CollapsingHeader('Window options') then
+        if imgui.BeginTable('split', 3) then
+            for _, opts in ipairs(self.window_flag_options) do
+                imgui.TableNextColumn()
+                self[opts.key] = imgui.Checkbox(opts.name, self[opts.key]) --- @diagnostic disable-line: param-type-mismatch
+            end
+            imgui.EndTable()
+        end
     end
 
     ShowDemoWindowWidgets()
@@ -246,6 +310,79 @@ function ImGuiDemo:ShowDockingDisabledMessage()
 end
 
 function ImGuiDemo:ShowExampleMenuFile()
+    ImGui.MenuItem("(demo menu)", nil, false, false)
+    if ImGui.MenuItem("New") then
+    end
+    if ImGui.MenuItem("Open", "Ctrl+O") then
+    end
+    if ImGui.BeginMenu("Open Recent") then
+        ImGui.MenuItem("fish_hat.c")
+        ImGui.MenuItem("fish_hat.inl")
+        ImGui.MenuItem("fish_hat.h")
+
+        if ImGui.BeginMenu("More..") then
+            ImGui.MenuItem("Hello")
+            ImGui.MenuItem("Sailor")
+            if ImGui.BeginMenu("Recurse..") then
+                self:ShowExampleMenuFile()
+                ImGui.EndMenu()
+            end
+            ImGui.EndMenu()
+        end
+        ImGui.EndMenu()
+    end
+    if ImGui.MenuItem("Save", "Ctrl+S") then
+    end
+    if ImGui.MenuItem("Save As...") then
+    end
+
+    ImGui.Separator()
+    if ImGui.BeginMenu("Options") then
+        _, self.menu_state.enabled = ImGui.MenuItem("Enabled", "", self.menu_state.enabled)
+        ImGui.BeginChild("child", ImVec2(0, 60), ImGuiChildFlags.Border)
+        for i = 1, 10 do
+            ImGui.Text('Scrolling Text %d', i - 1)
+        end
+        ImGui.EndChild()
+        self.menu_state.f = ImGui.SliderFloat("Value", self.menu_state.f, 0.0, 1.0)
+        self.menu_state.f = ImGui.InputFloat("Input", self.menu_state.f, 0.1)
+        self.menu_state.n = ImGui.Combo("Combo", self.menu_state.n, "Yes\0No\0Maybe\0\0")
+        ImGui.EndMenu()
+    end
+
+    if ImGui.BeginMenu("Colors") then
+        local sz = ImGui.GetTextLineHeight()
+        for i = 0, ImGuiCol.COUNT - 1 do
+            local name = ImGui.GetStyleColorName(i)
+            local p = ImGui.GetCursorScreenPosVec()
+
+            ImGui.GetWindowDrawList():AddRectFilled(p, p + sz, ImGui.GetColorU32(i, 1.0))
+            ImGui.Dummy(sz, sz)
+            ImGui.SameLine()
+            ImGui.MenuItem(name)
+        end
+        ImGui.EndMenu()
+    end
+
+    -- Here we demonstrate appending again to the "Options" menu (which we already created above)
+    -- Of course in this demo it is a little bit silly that this function calls BeginMenu("Options") twice.
+    -- In a real code-base using it would make senses to use this feature from very different code locations.
+    if ImGui.BeginMenu("Options") then -- <-- Append!
+        self.menu_state.b = ImGui.Checkbox("SomeOptions", self.menu_state.b)
+        ImGui.EndMenu()
+    end
+
+    if ImGui.BeginMenu("Disabled", false) then
+        -- should never get hit
+        ---@diagnostic disable-next-line: undefined-field
+        ImGui.ThisFunctionDoesntExist()
+    end
+
+    if ImGui.MenuItem("Checked", nil, true) then
+    end
+    ImGui.Separator()
+    if ImGui.MenuItem("Quit", "Alt-F4") then
+    end
 end
 
 ---@param desiredSize ImVec2

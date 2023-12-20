@@ -60,9 +60,6 @@
     <Filter Include="Header Files\mq\api">
       <UniqueIdentifier>{5a764db5-6fa5-456d-b603-465edf27eec0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\mq\proto">
-      <UniqueIdentifier>{ed628629-cf94-4abc-92f8-d4acdcff94e2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
@@ -89,7 +86,7 @@
     <ClCompile Include="MQ2Commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DInput.cpp">
+    <ClCompile Include="MQInputAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Data.cpp">
@@ -114,9 +111,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2Mouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2PluginHandler.cpp">
@@ -302,9 +296,6 @@
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\Contrib\mini-yaml</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -386,7 +377,7 @@
     <ClCompile Include="GraphicsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2PostOffice.cpp">
+    <ClCompile Include="MQPostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQInventory.cpp">
@@ -395,8 +386,14 @@
     <ClCompile Include="datatypes\MQInventoryType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="MQActorAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -447,9 +444,6 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\NamedPipes.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
@@ -571,9 +565,6 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\proto\PostOffice.h">
-      <Filter>Header Files\mq\proto</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -601,17 +592,26 @@
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2PostOffice.h">
+    <ClInclude Include="MQPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Inventory.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\ActorAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQActorAPI.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

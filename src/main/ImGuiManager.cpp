@@ -16,13 +16,12 @@
 #include "ImGuiManager.h"
 
 #include "GraphicsEngine.h"
-#include "ImGuiBackend.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
 
 #include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
+#include "imgui/implot/implot.h"
 
  // I was trying to avoid including main, but we just got too many globals
 #include "MQ2Main.h"
@@ -31,6 +30,8 @@
 #include "common/HotKeys.h"
 #include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
+
+#include "imgui/implot/implot_internal.h"
 
 namespace ImGui
 {
@@ -305,12 +306,13 @@ namespace ImGui
 			}
 
 			int show_count = isNeedFilter ? static_cast<int>(itemScoreVector.size()) : items_count;
-			if (ImGui::ListBoxHeader("##ComboWithFilter_itemList", show_count))
+			float height = GetTextLineHeightWithSpacing() * ((items_count < 7 ? items_count : 7) + 0.25f) + GetStyle().FramePadding.y * 2.0f;
+			if (ImGui::BeginListBox("##ComboWithFilter_itemList", ImVec2(0.0f, height)))
 			{
 				for (int i = 0; i < show_count; i++)
 				{
 					int idx = isNeedFilter ? itemScoreVector[i].first : i;
-					PushID((void*)(intptr_t)idx);
+					PushID(idx);
 					const bool item_selected = (idx == *current_item);
 					const char* item_text = accessor(items, idx).c_str();
 					if (Selectable(item_text, item_selected))
@@ -323,7 +325,7 @@ namespace ImGui
 						SetItemDefaultFocus();
 					PopID();
 				}
-				ImGui::ListBoxFooter();
+				ImGui::EndListBox();
 			}
 			ImGui::PopItemWidth();
 			ImGui::EndPopup();
@@ -538,6 +540,18 @@ void UpdateImGuiDebugInfo()
 	ImGui::End();
 }
 
+static void ResumeOverlay()
+{
+	// Reset Implot context because it might be dirty after unexpected abort.
+	if (auto imPlotContext = ImPlot::GetCurrentContext())
+	{
+		ImPlot::ResetCtxForNextPlot(imPlotContext);
+		ImPlot::ResetCtxForNextSubplot(imPlotContext);
+	}
+
+	gbManualResetRequired = false;
+}
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
@@ -584,7 +598,7 @@ void ImGuiManager_DrawFrame()
 			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
 
 			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
-				gbManualResetRequired = false;
+				ResumeOverlay();
 		}
 
 		ImGui::End();
@@ -675,15 +689,26 @@ void ImGuiManager_ReloadContext()
 
 void ImGuiManager_CreateContext()
 {
+	bool buildFonts = false;
 	if (s_fontAtlas == nullptr)
 	{
 		s_fontAtlas = new ImFontAtlas();
-
-		ImGuiManager_BuildFonts(s_fontAtlas);
+		buildFonts = true;
+	}
+	else
+	{
+		// If we crashed in the middle of a frame, the atlas might be locked.
+		s_fontAtlas->Locked = false;
 	}
 
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
+	ImPlot::CreateContext();
+
+	if (buildFonts)
+	{
+		ImGuiManager_BuildFonts(s_fontAtlas);
+	}
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -703,6 +728,7 @@ void ImGuiManager_CreateContext()
 
 void ImGuiManager_DestroyContext()
 {
+	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 
 	delete s_fontAtlas;
@@ -785,7 +811,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		if (gbManualResetRequired)
 		{
 			WriteChatf("Resuming overlay...");
-			gbManualResetRequired = false;
+			ResumeOverlay();
 		}
 		else
 		{

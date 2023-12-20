@@ -15,13 +15,34 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#define DIRECTINPUT_VERSION    0x800
+#include <dinput.h>
+
 #include <DirectXMath.h>
 
 namespace mq {
 
-static void MouseButtonUp(DWORD x, DWORD y, char* szButton);
+static bool s_inGetDeviceState = false;
+static bool s_inGetDeviceData = false;
 
-// if we don't track item clicks like this, then _any_ click will result in a ground item click attempt
+static uintptr_t GetDeviceData = 0;
+static uintptr_t GetDeviceState = 0;
+
+enum MQMouseEventType
+{
+	MD_Unknown = -1,
+	MD_Button0 = 0,
+};
+
+struct MQQueuedMouseEvent
+{
+	MQMouseEventType    eventType;
+	DWORD               dwData;
+	MQQueuedMouseEvent* pNext;
+};
+
+static MQQueuedMouseEvent* s_queuedMouseEvents = nullptr;
+
 enum class ItemClickStatus
 {
 	MouseDown,
@@ -29,27 +50,24 @@ enum class ItemClickStatus
 	None
 };
 
-ItemClickStatus itemClickStatus = ItemClickStatus::None;
-
+static ItemClickStatus s_groundItemClickStatus = ItemClickStatus::None;
 
 class CDisplay_Detour
 {
 public:
 	DETOUR_TRAMPOLINE_DEF(CActorInterface*, GetClickedActor_Tramp, (int, int, bool, CVector3&, CVector3&))
-	CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
+		CActorInterface* GetClickedActor_Detour(int X, int Y, bool bFlag, CVector3& Vector1, CVector3& Vector2)
 	{
-		if (itemClickStatus != ItemClickStatus::None)
+		if (s_groundItemClickStatus != ItemClickStatus::None)
 		{
-			if (itemClickStatus == ItemClickStatus::MouseDown)
-				itemClickStatus = ItemClickStatus::MouseUp;
+			if (s_groundItemClickStatus == ItemClickStatus::MouseDown)
+				s_groundItemClickStatus = ItemClickStatus::MouseUp;
 			else
-				itemClickStatus = ItemClickStatus::None;
+				s_groundItemClickStatus = ItemClickStatus::None;
 
-			auto pGroundSpawn = CurrentGroundSpawn();
-			if (pGroundSpawn)
+			if (MQGroundSpawn pGroundSpawn = CurrentGroundSpawn())
 			{
-				auto pActor = pGroundSpawn.Actor();
-				if (pActor)
+				if (CActorInterface* pActor = pGroundSpawn.Actor())
 					return pActor;
 			}
 		}
@@ -58,92 +76,151 @@ public:
 	}
 };
 
-void InitializeMouseHooks()
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInput_GetDeviceData_Trampoline, (IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags))
+HRESULT CALLBACK DInput_GetDeviceData_Detour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
 {
-	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
-}
+	s_inGetDeviceData = true;
+	DWORD dwInOutSave = *pdwInOut;
 
-void ShutdownMouseHooks()
-{
-	RemoveDetour(CDisplay__GetClickedActor);
-}
-
-// ***************************************************************************
-// Function: ParseMouseLoc
-// Description: Parses mouseloc for /click and /mouseto
-// ***************************************************************************
-//Function used by ParseLocationXML to extract parameter
-// ExtractValue - gets value between specified start and end markers
-// - Parameters:
-// szFile - pointer to string to look in
-// szStart - pointer to string to mark start of value
-// szEnd - pointer to string to mark end of value
-// szValue - pointer to string to contain the value found
-// - Return Value:
-// if successful, return TRUE, szValue contains the value between the start and end markers
-// if unsuccessful, return FALSE
-static bool ExtractValue(char* szFile, char* szStart, char* szEnd, char* szValue)
-{
-	// verify we have legal pointers passed to us
-	if (!szValue)
-		return false;
-
-	if (!szFile || !szStart || !szEnd)
+	if (!gbUnload && This == g_pDIMouse)
 	{
-		szValue[0] = 0;
-		return false;
+		// If we are waiting for a click-event to be confirmed by EQ, don't
+		// pull any data, just return DI_OK and set the pdwInOut value to 0
+		if (IsMouseWaitingForButton())
+		{
+			*pdwInOut = 0;
+			s_inGetDeviceData = false;
+			return DI_OK;
+		}
+
+		if (s_queuedMouseEvents)
+		{
+			*pdwInOut = 0;
+			bool bLoop = true;
+
+			while (bLoop && s_queuedMouseEvents)
+			{
+				if (*pdwInOut < dwInOutSave)
+				{
+					bool bRemoveItem = true;
+
+					rgdod[*pdwInOut].dwSequence = 0;
+					rgdod[*pdwInOut].dwTimeStamp = 0;
+					rgdod[0].uAppData = 0;
+
+					if (s_queuedMouseEvents->eventType >= MD_Button0)
+					{
+						int button = s_queuedMouseEvents->eventType - MD_Button0;
+
+						rgdod[*pdwInOut].dwData = s_queuedMouseEvents->dwData;
+						rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON0 + button;
+						(*pdwInOut)++;
+					}
+
+					if (bRemoveItem)
+					{
+						MQQueuedMouseEvent* pTemp = s_queuedMouseEvents;
+						s_queuedMouseEvents = s_queuedMouseEvents->pNext;
+						if (pTemp)
+							delete pTemp;
+					}
+				}
+				else
+				{
+					bLoop = false;
+				}
+			}
+
+			s_inGetDeviceData = false;
+			return DI_OK;
+		}
 	}
 
-	size_t lenStart = strlen(szStart);
-	char* fence = strstr(szFile, "ScreenID"); // needed to make sure we don't start into another element
+	// If we didn't add any keyboard data, and we aren't waiting for a click,
+	// and we didn't add any mouse data
+	HRESULT hResult = DInput_GetDeviceData_Trampoline(This, cbObjectData, rgdod, pdwInOut, dwFlags);
 
-	char* sub = strstr(szFile, szStart);
-	char* sub2 = strstr(szFile, szEnd);
-	if (!sub || !sub2 || (fence && (sub > fence))) {
-		szValue[0] = 0;
-		return false;
-	}
-
-	memcpy(szValue, sub + lenStart, (sub2 - sub) - lenStart);
-	szValue[(sub2 - sub) - lenStart] = 0;
-	DebugSpew("Value extracted for %s was %s", szStart, szValue);
-	return true;
+	s_inGetDeviceData = false;
+	return hResult;
 }
 
-bool MoveMouse(int x, int y, bool bClick)
+// IDirectInputDevice8_GetDeviceState
+DETOUR_TRAMPOLINE_DEF(HRESULT CALLBACK, DInput_GetDeviceState_Trampoline, (IDirectInputDevice8A* This, DWORD cbData, void* lpvData))
+HRESULT CALLBACK DInput_GetDeviceState_Detour(IDirectInputDevice8A* This, DWORD cbData, void* lpvData)
 {
-	if (!EQADDR_MOUSE)
+	s_inGetDeviceState = true;
+
+	HRESULT hResult = DInput_GetDeviceState_Trampoline(This, cbData, lpvData);
+
+	// We could alter the return here if so desired, if a macro is executing that requires keyboard and mouse input.
+	// by setting hResult to DI_OK;
+
+	if (!gbUnload && (cbData == sizeof(DIMOUSESTATE) || cbData == sizeof(DIMOUSESTATE2)))
+	{
+		LPDIMOUSESTATE data = (LPDIMOUSESTATE)lpvData;
+
+		if (IsMouseWaitingForButton())
+		{
+			data->rgbButtons[0] = pEverQuestInfo->MouseButtons[0];
+			data->rgbButtons[1] = pEverQuestInfo->MouseButtons[1];
+		}
+	}
+
+	s_inGetDeviceState = false;
+	return hResult;
+}
+
+static void MouseButtonUp(DWORD x, DWORD y, int mouseButton = -1)
+{
+	gLClickedObject = false;
+
+	if (mouseButton == 0)
+	{
+		// click will fail if this isn't set to a time less than TimeStamp minus 750ms
+		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 69;
+		pEverQuest->LMouseUp(x, y);
+
+		CVector3 cv1, cv2;
+		if (pDisplay->GetClickedActor(x, y, false, cv1, cv2))
+		{
+			gLClickedObject = true;
+		}
+	}
+}
+
+bool MoveMouse(int x, int y)
+{
+	if (!g_pDIMouse)
 		return false;
 
-	HWND EQhWnd = *(HWND*)EQADDR_HWND;
+	HWND EQhWnd = *reinterpret_cast<HWND*>(EQADDR_HWND);
 	if (!EQhWnd)
 		return false;
 
 	CXPoint pt{ x, y };
 
-	ClientToScreen(EQhWnd, (LPPOINT)& pt);
+	ClientToScreen(EQhWnd, reinterpret_cast<LPPOINT>(&pt));
 	SetCursorPos(pt.x, pt.y);
 
 	pEverQuestInfo->MouseY = y;
 	pEverQuestInfo->MouseX = x;
 	EQADDR_MOUSE->Y = pEverQuestInfo->MouseY;
-	EQADDR_DIMOUSECHECK->y = pEverQuestInfo->MouseY;
 	EQADDR_MOUSE->X = pEverQuestInfo->MouseX;
-	EQADDR_DIMOUSECHECK->x = pEverQuestInfo->MouseX;
+	g_pDIMouseState->lY = pEverQuestInfo->MouseY;
+	g_pDIMouseState->lX = pEverQuestInfo->MouseX;
 
 	pWndMgr->MousePoint = pt;
 	pWndMgr->StoredMousePos = pt;
-
-	if (bClick)
-	{
-		MouseButtonUp(x, y, "left");
-	}
 
 	WeDidStuff();
 	DebugSpew("Moved mouse to: %d,%d", x, y);
 	return true;
 }
 
+// ***************************************************************************
+// Function: ParseMouseLoc
+// Description: Parses mouseloc for /click and /mouseto
+// ***************************************************************************
 static bool ParseMouseLoc(const char* szMouseLoc)
 {
 	// determine mouse location - x and y given
@@ -179,62 +256,42 @@ static bool ParseMouseLoc(const char* szMouseLoc)
 	return false;
 }
 
-// TODO: Expand this to support mouse buttons 3->8
-void ClickMouse(DWORD button)
+bool ClickMouseButton(int mouseButton)
 {
-	if (button > 1)
-		return;
+	if (mouseButton < 0 || mouseButton >= NUM_MOUSE_BUTTONS) // handle buttons 0-7
+		return false;
 
-	DWORD mdType = (DWORD)MD_Button0 + button;
+	MQMouseEventType eventType = static_cast<MQMouseEventType>(MD_Button0 + mouseButton);
 
-	if (!((pEverQuestInfo->MouseButtons[button] == 0x80) && !pEverQuestInfo->OldMouseButtons[button]))
-		pEverQuestInfo->MouseButtons[button] = 0x80;
+	if (!((pEverQuestInfo->MouseButtons[mouseButton] == 0x80) && !pEverQuestInfo->OldMouseButtons[mouseButton]))
+		pEverQuestInfo->MouseButtons[mouseButton] = 0x80;
 
-	gMouseClickInProgress[button] = true;
+	gMouseClickInProgress[mouseButton] = true;
+
+	MQQueuedMouseEvent* pData = new MQQueuedMouseEvent;
+	pData->eventType = eventType;
+	pData->dwData = 0;
+	pData->pNext = nullptr;
+
+	if (!s_queuedMouseEvents)
+	{
+		s_queuedMouseEvents = pData;
+	}
+	else
+	{
+		MQQueuedMouseEvent* pTemp = s_queuedMouseEvents;
+		while (pTemp->pNext)
+		{
+			pTemp = pTemp->pNext;
+		}
+		pTemp->pNext = pData;
+	}
 
 	WeDidStuff();
-
-	if (MOUSESPOOF* pData = new MOUSESPOOF)
-	{
-		pData->mdType = (MOUSE_DATA_TYPES)mdType;
-		pData->dwData = 0;
-		pData->pNext = nullptr;
-
-		if (!gMouseData)
-		{
-			gMouseData = pData;
-		}
-		else
-		{
-			MOUSESPOOF* pTemp = gMouseData;
-			while (pTemp->pNext)
-			{
-				pTemp = pTemp->pNext;
-			}
-			pTemp->pNext = pData;
-		}
-	}
+	return true;
 }
 
-void MouseButtonUp(DWORD x, DWORD y, char* szButton)
-{
-	CVector3 cv1, cv2;
-	gLClickedObject = false;
-
-	if (!_strnicmp(szButton, "left", 4))
-	{
-		// click will fail if this isn't set to a time less than TimeStamp minus 750ms
-		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 69;
-		pEverQuest->LMouseUp(x, y);
-
-		if (pDisplay->GetClickedActor(x, y, false, cv1, cv2))
-		{
-			gLClickedObject = true;
-		}
-	}
-}
-
-void ClickMouseLoc(char* szMouseLoc, char* szButton)
+static void ClickMouseLoc(char* szMouseLoc, char* szButton)
 {
 	// determine mouse location - x and y given
 	if ((szMouseLoc[0] == '+') || (szMouseLoc[0] == '-') || ((szMouseLoc[0] >= '0') && (szMouseLoc[0] <= '9')))
@@ -262,7 +319,7 @@ void ClickMouseLoc(char* szMouseLoc, char* szButton)
 			DebugSpew("Clicking mouse at absolute position");
 		}
 
-		MouseButtonUp(ClickX, ClickY, szButton);
+		MouseButtonUp(ClickX, ClickY, ci_equals(szButton, "left") ? 0 : -1);
 	}
 	else
 	{
@@ -275,7 +332,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 	if (!pLocalPlayer || !GroundSpawn)
 		return false;
 
-	auto distance = GroundSpawn.Distance3D(pLocalPlayer);
+	float distance = GroundSpawn.Distance3D(pLocalPlayer);
 	if (distance >= 20.f)
 	{
 		WriteChatf("You are %.2f away from the %s, move within 20 feet of it to click it.", distance, GroundSpawn.Name().c_str());
@@ -288,7 +345,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 
 		if (pWndMgr)
 		{
-			itemClickStatus = ItemClickStatus::MouseDown;
+			s_groundItemClickStatus = ItemClickStatus::MouseDown;
 			pEverQuest->RMouseUp(pWndMgr->MousePoint.x, pWndMgr->MousePoint.y);
 			return true;
 		}
@@ -299,7 +356,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 
 		// we "click" at -10000,-10000 because we expect that the user doesnt have any windows there.
 
-		itemClickStatus = ItemClickStatus::MouseDown;
+		s_groundItemClickStatus = ItemClickStatus::MouseDown;
 		pEverQuest->LMouseUp(-10000, -10000);
 		return true;
 	}
@@ -307,12 +364,6 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 	return false;
 }
 
-// ***************************************************************************
-// Function: Click
-// Description: Our '/click' command
-// Clicks the mouse button (calls EQ's mouse up commands)
-// Usage: /click left|right [<mouseloc>]
-// ***************************************************************************
 bool IsMouseWaitingForButton()
 {
 	return !((pEverQuestInfo->MouseButtons[1] == pEverQuestInfo->OldMouseButtons[1])
@@ -349,6 +400,82 @@ bool IsMouseWaiting()
 	return Result;
 }
 
+
+bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
+{
+	if (!gpD3D9Device || !pPlayer)
+	{
+		return false;
+	}
+
+	DirectX::XMVECTOR worldLocation;
+
+	if (position == 1)
+	{
+		// head
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight + pPlayer->AvatarHeight, 0);
+	}
+	else if (position == 2)
+	{
+		// feet
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight, 0);
+	}
+	else
+	{
+		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->Z, 0);
+	}
+
+	eqlib::Direct3DDevice9* pDevice = g_pDrawHandler->pD3DDevice;
+
+	D3DVIEWPORT9 viewport;
+	pDevice->GetViewport(&viewport);
+
+	D3DMATRIX mtxProj;
+	pDevice->GetTransform(D3DTS_PROJECTION, &mtxProj);
+	DirectX::FXMMATRIX projection = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxProj));
+
+	D3DMATRIX mtxView;
+	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
+	DirectX::CXMMATRIX view = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxView));
+
+	D3DMATRIX mtxWorld;
+	pDevice->GetTransform(D3DTS_WORLD, &mtxWorld);
+	DirectX::CXMMATRIX world = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxWorld));
+
+	DirectX::XMVECTOR v3ScreenCoord = DirectX::XMVector3Project(worldLocation,
+		(float)viewport.X, (float)viewport.Y, (float)viewport.Width, (float)viewport.Height, viewport.MinZ, viewport.MaxZ,
+		projection, view, world);
+
+	int x = DirectX::XMVectorGetIntX(v3ScreenCoord);
+	int y = DirectX::XMVectorGetIntY(v3ScreenCoord);
+	int z = DirectX::XMVectorGetIntZ(v3ScreenCoord);
+	if (z >= 1)
+	{
+		WriteChatf("%s is not within view %.2f", pPlayer->DisplayedName, z);
+		return false;
+	}
+
+	WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", pPlayer->DisplayedName, x, y, z);
+
+	MoveMouse(x, y);
+	WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",
+		pPlayer->DisplayedName, x, y, z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
+
+	if (bClick)
+	{
+		MouseButtonUp(x, y, 0);
+	}
+
+	return true;
+}
+
+
+// ***************************************************************************
+// Function: Click
+// Description: Our '/click' command
+// Clicks the mouse button (calls EQ's mouse up commands)
+// Usage: /click left|right [<mouseloc>]
+// ***************************************************************************
 void Click(SPAWNINFO* pChar, char* szLine)
 {
 	// This check protects against many of the pointers in this function being uninitialized
@@ -395,8 +522,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 		}
 		else if (!_strnicmp(szMouseLoc, "item", 4))
 		{
-			auto GroundSpawn = CurrentGroundSpawn();
-			if (GroundSpawn)
+			if (MQGroundSpawn GroundSpawn = CurrentGroundSpawn())
 				ClickMouseItem(GroundSpawn, !_strnicmp(szArg1, "left", 4));
 			else
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left|right item command.");
@@ -485,19 +611,18 @@ void Click(SPAWNINFO* pChar, char* szLine)
 
 	if (szArg1[0] != 0)
 	{
-		if (!_strnicmp(szArg1, "left", 4))
+		if (ci_equals(szArg1, "left"))
 		{
-			ClickMouse(0);
+			ClickMouseButton(0);
 		}
-		else if (!_strnicmp(szArg1, "right", 5))
+		else if (ci_equals(szArg1, "right"))
 		{
-			ClickMouse(1);
+			ClickMouseButton(1);
 		}
 		else
 		{
 			WriteChatColor("Usage: /click <left|right>", USERCOLOR_DEFAULT);
 			DebugSpew("Bad command: %s", szLine);
-			return;
 		}
 	}
 }
@@ -522,68 +647,33 @@ void MouseTo(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("Help invoked or Bad MouseTo command: %s", szLine);
 }
 
-
-bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
+void InitializeInputAPI()
 {
-	if (!gpD3D9Device || !pPlayer)
+	DebugSpew("Initializing Input");
+
+	if (g_pDIKeyboard)
 	{
-		return false;
+		uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(g_pDIKeyboard.get());
+
+		// hook GetDeviceState
+		GetDeviceState = vtable[9];
+		EzDetour(GetDeviceState, DInput_GetDeviceState_Detour, DInput_GetDeviceState_Trampoline);
+
+		// Hook GetDeviceData
+		GetDeviceData = vtable[10];
+		EzDetour(GetDeviceData, DInput_GetDeviceData_Detour, DInput_GetDeviceData_Trampoline);
 	}
 
-	DirectX::XMVECTOR worldLocation;
+	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
+}
 
-	if (position == 1)
-	{
-		// head
-		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight + pPlayer->AvatarHeight, 0);
-	}
-	else if (position == 2)
-	{
-		// feet
-		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->FloorHeight, 0);
-	}
-	else
-	{
-		worldLocation = DirectX::XMVectorSet(pPlayer->Y, pPlayer->X, pPlayer->Z, 0);
-	}
+void ShutdownInputAPI()
+{
+	DebugSpew("Shutting down Input");
 
-	eqlib::Direct3DDevice9* pDevice = g_pDrawHandler->pD3DDevice;
-
-	D3DVIEWPORT9 viewport;
-	pDevice->GetViewport(&viewport);
-
-	D3DMATRIX mtxProj;
-	pDevice->GetTransform(D3DTS_PROJECTION, &mtxProj);
-	DirectX::FXMMATRIX projection = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxProj));
-
-	D3DMATRIX mtxView;
-	pDevice->GetTransform(D3DTS_VIEW, &mtxView);
-	DirectX::CXMMATRIX view = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxView));
-
-	D3DMATRIX mtxWorld;
-	pDevice->GetTransform(D3DTS_WORLD, &mtxWorld);
-	DirectX::CXMMATRIX world = XMLoadFloat4x4(reinterpret_cast<const DirectX::XMFLOAT4X4*>(&mtxWorld));
-
-	DirectX::XMVECTOR v3ScreenCoord = DirectX::XMVector3Project(worldLocation,
-		(float)viewport.X, (float)viewport.Y, (float)viewport.Width, (float)viewport.Height, viewport.MinZ, viewport.MaxZ,
-		projection, view, world);
-
-	int x = DirectX::XMVectorGetIntX(v3ScreenCoord);
-	int y = DirectX::XMVectorGetIntY(v3ScreenCoord);
-	int z = DirectX::XMVectorGetIntZ(v3ScreenCoord);
-	if (z >= 1)
-	{
-		WriteChatf("%s is not within view %.2f", pPlayer->DisplayedName, z);
-		return false;
-	}
-
-	WriteChatf("%s is at %.2f, %.2f, %.2f before adjustment", pPlayer->DisplayedName, x, y, z);
-
-	MoveMouse(x, y, bClick);
-	WriteChatf("%s is at %d, %d, %.2f after adjustment and mouse is at %d, %d",
-		pPlayer->DisplayedName, x, y, z, EQADDR_MOUSE->X, EQADDR_MOUSE->Y);
-
-	return true;
+	RemoveDetour(CDisplay__GetClickedActor);
+	RemoveDetour(GetDeviceData);
+	RemoveDetour(GetDeviceState);
 }
 
 } // namespace mq

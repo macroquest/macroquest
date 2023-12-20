@@ -754,6 +754,20 @@ public:
 };
 
 //============================================================================
+// MQ2InvSlotWindowType
+
+class MQInvSlotWindowType : public MQ2Type
+{
+public:
+	MQInvSlotWindowType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+};
+
+//============================================================================
 // MQ2MenuType
 
 class MQ2MenuType : public MQ2Type
@@ -1466,6 +1480,19 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 
 	static bool dataInventory(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQCursorAttachmentType
+
+class MQCursorAttachmentType : public MQ2Type
+{
+public:
+	MQCursorAttachmentType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataCursorAttachment(const char* szIndex, MQTypeVar& Ret);
 };
 
 //----------------------------------------------------------------------------

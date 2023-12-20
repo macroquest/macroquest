@@ -671,7 +671,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 				TextTagInfo& tagInfo = textTagInfo[curTag];
 
 				// Get text before.
-				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data());
+				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data() - segPos);
 				if (!curSeg.empty())
 				{
 					position = InsertText(position, curSeg, color);
@@ -1229,7 +1229,7 @@ public:
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 6);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
 		ImGui::PushFont(mq::imgui::ConsoleFont);
 

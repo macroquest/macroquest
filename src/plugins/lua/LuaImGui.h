@@ -16,6 +16,8 @@
 
 #include "LuaCommon.h"
 
+struct ImPlotContext;
+
 namespace mq::lua {
 
 class LuaThread;
@@ -51,6 +53,8 @@ public:
 private:
 	const LuaThread* m_thread;
 	std::vector<std::unique_ptr<LuaImGui>> m_imguis;
+
+	std::shared_ptr<ImPlotContext> m_imPlotContext;
 };
 
 } // namespace mq::lua

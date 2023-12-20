@@ -257,6 +257,8 @@ enum class CharacterMembers
 	MedalsOfConflict,
 	ShadedSpecie,
 	SpiritualMedallions,
+	LaurionInnVoucher,
+	ShalowainsPrivateReserve,
 	LoyaltyTokens,
 	SpellInCooldown,
 	Slowed,
@@ -353,6 +355,7 @@ enum class CharacterMembers
 	RaidLeaderExp,
 	RaidLeaderPoints,
 	PctRaidLeaderExp,
+	PersonaLevel,
 };
 
 enum class CharacterMethods
@@ -600,6 +603,8 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, MedalsOfConflict);
 	ScopedTypeMember(CharacterMembers, ShadedSpecie);
 	ScopedTypeMember(CharacterMembers, SpiritualMedallions);
+	ScopedTypeMember(CharacterMembers, LaurionInnVoucher);
+	ScopedTypeMember(CharacterMembers, ShalowainsPrivateReserve);
 	ScopedTypeMember(CharacterMembers, LoyaltyTokens);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
@@ -696,6 +701,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, RaidLeaderExp);
 	ScopedTypeMember(CharacterMembers, RaidLeaderPoints);
 	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
+	ScopedTypeMember(CharacterMembers, PersonaLevel);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3045,6 +3051,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case CharacterMembers::LaurionInnVoucher:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_LAURIONINNVOUCHER);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ShalowainsPrivateReserve:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHALOWAINSPRIVATERESERVE);
+		Dest.Type = pIntType;
+		return true;
+
 	case CharacterMembers::LoyaltyTokens:
 		Dest.DWord = pLocalPC->LoyaltyRewardBalance;
 		Dest.Type = pIntType;
@@ -4124,6 +4140,38 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 #endif
 		Dest.Type = pFloatType;
 		return true;
+
+	case CharacterMembers::PersonaLevel: {
+		Dest.Type = pIntType;
+		Dest.Int = 0;
+#if HAS_ALTERNATE_PERSONAS
+		if (Index[0])
+		{
+			int classId = GetIntFromString(Index, -1);
+
+			if (classId != -1)
+			{
+				if (classId >= eqlib::Warrior && classId <= eqlib::Berserker)
+				{
+					Dest.Int = pLocalPC->GetPersonaLevel(classId);
+					return true;
+				}
+			}
+			else
+			{
+				for (int i = eqlib::Warrior; i < eqlib::Berserker; ++i)
+				{
+					if (ci_equals(Index, ClassInfo[i].ShortName))
+					{
+						Dest.Int = pLocalPC->GetPersonaLevel(i);
+						return true;
+					}
+				}
+			}
+		}
+#endif
+		return true;
+	}
 
 	default:
 		return false;
