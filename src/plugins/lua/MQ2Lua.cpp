@@ -1763,11 +1763,15 @@ PLUGIN_API void InitializePlugin()
 	s_pluginInterface = new LuaPluginInterfaceImpl();
 
 	bindings::InitializeBindings_MQMacroData();
+	
+	LuaActors::Start();
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
+	
+	LuaActors::Stop();
 
 	bindings::ShutdownBindings_MQMacroData();
 
@@ -1811,6 +1815,9 @@ PLUGIN_API void OnPulse()
 
 			return false;
 		}), s_running.end());
+	
+	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
+	LuaActors::Process();
 
 	if (s_infoGC.count() > 0)
 	{
