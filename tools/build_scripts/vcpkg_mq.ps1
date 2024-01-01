@@ -1,14 +1,14 @@
 Param (
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectName,
 
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectDirectory,
@@ -329,8 +329,11 @@ if ($vcpkgInstallTable.Count -ne 0) {
         if ($triplet.Value.Count -ne 0) {
             foreach ($node in $triplet.Value.GetEnumerator()) {
                 if ($node.Value.Count -ne 0) {
-                    # Force recursion to install new features
-                    $vcpkg_command += " --recurse $($node.Name)["
+                    # Force recursion to install new features if it is not already specified
+                    if ($vcpkg_command -NotLike "*--recurse*") {
+                        $vcpkg_command = $vcpkg_command.Replace("install --x-wait-for-lock","install --x-wait-for-lock --recurse")
+                    }
+                    $vcpkg_command += " $($node.Name)["
                     foreach ($feature in $node.Value) {
                         $vcpkg_command += "$feature,"
                     }

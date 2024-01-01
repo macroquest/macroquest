@@ -30,6 +30,7 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
+#include <cfenv>
 
 using namespace std::chrono_literals;
 
@@ -2021,7 +2022,45 @@ public:
 		return true;
 	}
 
-	void Draw()
+	void Draw() override
+	{
+		if (ImGui::BeginTabBar("##EngineTabBar"))
+		{
+			if (ImGui::BeginTabItem("General"))
+			{
+				DrawGeneral();
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Bitmaps"))
+			{
+				DrawBitmaps();
+
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+	}
+
+	void DrawGeneral()
+	{
+		int round = fegetround();
+
+		const char* roundingMode = "";
+		switch (round)
+		{
+		case FE_TONEAREST: roundingMode = "FE_TONEAREST"; break;
+		case FE_UPWARD: roundingMode = "FE_UPWARD"; break;
+		case FE_DOWNWARD: roundingMode = "FE_DOWNWARD"; break;
+		case FE_TOWARDZERO: roundingMode = "FE_TOWARDZERO"; break;
+		default: roundingMode = "UNKNOWN"; break;
+		}
+
+		ImGui::Text("Rounding Mode: %s", roundingMode);
+	}
+
+	void DrawBitmaps()
 	{
 		ImVec2 availSize = ImGui::GetContentRegionAvail();
 		if (m_rightPaneSize == 0.0f)
