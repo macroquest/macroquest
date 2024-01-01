@@ -16,10 +16,12 @@
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
-
 #include "MQ2DeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
 
 #include "mq/base/Detours.h"
+
+#include <cfenv>
+
 
 namespace mq {
 
@@ -450,6 +452,10 @@ void MQGraphicsEngine::PostUpdateScene()
 
 void MQGraphicsEngine::ImGui_DrawFrame()
 {
+	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
+	auto round = fegetround();
+	fesetround(FE_TONEAREST);
+
 	try
 	{
 		ImGui::NewFrame();
@@ -476,6 +482,8 @@ void MQGraphicsEngine::ImGui_DrawFrame()
 		WriteChatf("\arImGui Critical Failure: %s", ex.what());
 		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
 	}
+
+	fesetround(round);
 }
 
 void MQGraphicsEngine::PostEndScene()
