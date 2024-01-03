@@ -182,6 +182,11 @@ public:
 		return ARGB & 0xffffff;
 	}
 
+	constexpr uint32_t ToRGBA() const
+	{
+		return (ARGB & 0xffffff) << 8 | (ARGB & 0xff000000) >> 24;
+	}
+
 	constexpr void Invert()
 	{
 		ARGB = (0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000);

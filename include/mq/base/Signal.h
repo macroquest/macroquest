@@ -218,12 +218,12 @@ public:
 
 	~ScopedSignalConnection()
 	{
-		Disconnect();
+		this->Disconnect();
 	}
 
 	ScopedSignalConnection& operator=(const SignalConnection<T...>& connection)
 	{
-		Disconnect();
+		this->Disconnect();
 		SignalConnection<T...>::operator=(connection);
 		return *this;
 	}

@@ -3781,8 +3781,10 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 	ColumnText("Item Guid", "%s", pCursorAttachment->ItemGuid.guid);
 	ColumnText("Item ID", "%d", pCursorAttachment->ItemID);
 	ColumnText("Quantity", "%d", pCursorAttachment->Qty);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBL) // Rough approximation -- Added in 2018/06/19
 	ColumnText("IconID", "%d", pCursorAttachment->IconID);
 	ColumnText("Assigned Name", pCursorAttachment->AssignedName.c_str());
+#endif
 	ColumnCXStr("Button Text", pCursorAttachment->ButtonText);
 	ColumnWindow("Spell Gem", pCursorAttachment->pSpellGem);
 }
