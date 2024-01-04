@@ -280,6 +280,57 @@ void ProfileRecord::FormatTo(char* buffer, size_t length) const
 	*result.out = 0;
 }
 
+template <typename T>
+class WithDb
+{
+public:
+	WithDb(int flags)
+	{
+		if (sqlite3_open_v2(s_dbPath.c_str(), &m_db, flags, nullptr) != SQLITE_OK)
+		{
+			SPDLOG_ERROR("AutoLogin Error failed to open database %s: %s", s_dbPath, sqlite3_errmsg(m_db));
+			sqlite3_close(m_db);
+			m_db = nullptr;
+		}
+	}
+
+	~WithDb()
+	{
+		if (m_db != nullptr) sqlite3_close(m_db);
+	}
+
+	T operator()(const std::string& query, const std::function<T(sqlite3_stmt*, sqlite3*)>& action)
+	{
+		return WithStatement(m_db, query)(action);
+	}
+
+private:
+	class WithStatement
+	{
+	public:
+		WithStatement(sqlite3* db, const std::string& query) : m_db(db)
+		{
+			sqlite3_prepare_v2(db, query.c_str(), -1, &m_stmt, nullptr);
+		}
+
+		~WithStatement()
+		{
+			sqlite3_finalize(m_stmt);
+		}
+
+		T operator()(const std::function<T(sqlite3_stmt*, sqlite3*)> action)
+		{
+			return action(m_stmt, m_db);
+		}
+
+	private:
+		sqlite3* m_db;
+		sqlite3_stmt* m_stmt;
+	};
+
+	sqlite3* m_db = nullptr;
+};
+
 // TODO: better encryption
 static std::string XorEncryptDecrypt(std::string_view str, std::string_view key)
 {
@@ -300,62 +351,33 @@ struct HashParams
 {
 	size_t SaltLength = 16;
 	size_t HashLength = 32;
-	uint32_t TimeCost = 2;
-	uint32_t MemoryCost = 1 << 16;
+	uint32_t TimeCost = 4;
+	uint32_t MemoryCost = 1 << 4;
 	uint32_t Parallelism = 1;
 };
 
-template <typename T>
-class WithDb
+bool login::db::ValidatePass(std::string_view pass, bool empty_is_valid)
 {
-public:
-	WithDb(int flags)
-	{
-		if (sqlite3_open_v2(s_dbPath.c_str(), &m_db, flags, nullptr) != SQLITE_OK)
+	auto hash = WithDb<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT value FROM settings WHERE key = 'master_pass')",
+		[](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
-			SPDLOG_ERROR("AutoLogin Error failed to open database %s: %s", s_dbPath, sqlite3_errmsg(m_db));
-			sqlite3_close(m_db);
-			m_db = nullptr;
-		}
-	}
+			auto result = sqlite3_step(stmt);
+			if (result == SQLITE_ROW)
+				return (const char*)sqlite3_column_text(stmt, 0);
 
-	~WithDb()
-	{
-		if (m_db != nullptr) sqlite3_close(m_db);
-	}
+			if (result != SQLITE_DONE)
+				SPDLOG_ERROR("AutoLogin Error failed to read master pass: {}", sqlite3_errmsg(db));
 
-	T operator()(const std::string& query, const std::function<T(sqlite3_stmt*)>& action)
-	{
-		return WithStatement(m_db, query)(action);
-	}
+			return {};
+		});
 
-private:
-	class WithStatement
-	{
-	public:
-		WithStatement(sqlite3* db, const std::string& query)
-		{
-			sqlite3_prepare_v2(db, query.c_str(), -1, &m_stmt, nullptr);
-		}
+	if (empty_is_valid)
+		return !hash || argon2id_verify(hash->c_str(), pass.data(), pass.length()) == ARGON2_OK;
 
-		~WithStatement()
-		{
-			sqlite3_finalize(m_stmt);
-		}
+	return hash && argon2id_verify(hash->c_str(), pass.data(), pass.length()) == ARGON2_OK;
+}
 
-		T operator()(const std::function<T(sqlite3_stmt*)> action)
-		{
-			return action(m_stmt);
-		}
-
-	private:
-		sqlite3_stmt* m_stmt;
-	};
-
-	sqlite3* m_db = nullptr;
-};
-
-// TODO: AutoLogin.cpp will pop up a dialog at startup if the registry key fails
 std::optional<std::string> s_masterPass;
 void login::db::MemoizeMasterPass(std::string_view pass)
 {
@@ -375,7 +397,7 @@ bool login::db::CreateMasterPass(std::string_view pass)
 		{
 			return db(
 				fmt::format("SELECT value FROM settings WHERE key = '{}'", setting),
-				[](sqlite3_stmt* stmt) -> std::optional<std::string>
+				[](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 				{
 					if (sqlite3_step(stmt) == SQLITE_ROW)
 						return (const char*)sqlite3_column_text(stmt, 0);
@@ -401,7 +423,7 @@ bool login::db::CreateMasterPass(std::string_view pass)
 	if (auto val = get_setting("hash_len"))
 		hash_params.HashLength = GetIntFromString(*val, static_cast<int>(hash_params.HashLength));
 
-	auto update = [pass, &hash_params](sqlite3_stmt* stmt) -> std::optional<std::string>
+	auto update = [pass, &hash_params](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			std::mt19937 generator{std::random_device{}()};
 			std::uniform_int_distribution<unsigned char> distribution{'!', '~'};
@@ -417,7 +439,7 @@ bool login::db::CreateMasterPass(std::string_view pass)
 				static_cast<uint32_t>(hash_params.HashLength),
 				argon2_type::Argon2_id), '\0');
 
-			if (argon2id_hash_encoded(
+			auto argon2_err = argon2id_hash_encoded(
 				hash_params.TimeCost,
 				hash_params.MemoryCost,
 				hash_params.Parallelism,
@@ -427,20 +449,24 @@ bool login::db::CreateMasterPass(std::string_view pass)
 				hash_params.SaltLength,
 				hash_params.HashLength,
 				&encoded[0],
-				encoded.length()
-			) == ARGON2_OK)
+				encoded.length());
+
+			if (argon2_err == ARGON2_OK)
 			{
 				sqlite3_bind_text(stmt, 1, encoded.c_str(), static_cast<int>(encoded.length()), SQLITE_STATIC);
-				if (sqlite3_step(stmt) == SQLITE_ROW)
-					return (const char*)sqlite3_column_text(stmt, 0);
+				if (sqlite3_step(stmt) != SQLITE_DONE)
+					SPDLOG_ERROR("AutoLogin Error failed to store master pass: {}", sqlite3_errmsg(db));
+			}
+			else
+			{
+				SPDLOG_ERROR("AutoLogin Error failed to hash master pass: {}", argon2_error_message(argon2_err));
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to hash master pass.");
 			return {};
 		};
 
 	db(R"(
-		INSERT INTO settings (key, value, description) VALUES('master_pass', ?, 'Encoded hash of the user's master password.')
+		INSERT INTO settings (key, value, description) VALUES('master_pass', ?, 'Encoded hash of the user''s master password.')
 		ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)", update);
 
 	// then update the registry
@@ -449,7 +475,7 @@ bool login::db::CreateMasterPass(std::string_view pass)
 	{
 		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
 		// the timestamp is in hours since epoch
-		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp", std::chrono::duration_cast<std::chrono::hours>(std::chrono::steady_clock::now().time_since_epoch()).count());
+		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp", std::chrono::duration_cast<std::chrono::hours>(std::chrono::system_clock::now().time_since_epoch()).count());
 
 		// the string must be converted to a wide string for the registry
 		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
@@ -471,45 +497,27 @@ std::optional<std::string> login::db::ReadMasterPass()
 	{
 		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
 	}
+	else if (!(pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass")))
+	{
+		SPDLOG_ERROR("AutoLogin Error master pass is missing from registry.");
+	}
 	else if (!(pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp")))
 	{
 		SPDLOG_ERROR("AutoLogin Error master pass is missing date.");
 	}
-	else if (static_cast<int>(*pass_timestamp) + 720 > std::chrono::duration_cast<std::chrono::hours>(std::chrono::steady_clock::now().time_since_epoch()).count())
+	else if (static_cast<int>(*pass_timestamp) + 720 < std::chrono::duration_cast<std::chrono::hours>(std::chrono::system_clock::now().time_since_epoch()).count())
 	{
 		SPDLOG_ERROR("AutoLogin Error master pass has expired."); // 720 hours is 30 days
 	}
-	else if (!(pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass")))
-	{
-		SPDLOG_ERROR("AutoLogin Error master pass is missing.");
-	}
 	else
 	{
+		// we have a stored hash to compare against
+		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+		std::string entered_pass(cvt.to_bytes(pass->c_str()));
+		if (ValidatePass(entered_pass, false))
+			return entered_pass;
 
-		auto stored_hash = WithDb<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
-			R"(SELECT value FROM settings WHERE key = 'master_pass')",
-			[](sqlite3_stmt* stmt) -> std::optional<std::string>
-			{
-				if (sqlite3_step(stmt) == SQLITE_ROW)
-					return (const char*)sqlite3_column_text(stmt, 0);
-
-				return {};
-			});
-
-		if (stored_hash)
-		{
-			// we have a stored hash to compare against
-			std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-			std::string entered_pass(cvt.to_bytes(pass->c_str()));
-			if (argon2id_verify(stored_hash->c_str(), entered_pass.c_str(), entered_pass.length()) == ARGON2_OK)
-				return entered_pass;
-			else
-				SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
-		}
-		else
-		{
-			SPDLOG_ERROR("AutoLogin Error there is no stored master pass.");
-		}
+		SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
 	}
 
 	return {};
@@ -521,7 +529,7 @@ void login::db::CreateEQPath(std::string_view path)
 		R"(
 			INSERT INTO SETTINGS (key, value, description) VALUES('eq_path', ?, 'Default EQ path')
 			ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)",
-		[path](sqlite3_stmt* stmt)
+		[path](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, path.data(), static_cast<int>(path.length()), SQLITE_STATIC);
 			sqlite3_step(stmt);
@@ -532,26 +540,39 @@ std::string login::db::ReadEQPath()
 {
 	return WithDb<std::string>(SQLITE_OPEN_READONLY)(
 		R"(SELECT value FROM settings WHERE key = 'eq_path')",
-		[](sqlite3_stmt* stmt) -> std::string
+		[](sqlite3_stmt* stmt, sqlite3* db) -> std::string
 		{
 			if (sqlite3_step(stmt) == SQLITE_ROW)
 				return (const char*)sqlite3_column_text(stmt, 0);
 
-			// this is the fail case when eq_path is empty
-			SPDLOG_ERROR("AutoLogin Error cannot find base eq path.");
 			return "";
 		});
 }
 
 // ================================================================================================================================
 // profile_groups
+std::vector<std::string> login::db::ListProfileGroups()
+{
+	return WithDb<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT name FROM profile_groups)",
+		[](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			std::vector<std::string> groups;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				groups.push_back((const char*)sqlite3_column_text(stmt, 0));
+			}
+
+			return groups;
+		});
+}
 void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO profile_groups (name, eq_path) VALUES(?, ?)
 			ON CONFLICT(name) DO UPDATE SET eq_path=excluded.eq_path)",
-		[&group](sqlite3_stmt* stmt)
+		[&group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, group.profileName.c_str(), static_cast<int>(group.profileName.length()), SQLITE_STATIC);
 
@@ -569,7 +590,7 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 {
 	return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT id, eq_path FROM profile_groups WHERE name = ?)",
-		[&group](sqlite3_stmt* stmt) -> std::optional<unsigned int>
+		[&group](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, group.profileName.c_str(), static_cast<int>(group.profileName.length()), SQLITE_STATIC);
 
@@ -581,7 +602,7 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 				return (unsigned int)sqlite3_column_int(stmt, 0);
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to load profile group: {}", group.profileName);
+			SPDLOG_ERROR("AutoLogin Error failed to load profile group {}: {}", group.profileName, sqlite3_errmsg(db));
 			return {};
 		});
 }
@@ -594,7 +615,7 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 			SET name    = ?,
 			    eq_path = ?
 			WHERE name  = ?)",
-		[name, &group](sqlite3_stmt* stmt)
+		[name, &group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, group.profileName.c_str(), static_cast<int>(group.profileName.length()), SQLITE_STATIC);
 
@@ -614,7 +635,7 @@ void login::db::DeleteProfileGroup(std::string_view name)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM profile_groups WHERE name = ?)",
-		[name](sqlite3_stmt* stmt)
+		[name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
 
@@ -626,19 +647,36 @@ void login::db::DeleteProfileGroup(std::string_view name)
 
 // ================================================================================================================================
 // accounts
+std::vector<std::string> login::db::ListAccounts()
+{
+	return WithDb<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT account FROM accounts)",
+		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::string>
+		{
+			std::vector<std::string> accounts;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				accounts.push_back((const char*)sqlite3_column_text(stmt, 0));
+			}
+
+			return accounts;
+		});
+}
+
 void login::db::CreateAccount(const ProfileRecord& profile)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO accounts (account, password) VALUES (?, ?)
 			ON CONFLICT (account) DO UPDATE SET password=excluded.password)",
-		[&profile](sqlite3_stmt* stmt)
+		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.accountName.c_str(), static_cast<int>(profile.accountName.length()), SQLITE_STATIC);
 
+			std::string encrypted_pass;
 			if (auto master_pass = GetMasterPass())
 			{
-				auto encrypted_pass = XorEncryptDecrypt(profile.accountPassword, *master_pass);
+				encrypted_pass = XorEncryptDecrypt(profile.accountPassword, *master_pass);
 				sqlite3_bind_text(stmt, 2, encrypted_pass.c_str(), static_cast<int>(encrypted_pass.length()), SQLITE_STATIC);
 			}
 			else
@@ -654,19 +692,20 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 {
 	return WithDb<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT password FROM accounts WHERE account = ?)",
-		[&profile](sqlite3_stmt* stmt) -> std::optional<std::string>
+		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, profile.accountName.c_str(), static_cast<int>(profile.accountName.length()), SQLITE_STATIC);
 
 			auto master_pass = GetMasterPass();
 			if (master_pass && sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_type(stmt, 0) == SQLITE_TEXT)
 			{
-				auto pass = XorEncryptDecrypt((const char*)sqlite3_column_text(stmt, 0), *master_pass);
+				std::string pass((const char*)sqlite3_column_text(stmt, 0), sqlite3_column_bytes(stmt, 0));
+				pass = XorEncryptDecrypt(pass, *master_pass);
 				profile.accountPassword = pass;
 				return pass;
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to load account: {}", profile.accountName);
+			SPDLOG_ERROR("AutoLogin Error failed to load account {}: {}", profile.accountName, sqlite3_errmsg(db));
 			return {};
 		});
 }
@@ -679,13 +718,14 @@ void login::db::UpdateAccount(std::string_view account, const ProfileRecord& rec
 			SET account = ?,
 			    password = ?
 			WHERE account = ?)",
-		[account, &record](sqlite3_stmt* stmt)
+		[account, &record](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, record.accountName.c_str(), static_cast<int>(record.accountName.length()), SQLITE_STATIC);
 
+			std::string encrypted_pass;
 			if (auto master_pass = GetMasterPass())
 			{
-				auto encrypted_pass = XorEncryptDecrypt(record.accountPassword, *master_pass);
+				encrypted_pass = XorEncryptDecrypt(record.accountPassword, *master_pass);
 				sqlite3_bind_text(stmt, 2, encrypted_pass.c_str(), static_cast<int>(encrypted_pass.length()), SQLITE_STATIC);
 			}
 			else
@@ -703,7 +743,7 @@ void login::db::DeleteAccount(std::string_view account)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM accounts WHERE account = ?)",
-		[account](sqlite3_stmt* stmt)
+		[account](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
 			sqlite3_step(stmt);
@@ -719,7 +759,7 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 		R"(
 			INSERT INTO characters (character, server, account) VALUES(?, ?, ?)
 			ON CONFLICT(character, server) DO UPDATE SET account=excluded.account)",
-		[&profile](sqlite3_stmt* stmt)
+		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -736,7 +776,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 			SELECT id, account
 			FROM characters
 			WHERE character = ? AND server = ?)",
-		[&profile](sqlite3_stmt* stmt) -> std::optional<unsigned int>
+		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -747,7 +787,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 				return (unsigned int)sqlite3_column_int(stmt, 0);
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to load server: {}, character: {}", profile.serverName, profile.characterName);
+			SPDLOG_ERROR("AutoLogin Error failed to load server {} and character {}: {}", profile.serverName, profile.characterName, sqlite3_errmsg(db));
 			return {};
 		});
 }
@@ -761,7 +801,7 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 			    server = ?,
 			    account = ?
 			WHERE character = ? AND server = ?)",
-		[server, name, &profile](sqlite3_stmt* stmt)
+		[server, name, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -778,7 +818,7 @@ void login::db::DeleteCharacter(std::string_view server, std::string_view name)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM characters WHERE character = ? AND server = ?)",
-		[server, name](sqlite3_stmt* stmt)
+		[server, name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
@@ -796,7 +836,7 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 		R"(
 			INSERT INTO personas (character_id, class, level) VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?)
 			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level)",
-		[&profile](sqlite3_stmt* stmt)
+		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -815,7 +855,7 @@ std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 			FROM personas p
 			JOIN characters c ON p.character_id = c.id
 			WHERE server = ? AND character = ? AND class = ?)",
-		[&profile](sqlite3_stmt* stmt) -> std::optional<unsigned int>
+		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -828,7 +868,7 @@ std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 			}
 
 			// this is a warning because persona isn't strictly required
-			SPDLOG_WARN("AutoLogin Error failed to load persona: {}, server: {}, character: {}", profile.characterClass, profile.serverName, profile.characterName);
+			SPDLOG_WARN("AutoLogin Error failed to load persona {}, server {}, character {}: {}", profile.characterClass, profile.serverName, profile.characterName, sqlite3_errmsg(db));
 			return {};
 		});
 }
@@ -841,7 +881,7 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 			SET class = ?,
 			    level = ?
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
-		[cls, &profile](sqlite3_stmt* stmt)
+		[cls, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterClass.c_str(), static_cast<int>(profile.characterClass.length()), SQLITE_STATIC);
 			sqlite3_bind_int(stmt, 2, profile.characterLevel);
@@ -859,7 +899,7 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 		R"(
 			DELETE FROM personas
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
-		[server, name, cls](sqlite3_stmt* stmt)
+		[server, name, cls](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
@@ -872,6 +912,49 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 
 // ================================================================================================================================
 // profiles
+std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
+{
+	// TODO: personas or characters should have a "current persona" -- this will currently return multiple entries for the same character
+	return WithDb<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+		R"(
+			SELECT hotkey, character, server, class, level, account, selected
+			FROM profiles
+			JOIN (SELECT id AS character_id, character, server, account FROM characters) USING (character_id)
+			JOIN (SELECT id AS group_id FROM profile_groups WHERE name = ?) USING (group_id)
+			LEFT JOIN (SELECT character_id, class, level FROM personas) USING (character_id))",
+		[group](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			std::vector<ProfileRecord> records;
+			sqlite3_bind_text(stmt, 1, group.data(), static_cast<int>(group.length()), SQLITE_STATIC);
+
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				ProfileRecord record;
+				if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+					record.hotkey = (const char*)sqlite3_column_text(stmt, 0);
+
+				record.characterName = (const char*)sqlite3_column_text(stmt, 1);
+				record.serverName = (const char*)sqlite3_column_text(stmt, 2);
+
+				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+					record.characterClass = (const char*)sqlite3_column_text(stmt, 3);
+				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+					record.characterLevel = sqlite3_column_int(stmt, 4);
+
+				record.accountName = (const char*)sqlite3_column_text(stmt, 5);
+
+				if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
+					record.checked = sqlite3_column_int(stmt, 6) != 0;
+
+				record.profileName = group;
+
+				records.push_back(std::move(record));
+			}
+
+			return records;
+		});
+}
+
 void login::db::CreateProfile(const ProfileRecord& profile)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
@@ -879,7 +962,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, selected)
 			VALUES((SELECT id FROM characters WHERE server = ? AND character = ?), (SELECT id FROM profile_groups WHERE name = ?), ?, ?, ?)
 			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, selected=excluded.selected)",
-		[&profile](sqlite3_stmt* stmt)
+		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -903,7 +986,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 		R"(SELECT id, eq_path, hotkey, selected FROM profiles
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
-		[&profile](sqlite3_stmt* stmt) -> std::optional<unsigned int>
+		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -923,7 +1006,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 				return (unsigned int)sqlite3_column_int(stmt, 0);
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to load profile: {}, server: {}, character: {}", profile.profileName, profile.serverName, profile.characterName);
+			SPDLOG_ERROR("AutoLogin Error failed to load profile {}, server {}, character {}: {}", profile.profileName, profile.serverName, profile.characterName, sqlite3_errmsg(db));
 			return {};
 		});
 }
@@ -932,21 +1015,21 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 {
 	if (auto master_pass = GetMasterPass())
 	{
+		// left join group here to allow for empty group (in the case where you want character/server and it doesn't matter)
 		return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 			R"(
-			SELECT p.id, p.eq_path, hotkey, level, account, password, selected
-			FROM profiles p
-			JOIN profile_groups g ON p.group_id = g.id
-			JOIN characters c ON p.character_id = c.id
+			SELECT id, eq_path, hotkey, level, account, password, selected
+			FROM profiles
+			JOIN (SELECT id AS character_id, account FROM characters WHERE server = ? AND character = ?) USING (character_id)
 			JOIN accounts USING (account)
-			LEFT JOIN (SELECT character_id, class FROM personas WHERE class = ?) USING (character_id)
-			WHERE server = ? AND character = ? AND g.name = ?)",
-			[&master_pass, &profile](sqlite3_stmt* stmt) -> std::optional<unsigned int>
+			LEFT JOIN (SELECT id AS group_id FROM profile_groups WHERE name = ?) USING (group_id)
+			LEFT JOIN (SELECT character_id, class, level FROM personas WHERE class = ?) USING (character_id))",
+			[&master_pass, &profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 			{
-				sqlite3_bind_text(stmt, 1, profile.characterClass.c_str(), static_cast<int>(profile.characterClass.length()), SQLITE_STATIC);
-				sqlite3_bind_text(stmt, 2, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
-				sqlite3_bind_text(stmt, 3, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
-				sqlite3_bind_text(stmt, 4, profile.profileName.c_str(), static_cast<int>(profile.profileName.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 3, profile.profileName.c_str(), static_cast<int>(profile.profileName.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 4, profile.characterClass.c_str(), static_cast<int>(profile.characterClass.length()), SQLITE_STATIC);
 
 				if (sqlite3_step(stmt) == SQLITE_ROW)
 				{
@@ -958,7 +1041,8 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 						profile.characterLevel = sqlite3_column_int(stmt, 3);
 
 					profile.accountName = (const char*)sqlite3_column_text(stmt, 4);
-					profile.accountPassword = XorEncryptDecrypt((const char*)sqlite3_column_text(stmt, 5), *master_pass);
+					std::string pass((const char*)sqlite3_column_text(stmt, 5), sqlite3_column_bytes(stmt, 5));
+					profile.accountPassword = XorEncryptDecrypt(pass, *master_pass);
 
 					if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
 						profile.checked = sqlite3_column_int(stmt, 6) != 0;
@@ -966,7 +1050,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 					return (unsigned int)sqlite3_column_int(stmt, 0);
 				}
 
-				SPDLOG_ERROR("AutoLogin Error failed to load profile: {}, server: {}, character: {}", profile.profileName, profile.serverName, profile.characterName);
+				SPDLOG_ERROR("AutoLogin Error failed to load profile {}, server {}, character {}: {}", profile.profileName, profile.serverName, profile.characterName, sqlite3_errmsg(db));
 				return {};
 			});
 	}
@@ -988,16 +1072,18 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE personas
+			UPDATE OR REPLACE profiles
 			SET eq_path = ?,
 			    hotkey = ?,
 			    selected = ?
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
-		[&profile](sqlite3_stmt* stmt)
+		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			if (profile.eqPath)
 				sqlite3_bind_text(stmt, 1, profile.eqPath->c_str(), static_cast<int>(profile.eqPath->length()), SQLITE_STATIC);
+			else
+				sqlite3_bind_null(stmt, 1);
 			sqlite3_bind_text(stmt, 2, profile.hotkey.c_str(), static_cast<int>(profile.hotkey.length()), SQLITE_STATIC);
 			sqlite3_bind_int(stmt, 3, profile.checked ? 1 : 0);
 
@@ -1013,10 +1099,10 @@ void login::db::DeleteProfile(std::string_view server, std::string_view name, st
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			DELETE FROM personas
+			DELETE FROM profiles
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
-		[server, name, group](sqlite3_stmt* stmt)
+		[server, name, group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
@@ -1052,7 +1138,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	{
 		auto groups = WithDb<std::map<unsigned int, ProfileGroup>>(SQLITE_OPEN_READONLY)(
 			R"(SELECT id, name, eq_path FROM profile_groups)",
-			[](sqlite3_stmt* stmt)
+			[](sqlite3_stmt* stmt, sqlite3* db)
 			{
 				std::map<unsigned int, ProfileGroup> groups;
 				while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -1080,13 +1166,14 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					JOIN accounts a ON c.account = a.account
 					LEFT JOIN personas l ON l.character_id = c.id
 					WHERE p.group_id = ?)",
-				[&id, &group, &pass](sqlite3_stmt* stmt)
+				[&id, &group, &pass](sqlite3_stmt* stmt, sqlite3* db)
 				{
 					sqlite3_bind_int(stmt, 1, id);
 					while (sqlite3_step(stmt) == SQLITE_ROW)
 					{
 						std::string account((const char*)sqlite3_column_text(stmt, 0));
-						std::string password(XorEncryptDecrypt((const char*)sqlite3_column_text(stmt, 1), *pass));
+						std::string readpass((const char*)sqlite3_column_text(stmt, 1), sqlite3_column_bytes(stmt, 1));
+						std::string password(XorEncryptDecrypt(readpass, *pass));
 
 						std::string server((const char*)sqlite3_column_text(stmt, 2));
 						std::string character((const char*)sqlite3_column_text(stmt, 3));
@@ -1144,7 +1231,7 @@ void login::db::WriteProfileGroups(const std::vector<ProfileGroup>& groups)
 
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 // TODO: test this (open a bunch of clients simultaneously)
-std::vector<ProfileGroup> login::db::InitDatabase(const std::string& path, const std::string& ini)
+bool login::db::InitDatabase(const std::string& path)
 {
 	s_dbPath = path;
 	sqlite3* db = nullptr;
@@ -1162,18 +1249,21 @@ std::vector<ProfileGroup> login::db::InitDatabase(const std::string& path, const
 	if (sqlite3_open_v2(s_dbPath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
 	{
 		SPDLOG_ERROR("AutoLogin Error opening login database: {}", sqlite3_errmsg(db));
-		sqlite3_close(db);
 	}
 	else
 	{
+		SPDLOG_INFO("AutoLogin Opening database at {}", path);
 		char* err_msg = nullptr;
 		auto err = [&err_msg, &db](std::string_view text)
 			{
 				SPDLOG_ERROR("{}: {}", text, err_msg);
 				sqlite3_free(err_msg);
-				sqlite3_close(db);
 			};
 
+		// TODO: account needs another entry to differentiate between emu/live
+		//		 this means we can also tie default eq path to emu/live (while
+		//		 still allowing for overrides in profile/groups)
+		// TODO: persona needs to also store the active persona to persist
 		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS settings (
 			  key text primary key,
@@ -1233,19 +1323,9 @@ std::vector<ProfileGroup> login::db::InitDatabase(const std::string& path, const
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating personas table.");
-		else
-		{
-			sqlite3_close(db); // guaranteed that db is not nullptr here
-
-			if (load_ini)
-				WriteProfileGroups(LoadAutoLoginProfiles(ini));
-
-			// even if we are required to load from the ini, do a read from the db here to ensure
-			// we are consistent
-			return GetProfileGroups();
-		}
 	}
 
-	return {};
+	sqlite3_close(db);
+	return load_ini;
 }
 

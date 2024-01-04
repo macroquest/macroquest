@@ -38,6 +38,7 @@ PreSetup("MQ2AutoLogin");
 
 constexpr int STEP_DELAY = 1000;
 
+std::string DBPath = (fs::path(mq::gPathConfig) / "login.db").string();
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
 postoffice::DropboxAPI s_autologinDropbox;
@@ -429,11 +430,6 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	auto record = ProfileRecord::FromString(szLine);
 	if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
 	{
-		record = ProfileRecord::FromINI(
-			record.profileName,
-			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
-			INIFileName);
-
 		LoginProfile(
 			record.profileName.c_str(),
 			record.serverName.c_str(),
@@ -455,24 +451,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!record.serverName.empty() && !record.characterName.empty())
 	{
-		// we have a server and a character, we need to find the first entry in the ini where these match (regardless of profile)
-		char buff[MAX_STRING] = { 0 };
-		int buff_size = GetPrivateProfileSectionNames(buff, MAX_STRING, INIFileName);
-		std::string buff_str = std::string(buff, buff_size);
-
-		auto sections = split(buff_str, '\0');
-
-		for (const auto& section : sections)
-		{
-			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
-			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
-
-			if (!blob.empty())
-			{
-				record = ProfileRecord::FromINI(section.c_str(), blobKey, INIFileName);
-				break;
-			}
-		}
+		login::db::ReadFullProfile(record);
 
 		if (!record.profileName.empty())
 			LoginProfile(
@@ -480,7 +459,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 				record.serverName.c_str(),
 				record.characterName.c_str());
 		else
-			WriteChatf("Could not find %s:%s in your autologin ini", record.serverName.c_str(), record.characterName.c_str());
+			WriteChatf("Could not find %s:%s in your autologin db", record.serverName.c_str(), record.characterName.c_str());
 	}
 	else
 	{
@@ -637,6 +616,7 @@ PLUGIN_API void InitializePlugin()
 
 	Login::set_initial_state();
 	ReadINI();
+	login::db::InitDatabase((fs::path(mq::gPathConfig) / "login.db").string());
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
@@ -993,7 +973,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			if (ImGui::Button("Select Profile"))
 			{
-				Login::profiles() = LoadAutoLoginProfiles(INIFileName);
+				Login::profiles() = login::db::GetProfileGroups();
 				ImGui::OpenPopup("ProfileSelector");
 			}
 

@@ -26,8 +26,14 @@
 #include <filesystem>
 #include <sstream>
 #include <regex> // TODO: remove this and store account/server/char as separate fields in the profile struct
+#include <spdlog/spdlog.h>
 
 #include <fmt/format.h>
+
+#include "hello_imgui/hello_imgui.h"
+#include "imgui/ImGuiFileDialog.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_internal.h"
 
 namespace fs = std::filesystem;
 
@@ -105,6 +111,8 @@ int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
 postoffice::Dropbox s_dropbox;
+
+static ImGuiFileDialog* s_eqDirDialog = nullptr;
 
 namespace internal_paths
 {
@@ -1077,12 +1085,436 @@ void LaunchCleanSession()
 	::CreateProcessA(nullptr, &parameters[0], nullptr, nullptr, FALSE, 0, nullptr, internal_paths::EQRoot.c_str(), &si, &pi);
 }
 
+bool SmallCheckbox(const char* label, bool* v)
+{
+	float backup_padding_y = ImGui::GetStyle().FramePadding.y;
+	ImGui::GetStyle().FramePadding.y = 0.f;
+	bool pressed = ImGui::Checkbox(label, v);
+	ImGui::GetStyle().FramePadding.y = backup_padding_y;
+	return pressed;
+}
+
+bool ToggleSlider(const char* label, bool* v)
+{
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	ImVec2 position = ImGui::GetCursorScreenPos();
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	float height = ImGui::GetFrameHeight();
+	float width = height * 1.55f;
+	float radius = height * 0.5f;
+
+	bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
+	if (ImGui::IsItemClicked()) *v = !*v;
+
+	float t = *v ? 1.f : 0.f;
+
+	ImGuiContext* g = ImGui::GetCurrentContext();
+	float animation_speed = 8.5f;
+	if (g->LastActiveId == g->CurrentWindow->GetID(label))
+	{
+		float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
+		t = *v ? t_anim : (1.f - t_anim);
+	}
+
+	ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
+
+	ImU32 fg_color;
+	if (ImGui::IsItemClicked())
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonActive]);
+	else if (ImGui::IsItemHovered())
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonHovered]);
+	else
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_Button]);
+
+	draw_list->AddRectFilled(position, ImVec2(position.x + width, position.y + height), bg_color, height * 0.5f);
+	draw_list->AddCircleFilled(ImVec2(position.x + radius + t * (width - radius * 2.f), position.y + radius), radius - 1.5f, fg_color);
+
+	return ret;
+}
+
+void SetEQDir()
+{
+	auto eqDir = login::db::ReadEQPath();
+	ImGui::SetNextItemWidth(-105.0f);
+	ImGui::InputText("EQ Dir", &eqDir[0], eqDir.size(), ImGuiInputTextFlags_ReadOnly);
+
+	if (!s_eqDirDialog)
+		s_eqDirDialog = IGFD_Create();
+
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(80.0f);
+	if (ImGui::Button("Choose##eqdir"))
+	{
+		IGFD_OpenDialog2(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
+			nullptr, (internal_paths::EQRoot + "/").c_str(), 1, nullptr, ImGuiFileDialogFlags_None);
+	}
+
+	if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+	{
+		if (IGFD_IsOk(s_eqDirDialog))
+		{
+			std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
+			std::error_code ec;
+			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
+			{
+				auto eq_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
+				login::db::CreateEQPath(eq_path);
+			}
+		}
+
+		IGFD_CloseDialog(s_eqDirDialog);
+	}
+}
+
+void ShowAccountWindow()
+{
+	// declare account statics
+	static std::optional<std::string> selected;
+	static bool show_password = false;
+	static std::string password;
+	static std::string account_name;
+
+	if (ImGui::BeginListBox("##accountslist"))
+	{
+		for (const auto& account : login::db::ListAccounts())
+		{
+			const bool is_selected = selected && ci_equals(account, *selected);
+			if (ImGui::Selectable(account.c_str(), is_selected))
+				selected = account;
+
+			if (is_selected) ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndListBox();
+	}
+
+	if (selected)
+	{
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenPopup("Delete Account");
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+		{
+			ProfileRecord profile;
+			profile.accountName = *selected;
+			if (auto pass = login::db::ReadAccount(profile))
+				password = *pass;
+
+			ImGui::OpenPopup("Edit Account");
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
+	}
+
+	if (ImGui::BeginPopupModal("Delete Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Are you sure you want to delete account '%s'? All associated characters and profiles will also be removed.", selected->c_str());
+		ImGui::Spacing();
+
+		if (ImGui::Button("Yes##deleteaccount", ImVec2(120, 0)))
+		{
+			login::db::DeleteAccount(*selected);
+			selected = {};
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("No##deleteaccount", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopupModal("Edit Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Set password for account '%s':", selected->c_str());
+		ImGui::Spacing();
+
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+		if (!show_password) flags |= ImGuiInputTextFlags_Password;
+		ImGui::InputText("##password##editaccount", &password, flags);
+		ImGui::Spacing();
+
+		ImGui::Checkbox("Show password##editaccount", &show_password);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK##editaccount", ImVec2(120, 0)))
+		{
+			ProfileRecord record;
+			record.accountName = *selected;
+			record.accountPassword = password;
+			login::db::UpdateAccount(*selected, record);
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel##editaccount", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopupModal("Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Create a new account, or update existing account.");
+		ImGui::Spacing();
+
+		ImGui::InputText("Account Name##createaccount", &account_name);
+		ImGui::Spacing();
+
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+		if (!show_password) flags |= ImGuiInputTextFlags_Password;
+		ImGui::InputText("##password##createaccount", &password, flags);
+		ImGui::Spacing();
+
+		ImGui::Checkbox("Show password##createaccount", &show_password);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK##createaccount", ImVec2(120, 0)))
+		{
+			ProfileRecord record;
+			record.accountName = account_name;
+			record.accountPassword = password;
+			login::db::CreateAccount(record);
+			selected = account_name;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel##createaccount", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::Button("Add Account"))
+	{
+		account_name = selected.value_or("");
+		ImGui::OpenPopup("Create Account");
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Edit Account") && selected)
+	{
+		ProfileRecord profile;
+		profile.accountName = *selected;
+		if (auto pass = login::db::ReadAccount(profile))
+			password = *pass;
+
+		ImGui::OpenPopup("Edit Account");
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Remove Account") && selected) ImGui::OpenPopup("Delete Account");
+}
+
+void ShowProfileWindow()
+{
+
+}
+
+void ShowAutoLoginWindow()
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
+
+	if (ImGui::BeginTabBar("##maintabbar", ImGuiTabBarFlags_FittingPolicyResizeDown))
+	{
+		ImGui::PushID("profile");
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+		if (ImGui::BeginTabItem("Profiles"))
+		{
+			// Code goes into this scope for selecting and modifying profiles/groups
+			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+			//ImGui::BeginChild("##mainchild", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+
+			ImGui::PushID("menubar");
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::SmallButton("Create"))
+				{
+				}
+
+				if (ImGui::SmallButton("Remove"))
+				{
+				}
+
+				constexpr const char* label = "Profiles";
+				ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(label).x - 5.f);
+				ImGui::Text(label);
+
+				ImGui::EndMenuBar();
+			}
+			ImGui::PopID();
+
+			ImGui::PushID("profilecombo");
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x * 2 - ImGui::CalcTextSize("Play").x - ImGui::GetStyle().WindowPadding.x);
+			// TODO: This hits the db each frame, is that fine with sqlite? is that fine when I open a new connection each frame?
+			const auto& groups = login::db::ListProfileGroups();
+			// TODO: persist current group in the db and get it here (set/write it below, whenever we set this value)
+			static std::optional<std::string> current_group;
+			if (ImGui::BeginCombo("##profilegroups", current_group.value_or("").c_str()))
+			{
+				for (const auto& group : groups)
+				{
+					bool is_selected = current_group && ci_equals(group, *current_group);
+					if (ImGui::Selectable(group.c_str(), is_selected))
+						current_group = group;
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::PopID();
+
+			ImGui::SameLine();
+			ImGui::Button("Play"); // TODO: Launch the group here
+
+			ImGui::PushID("mainlist");
+			if (ImGui::BeginTable("##maintable", 5, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			{
+				if (current_group)
+				{
+					ImGui::TableSetupColumn("Account");
+					ImGui::TableSetupColumn("Server");
+					ImGui::TableSetupColumn("Character");
+					ImGui::TableSetupColumn("Hotkey");
+					ImGui::TableSetupColumn("##play");
+					ImGui::TableHeadersRow();
+
+					for (auto& profile : login::db::GetProfiles(*current_group))
+					{
+						ImGui::PushID(profile.serverName.c_str());
+						ImGui::PushID(profile.characterName.c_str());
+
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						bool checked = profile.checked;
+						if (ImGui::Selectable("##rowselect", checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
+						{
+							profile.checked = !profile.checked;
+							login::db::UpdateProfile(profile);
+						}
+
+						if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
+							ImGui::OpenPopup("row_popup");
+
+						if (ImGui::BeginPopup("row_popup"))
+						{
+							if (ImGui::Selectable("Add"))
+							{
+								// add a new profile
+							}
+
+							if (ImGui::Selectable("Remove"))
+							{
+								// remove an existing profile
+							}
+
+							ImGui::EndPopup();
+						}
+
+						ImGui::SameLine();
+						ImGui::Text(profile.accountName.c_str());
+
+						ImGui::TableNextColumn();
+						ImGui::Text(profile.serverName.c_str());
+
+						ImGui::TableNextColumn();
+						ImGui::Text(profile.characterName.c_str());
+					
+						ImGui::TableNextColumn();
+						ImGui::Text(profile.hotkey.c_str());
+
+						ImGui::TableNextColumn();
+						if (ImGui::SmallButton("Play")) // TODO: launch the profile here
+							ImGui::OpenPopup("test_popup");
+
+						if (ImGui::BeginPopup("test_popup"))
+						{
+							ImGui::Text("test1");
+							ImGui::Text("test2");
+							ImGui::Text("test3");
+							ImGui::EndPopup();
+						}
+
+						ImGui::PopID();
+						ImGui::PopID();
+					}
+				}
+
+				ImGui::EndTable();
+			}
+			ImGui::PopID();
+
+			ImGui::EndChild();
+			ImGui::EndTabItem();
+		}
+
+		ImGui::PopID();
+
+		//ImGui::SameLine();
+		ImGui::PushID("character");
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		if (ImGui::BeginTabItem("Characters"))
+		{
+			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+
+			ImGui::PushID("menubar");
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::SmallButton("Create"))
+				{
+				}
+
+				if (ImGui::SmallButton("Remove"))
+				{
+				}
+
+				constexpr const char* label = "Characters";
+				ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(label).x - 5.f);
+				ImGui::Text(label);
+
+				ImGui::EndMenuBar();
+			}
+			ImGui::PopID();
+
+			ImGui::EndChild();
+			ImGui::EndTabItem();
+		}
+
+		ImGui::PopID();
+
+		ImGui::EndTabBar();
+	}
+
+	ImGui::PopStyleVar();
+}
+
 bool HandleAutoLoginMenuCommand(WPARAM wParam, LPARAM lParam)
 {
 	int menuId = GetUnmaskedMenuId(static_cast<int>(wParam));
 
 	switch (menuId)
 	{
+	case ID_MENU_MQ2AUTOLOGIN:
+		HelloImGui::Run(
+			ShowAutoLoginWindow,
+			"AutoLogin Profile Editor",
+			false,
+			true,
+			HelloImGui::DefaultWindowSize
+		);
+		break;
 	case ID_PROFILES_LAUNCH_CLEAN:
 		LaunchCleanSession();
 		break;
@@ -2134,74 +2566,133 @@ void InitializeAutoLogin()
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
 	internal_paths::AutoLoginIni = pathAutoLoginIni.string();
+	auto load_ini = login::db::InitDatabase((fs::path(internal_paths::Config) / "login.db").string());
 
-	// Initialize path to EQ
-	internal_paths::EQRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::AutoLoginIni);
-	if (internal_paths::EQRoot.empty())
+	// do absolutely nothing until a master pass is set
+	auto pass = login::db::ReadMasterPass();
+	if (!pass)
 	{
-		//  TODO: Try harder to find EQ or warn about it being missing.
-		const char* backupPath = R"(C:\Users\Public\Daybreak Game Company\Installed Games\EverQuest)";
+		HelloImGui::Run(
+			[&pass]() {
+				static const char* label = "Please Enter Master Password";
+				ImGui::Text(label);
+				ImGui::Spacing();
 
-		WritePrivateProfileString("Profiles", "DefaultEQPath", backupPath, internal_paths::AutoLoginIni);
-		internal_paths::EQRoot = backupPath;
+				// TODO: This can be a lot nicer -- also the hashing can take a bit so it should
+				// probably happen in a thread to prevent the UI from hanging on slower computers
+				static bool show_password = false;
+				static std::string password;
+
+				ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
+				if (!show_password) flags |= ImGuiInputTextFlags_Password;
+
+				if (ImGui::InputText("##password", &password, flags))
+				{
+					if (login::db::ValidatePass(password, true))
+					{
+						login::db::CreateMasterPass(password);
+						pass = password;
+						HelloImGui::GetRunnerParams()->appShallExit = true;
+						label = "Please Enter Master Password";
+					}
+					else
+					{
+						label = "Incorrect Password, Please Enter Master Password";
+					}
+				}
+				ImGui::Spacing();
+
+				ImGui::Checkbox("Show password", &show_password);
+				ImGui::Spacing();
+			},
+			"Enter Master Password",
+			false,
+			true,
+			{ 300, 200 }
+		);
 	}
 
-	HMENU hMainMenu = GetSubMenu(hMenu, 0);
-	int menuItemCount = GetMenuItemCount(hMainMenu);
-	for (int i = 0; i < menuItemCount; ++i)
+	if (pass)
 	{
-		char text[256];
+		login::db::MemoizeMasterPass(*pass);
+		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::AutoLoginIni));
 
-		if (GetMenuStringA(hMainMenu, i, text, 256, MF_BYPOSITION))
+		// Initialize path to EQ
+		internal_paths::EQRoot = login::db::ReadEQPath();
+		if (internal_paths::EQRoot.empty())
 		{
-			if (!strcmp(text, "Profiles"))
+			internal_paths::EQRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::AutoLoginIni);
+			if (internal_paths::EQRoot.empty())
 			{
-				hProfilesMenu = GetSubMenu(hMainMenu, i);
-				break;
+				SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work.");
+			}
+			else
+			{
+				// update the path to the db
+				login::db::CreateEQPath(internal_paths::EQRoot);
 			}
 		}
+
+		HMENU hMainMenu = GetSubMenu(hMenu, 0);
+		int menuItemCount = GetMenuItemCount(hMainMenu);
+		for (int i = 0; i < menuItemCount; ++i)
+		{
+			char text[256];
+
+			if (GetMenuStringA(hMainMenu, i, text, 256, MF_BYPOSITION))
+			{
+				if (!strcmp(text, "Profiles"))
+				{
+					hProfilesMenu = GetSubMenu(hMainMenu, i);
+					break;
+				}
+			}
+		}
+
+		// create the profile editor window
+		hEditProfileWnd = ::CreateDialogParamA(g_hInst, MAKEINTRESOURCE(IDD_PROFILE_EDIT),
+			nullptr, SettingsProc, 0);
+
+		hAskPassWnd = ::CreateDialogParamA(g_hInst, MAKEINTRESOURCE(IDD_PROFILE_EXPORT),
+			nullptr, ExportProc, 0);
+
+		// make the editmenu
+		hEditPopup = CreatePopupMenu();
+
+		ProfileMap& popupMap = LoginMap["Popups"];
+		AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_EDIT, "&Edit");
+		popupMap[ID_CHARACTER_EDIT].profileName = "Edit";
+		AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_DELETE, "&Delete");
+		popupMap[ID_CHARACTER_DELETE].profileName = "Delete";
+		AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_TOGGLE, "&Uncheck");
+		popupMap[ID_CHARACTER_TOGGLE].profileName = "Uncheck";
+
+		LoadProfiles();
+
+		// Update enabled state
+		int ichecked = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, internal_paths::AutoLoginIni);
+
+		char szText[64] = { 0 };
+		MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
+		mi2.fMask = MIIM_STRING | MIIM_STATE;
+		if (!ichecked)
+		{
+			mi2.fState = MF_UNCHECKED;
+			strcpy_s(szText, "AutoLogin is: Disabled");
+		}
+		else
+		{
+			mi2.fState = MF_CHECKED;
+			strcpy_s(szText, "AutoLogin is: Enabled");
+		}
+
+		mi2.cch = (UINT)strlen(szText) + 1;
+		mi2.dwTypeData = szText;
+		SetMenuItemInfo(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
+
+		// TODO: This is for testing
+		HelloImGui::Run(ShowAutoLoginWindow, "AutoLogin Profile Editor", false, true);
 	}
-
-	// create the profile editor window
-	hEditProfileWnd = ::CreateDialogParamA(g_hInst, MAKEINTRESOURCE(IDD_PROFILE_EDIT),
-		nullptr, SettingsProc, 0);
-
-	hAskPassWnd = ::CreateDialogParamA(g_hInst, MAKEINTRESOURCE(IDD_PROFILE_EXPORT),
-		nullptr, ExportProc, 0);
-
-	// make the editmenu
-	hEditPopup = CreatePopupMenu();
-
-	ProfileMap& popupMap = LoginMap["Popups"];
-	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_EDIT, "&Edit");
-	popupMap[ID_CHARACTER_EDIT].profileName = "Edit";
-	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_DELETE, "&Delete");
-	popupMap[ID_CHARACTER_DELETE].profileName = "Delete";
-	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_TOGGLE, "&Uncheck");
-	popupMap[ID_CHARACTER_TOGGLE].profileName = "Uncheck";
-
-	LoadProfiles();
-
-	// Update enabled state
-	int ichecked = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, internal_paths::AutoLoginIni);
-
-	char szText[64] = { 0 };
-	MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
-	mi2.fMask = MIIM_STRING | MIIM_STATE;
-	if (!ichecked)
-	{
-		mi2.fState = MF_UNCHECKED;
-		strcpy_s(szText, "AutoLogin is: Disabled");
-	}
-	else
-	{
-		mi2.fState = MF_CHECKED;
-		strcpy_s(szText, "AutoLogin is: Enabled");
-	}
-
-	mi2.cch = (UINT)strlen(szText) + 1;
-	mi2.dwTypeData = szText;
-	SetMenuItemInfo(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
 }
 
 void ShutdownAutoLogin()

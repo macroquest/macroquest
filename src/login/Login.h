@@ -71,6 +71,8 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName
 //		allow people to just get pass from the registry easily (it doesn't need to be _that_ secure)
 
 namespace login::db {
+bool ValidatePass(std::string_view pass, bool empty_is_valid);
+
 void MemoizeMasterPass(std::string_view pass);
 std::optional<std::string> GetMasterPass();
 
@@ -79,11 +81,13 @@ std::optional<std::string> ReadMasterPass();
 void CreateEQPath(std::string_view path);
 std::string ReadEQPath();
 
+std::vector<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
 std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
 void DeleteProfileGroup(std::string_view name);
 
+std::vector<std::string> ListAccounts();
 void CreateAccount(const ProfileRecord& profile);
 std::optional<std::string> ReadAccount(ProfileRecord& profile);
 void UpdateAccount(std::string_view account, const ProfileRecord& record);
@@ -99,6 +103,7 @@ std::optional<unsigned int> ReadPersona(ProfileRecord& profile);
 void UpdatePersona(std::string_view cls, const ProfileRecord& profile);
 void DeletePersona(std::string_view server, std::string_view name, std::string_view cls);
 
+std::vector<ProfileRecord> GetProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(ProfileRecord& profile);
@@ -109,5 +114,5 @@ void DeleteProfile(std::string_view server, std::string_view name, std::string_v
 std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups);
-std::vector<ProfileGroup> InitDatabase(const std::string& path, const std::string& ini);
+bool InitDatabase(const std::string& path);
 } // namespace login::db

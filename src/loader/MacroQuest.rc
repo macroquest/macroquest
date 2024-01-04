@@ -126,7 +126,7 @@ BEGIN
         MENUITEM "&Change Log",                 ID_MENU_CHANGELOG
         MENUITEM "&INI File",                   ID_MENU_INI
         MENUITEM SEPARATOR
-        MENUITEM "MQ2AutoLogin",                ID_MENU_MQ2AUTOLOGIN, INACTIVE
+        MENUITEM "MQ2AutoLogin",                ID_MENU_MQ2AUTOLOGIN
         MENUITEM "AutoLogin is: Enabled",       ID_FILE_MQ2LOGINIS, CHECKED
         POPUP "Profiles"
         BEGIN
@@ -140,16 +140,13 @@ BEGIN
         MENUITEM "MQ2EQBC",                     ID_MENU_EQBCS, INACTIVE
         MENUITEM "Start EQBC Server",           ID_STARTEQBCS
         MENUITEM SEPARATOR
-#ifdef MQ_UPDATE_URL
-        MENUITEM "Check for Updates",           ID_MENU_CHECKFORUPDATES
-#endif
         MENUITEM SEPARATOR
         POPUP "&Advanced"
         BEGIN
-            MENUITEM "&Toggle Debug Console",          ID_ADVANCED_TOGGLECONSOLE
-            MENUITEM "&Unload All Instances",          ID_UNLOADALLMQ
+            MENUITEM "&Toggle Debug Console",       ID_ADVANCED_TOGGLECONSOLE
+            MENUITEM "&Unload All Instances",       ID_UNLOADALLMQ
             MENUITEM "Unload All Instances (&Forced)", ID_FORCEUNLOADOFALLMQ2
-            MENUITEM "&Check App Compatiblity",        ID_MENU_CHECKAPPCOMPAT
+            MENUITEM "&Check App Compatiblity",     ID_MENU_CHECKAPPCOMPAT
         END
         MENUITEM "Refresh Injections",          ID_FILE_REFRESH
         MENUITEM SEPARATOR
