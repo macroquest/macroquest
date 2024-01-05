@@ -575,7 +575,7 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			io.KeyShift = down;
 		if (wParam == VK_MENU)
 			io.KeyAlt = down;
-		return 0;
+		return 1;
 	}
 
 	case WM_SETFOCUS:
