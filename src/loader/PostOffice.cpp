@@ -451,6 +451,9 @@ public:
 				// if we've gotten here, then something is delivering a message to this
 				// post office ("pipe_server"), so handle messages directly
 			});
+
+		// request ID from all pre-existing connections
+		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
 	}
 
 	void Shutdown()
