@@ -1305,3 +1305,70 @@ Kezhda the Frenzied^a spirit sapper^nos^darklight^https://nos.eqresource.com/kez
 Mycorrhizal Mutation^a spore stalker^nos^darklight^https://nos.eqresource.com/mycorrhizalmutation.php
 Rabid Rhizanthella^a prickly perennial^nos^darklight^https://nos.eqresource.com/rabidrhizanthella.php
 Variegated Monstera^an aberrant blossom^nos^darklight^https://nos.eqresource.com/variegatedmonstera.php
+a brood queen^a leech elder^ls^laurioninn^https://ls.eqresource.com/abroodqueen.php
+a djinn^an air mehit lord^ls^laurioninn^https://ls.eqresource.com/adjinn.php
+a geonid^a cracked golem^ls^laurioninn^https://ls.eqresource.com/ageonid.php
+a lich^an undead lord^ls^laurioninn^https://ls.eqresource.com/alich.php
+a luggald^a white shark^ls^laurioninn^https://ls.eqresource.com/aluggald.php
+a queen recluse^a treant lord^ls^laurioninn^https://ls.eqresource.com/aqueenrecluse.php
+a queen widow^a drachnid hunter^ls^laurioninn^https://ls.eqresource.com/aqueenwidow.php
+a spectre^a haunt^ls^laurioninn^https://ls.eqresource.com/aspectre.php
+a statue^a granite grabber^ls^laurioninn^https://ls.eqresource.com/astatue.php
+a water dragon^an aggressive alligator^ls^laurioninn^https://ls.eqresource.com/awaterdragon.php
+an efreeti^a fire mephit lord^ls^laurioninn^https://ls.eqresource.com/anefreeti.php
+an owlbear^a brownie lord^ls^laurioninn^https://ls.eqresource.com/anowlbear.php
+an owlbear^a brownie queen^ls^laurioninn^https://ls.eqresource.com/anowlbear.php
+A Rallosian Lunatic^a rallosian zealot^ls^timorousfalls^https://ls.eqresource.com/arallosianlunatic.php
+A Rallosian Sorcerer^a rallosian extremist^ls^timorousfalls^https://ls.eqresource.com/arallosiansorcerer.php
+Big Dipper^a timorous perch^ls^timorousfalls^https://ls.eqresource.com/bigdipper.php
+Bunion^a calloused woodsman^ls^timorousfalls^https://ls.eqresource.com/bunion.php
+Flariton^a parched corvid^ls^timorousfalls^https://ls.eqresource.com/flariton.php
+Horatio^an angry wasp^ls^timorousfalls^https://ls.eqresource.com/horatio.php
+Shoru^a fortified raptor^ls^timorousfalls^https://ls.eqresource.com/shoru.php
+SingleMalt^a worg howler^ls^timorousfalls^https://ls.eqresource.com/singlemalt.php
+The Dreaded Red Eye^a flying culex^ls^timorousfalls^https://ls.eqresource.com/thedreadedredeye.php
+Ticktock^a vicious lashwhip^ls^timorousfalls^https://ls.eqresource.com/ticktock.php
+Ankexfen Experiment^a gorge scavenger^ls^ankexfenkeep^https://ls.eqresource.com/ankexfenexperiment.php
+Chef Goremand^an Ankexfen workhand^ls^ankexfenkeep^https://ls.eqresource.com/chefgoremand.php
+Guard Captain Krizad^an Ankexfen torturer^ls^ankexfenkeep^https://ls.eqresource.com/guardcaptainkrizad.php
+Lorekeeper Fandrel^an Ankexfen archwizard^ls^ankexfenkeep^https://ls.eqresource.com/lorekeeperfandrel.php
+Mortimus^a battle-tested polar bear^ls^ankexfenkeep^https://ls.eqresource.com/mortimus.php
+The Mountain Cryptid^an alpine dweller^ls^ankexfenkeep^https://ls.eqresource.com/themountaincryptid.php
+Rimeclaw^a frostbitten worg^ls^ankexfenkeep^https://ls.eqresource.com/rimeclaw.php
+Stablemaster Magna^an Ankexfen reinsman^ls^ankexfenkeep^https://ls.eqresource.com/stablemastermagna.php
+Uncia the Snowstalker^a frost-paw skulker^ls^ankexfenkeep^https://ls.eqresource.com/unciathesnowstalker.php
+Underboss Lazam^an Ankexfen knife twister^ls^ankexfenkeep^https://ls.eqresource.com/underbosslazam.php
+Captain Defan^a Nokk lieutenant^ls^moorsofnokk^https://ls.eqresource.com/captaindefan.php
+Chaplain Kor Bloodmoon^a Nokk tactician^ls^moorsofnokk^https://ls.eqresource.com/chaplainkorbloodmoon.php
+Firestarter Tlag^a Nokk fireblade^ls^moorsofnokk^https://ls.eqresource.com/firestartertlag.php
+Fleawalker^a Nokk battleworg^ls^moorsofnokk^https://ls.eqresource.com/fleawalker.php
+Sergeant Kharsk^a Nokk adjutant^ls^moorsofnokk^https://ls.eqresource.com/sergeantkharsk.php
+Sergeant Kveldulf^a Nokk sentinel^ls^moorsofnokk^https://ls.eqresource.com/sergeantkveldulf.php
+Tarantis^a crevice spider^ls^moorsofnokk^https://ls.eqresource.com/tarantis.php
+Tutt^a bog turtle^ls^moorsofnokk^https://ls.eqresource.com/tutt.php
+Drillmaster Suja^a Rallosian trainer^ls^unkemptwoods^https://ls.eqresource.com/drillmastersuja.php
+General Orrak^a Rallosian highlance^ls^unkemptwoods^https://ls.eqresource.com/generalorrak.php
+Grenn Rustblade^a Rallosian swiftblade^ls^unkemptwoods^https://ls.eqresource.com/grennrustblade.php
+Honored Elder Skraiw^an avian elder^ls^unkemptwoods^https://ls.eqresource.com/honoredelderskraiw.php
+Oka^a basilisk stonegazer^ls^unkemptwoods^https://ls.eqresource.com/oka.php
+Sergeant Korsh^a Rallosian tactician^ls^unkemptwoods^https://ls.eqresource.com/sergeantkorsh.php
+Stinky^a skunk doe^ls^unkemptwoods^https://ls.eqresource.com/stinky.php
+Tenderstump^a treant planter^ls^unkemptwoods^https://ls.eqresource.com/tenderstump.php
+Alloy^a forgebound worker^ls^theherosforge^https://ls.eqresource.com/alloy.php
+Arcanaforged^a spiritforged wizard^ls^theherosforge^https://ls.eqresource.com/arcanaforged.php
+Battleforged^a spiritforged berserker^ls^theherosforge^https://ls.eqresource.com/battleforged.php
+Geomimus^a geolode^ls^theherosforge^https://ls.eqresource.com/geomimus.php
+Goliath Forge Frog^a forged frog^ls^theherosforge^https://ls.eqresource.com/goliathforgefrog.php
+Ingot^a forgebound inspector^ls^theherosforge^https://ls.eqresource.com/ingot.php
+Kindleheart^a rekindled phoenix^ls^theherosforge^https://ls.eqresource.com/kindleheart.php
+Terrastride^a summit guardian^ls^theherosforge^https://ls.eqresource.com/terrastride.php
+Valorforged^a spiritforged warrior^ls^theherosforge^https://ls.eqresource.com/valorforged.php
+Bonestripper^a hungry hotariton^ls^pallomen^https://ls.eqresource.com/bonestripper.php
+Charka^a Rallosian champion^ls^pallomen^https://ls.eqresource.com/charka.php
+Cind the Kind^a Rallosian destroyer^ls^pallomen^https://ls.eqresource.com/cindthekind.php
+Crusher the Rusher^a Rallosian legionnaire^ls^pallomen^https://ls.eqresource.com/crushertherusher.php
+Fernstalker^a clever puma^ls^pallomen^https://ls.eqresource.com/fernstalker.php
+General Dotal^a Rallosian adjudicator^ls^pallomen^https://ls.eqresource.com/generaldotal.php
+Queen Hotaria^a queensguard^ls^pallomen^https://ls.eqresource.com/queenhotaria.php
+Tonnar Blevak^a rallosian archivist^ls^pallomen^https://ls.eqresource.com/tonnarblevak.php
+Violet Violence^a Rallosian cabalist^ls^pallomen^https://ls.eqresource.com/violetviolence.php
