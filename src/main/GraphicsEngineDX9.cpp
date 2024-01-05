@@ -745,10 +745,6 @@ void MQGraphicsEngineDX9::ImGui_DrawFrame()
 	IDirect3DStateBlock9* stateBlock = nullptr;
 	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
 
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
-
 	// Prepare the new frame
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -757,8 +753,6 @@ void MQGraphicsEngineDX9::ImGui_DrawFrame()
 
 	stateBlock->Apply();
 	stateBlock->Release();
-
-	fesetround(round);
 }
 
 void MQGraphicsEngineDX9::ImGui_RenderDrawData()

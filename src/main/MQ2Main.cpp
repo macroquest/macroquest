@@ -589,7 +589,6 @@ void DoMainThreadInitialization()
 
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
-	InitializeInputAPI();
 	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
@@ -801,7 +800,6 @@ void MQ2Shutdown()
 	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
-	ShutdownInputAPI();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();

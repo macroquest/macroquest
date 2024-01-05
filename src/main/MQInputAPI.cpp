@@ -22,8 +22,22 @@
 
 namespace mq {
 
+static void InputAPI_Initialize();
+static void InputAPI_Shutdown();
+static void InputAPI_Pulse();
+
+static MQModule s_inputAPIModule = {
+	"InputAPI",                    // Name
+	true,                          // CanUnload
+	InputAPI_Initialize,
+	InputAPI_Shutdown,
+	InputAPI_Pulse,
+};
+DECLARE_MODULE_INITIALIZER(s_inputAPIModule);
+
 static bool s_inGetDeviceState = false;
 static bool s_inGetDeviceData = false;
+static bool s_dinputInitialized = false;
 
 static uintptr_t GetDeviceData = 0;
 static uintptr_t GetDeviceState = 0;
@@ -647,10 +661,8 @@ void MouseTo(SPAWNINFO* pChar, char* szLine)
 	DebugSpew("Help invoked or Bad MouseTo command: %s", szLine);
 }
 
-void InitializeInputAPI()
+static void InstallDirectInputHooks()
 {
-	DebugSpew("Initializing Input");
-
 	if (g_pDIKeyboard)
 	{
 		uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(g_pDIKeyboard.get());
@@ -662,18 +674,43 @@ void InitializeInputAPI()
 		// Hook GetDeviceData
 		GetDeviceData = vtable[10];
 		EzDetour(GetDeviceData, DInput_GetDeviceData_Detour, DInput_GetDeviceData_Trampoline);
+
+		s_dinputInitialized = true;
 	}
+}
+
+static void InputAPI_Initialize()
+{
+	DebugSpew("Initializing Input");
 
 	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
 }
 
-void ShutdownInputAPI()
+void InputAPI_Shutdown()
 {
 	DebugSpew("Shutting down Input");
 
 	RemoveDetour(CDisplay__GetClickedActor);
-	RemoveDetour(GetDeviceData);
-	RemoveDetour(GetDeviceState);
+
+	if (s_dinputInitialized)
+	{
+		RemoveDetour(GetDeviceData);
+		RemoveDetour(GetDeviceState);
+	}
+}
+
+void InputAPI_Pulse()
+{
+	if (!s_dinputInitialized)
+	{
+		InstallDirectInputHooks();
+
+		// If we're initialized we do not need to pulse anymore.
+		if (s_dinputInitialized)
+		{
+			s_inputAPIModule.Pulse = nullptr;
+		}
+	}
 }
 
 } // namespace mq

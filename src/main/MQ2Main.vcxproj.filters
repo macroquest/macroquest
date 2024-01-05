@@ -63,8 +63,11 @@
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\mq\libutils">
-      <UniqueIdentifier>{8d2cbb0c-fca3-43c8-80cb-8aa3122e460e}</UniqueIdentifier>
+    <Filter Include="Header Files\extras">
+      <UniqueIdentifier>{2748c6c5-410e-4f9f-b316-0971358525a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\extras\wil">
+      <UniqueIdentifier>{398f05d1-d412-4d4d-8554-14f8255af25d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -610,8 +613,8 @@
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\include\extras\wil\Constants.h">
+      <Filter>Header Files\extras\wil</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
