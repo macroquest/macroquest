@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,7 +16,11 @@
 
 #include <cstdint>
 
-#ifdef MQ2MAIN_EXPORTS
+#if defined(MQ_NO_EXPORTS)
+#define MQLIB_API
+#define MQLIB_VAR
+#define MQLIB_OBJECT
+#elif defined(MQ2MAIN_EXPORTS)
 #define MQLIB_API extern "C" __declspec(dllexport)
 #define MQLIB_VAR extern "C" __declspec(dllexport)
 #define MQLIB_OBJECT __declspec(dllexport)

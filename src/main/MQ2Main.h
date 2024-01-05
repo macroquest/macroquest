@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -26,8 +26,6 @@ using namespace eqlib;
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
-#define VersionString          __ExpectedVersionDate
-#define TimeString             __ExpectedVersionTime
 #define LoadedString           "MacroQuest Loaded."
 #define ToUnloadString         "MacroQuest Unloading..."
 #define UnloadedString         "MacroQuest Unloaded."
@@ -48,6 +46,7 @@ using namespace eqlib;
 
 #define MAX_VARNAME           64
 
+#include "mq/base/Traits.h"
 #include "../common/Common.h"
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
@@ -56,7 +55,7 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
-#include "PipeClient.h"
+#include "MQDataAPI.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
@@ -70,19 +69,31 @@ using namespace eqlib;
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
 
-#include <mq/utils/Benchmarks.h>
-#include <mq/utils/Keybinds.h>
+#include "mq/base/Detours.h"
+#include "mq/utils/Benchmarks.h"
+#include "mq/utils/Keybinds.h"
 
-#include <mq/base/Detours.h>
+#include "mq/api/Main.h"
+#include "mq/api/MacroAPI.h"
+#include "mq/api/Plugin.h"
 
 namespace mq {
 
-/* DETOURS */
-MQLIB_OBJECT void SetAssist(BYTE* address);
-
-/* BENCHMARKING */
+// Initialize/shutdown subsystems
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
+
+void InitializeDisplayHook();
+void ShutdownDisplayHook();
+
+void InitializeMQ2Commands();
+void ShutdownMQ2Commands();
+
+void InitializeMQ2Pulse();
+void ShutdownMQ2Pulse();
+
+void InitializeChatHook();
+void ShutdownChatHook();
 
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
@@ -93,16 +104,6 @@ MQLIB_API bool AreNameSpritesCustomized();
 MQLIB_API bool IsImGuiForeground();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
-MQLIB_API void ResetOverlay();
-
-struct MQRenderCallbacks
-{
-	fMQCreateDeviceObjects CreateDeviceObjects = nullptr;
-	fMQInvalidateDeviceObjects InvalidateDeviceObjects = nullptr;
-	fMQGraphicsSceneRender GraphicsSceneRender = nullptr;
-};
-MQLIB_API int AddRenderCallbacks(const MQRenderCallbacks& callbacks);
-MQLIB_API void RemoveRenderCallbacks(uint32_t id);
 
 using fPanelDrawFunction = void(*)();
 MQLIB_API void AddSettingsPanel(const char* name, fPanelDrawFunction drawFunction);
@@ -137,8 +138,6 @@ MQLIB_API void CreateMQ2NewsWindow();
 MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
-MQLIB_API void InitializeChatHook();
-MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
@@ -177,27 +176,10 @@ void ModulesUpdateImGui();
 void PluginsMacroStart(const char* Name);
 void PluginsMacroStop(const char* Name);
 
-MQLIB_API bool IsPluginsInitialized();
-MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
-MQLIB_API MQPlugin* GetPlugin(std::string_view PluginName);
-MQLIB_API bool IsPluginLoaded(std::string_view PluginName);
-MQLIB_API bool IsPluginUnloadFailed(std::string_view PluginName);
-MQLIB_API int GetPluginUnloadFailedCount();
-MQLIB_API PluginInterface* GetPluginInterface(std::string_view PluginName);
-
-
-/* DIRECT INPUT */
-MQLIB_API void InitializeMQ2DInput();
-MQLIB_API void ShutdownMQ2DInput();
-
 /* CLEAN UI */
-MQLIB_API void InitializeDisplayHook();
-MQLIB_API void ShutdownDisplayHook();
 MQLIB_API void DrawHUD();
 
 /* COMMAND HANDLING */
-MQLIB_API void InitializeMQ2Commands();
-MQLIB_API void ShutdownMQ2Commands();
 MQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
 MQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
 MQLIB_API bool RemoveAlias(const char* ShortCommand);
@@ -209,7 +191,7 @@ MQLIB_API void TimedCommand(const char* Command, int msDelay);
 MQLIB_API bool IsCommand(const char* command);
 MQLIB_API bool IsAlias(const char* alias);
 
-MQLIB_OBJECT void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
+MQLIB_OBJECT void AddCommand(const char* Command, std::function<void(PlayerClient*, const char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
 
 /* MACRO COMMANDS */
 MQLIB_API void DumpStack(SPAWNINFO*, char*);
@@ -217,67 +199,15 @@ MQLIB_API void EndMacro(SPAWNINFO*, char*);
 MQLIB_API void Echo(SPAWNINFO*, char*);
 MQLIB_API void EchoClean(SPAWNINFO*, char*);
 
-/* MACRO PARSING */
-void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
-
-MQLIB_API char* ParseMacroParameter(SPAWNINFO* pChar, char* szOriginal, size_t BufferSize);
-
-template <unsigned int _Size>
-inline char* ParseMacroParameter(SPAWNINFO* pChar, char(&szOriginal)[_Size])
-{
-	return ParseMacroParameter(pChar, szOriginal, _Size);
-}
-
-MQLIB_API void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All = false);
-MQLIB_API void InitializeParser();
-MQLIB_API void ShutdownParser();
-
-namespace datatypes {
-MQLIB_API void InitializeMQ2DataTypes();
-MQLIB_API void ShutdownMQ2DataTypes();
-}
-
-MQLIB_API void InitializeMQ2Data();
-MQLIB_API void ShutdownMQ2Data();
-MQLIB_API bool ParseMacroData(char* szOriginal, size_t BufferSize);
-MQLIB_API bool AddMQ2Data(const char* szName, fMQData Function);
-MQLIB_API bool RemoveMQ2Data(const char* szName);
-MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
-MQLIB_API void InvalidateObservedEQObject(void* Object);
-MQLIB_API MQ2Type* FindMQ2DataType(const char* szName);
-MQLIB_API MQDataItem* FindMQ2Data(const char* szName);
-MQLIB_API MQDataVar* FindMQ2DataVariable(const char* szName);
-MQLIB_API bool AddMQ2Type(MQ2Type& type);
-MQLIB_API bool RemoveMQ2Type(MQ2Type& type);
-MQLIB_API bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result);
-MQLIB_API bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension);
-
-// Returns -1 if member doesn't exist. 0 if it fails, and 1 if it succeeds.
-MQLIB_API int EvaluateMacroDataMember(MQ2Type* Type, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex);
-// Returns false if the given name is neither a member nor a method of the given type.
-MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
-
-// Compatibility shims
-DEPRECATE("The data function's signature must be updated to bool functionName(const char* szIndex, MQTypeVar& ret)")
-inline bool AddMQ2Data(const char* szName, fMQDataOld Function)
-{
-	return AddMQ2Data(szName, (fMQData)Function);
-}
 
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-void InitializeMouseHooks();
-void ShutdownMouseHooks();
-MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
+MQLIB_API bool MoveMouse(int x, int y);
+MQLIB_API bool ClickMouseButton(int mouseButton); // Uses DirectInput to simulate a mouse click at the current mouse position.
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
    inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
-
-/* PULSING */
-MQLIB_API void InitializeMQ2Pulse();
-MQLIB_API void ShutdownMQ2Pulse();
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
@@ -345,6 +275,7 @@ MQLIB_API int FindBuffIndex(std::string_view Name, int minSlot = 0, int maxSlot 
 MQLIB_API bool RemoveBuffByName(std::string_view buffName);
 MQLIB_API bool RemoveBuffBySpellID(int buffName);
 MQLIB_API bool RemoveBuffByIndex(int buffIndex);
+MQLIB_API bool RemovePetBuffByName(std::string_view buffName);
 MQLIB_API bool StripQuotes(char* str);
 MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
@@ -380,8 +311,6 @@ MQLIB_API bool IsGuildMember(const char* SpawnName);
 MQLIB_API int GetGroupMercenaryCount(uint32_t ClassMASK);
 MQLIB_API SPAWNINFO* GetRaidMember(int index);
 MQLIB_API SPAWNINFO* GetGroupMember(int index);
-MQLIB_API uint32_t GetGroupMainAssistTargetID();
-MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
 MQLIB_API uint32_t GetGroupMarkedTargetID(int index);
 MQLIB_API uint32_t GetRaidMarkedTargetID(int index);
 MQLIB_API bool IsAssistNPC(SPAWNINFO* pSpawn);
@@ -402,7 +331,6 @@ MQLIB_API ItemDefinition* GetItemFromContents(ItemClient* c);
 MQLIB_API bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 
 MQLIB_API const char* GetLightForSpawn(SPAWNINFO* pSpawn);
-MQLIB_API int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn);
 MQLIB_API int GetDeityTeamByID(int DeityID);
 MQLIB_API int ConColor(SPAWNINFO* pSpawn);
 
@@ -465,12 +393,7 @@ MQLIB_API bool LoH_HT_Ready();
 
 /* MQ2DATAVARS */
 MQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
-MQLIB_API MQDataVar* FindMQ2DataVariable(const char* Name);
-MQLIB_API bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
-MQLIB_API bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
-MQLIB_API MQDataVar** FindVariableScope(const char* Name);
-MQLIB_API bool DeleteMQ2DataVariable(const char* Name);
-MQLIB_API void ClearMQ2DataVariables(MQDataVar** ppHead);
+
 MQLIB_API void DropTimers();
 
 /*                 */
@@ -490,8 +413,8 @@ enum class MQGroundSpawnType
 	Placed
 };
 
-inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
-inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
+inline auto EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline auto EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
 struct MQGroundSpawn
 {
@@ -516,7 +439,7 @@ struct MQGroundSpawn
 	MQLIB_OBJECT MQGameObject ToGameObject() const;
 	MQLIB_OBJECT void Reset();
 
-	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
+	template <typename T> T* Get() const { static_assert(mq::always_false<T>::value, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
 	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
 
@@ -574,8 +497,11 @@ MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 
-inline int EQObjectID(SPAWNINFO* pSpawn) { return pSpawn->SpawnID; }
-using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
+inline auto EQObjectID(PlayerClient* pSpawn) { return pSpawn->SpawnID; }
+using ObservedSpawnPtr = MQEQObjectPtr<PlayerClient>;
+
+MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
+MQLIB_API void InvalidateObservedEQObject(void* Object);
 
 // A.k.a. "Door target"
 MQLIB_API void SetSwitchTarget(EQSwitch* pSwitch);
@@ -785,14 +711,6 @@ MQLIB_API void EndAllMacros();
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Parse Operations
-std::string HandleParseParam(std::string_view strOriginal, bool bParseOnce = false);
-
-enum class ModifyMacroMode { Default, Wrap, WrapNoDoubles };
-
-std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = false,
-	ModifyMacroMode iOperation = ModifyMacroMode::Default);
-
 MQLIB_API bool Calculate(const char* szFormula, double& Dest);
 
 // Given a string that contains a number, make the number "pretty" by adding things like
@@ -818,22 +736,7 @@ constexpr int GAMESTATE_UNLOADING      = 255;
 #define XKF_LALT                4
 #define XKF_RALT                8
 
-#define CHATMENU_NEW			42
-#define CHATMENU_ALWAYS_CHAT_HERE	43
-#define CHATMENU_RENAME			44
-#define CHATMENU_SCROLLBAR		45
-
-// DO NOT CHANGE these user message id's.
-// They must be identical between MQ2 and the
-// injector process (MacroQuest.exe).
-//#define WM_USER_REGISTER_HK		(WM_USER + 1000)
-//#define WM_USER_UNREGISTER_HK	(WM_USER + 1001)
-//#define WM_USER_RESETLOADED		(WM_USER + 1002)
-//#define WM_USER_SETLOADED		(WM_USER + 1003)
-
-MQLIB_API void memchecks_tramp(char*, DWORD, void*, DWORD, bool);
-MQLIB_API void memchecks(char*, DWORD, void*, DWORD, bool);
-MQLIB_API void RemoveAutoBankMenu();
+MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(ItemClient* pContent);
 MQLIB_API bool WillFitInInventory(ItemClient* pContent);
 
@@ -877,11 +780,15 @@ enum class GetMoneyFromStringFormat {
 MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
-MQLIB_API int GetSubscriptionLevel();
+MQLIB_API MembershipLevel GetMembershipLevel();
+inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 
 } // namespace mq
 
-#include <mq/api/Achievements.h>
+#include "mq/api/Achievements.h"
+#include "mq/api/Spells.h"
+
+#include "GraphicsEngine.h"  // TODO: Move exports to mq/api header
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"

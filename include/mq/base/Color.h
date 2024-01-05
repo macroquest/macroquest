@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -111,6 +111,13 @@ public:
 	{
 	}
 
+	constexpr MQColor(const ImVec4& imColor)
+		: Red(static_cast<uint8_t>(imColor.x * 255))
+		, Green(static_cast<uint8_t>(imColor.y * 255))
+		, Blue(static_cast<uint8_t>(imColor.z * 255))
+		, Alpha(static_cast<uint8_t>(imColor.w * 255))
+	{
+	}
 
 	constexpr MQColor& operator=(uint32_t argbcolor)
 	{
@@ -175,6 +182,21 @@ public:
 		return ARGB & 0xffffff;
 	}
 
+	constexpr uint32_t ToRGBA() const
+	{
+		return (ARGB & 0xffffff) << 8 | (ARGB & 0xff000000) >> 24;
+	}
+
+	constexpr void Invert()
+	{
+		ARGB = (0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000);
+	}
+
+	constexpr MQColor GetInverted() const
+	{
+		return MQColor((0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000));
+	}
+
 	// Layout matches ARGBCOLOR
 	union
 	{
@@ -204,6 +226,8 @@ inline bool operator!=(const MQColor& left, const MQColor& right)
 {
 	return left.ARGB != right.ARGB;
 }
+
+MQLIB_OBJECT std::string to_string(MQColor color);
 
 // Get the MQColor for a given chat color. Respects user preference if
 // it is available.

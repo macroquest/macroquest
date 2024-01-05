@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,7 +16,7 @@
 
 #include <mq/Plugin.h>
 
-#include "AutoLoginShared.h"
+#include "login/Login.h"
 #include "MQ2AutoLogin.h"
 
 #include <imgui.h>
@@ -40,19 +40,258 @@ constexpr int STEP_DELAY = 1000;
 
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
+postoffice::DropboxAPI s_autologinDropbox;
 
-// save off class and level so we know when to push updates
-int Level = -1;
-int Class = -1;
+class LoginProfileType : public MQ2Type
+{
+public:
+	enum class LoginProfileMembers
+	{
+		HotKey,
+		Server,
+		Character,
+		Profile,
+		Account,
+		Class,
+		Level
+	};
+
+	LoginProfileType() : MQ2Type("LoginProfile")
+	{
+		ScopedTypeMember(LoginProfileMembers, HotKey);
+		ScopedTypeMember(LoginProfileMembers, Server);
+		ScopedTypeMember(LoginProfileMembers, Character);
+		ScopedTypeMember(LoginProfileMembers, Profile);
+		ScopedTypeMember(LoginProfileMembers, Account);
+		ScopedTypeMember(LoginProfileMembers, Class);
+		ScopedTypeMember(LoginProfileMembers, Level);
+	}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		MQTypeMember* pMember = FindMember(Member);
+		if (!pMember)
+			return false;
+
+		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		if (!record)
+			return false;
+
+		switch (static_cast<LoginProfileMembers>(pMember->ID))
+		{
+		case LoginProfileMembers::HotKey:
+			strcpy_s(DataTypeTemp, record->hotkey.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case LoginProfileMembers::Server:
+			strcpy_s(DataTypeTemp, record->serverName.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case LoginProfileMembers::Character:
+			strcpy_s(DataTypeTemp, record->characterName.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case LoginProfileMembers::Profile:
+			strcpy_s(DataTypeTemp, record->profileName.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case LoginProfileMembers::Account:
+			strcpy_s(DataTypeTemp, record->accountName.c_str());
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
+		case LoginProfileMembers::Class: {
+			// Probably better off storing this as enum type...
+			int classIndex = 0;
+			for (int i = 0; i < TotalPlayerClasses; ++i)
+			{
+				if (ci_equals(ClassInfo[i].UCShortName, record->characterClass))
+				{
+					classIndex = i;
+				}
+			}
+			Dest.DWord = classIndex;
+			Dest.Type = mq::datatypes::pClassType;
+			return true;
+		}
+		case LoginProfileMembers::Level:
+			Dest.Int = record->characterLevel;
+			Dest.Type = mq::datatypes::pIntType;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
+	{
+		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		if (!record)
+			return false;
+
+		record->FormatTo(Destination, MAX_STRING);
+		return true;
+	}
+};
+
+LoginProfileType* pLoginProfileType = nullptr;
+
+class MQ2AutoLoginType : public MQ2Type
+{
+public:
+	enum class AutoLoginMembers
+	{
+		Profile,
+		Active,
+	};
+
+	MQ2AutoLoginType() : MQ2Type("AutoLogin")
+	{
+		ScopedTypeMember(AutoLoginMembers, Profile);
+		ScopedTypeMember(AutoLoginMembers, Active);
+	}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
+	{
+		MQTypeMember* pMember = FindMember(Member);
+		if (!pMember)
+			return false;
+
+		switch (static_cast<AutoLoginMembers>(pMember->ID))
+		{
+		case AutoLoginMembers::Profile:
+			Dest.Type = pLoginProfileType;
+			return true;
+
+		case AutoLoginMembers::Active:
+			Dest.Type = mq::datatypes::pBoolType;
+			Dest.Set(Login::has_entry());
+			return true;
+
+		default:
+			break;
+		}
+
+		return false;
+	}
+
+	bool ToString(MQVarPtr VarPtr, char* Destination) override
+	{
+		strcpy_s(Destination, MAX_STRING, "AutoLogin");
+		return true;
+	}
+
+	static bool dataAutoLogin(const char* szName, MQTypeVar& Ret);
+};
+
+MQ2AutoLoginType* pAutoLoginType = nullptr;
+
+bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
+{
+	Ret.DWord = 1;
+	Ret.Type = pAutoLoginType;
+	return true;
+}
+
+template <typename T>
+static void Post(const proto::login::MessageId& messageId, const T& data)
+{
+	Post(messageId, data.SerializeAsString());
+}
+
+static void Post(const proto::login::MessageId& messageId, const std::string& data)
+{
+	proto::login::LoginMessage message;
+	message.set_id(messageId);
+	message.set_payload(data);
+
+	postoffice::Address address;
+	address.Name = "launcher";
+	address.Mailbox = "autologin";
+	address.AbsoluteMailbox = true;
+
+	s_autologinDropbox.Post(address, message);
+}
+
+// Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
+// This can be revisited later when we think a little bit about autologin
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
+{
+	proto::login::ProfileMethod profile;
+	profile.set_profile(Profile);
+	profile.set_account(Account);
+	proto::login::LoginTarget& target = *profile.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(proto::login::ProfileLoaded, profile);
+}
+
+void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
+{
+	proto::login::ProfileMethod profile;
+	profile.set_profile(Profile);
+	profile.set_account(Account);
+	proto::login::LoginTarget& target = *profile.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(proto::login::ProfileUnloaded, profile);
+}
+
+void NotifyCharacterUpdate(int Class, int Level)
+{
+	proto::login::CharacterInfoMissive info;
+	info.set_class_(Class);
+	info.set_level(Level);
+
+	Post(proto::login::ProfileCharInfo, info);
+}
+
+void LoginServer(const char* Login, const char* Pass, const char* Server)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
+	method.set_login(Login);
+	method.set_password(Pass);
+	proto::login::LoginTarget& target = *method.mutable_target();
+	target.set_server(Server);
+
+	Post(proto::login::StartInstance, start);
+}
+
+void LoginCharacter(const char* Login, const char* Pass, const char* Server, const char* Character)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
+	method.set_login(Login);
+	method.set_password(Pass);
+	proto::login::LoginTarget& target = *method.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(proto::login::StartInstance, start);
+}
+
+void LoginProfile(const char* Profile, const char* Server, const char* Character)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::ProfileMethod& method = *start.mutable_profile();
+	method.set_profile(Profile);
+	proto::login::LoginTarget& target = *method.mutable_target();
+	target.set_server(Server);
+	target.set_character(Character);
+
+	Post(proto::login::StartInstance, start);
+}
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
-	pipeclient::NotifyCharacterUnload(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
@@ -62,17 +301,12 @@ void PerformSwitch(const std::string& ServerName, const std::string& CharacterNa
 			EzCommand("/stand");
 		}
 
-		EzCommand("/camp");
+		EzCommand("/camp fast");
 	}
 
 	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
 
-	pipeclient::NotifyCharacterLoad(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
 }
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
@@ -200,7 +434,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
 			INIFileName);
 
-		pipeclient::LoginProfile(
+		LoginProfile(
 			record.profileName.c_str(),
 			record.serverName.c_str(),
 			record.characterName.c_str());
@@ -208,12 +442,12 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
 	{
 		if (record.characterName.empty())
-			pipeclient::LoginServer(
+			LoginServer(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
 				record.serverName.c_str());
 		else
-			pipeclient::LoginCharacter(
+			LoginCharacter(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
 				record.serverName.c_str(),
@@ -241,7 +475,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 		}
 
 		if (!record.profileName.empty())
-			pipeclient::LoginProfile(
+			LoginProfile(
 				record.profileName.c_str(),
 				record.serverName.c_str(),
 				record.characterName.c_str());
@@ -327,10 +561,9 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 		std::filesystem::path pathToDebugLog = gPathLogs;
 		pathToDebugLog /= "MQ2AutoLogin_DBG.log";
 
-		FILE* fLog = nullptr;
-		const errno_t err = fopen_s(&fLog, pathToDebugLog.string().c_str(), "a");
+		FILE* fLog = _fsopen(pathToDebugLog.string().c_str(), "a", _SH_DENYWR);
 
-		if (err || !fLog)
+		if (!fLog)
 		{
 			DebugSpewAlways("Could not open MQ2Autologin Debug log for appending.");
 		}
@@ -364,7 +597,6 @@ void ReadINI()
 	}
 
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
-	AutoLoginDebug("MQ2AutoLogin: InitializePlugin()");
 
 	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
 	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
@@ -399,7 +631,9 @@ void LoginReset()
 
 PLUGIN_API void InitializePlugin()
 {
-	DebugSpewAlways("MQ2AutoLogin: InitializePlugin()");
+	pAutoLoginType = new MQ2AutoLoginType;
+	pLoginProfileType = new LoginProfileType;
+	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
 	Login::set_initial_state();
 	ReadINI();
@@ -427,16 +661,17 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+
+	s_autologinDropbox = postoffice::AddActor("autologin",
+		[](const std::shared_ptr<postoffice::Message>& message)
+		{
+			// autologin doesn't actually take message inputs yet...
+		});
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
-	pipeclient::NotifyCharacterUnload(
-		std::string(Login::profile()).c_str(),
-		std::string(Login::account()).c_str(),
-		std::string(Login::server()).c_str(),
-		std::string(Login::character()).c_str()
-	);
+	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
@@ -453,15 +688,138 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();
+	RemoveMQ2Data("AutoLogin");
+	delete pAutoLoginType;
+	delete pLoginProfileType;
+
+	s_autologinDropbox.Remove();
 }
+
+void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
+{
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		reinterpret_cast<eqlib::eqmain::CXWnd*>(pWnd)->WndNotification(
+			reinterpret_cast<eqlib::eqmain::CXWnd*>(sender), msg, data);
+	else
+#endif
+		pWnd->WndNotification(sender, msg, data);
+}
+
+CXStr GetWindowText(CXWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+	CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
+	auto type = pXmlMgr->GetWindowType(pWnd);
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return type == UI_STMLBox
+			? reinterpret_cast<eqlib::eqmain::CStmlWnd*>(pWnd)->STMLText
+			: reinterpret_cast<eqlib::eqmain::CXWnd*>(pWnd)->GetWindowText();
+	}
+#endif
+
+	return type == UI_STMLBox
+		? static_cast<CStmlWnd*>(pWnd)->STMLText
+		: pWnd->GetWindowText();
+}
+
+CXStr GetEditWndText(CEditWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText;
+	}
+#endif
+
+	return pWnd->InputText;
+}
+
+void SetEditWndText(CEditWnd* pWnd, std::string_view text)
+{
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		reinterpret_cast<eqlib::eqmain::CEditBaseWnd*>(pWnd)->InputText = text;
+	}
+	else
+#endif
+	{
+		pWnd->InputText = text;
+	}
+}
+
+CXStr GetSTMLText(CStmlWnd* pWnd)
+{
+	if (!pWnd) return CXStr();
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CStmlWnd*>(pWnd)->STMLText;
+	}
+#endif
+
+	return pWnd->STMLText;
+}
+
+ArrayClass<SListWndLine>* GetItemsArray(CListWnd* pWnd)
+{
+	if (!pWnd) return nullptr;
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return &reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->ItemsArray;
+	}
+#endif
+
+	return &pWnd->ItemsArray;
+}
+
+CXStr GetListItemText(CListWnd* pWnd, int row, int col)
+{
+	if (!pWnd) return CXStr();
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->GetItemText(row, col);
+	}
+#endif
+
+	return pWnd->GetItemText(row, col);
+}
+
+int GetListCurSel(CListWnd* pWnd)
+{
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		return reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd)->CurSel;
+	}
+#endif
+
+	return pWnd->GetCurSel();
+}
+
+// save off class and level so we know when to push updates
+int s_lastCharacterLevel = -1;
+int s_lastCharacterClass = -1;
 
 PLUGIN_API void OnPulse()
 {
-	if (pLocalPlayer && (pLocalPlayer->GetClass() != Class || pLocalPlayer->Level != Level))
+	if (pLocalPlayer && (pLocalPlayer->GetClass() != s_lastCharacterClass || pLocalPlayer->Level != s_lastCharacterLevel))
 	{
-		Class = pLocalPlayer->GetClass();
-		Level = pLocalPlayer->Level;
-		pipeclient::NotifyCharacterUpdate(std::to_string(Class).c_str(), std::to_string(Level).c_str());
+		s_lastCharacterClass = pLocalPlayer->GetClass();
+		s_lastCharacterLevel = pLocalPlayer->Level;
+		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
@@ -478,11 +836,12 @@ PLUGIN_API void OnPulse()
 		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pWnd != nullptr && pWnd->IsVisible() == 1)
 		{
-			auto pText = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-			if (pText && pText->STMLText.find("Do you accept these rules?") != CXStr::npos)
+			auto pStmlWnd = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
+
+			if (pStmlWnd && GetSTMLText(pStmlWnd).find("Do you accept these rules?") != CXStr::npos)
 			{
 				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
-					pYes->WndNotification(pYes, XWM_LCLICK);
+					SendWndNotification(pYes, pYes, XWM_LCLICK);
 			}
 		}
 		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
@@ -507,7 +866,7 @@ PLUGIN_API void OnPulse()
 		{
 			if (CButtonWnd* pButton = GetActiveChildWindow<CButtonWnd>(windowName, buttonName))
 			{
-				pButton->WndNotification(pButton, XWM_LCLICK);
+				SendWndNotification(pButton, pButton, XWM_LCLICK);
 				return;
 			}
 		}
@@ -602,11 +961,14 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			else
 				ImGui::TextColored(ImColor(255, 255, 0), "paused");
 
-			ImGui::Text("Server: %s", Login::server().data());
-			ImGui::Text("Character: %s", Login::character().data());
+			ImGui::Text("Server: %s", Login::server());
+			ImGui::Text("Character: %s", Login::character());
 
 			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-				ImGui::Text("Profile: %s", Login::profile().data());
+				ImGui::Text("Profile: %s", Login::profile());
+
+			if (strlen(Login::hotkey()) > 0)
+				ImGui::Text("HotKey: %s", Login::hotkey());
 
 			if (bAutoLoginEnabled)
 			{
@@ -664,11 +1026,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 							for (const ProfileRecord& record : pg.records)
 							{
 								char buffer[256] = { 0 };
-								if (!record.characterClass.empty())
-									fmt::format_to(buffer, "[{}] {}->{} [{:d} {}]", record.accountName, record.serverName,
-										record.characterName, record.characterLevel, record.characterClass);
-								else
-									fmt::format_to(buffer, "[{}] {}->{}", record.accountName, record.serverName, record.characterName);
+								record.FormatTo(buffer, 256);
 
 								if (ImGui::MenuItem(buffer))
 								{

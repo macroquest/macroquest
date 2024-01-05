@@ -100,9 +100,8 @@ void UnpackIni()
 			if (void* pMyBinaryData = LockResource(bin))
 			{
 				std::size_t ressize = SizeofResource(hMe, hRes);
-				FILE* File = nullptr;
-				const errno_t err = fopen_s(&File, INIFileName, "wb");
-				if (!err && File != nullptr)
+				FILE* File = _fsopen(INIFileName, "wb", _SH_DENYWR);
+				if (File != nullptr)
 				{
 					fwrite(pMyBinaryData, ressize, 1, File);
 					fclose(File);

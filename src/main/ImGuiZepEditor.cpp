@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -414,7 +414,7 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 	{
 		for (int ch = 'A'; ch <= 'Z'; ch++)
 		{
-			if (ImGui::IsKeyPressed(ch))
+			if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
 			{
 				buffer.GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
 				handled = true;

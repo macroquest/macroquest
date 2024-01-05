@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,6 +16,7 @@
 #include "Crashpad.h"
 
 #include "common/StringUtils.h"
+#include "mq/base/WString.h"
 
 #include <client/crash_report_database.h>
 #include <client/settings.h>
@@ -47,6 +48,8 @@ bool gEnableSharedCrashpad = true;                            // If using crashp
 bool gEnableSilentCrashpad = false;                           // If using crashpad, crash & report silently.
 bool gEnableCrashSubmissions = CRASHPAD_SUBMISSIONS_ENABLED;  // If using crashpad, we will submit them.
 bool gEnableRateLimit = false;                                // If using crashpad, upload rate limiting.
+
+bool gCrashpadInitialized = false;                            // Internal state-tracking of initialization
 
 static std::string gCrashpadSubmissionURL = CRASHPAD_SUBMISSIONS_URL;
 
@@ -131,7 +134,8 @@ bool InitializeCrashpad()
 	}
 
 	// Wait for Crashpad to initialize.
-	return client.WaitForHandlerStart(INFINITE);
+	gCrashpadInitialized = client.WaitForHandlerStart(INFINITE);
+	return gCrashpadInitialized;
 }
 
 std::string GetHandlerIPCPipe()
@@ -139,4 +143,9 @@ std::string GetHandlerIPCPipe()
 	std::wstring pipeName = client.GetHandlerIPCPipe();
 
 	return mq::wstring_to_utf8(pipeName);
+}
+
+bool IsCrashpadInitialized()
+{
+	return gCrashpadInitialized;
 }

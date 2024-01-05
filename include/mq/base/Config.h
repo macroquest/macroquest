@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <mq/base/Color.h>
 #include <mq/base/String.h>
 
 #include <string>
@@ -91,6 +92,17 @@ inline std::string GetPrivateProfileString(const char* Section, const char* Key,
 	return std::string{ szBuffer, length };
 }
 
+inline mq::MQColor GetPrivateProfileColor(const std::string& Section, const std::string& Key, mq::MQColor color, const std::string& iniFileName)
+{
+	return (uint32_t)::GetPrivateProfileIntA(Section.c_str(), Key.c_str(), (int32_t)color.ToARGB(), iniFileName.c_str());
+}
+
+inline mq::MQColor GetPrivateProfileColor(const char* Section, const char* Key, mq::MQColor color, const char* iniFileName)
+{
+	return (uint32_t)::GetPrivateProfileIntA(Section, Key, (int32_t)color.ToARGB(), iniFileName);
+}
+
+
 // GetPrivateProfileValue provides overloads to allow dispatching by type (selected by the type of default value)
 inline int GetPrivateProfileValue(const char* Section, const char* Key, int defaultValue, const char* IniFileName) { return GetPrivateProfileInt(Section, Key, defaultValue, IniFileName); }
 inline unsigned int GetPrivateProfileValue(const char* Section, const char* Key, unsigned int defaultValue, const char* IniFileName) { return static_cast<unsigned int>(GetPrivateProfileInt(Section, Key, static_cast<int>(defaultValue), IniFileName)); }
@@ -126,6 +138,36 @@ inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section
 	return results;
 }
 
+template <size_t BUFFER_SIZE = MAX_STRING>
+inline std::vector<std::pair<std::string, std::string>> GetPrivateProfileKeyValues(const std::string& section, const std::string& iniFileName)
+{
+	char keybuffer[BUFFER_SIZE] = { 0 };
+
+	const int bufferLen = ::GetPrivateProfileSectionA(section.c_str(), keybuffer, BUFFER_SIZE, iniFileName.c_str());
+	char* ptr = keybuffer;
+
+	std::vector<std::pair<std::string, std::string>> results;
+
+	while (ptr < keybuffer + bufferLen)
+	{
+		const std::string keyLine = ptr;
+		std::string keyName = keyLine;
+		std::string keyValue = "";
+
+		const size_t pos = keyLine.find("=");
+		if (pos != std::string::npos)
+		{
+			keyName = keyLine.substr(0, pos);
+			keyValue = keyLine.substr(pos + 1, keyLine.length() - pos - 1);
+		}
+		ptr += keyLine.length() + 1;
+
+		results.emplace_back(std::make_pair(keyName, keyValue));
+	}
+
+	return results;
+}
+
 inline bool PrivateProfileKeyExists(const std::string& section, const std::string& key, const std::string& iniFileName)
 {
 	const auto key_list = GetPrivateProfileKeys(section, iniFileName);
@@ -151,6 +193,12 @@ inline std::vector<std::string> GetPrivateProfileSections(const std::string& ini
 	}
 
 	return results;
+}
+
+inline bool PrivateProfileSectionExists(const std::string& section, const std::string& iniFileName)
+{
+	const auto section_list = GetPrivateProfileSections(iniFileName);
+	return std::any_of(section_list.begin(), section_list.end(), [section](const auto& this_section) { return ci_equals(this_section, section); });
 }
 
 inline bool WritePrivateProfileSection(const std::string& Section, const std::string& KeysAndValues, const std::string& iniFileName)
@@ -207,6 +255,18 @@ inline bool WritePrivateProfileFloat(const char* Section, const char* Key, float
 	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
 }
 
+inline bool WritePrivateProfileColor(const std::string& Section, const std::string& Key, mq::MQColor Value, const std::string& iniFileName)
+{
+	std::string ValueString = std::to_string(Value.ToARGB());
+	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), ValueString.c_str(), iniFileName.c_str());
+}
+
+inline bool WritePrivateProfileColor(const char* Section, const char* Key, mq::MQColor Value, const char* iniFileName)
+{
+	std::string ValueString = std::to_string(Value.ToARGB());
+	return ::WritePrivateProfileStringA(Section, Key, ValueString.c_str(), iniFileName);
+}
+
 inline bool DeletePrivateProfileKey(const std::string& Section, const std::string& Key, const std::string& iniFileName)
 {
 	return ::WritePrivateProfileStringA(Section.c_str(), Key.c_str(), nullptr, iniFileName.c_str());
@@ -224,6 +284,30 @@ template <typename T>
 inline auto WritePrivateProfileValue(const std::string& Section, const std::string& Key, T Value, const char* IniFileName)
 {
 	return WritePrivateProfileValue(Section.c_str(), Key.c_str(), Value, IniFileName);
+}
+
+inline std::string GetMacroIni(const std::filesystem::path& pathMQConfig, const std::filesystem::path& pathMacros, std::filesystem::path pathIniFile)
+{
+	if (!pathIniFile.has_extension())
+	{
+		pathIniFile += ".ini";
+	}
+
+	if (pathIniFile.is_relative())
+	{
+		std::error_code ec;
+		// Config is the primary path, but fall back to the old path if needed
+		if (!exists(pathMQConfig / pathIniFile, ec) && exists(pathMacros / pathIniFile, ec))
+		{
+			pathIniFile = pathMacros / pathIniFile;
+		}
+		else
+		{
+			pathIniFile = pathMQConfig / pathIniFile;
+		}
+	}
+
+	return pathIniFile.string();
 }
 
 inline std::string GetCreateMacroQuestIni(const std::filesystem::path& pathMQRoot, std::filesystem::path pathMQConfig, std::filesystem::path pathMQini)

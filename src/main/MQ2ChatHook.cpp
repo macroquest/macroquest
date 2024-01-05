@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,7 +15,16 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#include <fmt/chrono.h>
+#pragma warning(pop)
+
 namespace mq {
+
+#if HAS_CHAT_TIMESTAMPS
+bool gbTimeStampChat = false;
+#endif
 
 class CChatHook
 {
@@ -60,6 +69,16 @@ public:
 			bool SkipTrampoline = false;
 			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, dwColor));
 
+#if HAS_CHAT_TIMESTAMPS
+			if (gbTimeStampChat)
+			{
+				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+
+				Trampoline(timeStampedMsg.c_str(), dwColor, EqLog, dopercentsubst);
+				SkipTrampoline = true;
+			}
+#endif // HAS_CHAT_TIMESTAMPS
+
 			if (!SkipTrampoline)
 			{
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
@@ -90,6 +109,16 @@ public:
 			CheckChatForEvent(szMsg);
 			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, color));
 		}
+
+#if HAS_CHAT_TIMESTAMPS
+		if (gbTimeStampChat)
+		{
+			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+
+			TellWnd_Trampoline(timeStampedMsg.c_str(), from, windowtitle, text, color, bLogOk);
+			SkipTrampoline = true;
+		}
+#endif // HAS_CHAT_TIMESTAMPS
 
 		if (!SkipTrampoline)
 		{
@@ -135,6 +164,25 @@ public:
 	}
 };
 
+#if HAS_CHAT_TIMESTAMPS
+DETOUR_TRAMPOLINE_DEF(void, OutputTextToLog_Trampoline, (const char*));
+void OutputTextToLog_Detour(const char* szMsg)
+{
+	if (gbTimeStampChat && szMsg && *szMsg)
+	{
+		// if timestamp is on, skip past the ending bracket so that we don't double timestamp the
+		// log file.
+		if (const char* pDest = strchr(szMsg, ']'))
+		{
+			if (strlen(szMsg) > (size_t)(pDest - szMsg) + 2)
+				szMsg = pDest + 2;
+		}
+	}
+
+	OutputTextToLog_Trampoline(szMsg);
+}
+#endif // HAS_CHAT_TIMESTAMPS
+
 void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
 {
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
@@ -150,7 +198,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 
 	if (pLocalPlayer)
 	{
-		return static_cast<uint32_t>(strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen)));
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
 	}
 
 	return static_cast<uint32_t>(strlen(Value));
@@ -212,6 +260,45 @@ void BeepOnTells(SPAWNINFO* pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
 }
 
+#if HAS_CHAT_TIMESTAMPS
+void TimeStampChat(PlayerClient* pChar, char* szLine)
+{
+	if (szLine[0] != '\0')
+	{
+		if (!_stricmp(szLine, "on"))
+		{
+			gbTimeStampChat = false;
+		}
+		else if (!_stricmp(szLine, "off"))
+		{
+			gbTimeStampChat = true;
+		}
+	}
+
+	if (gbTimeStampChat)
+	{
+		gbTimeStampChat = false;
+		WriteChatColor("Chat Time Stamping is OFF", CONCOLOR_LIGHTBLUE);
+	}
+	else
+	{
+		gbTimeStampChat = true;
+		WriteChatColor("Chat Time Stamping is ON", CONCOLOR_YELLOW);
+	}
+
+	WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, mq::internal_paths::MQini);
+}
+
+// TODO: When non-emu has settings, pull this out of the ifdef block
+void ChatSettingsPannel()
+{
+	if (ImGui::Checkbox("Show Timestamps in Chat", &gbTimeStampChat))
+	{
+		WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, mq::internal_paths::MQini);
+	}
+}
+#endif // HAS_CHAT_TIMESTAMPS
+
 void InitializeChatHook()
 {
 	// initialize Blech
@@ -224,12 +311,26 @@ void InitializeChatHook()
 
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
+
+#if HAS_CHAT_TIMESTAMPS
+	AddCommand("/timestamp", TimeStampChat);
+	EzDetour(CEverQuest__OutputTextToLog, OutputTextToLog_Detour, OutputTextToLog_Trampoline);
+
+	AddSettingsPanel("Chat", ChatSettingsPannel);
+#endif
 }
 
 void ShutdownChatHook()
 {
 	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
+
+#if HAS_CHAT_TIMESTAMPS
+	RemoveCommand("/timestamp");
+	RemoveDetour(CEverQuest__OutputTextToLog);
+
+	RemoveSettingsPanel("Chat");
+#endif
 
 	RemoveDetour(CEverQuest__dsp_chat);
 	RemoveDetour(CEverQuest__DoTellWindow);

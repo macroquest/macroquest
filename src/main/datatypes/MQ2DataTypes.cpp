@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,255 +17,39 @@
 
 namespace mq::datatypes {
 
-//----------------------------------------------------------------------------
-// Datatype Definitions
+ //----------------------------------------------------------------------------
+ // Datatype Definitions
 
 #define DATATYPE(Class, Var, Inherits)                               \
 	Class* Var = nullptr;
-#include "DataTypeList.h"
+#include "datatypes/DataTypeList.h"
 #undef DATATYPE
 
-// Datatype deprecations
-using MQ2TargetBuffType DEPRECATE("Use MQ2CachedBuffType instead") = MQ2CachedBuffType;
-MQ2CachedBuffType* pTargetBuffType DEPRECATE("Use pCachedBuffType instead.") = pCachedBuffType;
-
-//----------------------------------------------------------------------------
-// DataType Initializations
-void InitializeMQ2DataTypes()
+void RegisterDataTypes()
 {
 #define DATATYPE(Class, Var, Inherits)                               \
 	Var = new Class();                                               \
 	if (Inherits != nullptr) {                                       \
 		Var->SetInheritance(Inherits);                               \
 	}
-#include "DataTypeList.h"
+#include "datatypes/DataTypeList.h"
 #undef DATATYPE
 }
 
 //----------------------------------------------------------------------------
 // DataType Shutdown
-void ShutdownMQ2DataTypes()
+void UnregisterDataTypes()
 {
 #define DATATYPE(Class, Var, Inherits)                               \
 	delete Var;
-#include "DataTypeList.h"
+#include "datatypes/DataTypeList.h"
 #undef DATATYPE
 }
 
-//============================================================================
-// MQ2Type
 
-MQ2Type::MQ2Type(const char* newName)
-{
-	strcpy_s(TypeName, newName);
-	m_owned = AddMQ2Type(*this);
-}
-
-MQ2Type::~MQ2Type()
-{
-	if (m_owned)
-	{
-		RemoveMQ2Type(*this);
-	}
-}
-
-void MQ2Type::InitializeMembers(MQTypeMember* memberArray)
-{
-	for (int i = 0; memberArray[i].ID; i++)
-	{
-		AddMember(memberArray[i].ID, memberArray[i].Name);
-	}
-}
-
-const char* MQ2Type::GetName() const
-{
-	if (TypeName)
-		return &TypeName[0];
-
-	return nullptr;
-}
-
-const char* MQ2Type::GetMemberName(int ID) const
-{
-	for (const auto& pMember : Members)
-	{
-		if (pMember && pMember->ID == ID)
-		{
-			return &pMember->Name[0];
-		}
-	}
-
-	return nullptr;
-}
-
-bool MQ2Type::GetMemberID(const char* Name, int& result) const
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MemberMap.find(Name);
-	if (iter == MemberMap.end())
-		return false;
-
-	int index = iter->second;
-	result = Members[index]->ID;
-	return true;
-}
-
-mq::MQTypeMember* MQ2Type::FindMember(const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MemberMap.find(Name);
-	if (iter == MemberMap.end())
-		return nullptr;
-
-	int index = MemberMap[Name];
-	return Members[index].get();
-}
-
-mq::MQTypeMember* MQ2Type::FindMember(const std::string& Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MemberMap.find(Name);
-	if (iter == MemberMap.end())
-		return nullptr;
-
-	int index = MemberMap[Name];
-	return Members[index].get();
-}
-
-mq::MQTypeMember* MQ2Type::FindMethod(const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MethodMap.find(Name);
-	if (iter == MethodMap.end())
-		return nullptr;
-
-	int index = iter->second;
-	return Methods[index].get();
-}
-
-mq::MQTypeMember* MQ2Type::FindMethod(const std::string& Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MethodMap.find(Name);
-	if (iter == MethodMap.end())
-		return nullptr;
-
-	int index = iter->second;
-	return Methods[index].get();
-}
-
-bool MQ2Type::CanEvaluateMethodOrMember(const std::string& Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	// exists in method map?
-	return MemberMap.count(Name) != 0 || MethodMap.count(Name) != 0;
-}
-
-bool MQ2Type::AddMember(int id, const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	if (MemberMap.find(Name) != MemberMap.end())
-		return false;
-
-	// find an unused index from members.
-	int index = -1;
-	for (int i = 0; i < (int)Members.size(); ++i)
-	{
-		if (Members[i] == nullptr)
-		{
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1)
-	{
-		Members.emplace_back();
-		index = static_cast<int>(Members.size()) - 1;
-	}
-
-	auto pMember = std::make_unique<MQTypeMember>();
-	pMember->Name = Name;
-	pMember->ID = id;
-	pMember->Type = 0;
-	Members[index] = std::move(pMember);
-	MemberMap[Name] = index;
-	return true;
-}
-
-bool MQ2Type::RemoveMember(const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MemberMap.find(Name);
-	if (iter == MemberMap.end())
-		return false;
-
-	int index = iter->second;
-	MemberMap.erase(iter);
-
-	if (index < 0)
-		return false;
-	Members[index].reset();
-	return true;
-}
-
-bool MQ2Type::AddMethod(int ID, const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	if (MethodMap.find(Name) != MethodMap.end())
-		return false;
-
-	// find an unused index from members.
-	int index = -1;
-	for (int i = 0; i < (int)Methods.size(); ++i)
-	{
-		if (Methods[i] == nullptr)
-		{
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1)
-	{
-		Methods.emplace_back();
-		index = static_cast<int>(Methods.size()) - 1;
-	}
-
-	auto pMethod = std::make_unique<MQTypeMember>();
-	pMethod->Name = Name;
-	pMethod->ID = ID;
-	pMethod->Type = 1;
-	Methods[index] = std::move(pMethod);
-	MethodMap[Name] = index;
-	return true;
-}
-
-bool MQ2Type::RemoveMethod(const char* Name)
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto iter = MethodMap.find(Name);
-	if (iter == MethodMap.end())
-		return false;
-
-	int index = iter->second;
-	MethodMap.erase(iter);
-
-	if (index < 0)
-		return false;
-	Methods[index].reset();
-	return true;
-}
+// Datatype deprecations
+using MQ2TargetBuffType DEPRECATE("Use MQ2CachedBuffType instead") = MQ2CachedBuffType;
+MQ2CachedBuffType* pTargetBuffType DEPRECATE("Use pCachedBuffType instead.") = pCachedBuffType;
 
 //============================================================================
 // CDataArray
@@ -370,120 +154,64 @@ void CDataArray::Delete()
 	m_totalElements = 0;
 }
 
-int CDataArray::GetElement(char* Index)
+int CDataArray::GetElement(std::string_view Index) const
 {
-	int Element = 0;
 	if (m_nExtents == 1)
 	{
-		if (strchr(Index, ','))
+		if (Index.find(',') != std::string_view::npos)
 			return -1;
 
-		Element = GetIntFromString(Index, Element) - 1;
-		if (Element >= m_totalElements)
+		int location = GetIntFromString(Index, 0) - 1;
+		if (location >= m_totalElements)
 			return -1;
 
-		return Element;
+		return location;
 	}
-
-	int nGetExtents = 1;
-
-	if (char* pComma = strchr(Index, ','))
-	{
-		nGetExtents++;
-		while (pComma = strchr(&pComma[1], ','))
-		{
-			nGetExtents++;
-		}
-	}
-
-	if (nGetExtents != m_nExtents)
+	
+	int num_extents = static_cast<int>(std::count(Index.begin(), Index.end(), ',') + 1);
+	if (num_extents != m_nExtents)
 		return -1;
 
-	// read extents
-	char* pStart = Index;
-	for (int index = 0; index < m_nExtents; index++)
-	{
-		char* pComma = strchr(pStart, ',');
-		if (pComma)
-			*pComma = 0;
-
-		int Temp = GetIntFromString(pStart, 0) - 1;
-		if (Temp >= m_pExtents[index] || Temp < 0)
-			return -1;
-
-		for (int i = index + 1; i < m_nExtents; i++)
-			Temp *= m_pExtents[i];
-		Element += Temp;
-
-		if (pComma)
+	auto tokens = split_view(Index, ',');
+	int extent = 0;
+	return std::accumulate(tokens.begin(), tokens.end(), 0, [&extent, this](int location, std::string_view token) -> int
 		{
-			*pComma = ',';
-			pStart = &pComma[1];
-		}
+			if (location < 0)
+				return -1;
+
+			int max_extent = m_pExtents[extent];
+			int next_location = GetIntFromString(token, 0) - 1;
+			if (next_location >= max_extent || next_location < 0)
+				return -1;
+
+			for (int extent_marker = extent + 1; extent_marker < m_nExtents; ++extent_marker)
+				next_location *= m_pExtents[extent_marker];
+
+			++extent;
+			return location + next_location;
+		});
+}
+
+int CDataArray::GetElement(char* Index)
+{
+	return GetElement(std::string_view(Index));
+}
+
+bool CDataArray::GetElement(std::string_view Index, MQTypeVar& Dest)
+{
+	int location = GetElement(std::string_view(Index));
+	if (location >= 0)
+	{
+		Dest.Type = m_pType;
+		Dest.VarPtr = m_pData[location];
 	}
 
-	return Element;
+	return location >= 0;
 }
 
 bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 {
-	if (m_nExtents == 1)
-	{
-		if (strchr(Index, ','))
-			return false;
-
-		int Element = GetIntFromString(Index, 0) - 1;
-		if (Element >= m_totalElements || Element < 0)
-			return false;
-
-		Dest.Type = m_pType;
-		Dest.VarPtr = m_pData[Element];
-
-		return true;
-	}
-
-	int nGetExtents = 1;
-
-	if (char* pComma = strchr(Index, ','))
-	{
-		nGetExtents++;
-		while (pComma = strchr(&pComma[1], ','))
-		{
-			nGetExtents++;
-		}
-	}
-
-	if (nGetExtents != m_nExtents)
-		return false;
-
-	// read extents
-	char* pStart = Index;
-	int Element = 0;
-
-	for (int index = 0; index < m_nExtents; index++)
-	{
-		char* pComma = strchr(pStart, ',');
-		if (pComma)
-			*pComma = 0;
-
-		int Temp = GetIntFromString(pStart, 0) - 1;
-		if (Temp >= m_pExtents[index] || Temp < 0)
-			return false;
-
-		for (int i = index + 1; i < m_nExtents; i++)
-			Temp *= m_pExtents[i];
-
-		Element += Temp;
-		if (pComma)
-		{
-			*pComma = ',';
-			pStart = &pComma[1];
-		}
-	}
-
-	Dest.Type = m_pType;
-	Dest.VarPtr = m_pData[Element];
-	return true;
+	return GetElement(std::string_view(Index), Dest);
 }
 
 } // namespace mq::datatypes
@@ -535,10 +263,14 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQ2TargetType.cpp"
 #include "MQ2TaskType.cpp"
 #include "MQ2TimerType.cpp"
+#include "MQ2TradeskillDepotType.cpp"
 #include "MQ2WindowType.cpp"
 #include "MQ2WorldLocationType.cpp"
 #include "MQ2XTargetType.cpp"
 #include "MQ2ZoneType.cpp"
+#include "MQIniType.cpp"
+#include "MQInventoryType.cpp"
+#include "MQCursorAttachmentType.cpp"
 
 #if HAS_ADVANCED_LOOT
 #include "MQ2AdvLootType.cpp"

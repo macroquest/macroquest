@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,10 +15,10 @@
 #include "pch.h"
 #include "LuaImGui.h"
 #include "LuaThread.h"
-#include "contrib/imgui/sol_ImGui.h"
 
+#include "bindings/lua_Bindings.h"
+#include "imgui/implot/implot.h"
 #include <mq/Plugin.h>
-#include <mq/imgui/Widgets.h>
 
 namespace mq::lua {
 
@@ -26,6 +26,7 @@ namespace mq::lua {
 
 LuaImGuiProcessor::LuaImGuiProcessor(const LuaThread* thread)
 	: m_thread(thread)
+	, m_imPlotContext(std::shared_ptr<ImPlotContext>(ImPlot::CreateContext(), &ImPlot::DestroyContext))
 {
 }
 
@@ -53,6 +54,12 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 
 void LuaImGuiProcessor::Pulse()
 {
+	if (m_thread->IsPaused()) return;
+
+	// Backup context and set our own
+	ImPlotContext* context = ImPlot::GetCurrentContext();
+	ImPlot::SetCurrentContext(m_imPlotContext.get());
+
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
 	lua_sethook(m_thread->GetLuaThread().lua_state(), nullptr, 0, 0);
@@ -62,46 +69,9 @@ void LuaImGuiProcessor::Pulse()
 		if (!im->Pulse())
 			RemoveCallback(im->GetName());
 	}
-}
 
-//============================================================================
-
-static void lua_addimgui(std::string_view name, sol::function function, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			imgui->AddCallback(name, function);
-	}
-}
-
-static void lua_removeimgui(std::string_view name, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			imgui->RemoveCallback(name);
-	}
-}
-
-static bool lua_hasimgui(std::string_view name, sol::this_state s)
-{
-	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
-	{
-		if (LuaImGuiProcessor* imgui = thread_ptr->GetImGuiProcessor())
-			return imgui->HasCallback(name);
-	}
-
-	return false;
-}
-
-void MQ_RegisterLua_ImGui(sol::table& lua)
-{
-	lua["imgui"] = lua.create_with(
-		"init", &lua_addimgui,
-		"destroy", &lua_removeimgui,
-		"exists", &lua_hasimgui
-	);
+	// Restore context
+	ImPlot::SetCurrentContext(context);
 }
 
 //============================================================================
@@ -111,65 +81,29 @@ LuaImGui::LuaImGui(std::string_view name, const sol::thread& parent_thread, cons
 	, m_parentThread(parent_thread), m_callback(callback)
 {
 	m_thread = sol::thread::create(m_parentThread.state());
-	ImGui_RegisterLua(m_thread.state());
-
 	m_coroutine = sol::coroutine(m_thread.state(), m_callback);
+
+	// This implements the automatic registration of ImGui namespace when calling mq.imgui.init
+	bindings::RegisterBindings_ImGui(m_thread.state());
 }
 
 LuaImGui::~LuaImGui()
 {
 }
 
-class ScopedYieldDisabler
-{
-	bool m_origAllowYield = true;
-	std::shared_ptr<LuaThread> m_threadPtr;
-
-public:
-	ScopedYieldDisabler(const std::shared_ptr<LuaThread>& thread_ptr)
-		: m_threadPtr(thread_ptr)
-	{
-		if (m_threadPtr)
-		{
-			m_origAllowYield = m_threadPtr->GetAllowYield();
-			thread_ptr->SetAllowYield(false);
-		}
-	}
-
-	~ScopedYieldDisabler()
-	{
-		if (m_threadPtr)
-		{
-			m_threadPtr->SetAllowYield(m_origAllowYield);
-		}
-	}
-};
-
 bool LuaImGui::Pulse() const
 {
 	bool success = true;
 	try
 	{
-		int yield_count = 0;
-		constexpr int max_yields = 20;
 		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
 
-		sol::protected_function_result result;
-		do
+		sol::function_result result = m_coroutine();
+		if (!result.valid())
 		{
-			result = m_coroutine();
-			if (!result.valid())
-			{
-				LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-				result.abandon();
+			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+			result.abandon();
 
-				success = false;
-			}
-			++yield_count;
-		} while (success && result.status() == sol::call_status::yielded && yield_count <= max_yields);
-		if (yield_count > max_yields)
-		{
-			LuaError("ImGui thread tried to yield %d or more times!", max_yields);
 			success = false;
 		}
 	}
@@ -198,32 +132,5 @@ bool LuaImGui::Pulse() const
 }
 
 //============================================================================
-
-// MQ-Specific functions
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y), drawBorder); }
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim, int x, int y) { return mq::imgui::DrawTextureAnimation(anim.get(), CXSize(x, y)); }
-inline bool DrawTextureAnimation(const std::unique_ptr<CTextureAnimation>& anim) { return mq::imgui::DrawTextureAnimation(anim.get()); }
-
-void ImGui_RegisterLua(sol::state_view state)
-{
-	sol::table ImGui = state.get_or("ImGui", sol::lua_nil);
-
-	if (ImGui == sol::lua_nil)
-	{
-		ImGui = sol_ImGui::Init(state);
-
-#pragma region MQ Specific Functions
-		ImGui.set_function("DrawTextureAnimation", sol::overload(
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int, bool)>(DrawTextureAnimation),
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&, int, int)>(DrawTextureAnimation),
-			sol::resolve<bool(const std::unique_ptr<CTextureAnimation>&)>(DrawTextureAnimation)
-		));
-#pragma endregion
-
-		ImGui.set_function("Register", lua_addimgui);
-		ImGui.set_function("Unregister", lua_removeimgui);
-	}
-}
-
 
 } // namespace mq::lua

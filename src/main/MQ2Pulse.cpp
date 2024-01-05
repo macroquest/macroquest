@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,10 +14,9 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQPostOffice.h"
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
-
-#include "common/NamedPipes.h"
 
 #include <wil/resource.h>
 
@@ -27,8 +26,6 @@ namespace mq {
 
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
-
-extern NamedPipeClient gPipeClient;
 
 void UpdateMQ2SpawnSort();
 
@@ -90,7 +87,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 
-		ParseMacroParameter(pLocalPlayer, szCond);
+		ParseMacroData(szCond, MAX_STRING);
 
 		double Result;
 		if (!Calculate(szCond, Result))
@@ -627,8 +624,6 @@ static HeartbeatState Heartbeat()
 			PluginsEndZone();
 		}
 	}
-
-	gPipeClient.Process();
 
 	UpdateMQ2SpawnSort();
 

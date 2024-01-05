@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,15 +16,25 @@
 
 #include "LuaCommon.h"
 
+#include "mq/api/MacroAPI.h"
+#include "mq/base/GlobalBuffer.h"
+#include "mq/base/String.h"
+#include "mq/base/Vector.h"
+
 #include <sol/sol.hpp>
 
 #include <chrono>
 #include <stack>
 
+namespace mq {
+	struct MQPlugin;
+}
+
 namespace mq::lua {
 
 class LuaEventProcessor;
 class LuaImGuiProcessor;
+class LuaActors;
 class LuaThread;
 struct LuaCoroutine;
 
@@ -42,6 +52,13 @@ enum class LuaThreadExitReason
 {
 	Unspecified = 0,
 	Exit = 1,
+	DependencyRemoved = 2,
+};
+
+enum class YieldDisabledReason
+{
+	Default,
+	Require,
 };
 
 struct LuaThreadInfo
@@ -77,6 +94,7 @@ struct LuaThreadInfo
 	void EndRun();
 };
 
+
 //============================================================================
 
 class LuaThread : public std::enable_shared_from_this<LuaThread>
@@ -88,6 +106,8 @@ public:
 	LuaThread(this_is_private&&, LuaEnvironmentSettings* environment);
 	static std::shared_ptr<LuaThread> Create(LuaEnvironmentSettings* environment);
 
+	~LuaThread();
+
 	LuaThread(const LuaThread&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
 
@@ -98,8 +118,13 @@ public:
 	bool IsString() const { return m_isString; }
 	int GetPID() const { return m_pid; }
 	const std::string& GetName() const { return m_name; }
+	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
+	sol::thread_status GetThreadStatus() const;
+
+	// Buffer to get swapped in for DataTypeTemp
+	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
@@ -121,8 +146,12 @@ public:
 
 	LuaThreadStatus Pause();
 
-	void SetAllowYield(bool allowYield) { m_allowYield = allowYield; }
+	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default)
+	{
+		m_allowYield = allowYield; m_yieldDisabledReason = reason;
+	}
 	bool GetAllowYield() const { return m_allowYield; }
+	YieldDisabledReason GetYieldDisabledReason() const { return m_yieldDisabledReason; }
 
 	bool ShouldYield() const { return m_yieldToFrame; }
 	void DoYield() { YieldAt(0); }
@@ -134,10 +163,39 @@ public:
 	LuaImGuiProcessor* GetImGuiProcessor() const { return m_imguiProcessor.get(); }
 	LuaEventProcessor* GetEventProcessor() const { return m_eventProcessor.get(); }
 
+	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
+	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
+
+	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
+	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
+	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
+
+	// TLOs
+	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction func);
+	bool RemoveTopLevelObject(const char* name);
+
+	void RemoveAllDataObjects();
+
+	void AssociateTopLevelObject(const MQTopLevelObject* tlo);
+
+	bool AddDependency(const void* dep) {
+		return mq::insert_unique_sorted(m_dependencies, dep) != end(m_dependencies);
+	}
+	void RemoveDependency(const void* dep) {
+		mq::remove_sorted(m_dependencies, dep);
+	}
+	bool IsDependency(const void* dep) const {
+		return mq::sorted_contains(m_dependencies, dep);
+	}
+
+	void AddNamedDependency(const std::string& name) {
+		m_namedDependencies.insert(name);
+	}
+
 private:
 	RunResult RunOnce();
 
-	void RegisterLuaBindings(sol::table mq);
+	sol::table RegisterMQNamespace(sol::this_state L);
 	void Initialize();
 
 	void YieldAt(int count) const;
@@ -145,9 +203,6 @@ private:
 	int PackageLoader(const std::string& pkg, lua_State* L);
 
 	static int lua_PackageLoader(lua_State* L);
-	static void lua_exit(sol::this_state s);
-	static void lua_delay(sol::object delayObj, sol::object conditionObj, sol::this_state s);
-	static uint64_t lua_gettime(sol::this_state s);
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:
@@ -157,7 +212,6 @@ private:
 	sol::state m_globalState;
 	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
-	std::optional<sol::table> m_mqTable;
 	sol::table m_threadTable;
 	uint32_t m_threadIndex = 0;
 
@@ -170,11 +224,17 @@ private:
 	bool m_paused = false;
 	bool m_evaluateResult = false;
 	bool m_allowYield = true;
+	YieldDisabledReason m_yieldDisabledReason = YieldDisabledReason::Default;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
+	std::vector<const void*> m_dependencies;
+	std::unordered_set<std::string> m_namedDependencies;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 	LuaCoroutine* m_currentCoroutine = nullptr;
+
+	// datatypes
+	ci_unordered::set<std::string> m_registeredTLOs;
 };
 
 //============================================================================
@@ -190,5 +250,46 @@ inline std::shared_ptr<LuaThread> LuaThread::get_from(sol::state_view s)
 	std::optional<LuaThreadRef> thread = s["mqthread"];
 	return thread.value_or(LuaThreadRef()).lock();
 }
+
+//============================================================================
+
+class ScopedYieldDisabler
+{
+public:
+	ScopedYieldDisabler(const std::shared_ptr<LuaThread>& thread_ptr, YieldDisabledReason reason = YieldDisabledReason::Default)
+		: m_threadPtr(thread_ptr)
+	{
+		if (m_threadPtr)
+		{
+			m_origAllowYield = m_threadPtr->GetAllowYield();
+			m_origReason = m_threadPtr->GetYieldDisabledReason();
+			m_threadPtr->SetAllowYield(false, reason);
+		}
+	}
+
+	ScopedYieldDisabler(sol::state_view s, YieldDisabledReason reason = YieldDisabledReason::Default)
+		: m_threadPtr(LuaThread::get_from(s))
+	{
+		if (m_threadPtr)
+		{
+			m_origAllowYield = m_threadPtr->GetAllowYield();
+			m_origReason = m_threadPtr->GetYieldDisabledReason();
+			m_threadPtr->SetAllowYield(false, reason);
+		}
+	}
+
+	~ScopedYieldDisabler()
+	{
+		if (m_threadPtr)
+		{
+			m_threadPtr->SetAllowYield(m_origAllowYield, m_origReason);
+		}
+	}
+
+private:
+	bool m_origAllowYield = true;
+	YieldDisabledReason m_origReason = YieldDisabledReason::Default;
+	std::shared_ptr<LuaThread> m_threadPtr;
+};
 
 } // namespace mq::lua

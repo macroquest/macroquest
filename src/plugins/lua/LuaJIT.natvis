@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<Type Name="lua_State">
 		<Intrinsic Name="valid" Expression="gct == 6" />
-		
+
 		<!-- all lua_States are gct 6 (thread) -->
 		<DisplayString Condition="!valid()">lua_State (invalid)</DisplayString>
 		<DisplayString>lua_State</DisplayString>
@@ -25,10 +25,10 @@
 				<DisplayString Condition="status == 4">LUA_ERRMEM</DisplayString>
 				<DisplayString Condition="status == 5">LUA_ERRERR</DisplayString>
 			</Synthetic>
-			<Item Name="[curr_func]" Condition="valid()">((GCobj*)((base-1)->fr.func).gcptr32)->fn</Item>
-			<Item Name="[registry]" Condition="valid()">((global_State*)(glref.ptr32))->registrytv</Item>
-			<Item Name="[global state]" Condition="valid()">(global_State*)(glref.ptr32)</Item>
-			<Item Name="[env]" Condition="valid()">*(GCobj*)(env.gcptr32)</Item>
+			<Item Name="[curr_func]" Condition="valid()">((GCobj*)(((base-2)->gcr).gcptr64 &amp; 0x7fffffffffff))->fn</Item>
+			<Item Name="[registry]" Condition="valid()">((global_State*)(glref.ptr64))->registrytv</Item>
+			<Item Name="[global state]" Condition="valid()">(global_State*)(glref.ptr64)</Item>
+			<Item Name="[env]" Condition="valid()">*(GCobj*)(env.gcptr64 &amp; 0x7fffffffffff)</Item>
 			<!-- <Item Name="[call]" -->
 		</Expand>
 	</Type>
@@ -37,31 +37,35 @@
 	</Type>
 
 	<Type Name="GCRef">
-		<DisplayString Condition="gcptr32 != 0">GCRef { (GCobj*)gcptr32 }</DisplayString>
-		<DisplayString Condition="gcptr32 == 0">GCRef {{ null }}</DisplayString>
+		<DisplayString Condition="(gcptr64 &amp; 0x7fffffffffff)  != 0">GCRef { (GCobj*)(gcptr64 &amp; 0x7fffffffffff) }</DisplayString>
+		<DisplayString Condition="(gcptr64 &amp; 0x7fffffffffff) == 0">GCRef {{ null }}</DisplayString>
 		<Expand>
-			<ExpandedItem>((GCobj*)gcptr32)</ExpandedItem>
+			<ExpandedItem>((GCobj*)(gcptr64 &amp; 0x7fffffffffff))</ExpandedItem>
 		</Expand>
 	</Type>
 
 	<Type Name="TValue">
+		<Intrinsic Name="itype" Expression="(unsigned int)(it64 &gt;&gt; 47)" />
+
+		<DisplayString Condition="itype() == 0">invalid</DisplayString>
+
 		<!-- LJ_TNIL (~0u) -->
-		<DisplayString Condition="it == 0xffffffff">nil</DisplayString>
+		<DisplayString Condition="itype() == ~0">nil</DisplayString>
 		<!-- LJ_TFALSE (~1u) -->
-		<DisplayString Condition="it == 0xfffffffe">false</DisplayString>
+		<DisplayString Condition="itype() == ~1">false</DisplayString>
 		<!-- LJ_TTRUE (~2u) -->
-		<DisplayString Condition="it == 0xfffffffd">true</DisplayString>
+		<DisplayString Condition="itype() == ~2">true</DisplayString>
 		<!-- LJ_TLIGHTUD (~3u) -->
-		<DisplayString Condition="it == 0xfffffffc">userdata: { (void*)(u64 &amp; 0xffffffff) }</DisplayString>
-		<!-- GC types -->
-		<DisplayString Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">{ *((GCobj*)gcr.gcptr32) }</DisplayString>
+		<DisplayString Condition="itype() == ~3">userdata: { (void*)(u64 &amp; 0xffffffff) }</DisplayString>
+		<!-- GC types <= ~4 && > ~13 -->
+		<DisplayString Condition="itype() &lt;= (unsigned int)~4 &amp;&amp; itype() &gt; (unsigned int)~13">{ *((GCobj*)(gcr.gcptr64 &amp; 0x7fffffffffff)) }</DisplayString>
 		<!-- LJ_TNUMX (~13u)-->
-		<DisplayString Condition="it &lt; 0xfffffff2">{n,g}</DisplayString>
+		<DisplayString Condition="itype() &lt;= (unsigned int)~13">{n,g}</DisplayString>
 
 		<Expand>
-			<!--<Item Name="GCobj" Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">((GCobj*)gcr.gcptr32)</Item>-->
-			<ExpandedItem Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">((GCobj*)gcr.gcptr32)</ExpandedItem>
-			<Item Name="value" Condition="it == 0xfffffffc">(void*)(u64 &amp; 0xffffffff)</Item>
+			<!--<Item Name="GCobj" Condition="it &lt;= 0xfffffffb &amp;&amp; it &gt; 0xfffffff2">((GCobj*)gcr.gcptr64)</Item>-->
+			<ExpandedItem Condition="itype() &lt;= ~4 &amp;&amp; itype() &gt; ~13">((GCobj*)(gcr.gcptr64 &amp; 0x7fffffffffff))</ExpandedItem>
+			<Item Name="value" Condition="itype() == 0xfffffffc">(void*)(u64 &amp; 0xffffffff)</Item>
 		</Expand>
 	</Type>
 
@@ -83,7 +87,7 @@
 			<ExpandedItem Condition="gch.gct == 8">fn</ExpandedItem>
 			<ExpandedItem Condition="gch.gct == 11">tab</ExpandedItem>
 			<ExpandedItem Condition="gch.gct == 12">ud</ExpandedItem>
-			
+
 			<!-- shared gc header data -->
 			<Synthetic Name="[gc]">
 				<Expand>
@@ -130,10 +134,10 @@
 		<Expand>
 			<ExpandedItem Condition="isL()">l</ExpandedItem>
 			<ExpandedItem Condition="isC()">c</ExpandedItem>
-			
-			<Item Name="[proto]" Condition="isL()">((GCproto*)l.pc.ptr32) - 1</Item>
-			<Item Name="[pc]">(void*)c.pc.ptr32</Item>
-			<Item Name="[env]">&amp;((GCobj*)(c.env.gcptr32))->tab</Item>
+
+			<Item Name="[proto]" Condition="isL()">((GCproto*)l.pc.ptr64) - 1</Item>
+			<Item Name="[pc]">(void*)c.pc.ptr64</Item>
+			<Item Name="[env]">&amp;((GCobj*)(c.env.gcptr64 &amp; 0x7fffffffffff))->tab</Item>
 		</Expand>
 	</Type>
 
@@ -145,7 +149,7 @@
 				<Expand>
 					<IndexListItems>
 						<Size>nupvalues</Size>
-						<ValueNode>*(GCobj*)uvptr[$i].gcptr32</ValueNode>
+						<ValueNode>*(GCobj*)(uvptr[$i].gcptr64 &amp; 0x7fffffffffff)</ValueNode>
 					</IndexListItems>
 				</Expand>
 			</Synthetic>
@@ -198,16 +202,16 @@
 	<Type Name="GCtab">
 		<DisplayString>table</DisplayString>
 		<Expand>
-			<Synthetic Name="[metatable]" Condition="metatable.gcptr32 != 0">
-				<DisplayString>table: {(void*)metatable.gcptr32,x}</DisplayString>
+			<Synthetic Name="[metatable]" Condition="(metatable.gcptr64 &amp; 0x7fffffffffff) != 0">
+				<DisplayString>table: {(void*)(metatable.gcptr64 &amp; 0x7fffffffffff),x}</DisplayString>
 				<Expand>
-					<ExpandedItem>((GCobj*)metatable.gcptr32)->tab</ExpandedItem>
+					<ExpandedItem>((GCobj*)(metatable.gcptr64 &amp; 0x7fffffffffff))->tab</ExpandedItem>
 				</Expand>
 			</Synthetic>
 			<CustomListItems Condition="hmask > 0 || asize > 0">
 				<Variable Name="index" InitialValue="0" />
-				<Variable Name="nodes" InitialValue="(Node*)(node.ptr32)" />
-				<Variable Name="array" InitialValue="(TValue*)(array.ptr32)" />
+				<Variable Name="nodes" InitialValue="(Node*)(node.ptr64)" />
+				<Variable Name="array" InitialValue="(TValue*)(array.ptr64)" />
 				<Variable Name="count" InitialValue="0" />
 				<Loop>
 					<Break Condition="index &gt;= hmask" />
@@ -240,10 +244,10 @@
 		<DisplayString>userdata</DisplayString>
 		<Expand>
 			<!-- metatable -->
-			<Synthetic Name="[metatable]" Condition="metatable.gcptr32 != 0">
-				<DisplayString>table: {(void*)metatable.gcptr32,x}</DisplayString>
+			<Synthetic Name="[metatable]" Condition="(metatable.gcptr64 &amp; 0x7fffffffffff) != 0">
+				<DisplayString>table: {(void*)(metatable.gcptr64 &amp; 0x7fffffffffff),x}</DisplayString>
 				<Expand>
-					<ExpandedItem>((GCobj*)metatable.gcptr32)->tab</ExpandedItem>
+					<ExpandedItem>((GCobj*)(metatable.gcptr64 &amp; 0x7fffffffffff))->tab</ExpandedItem>
 				</Expand>
 			</Synthetic>
 
@@ -259,12 +263,12 @@
 			</Synthetic>
 		</Expand>
 	</Type>
-	
+
 	<Type Name="GCupval">
-		<DisplayString Condition="v.ptr32 != 0">{*(TValue*)v.ptr32}</DisplayString>
-		<DisplayString Condition="v.ptr32 == 0">nil</DisplayString>
+		<DisplayString Condition="v.ptr64 != 0">{*(TValue*)v.ptr64}</DisplayString>
+		<DisplayString Condition="v.ptr64 == 0">nil</DisplayString>
 		<Expand>
-			<Item Name="[value]" Condition="v.ptr32 != 0">*(TValue*)(v.ptr32)</Item>
+			<Item Name="[value]" Condition="v.ptr64 != 0">*(TValue*)(v.ptr64)</Item>
 			<Item Name="closed">(bool)closed</Item>
 			<Item Name="immutable">(bool)immutable</Item>
 		</Expand>
@@ -281,7 +285,7 @@
 		<Expand>
 			<Item Name="[error_handler]">error_handler</Item>
 			<Item Condition="luastate != 0" Name="[value]">
-				((TValue*)((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.array.ptr32)[ref]
+				((TValue*)((GCobj*)(((global_State*)(luastate->glref.ptr64))->registrytv.gcr.gcptr64 &amp; 0x7fffffffffff))->tab.array.ptr64)[ref]
 			</Item>
 			<Synthetic Condition="luastate == 0" Name="[value]">
 				<DisplayString>nil</DisplayString>
@@ -291,10 +295,10 @@
 
 	<!-- sol::reference -->
 	<Type Name="sol::basic_reference&lt;*&gt;">
-		<Intrinsic Name="isArrayVal" Expression="ref >= 0 &amp;&amp; ref &lt; ((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.asize" />
+		<Intrinsic Name="isArrayVal" Expression="ref >= 0 &amp;&amp; ref &lt; ((GCobj*)(((global_State*)(luastate->glref.ptr64))->registrytv.gcr.gcptr64 &amp; 0x7fffffffffff))->tab.asize" />
 		<Intrinsic Name="registryValue"
-			Expression="((TValue*)((GCobj*)((global_State*)(luastate->glref.ptr32))->registrytv.gcr.gcptr32)->tab.array.ptr32)[ref]" />
-		
+			Expression="((TValue*)((GCobj*)(((global_State*)(luastate->glref.ptr64))->registrytv.gcr.gcptr64 &amp; 0x7fffffffffff))->tab.array.ptr64)[ref]" />
+
 		<DisplayString Condition="luastate == 0 &amp;&amp; ref == -1">nil</DisplayString>
 		<DisplayString Condition="luastate == 0 &amp;&amp; ref == -2">noref</DisplayString>
 		<DisplayString Condition="luastate != 0 &amp;&amp; isArrayVal()">{registryValue()}</DisplayString>
@@ -312,11 +316,11 @@
 			<Item Name="[state]">(GCobj*)luastate</Item>
 		</Expand>
 	</Type>
-	
+
 	<!-- sol::stack_reference -->
 	<Type Name="sol::stack_reference">
-		<Intrinsic Name="nilnode" Expression="(TValue*)&amp;((global_State*)luastate->glref.ptr32)->nilnode.val" />
-		
+		<Intrinsic Name="nilnode" Expression="(TValue*)&amp;((global_State*)luastate->glref.ptr64)->nilnode.val" />
+
 		<!-- index2adr -->
 		<Intrinsic Name="isStackBase" Expression="index > 0" />
 		<Intrinsic Name="stackValueBase" Expression="
@@ -338,6 +342,32 @@
 		</Expand>
 	</Type>
 
+	<!-- sol::function_result -->
+	<Type Name="sol::protected_function_result">
+		<Intrinsic Name="nilnode" Expression="(TValue*)&amp;((global_State*)L->glref.ptr64)->nilnode.val" />
+
+		<!-- index2adr -->
+		<Intrinsic Name="isStackBase" Expression="index > 0" />
+		<Intrinsic Name="stackValueBase" Expression="
+				   ((L->base + (index - 1)) &lt; L->top)
+				   ? (L->base + (index - 1)) : nilnode()" />
+		<Intrinsic Name="isStackTop" Expression="index > -10000" />
+		<Intrinsic Name="stackValueTop" Expression="L->top + index" />
+
+		<Intrinsic Name="value" Expression="
+				   *(TValue*)(isStackBase() ? stackValueBase() : isStackTop() ? stackValueTop() : nilnode())
+				   " />
+
+		<Intrinsic Name="hasValue" Expression="isStackBase() || isStackTop()" />
+
+		<DisplayString Condition="hasValue()">{value()}</DisplayString>
+		<Expand>
+			<Item Name="[value]">value()</Item>
+			<Item Name="err">err</Item>
+			<Item Name="index">index</Item>
+		</Expand>
+	</Type>
+
 	<!-- sol::this_state -->
 	<Type Name="sol::this_state">
 		<DisplayString Condition="L == 0">nil</DisplayString>
@@ -346,7 +376,7 @@
 			<ExpandedItem>L</ExpandedItem>
 		</Expand>
 	</Type>
-	
+
 	<!-- sol::protected_function_result -->
-	
+
 </AutoVisualizer>

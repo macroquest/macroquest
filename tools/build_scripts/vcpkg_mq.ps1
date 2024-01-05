@@ -1,14 +1,14 @@
 Param (
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectName,
 
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectDirectory,
@@ -143,6 +143,11 @@ catch [System.Management.Automation.CommandNotFoundException]
     $gitAvailable = $false
 }
 
+if (!$gitAvailable)
+{
+    Write-Warning "vcpkg could not find git.  You will need to manually bootstrap and upgrade when there are vcpkg updates"
+}
+
 # If multiple vcpkg_mq processes are running, try to divide them up so they're not running at EXACTLY the same time.
 $ProcessList = @(Get-CimInstance Win32_Process -Filter "name = 'powershell.exe'" | Where-Object {$_.CommandLine -like "*vcpkg_mq.ps1*"} | Sort-Object -Property ProcessId)
 if ($ProcessList.Count -gt 1) {
@@ -248,7 +253,8 @@ if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -g
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
     & ./vcpkg.exe upgrade --no-dry-run
     if ($LASTEXITCODE -ne 0) {
-        # if the upgrade failed, the bootstrap file should show accodingly
+        Write-Warning "vcpkg upgrade failed - some packages may need to be manually upgraded"
+        # if the upgrade failed, the bootstrap file should show accordingly
         "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
     }
 }
@@ -323,8 +329,11 @@ if ($vcpkgInstallTable.Count -ne 0) {
         if ($triplet.Value.Count -ne 0) {
             foreach ($node in $triplet.Value.GetEnumerator()) {
                 if ($node.Value.Count -ne 0) {
-                    # Force recursion to install new features
-                    $vcpkg_command += " --recurse $($node.Name)["
+                    # Force recursion to install new features if it is not already specified
+                    if ($vcpkg_command -NotLike "*--recurse*") {
+                        $vcpkg_command = $vcpkg_command.Replace("install --x-wait-for-lock","install --x-wait-for-lock --recurse")
+                    }
+                    $vcpkg_command += " $($node.Name)["
                     foreach ($feature in $node.Value) {
                         $vcpkg_command += "$feature,"
                     }

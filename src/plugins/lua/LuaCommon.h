@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -18,8 +18,8 @@
 #include <utility>
 
 // define some macros so that we don't have to depends on MQ headers in this file
-#define WriteChatStatus(format, ...) StatusMessage(&WriteChatf, format, __VA_ARGS__)
-#define LuaError(format, ...) ErrorMessage(&WriteChatColorf, format, CONCOLOR_RED, __VA_ARGS__)
+#define WriteChatStatus(format, ...) mq::lua::StatusMessage(&WriteChatf, format, __VA_ARGS__)
+#define LuaError(format, ...) mq::lua::ErrorMessage(&WriteChatColorf, format, CONCOLOR_RED, __VA_ARGS__)
 
 namespace mq::lua {
 
@@ -45,7 +45,10 @@ void ErrorMessage(ColorWriter writer, const char* format, int color, Args&&... a
 	writer(format, color, std::forward<Args>(args)...);
 }
 
-std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_args va);
+namespace bindings {
+	std::string lua_join(sol::this_state L, std::string_view delim, sol::variadic_args va);
+}
+using bindings::lua_join;
 
 class LuaEnvironmentSettings
 {
@@ -65,6 +68,9 @@ private:
 	std::string m_packagePath;
 	std::string m_packageCPath;
 	std::string m_version;
+	std::string m_jitversion;
 };
+
+class LuaThread;
 
 } // namespace mq::lua

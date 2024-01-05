@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -199,6 +199,7 @@ private:
 #pragma region Detours
 
 static bool RenderScene_Hook();
+static bool AreParticlesDisabled();
 static bool IsLimiterEnabled();
 static bool IsTieUiToSimulation();
 static bool UpdateDisplay_Hook();
@@ -296,6 +297,47 @@ public:
 				GetGaugeValueFromEQ(10, nullptr, &test, nullptr); // spell scribe gauge
 			}
 		}
+	}
+};
+
+class CParticleSystemHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(int, CreateSpellEmitter_Trampoline, (int, unsigned long, int, float, float, CVector3 const&, CActor*, CBoneInterface*, CParticlePointInterface*, void**, float, bool, bool, int))
+	int CreateSpellEmitter_Detour(
+		int index,
+		unsigned long a,
+		int b,
+		float particleDensity,
+		float particleOpacity,
+		CVector3 const& pos,
+		CActor* actor,
+		CBoneInterface* bone,
+		CParticlePointInterface* particlePoint,
+		void** emitter, // CEmitterInterface**
+		float k,
+		bool l,
+		bool m,
+		int previewMode) // enum EObjectPreviewMode
+	{
+		if (AreParticlesDisabled())
+			return 0;
+
+		return CreateSpellEmitter_Trampoline(
+			index,
+			a,
+			b,
+			particleDensity,
+			particleOpacity,
+			pos,
+			actor,
+			bone,
+			particlePoint,
+			emitter,
+			k,
+			l,
+			m,
+			previewMode);
 	}
 };
 
@@ -560,6 +602,7 @@ public:
 		gCurrentFPS = static_cast<float>(1000000 / m_renderFPS.Average());
 		gCurrentCPU = static_cast<float>(m_cpuUsage.Average() / 1000.f);
 
+#if HAS_DIRECTX_9
 		if (m_resetOnNextPulse)
 		{
 			m_resetOnNextPulse = false;
@@ -577,6 +620,7 @@ public:
 				}
 			}
 		}
+#endif
 
 		bool updateForeground = mq::test_and_set(m_lastInForeground, gbInForeground || ImGui_IsImGuiForeground());
 
@@ -792,10 +836,12 @@ public:
 				"\n"
 				"NOT RECOMMENDED if you have epilepsy");
 
+#if HAS_DIRECTX_9
 			if (ImGui::Button("Reset Device"))
 			{
 				m_resetOnNextPulse = true;
 			}
+#endif
 
 			ImGui::SameLine(); mq::imgui::HelpMarker(
 				"This is meant as a debugging tool. Resetting the device should *not* crash, but "
@@ -1024,6 +1070,11 @@ static bool RenderScene_Hook()
 	return s_frameLimiter.DoRenderSceneHook();
 }
 
+static bool AreParticlesDisabled()
+{
+	return !s_frameLimiter.IsRenderingEnabled();
+}
+
 static bool IsLimiterEnabled()
 {
 	return s_frameLimiter.IsEnabled();
@@ -1182,7 +1233,7 @@ void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
 
 static void InitializeFrameLimiter()
 {
-	AddSettingsPanel("FPS Limiter", FrameLimiterSettings);
+	AddSettingsPanel("Frame Limiter", FrameLimiterSettings);
 
 	bmRenderScene = AddMQ2Benchmark("Render_Scene");
 	bmRealRenderWorld = AddMQ2Benchmark("Render_Simulation");
@@ -1194,6 +1245,7 @@ static void InitializeFrameLimiter()
 	// Hook main render function
 	EzDetour(CRender__RenderScene, &CRenderHook::RenderScene_Detour, &CRenderHook::RenderScene_Trampoline);
 	EzDetour(CRender__RenderBlind, &CRenderHook::RenderBlind_Detour, &CRenderHook::RenderBlind_Trampoline);
+	EzDetour(CParticleSystem__CreateSpellEmitter, &CParticleSystemHook::CreateSpellEmitter_Detour, &CParticleSystemHook::CreateSpellEmitter_Trampoline);
 
 	// Hook update function (will begin scene if render isn't called)
 	EzDetour(CRender__UpdateDisplay, &CRenderHook::UpdateDisplay_Detour, &CRenderHook::UpdateDisplay_Trampoline);
@@ -1218,11 +1270,12 @@ static void ShutdownFrameLimiter()
 {
 	RemoveCommand("/framelimiter");
 
-	RemoveSettingsPanel("FPS Limiter");
+	RemoveSettingsPanel("Frame Limiter");
 
 	RemoveDetour(CXWndManager__DrawWindows);
 	RemoveDetour(CRender__RenderScene);
 	RemoveDetour(CRender__RenderBlind);
+	RemoveDetour(CParticleSystem__CreateSpellEmitter);
 	RemoveDetour(CRender__UpdateDisplay);
 	RemoveDetour(CDisplay__RealRender_World);
 	RemoveDetour(__ThrottleFrameRate);

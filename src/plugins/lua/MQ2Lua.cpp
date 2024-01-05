@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -18,9 +18,10 @@
 #include "LuaCommon.h"
 #include "LuaThread.h"
 #include "LuaEvent.h"
+#include "LuaActor.h"
 #include "LuaImGui.h"
+#include "bindings/lua_Bindings.h"
 #include "imgui/ImGuiUtils.h"
-
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
 
@@ -43,25 +44,20 @@ PLUGIN_VERSION(0.1);
 
 using namespace std::chrono_literals;
 
-// TODO: Add aggressive bind/event options that scriptwriters can set with functions
-// TODO: Add OnExit callbacks (potentially both as an explicit argument to exit and a set callback)
-
-// TODO: Add UI for start/stop/info/config
-
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
 namespace mq::lua {
 
 // provide option strings here
-static const std::string turboNum = "turboNum";
-static const std::string luaDir = "luaDir";
-static const std::string moduleDir = "moduleDir";
-static const std::string luaRequirePaths = "luaRequirePaths";
-static const std::string dllRequirePaths = "dllRequirePaths";
-static const std::string infoGC = "infoGC";
-static const std::string squelchStatus = "squelchStatus";
-static const std::string showMenu = "showMenu";
+static const std::string KEY_TURBO_NUM = "turboNum";
+static const std::string KEY_LUA_DIR = "luaDir";
+static const std::string KEY_MODULE_DIR = "moduleDir";
+static const std::string KEY_LUA_REQUIRE_PATHS = "luaRequirePaths";
+static const std::string KEY_DLL_REQUIRE_PATHS = "dllRequirePaths";
+static const std::string KEY_INFO_GC = "infoGC";
+static const std::string KEY_SQUELCH_STATUS = "squelchStatus";
+static const std::string KEY_SHOW_MENU = "showMenu";
 
 // configurable options, defaults provided where needed
 static uint32_t s_turboNum = 500;
@@ -93,7 +89,8 @@ std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 void DebugStackTrace(lua_State* L, const char* message)
 {
-	LuaError("%s", message);
+	std::string_view svMessage{ message ? message : "nil" };
+	LuaError("%.*s", svMessage.length(), svMessage.data());
 
 	if (s_verboseErrors)
 	{
@@ -145,18 +142,112 @@ void DebugStackTrace(lua_State* L, const char* message)
 				break;
 			}
 		}
-		LuaError("---- Begin Stack (size: %i) ----", lines.size());
-		for (const StackLine& line : lines)
+
+		if (lines.size() > 0)
 		{
-			LuaError("%i -- (%i) ---- %s", line.a, line.b, line.str.c_str());
+			LuaError("---- Begin Stack (size: %i) ----", lines.size());
+			for (const StackLine& line : lines)
+			{
+				LuaError("%i -- (%i) ---- %s", line.a, line.b, line.str.c_str());
+			}
+			LuaError("---- End Stack ----\n");
 		}
-		LuaError("---- End Stack ----\n");
 	}
 }
 
 bool DoStatus()
 {
 	return !s_squelchStatus;
+}
+
+void EndScript(const std::shared_ptr<LuaThread>& thread, const LuaThread::RunResult& result,
+	bool announce)
+{
+	if (!thread->IsString() && announce)
+	{
+		WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
+			thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+	}
+
+	auto fin_it = s_infoMap.find(thread->GetPID());
+	if (fin_it != s_infoMap.end())
+	{
+		if (result.second)
+			fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
+		else
+			fin_it->second.EndRun();
+	}
+}
+
+std::shared_ptr<LuaThread> GetLuaThreadByPID(int pid)
+{
+	for (const auto& thread : s_running)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	for (const auto& thread : s_pending)
+	{
+		if (thread && thread->GetPID() == pid)
+			return thread;
+	}
+
+	return nullptr;
+}
+
+void OnLuaThreadDestroyed(LuaThread* destroyedThread)
+{
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread.get() != destroyedThread
+				&& thread->IsDependency(destroyedThread))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to stopping of '%s'",
+					thread->GetName().c_str(), thread->GetPID(), destroyedThread->GetName().c_str());
+
+				return true;
+			}
+			return false;
+		}), end(s_running));
+}
+
+void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
+{
+	auto iter = std::find_if(begin(mq::lua::s_running), end(mq::lua::s_running),
+		[pidOwner](const auto& thread) { return thread && thread->GetPID() == pidOwner; });
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->GetPID() != pidOwner
+				&& thread->IsDependency(tlo))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				if (iter != end(mq::lua::s_running))
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s' from '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str(), (*iter)->GetName().c_str());
+				}
+				else
+				{
+					WriteChatStatus("Running lua script '%s' with PID %d terminated due to removal of '%s'",
+						thread->GetName().c_str(), thread->GetPID(), tlo->Name.c_str());
+				}
+				return true;
+			}
+			return false;
+		}), end(s_running));
 }
 
 #pragma endregion
@@ -232,7 +323,7 @@ public:
 		case Members::StartTime: {
 			Dest.Type = pStringType;
 			time_t startTime = std::chrono::system_clock::to_time_t(info->startTime);
-			ctime_s(DataTypeTemp, MAX_STRING, &startTime);
+			ctime_s(DataTypeTemp, DataTypeTemp.size(), &startTime);
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
@@ -242,7 +333,7 @@ public:
 			{
 				Dest.Type = pStringType;
 				time_t endTime = std::chrono::system_clock::to_time_t(info->endTime);
-				ctime_s(DataTypeTemp, MAX_STRING, &endTime);
+				ctime_s(DataTypeTemp, DataTypeTemp.size(), &endTime);
 				return true;
 			}
 
@@ -460,32 +551,28 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = fs::path{ s_environment.luaDir } / script;
-	if (!script_path.has_extension()) script_path.replace_extension(".lua");
-
-	std::error_code ec;
-	if (!std::filesystem::exists(script_path, ec))
+	auto script_path = LuaThread::GetScriptPath(script, s_environment.luaDir);
+	if (script_path.empty())
 	{
-		LuaError("Could not find script at path %s", script_path.string().c_str());
 		return 0;
 	}
+
+	auto script_name = LuaThread::GetCanonicalScriptName(script_path, s_environment.luaDir);
 
 	// methodology for duplicate scripts:
 	//   if a script with the same name is _currently_ running, inform and exit
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-		[&script_path](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		[&script_name](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
 		{
-			auto info_path = fs::path(kv.second.path);
-			std::error_code ec;
-			return fs::exists(info_path, ec) && fs::equivalent(info_path, script_path, ec);
+			return ci_equals(kv.second.name, script_name);
 		});
 
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
 		// script is currently running, inform and exit
-		WriteChatStatus("Lua script %s is already running, not starting another instance.", script.c_str());
+		WriteChatStatus("Lua script %s is already running, not starting another instance.", script_name.c_str());
 		return 0;
 	}
 
@@ -501,9 +588,9 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->EnableImGui();
 	s_pending.push_back(entry);
 
-	WriteChatStatus("Running lua script '%s' with PID %d", script.c_str(), entry->GetPID());
+	WriteChatStatus("Running lua script '%s' with PID %d", script_name.c_str(), entry->GetPID());
 
-	std::optional<LuaThreadInfo> result = entry->StartFile(script, args);
+	std::optional<LuaThreadInfo> result = entry->StartFile(script_path, args);
 	if (result)
 	{
 		result->status = LuaThreadStatus::Running;
@@ -572,8 +659,9 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
+			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
+				[&script_name](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), script_name); });
 		}
 
 		if (thread_it != s_running.end())
@@ -587,7 +675,8 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			WriteChatStatus("No lua script '%s' to end", script->c_str());
+			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
+			WriteChatStatus("No lua script '%s' to end", script_name.c_str());
 		}
 	}
 	else
@@ -602,8 +691,19 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 	}
 }
 
-static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
+static void LuaPauseCommand(std::optional<std::string> script, bool on, bool off)
 {
+	auto toggle = [](const std::shared_ptr<LuaThread>& thread)
+	{
+		LuaThreadStatus status = thread->Pause();
+
+		auto info = s_infoMap.find(thread->GetPID());
+		if (info != s_infoMap.end())
+		{
+			info->second.status = std::move(status);
+		}
+	};
+
 	if (script)
 	{
 		auto thread_it = s_running.end();
@@ -624,18 +724,39 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 		{
 			std::shared_ptr<LuaThread>& thread = *thread_it;
 
-			LuaThreadStatus status = thread->Pause();
-
-			auto info = s_infoMap.find(thread->GetPID());
-			if (info != s_infoMap.end())
+			if ((on && !thread->IsPaused()) || (off && thread->IsPaused()) || (!on && !off))
 			{
-				info->second.status = std::move(status);
+				toggle(thread);
 			}
 		}
 		else
 		{
 			WriteChatStatus("No lua script '%s' to pause/resume", script->c_str());
 		}
+	}
+	else if (on)
+	{
+		for (const auto& thread : s_running)
+		{
+			if (!thread->IsPaused())
+			{
+				toggle(thread);
+			}
+		}
+
+		WriteChatStatus("Pausing ALL running lua scripts");
+	}
+	else if (off)
+	{
+		for (const auto& thread : s_running)
+		{
+			if (thread->IsPaused())
+			{
+				toggle(thread);
+			}
+		}
+
+		WriteChatStatus("Resuming ALL paused lua scripts");
 	}
 	else
 	{
@@ -648,12 +769,9 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 			// have at least one running script, so pause all running scripts
 			for (const std::shared_ptr<LuaThread>& thread : s_running)
 			{
-				LuaThreadStatus status = thread->Pause();
-
-				auto info = s_infoMap.find(thread->GetPID());
-				if (info != s_infoMap.end())
+				if (!thread->IsPaused())
 				{
-					info->second.status = std::move(status);
+					toggle(thread);
 				}
 			}
 
@@ -664,13 +782,7 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 			// we have no running scripts, so restart all paused scripts
 			for (const std::shared_ptr<LuaThread>& thread : s_running)
 			{
-				LuaThreadStatus status = thread->Pause();
-
-				auto info = s_infoMap.find(thread->GetPID());
-				if (info != s_infoMap.end())
-				{
-					info->second.status = std::move(status);
-				}
+				toggle(thread);
 			}
 
 			WriteChatStatus("Resuming ALL paused lua scripts");
@@ -681,6 +793,47 @@ static void LuaPauseCommand(std::optional<std::string> script = std::nullopt)
 			WriteChatStatus("There are no running OR paused lua scripts to pause/resume");
 		}
 	}
+}
+
+void SetLuaDirName(const std::string& luaDir)
+{
+	s_luaDirName = luaDir;
+	s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
+	s_configNode[KEY_LUA_DIR] = s_luaDirName;
+
+	for (auto& thread : s_running)
+	{
+		thread->UpdateLuaDir(s_environment.luaDir);
+	}
+
+	for (auto& thread : s_pending)
+	{
+		thread->UpdateLuaDir(s_environment.luaDir);
+	}
+
+	std::error_code ec;
+	if (!std::filesystem::exists(s_environment.luaDir, ec)
+		&& !std::filesystem::create_directories(s_environment.luaDir, ec))
+	{
+		WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_environment.luaDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
+	}
+}
+
+void SetModuleDirName(const std::string& moduleDir)
+{
+	s_moduleDirName = moduleDir;
+	s_environment.moduleDir = (std::filesystem::path(gPathMQRoot) / s_moduleDirName).string();
+
+	std::error_code ec;
+	if (!std::filesystem::exists(s_environment.moduleDir, ec)
+		&& !std::filesystem::create_directories(s_environment.moduleDir, ec))
+	{
+		WriteChatf("Failed to open or create directory at %s. Modules will not load.", s_environment.moduleDir.c_str());
+		WriteChatf("Error was %s", ec.message().c_str());
+	}
+
+	s_configNode[KEY_MODULE_DIR] = s_moduleDirName;
 }
 
 static void WriteSettings()
@@ -708,7 +861,7 @@ static void ReadSettings()
 	{
 	}
 
-	if (mq::test_and_set(s_turboNum, s_configNode[turboNum].as<uint32_t>(s_turboNum)))
+	if (mq::test_and_set(s_turboNum, s_configNode[KEY_TURBO_NUM].as<uint32_t>(s_turboNum)))
 	{
 		// update turbo
 		for (const std::shared_ptr<LuaThread>& thread : s_running)
@@ -719,40 +872,22 @@ static void ReadSettings()
 
 	s_verboseErrors = s_configNode["verboseErrors"].as<bool>(false);
 
-	if (mq::test_and_set(s_luaDirName, s_configNode[luaDir].as<std::string>(s_luaDirName)) || s_environment.luaDir.empty())
+	std::string tempDirName = s_luaDirName;
+	if (mq::test_and_set(tempDirName, s_configNode[KEY_LUA_DIR].as<std::string>(tempDirName)) || s_environment.luaDir.empty())
 	{
-		s_environment.luaDir = (std::filesystem::path(gPathMQRoot) / s_luaDirName).string();
-
-		std::error_code ec;
-		if (!std::filesystem::exists(s_environment.luaDir, ec)
-			&& !std::filesystem::create_directories(s_environment.luaDir, ec))
-		{
-			WriteChatf("Failed to open or create directory at %s. Scripts will not run.", s_environment.luaDir.c_str());
-			WriteChatf("Error was %s", ec.message().c_str());
-		}
-
-		s_configNode[luaDir] = s_luaDirName;
+		SetLuaDirName(tempDirName);
 	}
 
-	if (mq::test_and_set(s_moduleDirName, s_configNode[moduleDir].as<std::string>(s_moduleDirName)) || s_environment.moduleDir.empty())
+	std::string tempModuleDirName = s_moduleDirName;
+	if (mq::test_and_set(tempModuleDirName, s_configNode[KEY_MODULE_DIR].as<std::string>(tempModuleDirName)) || s_environment.moduleDir.empty())
 	{
-		s_environment.moduleDir = (std::filesystem::path(gPathMQRoot) / s_moduleDirName).string();
-
-		std::error_code ec;
-		if (!std::filesystem::exists(s_environment.moduleDir, ec)
-			&& !std::filesystem::create_directories(s_environment.moduleDir, ec))
-		{
-			WriteChatf("Failed to open or create directory at %s. Modules will not load.", s_environment.moduleDir.c_str());
-			WriteChatf("Error was %s", ec.message().c_str());
-		}
-
-		s_configNode[moduleDir] = s_moduleDirName;
+		SetModuleDirName(tempModuleDirName);
 	}
 
 	s_environment.luaRequirePaths.clear();
-	if (s_configNode[luaRequirePaths].IsSequence()) // if this is not a sequence, add nothing
+	if (s_configNode[KEY_LUA_REQUIRE_PATHS].IsSequence()) // if this is not a sequence, add nothing
 	{
-		for (const auto& path : s_configNode[luaRequirePaths])
+		for (const auto& path : s_configNode[KEY_LUA_REQUIRE_PATHS])
 		{
 			auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 			s_environment.luaRequirePaths.emplace_back(fin_path.string());
@@ -760,16 +895,16 @@ static void ReadSettings()
 	}
 
 	s_environment.dllRequirePaths.clear();
-	if (s_configNode[dllRequirePaths].IsSequence()) // if this is not a sequence, add nothing
+	if (s_configNode[KEY_DLL_REQUIRE_PATHS].IsSequence()) // if this is not a sequence, add nothing
 	{
-		for (const auto& path : s_configNode[dllRequirePaths])
+		for (const auto& path : s_configNode[KEY_DLL_REQUIRE_PATHS])
 		{
 			auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 			s_environment.dllRequirePaths.emplace_back(fin_path.string());
 		}
 	}
 
-	auto GC_interval = s_configNode[infoGC].as<std::string>(std::to_string(s_infoGC.count()));
+	auto GC_interval = s_configNode[KEY_INFO_GC].as<std::string>(std::to_string(s_infoGC.count()));
 	trim(GC_interval);
 
 	if (GC_interval.length() > 1 && GC_interval.find_first_not_of("0123456789") == std::string::npos)
@@ -803,22 +938,53 @@ static void ReadSettings()
 		if (result >= 0) s_infoGC = std::chrono::seconds{ result };
 	}
 
-	s_squelchStatus = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
-	s_showMenu = s_configNode[showMenu].as<bool>(s_showMenu);
+	s_squelchStatus = s_configNode[KEY_SQUELCH_STATUS].as<bool>(s_squelchStatus);
+	s_showMenu = s_configNode[KEY_SHOW_MENU].as<bool>(s_showMenu);
 }
 
 static void LuaConfCommand(const std::string& setting, const std::string& value)
 {
 	if (!value.empty())
 	{
-		WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
-		s_configNode[setting] = value;
+		if (ci_equals(setting, KEY_LUA_REQUIRE_PATHS) || ci_equals(setting, KEY_DLL_REQUIRE_PATHS))
+		{
+			if (s_configNode[setting].IsNull())
+				s_configNode[setting] = YAML::Load("[]");
+
+			auto it = std::find_if(s_configNode[setting].begin(), s_configNode[setting].end(), [&value](const auto& node)
+				{
+					return node.IsScalar() && ci_equals(value, node.as<std::string>());
+				});
+			if (it != s_configNode[setting].end())
+			{
+				WriteChatStatus("Lua removing %s from %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].remove(std::distance(s_configNode[setting].begin(), it));
+				if (s_configNode[setting].size() == 0)
+					s_configNode.remove(setting);
+			}
+			else
+			{
+				WriteChatStatus("Lua adding %s to %s and saving...", value.c_str(), setting.c_str());
+				s_configNode[setting].push_back(value);
+			}
+		}
+		else
+		{
+			WriteChatStatus("Lua setting %s to %s and saving...", setting.c_str(), value.c_str());
+			s_configNode[setting] = value;
+		}
 		WriteSettings();
 		ReadSettings();
 	}
 	else if (s_configNode[setting])
 	{
-		WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
+		if (s_configNode[setting].IsSequence())
+		{
+			auto vec = s_configNode[setting].as<std::vector<std::string>>();
+			WriteChatStatus("Lua setting %s is set to [%s].", setting.c_str(), join(vec, ", ").c_str());
+		}
+		else
+			WriteChatStatus("Lua setting %s is set to %s.", setting.c_str(), s_configNode[setting].as<std::string>().c_str());
 	}
 	else
 	{
@@ -847,12 +1013,12 @@ static void LuaPSCommand(const std::vector<std::string>& filters = {})
 		if (predicate(info))
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:%m/%d %I:%M%p}|{:^13}|{:^12}|",
 				pid,
 				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
 				info.startTime,
-				info.endTime,
-				static_cast<int>(info.status));
+				info.status == LuaThreadStatus::Exited ? fmt::format("{:%m/%d %I:%M%p}", info.endTime) : "",
+				info.status_string());
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
 	}
@@ -902,16 +1068,16 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 	}
 	else
 	{
-		WriteChatStatus("|  PID  |    NAME    |    START    |     END     |   STATUS   |");
+		WriteChatStatus("|  PID  |         NAME         |    START    |     END     |   STATUS   |");
 
 		for (const auto& [pid, info] : s_infoMap)
 		{
 			fmt::memory_buffer line;
-			fmt::format_to(fmt::appender(line), "|{:^7}|{:^12}|{:^13}|{:^13}|{:^12}|",
+			fmt::format_to(fmt::appender(line), "|{:^7}|{:^22}|{:^13}|{:^13}|{:^12}|",
 				pid,
-				info.name.length() > 12 ? info.name.substr(0, 9) + "..." : info.name,
-				info.startTime,
-				info.endTime,
+				info.name.length() > 22 ? info.name.substr(0, 19) + "..." : info.name,
+				(info.startTime != std::chrono::system_clock::time_point() ? fmt::format("{:%H:%M:%S}", info.startTime) : std::string()),
+				(info.endTime != std::chrono::system_clock::time_point() ? fmt::format("{:%H:%M:%S}", info.endTime) : std::string()),
 				static_cast<int>(info.status));
 			WriteChatStatus("%.*s", line.size(), line.data());
 		}
@@ -921,7 +1087,12 @@ static void LuaInfoCommand(const std::optional<std::string>& script = std::nullo
 static void LuaGuiCommand()
 {
 	s_showMenu = !s_showMenu;
-	s_configNode[showMenu] = s_showMenu;
+	s_configNode[KEY_SHOW_MENU] = s_showMenu;
+}
+
+static args::HelpFlag HelpFlag(args::Group& group)
+{
+	return args::HelpFlag(group, "help", "displays this help text", { "h", "?", "help" });
 }
 
 void LuaCommand(SPAWNINFO* pChar, char* Buffer)
@@ -929,6 +1100,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 	MQ2Args arg_parser("Lua: A lua script binding plugin.");
 	arg_parser.Prog("/lua");
 	arg_parser.RequireCommand(false);
+	arg_parser.LongPrefix("-");
 	args::Group commands(arg_parser, "", args::Group::Validators::AtMostOne);
 
 	args::Command run(commands, "run", "run lua script from file location",
@@ -937,7 +1109,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 			args::Group arguments(parser, "", args::Group::Validators::AllChildGroups);
 			args::Positional<std::string> script(arguments, "script", "the name of the lua script to run. will automatically append .lua extension if no extension specified.");
 			args::PositionalList<std::string> script_args(arguments, "args", "optional arguments to pass to the lua script.");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			if (script) LuaRunCommand(script.Get(), script_args.Get());
@@ -948,7 +1120,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			args::PositionalList<std::string> script(arguments, "script", "the text of the lua script to run");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			if (script) LuaParseCommand(join(script.Get(), " "));
@@ -959,7 +1131,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
 			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to stop, if not specified will stop all running scripts.");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			if (script) LuaStopCommand(script.Get());
@@ -972,11 +1144,16 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
 			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to pause, if not specified will pause all running scripts.");
-			MQ2HelpArgument h(arguments);
+
+			args::Group idempotent(parser, "", args::Group::Validators::AtMostOne);
+			args::Flag on(idempotent, "on", "idempotently turn pause on", { "on" });
+			args::Flag off(idempotent, "off", "idempotently turn pause on", { "off" });
+
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
-			if (script) LuaPauseCommand(script.Get());
-			else LuaPauseCommand();
+			if (script) LuaPauseCommand(script.Get(), on, off);
+			else LuaPauseCommand({}, on, off);
 		});
 	pause.RequireCommand(false);
 
@@ -986,7 +1163,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 			args::Group arguments(parser, "", args::Group::Validators::AtLeastOne);
 			args::Positional<std::string> setting(arguments, "setting", "The setting to display/set");
 			args::PositionalList<std::string> value(arguments, "value", "An optional parameter to specify the value to set");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			if (setting) LuaConfCommand(setting.Get(), join(value.Get(), " "));
@@ -996,7 +1173,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		[](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			WriteChatStatus("Reloading lua config.");
@@ -1008,7 +1185,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
 			args::PositionalList<std::string> filters(arguments, "filters", "optional parameters to specify status filters. Defaults to RUNNING or PAUSED.");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			LuaPSCommand(filters.Get());
@@ -1019,7 +1196,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::AtMostOne);
 			args::Positional<std::string> script(arguments, "process", "optional parameter to specify a PID or name of script to get info for, if not specified will return table of all scripts.");
-			MQ2HelpArgument h(arguments);
+			auto h = HelpFlag(parser);
 			parser.Parse();
 
 			if (script) LuaInfoCommand(script.Get());
@@ -1033,7 +1210,7 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 			LuaGuiCommand();
 		});
 
-	MQ2HelpArgument h(commands);
+	auto h = HelpFlag(commands);
 
 	auto args = allocate_args(Buffer);
 	try
@@ -1082,15 +1259,32 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 			m_version = m_version.substr(pos + 1);
 		}
 
+		// LuaJIT jit.version is output as "LuaJIT 2.1.0-beta3"
+		m_jitversion = sv["jit"]["version"].get<std::string>();
+		const size_t jitpos = m_jitversion.rfind(' ');
+		if (jitpos != std::string::npos)
+		{
+			m_jitversion = m_jitversion.substr(jitpos + 1);
+		}
+
 		m_initialized = true;
 	}
 
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{}\\?.lua;{}\\luarocks\\share\\lua\\{}\\?.lua;{}{}",
-		luaDir, moduleDir, m_version, luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";", m_packagePath);
+	sv["package"]["path"] = fmt::format("{luaDir}\\?\\init.lua;{luaDir}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
+		fmt::arg("luaDir", luaDir),
+		fmt::arg("moduleDir", moduleDir),
+		fmt::arg("jitVersion", m_jitversion),
+		fmt::arg("luaVersion", m_version),
+		fmt::arg("additionalPaths", luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";"),
+		fmt::arg("originalPath", m_packagePath));
 
-	sv["package"]["cpath"] = fmt::format("{}\\?.dll;{}\\luarocks\\lib\\lua\\{}\\?.dll;{}{}",
-		luaDir, moduleDir, m_version, dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";", m_packageCPath);
+	sv["package"]["cpath"] = fmt::format("{moduleDir}\\{jitVersion}\\luarocks\\lib\\lua\\{luaVersion}\\?.dll;{dllPaths}{originalPath}",
+		fmt::arg("moduleDir", moduleDir),
+		fmt::arg("jitVersion", m_jitversion),
+		fmt::arg("luaVersion", m_version),
+		fmt::arg("dllPaths", dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";"),
+		fmt::arg("originalPath", m_packageCPath));
 }
 
 #pragma endregion
@@ -1185,18 +1379,18 @@ static void DrawLuaSettings()
 
 	ImGui::BeginChild("##luasettings", ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4), false);
 
-	bool squelch = s_configNode[squelchStatus].as<bool>(s_squelchStatus);
+	bool squelch = s_configNode[KEY_SQUELCH_STATUS].as<bool>(s_squelchStatus);
 	if (ImGui::Checkbox("Suppress Lua Messages", &squelch))
 	{
 		s_squelchStatus = squelch;
-		s_configNode[squelchStatus] = s_squelchStatus;
+		s_configNode[KEY_SQUELCH_STATUS] = s_squelchStatus;
 	}
 
-	bool showgui = s_configNode[showMenu].as<bool>(s_showMenu);
+	bool showgui = s_configNode[KEY_SHOW_MENU].as<bool>(s_showMenu);
 	if (ImGui::Checkbox("Show Lua GUI", &showgui))
 	{
 		s_showMenu = showgui;
-		s_configNode[showMenu] = s_showMenu;
+		s_configNode[KEY_SHOW_MENU] = s_showMenu;
 	}
 
 	if (ImGui::Checkbox("Print Lua Stack in Exception Messages", &s_verboseErrors))
@@ -1207,17 +1401,17 @@ static void DrawLuaSettings()
 	ImGui::NewLine();
 
 	ImGui::Text("Turbo Num:");
-	uint32_t turbo_selected = s_configNode[turboNum].as<uint32_t>(s_turboNum), turbo_min = 100U, turbo_max = 1000U;
+	uint32_t turbo_selected = s_configNode[KEY_TURBO_NUM].as<uint32_t>(s_turboNum), turbo_min = 100U, turbo_max = 1000U;
 	ImGui::SetNextItemWidth(-1.0f);
 	if (ImGui::SliderScalar("##turboNumslider", ImGuiDataType_U32, &turbo_selected, &turbo_min, &turbo_max, "%u Instructions per Frame", ImGuiSliderFlags_None))
 	{
 		s_turboNum = turbo_selected;
-		s_configNode[turboNum] = s_turboNum;
+		s_configNode[KEY_TURBO_NUM] = s_turboNum;
 	}
 
 
 	ImGui::Text("Lua Directory:");
-	auto dirDisplay = s_configNode[luaDir].as<std::string>(s_luaDirName);
+	auto dirDisplay = s_configNode[KEY_LUA_DIR].as<std::string>(s_luaDirName);
 	ImGui::SetNextItemWidth(-80.0f);
 	ImGui::InputText("##luadirname", &dirDisplay[0], dirDisplay.size(), ImGuiInputTextFlags_ReadOnly);
 
@@ -1246,20 +1440,25 @@ static void DrawLuaSettings()
 				auto mq_path = std::filesystem::canonical(std::filesystem::path(gPathMQRoot), ec).string();
 				auto lua_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
 
-				auto [mqEnd, luaEnd] = std::mismatch(mq_path.begin(), mq_path.end(), lua_path.begin());
+				std::string lua_name = lua_path;
 
-				auto clean_name = [](std::string_view s)
+				// If lua_path begins with mq_path, then make it relative.
+				int pos = mq::ci_find_substr(lua_path, mq_path);
+				if (pos == 0)
 				{
-					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
-					return std::string(s);
-				};
+					std::string_view sv(lua_path);
+					sv = sv.substr(mq_path.size());
+					
+					auto slashPos = sv.find_first_not_of("\\/");
+					if (slashPos != std::string_view::npos && slashPos != 0)
+					{
+						sv.remove_prefix(slashPos);
+					}
 
-				auto lua_name = mqEnd != mq_path.end()
-					? lua_path
-					: clean_name(std::string(luaEnd, lua_path.end()));
+					lua_name = std::string(sv);
+				}
 
-				s_luaDirName = lua_name;
-				s_configNode[luaDir] = s_luaDirName;
+				SetLuaDirName(lua_name);
 			}
 		}
 
@@ -1267,7 +1466,7 @@ static void DrawLuaSettings()
 	}
 
 	ImGui::Text("Modules Directory:");
-	auto dirDisplayModules = s_configNode[moduleDir].as<std::string>(s_moduleDirName);
+	auto dirDisplayModules = s_configNode[KEY_MODULE_DIR].as<std::string>(s_moduleDirName);
 	ImGui::SetNextItemWidth(-80.0f);
 	ImGui::InputText("##moduledirname", &dirDisplayModules[0], dirDisplayModules.size(), ImGuiInputTextFlags_ReadOnly);
 
@@ -1296,20 +1495,25 @@ static void DrawLuaSettings()
 				auto mq_path = std::filesystem::canonical(std::filesystem::path(gPathMQRoot), ec).string();
 				auto module_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
 
-				auto [mqEnd, luaEnd] = std::mismatch(mq_path.begin(), mq_path.end(), module_path.begin());
+				std::string module_name = module_path;
 
-				auto clean_name = [](std::string_view s)
+				// If lua_path begins with mq_path, then make it relative.
+				int pos = mq::ci_find_substr(module_path, mq_path);
+				if (pos == 0)
 				{
-					s.remove_prefix(std::min(s.find_first_not_of("\\"), s.size()));
-					return std::string(s);
-				};
+					std::string_view sv(module_path);
+					sv = sv.substr(mq_path.size());
 
-				auto module_name = mqEnd != mq_path.end()
-					? module_path
-					: clean_name(std::string(luaEnd, module_path.end()));
+					auto slashPos = sv.find_first_not_of("\\/");
+					if (slashPos != std::string_view::npos && slashPos != 0)
+					{
+						sv.remove_prefix(slashPos);
+					}
 
-				s_moduleDirName = module_name;
-				s_configNode[moduleDir] = s_moduleDirName;
+					module_name = std::string(sv);
+				}
+
+				SetModuleDirName(module_name);
 			}
 		}
 
@@ -1317,7 +1521,7 @@ static void DrawLuaSettings()
 	}
 
 	ImGui::Text("Process Info Garbage Collect Time");
-	float gc_selected = s_configNode[infoGC].as<uint64_t>(s_infoGC.count()) / 60000.f;
+	float gc_selected = s_configNode[KEY_INFO_GC].as<uint64_t>(s_infoGC.count()) / 60000.f;
 	ImGui::SetNextItemWidth(-1.0f);
 	if (ImGui::SliderFloat("##infoGCslider", &gc_selected, 0.f, 300.f, "%.3f minutes", ImGuiSliderFlags_None))
 	{
@@ -1325,20 +1529,20 @@ static void DrawLuaSettings()
 
 		float_minutes fmins = float_minutes{ gc_selected };
 		s_infoGC = std::chrono::duration_cast<std::chrono::milliseconds>(fmins);
-		s_configNode[infoGC] = s_infoGC.count();
+		s_configNode[KEY_INFO_GC] = s_infoGC.count();
 	}
 
 	ImGui::NewLine();
 
 	ImGui::Text("Lua Require Paths");
 	{
-		if (ImGui::ListBoxHeader("##luarequirepaths", ImVec2(-1.0f, 80.0f)))
+		if (ImGui::BeginListBox("##luarequirepaths", ImVec2(-1.0f, 80.0f)))
 		{
-			if (s_configNode[luaRequirePaths].IsSequence())
+			if (s_configNode[KEY_LUA_REQUIRE_PATHS].IsSequence())
 			{
 				std::optional<int> to_remove = std::nullopt;
 				int idx = 0;
-				for (const auto& path : s_configNode[luaRequirePaths])
+				for (const auto& path : s_configNode[KEY_LUA_REQUIRE_PATHS])
 				{
 					ImGui::Text(path.as<std::string>().c_str());
 					if (ImGui::IsItemHovered())
@@ -1365,8 +1569,8 @@ static void DrawLuaSettings()
 				if (to_remove)
 				{
 					s_environment.luaRequirePaths.clear();
-					s_configNode[luaRequirePaths].remove(*to_remove);
-					for (const auto& path : s_configNode[luaRequirePaths])
+					s_configNode[KEY_LUA_REQUIRE_PATHS].remove(*to_remove);
+					for (const auto& path : s_configNode[KEY_LUA_REQUIRE_PATHS])
 					{
 						auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 						s_environment.luaRequirePaths.emplace_back(fin_path.string());
@@ -1374,13 +1578,13 @@ static void DrawLuaSettings()
 				}
 			}
 
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 
 			static char lua_req_buf[256] = { 0 };
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::InputText("##luarequireadd", lua_req_buf, 256, ImGuiInputTextFlags_EnterReturnsTrue) && strlen(lua_req_buf) > 0)
 			{
-				s_configNode[luaRequirePaths].push_back<std::string>(lua_req_buf);
+				s_configNode[KEY_LUA_REQUIRE_PATHS].push_back<std::string>(lua_req_buf);
 				auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(lua_req_buf);
 				s_environment.luaRequirePaths.emplace_back(fin_path.string());
 				memset(lua_req_buf, 0, 256);
@@ -1390,13 +1594,13 @@ static void DrawLuaSettings()
 
 	ImGui::Text("DLL Require Paths");
 	{
-		if (ImGui::ListBoxHeader("##dllrequirepaths", ImVec2(-1.0f, 80.0f)))
+		if (ImGui::BeginListBox("##dllrequirepaths", ImVec2(-1.0f, 80.0f)))
 		{
-			if (s_configNode[dllRequirePaths].IsSequence())
+			if (s_configNode[KEY_DLL_REQUIRE_PATHS].IsSequence())
 			{
 				std::optional<int> to_remove = std::nullopt;
 				int idx = 0;
-				for (const auto& path : s_configNode[dllRequirePaths])
+				for (const auto& path : s_configNode[KEY_DLL_REQUIRE_PATHS])
 				{
 					ImGui::Text(path.as<std::string>().c_str());
 					if (ImGui::IsItemHovered())
@@ -1423,21 +1627,21 @@ static void DrawLuaSettings()
 				if (to_remove)
 				{
 					s_environment.dllRequirePaths.clear();
-					s_configNode[dllRequirePaths].remove(*to_remove);
-					for (const auto& path : s_configNode[dllRequirePaths])
+					s_configNode[KEY_DLL_REQUIRE_PATHS].remove(*to_remove);
+					for (const auto& path : s_configNode[KEY_DLL_REQUIRE_PATHS])
 					{
 						auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(path.as<std::string>());
 						s_environment.dllRequirePaths.emplace_back(fin_path.string());
 					}
 				}
 			}
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 
 			static char dll_req_buf[256] = { 0 };
 			ImGui::SetNextItemWidth(-1.0f);
 			if (ImGui::InputText("##dllrequireadd", dll_req_buf, 256, ImGuiInputTextFlags_EnterReturnsTrue) && strlen(dll_req_buf) > 0)
 			{
-				s_configNode[dllRequirePaths].push_back<std::string>(dll_req_buf);
+				s_configNode[KEY_DLL_REQUIRE_PATHS].push_back<std::string>(dll_req_buf);
 				auto fin_path = std::filesystem::path(gPathMQRoot) / std::filesystem::path(dll_req_buf);
 				s_environment.dllRequirePaths.emplace_back(fin_path.string());
 				memset(dll_req_buf, 0, 256);
@@ -1456,12 +1660,6 @@ static void DrawLuaSettings()
 #pragma endregion
 
 
-/**
- * @fn InitializePlugin
- *
- * This is called once on plugin initialization and can be considered the startup
- * routine for the plugin.
- */
 PLUGIN_API void InitializePlugin()
 {
 	using namespace mq::lua;
@@ -1479,17 +1677,19 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+
+	bindings::InitializeBindings_MQMacroData();
+
+	LuaActors::Start();
 }
 
-/**
- * @fn ShutdownPlugin
- *
- * This is called once when the plugin has been asked to shutdown.  The plugin has
- * not actually shut down until this completes.
- */
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
+
+	LuaActors::Stop();
+
+	bindings::ShutdownBindings_MQMacroData();
 
 	RemoveCommand("/lua");
 
@@ -1508,15 +1708,6 @@ PLUGIN_API void ShutdownPlugin()
 	s_pluginInterface = nullptr;
 }
 
-/**
- * @fn OnPulse
- *
- * This is called each time MQ2 goes through its heartbeat (pulse) function.
- *
- * Because this happens very frequently, it is recommended to have a timer or
- * counter at the start of this Call to limit the amount of times the code in
- * this section is executed.
- */
 PLUGIN_API void OnPulse()
 {
 	using namespace mq::lua;
@@ -1529,31 +1720,20 @@ PLUGIN_API void OnPulse()
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[](const std::shared_ptr<LuaThread>& thread) -> bool
-	{
-		LuaThread::RunResult result = thread->Run();
-
-		if (result.first != sol::thread_status::yielded)
 		{
-			if (!thread->IsString())
+			LuaThread::RunResult result = thread->Run();
+
+			if (result.first != sol::thread_status::yielded)
 			{
-				WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
-					thread->GetName().c_str(), thread->GetPID(), static_cast<int>(result.first));
+				EndScript(thread, result, true);
+				return true;
 			}
 
-			auto fin_it = s_infoMap.find(thread->GetPID());
-			if (fin_it != s_infoMap.end())
-			{
-				if (result.second)
-					fin_it->second.SetResult(*result.second, thread->GetEvaluateResult());
-				else
-					fin_it->second.EndRun();
-			}
+			return false;
+		}), s_running.end());
 
-			return true;
-		}
-
-		return false;
-	}), s_running.end());
+	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
+	LuaActors::Process();
 
 	if (s_infoGC.count() > 0)
 	{
@@ -1578,15 +1758,6 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-/**
- * @fn OnUpdateImGui
- *
- * This is called each time that the ImGui Overlay is rendered. Use this to render
- * and update plugin specific widgets.
- *
- * Because this happens extremely frequently, it is recommended to move any actual
- * work to a separate Call and use this only for updating the display.
- */
 PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;
@@ -1753,7 +1924,7 @@ PLUGIN_API void OnUpdateImGui()
 
 				if (ImGui::Button(info.status == LuaThreadStatus::Paused ? "Resume" : "Pause"))
 				{
-					LuaPauseCommand(fmt::format("{}", info.pid));
+					LuaPauseCommand(fmt::format("{}", info.pid), false, false);
 				}
 			}
 			else
@@ -1799,7 +1970,7 @@ PLUGIN_API void OnUpdateImGui()
 
 		if (ImGui::Button("Launch Script...", ImVec2(-1, 0)))
 		{
-			IGFD_OpenPaneDialog2(
+			IGFD_OpenDialogWithPane2(
 				s_scriptLaunchDialog,
 				"ChooseScriptKey",
 				"Select Lua Script to Run",
@@ -1817,8 +1988,8 @@ PLUGIN_API void OnUpdateImGui()
 		{
 			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
-				auto selection = IGFD_GetSelection(s_scriptLaunchDialog);
-				auto selected_file = selection.table->filePathName;
+				IGFD_Selection selection = IGFD_GetSelection(s_scriptLaunchDialog, IGFD_ResultMode_KeepInputFile);
+				char* selected_file = selection.table->filePathName;
 
 				std::error_code ec;
 				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
@@ -1837,7 +2008,7 @@ PLUGIN_API void OnUpdateImGui()
 						return std::string(s);
 					};
 
-					auto script_name = rootEnd != lua_path.end()
+					std::string script_name = rootEnd != lua_path.end()
 						? script_path
 						: clean_name(std::string(scriptEnd, script_path.end()));
 
@@ -1855,32 +2026,11 @@ PLUGIN_API void OnUpdateImGui()
 			IGFD_CloseDialog(s_scriptLaunchDialog);
 		}
 
-		s_configNode[showMenu] = s_showMenu;
+		s_configNode[KEY_SHOW_MENU] = s_showMenu;
 	}
 	ImGui::End();
 }
 
-
-/**
- * @fn OnWriteChatColor
- *
- * This is called each time WriteChatColor is called (whether by MQ2Main or by any
- * plugin).  This can be considered the "when outputting text from MQ" callback.
- *
- * This ignores filters on display, so if they are needed either implement them in
- * this section or see @ref OnIncomingChat where filters are already handled.
- *
- * If CEverQuest::dsp_chat is not called, and events are required, they'll need to
- * be implemented here as well.  Otherwise, see @ref OnIncomingChat where that is
- * already handled.
- *
- * For a list of Color values, see the constants for USERCOLOR_.  The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line that was passed to WriteChatColor
- * @param Color int - The type of chat text this is to be sent as
- * @param Filter int - (default 0)
- */
 PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 {
 	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
@@ -1893,21 +2043,6 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 	}
 }
 
-/**
- * @fn OnIncomingChat
- *
- * This is called each time a line of chat is shown.  It occurs after MQ filters
- * and chat events have been handled.  If you need to know when MQ2 has sent chat,
- * consider using @ref OnWriteChatColor instead.
- *
- * For a list of Color values, see the constants for USERCOLOR_. The default is
- * USERCOLOR_DEFAULT.
- *
- * @param Line const char* - The line of text that was shown
- * @param Color int - The type of chat text this was sent as
- *
- * @return bool - whether something was done based on the incoming chat
- */
 PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 {
 	for (const std::shared_ptr<mq::lua::LuaThread>& thread : mq::lua::s_running)
@@ -1925,4 +2060,30 @@ PLUGIN_API bool OnIncomingChat(const char* Line, DWORD Color)
 PLUGIN_API PluginInterface* GetPluginInterface()
 {
 	return mq::lua::s_pluginInterface;
+}
+
+PLUGIN_API void OnUnloadPlugin(const char* pluginName)
+{
+	using namespace mq::lua;
+
+	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
+	MQPlugin* plugin = GetPlugin(pluginName);
+
+	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
+		[&](const std::shared_ptr<LuaThread>& thread) -> bool
+		{
+			if (thread && thread->IsDependency(plugin))
+			{
+				// Exit the thread immediately
+				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
+
+				EndScript(thread, { sol::thread_status::dead, std::nullopt }, false);
+
+				WriteChatStatus("Running lua script '%s' with PID %d terminated due to unloading of %s",
+					thread->GetName().c_str(), thread->GetPID(), pluginName);
+				return true;
+			}
+
+			return false;
+		}), end(s_running));
 }

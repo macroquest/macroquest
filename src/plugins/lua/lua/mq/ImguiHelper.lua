@@ -1,13 +1,13 @@
-ImguiHelper = { _version = '1.0', author = 'Knightly' }
+local ImguiHelper = { _version = '1.0', author = 'Knightly' }
 
 local mq = require('mq')
 require 'ImGui'
 
 ImguiHelper.Popup = {
     Modal = function(title, text, buttons)
-            last_return = 0
-            openGUI = true
-            shouldDrawGUI = true
+            local last_return = 0
+            local openGUI = true
+            local shouldDrawGUI = true
 
             function DisplayModalGUI()
                 if not openGUI then return end
@@ -36,7 +36,8 @@ ImguiHelper.Popup = {
 
             ImGui.Register('DisplayModalGUI'..title, DisplayModalGUI)
 
-            while openGUI do
+            local startModal = os.time()
+            while openGUI and os.difftime(os.time(), startModal) < 30 do
                 mq.delay(10)
             end
 

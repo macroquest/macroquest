@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -255,6 +255,10 @@ enum class CharacterMembers
 	RestlessMark,
 	ScarletMarks,
 	MedalsOfConflict,
+	ShadedSpecie,
+	SpiritualMedallions,
+	LaurionInnVoucher,
+	ShalowainsPrivateReserve,
 	LoyaltyTokens,
 	SpellInCooldown,
 	Slowed,
@@ -345,6 +349,13 @@ enum class CharacterMembers
 	Inviter,
 	Invited,
 	IsBerserk,
+	GroupLeaderExp,
+	GroupLeaderPoints,
+	PctGroupLeaderExp,
+	RaidLeaderExp,
+	RaidLeaderPoints,
+	PctRaidLeaderExp,
+	PersonaLevel,
 };
 
 enum class CharacterMethods
@@ -590,6 +601,10 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, RestlessMark);
 	ScopedTypeMember(CharacterMembers, ScarletMarks);
 	ScopedTypeMember(CharacterMembers, MedalsOfConflict);
+	ScopedTypeMember(CharacterMembers, ShadedSpecie);
+	ScopedTypeMember(CharacterMembers, SpiritualMedallions);
+	ScopedTypeMember(CharacterMembers, LaurionInnVoucher);
+	ScopedTypeMember(CharacterMembers, ShalowainsPrivateReserve);
 	ScopedTypeMember(CharacterMembers, LoyaltyTokens);
 	ScopedTypeMember(CharacterMembers, SpellInCooldown);
 	ScopedTypeMember(CharacterMembers, Slowed);
@@ -680,6 +695,13 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Inviter);
 	ScopedTypeMember(CharacterMembers, Invited);
 	ScopedTypeMember(CharacterMembers, IsBerserk);
+	ScopedTypeMember(CharacterMembers, GroupLeaderExp);
+	ScopedTypeMember(CharacterMembers, GroupLeaderPoints);
+	ScopedTypeMember(CharacterMembers, PctGroupLeaderExp);
+	ScopedTypeMember(CharacterMembers, RaidLeaderExp);
+	ScopedTypeMember(CharacterMembers, RaidLeaderPoints);
+	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
+	ScopedTypeMember(CharacterMembers, PersonaLevel);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -740,14 +762,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
-	case CharacterMembers::Origin:
-		if (pLocalPC->StartingCity > 0 && pLocalPC->StartingCity < MAX_ZONES)
+	case CharacterMembers::Origin: {
+		int startingCity = pLocalPC->GetStartingCity();
+		if (startingCity > 0 && startingCity < MAX_ZONES)
 		{
 			Dest.Type = pZoneType;
-			Dest.Ptr = pWorldData->ZoneArray[pLocalPC->StartingCity];
+			Dest.Ptr = pWorldData->ZoneArray[startingCity];
 			return true;
 		}
 		return false;
+	}
 
 	case CharacterMembers::SubscriptionDays:
 		Dest.Int = pLocalPC->SubscriptionDays;
@@ -760,7 +784,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PctExp:
-		Dest.Float = (float)pLocalPC->Exp / 1000.0f;
+		Dest.Float = (float)pLocalPC->Exp / EXP_TO_PCT_RATIO;
 		Dest.Type = pFloatType;
 		return true;
 
@@ -770,7 +794,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::PctAAExp:
-		Dest.Float = (float)pLocalPC->AAExp / 1000.0f;
+		Dest.Float = (float)pLocalPC->AAExp / EXP_TO_PCT_RATIO;
 		Dest.Type = pFloatType;
 		return true;
 
@@ -1222,15 +1246,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Inventory:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, NUM_INV_SLOTS);
-				if (nSlot < NUM_INV_SLOTS && nSlot >= 0)
+				if (nSlot >= 0 && nSlot < NUM_INV_SLOTS)
 				{
-					if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pProfile->GetInventorySlot(nSlot));
+					return true;
 				}
 			}
 			else
@@ -1239,60 +1264,64 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (!_stricmp(Index, szItemSlot[nSlot]))
 					{
-						if (Dest.Ptr = pProfile->GetInventorySlot(nSlot).get())
-							return true;
-
-						return false;
+						Dest = pItemType->MakeTypeVar(pProfile->GetInventorySlot(nSlot));
+						return true;
 					}
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::Bank:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, 0) - 1;
 				if (nSlot < 0)
-					return false;
+					return true;
 
 				if (nSlot < GetAvailableBankSlots())
 				{
-					if (Dest.Ptr = pLocalPC->BankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->BankItems.GetItem(nSlot));
+					return true;
 				}
-				else if (nSlot >= NUM_BANK_SLOTS)
+		
+				if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
 
-					if (Dest.Ptr = pLocalPC->SharedBankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->SharedBankItems.GetItem(nSlot));
+					return true;
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::SharedBank:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nSlot = GetIntFromString(Index, 0) - 1;
-				if (nSlot < 0)
-					return false;
-
-				if (nSlot < GetAvailableSharedBankSlots())
+				if (nSlot >= 0 && nSlot < GetAvailableSharedBankSlots())
 				{
-					if (Dest.Ptr = pLocalPC->SharedBankItems.GetItem(nSlot).get())
-						return true;
+					Dest = pItemType->MakeTypeVar(pLocalPC->SharedBankItems.GetItem(nSlot));
+					return true;
 				}
 			}
 		}
-		return false;
+
+		// return null item type
+		return true;
 
 	case CharacterMembers::PlatinumShared:
 		Dest.DWord = pLocalPC->BankSharedPlat;
@@ -2288,10 +2317,10 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			if (nBuff < 0 || nBuff >= pPetInfoWnd->GetMaxBuffs())
 				return false;
 
-			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
+			if (pPetInfoWnd->GetBuff(nBuff) == -1 || pPetInfoWnd->GetBuff(nBuff) == 0)
 				return false;
 
-			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 			{
 				Dest.Type = pSpellType;
 				return true;
@@ -2301,7 +2330,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{
@@ -2355,8 +2384,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (Index[0])
 		{
 			nSize = GetIntFromString(Index, 0);
-			if (nSize > 4)
-				nSize = 4;
+			if (nSize > ItemSize_Giant)
+				nSize = ItemSize_Giant;
 		}
 
 		Dest.DWord = GetFreeInventory(nSize);
@@ -2610,62 +2639,110 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::LAMarkNPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.MarkNPC;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LANPCHealth:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.NPCHealth;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LADelegateMA:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.DelegateMA;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LADelegateMarkNPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.DelegateMarkNPC;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAInspectBuffs:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.InspectBuffs;
+#else
 		Dest.DWord = 2;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LASpellAwareness:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.SpellAwareness;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAOffenseEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.OffenseEnhancement;
+#else
 		Dest.DWord = 5;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAManaEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.ManaEnhancement;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHealthEnhancement:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HealthEnhancement;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHealthRegen:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HealthRegen;
+#else
 		Dest.DWord = 3;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAFindPathPC:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.FindPathPC;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::LAHoTT:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->ActiveAbilities.HoTT;
+#else
 		Dest.DWord = 1;
+#endif
 		Dest.Type = pIntType;
 		return true;
 
@@ -2961,6 +3038,26 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::MedalsOfConflict:
 		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MEDALSOFCONFLICT);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ShadedSpecie:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHADEDSPECIE);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::SpiritualMedallions:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SPIRITUALMEDALLION);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::LaurionInnVoucher:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_LAURIONINNVOUCHER);
+		Dest.Type = pIntType;
+		return true;
+
+	case CharacterMembers::ShalowainsPrivateReserve:
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SHALOWAINSPRIVATERESERVE);
 		Dest.Type = pIntType;
 		return true;
 
@@ -3336,26 +3433,24 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 
-		// TODO: Fix this. Its a struct not an int*
-		if (EQADDR_SUBSCRIPTIONTYPE && *EQADDR_SUBSCRIPTIONTYPE)
+		switch (GetMembershipLevel())
 		{
-			uintptr_t dwsubtype = *EQADDR_SUBSCRIPTIONTYPE;
-			if (dwsubtype)
-			{
-				uint8_t subtype = *(uint8_t*)dwsubtype;
-				switch (subtype)
-				{
-				case MembershipFreeToPlay:
-					strcpy_s(DataTypeTemp, "FREE");
-					break;
-				case MembershipSilver:
-					strcpy_s(DataTypeTemp, "SILVER");
-					break;
-				case MembershipGold:
-					strcpy_s(DataTypeTemp, "GOLD");
-					break;
-				}
-			}
+		case MembershipLevel::Free:
+			strcpy_s(DataTypeTemp, "FREE");
+			break;
+		case MembershipLevel::Silver:
+			strcpy_s(DataTypeTemp, "SILVER");
+			break;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
+		case MembershipLevel::AllAccess:
+		case MembershipLevel::LifetimeAllAccess:
+#else
+		case MembershipLevel::Gold:
+#endif
+			strcpy_s(DataTypeTemp, "GOLD");
+			break;
+
+		default: break;
 		}
 
 		Dest.Ptr = &DataTypeTemp[0];
@@ -3886,7 +3981,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		if (pLocalPC)
 		{
-			int value = pLocalPC->GetGameFeature(GameFeature_SpellRank);
+			int value = pLocalPC->GetGameFeature(GameFeature::SpellTier);
 			if (value == -1 || value >= 10)
 				Dest.DWord = 3;
 			else if (value >= 5)
@@ -3996,6 +4091,87 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.DWord = pLocalPlayer->berserker;
 		Dest.Type = pIntType;
 		return true;
+
+	case CharacterMembers::GroupLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->GroupLeadershipExp);
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::GroupLeaderPoints:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->GroupLeadershipPoints;
+#else
+		Dest.DWord = 0;
+#endif
+		Dest.Type = pIntType;
+		return true;
+	case CharacterMembers::PctGroupLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->GroupLeadershipExp) / 10.0f;
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::RaidLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->RaidLeadershipExp);
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+	case CharacterMembers::RaidLeaderPoints:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.DWord = pLocalPC->RaidLeadershipPoints;
+#else
+		Dest.DWord = 0;
+#endif
+		Dest.Type = pIntType;
+		return true;
+	case CharacterMembers::PctRaidLeaderExp:
+#if HAS_LEADERSHIP_EXPERIENCE
+		Dest.Float = static_cast<float>(pLocalPC->RaidLeadershipExp) / 10.0f;
+#else
+		Dest.Float = 0.0f;
+#endif
+		Dest.Type = pFloatType;
+		return true;
+
+	case CharacterMembers::PersonaLevel: {
+		Dest.Type = pIntType;
+		Dest.Int = 0;
+#if HAS_ALTERNATE_PERSONAS
+		if (Index[0])
+		{
+			int classId = GetIntFromString(Index, -1);
+
+			if (classId != -1)
+			{
+				if (classId >= eqlib::Warrior && classId <= eqlib::Berserker)
+				{
+					Dest.Int = pLocalPC->GetPersonaLevel(classId);
+					return true;
+				}
+			}
+			else
+			{
+				for (int i = eqlib::Warrior; i < eqlib::Berserker; ++i)
+				{
+					if (ci_equals(Index, ClassInfo[i].ShortName))
+					{
+						Dest.Int = pLocalPC->GetPersonaLevel(i);
+						return true;
+					}
+				}
+			}
+		}
+#endif
+		return true;
+	}
 
 	default:
 		return false;

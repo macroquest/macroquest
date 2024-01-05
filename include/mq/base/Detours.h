@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
+#include "mq/base/Common.h"
+#include "mq/base/Traits.h"
+
 #pragma comment(lib, "detours.lib")
 
 namespace mq {
@@ -71,33 +73,33 @@ namespace detail
 	MQLIB_OBJECT void CreateDetour(uintptr_t address, std::string_view name);
 
 	template <typename T>
-	inline std::enable_if_t<!std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T& detour, T*& target, std::string_view name)
+	std::enable_if_t<!std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T& detour, T*& target, std::string_view name)
 	{
 		CreateDetour(address, &(void*&)target, detour, name);
 	}
 
 	template <typename T>
-	inline std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T& detour, T* target, std::string_view name)
+	std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T& detour, T* target, std::string_view name)
 	{
 		CreateDetour(address, (void**)target, detour, name);
 }
 
 	template <typename T>
-	inline std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T&& detour, T* target, std::string_view name)
+	std::enable_if_t<std::is_member_pointer_v<T>, void> AddDetour(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
 		CreateDetour(address, (void**)target, *(void**)&detour, name);
 	}
 
 	template <typename T>
-	inline std::enable_if_t<std::is_pointer_v<T>, void> AddDetour(uintptr_t address, T&& detour, T* target, std::string_view name)
+	std::enable_if_t<std::is_pointer_v<T>, void> AddDetour(uintptr_t address, T&& detour, T* target, std::string_view name)
 	{
 		CreateDetour(address, &(void*&)*target, detour, name);
 	}
 
 	template <typename T, typename U>
-	inline std::enable_if_t<!std::is_same_v<T, U>, void> AddDetour(uintptr_t address, T&& detour, U* target, std::string_view name)
+	std::enable_if_t<!std::is_same_v<T, U>, void> AddDetour(uintptr_t address, T&& detour, U* target, std::string_view name)
 	{
-		static_assert(false, "Detour and Trampoline types differ in their signatures!");
+		static_assert(mq::always_false<T>::value, "Detour and Trampoline types differ in their signatures!");
 	}
 }
 

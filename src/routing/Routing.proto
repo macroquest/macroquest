@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package mq.proto.routing;
+
+message Address {
+	oneof target {
+		uint32 pid = 1;
+		string name = 2;
+	}
+	optional string account = 3;
+	optional string server = 4;
+	optional string character = 5;
+	optional string mailbox = 6;
+}
+
+message Envelope {
+	Address address = 1;
+	Address return_address = 2;
+	optional bytes payload = 99;
+}
+
+message Identification {
+	uint32 pid = 1;
+	optional string name = 2;
+	optional string account = 3;
+	optional string server = 4;
+	optional string character = 5;
+}
+
+message Identifications {
+	repeated Identification ids = 1;
+}

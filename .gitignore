@@ -49,4 +49,8 @@ ipch/
 src/tools
 
 # ignore a specific sln file
-src/MacroQuestCustom.sln
+src/MacroQuest*.sln
+!src/MacroQuest.sln
+
+# ignore generated protobuf files
+*.pb.*

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
-
 #include <algorithm>
 #include <charconv>
 #include <string>
@@ -25,8 +23,8 @@
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
-
-#include <Windows.h>
+#include <set>
+#include <map>
 
 namespace mq {
 
@@ -111,14 +109,14 @@ inline std::string trim_copy(std::string s)
 [[nodiscard]]
 inline std::string_view ltrim(std::string_view s)
 {
-	s.remove_prefix(std::min(s.find_first_not_of(" \t\n"), s.size()));
+	s.remove_prefix(std::min(s.find_first_not_of(" \t\r\n"), s.size()));
 	return s;
 }
 
 [[nodiscard]]
 inline std::string_view rtrim(std::string_view s)
 {
-	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\n") - 1, s.size()));
+	s.remove_suffix(std::min(s.size() - s.find_last_not_of(" \t\r\n") - 1, s.size()));
 	return s;
 }
 
@@ -485,7 +483,67 @@ inline bool ci_ends_with(std::string_view a, std::string_view b)
 struct ci_unordered
 {
 private:
-	struct ci_comparer
+	struct comparer
+	{
+		using is_transparent = void;
+
+		template <typename T, typename U>
+		bool operator()(const T& a, const U& b) const
+		{
+			return ci_equals(a, b);
+		}
+	};
+
+	struct hasher
+	{
+		using is_transparent = void;
+
+#if defined(_WIN64)
+		static inline constexpr size_t FNV_offset_basis = 14695981039346656037ULL;
+		static inline constexpr size_t FNV_prime = 1099511628211ULL;
+#else
+		static inline constexpr size_t FNV_offset_basis = 2166136261U;
+		static inline constexpr size_t FNV_prime = 16777619U;
+#endif
+
+		template <typename T>
+		size_t operator()(const T& a) const
+		{
+			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
+			size_t hash = FNV_offset_basis;
+			for (char c : a)
+			{
+				hash ^= static_cast<size_t>(::tolower(static_cast<unsigned char>(c)));
+				hash *= FNV_prime;
+			}
+			return hash;
+		}
+
+		size_t operator()(const char* a) const
+		{
+			std::string_view sv{ a };
+			return operator()(sv);
+		}
+	};
+
+public:
+	template <typename StringType, typename T>
+	using map = std::unordered_map<StringType, T, hasher, comparer>;
+
+	template <typename StringType, typename T>
+	using multimap = std::unordered_multimap<StringType, T, hasher, comparer>;
+
+	template <typename StringType>
+	using set = std::unordered_set<StringType, hasher, comparer>;
+
+	template <typename StringType>
+	using multiset = std::unordered_multiset<StringType, hasher, comparer>;
+};
+
+struct ci_ordered
+{
+private:
+	struct comparer
 	{
 		using is_transparent = void;
 
@@ -496,36 +554,18 @@ private:
 		}
 	};
 
-	struct ci_hasher
-	{
-		using is_transparent = void;
-
-		template <typename T>
-		size_t operator()(const T& a) const
-		{
-			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
-			unsigned long hash = 2166136261U;
-			for (unsigned char c : a)
-			{
-				hash ^= static_cast<unsigned long>(::tolower(c));
-				hash *= 16777619U;
-			}
-			return hash;
-		}
-	};
-
 public:
 	template <typename StringType, typename T>
-	using map = std::unordered_map<StringType, T, ci_hasher, ci_comparer>;
+	using map = std::map<StringType, T, comparer>;
 
 	template <typename StringType, typename T>
-	using multimap = std::unordered_multimap<StringType, T, ci_hasher, ci_comparer>;
+	using multimap = std::multimap<StringType, T, comparer>;
 
 	template <typename StringType>
-	using set = std::unordered_set<StringType, ci_hasher, ci_comparer>;
+	using set = std::set<StringType, comparer>;
 
 	template <typename StringType>
-	using multiset = std::unordered_multiset<StringType, ci_hasher, ci_comparer>;
+	using multiset = std::multiset<StringType, comparer>;
 };
 
 /**
@@ -694,31 +734,110 @@ inline bool GetBoolFromString(const std::string_view svString, const bool defaul
 	return returnValue;
 }
 
-
-// convert UTF-8 string to wstring
-inline std::wstring utf8_to_wstring(std::string_view s)
+/** this function does not consider the current locale and only
+works with ASCII digits.
+@return true if c is a digit character
+*/
+inline bool alphanum_isdigit(const char c)
 {
-	if (s.empty()) return {};
-
-	int slength = (int)s.length();
-	int len = ::MultiByteToWideChar(CP_UTF8, 0, s.data(), slength, nullptr, 0);
-	std::wstring r;
-	r.resize(len);
-	::MultiByteToWideChar(CP_UTF8, 0, s.data(), slength, r.data(), len);
-	return r;
+	return c >= '0' && c <= '9';
 }
 
-// convert UTF16 wstring to string
-inline std::string wstring_to_utf8(const std::wstring& s)
-{
-	if (s.empty())
-		return {};
+/**
+	compare l and r with strcmp() semantics, but using
+	the "Alphanum Algorithm". This function is designed to read
+	through the l and r strings only one time, for
+	maximum performance. It does not allocate memory for
+	substrings. It can either use the C-library functions isdigit()
+	and atoi() to honour your locale settings, when recognizing
+	digit characters when you "#define ALPHANUM_LOCALE=1" or use
+	it's own digit character handling which only works with ASCII
+	digit characters, but provides better performance.
 
-	int sizeNeeded = ::WideCharToMultiByte(CP_UTF8, 0, &s[0], (int)s.size(), nullptr, 0, nullptr, nullptr);
-	std::string r;
-	r.resize(sizeNeeded, 0);
-	::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), (int)s.size(), &r[0], sizeNeeded, nullptr, nullptr);
-	return r;
+	@param l NULL-terminated C-style string
+	@param r NULL-terminated C-style string
+	@return negative if l<r, 0 if l equals r, positive if l>r
+*/
+inline int alphanum_comp(std::string_view lsv, std::string_view rsv)
+{
+	enum mode_t { STRING, NUMBER } mode = STRING;
+	auto l = lsv.begin();
+	auto r = rsv.begin();
+
+	while (l != lsv.end() && r != rsv.end())
+	{
+		if (mode == STRING)
+		{
+			char l_char, r_char;
+			while (l != lsv.end() && (l_char = *l) && r != rsv.end() && (r_char = *r))
+			{
+				// check if this are digit characters
+				const bool l_digit = alphanum_isdigit(l_char), r_digit = alphanum_isdigit(r_char);
+				// if both characters are digits, we continue in NUMBER mode
+				if (l_digit && r_digit)
+				{
+					mode = NUMBER;
+					break;
+				}
+				// if only the left character is a digit, we have a result
+				if (l_digit) return -1;
+				// if only the right character is a digit, we have a result
+				if (r_digit) return +1;
+				// compute the difference of both characters
+				const int diff = l_char - r_char;
+				// if they differ we have a result
+				if (diff != 0) return diff;
+				// otherwise process the next characters
+				++l;
+				++r;
+			}
+		}
+		else // mode==NUMBER
+		{
+			// get the left number
+			unsigned long l_int = 0;
+			while (l != lsv.end() && alphanum_isdigit(*l))
+			{
+				// TODO: this can overflow
+				l_int = l_int * 10 + *l - '0';
+				++l;
+			}
+
+			// get the right number
+			unsigned long r_int = 0;
+			while (r != rsv.end() && alphanum_isdigit(*r))
+			{
+				// TODO: this can overflow
+				r_int = r_int * 10 + *r - '0';
+				++r;
+			}
+
+			// if the difference is not equal to zero, we have a comparison result
+			const long diff = l_int - r_int;
+			if (diff != 0)
+				return diff;
+
+			// otherwise we process the next substring in STRING mode
+			mode = STRING;
+		}
+	}
+
+	if (r != rsv.end()) return -1;
+	if (l != lsv.end()) return +1;
+	return 0;
 }
+
+/**
+   Functor class to compare two objects with the "Alphanum
+   Algorithm".
+*/
+template <class Ty>
+struct alphanum_less
+{
+	bool operator()(const Ty& left, const Ty& right) const
+	{
+		return alphanum_comp(left, right) < 0;
+	}
+};
 
 } // namespace mq

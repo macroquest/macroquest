@@ -1,6 +1,6 @@
 # MacroQuest
 
-[![Live Build](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml) [![Test Build](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml) [![Emu Build](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml)
+[![Live Build](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml) [![Test Build](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml/badge.svg?branch=test)](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml) [![Emu Build](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml)
 
 ---
 
@@ -10,7 +10,7 @@ MacroQuest is an open source scripting and plugin platform for EverQuest.  Docum
 
 ### Prererequisites
 
-* [Visual Studio 2019/2022 Community](https://visualstudio.microsoft.com/downloads/)
+* [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/)
 * [Git for Windows](https://git-scm.com/)
 
 The recommended way to build MacroQuest is from a source code checkout using Git. There are many how to guides for installing and setting up git. [Here is one of them](https://docs.gitlab.com/ee/gitlab-basics/start-using-git.html)
@@ -20,7 +20,7 @@ The recommended way to build MacroQuest is from a source code checkout using Git
 Create the checkout. This will create the subfolder **macroquest** that contains a copy of the project.
 
 ```
-git clone git@github.com:macroquest/macroquest.git
+git clone https://github.com/macroquest/macroquest.git
 ```
 
 Make sure that submodules are initialized. Move (cd) to the newly created **macroquest** folder before executing this command.  If you have run this step already, you can skip it
@@ -53,7 +53,7 @@ At this point, the source should be ready to compile. Proceed to building.
 
 1. Open the `MacroQuest.sln` file in src.
 1. Select the `Release` and `(x64)` configuration from the drop-down menu near the top of the window.
-1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  From the Visual Studio main menu, select **Build** then **Configuration Manager** then ensure the Platform column for each project is set to `(x64)`. 
+1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  From the Visual Studio main menu, select **Build** then **Configuration Manager** then ensure the Platform column for each project is set to `(x64)`.
 1. Select `Build -> Build Solution` from the menu.
 
 The built files will be placed in `build/bin/Release`. To start MacroQuest, run `MacroQuest.exe`. This will launch the application to the tray, and install MacroQuest into any running EverQuest processes.

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -82,10 +82,12 @@ struct MapFilterOption
 		NoColor      = 0x02,       // option has no color property
 		Regenerate   = 0x04,       // map is regenerated if this option is changed
 		UsesRadius   = 0x08,       // option has a radius (draws a circle)
+		Object       = 0x10,       // option is an Object filter
 	};
 
 	const char*      szName = nullptr;
 	bool             Default = false;
+	MapFilter        ThisFilter = MapFilter::Invalid;
 	MQColor          DefaultColor;
 	MapFilter        RequiresOption = MapFilter::Invalid;
 	uint32_t         Flags = 0;
@@ -101,6 +103,7 @@ struct MapFilterOption
 	bool IsRegenerateOnChange() const { return Flags & Regenerate; }
 	bool IsRadius() const { return Flags & UsesRadius; }
 	bool HasColor() const { return !(Flags & NoColor); }
+	bool IsObject() const { return Flags & Object; }
 };
 
 extern uint32_t bmMapRefresh;
@@ -124,7 +127,7 @@ extern char maphideStr[MAX_STRING];
 extern MQSpawnSearch MapFilterCustom;
 extern MQSpawnSearch MapFilterNamed;
 
-extern MapFilterOption MapFilterOptions[];
+extern std::vector<MapFilterOption> MapFilterOptions;
 extern MapFilterOption MapFilterInvalidOption;
 
 constexpr int MAX_CLICK_STRINGS = 16;
@@ -133,19 +136,21 @@ extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
 
+extern std::vector<MapFilterOption*> mapFilterObjectOptions;
+extern std::vector<MapFilterOption*> mapFilterGeneralOptions;
+
 /* COMMANDS */
-void MapFilters(SPAWNINFO* pChar, char* szLine);
-void MapFilterSetting(SPAWNINFO* pChar, MapFilter nMapFilter, const char* szValue = nullptr);
-void MapHighlightCmd(SPAWNINFO* pChar, char* szLine);
+void MapFilters(PlayerClient* pChar, const char* szLine);
+void MapFilterSetting(PlayerClient* pChar, MapFilter nMapFilter, const char* szValue = nullptr);
+void MapHighlightCmd(PlayerClient* pChar, const char* szLine);
 void PulseReset();
-void MapHideCmd(SPAWNINFO* pChar, char* szLine);
-void MapShowCmd(SPAWNINFO* pChar, char* szLine);
-void MapNames(SPAWNINFO* pChar, char* szLine);
-void MapClickCommand(SPAWNINFO* pChar, char* szLine);
-void MapActiveLayerCmd(SPAWNINFO* pChar, char* szLine);
-void MapSetLocationCmd(SPAWNINFO* pChar, char* szLine);
+void MapHideCmd(PlayerClient* pChar, const char* szLine);
+void MapShowCmd(PlayerClient* pChar, const char* szLine);
+void MapNames(PlayerClient* pChar, const char* szLine);
+void MapClickCommand(PlayerClient* pChar, const char* szLine);
+void MapActiveLayerCmd(PlayerClient* pChar, const char* szLine);
+void MapSetLocationCmd(PlayerClient* pChar, const char* szLine);
 char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize);
-void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
 bool IsFloat(const std::string& in);
 
 /* API */
@@ -160,7 +165,7 @@ void MapAttach();
 void MapDetach();
 
 void MapLocSyntaxOutput();
-void MapRemoveLocation(SPAWNINFO* pChar, char* szLine);
+void MapRemoveLocation(const char* szLine);
 
 bool MapSelectTarget();
 void MapClickLocation(float x, float y, const std::vector<float>& z_hits);

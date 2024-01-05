@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -21,27 +21,6 @@
 #include <string>
 
 namespace mq {
-
-static std::list<ItemGlobalIndex> gAutoBankList;
-static std::list<ItemGlobalIndex> gAutoInventoryList;
-static bool gbStartAutoBanking = false;
-static bool gbAutoBankInProgress = false;
-static bool gbAutoInventoryInProgress = false;
-static bool gbAutoBankTradeSkillItems = false;
-static bool gbAutoBankCollectibleItems = false;
-static bool gbAutoBankQuestItems = false;
-static bool gbAutoInventoryItems = false;
-
-static CContextMenu* AutoBankMenu = nullptr;
-static CButtonWnd* gAutoBankButton = nullptr;
-static int s_bankCustomMenu = 0;
-
-// BankWnd context menu items
-constexpr int ContextMenu_TradeskillItemsId = 50;
-constexpr int ContextMenu_CollectibleItemsId = 51;
-constexpr int ContextMenu_QuestItemsId = 52;
-constexpr int ContextMenu_CheckedItemsId = 53;
-
 #if HAS_FIND_ITEM_WINDOW
 CContextMenu* CheckBoxMenu = nullptr;
 static int s_findItemCheckBoxMenu = 0;
@@ -84,7 +63,6 @@ namespace AutoInventory {
 #endif // HAS_FIND_ITEM_WINDOW
 
 namespace AutoInventory {
-	class BankWnd_Hook;
 	class CBarterWnd_Hook;
 	class CBarterSearchWnd_Hook;
 }
@@ -654,124 +632,6 @@ public:
 
 #endif // HAS_FIND_ITEM_WINDOW
 
-// CBankWnd hooks
-class AutoInventory::BankWnd_Hook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
-	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
-	{
-		CBankWnd* pThis = (CBankWnd*)this;
-		PcProfile* pProfile = GetPcProfile();
-
-		// we use this to intercept the menu messages for our autobank button extension
-		if (pThis->AutoButton == pWnd)
-		{
-			if (gAutoBankButton != pWnd)
-				gAutoBankButton = (CButtonWnd*)pWnd;
-
-			if (gAutoBankButton)
-			{
-				switch (uiMessage)
-				{
-				case XWM_LCLICK:
-					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
-					{
-						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-						{
-							gAutoBankButton->bChecked = false;
-						}
-						else
-						{
-							gAutoBankButton->bChecked = true;
-						}
-					}
-					break;
-
-				case XWM_LMOUSEUP:
-					if (!pProfile->GetInventorySlot(InvSlot_Cursor))
-					{
-						if (!gbAutoBankTradeSkillItems && !gbAutoBankCollectibleItems && !gbAutoBankQuestItems)
-						{
-							WriteChatf("\ay[AUTOBANK FILTER NOT CONFIGURED]\ax AutoBank Filters where empty there is nothing selected for moving, rightclick the autobank button to select filters.\n");
-							gAutoBankButton->bChecked = false;
-							break;
-						}
-
-						if (!gbStartAutoBanking)
-						{
-							// user leftclicked the autobank button and nothing on cursor
-							// we will autobank from inventory instead and pick items he wants
-							// by using his menu settings.
-							gbStartAutoBanking = true;
-
-							WriteChatf("\ay[Auto%s started. Please wait...]\ax",
-								gbAutoInventoryItems ? "Inventory" : "Bank");
-						}
-						else
-						{
-							WriteChatf("\ar[Auto%s ALREADY in Progress, please wait for it to finish...]\ax",
-								gbAutoInventoryItems ? "Inventory" : "Bank");
-							return 0;
-						}
-					}
-					break;
-
-				case XWM_RCLICK:
-					if (pContextMenuManager)
-					{
-						CXPoint Loc = pWndMgr->MousePoint;
-
-						// work in progress
-						pContextMenuManager->PopupMenu(s_bankCustomMenu, Loc, pThis);
-					}
-					break;
-				};
-			}
-		}
-		else if (uiMessage == XWM_MENUSELECT)
-		{
-			CContextMenu* pContextMenu = (CContextMenu*)pWnd;
-#pragma warning(suppress : 4311 4302)
-			int ItemID = (int)pData;
-			int iItemID = pContextMenu->GetItemAtPoint(pWndMgr->MousePoint);
-
-			switch (ItemID)
-			{
-			case ContextMenu_TradeskillItemsId:
-				gbAutoBankTradeSkillItems = !gbAutoBankTradeSkillItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
-
-				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTradeSkillItems);
-				break;
-
-			case ContextMenu_CollectibleItemsId:
-				gbAutoBankCollectibleItems = !gbAutoBankCollectibleItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
-
-				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankCollectibleItems);
-				break;
-
-			case ContextMenu_QuestItemsId:
-				gbAutoBankQuestItems = !gbAutoBankQuestItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
-
-				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankQuestItems);
-				break;
-
-			case ContextMenu_CheckedItemsId:
-				gbAutoInventoryItems = !gbAutoInventoryItems;
-				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
-
-				AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
-				break;
-			};
-		}
-
-		return WndNotification_Trampoline(pWnd, uiMessage, pData);
-	}
-};
-
 // CBarterWnd hooks
 class AutoInventory::CBarterWnd_Hook
 {
@@ -958,7 +818,7 @@ public:
 	}
 };
 
-static void AddAutoBankMenu()
+static void AddFindItemMenu()
 {
 	AutoInventory::CBarterSearchWnd_Hook::AddInventoryValueColumn();
 
@@ -1095,73 +955,15 @@ static void AddAutoBankMenu()
 		}
 	}
 #endif // HAS_FIND_ITEM_WINDOW
-
-	if (s_bankCustomMenu == 0)
-	{
-		if (pContextMenuManager)
-		{
-			// save orig values
-			int DefaultMenuIndex = pContextMenuManager->DefaultMenuIndex;
-			int DefaultBGItem = pContextMenuManager->DefaultBGItem;
-			int DefaultHelpItem = pContextMenuManager->DefaultHelpItem;
-			int DefaultLockItem = pContextMenuManager->DefaultLockItem;
-			int DefaultEscapeItem = pContextMenuManager->DefaultEscapeItem;
-			int DefaultMinItem = pContextMenuManager->DefaultMinItem;
-			int DefaultCloseItem = pContextMenuManager->DefaultCloseItem;
-
-			// create our menu
-			pContextMenuManager->CreateDefaultMenu();  // FIXME: Don't rely on CreateDefaultMenu
-
-			// set our values
-			s_bankCustomMenu = pContextMenuManager->DefaultMenuIndex;
-
-			// set orig values back, we now have a menu that's ours...
-			pContextMenuManager->DefaultMenuIndex = DefaultMenuIndex;
-			pContextMenuManager->DefaultBGItem = DefaultBGItem;
-			pContextMenuManager->DefaultHelpItem = DefaultHelpItem;
-			pContextMenuManager->DefaultLockItem = DefaultLockItem;
-			pContextMenuManager->DefaultEscapeItem = DefaultEscapeItem;
-			pContextMenuManager->DefaultMinItem = DefaultMinItem;
-			pContextMenuManager->DefaultCloseItem = DefaultCloseItem;
-
-			AutoBankMenu = pContextMenuManager->GetMenu(s_bankCustomMenu);
-			AutoBankMenu->RemoveAllMenuItems();
-
-			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, mq::internal_paths::MQini);
-			gbAutoBankCollectibleItems = GetPrivateProfileBool("AutoBank", "AutoBankCollectibleItems", false, mq::internal_paths::MQini);
-			gbAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", false, mq::internal_paths::MQini);
-			gbAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", false, mq::internal_paths::MQini);
-
-			if (gbWriteAllConfig)
-			{
-				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, mq::internal_paths::MQini);
-				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, mq::internal_paths::MQini);
-				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, mq::internal_paths::MQini);
-				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, mq::internal_paths::MQini);
-			}
-
-			AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
-			AutoBankMenu->AddMenuItem("Collectible Items", ContextMenu_CollectibleItemsId, gbAutoBankCollectibleItems);
-			AutoBankMenu->AddMenuItem("Quest Items", ContextMenu_QuestItemsId, gbAutoBankQuestItems);
-			AutoBankMenu->AddSeparator();
-			AutoBankMenu->AddMenuItem("AutoInventory Checked Items", ContextMenu_CheckedItemsId, gbAutoInventoryItems);
-		}
-	}
 }
 
-void RemoveAutoBankMenu()
+void RemoveFindItemMenu()
 {
 	AutoInventory::CBarterSearchWnd_Hook::RemoveInventoryValueColumn();
 
 #if HAS_FIND_ITEM_WINDOW
 	if (pContextMenuManager)
 	{
-		if (s_bankCustomMenu != 0)
-		{
-			pContextMenuManager->RemoveMenu(s_bankCustomMenu, true);
-			s_bankCustomMenu = 0;
-		}
-
 		if (s_findItemCheckBoxMenu != 0)
 		{
 			pContextMenuManager->RemoveMenu(s_findItemCheckBoxMenu, true);
@@ -1201,7 +1003,7 @@ void RemoveAutoBankMenu()
 #endif
 }
 
-static void AutoBankPulse()
+static void FindItemPulse()
 {
 	if (!pLocalPC)
 		return;
@@ -1318,199 +1120,10 @@ static void AutoBankPulse()
 	}
 #endif
 
-	if (!gbStartAutoBanking)
-	{
-		return;
-	}
-
-	if (!pBankWnd || (pBankWnd && pBankWnd->IsVisible() == 0))
-	{
-		gbStartAutoBanking = false;
-		gbAutoBankInProgress = false;
-		gbAutoInventoryInProgress = false;
-
-		if (gAutoBankButton && gAutoBankButton->bChecked)
-			gAutoBankButton->bChecked = false;
-
-		gAutoBankList.clear();
-		gAutoInventoryList.clear();
-		return;
-	}
-
-	if (gbAutoInventoryItems && !gbAutoInventoryInProgress)
-	{
-		// user wants us to move items FROM bank back to their inventory
-
-		if (gAutoInventoryList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
-		{
-			pLocalPC->BankItems.VisitContainers(
-			[&](const ItemPtr& pItem, const ItemIndex& index)
-			{
-				// dont add bags that have items inside of them.
-				if (pItem->IsContainer() && !pItem->IsEmpty())
-					return;
-
-				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
-					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
-					|| (gbAutoBankQuestItems && itemDef->QuestItem))
-				{
-					gAutoInventoryList.push_back(pItem->GetItemLocation());
-				}
-			});
-		}
-
-		if (!gAutoInventoryList.empty())
-		{
-			gbAutoInventoryInProgress = true;
-		}
-		else
-		{
-			gbStartAutoBanking = false;
-			gbAutoInventoryInProgress = false;
-
-			if (gAutoBankButton && gAutoBankButton->bChecked)
-				gAutoBankButton->bChecked = false;
-
-			WriteChatf("\ay[No Items Found for Auto Inventory.]\ax\n");
-			return;
-		}
-	}
-
-	// user wants us to autobank stuff
-	else if (!gbAutoInventoryItems && !gbAutoBankInProgress)
-	{
-		if (gAutoBankList.empty() && (gbAutoBankTradeSkillItems || gbAutoBankCollectibleItems || gbAutoBankQuestItems))
-		{
-			// check toplevel slots
-			pProfile->GetInventory().VisitContainers(
-				[&](const ItemPtr& pItem, const ItemIndex& index)
-			{
-				if (pItem->IsContainer() && !pItem->IsEmpty())
-					return;
-
-				ItemDefinition* itemDef = pItem->GetItemDefinition();
-				if ((gbAutoBankTradeSkillItems && itemDef->TradeSkills)
-					|| (gbAutoBankCollectibleItems && itemDef->Collectible)
-					|| (gbAutoBankQuestItems && itemDef->QuestItem))
-				{
-					gAutoBankList.push_back(pItem->GetItemLocation());
-				}
-			});
-		}
-
-		if (!gAutoBankList.empty())
-		{
-			gbAutoBankInProgress = true;
-		}
-		else
-		{
-			gbStartAutoBanking = false;
-			gbAutoBankInProgress = false;
-
-			if (gAutoBankButton && gAutoBankButton->bChecked)
-				gAutoBankButton->bChecked = false;
-
-			WriteChatf("\ay[No Items Found for Auto Banking.]\ax\n");
-			return;
-		}
-	}
-
-	if (pProfile->GetInventorySlot(InvSlot_Cursor) != nullptr)
-	{
-		if (gbAutoInventoryInProgress)
-			DoCommandf("/autoinventory");
-		else
-			DoCommandf("/autobank");
-		return;
-	}
-
-	if (!gAutoInventoryList.empty())
-	{
-		const ItemGlobalIndex& ind = gAutoInventoryList.front();
-
-		if (ItemClient* pItem = FindItemByGlobalIndex(ind))
-		{
-			ItemGlobalIndex indy = pItem->GetItemLocation();
-
-			if (WillFitInInventory(pItem))
-			{
-				WriteChatf("[%d] Moving %s from slot %d %d to inventory",
-					gAutoInventoryList.size(), pItem->GetName(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				PickupItem(pItem->GetItemLocation());
-			}
-			else
-			{
-				WriteChatf("[%d] \arAutoinventory for %s from slot %d %d to inventory \ayFAILED\ar, you are out of space.\ax",
-					gAutoInventoryList.size(), pItem->GetName(), indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-			}
-		}
-		else
-		{
-			WriteChatf("[%d] \arAutoinventory for slot %d %d to inventory \ayFAILED\ar, no item was found.\ax",
-				gAutoInventoryList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
-		}
-
-		gAutoInventoryList.pop_front();
-		return;
-	}
-
-	if (!gAutoBankList.empty())
-	{
-		const ItemGlobalIndex& ind = gAutoBankList.front();
-
-		if (ItemClient* pCont = FindItemByGlobalIndex(ind))
-		{
-			ItemDefinition* pItem = GetItemFromContents(pCont);
-			ItemGlobalIndex indy = pCont->GetItemLocation();
-
-			if (WillFitInBank(pCont))
-			{
-				WriteChatf("[%d] Moving %s from slot %d %d to bank",
-					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-				PickupItem(indy.Location, pCont);
-			}
-			else
-			{
-				WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
-					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
-			}
-		}
-		else
-		{
-			WriteChatf("[%d] \arAutoBank for slot %d %d to bank \ayFAILED\ar, no item was found.\ax",
-				gAutoBankList.size(), ind.GetIndex().GetSlot(0), ind.GetIndex().GetSlot(1));
-		}
-
-		gAutoBankList.pop_front();
-		return;
-	}
-
-	if (gbAutoInventoryInProgress)
-	{
-		if (gAutoBankButton && gAutoBankButton->bChecked)
-			gAutoBankButton->bChecked = false;
-
-		gbAutoInventoryInProgress = false;
-		gbStartAutoBanking = false;
-		WriteChatf("\ay[Autoinventory Finished.]\ax");
-	}
-	else if (gbAutoBankInProgress)
-	{
-		if (gAutoBankButton && gAutoBankButton->bChecked)
-			gAutoBankButton->bChecked = false;
-
-		gbAutoBankInProgress = false;
-		gbStartAutoBanking = false;
-		WriteChatf("\ay[AutoBank Finished.]\ax");
-	}
 }
 
 void InitializeMQ2AutoInventory()
 {
-	EzDetour(CBankWnd__WndNotification,
-		&AutoInventory::BankWnd_Hook::WndNotification_Detour,
-		&AutoInventory::BankWnd_Hook::WndNotification_Trampoline);
 #if HAS_FIND_ITEM_WINDOW
 	EzDetour(CFindItemWnd__WndNotification,
 		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
@@ -1539,8 +1152,7 @@ void ShutdownMQ2AutoInventory()
 	RemoveDetour(CFindItemWnd__WndNotification);
 	RemoveDetour(CFindItemWnd__Update);
 #endif
-	RemoveDetour(CBankWnd__WndNotification);
-	RemoveAutoBankMenu();
+	RemoveFindItemMenu();
 }
 
 void PulseMQ2AutoInventory()
@@ -1548,8 +1160,8 @@ void PulseMQ2AutoInventory()
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 
-	AddAutoBankMenu();
-	AutoBankPulse();
+	AddFindItemMenu();
+	FindItemPulse();
 }
 
 } // namespace mq

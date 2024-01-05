@@ -68,7 +68,7 @@ try {
 	$ListFile = "$Src\BinCopy.txt"
 	Set-Location $Src
 
-	$lines = Get-Content $ListFile 
+	$lines = Get-Content $ListFile
 	foreach ($line in $lines)
 	{
 		$files = Get-ChildItem -Path "$Src\$line" | % { $_.FullName }
@@ -81,6 +81,8 @@ try {
 
 	# Copy crash reporter
 	Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows-static\tools\crashpad_handler.exe" "$Dst\crashpad_handler.exe" "crashpad_handler.exe"
+	# Copy license
+	Copy-Latestfile "$Src\..\LICENSE.md" "$Dst\resources\LICENSE.md" "LICENSE.md"
 	$DstLeaf = $Dst|Split-Path -leaf
 	# Copy DX files
 	if ($Dst -like '*debug*')
@@ -90,6 +92,15 @@ try {
 	else
 	{
 		Copy-LatestFile "$Src\..\contrib\vcpkg\installed\$Arch-windows\bin\D3DX9d_43.dll" "$Dst\D3DX9d_43.dll" "D3DX9d_43.dll"
+	}
+	# Copy luarocks
+	if ($Arch -eq "x86")
+	{
+		Copy-LatestFile "$Src\..\data\luarocks32.exe" "$Dst\luarocks.exe" "luarocks.exe"
+	}
+	else
+	{
+		Copy-LatestFile "$Src\..\data\luarocks.exe" "$Dst\luarocks.exe" "luarocks.exe"
 	}
 }
 catch {

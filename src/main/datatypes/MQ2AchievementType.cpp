@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -212,6 +212,11 @@ enum class AchievementTypeMembers
 	CompletedTime,
 };
 
+enum class AchievementTypeMethods
+{
+	Inspect,
+};
+
 MQ2AchievementType::MQ2AchievementType() : MQ2Type("achievement")
 {
 	ScopedTypeMember(AchievementTypeMembers, ID);
@@ -230,15 +235,12 @@ MQ2AchievementType::MQ2AchievementType() : MQ2Type("achievement")
 	ScopedTypeMember(AchievementTypeMembers, Locked);
 	ScopedTypeMember(AchievementTypeMembers, Hidden);
 	ScopedTypeMember(AchievementTypeMembers, CompletedTime);
+	ScopedTypeMethod(AchievementTypeMethods, Inspect);
 }
 
 bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPC)
-		return false;
-
-	MQTypeMember* pMember = FindMember(Member);
-	if (!pMember)
 		return false;
 
 	AchievementManager& mgr = AchievementManager::Instance();
@@ -247,6 +249,30 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	const eqlib::Achievement* achievement = mgr.GetAchievementByIndex(VarPtr.Int);
 	if (!achievement)
 		return false;
+
+	MQTypeMember* pMember = FindMember(Member);
+	if (!pMember)
+	{
+		MQTypeMember* pMethod = FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<AchievementTypeMethods>(pMethod->ID))
+			{
+			case AchievementTypeMethods::Inspect:
+			{
+				char buffer[512] = { 0 };
+				FormatAchievementLink(buffer, 512, achievement, Index[0] ? Index : pLocalPC->Name);
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
+				return true;
+			}
+			default:
+				return false;
+			}
+		}
+
+		return false;
+	}
 
 	switch (static_cast<AchievementTypeMembers>(pMember->ID))
 	{
@@ -362,7 +388,7 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case AchievementTypeMembers::Link:
-		FormatAchievementLink(DataTypeTemp, MAX_STRING, achievement, Index[0] ? Index : pLocalPC->Name);
+		FormatAchievementLink(DataTypeTemp, DataTypeTemp.size(), achievement, Index[0] ? Index : pLocalPC->Name);
 		Dest.Ptr = DataTypeTemp;
 		Dest.Type = pStringType;
 		return true;
@@ -420,19 +446,15 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	}
 
 	case AchievementTypeMembers::CompletedTime:
-		Dest.Type = pTimeType;
-		Dest.Ptr = nullptr;
 		if (const SingleAchievementAndComponentsInfo* clientInfo = mgr.GetAchievementClientInfoByIndex(achievementIndex))
 		{
 			if (clientInfo->completionTimestamp != 0)
 			{
-				tm* time = (tm*)&DataTypeTemp[0];
-				ZeroMemory(time, sizeof(tm));
-				eq_localtime(time, &clientInfo->completionTimestamp);
-				Dest.Ptr = time;
+				Dest = pTimeType->MakeTypeVar(clientInfo->completionTimestamp);
+				return true;
 			}
 		}
-		return true;
+		return false;
 
 	default: break;
 	}

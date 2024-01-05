@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -129,8 +129,7 @@ bool MQ2SolventType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 		return true;
 
 	case SolventTypeMembers::Item: // do we have this solvent?
-		Dest.Type = pItemType;
-		Dest.Ptr = FindItemByID(itemid);
+		Dest = pItemType->MakeTypeVar(FindItemByID(itemid));
 		return true;
 
 	case SolventTypeMembers::Count: // do we have this solvent and if so how many?

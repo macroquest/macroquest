@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,6 +16,7 @@
 
 #include "../eqlib/EQLib.h"
 #include "MQ2Internal.h"
+#include "mq/base/GlobalBuffer.h"
 
 #include <memory>
 #include <unordered_map>
@@ -28,7 +29,12 @@ struct CaseInsensitiveLess
 	}
 };
 
-struct IDirect3DDevice9;
+// Probably move these to eqlib but for now these are all contained within MQ
+#if defined(EMULATOR)
+#define HAS_CHAT_TIMESTAMPS 1
+#else
+#define HAS_CHAT_TIMESTAMPS 0
+#endif
 
 namespace mq {
 
@@ -49,7 +55,6 @@ MQLIB_API uint32_t bmPluginsCleanUI;
 MQLIB_API uint32_t bmPluginsReloadUI;
 MQLIB_API uint32_t bmPluginsDrawHUD;
 MQLIB_API uint32_t bmPluginsSetGameState;
-MQLIB_API uint32_t bmParseMacroParameter;
 MQLIB_API uint32_t bmUpdateSpawnSort;
 MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;
@@ -68,7 +73,7 @@ MQLIB_VAR MQDataVar* pMacroVariables;
 MQLIB_VAR bool bAllErrorsFatal;
 MQLIB_VAR bool bAllErrorsDumpStack;
 MQLIB_VAR bool bAllErrorsLog;
-MQLIB_API char DataTypeTemp[MAX_STRING];
+MQLIB_API SGlobalBuffer DataTypeTemp;
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;
@@ -233,15 +238,11 @@ MQLIB_VAR MQFilter* gpFilters;
 // TODO: Change to use case insensitive comparison
 MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
-MQLIB_VAR MOUSESPOOF* gMouseData;
-
 MQLIB_VAR DWORD gGameState;
 MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;
 
-
 MQLIB_VAR bool gMouseClickInProgress[8];
-MQLIB_VAR bool bDetMouse;
 
 // ***************************************************************************
 // String arrays
@@ -301,7 +302,6 @@ MQLIB_VAR const char* szItemSlot[InvSlot_Max + 1];
 MQLIB_VAR const char* szEquipmentSlot[];
 
 MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
-MQLIB_VAR std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 MQLIB_VAR MQPlugin* pPlugins;
 
 // Prefer using gSpawnArray over these for internal usage
@@ -310,6 +310,9 @@ MQLIB_VAR int gSpawnCount;
 
 // internal to mq2 only
 extern std::vector<MQSpawnArrayItem> gSpawnsArray;
+#if HAS_CHAT_TIMESTAMPS
+extern bool gbTimeStampChat;
+#endif
 
 MQLIB_VAR size_t g_eqgameimagesize;
 
@@ -324,11 +327,6 @@ const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
 MQLIB_VAR int gParserVersion;
-
-/* OVERLAY GLOBALS */
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-MQLIB_VAR bool gbDeviceAcquired;
-MQLIB_VAR bool gbDeviceHooksInstalled;
 
 /* DEPRECATION GLOBALS */
 MQLIB_VAR int gbGroundDeprecateCount;

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,8 @@
 
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
+#include "MQPostOffice.h"
+#include "mq/base/WString.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -26,6 +28,9 @@
 namespace mq {
 
 CMQ2Alerts CAlerts;
+
+// Defined in MQ2PluginHandler.cpp
+int GetPluginUnloadFailedCount();
 
 // ***************************************************************************
 // Function:    Unload
@@ -820,7 +825,7 @@ void SelectItem(SPAWNINFO* pChar, char* szLine)
 			else
 			{
 				WriteChatf("/selectitem Could NOT find \ay%s\ax in your inventory to select.\n"
-					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", szBuffer, szBuffer);
+					"Use /invoke ${Merchant.SelectItem[%s]} if you want to select an item in the merchants inventory.", pName, szBuffer);
 			}
 
 			return;
@@ -1067,7 +1072,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 	{
 		cmdFilter(pChar, szArg);
 		if (gFilterMacro != FILTERMACRO_NONE)
-			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug");
+			WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, mq2data, debug");
 		return;
 	}
 
@@ -2131,7 +2136,7 @@ void MQMsgBox(SPAWNINFO* pChar, char* szLine)
 	bRunNextCommand = true;
 
 	sprintf_s(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
-	ParseMacroParameter(pChar, szBuffer);
+	ParseMacroData(szBuffer, MAX_STRING );
 
 	CreateThread(nullptr, 0, thrMsgBox, _strdup(szBuffer), 0, nullptr);
 }
@@ -2159,9 +2164,8 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 
 	if (!_stricmp(szLine, "clear"))
 	{
-		FILE* fOut = nullptr;
-		const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "wt");
-		if (err || !fOut)
+		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
+		if (!fOut)
 		{
 			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 			return;
@@ -2176,9 +2180,8 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 	std::error_code ec;
 	create_directories(logFilePath.parent_path(), ec);
 
-	FILE* fOut = nullptr;
-	const errno_t err = fopen_s(&fOut, logFilePath.string().c_str(), "at");
-	if (err || !fOut)
+	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
+	if (!fOut)
 	{
 		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
 		return;
@@ -2815,7 +2818,7 @@ void LoadSpells(SPAWNINFO* pChar, char* szLine)
 
 static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 {
-	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), eActivatableSpell);
+	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), ItemSpellType_Clicky);
 	SPAWNINFO* pMySpawn = pLocalPlayer;
 
 	if (pEverQuest->freeTargetTracker)
@@ -2873,7 +2876,7 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 // ***************************************************************************
 // Function:    Cast
 // Description: Our '/cast' command
-// Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (spash location)
+// Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (splash location)
 // ***************************************************************************
 void Cast(SPAWNINFO* pChar, char* szLine)
 {
@@ -2923,7 +2926,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 		}
 		else {
 			// Display the MQ help in addition to the EQ help
-			WriteChatColor("/cast [list|#|\"name of spell\"|item \"name of item\"] optional:<loc x y z> (spash location)");
+			WriteChatColor("/cast [list|#|\"name of spell\"|item \"name of item\"] optional:<loc x y z> (splash location)");
 		}
 
 		cmdCast(pChar, szLine);
@@ -3226,26 +3229,9 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 
 	DebugSpew("/ini input -- %s %s %s %s", szArg1, szArg2, szArg3, szArg4);
 
-	std::filesystem::path iniFile = szArg1;
-	if (!iniFile.has_extension())
-	{
-		iniFile += ".ini";
-	}
+	const std::filesystem::path iniFile = GetMacroIni(internal_paths::Config, internal_paths::Macros, szArg1);
 
 	std::error_code ec;
-
-	if (iniFile.is_relative())
-	{
-		// Config is the primary path, but fall back to the old path if needed
-		if (!exists(internal_paths::Config / iniFile, ec) && exists(internal_paths::Macros / iniFile, ec))
-		{
-			iniFile = internal_paths::Macros / iniFile;
-		}
-		else
-		{
-			iniFile = mq::internal_paths::Config / iniFile;
-		}
-	}
 
 	// Make sure the directory exists for the ini file.
 	std::filesystem::path iniDirectory = iniFile.parent_path();
@@ -5715,7 +5701,7 @@ static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
 	{
 		int realID = pDistillerInfo.GetIDFromRecordNum(i, false);
 
-		if (ItemPtr pItemSolvent = pLocalPC->GetItemByID(realID))
+		if (ItemPtr pItemSolvent = FindItemByID(realID))
 		{
 			// found a distiller that will work...
 			return pItemSolvent;
@@ -5724,7 +5710,7 @@ static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
 
 	return ItemPtr();
 #else
-	return pLocalPC->GetItemByID(solventID);
+	return FindItemByID(solventID);
 #endif
 }
 
@@ -5832,6 +5818,28 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 	else
 	{
 		WriteChatf("\ayCould NOT remove the\ax \at%s\ax from the \ag%s\ax", szArg1, pTargetItem->GetName());
+	}
+}
+
+void ExecuteLinkCommand(SPAWNINFO* pChar, char* arg)
+{
+	if (arg[0] != 0)
+	{
+		TextTagInfo link_info = ExtractLink(arg);
+
+		if (link_info.tagCode == ETAG_INVALID)
+		{
+			WriteChatf("\arInvalid Link Text: \ax%s", arg);
+		}
+		else
+		{
+			ExecuteTextLink(link_info);
+		}
+	}
+	else
+	{
+		WriteChatf("/executelink usage: /executelink <link text>");
+		WriteChatf("    <link text>: valid link text");
 	}
 }
 

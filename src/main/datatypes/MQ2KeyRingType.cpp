@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -208,11 +208,7 @@ bool MQ2KeyRingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return true;
 
 	case KeyRingItemTypeMembers::Item:
-		Dest.Type = pItemType;
-		if (ItemPtr item = pLocalPC->GetKeyRingItems(type).GetItem(n))
-		{
-			Dest.Ptr = item.get();
-		}
+		Dest = pItemType->MakeTypeVar(pLocalPC->GetKeyRingItems(type).GetItem(n));
 		return true;
 	}
 
@@ -235,7 +231,6 @@ bool MQ2KeyRingItemType::ToString(MQVarPtr VarPtr, char* Destination)
 
 	return false;
 }
-
 
 MQTypeVar MQ2KeyRingItemType::MakeTypeVar(int keyRingType, int itemIndex)
 {

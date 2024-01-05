@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -513,9 +513,8 @@ bool DumpBinds(const char* Filename)
 		pathFilename = mq::internal_paths::Config / pathFilename;
 	}
 
-	FILE* file = nullptr;
-	const errno_t err = fopen_s(&file, pathFilename.string().c_str(), "wt");
-	if (err || file == nullptr)
+	FILE* file = _fsopen(pathFilename.string().c_str(), "wt", _SH_DENYWR);
+	if (file == nullptr)
 	{
 		return false;
 	}

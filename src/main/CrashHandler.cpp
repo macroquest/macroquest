@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -26,6 +26,8 @@
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 #include <filesystem>
+
+#include "mq/base/WString.h"
 
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
@@ -114,7 +116,7 @@ bool InitializeCrashpad()
 	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\crashpad_handler.exe"));
 
 	// This should point to your server dump submission port (labeled as "http/writer"
-	// in the listener configuration pane. Preferrably, the SSL enabled port should
+	// in the listener configuration pane. Preferably, the SSL enabled port should
 	// be used. If Backtrace is hosting your instance, the default port is 6098.
 	std::string url(gCrashpadSubmissionURL);
 
@@ -123,9 +125,9 @@ bool InitializeCrashpad()
 		arguments.emplace_back("--no-rate-limit");
 	}
 
-	base::FilePath db(dbPath);
-	base::FilePath handler(handlerPath);
-	std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
+	const base::FilePath db(dbPath);
+	const base::FilePath handler(handlerPath);
+	const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
 
 	if (database == nullptr || database->GetSettings() == nullptr)
 	{
@@ -169,7 +171,7 @@ bool InitializeCrashpad()
 	}
 
 	// Wait for Crashpad to initialize.
-	bool success = gCrashpadClient->WaitForHandlerStart(INFINITE);
+	const bool success = gCrashpadClient->WaitForHandlerStart(INFINITE);
 
 	if (success)
 	{
@@ -200,8 +202,8 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 		std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
 
 		// Open database and read the guid.
-		std::wstring dbPath(utf8_to_wstring(mq::internal_paths::CrashDumps));
-		std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
+		const std::wstring dbPath(utf8_to_wstring(mq::internal_paths::CrashDumps));
+		const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
 		if (!database || !database->GetSettings())
 		{
 			SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
@@ -464,22 +466,11 @@ void InitializeCrashHandler()
 
 	// Set some annotations.
 
-	// FIXME: Add enum values for gBuild.
-	const char* buildType = "UNKNOWN";
-	switch (gBuild)
-	{
-	case 1: buildType = "LIVE"; break;
-	case 2: buildType = "TEST"; break;
-	case 3: buildType = "BETA"; break;
-	case 4: buildType = "EMU(ROF2)"; break;
-	case 5: buildType = "EMU(UF)"; break;
-	}
-
-#pragma warning(suppress: 4996)
-	buildTypeAnnotation.Set(buildType);
-#pragma warning(suppress: 4996)
-	buildVersionAnnotation.Set(MQMAIN_VERSION);
-	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);
+	// Using base::StringPiece here to select an implementation that doesn't trigger usage of strncpy,
+	// leading to deprecation warnings from crashpad.
+	buildTypeAnnotation.Set(base::StringPiece(GetBuildTargetName(static_cast<BuildTarget>(gBuild))));
+	buildVersionAnnotation.Set(base::StringPiece(MQMAIN_VERSION));
+	buildTimestampAnnotation.Set(base::StringPiece(__ExpectedVersionDate " " __ExpectedVersionTime));
 	SetCrashId();
 }
 
@@ -492,7 +483,7 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 
 	// Indicate to crash reporting that this is a synthetic crash
 	auto pAnno = new crashpad::StringAnnotation<32>("synthesized");
-	pAnno->Set("true");
+	pAnno->Set(base::StringPiece("true"));
 
 	if (ci_equals(szArg1, "force"))
 	{
@@ -515,6 +506,11 @@ void InitializeMQ2CrashHandler()
 void ShutdownMQ2CrashHandler()
 {
 	RemoveCommand("/crash");
+}
+
+void InvokeExceptionHandler(EXCEPTION_POINTERS* p)
+{
+	OurCrashHandler(p);
 }
 
 } // namespace mq

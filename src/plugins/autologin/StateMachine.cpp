@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include "AutoLoginShared.h"
+#include <login/Login.h>
 #include "MQ2AutoLogin.h"
 
 #include <optional>
@@ -50,15 +50,21 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		std::string cmdline(::GetCommandLineA());
 
 		// find the login argument if it exists, otherwise input will remain empty
-		auto startpos = cmdline.find("/login:");
-		if (startpos != std::string::npos)
+		const std::vector<std::string_view> args_tokens = tokenize_args(cmdline);
+		for (auto token: args_tokens)
 		{
-			input = cmdline.substr(startpos + 7, cmdline.find_first_of(' ', startpos + 7));
+			const size_t loc = token.find("/login:");
+			if (loc != std::string_view::npos)
+			{
+				input = strip_quotes(token.substr(loc + 7), '"');
+				break;
+			}
 		}
 
 		// fallback method, the only case where we would hit this is if we manually entered the login string after eqgame started.
-		if (input.empty() && pEditWnd && !pEditWnd->InputText.empty())
-			input = pEditWnd->InputText;
+		CXStr inputText = GetEditWndText(pEditWnd);
+		if (input.empty() && !inputText.empty())
+			input = inputText;
 
 		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
 
@@ -80,8 +86,10 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::string_view AccountName = "")
 {
 	std::string account(AccountName);
-	if (account.empty() && pEditWnd && !pEditWnd->InputText.empty())
-		account = pEditWnd->InputText;
+
+	CXStr inputText = GetEditWndText(pEditWnd);
+	if (account.empty() && !inputText.empty())
+		account = inputText;
 
 	if (!account.empty())
 	{
@@ -151,7 +159,7 @@ protected:
 		if (m_paused)
 			return false; // do not continue if we're paused
 
-		return m_record.has_value() || e.State == LoginState::Connect;
+		return m_record != nullptr || e.State == LoginState::Connect;
 	}
 
 public:
@@ -179,7 +187,7 @@ public:
 				CEditWnd* pEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit");
 
 				// If we have an empty password input field, transit to connect. Otherwise, wait.
-				if (pEditWnd != nullptr && pEditWnd->InputText.empty())
+				if (GetEditWndText(pEditWnd).empty())
 					transit<Connect>();
 				else
 					transit<Wait>(); // this will reset the delay
@@ -205,7 +213,9 @@ public:
 			{
 				auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 				auto pChild = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-				if (pWnd != nullptr && pWnd->IsVisible() == 1 && pChild && pChild->STMLText.find("Loading Characters") != CXStr::npos)
+
+				if (pWnd != nullptr && pWnd->IsVisible() == 1
+					&&  GetSTMLText(pChild).find("Loading Characters") != CXStr::npos)
 				{
 					// fix for the stuck at char select "Loading Characters" bug
 					// need to quit and re-enter the character select screen if we've already waited once
@@ -254,7 +264,8 @@ public:
 		// enter the username into the field
 		if (auto pUsernameEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_UsernameEdit"))
 		{
-			std::optional<ProfileRecord> record = std::nullopt;
+			std::shared_ptr<ProfileRecord> record = nullptr;
+
 			if (m_record)
 			{
 				// this only matters during connect. Once we have connected, the client
@@ -264,19 +275,26 @@ public:
 			}
 			else
 			{
+				std::optional<ProfileRecord> tempProfile;
+
 				switch (m_settings.LoginType)
 				{
 				case Settings::Type::Profile:
-					record = UseMQ2Login(pUsernameEditWnd);
+					tempProfile = UseMQ2Login(pUsernameEditWnd);
 					break;
 				case Settings::Type::StationNames:
-					record = UseStationNames(pUsernameEditWnd);
+					tempProfile = UseStationNames(pUsernameEditWnd);
 					break;
 				case Settings::Type::Sessions:
-					record = UseSessions(pUsernameEditWnd);
+					tempProfile = UseSessions(pUsernameEditWnd);
 					break;
 				default:
 					break;
+				}
+
+				if (tempProfile.has_value())
+				{
+					record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
 				}
 			}
 
@@ -284,9 +302,9 @@ public:
 				&& !record->accountName.empty()
 				&& !record->accountPassword.empty())
 			{
-				m_record = record;
+				SetProfileRecord(record);
 
-				pipeclient::NotifyCharacterLoad(
+				NotifyCharacterLoad(
 					record->profileName.c_str(),
 					record->accountName.c_str(),
 					record->serverName.c_str(),
@@ -294,14 +312,14 @@ public:
 				);
 
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-				pUsernameEditWnd->InputText = m_record->accountName;
+				SetEditWndText(pUsernameEditWnd, m_record->accountName);
 
 				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
-					pPasswordEditWnd->InputText = m_record->accountPassword;
+					SetEditWndText(pPasswordEditWnd, m_record->accountPassword);
 
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
-						pConnectButton->WndNotification(pConnectButton, XWM_LCLICK);
+						SendWndNotification(pConnectButton, pConnectButton, XWM_LCLICK);
 				}
 
 				ScreenMode = oldscreenmode;
@@ -324,10 +342,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "OK_Display"))
 		{
-			CXMLDataManager* pXmlMgr = pSidlMgr->GetParamManager();
-			CXStr str = pXmlMgr->GetWindowType(pWnd) == UI_STMLBox ?
-				static_cast<CStmlWnd*>(pWnd)->STMLText :
-				pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("Logging in to the server.  Please wait....") != CXStr::npos)
 			{
@@ -344,7 +359,7 @@ public:
 			{
 				// kick off our offline trader
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "YESNO_YesButton"))
-					pButton->WndNotification(pWnd, XWM_LCLICK);
+					SendWndNotification(pButton, pWnd, XWM_LCLICK);
 			}
 			else if (m_settings.ConnectRetries > 0 && m_retries > m_settings.ConnectRetries)
 			{
@@ -367,7 +382,7 @@ public:
 				//};
 
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "OK_OKButton"))
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 
 				++m_retries;
 
@@ -386,14 +401,19 @@ public:
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
+		if (!g_pLoginClient)
+			return nullptr;
 
-		auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList");
-		if (server_list && !server_list->ItemsArray.IsEmpty() && g_pLoginClient)
+		if (auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList"))
 		{
-			for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
+			ArrayClass<SListWndLine>* server_items = GetItemsArray(server_list);
+			if (server_items && !server_items->IsEmpty())
 			{
-				if (predicate(pServer))
-					return pServer;
+				for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
+				{
+					if (predicate(pServer))
+						return pServer;
+				}
 			}
 		}
 
@@ -458,7 +478,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "OK_Display"))
 		{
-			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("The world server is currently at maximum capacity") != CXStr::npos)
 			{
@@ -488,7 +508,7 @@ public:
 			//};
 
 			if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
-				pButton->WndNotification(pButton, XWM_LCLICK);
+				SendWndNotification(pButton, pButton, XWM_LCLICK);
 		}
 
 		transit<Wait>();
@@ -502,7 +522,7 @@ public:
 	{
 		if (CXWnd* pWnd = GetChildWindow(m_currentWindow, "YESNO_Display"))
 		{
-			CXStr str = pWnd->GetType() == UI_STMLBox ? static_cast<CStmlWnd*>(pWnd)->STMLText : pWnd->GetWindowText();
+			CXStr str = GetWindowText(pWnd);
 
 			if (str.find("You already have a character logged into a world server from this account.") != CXStr::npos)
 			{
@@ -513,13 +533,13 @@ public:
 					dispatch(StopLogin());
 
 				if (pButton)
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 			}
 			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account.") != CXStr::npos)
 			{
 				auto pButton = GetChildWindow<CButtonWnd>(m_currentWindow, "YESNO_YesButton");
 				if (pButton)
-					pButton->WndNotification(pButton, XWM_LCLICK);
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 				else
 					dispatch(StopLogin());
 			}
@@ -595,9 +615,11 @@ public:
 				// no selection has been made yet, so make the selection and enter world
 				auto index = [&pCharList]()
 				{
-					for (int i = 0; i < pCharList->ItemsArray.Count; ++i)
+					auto itemsArray = GetItemsArray(pCharList);
+
+					for (int i = 0; i < itemsArray->Count; ++i)
 					{
-						if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(i, 2)))
+						if (m_record && ci_equals(m_record->characterName, GetListItemText(pCharList, i, 2)))
 							return i;
 					}
 
@@ -657,7 +679,7 @@ public:
 			case LoginState::CharacterSelect:
 				if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 				{
-					if (m_record && ci_equals(m_record->characterName, pCharList->GetItemText(pCharList->GetCurSel(), 2)))
+					if (m_record && ci_equals(m_record->characterName, GetListItemText(pCharList, GetListCurSel(pCharList), 2)))
 					{
 						// we've waited our 3 seconds, so enter world
 						if (pCharacterListWnd != nullptr)
@@ -690,7 +712,8 @@ public:
 	}
 };
 
-std::optional<ProfileRecord> Login::m_record = std::nullopt;
+std::shared_ptr<ProfileRecord> Login::m_record;
+std::shared_ptr<ProfileRecord> Login::m_lastRecord;
 std::vector<ProfileGroup> Login::m_profiles;
 CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1013,49 +1013,6 @@ EQ_Spell* GetSpellByName(std::string_view name)
 	return pSpell;
 }
 
-int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn)
-{
-	// TODO: turn these types into an enum class
-	switch (pSpell->DurationType)
-	{
-	case 0:
-		return 0;
-	case 1:
-	case 6:
-		return std::min<unsigned int>((unsigned int)std::ceil(pSpawn->Level / 2.), pSpell->DurationCap);
-	case 3:
-	case 4:
-	case 11:
-	case 12:
-	case 15:
-		if (pSpell->DurationCap)
-			return (pSpell->DurationCap);
-		else
-			return (pSpell->DurationType * 10);
-	case 2:
-		return std::min<unsigned int>((unsigned int)std::ceil(pSpawn->Level * 0.6), pSpell->DurationCap);
-	case 5:
-		return 3;
-	case 7:
-		return std::min<unsigned int>(pSpawn->Level, pSpell->DurationCap ? pSpell->DurationCap : pSpawn->Level);
-	case 8:
-		return std::min<unsigned int>(pSpawn->Level + 10, pSpell->DurationCap);
-	case 9:
-		return std::min<unsigned int>(pSpawn->Level * 2 + 10, pSpell->DurationCap);
-	case 10:
-		return std::min<unsigned int>(pSpawn->Level * 3 + 10, pSpell->DurationCap);
-	case 13:
-		return pSpell->DurationCap * 6 / 10;
-	case 50:
-		return -1;
-	case 3600:
-		return 6000;
-	default:
-		return -2;
-	}
-}
-
-
 
 // ***************************************************************************
 // Function:    IsBardSong
@@ -1426,48 +1383,6 @@ static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
-// See also: GetSpellDuration
-static int CalcDuration(int calc, int max, int level)
-{
-	int value = 0;
-
-	switch (calc)
-	{
-	case 0:  value = 0; break;
-	case 1:
-	case 12:
-		value = level / 2;
-		if (value < 1)
-			value = 1;
-		break;
-	case 2:
-		value = (level / 2) + 5;
-		if (value < 6)
-			value = 6;
-		break;
-	case 3:  value = level * 30; break;
-	case 4:  value = 50; break;
-	case 5:  value = 2; break;
-	case 6:  value = level / 2; break;
-	case 7:  value = level; break;
-	case 8:  value = level + 10; break;
-	case 9:  value = level * 2 + 10; break;
-	case 10: value = level * 30 + 10; break;
-	case 11: value = (level + 3) * 30; break;
-	case 13: value = level * 3 + 10; break;
-	case 14: value = (level + 2) * 5; break;
-	case 15: value = (level + 10) * 10; break;
-	case 50: value = 72000; break;
-	case 3600: value = 3600; break;
-	default: value = max;
-	}
-
-	if (max > 0 && value > max)
-		value = max;
-
-	return value;
-}
-
 int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int minlevel, int level)
 {
 	if (calc == 0)
@@ -1660,9 +1575,10 @@ static int CalcMaxSpellLevel(int calc, int64_t base, int64_t max, int tick, int 
 	return MAX_PC_LEVEL;
 }
 
-static int CalcMinSpellLevel(EQ_Spell* pSpell)
+// Exported by mq/api/Spells.h
+int CalcMinSpellLevel(EQ_Spell* pSpell)
 {
-	int minspelllvl = pSpell->GetSpellLevelNeeded(Warrior);
+	int minspelllvl = 255;
 
 	for (int j = Warrior; j <= Berserker; j++)
 	{
@@ -2659,7 +2575,7 @@ char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSiz
 	case SPA_CRITICAL_MELEE: //Chance to Critical Hit
 		strcat_s(szBuff, FormatSkills(spelleffectname.c_str(), value, finish, base2, szTemp2, true, "for"));
 		break;
-	case SPA_CRITICAL_SPELL: //Chance to Critical Cast
+	case SPA_CRITICAL_SPELL: //Critical Direct Damage
 	case SPA_CRIPPLING_BLOW: //Crippling Blow
 	case SPA_EVASION: //Melee Avoidance
 	case SPA_RIPOSTE: //Riposte
@@ -3737,11 +3653,23 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 	if (!pSpell)
 		return false;
 
-	// in general, if we have a base, then we have found the SPA and it exists on this spell
-	// however, we need to do a few other checks for things that might be an increase or decrease
-	int base = pSpell->SpellAffectBase(eSPA);
-	if (base == 0)
+	const SpellAffectData* spellAffect = nullptr;
+	for (int index = 0; index < pSpell->GetNumEffects(); ++index)
+	{
+		if (const SpellAffectData* sad = pSpell->GetSpellAffectByIndex(index))
+		{
+			if (sad->Attrib == eSPA)
+			{
+				spellAffect = sad;
+				break;
+			}
+		}
+	}
+
+	if (spellAffect == nullptr)
 		return false;
+
+	auto base = spellAffect->Base;
 
 	switch (eSPA)
 	{
@@ -3769,7 +3697,7 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 bool HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
 bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
 
-int GetPlayerClass(const char* name)
+int GetPlayerClass(std::string_view name)
 {
 	auto player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
 		[name](const SClassInfo& info)
@@ -3781,6 +3709,11 @@ int GetPlayerClass(const char* name)
 		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
 
 	return 0;
+}
+
+int GetPlayerClass(const char* name)
+{
+	return GetPlayerClass(std::string_view(name)); // explicit cast to disambiguate
 }
 
 bool IsSpellUsableForClass(EQ_Spell* pSpell, unsigned int classmask)
@@ -3873,14 +3806,14 @@ const char* GetSpellCaster(const EQ_Affect& buff)
 {
 	if (pBuffWnd != nullptr)
 	{
-		if (auto whocast = pBuffWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(buff.SpellID))
+			return buffInfo.GetCaster();
 	}
 
 	if (pSongWnd != nullptr)
 	{
-		if (auto whocast = pSongWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (auto buffInfo = pSongWnd->GetBuffInfoBySpellID(buff.SpellID))
+			return buffInfo.GetCaster();
 	}
 
 	return "";
@@ -3895,14 +3828,16 @@ const char* GetPetSpellCaster(const EQ_Affect& buff)
 {
 	if (pPetInfoWnd != nullptr)
 	{
-		if (auto whocast = pPetInfoWnd->WhoCast.FindFirst(buff.SpellID); whocast != nullptr)
-			return whocast->c_str();
+		if (auto pBuffInfo = pPetInfoWnd->GetBuffInfoBySpellID(buff.SpellID))
+		{
+			return pBuffInfo.GetCaster();
+		}
 	}
 
 	return "";
 }
 
-eEQSPELLCAT GetSpellCategoryFromName(const char* category)
+eEQSPELLCAT GetSpellCategoryFromName(std::string_view category)
 {
 	if (auto it = s_spellCatLookup.find(category); it != s_spellCatLookup.end())
 		return it->second;
@@ -3910,12 +3845,22 @@ eEQSPELLCAT GetSpellCategoryFromName(const char* category)
 	return static_cast<eEQSPELLCAT>(0);
 }
 
-eEQSPA GetSPAFromName(const char* spa)
+eEQSPELLCAT GetSpellCategoryFromName(const char* category)
+{
+	return GetSpellCategoryFromName(std::string_view(category)); // explicit cast to disambiguate
+}
+
+eEQSPA GetSPAFromName(std::string_view spa)
 {
 	if (auto it = s_spaLookup.find(spa); it != s_spaLookup.end())
 		return it->second;
 
 	return static_cast<eEQSPA>(-1);
+}
+
+eEQSPA GetSPAFromName(const char* spa)
+{
+	return GetSPAFromName(std::string_view(spa)); // explicit cast to disambiguate
 }
 
 int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
@@ -4131,18 +4076,15 @@ bool RemoveBuffByName(std::string_view buffName)
 	{
 		if (!pBuffWnd) return false;
 
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
-			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
-			if (spellId <= 0) continue;
-
-			EQ_Spell* pSpell = GetSpellByID(spellId);
-			if (!pSpell) continue;
-
-			if (ci_equals(buffName, pSpell->Name))
+			if (EQ_Spell* pSpell = buffInfo.GetSpell())
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
-				return true;
+				if (ci_equals(buffName, pSpell->Name))
+				{
+					pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
+					return true;
+				}
 			}
 		}
 
@@ -4164,13 +4106,15 @@ bool RemoveBuffBySpellID(int spellId)
 	{
 		if (!pBuffWnd) return false;
 
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
-			if (spellId == pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot])
+			if (spellId == buffInfo.GetSpellID())
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
 				return true;
 			}
+
+			return false;
 		}
 
 		return false;
@@ -4184,7 +4128,7 @@ bool RemoveBuffBySpellID(int spellId)
 
 bool RemoveBuffByIndex(int buffIndex)
 {
-	if (buffIndex < 0 && buffIndex >= NUM_LONG_BUFFS + NUM_SHORT_BUFFS)
+	if (buffIndex < 0 && buffIndex >= MAX_TOTAL_BUFFS)
 		return false;
 
 	// the Buff index for this function is defined to be based on the local PC data.
@@ -4199,13 +4143,12 @@ bool RemoveBuffByIndex(int buffIndex)
 			return false;
 
 		// Indices might not be in the correct order, so always use the order of the buff window
-		for (int nBuff = pBuffWnd->firstEffectSlot; nBuff <= pBuffWnd->lastEffectSlot; ++nBuff)
+		for (const auto& buffInfo : pBuffWnd->GetBuffRange())
 		{
 			// If the spell id matches then remove it.
-			int spellId = pBuffWnd->spellIds[nBuff - pBuffWnd->firstEffectSlot];
-			if (spellId == affect.SpellID)
+			if (buffInfo.GetSpellID() == affect.SpellID)
 			{
-				pLocalPC->RemoveBuffEffect(nBuff, pLocalPlayer->SpawnID);
+				pLocalPC->RemoveBuffEffect(pBuffWnd->firstEffectSlot + buffInfo.GetIndex(), pLocalPlayer->SpawnID);
 				return true;
 			}
 		}
@@ -4215,6 +4158,25 @@ bool RemoveBuffByIndex(int buffIndex)
 
 	if (checkBuffWnd(pBuffWnd)) return true;
 	if (checkBuffWnd(pSongWnd)) return true;
+
+	return false;
+}
+
+bool RemovePetBuffByName(std::string_view buffName)
+{
+	if (!pPetInfoWnd) return false;
+
+	for (const auto& buffInfo : pPetInfoWnd->GetBuffRange())
+	{
+		if (EQ_Spell* pSpell = buffInfo.GetSpell())
+		{
+			if (ci_equals(buffName, pSpell->Name))
+			{
+				pLocalPC->RemovePetEffect(buffInfo.GetIndex());
+				return true;
+			}
+		}
+	}
 
 	return false;
 }
@@ -4257,7 +4219,7 @@ void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
 
 	for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); ++nBuff)
 	{
-		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+		EQ_Spell* pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 		if (pBuffSpell && MaybeExactCompare(pBuffSpell->Name, szArg))
 		{
 			pLocalPC->RemovePetEffect(nBuff);
@@ -4280,41 +4242,41 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 			{
 				auto spa = GetIntFromString(arg, -1);
 				if (spa < 0)
-					spa = GetSPAFromName(std::string(arg).c_str());
+					spa = GetSPAFromName(arg);
 				return SpellAffect(static_cast<eEQSPA>(spa));
 			}),
 		"detspa", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto spa = GetIntFromString(arg, -1);
 				if (spa < 0)
-					spa = GetSPAFromName(std::string(arg).c_str());
+					spa = GetSPAFromName(arg);
 				return SpellAffect(static_cast<eEQSPA>(spa), false);
 			}),
 		"cat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto cat = GetIntFromString(arg, 0);
 				if (cat == 0)
-					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+					cat = GetSpellCategoryFromName(arg);
 				return SpellCategory(static_cast<eEQSPELLCAT>(cat));
 			}),
 		"subcat", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto cat = GetIntFromString(arg, 0);
 				if (cat == 0)
-					cat = GetSpellCategoryFromName(std::string(arg).c_str());
+					cat = GetSpellCategoryFromName(arg);
 				return SpellSubCat(static_cast<eEQSPELLCAT>(cat));
 			}),
 		"class", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto player_class = GetIntFromString(arg, 0);
 				if (player_class == 0)
-					player_class = GetPlayerClass(std::string(arg).c_str());
+					player_class = GetPlayerClass(arg);
 				return SpellClass(static_cast<PlayerClass>(player_class));
 			}),
 		"id", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{ return SpellIDAttribute(GetIntFromString(arg, 0)); }),
 		"name", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
-			{ return SpellNameAttribute(std::string(arg).c_str()); }),
+			{ return SpellNameAttribute(arg); }),
 		"caster", DSL::Term([](std::string_view arg) -> SpellAttributePredicate<Buff>
 			{
 				auto id = GetIntFromString(arg, -1);
@@ -4327,7 +4289,7 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 					return [](const Buff&) { return false; };
 				}
 
-				return Caster(std::string(arg).c_str());
+				return Caster(arg);
 			}),
 		"and", DSL::Reducer([](SpellAttributePredicate<Buff>&& a, SpellAttributePredicate<Buff>&& b) -> SpellAttributePredicate<Buff>
 			{ return BothSpellAttribute<Buff>(std::move(a), std::move(b)); }),
@@ -4337,9 +4299,24 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 			{ return NotSpellAttribute<Buff>(std::move(a)); })
 	);
 
+	static ci_unordered::map<std::string_view, SpellAttributePredicate<Buff>> s_dslMap;
+	static ci_unordered::set<std::string> s_dsls; // storing like this prevents allocating a string every time
+
 	try
 	{
-		return spaDSL(dsl);
+		auto maybe_predicate = s_dslMap.find(dsl);
+		if (maybe_predicate == s_dslMap.end())
+		{
+			auto [dsl_iter, _] = s_dsls.emplace(dsl);
+
+			// this guarantees ownership of the DSL string is in the set, so we are free to use string_view's for everything in the DSL
+			auto predicate = spaDSL(*dsl_iter);
+			s_dslMap[*dsl_iter] = predicate;
+
+			return predicate;
+		}
+
+		return maybe_predicate->second;
 	}
 	catch (SimpleLexerParseError& e)
 	{

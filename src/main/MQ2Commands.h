@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -139,6 +139,7 @@ MQLIB_API void ConvertItemCmd                      (PSPAWNINFO pChar, char* szLi
 #endif
 MQLIB_API void InsertAugCmd                        (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void RemoveAugCmd                        (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void ExecuteLinkCommand                  (PSPAWNINFO pChar, char* szLine);
 
 MQLIB_API void RemoveBuff                          (SPAWNINFO* pChar, char* szLine);
 MQLIB_API void RemovePetBuff                       (SPAWNINFO* pChar, char* szLine);

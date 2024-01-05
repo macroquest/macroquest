@@ -1,7 +1,7 @@
 
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,7 +16,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-using namespace mq;
+namespace mq {
 
 class TokenCallbackEntry
 {
@@ -24,20 +24,23 @@ public:
 	int StringID;
 	int CallbackID;
 	fMQTokenMessageCmd Callback;
+
 	TokenCallbackEntry(int StringID, int CallbackID, fMQTokenMessageCmd Callback) :
 		StringID(StringID), CallbackID(CallbackID), Callback(Callback) {}
 };
 
-std::map<int, std::vector<std::unique_ptr<TokenCallbackEntry>>> callback_map;
+static std::map<int, std::vector<std::unique_ptr<TokenCallbackEntry>>> callback_map;
 
-int mq::AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command)
+int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command)
 {
 	static int unique_id = 0;
-	callback_map[StringID].emplace_back(std::make_unique<TokenCallbackEntry>(StringID, ++unique_id, Command));
+
+	callback_map[StringID].emplace_back(
+		std::make_unique<TokenCallbackEntry>(StringID, ++unique_id, Command));
 	return unique_id;
 }
 
-void mq::RemoveTokenMessageCmd(int StringID, int CallbackID)
+void RemoveTokenMessageCmd(int StringID, int CallbackID)
 {
 	auto entry = callback_map.find(StringID);
 	if (entry != std::end(callback_map))
@@ -52,7 +55,7 @@ void mq::RemoveTokenMessageCmd(int StringID, int CallbackID)
 }
 
 // no need to copy the whole stream, just sweep a pointer over it and copy the individual elements.
-mq::TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
+TokenTextParam::TokenTextParam(const char* Data, DWORD Length)
 {
 	char const* DataBuffer = Data;
 	DataBuffer += 4; // 4 bytes of padding
@@ -96,12 +99,14 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 	msgTokenTextParam__Trampoline(Data, Length);
 }
 
-void mq::InitializeStringDB()
+void InitializeStringDB()
 {
 	EzDetour(__msgTokenTextParam, msgTokenTextParam__Detour, msgTokenTextParam__Trampoline);
 }
 
-void mq::ShutdownStringDB()
+void ShutdownStringDB()
 {
 	RemoveDetour(__msgTokenTextParam);
 }
+
+} // namespace mq

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -148,7 +148,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case MacroMembers::IsTLO:
 		Dest.Type = pBoolType;
-		Dest.Set(FindMQ2Data(Index) != nullptr);
+		Dest.Set(pDataAPI->FindTopLevelObject(Index) != nullptr);
 		return true;
 
 	case MacroMembers::IsOuterVariable:
@@ -276,7 +276,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				return false;
 			}
 
-			CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+			auto pArray = pVar->Var.Get<CDataArray>();
 			int index = pArray->GetElement(szIndex);
 			if (index == -1)
 			{
@@ -313,14 +313,9 @@ bool MQ2MacroType::ToString(MQVarPtr VarPtr, char* Destination)
 
 bool MQ2MacroType::dataMacro(const char* szIndex, MQTypeVar& Ret)
 {
-	if (gRunning)
-	{
-		Ret.Ptr = 0;
-		Ret.Type = pMacroType;
-		return true;
-	}
-
-	return false;
+	Ret.Ptr = 0;
+	Ret.Type = pMacroType;
+	return true;
 }
 
 } // namespace mq::datatypes

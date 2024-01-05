@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -93,7 +93,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 				{
-					if (pRaid->RaidMemberUsed[nMember])
+					if (pRaid->locations[nMember])
 					{
 						Count--;
 						if (!Count)
@@ -109,7 +109,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				// by name
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 				{
-					if (pRaid->RaidMemberUsed[nMember] && ci_equals(pRaid->RaidMember[nMember].Name, Index))
+					if (pRaid->locations[nMember] && ci_equals(pRaid->raidMembers[nMember].Name, Index))
 					{
 						Dest.DWord = nMember + 1;
 						return true;
@@ -134,7 +134,7 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pRaidMemberType;
 		for (int nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 		{
-			if (pRaid->RaidMemberUsed[nMember] && ci_equals(pRaid->RaidMember[nMember].Name, pRaid->RaidLeaderName))
+			if (pRaid->locations[nMember] && ci_equals(pRaid->raidMembers[nMember].Name, pRaid->RaidLeaderName))
 			{
 				Dest.DWord = nMember + 1;
 				return true;
@@ -201,8 +201,6 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 		if (Index[0])
 		{
-			RaidData& rd = pLocalPC->raidData;
-
 			if (IsNumber(Index))
 			{
 				// Look up Nth raid assist
@@ -210,35 +208,38 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				if (maIndex <= 0 || maIndex > MAX_RAID_ASSISTS)
 					return false;
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 				// This matches what EQ says the RA at this index is.
-				const char* raName = rd.MainAssistNames[maIndex - 1];
+				const char* raName = pLocalPC->raidData.MainAssistNames[maIndex - 1];
+		
 				if (raName[0] == 0)
 					return false;
 
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; ++nMember)
 				{
-					if (!pRaid->RaidMemberUsed[nMember])
+					if (!pRaid->locations[nMember])
 						continue;
-					if (pRaid->RaidMember[nMember].RaidMainAssist)
+					if (pRaid->raidMembers[nMember].RaidMainAssist)
 					{
-						if (strcmp(raName, pRaid->RaidMember[nMember].Name) == 0)
+						if (strcmp(raName, pRaid->raidMembers[nMember].Name) == 0)
 						{
 							Dest.DWord = nMember + 1;
 							return true;
 						}
 					}
 				}
+#endif
 			}
 			else
 			{
 				// Return raid member index if the specified name is a raid assist.
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; ++nMember)
 				{
-					if (!pRaid->RaidMemberUsed[nMember])
+					if (!pRaid->locations[nMember])
 						continue;
-					if (!pRaid->RaidMember[nMember].RaidMainAssist)
+					if (!pRaid->raidMembers[nMember].RaidMainAssist)
 						continue;
-					if (ci_equals(pRaid->RaidMember[nMember].Name, Index))
+					if (ci_equals(pRaid->raidMembers[nMember].Name, Index))
 					{
 						Dest.DWord = nMember + 1;
 						return true;
@@ -250,9 +251,9 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		// just return the first raid assist that is found.
 		for (int nMember = 0; nMember < MAX_RAID_SIZE; ++nMember)
 		{
-			if (!pRaid->RaidMemberUsed[nMember])
+			if (!pRaid->locations[nMember])
 				continue;
-			if (pRaid->RaidMember[nMember].RaidMainAssist)
+			if (pRaid->raidMembers[nMember].RaidMainAssist)
 			{
 				Dest.DWord = nMember + 1;
 				return true;
@@ -263,9 +264,9 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case RaidMembers::MasterLooter:
 		Dest.DWord = 0;
 		Dest.Type = pRaidMemberType;
-		for (int i = 0; i < 72; i++)
+		for (int i = 0; i < MAX_RAID_SIZE; i++)
 		{
-			if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].MasterLooter)
+			if (pRaid->locations[i] && pRaid->raidMembers[i].MasterLooter)
 			{
 				Dest.DWord = i + 1;
 				return true;
@@ -289,9 +290,9 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; ++nMember)
 				{
-					if (!pRaid->RaidMemberUsed[nMember])
+					if (!pRaid->locations[nMember])
 						continue;
-					if (pRaid->RaidMember[nMember].RaidMarker)
+					if (pRaid->raidMembers[nMember].RaidMarker)
 					{
 						if (--count == 0)
 						{
@@ -306,11 +307,11 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				// by name
 				for (int nMember = 0; nMember < MAX_RAID_SIZE; nMember++)
 				{
-					if (!pRaid->RaidMemberUsed[nMember])
+					if (!pRaid->locations[nMember])
 						continue;
-					if (pRaid->RaidMember[nMember].RaidMarker)
+					if (pRaid->raidMembers[nMember].RaidMarker)
 					{
-						if (ci_equals(pRaid->RaidMember[nMember].Name, Index))
+						if (ci_equals(pRaid->raidMembers[nMember].Name, Index))
 						{
 							Dest.DWord = nMember + 1;
 							return true;
@@ -324,9 +325,9 @@ bool MQ2RaidType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			// just return the first raid marker that is found.
 			for (int nMember = 0; nMember < MAX_RAID_SIZE; ++nMember)
 			{
-				if (!pRaid->RaidMemberUsed[nMember])
+				if (!pRaid->locations[nMember])
 					continue;
-				if (pRaid->RaidMember[nMember].RaidMarker)
+				if (pRaid->raidMembers[nMember].RaidMarker)
 				{
 					Dest.DWord = nMember + 1;
 					return true;
@@ -381,10 +382,10 @@ bool MQ2RaidMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (nRaidMember < 0 || nRaidMember >= MAX_RAID_SIZE)
 		return false;
 
-	if (!pRaid->RaidMemberUsed[nRaidMember])
+	if (!pRaid->locations[nRaidMember])
 		return false;
 
-	RaidMember& raidMember = pRaid->RaidMember[nRaidMember];
+	RaidMember& raidMember = pRaid->raidMembers[nRaidMember];
 	MQTypeMember* pMember = MQ2RaidMemberType::FindMember(Member);
 
 	if (!pMember)
@@ -469,10 +470,10 @@ bool MQ2RaidMemberType::ToString(MQVarPtr VarPtr, char* Destination)
 	int nRaidMember = VarPtr.Int - 1;
 	if (nRaidMember >= MAX_RAID_SIZE || nRaidMember < 0)
 		return false;
-	if (!pRaid->RaidMemberUsed[nRaidMember])
+	if (!pRaid->locations[nRaidMember])
 		return false;
 
-	strcpy_s(Destination, MAX_STRING, pRaid->RaidMember[nRaidMember].Name);
+	strcpy_s(Destination, MAX_STRING, pRaid->raidMembers[nRaidMember].Name);
 	return true;
 }
 
@@ -493,10 +494,10 @@ bool MQ2RaidMemberType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Ty
 		if (nRaidMember >= MAX_RAID_SIZE || nRaidMember < 0)
 			return false;
 
-		if (!pRaid->RaidMemberUsed[nRaidMember])
+		if (!pRaid->locations[nRaidMember])
 			return false;
 
-		toVar = pSpawnType->MakeVarPtr(GetSpawnByName(pRaid->RaidMember[nRaidMember].Name));
+		toVar = pSpawnType->MakeVarPtr(GetSpawnByName(pRaid->raidMembers[nRaidMember].Name));
 		return true;
 	}
 

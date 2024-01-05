@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -30,6 +30,7 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
+#include <cfenv>
 
 using namespace std::chrono_literals;
 
@@ -292,7 +293,7 @@ public:
 			hovered = true;
 		ImGui::SameLine();
 
-		float widthAvail = ImGui::GetContentRegionAvailWidth();
+		float widthAvail = ImGui::GetContentRegionAvail().x;
 		ImGui::PushTextWrapPos(widthAvail - 60.0f);
 		ImGui::Text("%s", component.description.c_str());
 		if (ImGui::IsItemHovered())
@@ -488,7 +489,6 @@ public:
 		if (ImGui::CollapsingHeader("Achievement Details"))
 		{
 			ImGui::Text("Version: %d", achievement->version);
-			ImGui::Text("Persistent: %s", achievement->persistent ? "yes" : "no");
 			ImGui::Text("Reward Set: %d", achievement->rewardSet);
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 			ImGui::Text("Unknown1: %d", achievement->unknown1);
@@ -563,7 +563,7 @@ class AchievementsInspector : public ImGuiWindowBase
 {
 	std::vector<int> m_filteredAchievements;
 	int m_selectedAchievementId = -1;
-	int m_selectedAchivementCategoryId = -1;
+	int m_selectedAchievementCategoryId = -1;
 
 	std::map<int, ImGuiAchievementViewer> m_viewers;
 	ImGuiID m_topNode = 0;
@@ -589,7 +589,7 @@ public:
 	{
 		if (test_and_set(m_selectedAchievementId, achievementId))
 			m_selectionChanged = true;
-		if (test_and_set(m_selectedAchivementCategoryId, -1))
+		if (test_and_set(m_selectedAchievementCategoryId, -1))
 			m_selectionChanged = true;
 	}
 
@@ -597,7 +597,7 @@ public:
 	{
 		if (test_and_set(m_selectedAchievementId, -1))
 			m_selectionChanged = true;
-		if (test_and_set(m_selectedAchivementCategoryId, achievementCategoryId))
+		if (test_and_set(m_selectedAchievementCategoryId, achievementCategoryId))
 			m_selectionChanged = true;
 	}
 
@@ -717,7 +717,7 @@ public:
 		ImGui::TableNextColumn();
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
 
-		if (m_selectedAchivementCategoryId == category.id)
+		if (m_selectedAchievementCategoryId == category.id)
 			flags |= ImGuiTreeNodeFlags_Selected;
 
 		bool hovered = false;
@@ -1777,25 +1777,171 @@ public:
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 
+			static std::unordered_map<int, std::string> ConsumableFeatureNames = {
+				{ EQFeature_MerchantPerk, "Merchant Perk" },
+				{ EQFeature_DragonHoard, "Dragon Hoard" },
+				{ EQFeature_TradeskillDepot, "Tradeskill Depot" },
+				{ EQFeature_TradeskillDepotSlots, "Tradeskill Depot Slots" },
+			};
+
 			if (ImGui::TreeNode("Consumable Features"))
 			{
 				for (const auto& ClaimData : pLocalPC->ConsumableFeatures.claimData)
 				{
 					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
 
-					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.featureId);
-					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.count);
+					int featureId = ClaimData.featureId;
+
+					if (const ClaimFeatureData* featureData = pClaimWnd->claimFeatureData.GetClaimFeatureDataByFeatureId(featureId))
+					{
+						bool expand = false;
+						char szLabel[128];
+
+						if (featureData->itemCount > 0)
+						{
+							sprintf_s(szLabel, "%s (%d)", featureData->items[0].itemName.c_str(), featureId);
+						}
+						else
+						{
+							sprintf_s(szLabel, "%d", featureId);
+						}
+
+						expand = ImGui::TreeNode(szLabel);
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", featureData->featureCount);
+
+						if (expand)
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							if (featureData->itemCount > 0)
+							{
+								char szLabel[32];
+								if (featureData->itemCount == 1)
+									strcpy_s(szLabel, "1 Item");
+								else
+									sprintf_s(szLabel, "%d Items", featureData->itemCount);
+
+								if (ImGui::TreeNode(szLabel))
+								{
+									for (int itemIdx = 0; itemIdx < featureData->itemCount; ++itemIdx)
+									{
+										const ClaimItemData& itemData = featureData->items[itemIdx];
+
+										ImGui::TableNextRow();
+										ImGui::TableNextColumn(); ImGui::Text("%s (%d)", itemData.itemName.c_str(), itemData.itemId);
+										ImGui::TableNextColumn(); ImGui::Text("%d", itemData.itemCount);
+									}
+
+									ImGui::TreePop();
+
+								}
+							}
+
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn(); ImGui::Text("Description");
+							ImGui::TableNextColumn(); ImGui::Text("%s", pDBStr->GetString(featureData->stringId, eClaimFeatureDescription));
+
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn(); ImGui::Text("Requirements Met");
+							ImGui::TableNextColumn(); ImGui::Text("%s", featureData->meetsRequirements ? "Yes": "No");
+
+							ImGui::TreePop();
+						}
+					}
+					else
+					{
+						ImGui::Indent();
+						auto iter = ConsumableFeatureNames.find(ClaimData.featureId);
+						if (iter != ConsumableFeatureNames.end())
+						{
+							ImGui::Text("%s (%d)", iter->second.c_str(), ClaimData.featureId);
+						}
+						else
+						{
+							ImGui::Text("%d", ClaimData.featureId);
+						}
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", ClaimData.count);
+						ImGui::Unindent();
+					}
 				}
 
 				ImGui::TreePop();
 			}
 
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
 			if (ImGui::TreeNode("Game Features"))
 			{
+				FreeToPlayClient& client = FreeToPlayClient::Instance();
 
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Membership Level");
+				ImGui::TableNextColumn(); ImGui::Text("%s (%d)", FreeToPlayClient::ToString(client.MembershipLevel),
+					client.MembershipLevel);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Subscription days");
+				ImGui::TableNextColumn(); ImGui::Text("%d", pLocalPC->SubscriptionDays);
+
+				for (int i = 0; i < (int)GameFeature::Max; ++i)
+				{
+					const RestrictionInfo& info = FreeToPlayClient::RestrictionInfo[i];
+					GameFeature feature = static_cast<GameFeature>(i);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("%s", info.string);
+
+					int data = pLocalPC->GetGameFeature(feature);
+					if (info.boolean)
+					{
+						ImGui::TableNextColumn();
+						if (data != 0)
+							ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "Enabled");
+						else
+							ImGui::TextColored(MQColor(255, 0, 0).ToImColor(), "Disabled");
+					}
+					else
+					{
+						ImGui::TableNextColumn();
+
+						if (data == -1)
+							ImGui::TextColored(MQColor(127, 127, 127).ToImColor(), "Unrestricted");
+						else
+							ImGui::Text("%d", data);
+					}
+				}
 
 				ImGui::TreePop();
 			}
+
+#if HAS_ALTERNATE_PERSONAS
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("Personas"))
+			{
+				for (int i = 0; i < MAX_PLAYER_CLASSES; ++i)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					ImGui::Text("%s", GetClassDesc(i + 1));
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", pLocalPC->ProfileManager.GetAltClassLevel(i));
+					
+				}
+
+				ImGui::TreePop();
+			}
+#endif
 
 			ImGui::EndTable();
 		}
@@ -1805,8 +1951,342 @@ static CharacterDataInspector* s_characterDataInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Engine Inspector
 
-#pragma region Character Data Inspector
+static const char* DeferModeToString(eDeferMode mode)
+{
+	switch (mode)
+	{
+	case cNonDeferred:
+		return "Non-Deferred";
+	case cDeferredWad:
+		return "Deferred (Wad)";
+	case cDeferredWadLoading:
+		return "Deferred - Loading (Wad)";
+	case cDeferredFile:
+		return "Deferred (File)";
+	case cDeferredFileLoading:
+		return "Deferred - Loading (File)";
+	case cDeferredForeground:
+		return "Deferred - Foreground";
+	case cDeferredError:
+		return "Deferred - Error";
+
+	default: return "Unknown";
+	}
+}
+
+static const char* TextureQualityToString(eBitmapTextureQuality quality)
+{
+	switch (quality)
+	{
+	case eBitmapTextureQualityInvalid: return "Invalid";
+	case eBitmapTextureQualityHigh: return "High";
+	case eBitmapTextureQualityMedium: return "Medium";
+	case eBitmapTextureQualityLow: return "Low";
+
+	default: return "Unknown";
+	}
+}
+
+static const char* TrackingTypeToString(int trackingType)
+{
+	switch (trackingType)
+	{
+	case 0: return "WLD";
+	case 1: return "WLD/PCLOUD";
+	case 2: return "EQG";
+	case 3: return "EQG/SMODEL";
+	case 4: return "EQG/HMODEL";
+	case 5: return "Particle";
+	case 6: return "Downsampled";
+	case -1:
+	default: return "Unknown";
+	}
+}
+
+class EngineInspector : public ImGuiWindowBase
+{
+public:
+	EngineInspector() : ImGuiWindowBase("Engine Inspector")
+	{
+		SetDefaultSize(ImVec2(800, 600));
+	}
+
+	~EngineInspector() override
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return true;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTabBar("##EngineTabBar"))
+		{
+			if (ImGui::BeginTabItem("General"))
+			{
+				DrawGeneral();
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Bitmaps"))
+			{
+				DrawBitmaps();
+
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+	}
+
+	void DrawGeneral()
+	{
+		int round = fegetround();
+
+		const char* roundingMode = "";
+		switch (round)
+		{
+		case FE_TONEAREST: roundingMode = "FE_TONEAREST"; break;
+		case FE_UPWARD: roundingMode = "FE_UPWARD"; break;
+		case FE_DOWNWARD: roundingMode = "FE_DOWNWARD"; break;
+		case FE_TOWARDZERO: roundingMode = "FE_TOWARDZERO"; break;
+		default: roundingMode = "UNKNOWN"; break;
+		}
+
+		ImGui::Text("Rounding Mode: %s", roundingMode);
+	}
+
+	void DrawBitmaps()
+	{
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_rightPaneSize == 0.0f)
+			m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+		imgui::DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+		// Left Pane
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::PopStyleVar();
+
+			const CEQGBitmap* pLastSelectedBitmap = m_selectedBitmap;
+			m_selectedBitmap = nullptr;
+
+			std::vector<std::vector<CEQGBitmap*>> bitmapsByPool;
+			bitmapsByPool.resize(eNumMemoryPoolManagerTypes);
+			{
+				CEQGBitmap* pEQBitmap = CEQGBitmap::GetFirstBitmap();
+				while (pEQBitmap != nullptr)
+				{
+					bitmapsByPool[pEQBitmap->m_eMemoryPoolManagerType].push_back(pEQBitmap);
+
+					if (pEQBitmap == pLastSelectedBitmap)
+						m_selectedBitmap = pEQBitmap;
+
+					pEQBitmap = pEQBitmap->GetNextBitmap();
+				}
+			}
+
+			//for (auto& bitmaps : bitmapsByPool)
+			//{
+			//	std::sort(bitmaps.begin(), bitmaps.end(),
+			//		[](CEQGBitmap* p1, CEQGBitmap* p2)
+			//		{
+			//			return mq::ci_less()(p1->m_pszFileName, p2->m_pszFileName);
+			//		});
+			//}
+
+			ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY
+				| ImGuiTableFlags_BordersV
+				| ImGuiTableFlags_BordersOuterH
+				| ImGuiTableFlags_Resizable
+				| ImGuiTableFlags_RowBg;
+
+			if (ImGui::BeginTable("##eqgbitmaps", 2, tableFlags))
+			{
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Index");
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableHeadersRow();
+
+
+
+				for (int pool = 0; pool < (int)bitmapsByPool.size(); ++pool)
+				{
+					auto& bitmaps = bitmapsByPool[pool];
+					EMemoryPoolManagerType poolType = static_cast<EMemoryPoolManagerType>(pool);
+
+					char label[64];
+					switch (poolType)
+					{
+					case eMemoryPoolManagerTypePersistent:
+						sprintf_s(label, "Pool: Persistent (%d)", static_cast<int>(bitmaps.size()));
+						break;
+					case eMemoryPoolManagerTypeOnDemand:
+						sprintf_s(label, "Pool: On Demand (%d)", static_cast<int>(bitmaps.size()));
+						break;
+					case eMemoryPoolManagerTypeZone:
+						sprintf_s(label, "Pool: Zone (%d)", static_cast<int>(bitmaps.size()));
+						break;
+
+					default:
+						sprintf_s(label, "Other: %d (%d)", poolType, static_cast<int>(bitmaps.size()));
+						break;
+					}
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNodeEx(reinterpret_cast<void*>(poolType), 0, "%s", label))
+					{
+						for (int i = 0; i < (int)bitmaps.size(); ++i)
+						{
+							bool selectThis = false;
+							const CEQGBitmap* pEQBitmap = bitmaps[i];
+
+							ImGui::PushID(pEQBitmap);
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							const bool selected = pEQBitmap == pLastSelectedBitmap;
+							ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth
+								| ImGuiTreeNodeFlags_SpanAvailWidth
+								| ImGuiTreeNodeFlags_Leaf
+								| ImGuiTreeNodeFlags_NoTreePushOnOpen;
+							if (selected)
+							{
+								flags |= ImGuiTreeNodeFlags_Selected;
+							}
+
+							ImGui::TreeNodeEx(pEQBitmap, flags, "%d", i);
+
+							if (m_selectedBitmap == nullptr || ImGui::IsItemClicked())
+							{
+								m_selectedBitmap = pEQBitmap;
+							}
+
+							ImGui::TableNextColumn(); ImGui::Text("%s", pEQBitmap->m_pszFileName);
+							ImGui::PopID();
+						}
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::EndTable();
+			}
+
+			ImGui::EndChild();
+		}
+
+		ImGui::SameLine();
+
+		// Right Pane
+		{
+			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+			if (m_selectedBitmap)
+			{
+				const CEQGBitmap* pPrevious = m_selectedBitmap->GetPreviousBitmap();
+				ImGui::BeginDisabled(pPrevious == nullptr);
+				if (ImGui::Button("Prev") && pPrevious)
+					m_selectedBitmap = pPrevious;
+				ImGui::EndDisabled();
+
+				ImGui::SameLine();
+
+				const CEQGBitmap* pNext = m_selectedBitmap->GetNextBitmap();
+				ImGui::BeginDisabled(pNext == nullptr);
+				if (ImGui::Button("Next") && pNext)
+					m_selectedBitmap = pNext;
+				ImGui::EndDisabled();
+
+				const CEQGBitmap* pBitmap = m_selectedBitmap;
+
+				const char* typeLabel = "Unknown";
+				switch (pBitmap->m_eType)
+				{
+				case eBitmapTypeNormal: typeLabel = "Normal"; break;
+				case eBitmapTypeLayer: typeLabel = "Layer"; break;
+				case eBitmapTypeSingleDetail: typeLabel = "Single Detail"; break;
+				case eBitmapTypePaletteDetailMain: typeLabel = "Palette Detail - Main"; break;
+				case eBitmapTypePaletteDetailPalette: typeLabel = "Palette Detail - Palette"; break;
+				case eBitmapTypePaletteDetailDetail: typeLabel = "Palette Detail - Detail"; break;
+				default: break;
+				}
+				ImGui::Text("Bitmap Type: %s", typeLabel);
+
+				const char* memoryPoolLabel = "Unknown";
+				switch (pBitmap->m_eMemoryPoolManagerType)
+				{
+				case eMemoryPoolManagerTypePersistent: memoryPoolLabel = "Persistent"; break;
+				case eMemoryPoolManagerTypeOnDemand: memoryPoolLabel = "On Demand"; break;
+				case eMemoryPoolManagerTypeZone: memoryPoolLabel = "Zone"; break;
+				default: break;
+				}
+				ImGui::Text("Memory Pool: %s", memoryPoolLabel);
+
+				ImGui::Text("File Name: %s", pBitmap->m_pszFileName);
+				ImGui::Text("Size: %d x %d", pBitmap->m_uWidth, pBitmap->m_uHeight);
+				ImGui::Text("Source Size: %d x %d", pBitmap->m_uSourceWidth, pBitmap->m_uSourceHeight);
+
+				ImGui::Text("Has Texture: %s", pBitmap->m_bHasTexture ? "Yes" : "No");
+				ImGui::Text("Object Index: %d", pBitmap->m_uObjectIndex);
+				ImGui::Text("Distance Squared: %.2f", pBitmap->m_distanceSq);
+				ImGui::Text("Last Distance Time: %d", pBitmap->m_lastDistanceTime);
+				ImGui::Text("Last Render Time: %d", pBitmap->m_lastRenderTime);
+				ImGui::Text("Loaded Time: %d", pBitmap->m_loadedTime);
+				ImGui::Text("Defer Mode: %s", DeferModeToString(pBitmap->m_eDeferMode));
+				ImGui::Text("Defer Mode (original): %s", DeferModeToString(pBitmap->m_eOriginalDeferMode));
+				ImGui::Text("Deferred Filename: %s", pBitmap->m_DeferredFilename.c_str());
+
+				ImGui::Text("Texture Quality: %s", TextureQualityToString(pBitmap->m_eTextureQuality));
+				ImGui::Text("Can Reclaim: %s", pBitmap->m_canReclaim ? "Yes" : "No");
+				ImGui::Text("Tracking Type: %s", TrackingTypeToString(pBitmap->m_nTrackingType));
+
+				ImTextureID TexID = pBitmap->GetTexture();
+				if (TexID != nullptr)
+				{
+					ImGui::Separator();
+
+					bool drawBorder = true;
+					ImVec2 minUV = ImVec2(0, 0);
+					ImVec2 maxUV = ImVec2(1, 1);
+					ImVec2 textureSize = ImVec2(static_cast<float>(pBitmap->m_uWidth),
+						static_cast<float>(pBitmap->m_uHeight));
+
+					ImVec2 imageSize = textureSize;
+
+					ImGui::Image(
+						TexID, imageSize,
+						minUV, maxUV,
+						ImVec4(1, 1, 1, 1),
+						drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()
+					);
+				}
+			}
+
+			ImGui::EndChild();
+		}
+	}
+
+private:
+	float m_leftPaneSize = 150.0f; // initial size of left column
+	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
+	const CEQGBitmap* m_selectedBitmap = nullptr;
+};
+
+static EngineInspector* s_engineInspector = nullptr;
+
+#pragma endregion
+
+#pragma region EverQuest Data Inspector
 
 class EverQuestDataInspector : public ImGuiWindowBase
 {
@@ -2114,6 +2594,180 @@ public:
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Auto Range Attack");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bAutoRangeAttack);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Show Names Level");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.iShowNamesLevel);
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Game Options"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Gamma");
+				ImGui::TableNextColumn(); ImGui::Text("%.2f", eq.gOpt.gamma);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Anonymous");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.anonymous);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Trade");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.trade);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("GuildInvites");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.guildInvites);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Sky");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.sky);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("LoD");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.lod);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.pcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("NPCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.npcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PetOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.petNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("MercOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.mercNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("TargetHealth");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.targetHealth);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementHideUI");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPalcementHideUI);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementDefaultModeCursor");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPlacementDefaultModeCursor);
+
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Server"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Ruleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Rp Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##RpServer", &eq.bRpServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Accelerated Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##AccelServer", &eq.bAcceleratedServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##ProgServer", &eq.bProgressionServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
+				ImGui::TableNextColumn(); ImGui::Text("%08x", eq.ProgressionOpenExpansions);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bHeroicCharacterFlag);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Level Cap");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.ProgressionLevelCap);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Dev Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##DevServer", &eq.bIsDevServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Beta Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##BetaServer", &eq.bIsBetaServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Test Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##TestServer", &eq.bIsTestServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Staging Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##StageServer", &eq.bIsStageServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Mail System");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##MailSystem", &eq.bUseMailSystem);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Escape Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##EscServer", &eq.bIsEscapeServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Tutorial Enabled");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##Tutorial", &eq.bIsTutorialEnabled);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeadStart", &eq.bCanCreateHeadStartCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeroicChar", &eq.bCanCreateHeroicCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Monthly Claim");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.nMonthlyClaim);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Marketplace Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.MarketPlaceRelated);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 85 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic85Slots);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 100 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic100Slots);
+
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Characters Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyCharactersRuleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Max Characters");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumMaxCharacters);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Experience Bonus");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyExperienceBonus);
+#endif
+#if HAS_ALTERNATE_PERSONAS
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Available Personas");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumAvailablePersonas);
+#endif
 
 				ImGui::TreePop();
 			}
@@ -2836,12 +3490,12 @@ class SpellsInspector : public ImGuiWindowBase
 {
 	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
-	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools")
+	SpellsInspector() : ImGuiWindowBase("Spells & Buffs Developer Tools")
 	{
 		SetDefaultSize(ImVec2(700, 400));
 	}
 
-	~SpellsInspector()
+	~SpellsInspector() override
 	{
 		if (m_pTASpellIcon)
 		{
@@ -2850,7 +3504,7 @@ public:
 		}
 	}
 
-	void DoSpellBuffTableHeaders()
+	static void DoSpellBuffTableHeaders()
 	{
 		ImGui::TableSetupColumn("Index");
 		ImGui::TableSetupColumn("Icon");
@@ -2902,10 +3556,6 @@ public:
 		ImGui::TableNextColumn();
 		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
 		imgui::DrawTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->BookIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
 
 		// Name
 		ImGui::TableNextColumn();
@@ -2920,9 +3570,13 @@ public:
 
 		if (ImGui::BeginPopupContextItem("BuffContextMenu"))
 		{
-			if (ImGui::Selectable("Inspect (NYI)"))
+			if (ImGui::Selectable("Inspect"))
 			{
-				// TODO: trigger spell/buff viewer
+				char buffer[512] = { 0 };
+				FormatSpellLink(buffer, 512, spell);
+
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
 			}
 
 			ImGui::Separator();
@@ -3049,6 +3703,197 @@ public:
 			ImGui::EndTable();
 		}
 		return count;
+	}
+
+	static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
+	{
+		if (buffTimer < 0)
+		{
+			strcpy_s(timeLabel, size, "Permanent");
+		}
+		else if (buffTimer > 0)
+		{
+			int hours = 0;
+			int minutes = 0;
+			int seconds = 0;
+
+			int totalSeconds = buffTimer / 1000;
+
+			if (totalSeconds > 0)
+			{
+				hours = totalSeconds / 3600;
+				minutes = (totalSeconds % 3600) / 60;
+				seconds = totalSeconds % 60;
+			}
+
+			if (hours > 0)
+			{
+				if (minutes > 0 && seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
+				}
+				else if (minutes > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
+				}
+				else if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dh", hours);
+				}
+			}
+			else if (minutes > 0)
+			{
+				if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dm", minutes);
+				}
+			}
+			else
+			{
+				sprintf_s(timeLabel, size, "%ds", seconds);
+			}
+		}
+		else
+		{
+			strcpy_s(timeLabel, size, "0s");
+		}
+	}
+
+	template <typename T>
+	void DoBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
+	{
+		ImGuiTableFlags tableFlags = 0
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
+			| ImGuiTableFlags_RowBg
+			| ImGuiTableFlags_Borders
+			| ImGuiTableFlags_Resizable;
+
+		if (ImGui::BeginTable(name, 6, tableFlags))
+		{
+			ImGui::TableSetupScrollFreeze(2, 1);
+			
+			ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Spell ID", ImGuiTableColumnFlags_WidthFixed, 46.0f);
+			ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 78.0f);
+			ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableHeadersRow();
+
+			for (const auto& buffInfo : Buffs)
+			{
+				EQ_Spell* spell = buffInfo.GetSpell();
+				if (!spell)
+					continue;
+
+				ImGui::PushID(buffInfo.GetIndex());
+
+				if (!m_pTASpellIcon)
+				{
+					m_pTASpellIcon = new CTextureAnimation();
+					if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+						*m_pTASpellIcon = *temp;
+				}
+
+				ImGui::TableNextRow();
+
+				// Index
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", buffInfo.GetIndex() + 1 + baseIndex);
+
+				// Icon
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+					imgui::DrawTextureAnimation(m_pTASpellIcon);
+				}
+
+				// Name
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					ImGui::Text("%s", spell->Name);
+				}
+				else
+				{
+					ImGui::Text("");
+				}
+
+				if (spell)
+				{
+					if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+					{
+						if (ImGui::Selectable("Inspect"))
+						{
+							char buffer[512] = { 0 };
+							FormatSpellLink(buffer, 512, spell);
+
+							TextTagInfo info = ExtractLink(buffer);
+							ExecuteTextLink(info);
+						}
+
+						if (petBuffs)
+						{
+							ImGui::Separator();
+
+							if (ImGui::Selectable("Remove Pet Buff"))
+							{
+								RemovePetBuffByName(spell->Name);
+							}
+						}
+						else if (playerBuffs)
+						{
+							if (ImGui::Selectable("Remove by Index"))
+							{
+								RemoveBuffByIndex(buffInfo.GetIndex() + baseIndex);
+							}
+
+							if (ImGui::Selectable("Remove by Name"))
+							{
+								RemoveBuffByName(spell->Name);
+							}
+
+							if (ImGui::Selectable("Remove by Spell ID"))
+							{
+								RemoveBuffBySpellID(buffInfo.GetSpellID());
+							}
+						}
+
+						ImGui::EndPopup();
+					}
+				}
+
+				// ID
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", buffInfo.GetSpellID());
+
+				// Duration
+				ImGui::TableNextColumn();
+
+				char timeLabel[64];
+				FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+				ImGui::Text("%s", timeLabel);
+
+				// Caster
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", buffInfo.GetCaster());
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
 	}
 
 	virtual bool IsEnabled() const override
@@ -3183,18 +4028,67 @@ public:
 			}
 
 			char szLabel[64];
-			sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
 
-			if (ImGui::BeginTabItem(szLabel))
+			if (pBuffWnd)
 			{
-				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
-				ImGui::EndTabItem();
+				sprintf_s(szLabel, "Buffs (%d)###Buffs", pBuffWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("BuffsTable", pBuffWnd->GetBuffRange(), false, true, pBuffWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pSongWnd)
+			{
+				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", pSongWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("ShortBuffsTable", pSongWnd->GetBuffRange(), false, true, pSongWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pPetInfoWnd)
+			{
+				sprintf_s(szLabel, "Pet Buffs (%d)###PetBuffs", pPetInfoWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pTargetWnd)
+			{
+				sprintf_s(szLabel, "Target Buffs (%d)###TargetBuffs", pTargetWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+
+					ImGui::EndTabItem();
+				}
 			}
 
 			if (ImGui::BeginTabItem("Stacking Tests"))
 			{
 				DoSpellStackingTests();
 
+				ImGui::EndTabItem();
+			}
+
+			sprintf_s(szLabel, "Spell Affects (%d)###SpellBuffs", count);
+
+			if (ImGui::BeginTabItem(szLabel))
+			{
+				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
 			}
 
@@ -3355,40 +4249,44 @@ public:
 			}
 		}
 
-		ImPlot::SetNextPlotLimitsX(static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextPlotLimitsY(0, 20, ImGuiCond_Once, 0);
-		ImPlot::SetNextPlotLimitsY(0, 100, ImGuiCond_Always, 1);
+		ImPlot::SetNextAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+		ImPlot::SetNextAxisLimits(ImAxis_Y1, 0, 20, ImGuiCond_Once);
+		ImPlot::SetNextAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
 
-		static int rt_axis = ImPlotAxisFlags_Default;
-
-		if (ImPlot::BeginPlot("##Benchmarks", "Time", "Milliseconds", ImVec2(-1, -1), ImPlotFlags_Default | ImPlotFlags_YAxis2,
-			rt_axis, rt_axis | ImPlotAxisFlags_LockMin, ImPlotAxisFlags_LockMin | ImPlotAxisFlags_TickLabels))
+		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
-			ImPlot::SetPlotYAxis(0);
+			ImPlot::SetupAxis(ImAxis_X1, "Time");
+			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
+			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
+
+			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
 
-				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0], data->Data.size(), data->Offset);
+				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
+					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}
 
 			if (!m_fpsData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0], m_fpsData.Data.size(), m_fpsData.Offset);
+				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0].x, &m_fpsData.Data[0].y,
+					m_fpsData.Data.size(), ImPlotLineFlags_None, m_fpsData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
 
 			if (!m_cpuData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 127, 255, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0], m_cpuData.Data.size(), m_cpuData.Offset);
+				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0].x, &m_cpuData.Data[0].y,
+					m_cpuData.Data.size(), ImPlotLineFlags_None, m_cpuData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
@@ -3592,18 +4490,30 @@ public:
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 9);
 
-			DisplaySwitchData();
+			if (!pSwitchMgr)
+			{
+				open = false;
+			}
+			else
+			{
+				EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
+				if (!pSwitch)
+				{
+					open = false;
+				}
+				else
+				{
+					DisplaySwitchData(pSwitch);
+				}
+			}
 		}
 		ImGui::End();
 
 		return open;
 	}
 
-	void DisplaySwitchData()
+	void DisplaySwitchData(EQSwitch* pSwitch)
 	{
-		if (!pSwitchMgr) return;
-		EQSwitch* pSwitch = pSwitchMgr->GetSwitchById(m_id);
-
 		if (ImGui::SmallButton("Click"))
 		{
 			pSwitch->UseSwitch(pLocalPlayer->SpawnID, -1, 0, nullptr);
@@ -4276,7 +5186,7 @@ protected:
 			// Evaluate the row
 			static char szTemp[MAX_STRING];
 			strcpy_s(szTemp, m_expressions[i].get());
-			ParseMacroParameter(nullptr, szTemp);
+			ParseMacroParameter(szTemp);
 
 			ImGui::Text("%s", szTemp);
 			ImGui::Separator();
@@ -4301,6 +5211,195 @@ private:
 static MacroExpressionEvaluator* s_macroEvaluator = nullptr;
 
 
+#pragma endregion
+
+#pragma region GameFace Inspector
+#if HAS_GAMEFACE_UI
+
+class GameFaceInspector : public ImGuiWindowBase
+{
+public:
+	GameFaceInspector() : ImGuiWindowBase("GameFace Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	~GameFaceInspector()
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return GetPcProfile() != nullptr && GetGameState() == GAMESTATE_INGAME;
+	}
+
+	void Draw() override
+	{
+		auto gf = pGFViewListener.get();
+
+		if (!gf)
+		{
+			ImGui::Text("GameFace is not running");
+			return;
+		}
+
+		if (ImGui::BeginTable("##GameFaceUI", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+#define TableRow(label, format, ...) \
+	ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text(label); \
+	ImGui::TableNextColumn(); ImGui::Text(format, __VA_ARGS__);
+
+			if (ImGui::TreeNode("object1"))
+			{
+				auto& object1 = gf->object1;
+
+				TableRow("unordered_map", "%d Items", object1.unordered_map_00.size());
+
+				ImGui::TableNextRow(); ImGui::TableNextColumn();
+				if (ImGui::TreeNode("Items##map00"))
+				{
+					for (auto& [key, value] : object1.unordered_map_00)
+					{
+						ImGui::TableNextRow();
+
+						ImGui::TableNextColumn(); ImGui::Text("%s", key.c_str());
+						ImGui::TableNextColumn(); ImGui::Text("%p", value);
+
+					}
+					ImGui::TreePop();
+				}
+
+				TableRow("pointer_40", "%p", object1.pointer_40);
+				TableRow("pointer_48", "%p", object1.pointer_48);
+				TableRow("pointer_50", "%p", object1.pointer_50);
+
+				ImGui::TreePop();
+			}
+
+			TableRow("map_1e0", "%d Items", gf->map_1e0.size());
+			ImGui::TableNextRow(); ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Items##map1e0"))
+			{
+				for (auto& [key, value] : gf->map_1e0)
+				{
+					ImGui::TableNextRow();
+
+					ImGui::TableNextColumn(); ImGui::Text("%p", key);
+					ImGui::TableNextColumn(); ImGui::Text("%p", value);
+
+				}
+				ImGui::TreePop();
+			}
+
+			GF::ViewListener_Object3* objects[3] = {
+				&gf->object3,
+				&gf->object4,
+				&gf->object5
+			};
+
+			TableRow("u64_220[0]", "%p", gf->u64_220[0]);
+			TableRow("u64_220[1]", "%p", gf->u64_220[1]);
+			TableRow("u32_238[0]", "%d", gf->u32_238[0]);
+			TableRow("u32_238[1]", "%d", gf->u32_238[1]);
+
+			int i = 3;
+
+			for (auto object : objects)
+			{
+				char label[26];
+				sprintf_s(label, "object%d", i++);
+
+				ImGui::TableNextRow(); ImGui::TableNextColumn();
+				if (ImGui::TreeNode(label))
+				{
+					TableRow("string_00", "%s", object->string_00.c_str());
+					TableRow("map_20", "%d Items", object->map_20.size());
+
+					ImGui::TableNextRow(); ImGui::TableNextColumn();
+					ImGui::PushID(i);
+					if (ImGui::TreeNode("Items##map_20"))
+					{
+						for (auto& [key, value] : object->map_20)
+						{
+							ImGui::TableNextRow(); ImGui::TableNextColumn();
+							if (ImGui::TreeNode(key.c_str()))
+							{
+								TableRow("fileName", "%s", value.fileName.c_str());
+								TableRow("size", "%d, %d", value.width, value.height);
+
+								if (value.string_ptr_28)
+								{
+									TableRow("string_ptr_28", "%s", value.string_ptr_28->c_str());
+								}
+								else
+								{
+									TableRow("string_ptr_28", "NULL");
+								}
+
+								TableRow("data[0]", "%p", value.data[0]);
+								TableRow("data[1]", "%p", value.data[1]);
+
+								ImGui::TreePop();
+							}
+						}
+						ImGui::TreePop();
+					}
+					ImGui::PopID();
+
+					TableRow("map_60", "%d Items", object->map_60.size());
+					ImGui::TableNextRow(); ImGui::TableNextColumn();
+					if (ImGui::TreeNode("Items##map_60"))
+					{
+						for (auto& [key, value] : object->map_60)
+						{
+							ImGui::TableNextRow(); ImGui::TableNextColumn();
+							if (ImGui::TreeNode(key.c_str()))
+							{
+								TableRow("pieceName", "%s", value.pieceName.c_str());
+								TableRow("data[0]", "%p", value.data[0]);
+								TableRow("data[1]", "%p", value.data[1]);
+								TableRow("data[2]", "%p", value.data[2]);
+								TableRow("data[3]", "%p", value.data[3]);
+								TableRow("data[4]", "%p", value.data[4]);
+
+								ImGui::TreePop();
+							}
+						}
+						ImGui::TreePop();
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			TableRow("string_420", "%s", gf->string_420.c_str());
+			TableRow("bool_440", "%d", (int)gf->bool_440);
+			TableRow("string_448", "%s", gf->string_448.c_str());
+			TableRow("bool_468", "%d", (int)gf->bool_468);
+			TableRow("u32_46c", "%d", (int)gf->u32_46c);
+
+			for (int i = 0; i < 5; ++i)
+			{
+				TableRow("u64_470", "[%d] %p", i, gf->u64_470[i]);
+			}
+
+#undef TableRow
+
+			ImGui::EndTable();
+		}
+	}
+};
+static GameFaceInspector* s_gameFaceInspector = nullptr;
+
+#endif
 #pragma endregion
 
 //============================================================================
@@ -4400,14 +5499,17 @@ static void DeveloperTools_Initialize()
 	s_characterDataInspector = new CharacterDataInspector();
 	DeveloperTools_RegisterMenuItem(s_characterDataInspector, "Character Data", s_menuNameInspectors);
 
+	s_engineInspector = new EngineInspector();
+	DeveloperTools_RegisterMenuItem(s_engineInspector, "Engine Inspector", s_menuNameInspectors);
+
 	s_everquestDataInspector = new EverQuestDataInspector();
-	DeveloperTools_RegisterMenuItem(s_everquestDataInspector, "Everquest Data", s_menuNameInspectors);
+	DeveloperTools_RegisterMenuItem(s_everquestDataInspector, "EverQuest Data", s_menuNameInspectors);
 
 	s_realEstateInspector = new RealEstateInspector();
 	DeveloperTools_RegisterMenuItem(s_realEstateInspector, "Real Estate", s_menuNameInspectors);
 
 	s_spellsInspector = new SpellsInspector();
-	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
+	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells & Buffs", s_menuNameInspectors);
 
 	s_switchInspector = new SwitchInspector();
 	DeveloperTools_RegisterMenuItem(s_switchInspector, "Switches", s_menuNameInspectors);
@@ -4420,6 +5522,11 @@ static void DeveloperTools_Initialize()
 
 	s_macroEvaluator = new MacroExpressionEvaluator();
 	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
+
+#if HAS_GAMEFACE_UI
+	s_gameFaceInspector = new GameFaceInspector();
+	DeveloperTools_RegisterMenuItem(s_gameFaceInspector, "GameFace UI Inspector", s_menuNameInspectors);
+#endif
 
 	DeveloperTools_WindowInspector_Initialize();
 }
@@ -4438,6 +5545,12 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_UnregisterMenuItem(s_characterDataInspector);
 	delete s_characterDataInspector; s_characterDataInspector = nullptr;
 
+	DeveloperTools_UnregisterMenuItem(s_engineInspector);
+	delete s_engineInspector; s_engineInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_everquestDataInspector);
+	delete s_everquestDataInspector; s_everquestDataInspector = nullptr;
+
 	DeveloperTools_UnregisterMenuItem(s_realEstateInspector);
 	delete s_realEstateInspector; s_realEstateInspector = nullptr;
 
@@ -4455,6 +5568,11 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;
+
+#if HAS_GAMEFACE_UI
+	DeveloperTools_UnregisterMenuItem(s_gameFaceInspector);
+	delete s_gameFaceInspector; s_gameFaceInspector = nullptr;
+#endif
 
 	DeveloperTools_WindowInspector_Shutdown();
 }

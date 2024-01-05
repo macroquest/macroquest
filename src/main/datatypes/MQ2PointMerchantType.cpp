@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -44,24 +44,32 @@ bool MQ2PointMerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		Dest.Int = 0;
 		Dest.Type = pPointMerchantItemType;
 
-		auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
-		if (IsNumber(Index))
+		if (Index[0])
 		{
-			int index = GetIntFromString(Index, 0) - 1;
-			if (index >= 0 && index < itemContainer.GetSize())
+			const auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+
+			if (IsNumber(Index))
 			{
-				Dest.Int = index;
-				return true;
-			}
-		}
-		else if (Index[0] != 0)
-		{
-			for (int i = 0; i < itemContainer.GetSize(); i++)
-			{
-				if (!_stricmp(itemContainer[i].pItem->GetName(), Index))
+				// by index
+				int index = GetIntFromString(Index, 0) - 1;
+				if (index >= 0 && index < page->GetItemCount())
 				{
-					Dest.Int = i;
+					Dest.Int = index;
 					return true;
+				}
+			}
+			else
+			{
+				// by name
+				for (int i = 0; i < page->GetItemCount(); i++)
+				{
+					ItemPtr pItem = page->GetItem(i);
+
+					if (pItem && !_stricmp(pItem->GetName(), Index))
+					{
+						Dest.Int = i;
+						return true;
+					}
 				}
 			}
 		}
@@ -145,12 +153,12 @@ bool MQ2PointMerchantItemType::GetMember(MQVarPtr VarPtr, const char* Member, ch
 	if (!pMember) return false;
 
 	int index = VarPtr.Int;
-	auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
+	const auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 
-	if (index < 0 || index > itemContainer.GetSize())
+	if (index < 0 || index > page->GetItemCount())
 		return false;
 
-	ItemPtr pItem = itemContainer[index].pItem;
+	ItemPtr pItem = page->GetItem(index);
 	if (!pItem)
 		return false;
 
@@ -212,13 +220,17 @@ bool MQ2PointMerchantItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
 	if (pMerchantWnd)
 	{
-		auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
+		const auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 		int index = VarPtr.Int;
 
-		if (index >= 0 && index < itemContainer.GetSize())
+		if (index >= 0 && index < page->GetItemCount())
 		{
-			strcpy_s(Destination, MAX_STRING, itemContainer[index].pItem->GetName());
-			return true;
+			ItemPtr pItem = page->GetItem(index);
+			if (pItem)
+			{
+				strcpy_s(Destination, MAX_STRING, pItem->GetName());
+				return true;
+			}
 		}
 	}
 

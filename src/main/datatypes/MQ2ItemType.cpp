@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -105,6 +105,7 @@ enum class ItemMembers
 	Spell,
 	EffectType,
 	Tribute,
+	Attunable,
 	Attuneable,
 	Timer,
 	ItemDelay,
@@ -176,6 +177,7 @@ enum class ItemMembers
 	Mount,
 	Illusion,
 	Familiar,
+	Blessing,
 	CanUse,
 	LoreEquipped,
 	Luck,
@@ -183,10 +185,12 @@ enum class ItemMembers
 	MaxLuck,
 	IDFile,
 	IDFile2,
+	RefCount,
 };
 
 enum class ItemMethods
 {
+	Inspect,
 };
 
 MQ2ItemType::MQ2ItemType() : MQ2Type("item")
@@ -277,6 +281,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Spell);
 	ScopedTypeMember(ItemMembers, EffectType);
 	ScopedTypeMember(ItemMembers, Tribute);
+	ScopedTypeMember(ItemMembers, Attunable);
 	ScopedTypeMember(ItemMembers, Attuneable);
 	ScopedTypeMember(ItemMembers, Timer);
 	ScopedTypeMember(ItemMembers, ItemDelay);
@@ -348,6 +353,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, Mount);
 	ScopedTypeMember(ItemMembers, Illusion);
 	ScopedTypeMember(ItemMembers, Familiar);
+	ScopedTypeMember(ItemMembers, Blessing);
 	ScopedTypeMember(ItemMembers, CanUse);
 	ScopedTypeMember(ItemMembers, LoreEquipped);
 	ScopedTypeMember(ItemMembers, Luck);
@@ -355,20 +361,43 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, MaxLuck);
 	ScopedTypeMember(ItemMembers, IDFile);
 	ScopedTypeMember(ItemMembers, IDFile2);
+	ScopedTypeMember(ItemMembers, RefCount);
+
+	ScopedTypeMethod(ItemMethods, Inspect);
 }
 
 bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
+	ItemPtr pItem = GetItem(VarPtr);
 	if (!pItem)
 		return false;
 
 	MQTypeMember* pMember = MQ2ItemType::FindMember(Member);
 	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQ2ItemType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<ItemMethods>(pMethod->ID))
+			{
+			case ItemMethods::Inspect:
+				if (pItemDisplayManager)
+					pItemDisplayManager->ShowItem(pItem);
+				return true;
+
+			default: break;
+			}
+		}
 		return false;
+	}
 
 	switch (static_cast<ItemMembers>(pMember->ID))
 	{
+	case ItemMembers::RefCount:
+		Dest.DWord = pItem.use_count();
+		Dest.Type = pIntType;
+		return true;
+
 	case ItemMembers::ID:
 		Dest.DWord = pItem->GetID();
 		Dest.Type = pIntType;
@@ -518,65 +547,60 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::Clicky:
-		Dest.Ptr = &GetItemFromContents(pItem)->Clicky;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Clicky);
 		return true;
 
 	case ItemMembers::Proc:
-		Dest.Ptr = &GetItemFromContents(pItem)->Proc;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Proc);
 		return true;
 
 	case ItemMembers::Worn:
-		Dest.Ptr = &GetItemFromContents(pItem)->Worn;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Worn);
 		return true;
 
 	case ItemMembers::Focus:
-		Dest.Ptr = &GetItemFromContents(pItem)->Focus;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Focus);
 		return true;
 
 	case ItemMembers::Scroll:
-		Dest.Ptr = &GetItemFromContents(pItem)->Scroll;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Scroll);
 		return true;
 
 	case ItemMembers::Focus2:
-		Dest.Ptr = &GetItemFromContents(pItem)->Focus2;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Focus2);
 		return true;
 
-	case ItemMembers::Mount: // TODO: emu check
-		Dest.Ptr = &GetItemFromContents(pItem)->Mount;
-		Dest.Type = pItemSpellType;
+	case ItemMembers::Mount:
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Mount);
 		return true;
 
 	case ItemMembers::Illusion:
-		Dest.Ptr = &GetItemFromContents(pItem)->Illusion;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Illusion);
 		return true;
 
 	case ItemMembers::Familiar:
-		Dest.Ptr = &GetItemFromContents(pItem)->Familiar;
-		Dest.Type = pItemSpellType;
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Familiar);
+		return true;
+
+	case ItemMembers::Blessing:
+		Dest = pItemSpellType->MakeTypeVar(pItem, ItemSpellType_Blessing);
 		return true;
 
 	case ItemMembers::Item: {
-		Dest.Type = pItemType;
 		ItemDefinition* itemDef = pItem->GetItemDefinition();
 
 		if (!IsNumber(Index))
 			return false;
 
-		if (itemDef->Type == ITEMTYPE_PACK
-			|| itemDef->Type == ITEMTYPE_NORMAL)
+		Dest.Type = pItemType;
+
+		if (itemDef->Type == ITEMTYPE_PACK || itemDef->Type == ITEMTYPE_NORMAL)
 		{
 			int num = GetIntFromString(Index, 1) - 1;
-			if (Dest.Ptr = pItem->GetChildItemContainer()->GetItem(num).get())
-				return true;
+			Dest = pItemType->MakeTypeVar(pItem->GetChildItemContainer()->GetItem(num));
 		}
-		return false;
+
+		return true;
 	}
 	case ItemMembers::Stackable:
 		Dest.Set(pItem->IsStackable());
@@ -760,6 +784,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 		return true;
 
+	case ItemMembers::Attunable:
 	case ItemMembers::Attuneable:
 		Dest.Set(GetItemFromContents(pItem)->Attuneable);
 		Dest.Type = pBoolType;
@@ -1110,7 +1135,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::RequiredLevel:
-		Dest.DWord = GetItemFromContents(pItem)->RequiredLevel;
+		Dest.DWord = pItem->GetItemDefinition()->RequiredLevel;
+		Dest.Type = pIntType;
+		return true;
+
+	case ItemMembers::RecommendedLevel:
+		Dest.DWord = pItem->GetItemDefinition()->RecommendedLevel;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1125,7 +1155,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::Evolving:
-		Dest.Ptr = pItem;
+		Dest.Item = pItem;
 		Dest.Type = pEvolvingItemType;
 		return true;
 
@@ -1688,7 +1718,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::ItemLink:
 		Dest.Type = pStringType;
-		if (GetItemLink(pItem, DataTypeTemp, Index != nullptr && ci_equals(Index, "CLICKABLE")))
+		if (GetItemLink(pItem, DataTypeTemp, DataTypeTemp.size(), Index != nullptr && ci_equals(Index, "CLICKABLE")))
 		{
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
@@ -1758,31 +1788,21 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 bool MQ2ItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	ItemPtr pItem = GetItem(VarPtr);
+	if (!pItem)
 		return false;
 
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
 	strcpy_s(Destination, MAX_STRING, pItem->GetName());
 	return true;
 }
 
 void MQ2ItemType::InitVariable(MQVarPtr& VarPtr)
 {
-	ItemClient* pItem = eqNew<ItemClient>();
-
-	// manually increment since we are not using a VePointer
-	pItem->IncrementRefCount();
-	VarPtr.Ptr = pItem;
+	VarPtr = MakeVarPtr(ItemClient::Create());
 }
 
 void MQ2ItemType::FreeVariable(MQVarPtr& VarPtr)
 {
-	ItemClient* pItem = static_cast<ItemClient*>(VarPtr.Ptr);
-
-	// Manually decrement since we are not using a VePointer. This should
-	// delete the item if it is the last reference.
-	pItem->DecrementRefCount();
-	VarPtr.Ptr = nullptr;
 }
 
 bool MQ2ItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -1790,17 +1810,7 @@ bool MQ2ItemType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	if (Source.Type != pItemType)
 		return false;
 
-	// Increment new object reference count.
-	ItemClient* pNewItem = static_cast<ItemClient*>(Source.Ptr);
-	if (pNewItem)
-		pNewItem->IncrementRefCount();
-
-	// Decrement old object reference count.
-	ItemClient* pOldItem = static_cast<ItemClient*>(VarPtr.Ptr);
-	if (pOldItem)
-		pOldItem->DecrementRefCount();
-
-	VarPtr.Ptr = pNewItem;
+	VarPtr = MakeTypeVar(GetItem(Source));
 	return true;
 }
 
@@ -1812,28 +1822,14 @@ bool MQ2ItemType::dataCursor(const char* szIndex, MQTypeVar& Ret)
 	if (!pProfile)
 		return false;
 
-	if (Ret.Ptr = pProfile->GetInventorySlot(InvSlot_Cursor).get())
-	{
-		Ret.Type = pItemType;
-		return true;
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(pProfile->GetInventorySlot(InvSlot_Cursor));
+	return true;
 }
 
 bool MQ2ItemType::dataSelectedItem(const char* szIndex, MQTypeVar& Ret)
 {
-	if (pInvSlotMgr->pSelectedItem)
-	{
-		if (ItemPtr pItem = pInvSlotMgr->pSelectedItem->GetItem())
-		{
-			Ret.Ptr = pItem.get();
-			Ret.Type = pItemType;
-			return true;
-		}
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(pInvSlotMgr->pSelectedItem ? pInvSlotMgr->pSelectedItem->GetItem() : nullptr);
+	return true;
 }
 
 bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
@@ -1845,14 +1841,8 @@ bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if ((pItem = FindBankItemByID(GetIntFromString(szIndex, 0))))
-		{
-			Ret.Ptr = pItem;
-			Ret.Type = pItemType;
-			return true;
-		}
-
-		return false;
+		Ret = pItemType->MakeTypeVar(FindBankItemByID(GetIntFromString(szIndex, 0)));
+		return true;
 	}
 
 	const char* pName = szIndex;
@@ -1864,13 +1854,8 @@ bool MQ2ItemType::dataFindItemBank(const char* szIndex, MQTypeVar& Ret)
 		pName++;
 	}
 
-	if (pItem = FindBankItemByName(pName, bExact))
-	{
-		Ret.Ptr = pItem;
-		Ret.Type = pItemType;
-		return true;
-	}
-	return false;
+	Ret = pItemType->MakeTypeVar(FindBankItemByName(pName, bExact));
+	return true;
 }
 
 bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
@@ -1880,13 +1865,8 @@ bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		if (ItemClient* pItem = FindItemByID(GetIntFromString(szIndex, 0)))
-		{
-			Ret.Ptr = pItem;
-			Ret.Type = pItemType;
-			return true;
-		}
-		return false;
+		Ret = pItemType->MakeTypeVar(FindItemByID(GetIntFromString(szIndex, 0)));
+		return true;
 	}
 
 	const char* pName = szIndex;
@@ -1898,14 +1878,8 @@ bool MQ2ItemType::dataFindItem(const char* szIndex, MQTypeVar& Ret)
 		pName++;
 	}
 
-	if (ItemClient* pItem = FindItemByName(pName, bExact))
-	{
-		Ret.Ptr = pItem;
-		Ret.Type = pItemType;
-		return true;
-	}
-
-	return false;
+	Ret = pItemType->MakeTypeVar(FindItemByName(pName, bExact));
+	return true;
 }
 
 bool MQ2ItemType::dataFindItemCount(const char* szIndex, MQTypeVar& Ret)
@@ -1952,5 +1926,33 @@ bool MQ2ItemType::dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
+//----------------------------------------------------------------------------
+
+MQVarPtr MQ2ItemType::MakeVarPtr(const ItemPtr& pItem)
+{
+	MQVarPtr VarPtr;
+	VarPtr.Item = pItem;
+
+	return VarPtr;
+}
+
+MQTypeVar MQ2ItemType::MakeTypeVar(const ItemPtr& pItem)
+{
+	MQTypeVar Dest;
+
+	Dest.Type = this;
+	Dest.Item = pItem;
+
+	return Dest;
+}
+
+ItemPtr MQ2ItemType::GetItem(const MQVarPtr& VarPtr) const
+{
+	if (!VarPtr.IsType(MQVarPtr::VariantIdx::Item))
+		return ItemPtr();
+
+	ItemPtr pItem = VarPtr.Item;
+	return pItem;
+}
 
 } // namespace mq::datatypes

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -419,7 +419,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::CleanName:
 		strcpy_s(DataTypeTemp, pSpawn->Name);
-		CleanupName(DataTypeTemp, sizeof(DataTypeTemp), false, false);
+		CleanupName(DataTypeTemp, DataTypeTemp.size(), false, false);
 		Dest.Type = pStringType;
 		Dest.Ptr = &DataTypeTemp[0];
 		return true;
@@ -1025,7 +1025,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 	case SpawnMembers::Title:
 		strcpy_s(DataTypeTemp, pSpawn->Title);
 		Dest.Type = pStringType;
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		return true;
 
 	case SpawnMembers::Suffix:
@@ -1047,56 +1047,16 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Assist:
-		Dest.Set(false);
+		Dest.Set(gGameState == GAMESTATE_INGAME && IsAssistNPC(pSpawn));
 		Dest.Type = pBoolType;
-
-		if (gGameState == GAMESTATE_INGAME)
-		{
-			if (DWORD AssistID = GetGroupMainAssistTargetID())
-			{
-				if (AssistID == pSpawn->SpawnID)
-				{
-					Dest.Set(true);
-					return true;
-				}
-			}
-
-			for (int nAssist = 0; nAssist < 3; nAssist++)
-			{
-				if (DWORD AssistID = GetRaidMainAssistTargetID(nAssist))
-				{
-					if (AssistID == pSpawn->SpawnID) {
-						Dest.Set(true);
-						return true;
-					}
-				}
-			}
-		}
 		return true;
 
 	case SpawnMembers::Mark:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-
 		if (gGameState == GAMESTATE_INGAME)
 		{
-			for (int nMark = 0; nMark < 3; nMark++)
-			{
-				if (pLocalPlayer->RaidMarkNPC[nMark] == pSpawn->SpawnID)
-				{
-					Dest.DWord = nMark + 1;
-					return true;
-				}
-			}
-
-			for (int nMark = 0; nMark < 3; nMark++)
-			{
-				if (pLocalPlayer->GroupMarkNPC[nMark] == pSpawn->SpawnID)
-				{
-					Dest.DWord = nMark + 1;
-					return true;
-				}
-			}
+			Dest.DWord = GetNPCMarkNumber(pSpawn);
+			Dest.Type = pIntType;
+			return true;
 		}
 		return false;
 
@@ -1470,7 +1430,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			}
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::CachedBuffCount:
 		Dest.Type = pIntType;
@@ -1499,7 +1459,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::FindBuff:
 	{
@@ -1538,7 +1498,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				});
 		}
 
-		return Dest.HighPart >= 0;
+		return true;
 
 	case SpawnMembers::BuffCount:
 		Dest.Type = pIntType;

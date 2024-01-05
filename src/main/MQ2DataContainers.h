@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -13,6 +13,8 @@
  */
 
 #pragma once
+
+#include "mq/base/Traits.h"
 
 // this header is to create containers used for passing data around
 // try to make them generic and reusable
@@ -72,9 +74,9 @@ auto EQObjectID(EQType* Object)
 	*/
 
 #if !defined(COMMENT_UPDATER)
-	static_assert(false,
+	static_assert(mq::always_false<EQType>::value,
 		"No function found to provide a unique identifier for an EQ type. "
-		"Please provide a function named EQObjectID that returns a unique identifier for this object type.")
+		"Please provide a function named EQObjectID that returns a unique identifier for this object type.");
 #endif
 }
 

@@ -307,7 +307,7 @@ void ZepWindow::EnsureCursorVisible()
     GlyphIterator loc = m_bufferCursor;
     for (auto& line : m_windowLines)
     {
-        if (line->lineByteRange.first <= loc.Index() && line->lineByteRange.second > loc.Index())
+        if (line->lineByteRange.ContainsLocation(loc.Index()))
         {
             int cursorLine = line->spanLineIndex;
             if (cursorLine < m_visibleLineIndices.x)
@@ -555,32 +555,52 @@ void ZepWindow::UpdateLineSpans()
     float bufferPosYPx = 0.0f;
     float xOffset = m_xPad;
 
-    bool isMarkdown = m_pBuffer->GetFileExtension() == ".md";
-
-    // Nuke the existing spans
-    // In future we can in-place modify for speed
-    std::for_each(m_windowLines.begin(), m_windowLines.end(), [](SpanInfo* pInfo) { delete pInfo; });
-    m_windowLines.clear();
-
-    //auto& display = GetEditor().GetDisplay();
-
     auto widgetMarkers = m_pBuffer->GetRangeMarkers(RangeMarkerType::Widget);
     auto itrWidgetMarkers = widgetMarkers.begin();
 
+    long lineCount = m_pBuffer->GetLineCount();
+
+    auto& font = GetEditor().GetDisplay().GetFont(ZepTextType::Text);
+    int textHeight = font.GetPixelHeight();
+
+    // Padding at the top of the line
+    NVec2f topPadding = NVec2f(DPI_Y((float)GetEditor().GetConfig().lineMargins.x), DPI_Y((float)GetEditor().GetConfig().lineMargins.y));
+    // text line height is top/bottom pad
+    float fullLineHeight = textHeight + topPadding.x + topPadding.y;
+
+    // Set split line margin and height, because when we split a line we don't include a
+    // custom widget space above it.  That goes just above the first part of the line
+    NVec2f midPadding = topPadding;
+    midPadding.x = (float)GetEditor().GetConfig().lineMargins.x;
+    float midLineHeight = textHeight + midPadding.x + midPadding.y;
+
+    auto inlineSizeX = DPI_VEC2(GetEditor().GetConfig().inlineWidgetMargins).x * 2 + textHeight;
+
     // Process every buffer line
-    for (;;)
+    for (auto lineInfoIter = m_windowLines.begin();;)
     {
-        // We haven't processed this line yet, so we can't display anything
-        // else
-        if (m_pBuffer->GetLineCount() <= bufferLine)
-            break;
-
+        // We haven't processed this line yet, so we can't display anything else
         ByteRange lineByteRange;
-        if (!m_pBuffer->GetLineOffsets(bufferLine, lineByteRange))
+        if (lineCount <= bufferLine || !m_pBuffer->GetLineOffsets(bufferLine, lineByteRange))
+        {
+            if (lineInfoIter != m_windowLines.end())
+            {
+                std::for_each(lineInfoIter, m_windowLines.end(), [](SpanInfo* pInfo) { delete pInfo; });
+                m_windowLines.erase(lineInfoIter, m_windowLines.end());
+            }
             break;
+        }
 
-        // Padding at the top of the line
-        NVec2f topPadding = NVec2f(DPI_Y((float)GetEditor().GetConfig().lineMargins.x), DPI_Y((float)GetEditor().GetConfig().lineMargins.y));
+        SpanInfo* lineInfo;
+        if (lineInfoIter == m_windowLines.end())
+        {
+            lineInfo = m_windowLines.emplace_back(new SpanInfo());
+            lineInfoIter = m_windowLines.end();
+        }
+        else
+        {
+            lineInfo = *(lineInfoIter++);
+        }
 
         auto markersOnLine = m_pBuffer->GetRangeMarkersOnLine(RangeMarkerType::All, bufferLine);
         auto lineWidgetHeight = ArrangeLineMarkers(markersOnLine);
@@ -588,44 +608,7 @@ void ZepWindow::UpdateLineSpans()
         // Move the line down by the height of the widget
         bufferPosYPx += lineWidgetHeight.x;
 
-        // TODO: Find a clean way to do this extra work during layout for extensions that need it
-        ZepTextType type = ZepTextType::Text;
-        if (isMarkdown)
-        {
-            uint32_t headerCount = 0;
-            // Markdown experiment
-            for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
-            {
-                if (textBuffer[ch] != '#')
-                    break;
-                headerCount++;
-            }
-
-            switch (headerCount)
-            {
-            case 0:
-                break;
-            case 1:
-                type = ZepTextType::Heading1;
-                break;
-            case 2:
-                type = ZepTextType::Heading2;
-                break;
-            case 3:
-                type = ZepTextType::Heading3;
-                break;
-            }
-            // !Markdown experiment
-        }
-
-        auto& font = GetEditor().GetDisplay().GetFont(type);
-        int textHeight = font.GetPixelHeight();
-
-        // text line height is top/bottom pad
-        float fullLineHeight = textHeight + topPadding.x + topPadding.y;
-
-        // Start a new line
-        SpanInfo* lineInfo = new SpanInfo();
+        // Fill out the current line
         lineInfo->pFont = &font;
         lineInfo->lineWidgetHeights = lineWidgetHeight;
         lineInfo->bufferLineNumber = bufferLine;
@@ -637,8 +620,6 @@ void ZepWindow::UpdateLineSpans()
         lineInfo->lineTextSizePx.x = xOffset;
         lineInfo->lineTextSizePx.y = float(textHeight);
         lineInfo->isSplitContinuation = false;
-
-        auto inlineMargins = DPI_VEC2(GetEditor().GetConfig().inlineWidgetMargins);
 
         // These offsets are 0 -> n + 1, i.e. the last offset the buffer returns is 1 beyond the current
         // Note: Must not use pointers into the character buffer!
@@ -660,7 +641,7 @@ void ZepWindow::UpdateLineSpans()
                     for (auto& pWidget : itrWidgetMarkers->second)
                     {
                         NVec2f inlineSize = pWidget->GetInlineSize();
-                        inlineSize.x = inlineMargins.x * 2 + textHeight;
+                        inlineSize.x = inlineSizeX;
                         xOffset += inlineSize.x;
                         pWidget->SetInlineSize(inlineSize);
                     }
@@ -680,24 +661,27 @@ void ZepWindow::UpdateLineSpans()
                     // Remember the offset beyond the end of the line
                     lineInfo->lineByteRange.second = ch;
                     lineInfo->lineTextSizePx.x = xOffset;
-                    m_windowLines.push_back(lineInfo);
 
                     // Next line
-                    lineInfo = new SpanInfo();
+                    if (lineInfoIter == m_windowLines.end())
+                    {
+                        lineInfo = m_windowLines.emplace_back(new SpanInfo());
+                        lineInfoIter = m_windowLines.end();
+                    }
+                    else
+                    {
+                        lineInfo = *(lineInfoIter++);
+                    }
+
                     spanLine++;
                     bufferPosYPx += fullLineHeight + lineWidgetHeight.y;
-
-                    // Reset the line margin and height, because when we split a line we don't include a
-                    // custom widget space above it.  That goes just above the first part of the line
-                    topPadding.x = (float)GetEditor().GetConfig().lineMargins.x;
-                    fullLineHeight = textHeight + topPadding.x + topPadding.y;
 
                     // Now jump to the next 'screen line' for the rest of this 'buffer line'
                     lineInfo->lineByteRange = ByteRange(ch, ch + utf8_codepoint_length(textBuffer[ch]));
                     lineInfo->spanLineIndex = spanLine;
                     lineInfo->bufferLineNumber = bufferLine;
                     lineInfo->yOffsetPx = bufferPosYPx;
-                    lineInfo->padding = topPadding;
+                    lineInfo->padding = midPadding;
                     lineInfo->lineTextSizePx.y = float(textHeight);
                     lineInfo->lineTextSizePx.x = xOffset;
                     lineInfo->isSplitContinuation = true;
@@ -725,19 +709,17 @@ void ZepWindow::UpdateLineSpans()
                 xOffset -= (textSize.x + m_xPad);
             }
 
-            lineInfo->yOffsetPx = bufferPosYPx;
             lineInfo->lineByteRange.second = ch + utf8_codepoint_length(textBuffer[ch]);
             lineInfo->lineTextSizePx.x = std::max(lineInfo->lineTextSizePx.x, xOffset);
         }
 
         // Complete the line
-        m_windowLines.push_back(lineInfo);
 
         // Next time round - down a buffer line, down a span line
         bufferLine++;
         spanLine++;
         xOffset = m_xPad;
-        bufferPosYPx += fullLineHeight + lineWidgetHeight.y;
+        bufferPosYPx += midLineHeight + lineWidgetHeight.y;
     }
 
     // Sanity
@@ -2181,7 +2163,7 @@ NVec2i ZepWindow::BufferToDisplay(const GlyphIterator& loc)
     for (auto& line : m_windowLines)
     {
         // If inside the line...
-        if (line->lineByteRange.first <= loc.Index() && line->lineByteRange.second > loc.Index())
+        if (line->lineByteRange.ContainsLocation(loc.Index()))
         {
             ret.y = line_number;
             ret.x = 0;

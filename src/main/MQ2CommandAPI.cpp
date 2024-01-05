@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -19,6 +19,9 @@ namespace mq {
 
 static std::recursive_mutex s_commandMutex;
 
+// Defined in MQ2MacroCommands.cpp
+void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All);
+
 struct MQTimedCommand
 {
 	uint64_t      Time;
@@ -31,7 +34,7 @@ struct MQTimedCommand
 struct MQCommand
 {
 	char                                      Command[64];
-	std::function<void(PlayerClient*, char*)> Function;
+	std::function<void(PlayerClient*, const char*)> Function;
 	bool                                      EQ;
 	bool                                      Parse;
 	bool                                      InGameOnly;
@@ -181,7 +184,7 @@ void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed)
 			// the parser version is 2 or It's not version 2 and we're allowing command parses
 			if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
-				pCommand->Function(pChar, ParseMacroParameter(pChar, szParam));
+				pCommand->Function(pChar, ParseMacroParameter(szParam));
 			}
 			else
 			{
@@ -407,7 +410,7 @@ public:
 					// the parser version is 2 or It's not version 2 and we're allowing command parses
 					if (pCommand->Parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 					{
-						ParseMacroParameter(pChar, szArgs);
+						ParseMacroParameter(szArgs);
 					}
 
 					if (pCommand->EQ)
@@ -488,16 +491,16 @@ public:
 	}
 };
 
-void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
+void AddCommand(const char* Command, std::function<void(PlayerClient*, const char*)> Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-	DebugSpew("AddCommand(%s, 0x%X)", Command, Function);
+	DebugSpew("AddCommand(%s)", Command);
 
 	MQCommand* pCommand = new MQCommand;
 	memset(pCommand, 0, sizeof(MQCommand));
 	strcpy_s(pCommand->Command, Command);
 	pCommand->EQ = EQ;
 	pCommand->Parse = Parse;
-	pCommand->Function = Function;
+	pCommand->Function = std::move(Function);
 	pCommand->InGameOnly = InGame;
 
 	// perform insertion sort
@@ -536,7 +539,7 @@ void AddFunction(const char* Command, std::function<void(SPAWNINFO*, char*)> Fun
 
 void AddCommand(const char* Command, fEQCommand Function, bool EQ /* = false */, bool Parse /* = true */, bool InGame /* = false */)
 {
-	AddFunction(Command, Function, EQ, Parse, InGame);
+	AddCommand(Command, (fEQCommandConstChar)Function, EQ, Parse, InGame);
 }
 
 bool RemoveCommand(const char* Command)
@@ -793,7 +796,7 @@ void InitializeMQ2Commands()
 	EzDetour(CEverQuest__InterpretCmd, &CCommandHook::Detour, &CCommandHook::Trampoline);
 
 	// Import EQ commands
-	CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
+	CMDLIST* pCmdListOrig = EQADDR_CMDLIST;
 
 	for (int i = 0; pCmdListOrig[i].fAddress != nullptr; i++)
 	{
@@ -1008,6 +1011,7 @@ void InitializeMQ2Commands()
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
 		{ "/profile",           ProfileCommand,             true,  false },
+		{ "/executelink",       ExecuteLinkCommand,         true,  true  },
 
 		{ nullptr,              nullptr,                    false, true  },
 	};

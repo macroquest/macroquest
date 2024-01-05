@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -213,9 +213,9 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pStringType;
 		if (VarPtr.HighPart == SpellDisplayType_BuffWnd && pBuffWnd)
 		{
-			if (CXStr* pName = pBuffWnd->WhoCast.FindFirst(buff->SpellID))
+			if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(buff->SpellID))
 			{
-				strcpy_s(DataTypeTemp, pName->c_str());
+				strcpy_s(DataTypeTemp, buffInfo.GetCaster());
 				Dest.Ptr = &DataTypeTemp[0];
 				return true;
 			}

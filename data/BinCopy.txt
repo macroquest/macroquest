@@ -1,7 +1,3 @@
 config/MacroQuest_default.ini
 macros/*.mac
-resources/CHANGELOG.md
-resources/GPL.txt
-resources/ItemDB.txt
-resources/readme.chm
-luarocks.exe
+resources/*

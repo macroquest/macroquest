@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,9 +17,20 @@
 #include <mq/Plugin.h>
 
 #include <tinyfsm.hpp>
+#include <memory>
 #include <variant>
 
 static bool AUTOLOGIN_DBG = false;
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
+
+void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
+CXStr GetWindowText(CXWnd* pWnd);
+CXStr GetEditWndText(CEditWnd* pWnd);
+CXStr GetSTMLText(CStmlWnd* pWnd);
+void SetEditWndText(CEditWnd* pWnd, std::string_view text);
+ArrayClass<SListWndLine>* GetItemsArray(CListWnd* pWnd);
+CXStr GetListItemText(CListWnd* pWnd, int row, int col);
+int GetListCurSel(CListWnd* pWnd);
 
 template <typename T = CXWnd>
 inline T* GetWindow(const std::string& name)
@@ -157,13 +168,21 @@ struct StopLogin : tinyfsm::Event {};
 class Login : public tinyfsm::Fsm<Login>
 {
 protected:
-	static std::optional<ProfileRecord> m_record;
+	static std::shared_ptr<ProfileRecord> m_record;
+	static std::shared_ptr<ProfileRecord> m_lastRecord;
 	static std::vector<ProfileGroup> m_profiles;
 	static CXWnd* m_currentWindow; // the current in focus window
 	static bool m_paused;
 	static uint64_t m_delayTime;
 	static LoginState m_lastState;
 	static unsigned char m_retries;
+
+	void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
+	{
+		m_record = ptr;
+		if (ptr != nullptr)
+			m_lastRecord = ptr;
+	}
 
 public:
 	// This must be defined in the implementation where the state classes are defined
@@ -187,7 +206,8 @@ public:
 
 	virtual void react(const SetLoginProfile& ev)
 	{
-		m_record = ev.Record;
+		SetProfileRecord(std::make_shared<ProfileRecord>(ev.Record));
+
 		m_paused = false;
 	}
 
@@ -224,11 +244,18 @@ public:
 	virtual void exit() {}
 
 	// these are just some getters for ImGui
-	static std::string_view character() { return m_record ? m_record->characterName.c_str() : ""; }
-	static std::string_view server() { return m_record ? m_record->serverName.c_str() : ""; }
-	static std::string_view profile() { return m_record ? m_record->profileName.c_str() : ""; }
-	static std::string_view account() { return m_record ? m_record->accountName.c_str() : ""; }
-	static bool has_entry() { return m_record.has_value(); }
+	static const char* character() { return m_record ? m_record->characterName.c_str() : ""; }
+	static const char* server() { return m_record ? m_record->serverName.c_str() : ""; }
+	static const char* profile() { return m_record ? m_record->profileName.c_str() : ""; }
+	static const char* account() { return m_record ? m_record->accountName.c_str() : ""; }
+
+	static const char* hotkey() { return m_record ? m_record->hotkey.c_str() : ""; }
+	static const char* character_class() { return m_record ? m_record->characterClass.c_str() : ""; }
+
+	static int character_level() { return m_record ? m_record->characterLevel : 0; }
+	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
+	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
+	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static const bool paused() { return m_paused; }
 	static const uint64_t delay_time() { return m_delayTime; }

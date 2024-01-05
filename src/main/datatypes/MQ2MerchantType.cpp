@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -74,15 +74,18 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				int listIndex = 0;
 				ItemPtr pItem;
 
-				auto& itemContainer = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer;
-				for (int i = 0; i < itemContainer.GetSize(); i++)
+				auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+
+				for (int i = 0; i < page->GetItemCount(); i++)
 				{
-					if (itemContainer[i].pItem)
+					ItemPtr pItemItr = page->GetItem(i);
+
+					if (pItemItr)
 					{
-						if (MaybeExactCompare(itemContainer[i].pItem->GetName(), Index))
+						if (MaybeExactCompare(pItemItr->GetName(), Index))
 						{
 							listIndex = i;
-							pItem = itemContainer[i].pItem;
+							pItem = pItemItr;
 							break;
 						}
 					}
@@ -204,7 +207,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 		if (Index[0])
 		{
-			VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+			const auto& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
 
 			if (IsNumber(Index))
 			{
@@ -213,42 +216,32 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				if (nIndex < 0)
 					return false;
 
-				if (nIndex < page->ItemContainer.GetSize())
-				{
-					if (Dest.Ptr = page->ItemContainer[nIndex].pItem)
-					{
-						return true;
-					}
-				}
+				Dest = pItemType->MakeTypeVar(page->GetItem(nIndex));
+				return true;
 			}
-			else
-			{
-				// by name
-				for (int nIndex = 0; nIndex < page->ItemContainer.GetSize(); nIndex++)
-				{
-					if (ItemClient* pContents = page->ItemContainer[nIndex].pItem)
-					{
-						const char* itemName = GetItemFromContents(pContents)->Name;
 
-						if (MaybeExactCompare(itemName, Index))
-						{
-							Dest.Ptr = pContents;
-							return true;
-						}
-					}
+			// by name
+			for (int i = 0; i < page->GetItemCount(); ++i)
+			{
+				ItemPtr pItem = page->GetItem(i);
+
+				if (pItem && MaybeExactCompare(pItem->GetName(), Index))
+				{
+					Dest = pItemType->MakeTypeVar(pItem);
+					return true;
 				}
 			}
 		}
-		return false;
+
+		return true;
 
 	case MerchantMembers::Items:
-		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->ItemContainer.GetSize();
+		Dest.DWord = pMerchantWnd->PageHandlers[RegularMerchantPage]->GetItemCount();
 		Dest.Type = pIntType;
 		return true;
 
 	case MerchantMembers::SelectedItem:
-		Dest.Ptr = pMerchantWnd->pSelectedItem.get();
-		Dest.Type = pItemType;
+		Dest = pItemType->MakeTypeVar(pMerchantWnd->pSelectedItem);
 		return true;
 
 	case MerchantMembers::Markup:
@@ -259,8 +252,8 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 	case MerchantMembers::Full: {
 		Dest.Type = pBoolType;
 
-		VePointer<MerchantPageHandler>& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
-		Dest.Set(page->ItemContainer.GetSize() >= page->MaxItems);
+		const CMerchantWnd::PageHandlerPtr& page = pMerchantWnd->PageHandlers[RegularMerchantPage];
+		Dest.Set(page->GetItemCount() >= page->MaxItems);
 		return true;
 	}
 

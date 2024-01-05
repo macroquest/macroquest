@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -53,32 +53,32 @@ bool MQ2CorpseType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 	{
 	case CorpseMembers::Item:
 		Dest.Type = pItemType;
+
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
 				int nIndex = GetIntFromString(Index, 0) - 1;
 				if (nIndex < 0 || nIndex >= InvSlot_Max)
-					return false;
-
-				if (Dest.Ptr = pLootWnd->GetLootItem(nIndex).get())
 					return true;
+
+				Dest = pItemType->MakeTypeVar(pLootWnd->GetLootItem(nIndex));
+				return true;
 			}
-			else
-			{
-				// name
-				char* pName1 = Index;
-				bool bExact = (*pName1 == '=') && ++pName1;
 
-				ItemIndex itemIndex = pLootWnd->GetLootItems().FindItem(0, FindItemByNamePred(pName1, bExact));
-				if (itemIndex.IsValid())
-				{
-					Dest.Ptr = pLootWnd->GetLootItems().GetItem(itemIndex).get();
-					return true;
-				}
+			// name
+			char* pName1 = Index;
+			bool bExact = (*pName1 == '=') && ++pName1;
+
+			ItemIndex itemIndex = pLootWnd->GetLootItems().FindItem(0, FindItemByNamePred(pName1, bExact));
+			if (itemIndex.IsValid())
+			{
+				Dest = pItemType->MakeTypeVar(pLootWnd->GetLootItems().GetItem(itemIndex));
+				return true;
 			}
 		}
-		return false;
+
+		return true;
 
 	case CorpseMembers::Items:
 		Dest.DWord = pLootWnd->GetLootItems().GetCount();

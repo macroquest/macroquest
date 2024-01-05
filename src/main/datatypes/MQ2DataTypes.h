@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -18,11 +18,6 @@
 
 namespace mq::datatypes {
 
-#define TypeMember(name) AddMember(static_cast<int>(name), #name)
-#define ScopedTypeMember(scope, name) AddMember(static_cast<int>(scope::name), #name)
-#define TypeMethod(name) AddMethod(static_cast<int>(name), #name)
-#define ScopedTypeMethod(scope, name) AddMethod(static_cast<int>(scope::name), #name)
-
 //----------------------------------------------------------------------------
 // Datatype Declarations
 
@@ -31,123 +26,6 @@ namespace mq::datatypes {
 	MQLIB_VAR Class* Var;
 #include "DataTypeList.h"
 #undef DATATYPE
-
-//============================================================================
-// MQ2Type
-
-class MQ2Type
-{
-public:
-	MQLIB_OBJECT MQ2Type(const char* NewName);
-	MQLIB_OBJECT virtual ~MQ2Type();
-
-	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);
-
-	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) { return false; }
-	virtual bool FromString(MQVarPtr& VarPtr, const char* Source) { return false; }
-
-	virtual void InitVariable(MQVarPtr& VarPtr)
-	{
-		VarPtr.Ptr = nullptr;
-	}
-
-	virtual void FreeVariable(MQVarPtr& VarPtr) {}
-
-	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) = 0;
-
-	virtual bool ToString(MQVarPtr VarPtr, char* Destination)
-	{
-		strcpy_s(Destination, MAX_STRING, TypeName);
-		return true;
-	}
-
-	MQLIB_OBJECT const char* GetName() const;
-	MQLIB_OBJECT const char* GetMemberName(int ID) const;
-
-	MQLIB_OBJECT bool GetMemberID(const char* Name, int& Result) const;
-
-	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
-	MQLIB_OBJECT MQTypeMember* FindMember(const std::string& Name);
-	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
-	MQLIB_OBJECT MQTypeMember* FindMethod(const std::string& Name);
-
-	MQLIB_OBJECT bool CanEvaluateMethodOrMember(const std::string& Name);
-
-	inline bool InheritsFrom(MQ2Type* testType)
-	{
-		MQ2Type* parentType = m_parent;
-		int limit = 10; // arbitrary limit to avoid infinite looping with cyclical references
-		while (parentType)
-		{
-			if (parentType == testType)
-				return true;
-
-			if (--limit == 0)
-				return false;
-			parentType = parentType->m_parent;
-		}
-		return false;
-	}
-
-	inline bool InheritedMember(const char* Name) { return m_parent && m_parent->FindMember(Name); }
-	inline bool InheritedMember(const std::string& Name) { return m_parent && m_parent->FindMember(Name); }
-
-	inline void SetInheritance(MQ2Type* pNewInherit)
-	{
-		m_parent = pNewInherit;
-	}
-	inline  MQ2Type* GetParent() const { return m_parent; }
-
-	// Override this function to convert this type to the requested type. Return true if the conversion is successful. The
-	// Result should be placed in VarPtr and its type should match that of toType.
-	virtual bool Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toType) { return false; }
-
-	//----------------------------------------------------------------------------
-	// deprecated virtual functions
-
-	// If you encounter an error here, you've derived from MQ2Type using a non-const Source. Change
-	// your FromString function to take a const char* as the second parameter.
-	virtual bool FromString(MQVarPtr& VarPtr, char* Source) final {
-		return FromString(VarPtr, (const char*)Source);
-	}
-
-	// If you encounter an error here, you've derived from MQ2Type and implemented GetMember using a non-const Member. Change
-	// your GetMember function to take a const char* as the second parameter.
-	virtual bool GetMember(MQVarPtr VarPtr, char* Member, char* Index, MQTypeVar& Dest) final {
-		return GetMember(VarPtr, (const char*)Member, Index, Dest);
-	}
-
-	// If you encounter an error here, you've derived from MQ2Type and implemented FromData using a non-const Source. Change
-	// your FromData function to take a const MQTypeVar& as the second parameter.
-	virtual bool FromData(MQVarPtr& VarPtr, MQTypeVar& Source) final {
-		return FromData(VarPtr, (const MQTypeVar&)Source);
-	}
-
-	// There used to exist an old macro that would turn GETMEMBER into an actual function signature. This has been removed,
-	// so you need to update your signature yourself.
-	// It should be of the form:
-	// virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
-	virtual bool GETMEMBER() final {
-		return false;
-	}
-
-protected:
-	MQLIB_OBJECT bool AddMember(int id, const char* Name);
-	MQLIB_OBJECT bool RemoveMember(const char* Name);
-	MQLIB_OBJECT bool AddMethod(int ID, const char* Name);
-	MQLIB_OBJECT bool RemoveMethod(const char* Name);
-
-	char TypeName[32];
-	bool m_owned = false;
-	MQ2Type* m_parent = nullptr;
-	mutable std::mutex m_mutex;
-
-private:
-	std::vector<std::unique_ptr<MQTypeMember>> Members;
-	std::vector<std::unique_ptr<MQTypeMember>> Methods;
-	std::unordered_map<std::string, int> MemberMap;
-	std::unordered_map<std::string, int> MethodMap;
-};
 
 //============================================================================
 // CDataArray
@@ -160,8 +38,10 @@ public:
 	~CDataArray();
 
 	void Delete();
-	int GetElement(char* Index);
-	bool GetElement(char* Index, MQTypeVar& Dest);
+	MQLIB_OBJECT int GetElement(std::string_view Index) const;
+	MQLIB_OBJECT int GetElement(char* Index);
+	MQLIB_OBJECT bool GetElement(std::string_view Index, MQTypeVar& Dest);
+	MQLIB_OBJECT bool GetElement(char* Index, MQTypeVar& Dest);
 
 	MQ2Type* GetType() { return m_pType; }
 	MQVarPtr& GetData(int index) { return m_pData[index]; }
@@ -279,6 +159,11 @@ public:
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataString(const char* szIndex, MQTypeVar& Ret);
+
+	const char* GetValue(const MQVarPtr& varPtr) const
+	{
+		return static_cast<const char*>(varPtr.Ptr);
+	}
 };
 
 //============================================================================
@@ -352,10 +237,6 @@ public:
 	MQ2ArrayType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 };
 
 //============================================================================
@@ -403,11 +284,15 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	void InitVariable(MQVarPtr& VarPtr);
 
 	static bool dataTime(const char* szIndex, MQTypeVar& Ret);
+	static bool dataGameTime(const char* szIndex, MQTypeVar& Ret);
+
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(int year, int month, int day, int hour, int minute,
+		int seconds, int milliseconds = 0, int dayOfWeek = -1);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(eqtime_t eqtime);
 };
 
 //============================================================================
@@ -589,9 +474,8 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
-	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
@@ -636,8 +520,54 @@ public:
 	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	void InitVariable(MQVarPtr& VarPtr) override;
-	void FreeVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+
+	struct Data
+	{
+		ItemPtr pItem;
+		ItemSpellTypes spellType;
+	};
+
+	static inline MQVarPtr MakeVarPtr(const ItemPtr& pItem, ItemSpellTypes spellType)
+	{
+		MQVarPtr VarPtr;
+		VarPtr.Set<Data>({ pItem, spellType });
+
+		return VarPtr;
+	}
+
+	inline MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr, ItemSpellTypes spellType = ItemSpellType_Clicky)
+	{
+		MQTypeVar Dest;
+		Dest.Type = this;
+		Dest.Set<Data>({ pItem, spellType });
+
+		return Dest;
+	}
+
+	inline ItemPtr GetItem(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		return pData ? pData->pItem : nullptr;
+	}
+
+	inline ItemSpellTypes GetItemSpellType(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		return pData ? pData->spellType : ItemSpellType_Clicky;
+	}
+
+	ItemSpellData::SpellData* GetItemSpellData(const MQVarPtr& VarPtr) const
+	{
+		auto pData = VarPtr.Get<Data>();
+
+		if (!pData || !pData->pItem)
+			return nullptr;
+
+		return pData->pItem->GetSpellData(pData->spellType);
+	}
 };
 
 //============================================================================
@@ -661,6 +591,12 @@ public:
 	static bool dataFindItem(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret);
+
+	MQLIB_OBJECT static MQVarPtr MakeVarPtr(const ItemPtr& pItem);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr);
+	MQLIB_OBJECT ItemPtr GetItem(const MQVarPtr& VarPtr) const;
+
+	inline bool IsValid(const MQVarPtr& VarPtr) const { return VarPtr.Item != nullptr; }
 };
 
 //============================================================================
@@ -697,6 +633,7 @@ public:
 	static bool dataGroundItem(const char* szIndex, MQTypeVar& Ret);
 	static bool dataGroundItemCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataItemTarget(const char* szIndex, MQTypeVar& Ret);
+	MQLIB_OBJECT static MQTypeVar MakeTypeVar(MQGroundSpawn groundSpawn);
 };
 
 //============================================================================
@@ -814,6 +751,20 @@ public:
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
 	static bool dataWindow(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQ2InvSlotWindowType
+
+class MQInvSlotWindowType : public MQ2Type
+{
+public:
+	MQInvSlotWindowType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 };
 
 //============================================================================
@@ -1452,6 +1403,99 @@ public:
 	static bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQIniType
+
+class MQIniFileSectionKeyType : public MQ2Type
+{
+public:
+	MQIniFileSectionKeyType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFileSectionKey(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniFileSectionType : public MQ2Type
+{
+public:
+	MQIniFileSectionType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFileSection(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniFileType : public MQ2Type
+{
+public:
+	MQIniFileType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIniFile(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQIniType : public MQ2Type
+{
+public:
+	MQIniType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataIni(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQ2TradeskillDepotType
+
+class MQ2TradeskillDepotType : public MQ2Type
+{
+public:
+	MQ2TradeskillDepotType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataTradeskillDepot(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQInventoryType
+
+class MQBankType : public MQ2Type
+{
+public:
+	MQBankType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataBank(const char* szIndex, MQTypeVar& Ret);
+};
+
+class MQInventoryType : public MQ2Type
+{
+public:
+	MQInventoryType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataInventory(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQCursorAttachmentType
+
+class MQCursorAttachmentType : public MQ2Type
+{
+public:
+	MQCursorAttachmentType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataCursorAttachment(const char* szIndex, MQTypeVar& Ret);
+};
+
+//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 bool dataIf(const char* szIndex, MQTypeVar& Ret);

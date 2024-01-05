@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,9 +16,6 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 #include "MQ2DeveloperTools.h"
-
-#include <mq/imgui/ImGuiUtils.h>
-#include <mq/imgui/Widgets.h>
 
 #include <algorithm>
 #include <string>
@@ -329,25 +326,23 @@ bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault)
 	{
 		DebugSpew("GenerateMQUI::Generating %s", pathMQUI.string().c_str());
 
-		FILE* forg = nullptr;
-		errno_t err = fopen_s(&forg, pathEQUI.string().c_str(), "rt");
-		if (err || forg == nullptr)
+		FILE* forig = _fsopen(pathEQUI.string().c_str(), "rt", _SH_DENYNO);
+		if (forig == nullptr)
 		{
 			DebugSpew("GenerateMQUI::could not open %s", pathEQUI.string().c_str());
 		}
 		else
 		{
-			FILE* fnew = nullptr;
-			err = fopen_s(&fnew, pathMQUI.string().c_str(), "wt");
-			if (err || fnew == nullptr)
+			FILE* fnew = _fsopen(pathMQUI.string().c_str(), "wt", _SH_DENYWR);
+			if (fnew == nullptr)
 			{
 				DebugSpew("GenerateMQUI::could not open %s", pathMQUI.string().c_str());
-				fclose(forg);
+				fclose(forig);
 			}
 			else
 			{
 				char Buffer[MAX_STRING] = { 0 };
-				while (fgets(Buffer, MAX_STRING, forg))
+				while (fgets(Buffer, MAX_STRING, forig))
 				{
 					if (strstr(Buffer, "</Composite>"))
 					{
@@ -362,7 +357,7 @@ bool GenerateMQUI(const CXStr& strPath, const CXStr& strPathDefault)
 					fprintf(fnew, "%s", Buffer);
 				}
 				fclose(fnew);
-				fclose(forg);
+				fclose(forig);
 				return true;
 			}
 		}
@@ -1969,217 +1964,11 @@ void UpdateCascadeMenu()
 
 //============================================================================
 
-#pragma region InvSlotInspector
-
-class InvSlotInspector : public ImGuiWindowBase
-{
-public:
-	InvSlotInspector()
-		: ImGuiWindowBase("InvSlot Inspector")
-	{
-		SetDefaultSize(ImVec2(640, 450));
-	}
-
-	bool IsEnabled() const override
-	{
-		return pInvSlotMgr != nullptr;
-	}
-
-	void Draw() override
-	{
-		if (ImGui::BeginTabBar("##InvSlotInspector_TabBar", ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton))
-		{
-			if (ImGui::BeginTabItem("InvSlots"))
-			{
-				Draw_InvSlotList();
-				ImGui::EndTabItem();
-			}
-			if (ImGui::BeginTabItem("InvSlot Mapping"))
-			{
-				Draw_InvSlotMapping();
-				ImGui::EndTabItem();
-			}
-
-			ImGui::EndTabBar();
-		}
-	}
-
-	void Draw_InvSlotList()
-	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
-			| ImGuiTableFlags_ScrollY
-			| ImGuiTableFlags_BordersV
-			| ImGuiTableFlags_BordersOuterH
-			| ImGuiTableFlags_Resizable
-			| ImGuiTableFlags_RowBg;
-
-		// Columns:
-		// Icon, Index, Container?, ItemIndex?, LinkedItem?, Template
-
-		if (ImGui::BeginTable("##InvSlotTable", 6, tableFlags, ImGui::GetContentRegionAvail()))
-		{
-			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("##Index", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
-			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
-			ImGui::TableSetupColumn("Container", ImGuiTableColumnFlags_WidthFixed, -1.0f);
-			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, -1.0f);
-			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
-			ImGui::TableSetupColumn("Screen ID", ImGuiTableColumnFlags_WidthFixed, -1.0f);
-			ImGui::TableHeadersRow();
-
-			for (int i = 0; i < pInvSlotMgr->TotalSlots; ++i)
-			{
-				CInvSlot* pInvSlot = pInvSlotMgr->SlotArray[i];
-				if (!pInvSlot || !pInvSlot->bEnabled) continue;
-
-				ImGui::TableNextRow();
-
-				ImGui::TableNextColumn(); // index
-				ImGui::Text("%d", pInvSlot->Index);
-
-				ImGui::TableNextColumn(); // icon
-				imgui::DrawTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
-
-				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
-				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(globalIndex);
-
-				ImGui::TableNextColumn(); // Container
-				if (globalIndex.IsValidLocation())
-					ImGui::Text("%s", GetNameForContainerInstance(globalIndex.GetLocation()));
-
-				ImGui::TableNextColumn(); // ItemIndex
-				if (globalIndex.IsValidIndex())
-				{
-					char szItemIndex[32];
-					globalIndex.GetIndex().FormatItemIndex(szItemIndex, lengthof(szItemIndex));
-					ImGui::Text("%s", szItemIndex);
-				}
-
-				ImGui::TableNextColumn(); // Item Name
-				if (pItem)
-				{
-					ImGui::PushID((void*)pItem.get());
-					if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
-						pItemDisplayManager->ShowItem(pItem);
-					ImGui::PopID();
-				}
-
-				ImGui::TableNextColumn(); // Template
-				if (pInvSlot->pInvSlotWnd)
-				{
-					if (CXMLData* pXMLData = pInvSlot->pInvSlotWnd->GetXMLData())
-					{
-						ImGui::Text("%s", pXMLData->ScreenID.c_str());
-					}
-				}
-			}
-
-			ImGui::EndTable();
-		}
-	}
-
-	void Draw_InvSlotMapping()
-	{
-		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
-			| ImGuiTableFlags_ScrollY
-			| ImGuiTableFlags_Sortable
-			| ImGuiTableFlags_BordersV
-			| ImGuiTableFlags_BordersOuterH
-			| ImGuiTableFlags_Resizable
-			| ImGuiTableFlags_RowBg;
-
-		if (ImGui::BeginTable("##InvSlotMappingTable", 2, tableFlags, ImGui::GetContentRegionAvail()))
-		{
-			enum {
-				ColumnId_Value = 1,
-				ColumnId_Slot = 2,
-			};
-
-			// Columns:
-			// Value, SlotId
-			ImGui::TableSetupScrollFreeze(0, 1);
-			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_DefaultSort, -1.0f, ColumnId_Value);
-			ImGui::TableSetupColumn("Slot ID", ImGuiTableColumnFlags_WidthStretch, -1.0f, ColumnId_Slot);
-			ImGui::TableHeadersRow();
-
-			static std::vector<std::pair<std::string, int>> slotMapping;
-			static bool init = false;
-
-			ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs();
-			auto sortFunc = [&](const auto& lhs, const auto& rhs)
-			{
-				for (int n = 0; n < sort_specs->SpecsCount; n++)
-				{
-					const ImGuiTableColumnSortSpecs* sort_spec = &sort_specs->Specs[n];
-					int delta = 0;
-
-					switch (sort_spec->ColumnUserID)
-					{
-					case ColumnId_Slot:
-						delta = lhs.second - rhs.second;
-						if (delta != 0)
-							break;
-						// fallthrough
-					case ColumnId_Value:
-						delta = alphanum_comp(lhs.first, rhs.first);
-						break;
-					default: break;
-					}
-					if (delta > 0)
-						return (sort_spec->SortDirection == ImGuiSortDirection_Ascending);
-					if (delta < 0)
-						return !(sort_spec->SortDirection == ImGuiSortDirection_Ascending);
-				}
-
-				return true;
-			};
-
-			if (!init)
-			{
-				for (auto& [key, value] : ItemSlotMap)
-				{
-					slotMapping.emplace_back(key, value);
-				}
-
-				init = true;
-			}
-
-			if (sort_specs->SpecsDirty)
-			{
-				std::sort(slotMapping.begin(), slotMapping.end(), sortFunc);
-				sort_specs->SpecsDirty = false;
-			}
-
-			for (auto& [key, value] : slotMapping)
-			{
-				ImGui::TableNextRow();
-
-				ImGui::TableNextColumn();
-				ImGui::Text("%s", key.c_str());
-
-				ImGui::TableNextColumn();
-				ImGui::Text("%d", value);
-			}
-
-			ImGui::EndTable();
-		}
-	}
-};
-
-InvSlotInspector* s_invSlotInspector = nullptr;
-
-#pragma endregion
-
-//============================================================================
-
 static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
 
 	strcpy_s(gUISkin, GetCurrentUI().c_str());
-
-	s_invSlotInspector = new InvSlotInspector();
-	DeveloperTools_RegisterMenuItem(s_invSlotInspector, "Inventory Slots", s_menuNameInspectors);
 
 	for (int i = 0; i < NUM_INV_SLOTS; i++)
 		ItemSlotMap[szItemSlot[i]] = i;
@@ -2239,9 +2028,6 @@ static void Windows_Initialize()
 static void Windows_Shutdown()
 {
 	DebugSpew("Shutting down MQ2 Windows");
-
-	DeveloperTools_UnregisterMenuItem(s_invSlotInspector);
-	delete s_invSlotInspector; s_invSlotInspector = nullptr;
 
 	RemoveCascadeMenuItem("Toggle Overlay UI");
 

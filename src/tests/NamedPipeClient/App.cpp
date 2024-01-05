@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#include "common/NamedPipes.h"
+#include "routing/NamedPipes.h"
+#include "routing/Routing.h"
 
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
@@ -54,7 +55,7 @@ int main(int argc, TCHAR* argv[])
 			SPDLOG_INFO("Sending ECHO request: message={0} length={1}", message, message.length());
 
 			client.SendMessageWithResponse(mq::MQMessageId::MSG_ECHO, message.c_str(), (uint32_t)message.length() + 1,
-				[&](int result, const mq::PipeMessagePtr& response)
+				[&](int result, mq::PipeMessagePtr&& response)
 				{
 					--inFlight;
 					if (response)

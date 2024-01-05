@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -178,8 +178,58 @@ struct MapLocParams
 	MQColor color = MQColor(255, 0, 0);
 	float   circleRadius = 0.f;
 	MQColor circleColor = MQColor(0, 0, 255);
+
+	std::string MakeCommandString();
 };
 extern MapLocParams gDefaultMapLocParams;
+
+class MapObjectMapLoc;
+
+class MapLocTemplate
+{
+public:
+	MapLocTemplate(const MapLocParams& params, const std::string& label,
+		const std::string& tag, const CVector3& pos, bool isDefault);
+	~MapLocTemplate();
+
+	int GetIndex() const { return m_index; }
+	void SetIndex(int index);
+
+	const std::string& GetLabelText() const { return m_label; }
+
+	void CreateMapObject();
+
+	void UpdateFromParams(const MapLocParams& params);
+	const MapLocParams& GetParams() const { return m_mapLocParams; }
+
+	const CVector3& GetPosition() const { return m_pos; }
+
+	bool IsCreatedFromDefaults() const { return m_isCreatedFromDefaultLoc; }
+	void SetCreatedFromDefaults(bool isCreatedFromDefaults) { m_isCreatedFromDefaultLoc = isCreatedFromDefaults; }
+
+	void SetLabel(const std::string& labelText);
+	const std::string& GetTag() const { return m_tag; }
+
+	void SetSelected(bool selected);
+	bool IsSelected() const { return m_isSelected; }
+
+	// Called when the map object is removed by the map code
+	void OnMapObjectRemoved() { m_mapObject = nullptr; }
+
+private:
+	void UpdateLabel();
+
+private:
+	int                   m_index = -1;
+	MapLocParams          m_mapLocParams;
+	std::string           m_label;
+	std::string           m_tag;
+	CVector3              m_pos;
+	bool                  m_isCreatedFromDefaultLoc = false;
+	MapObjectMapLoc*      m_mapObject = nullptr;
+	bool                  m_isSelected = false;
+};
+
 
 // MapObject that represents a "MapLoc". I don't have a better name for this, so
 // I'm choosing to name it for consistency rather than something that is more accurate.
@@ -187,54 +237,38 @@ extern MapLocParams gDefaultMapLocParams;
 class MapObjectMapLoc : public MapObject
 {
 public:
-	MapObjectMapLoc(const MapLocParams& params, const std::string& tag, bool isDefault);
+	MapObjectMapLoc(MapLocTemplate* pMapLoc);
 	virtual ~MapObjectMapLoc();
-
-	void UpdateFromParams(const MapLocParams& params);
-	MapLocParams GetParams() const;
-
-	bool IsCreatedFromDefaults() const { return m_isCreatedFromDefaultLoc; }
-
-	int GetIndex() const { return m_index; }
-	void SetIndex(int index);
-
-	const std::string& GetTag() const { return m_tag; }
-	void SetLabel(const std::string& labelText);
 
 	virtual void PostInit() override;
 	virtual void Update(bool forced) override;
-
 	virtual bool CanDisplayObject() const override { return true; }
 
 private:
-	void UpdateMapLoc();
-	void RemoveMapLoc();
+	void UpdateMapObject();
+	void RemoveMapObject();
 
-	void UpdateText();
+	const MapLocParams& GetParams() const { return m_mapLoc->GetParams(); }
 
-	bool                  m_isCreatedFromDefaultLoc;
 	bool                  m_initialized = false;
-	int                   m_index = 1;
-	std::string           m_tag;
-	std::string           m_labelText;
-	float                 m_lineSize;
-	float                 m_width;
-	MQColor               m_color;
+	MapLocTemplate*       m_mapLoc;
 	std::vector<MapViewLine*> m_lines;
-	float                 m_circleRadius;
-	MQColor               m_circleColor;
 	MapCircle             m_circle;
 };
 
-void UpdateDefaultMapLocParams();
+extern std::vector<std::unique_ptr<MapLocTemplate>> gMapLocTemplates;
+extern MapLocParams gOverrideMapLocParams;
+
+void InitDefaultMapLocParams();
 void UpdateDefaultMapLocInstances();
+void ResetMapLocOverrides();
 
-void MakeMapLoc(const MapLocParams& params, const std::string& label,
-	const std::string& tag, const CVector3& pos, bool isDefault);
+MapLocTemplate* GetMapLocTemplateByTag(std::string_view tag);
+MapLocTemplate* GetMapLocByIndex(int index);
 
-MapObjectMapLoc* GetMapLocByIndex(size_t index);
-MapObjectMapLoc* GetMapLocByTag(const std::string& tag);
-
+void CreateAllMapLocs();
 void DeleteAllMapLocs();
-void DeleteMapLoc(MapObjectMapLoc* mapLoc);
 
+void AddMapLoc(std::unique_ptr<MapLocTemplate> mapLoc);
+void DeleteMapLoc(MapLocTemplate* mapLoc);
+void DeleteSelectedMapLocs();

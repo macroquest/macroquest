@@ -612,3 +612,696 @@ Wild Blossom Star^an easterly mephit^tbl^stratos^https://tbl.eqresource.com/wild
 Eastern Radiant Glance^a voluminous gale^tbl^stratos^https://tbl.eqresource.com/easternradiantglance.php
 Infinite Horizon Star^a billowing gale^tbl^stratos^https://tbl.eqresource.com/infinitehorizonstar.php
 Cloud Iron Lance^an abundant gale^tbl^stratos^https://tbl.eqresource.com/cloudironlance.php
+a bluff golem^a rocky cliff golem^ros^overtheretwo^https://ros.eqresource.com/abluffgolem.php
+a majestic cockatrice^a stoneglint cockatrice^ros^overtheretwo^https://ros.eqresource.com/amajesticcockatrice.php
+Bloodstalker^a blood-stained stalker^ros^overtheretwo^https://ros.eqresource.com/bloodstalker.php
+Janissary Virzak^a Wulthan Zealot^ros^overtheretwo^https://ros.eqresource.com/janissaryvirzak.php
+Observer Eyrzekla^a mysterious sarnak^ros^overtheretwo^https://ros.eqresource.com/observereyrzekla.php
+a grotesque succulent^a sickly succulent^ros^overtheretwo^https://ros.eqresource.com/agrotesquesucculent.php
+an iron sentinel^a rubble golem^ros^overtheretwo^https://ros.eqresource.com/anironsentinel.php
+Drakis^a dreadful scorpikis^ros^overtheretwo^https://ros.eqresource.com/drakis.php
+Myrmidon Tundak^a Krellnakor officer^ros^overtheretwo^https://ros.eqresource.com/myrmidontundak.php
+Rigelon the Watcher^a shifty scorpikis^ros^overtheretwo^https://ros.eqresource.com/rigelonthewatcher.php
+a Kar`Zok lacerator^a Ferreth procurator^ros^overtheretwo^https://ros.eqresource.com/akarzoklacerator.php
+Banshee^a screeching chokidai^ros^overtheretwo^https://ros.eqresource.com/banshee.php
+Fang^a stonepeep cockatrice^ros^overtheretwo^https://ros.eqresource.com/fang.php
+Needle^a needle-covered succulent^ros^overtheretwo^https://ros.eqresource.com/needle.php
+Saber^a raging rhino^ros^overtheretwo^https://ros.eqresource.com/saber.php
+a feverish marauder^a zealot^ros^skyfiretwo^https://ros.eqresource.com/afeverishmarauder.php
+a supercharged tyro^a volatile effusion^ros^skyfiretwo^https://ros.eqresource.com/asuperchargedtyro.php
+a supercharged tyro^a stubborn magmite^ros^skyfiretwo^https://ros.eqresource.com/asuperchargedtyro.php
+Dragoflux^a raging vortex^ros^skyfiretwo^https://ros.eqresource.com/dragoflux.php
+Dragoflux^a sturdy magmite^ros^skyfiretwo^https://ros.eqresource.com/dragoflux.php
+Rirwech the Fink^a suspicious Chetari^ros^skyfiretwo^https://ros.eqresource.com/rirwechthefink.php
+Rirwech the Fink^a furtive Chetari^ros^skyfiretwo^https://ros.eqresource.com/rirwechthefink.php
+Skrizix^an exotic chromedrac^ros^skyfiretwo^https://ros.eqresource.com/skrizix.php
+a rabid reveler^a brazen Chetari^ros^skyfiretwo^https://ros.eqresource.com/arabidreveler.php
+a rabid reveler^a drunken Chetari^ros^skyfiretwo^https://ros.eqresource.com/arabidreveler.php
+an Arcron researcher^a Krellnakor scout^ros^skyfiretwo^https://ros.eqresource.com/anarcronresearcher.php
+Mawmun^a gluttonous feaster^ros^skyfiretwo^https://ros.eqresource.com/mawmun.php
+Mawmun^a greedy gnawer^ros^skyfiretwo^https://ros.eqresource.com/mawmun.php
+Ritualist Bomoda^a grim cultist^ros^skyfiretwo^https://ros.eqresource.com/mawmun.php
+Ritualist Bomoda^a grim chanter^ros^skyfiretwo^https://ros.eqresource.com/mawmun.php
+The Crimson Sentinel^an angry Arcron^ros^skyfiretwo^https://ros.eqresource.com/thecrimsonsentinel.php
+a scree-borne magmite^wrathful rubble^ros^skyfiretwo^https://ros.eqresource.com/ascreebornemagmite.php
+a scree-borne magmite^a blackened tyro^ros^skyfiretwo^https://ros.eqresource.com/ascreebornemagmite.php
+Chirurgeon Hemofax^an ashen scalpel^ros^skyfiretwo^https://ros.eqresource.com/chirurgeonhemofax.php
+Chirurgeon Hemofax^an ashen cutter^ros^skyfiretwo^https://ros.eqresource.com/chirurgeonhemofax.php
+Old Raspy^an old wurm^ros^skyfiretwo^https://ros.eqresource.com/oldraspy.php
+Shardstubble^a fractured magmite^ros^skyfiretwo^https://ros.eqresource.com/shardstubble.php
+Shardstubble^a fragile tyro^ros^skyfiretwo^https://ros.eqresource.com/shardstubble.php
+The Gatekeeper^a Krellnakor bodyguard^ros^skyfiretwo^https://ros.eqresource.com/thegatekeeper.php
+The Gatekeeper^a Krellnakor doorman^ros^skyfiretwo^https://ros.eqresource.com/thegatekeeper.php
+Deka the Reaper^a specter of the Arisen^ros^charasistwo^https://ros.eqresource.com/dekathereaper.php
+Nureya Arisen^a specter of the Arisens^ros^charasistwo^https://ros.eqresource.com/nureyaarisen.php
+The Arisen Dragoon T`Vem^a specter of the Arisenss^ros^charasistwo^https://ros.eqresource.com/thearisendragoontvem.php
+The Underlord^a bottomless gnawer^ros^charasistwo^https://ros.eqresource.com/theunderlord.php
+Embalming Goo^Arisen bones^ros^charasistwo^https://ros.eqresource.com/embalminggoo.php
+Shandral Arisen^an arisen convert^ros^charasistwo^https://ros.eqresource.com/shandralarisen.php
+The Arisen Dragoon T`Vex^Arisen boness^ros^charasistwo^https://ros.eqresource.com/thearisendragoontvex.php
+Tormented Adalora^a specter of the Arisensss^ros^charasistwo^https://ros.eqresource.com/thearisendragoontvex.php
+General V`Deers, the Arisen^an Arisen officer^ros^charasistwo^https://ros.eqresource.com/generalvdeersthearisen.php
+The Arisen Admiral Tylix^a specter of the Arisenssss^ros^charasistwo^https://ros.eqresource.com/thearisenadmiraltylix.php
+The Great Sentinel^a specter of the Arisensssss^ros^charasistwo^https://ros.eqresource.com/thegreatsentinel.php
+Vermistipus^a specter of the Arisenssssss^ros^charasistwo^https://ros.eqresource.com/vermistipus.php
+a Kar`zok grave robber^a Krellnakor filcher^ros^charasisb^https://ros.eqresource.com/akarzokgraverobber.php
+a Kar`zok grave robber^a Fereth appraiser^ros^charasisb^https://ros.eqresource.com/akarzokgraverobber.php
+Xalgoz the Arisen^an Arisen ritualist^ros^charasisb^https://ros.eqresource.com/xalgozthearisen.php
+Xalgoz the Arisen^an Exalted spirit^ros^charasisb^https://ros.eqresource.com/xalgozthearisen.php
+a Kar`zok infiltrator^a Krellnakor enforcer^ros^charasisb^https://ros.eqresource.com/akarzokinfiltrator.php
+a Kar`zok infiltrator^a Wulthan thief^ros^charasisb^https://ros.eqresource.com/akarzokinfiltrator.php
+a Kar`zok infiltrator^a Krellnakor scavenger^ros^charasisb^https://ros.eqresource.com/akarzokinfiltrator.php
+a Kar`zok infiltrator^an Arcron lifter^ros^charasisb^https://ros.eqresource.com/akarzokinfiltrator.php
+Arisen Gloriant Kra`du^an Arisen steward^ros^charasisb^https://ros.eqresource.com/arisengloriantkradu.php
+Arisen Gloriant Kra`du^an Elevated skeleton^ros^charasisb^https://ros.eqresource.com/arisengloriantkradu.php
+Artikla, Fereth Despot^a Fereth commander^ros^gorowyn^https://ros.eqresource.com/artiklaferethdespot.php
+Head Boiler Akett^a soup boiler^ros^gorowyn^https://ros.eqresource.com/headboilerakett.php
+Overlord Klerkon^a Krellnakor destroyer^ros^gorowyn^https://ros.eqresource.com/overlordklerkon.php
+Rekatok One-Eye^an aging pit fighter^ros^gorowyn^https://ros.eqresource.com/rekatokoneeye.php
+Elkikatar^a Kar'Zok scourge^ros^gorowyn^https://ros.eqresource.com/elkikatar.php
+High Arcron Zeklor^an Arcron burner^ros^gorowyn^https://ros.eqresource.com/higharcronzeklor.php
+Overlord Teralov^a Krellnakor terror^ros^gorowyn^https://ros.eqresource.com/overlordteralov.php
+The Magmalisk^a hungry lavalisk^ros^gorowyn^https://ros.eqresource.com/themagmalisk.php
+Gnaw^a chokidai elder^ros^gorowyn^https://ros.eqresource.com/gnaw.php
+Hissilith, the Brittlebones^an enslaved skeleton^ros^gorowyn^https://ros.eqresource.com/hissiliththebrittlebones.php
+Overlord Tevik^a Krellnakor seeker^ros^gorowyn^https://ros.eqresource.com/overlordtevik.php
+Wulthan High Inquisitor Kraz^a Wulthan administrator^ros^gorowyn^https://ros.eqresource.com/wulthanhighinquisitorkraz.php
+Blood-Thirsty Racnar^a frenetic racnar^ros^veeshantwo^https://ros.eqresource.com/bloodthirstyracnar.php
+Elder Azeron^an ancient flame protector^ros^veeshantwo^https://ros.eqresource.com/elderazeron.php
+Qunard Ashenclaw^a primeval cinder skyclaw^ros^veeshantwo^https://ros.eqresource.com/qunardashenclaw.php
+Magma Basilisk^a magma basilisk^ros^veeshantwo^https://ros.eqresource.com/magmabasilisk.php
+Delmare Undertow^a neriad guard^cov^cobaltscartwo^https://cov.eqresource.com/delmareundertow.php
+Morwenna Undertow^a neriad huntress^cov^cobaltscartwo^https://cov.eqresource.com/morwennaundertow.php
+Pikebreath^a restless othmir^cov^cobaltscartwo^https://cov.eqresource.com/pikebreath.php
+Desirae Fanfare^an alluring siren^cov^cobaltscartwo^https://cov.eqresource.com/desiraefanfare.php
+Octave Sforzando^a siren muse^cov^cobaltscartwo^https://cov.eqresource.com/octavesforzando.php
+Skolskin Haeger^a protective ulthork^cov^cobaltscartwo^https://cov.eqresource.com/skolskinhaeger.php
+Kirezelbough^a winged terror^cov^cobaltscartwo^https://cov.eqresource.com/kirezelbough.php
+Ol` Grinnin` Finley^a deepwater gnasher^cov^cobaltscartwo^https://cov.eqresource.com/olgrinninfinley.php
+a restless behemoth^a restless wurm^cov^westwastestwo^https://cov.eqresource.com/arestlessbehemoth.php
+Feltinth the Caring^a brood caretaker^cov^westwastestwo^https://cov.eqresource.com/feltinththecaring.php
+Rildar Blackstone^a forgotten vanguard^cov^westwastestwo^https://cov.eqresource.com/rildarblackstone.php
+Blasphemous Steel^an exiled efreeti^cov^westwastestwo^https://cov.eqresource.com/blasphemoussteel.php
+Miscreation the Timeless^a frosted dracholiche^cov^westwastestwo^https://cov.eqresource.com/miscreationthetimeless.php
+Shrapnel^a velious hound^cov^westwastestwo^https://cov.eqresource.com/shrapnel.php
+Bliddlethliclaus^an exiled kedge^cov^westwastestwo^https://cov.eqresource.com/bliddlethliclaus.php
+Pastletlith the Temperate^a brood hatchling^cov^westwastestwo^https://cov.eqresource.com/pastletliththetemperate.php
+a massive dracoliche^a dragon construct^cov^necropolistwo^https://cov.eqresource.com/amassivedracoliche.php
+a restless warlord^a wandering Chetari^cov^necropolistwo^https://cov.eqresource.com/arestlesswarlord.php
+Dustbinder Tarlin^a Chetari dustmaker^cov^necropolistwo^https://cov.eqresource.com/dustbindertarlin.php
+Queen Kitlaa^a phasing spider^cov^necropolistwo^https://cov.eqresource.com/queenkitlaa.php
+restless Warmaster Ultvara^a wandering Chetari^cov^necropolistwo^https://cov.eqresource.com/restlesswarmasterultvara.php
+a moon bat^a scavenger bat^cov^necropolistwo^https://cov.eqresource.com/amoonbat.php
+a toxic phase spider^a phasing spider^cov^necropolistwo^https://cov.eqresource.com/atoxicphasespider.php
+Foulfang^a decay serpent^cov^necropolistwo^https://cov.eqresource.com/foulfang.php
+restless Dominator Yisaki^a wandering Chetaris^cov^necropolistwo^https://cov.eqresource.com/restlessdominatoryisaki.php
+Seeker Larada^a Chetari explorer^cov^necropolistwo^https://cov.eqresource.com/seekerlarada.php
+a ravenous entropy serpent^a decay serpents^cov^necropolistwo^https://cov.eqresource.com/aravenousentropyserpent.php
+another great green slime^an amorphous blob^cov^necropolistwo^https://cov.eqresource.com/anothergreatgreenslime.php
+Jaled Dar`s trapped shade^a trapped dracoliche^cov^necropolistwo^https://cov.eqresource.com/jaleddarstrappedshade.php
+restless Vaniki^a wandering Chetariss^cov^necropolistwo^https://cov.eqresource.com/restlessvaniki.php
+a blessed racnar^a convincing doomsayer^cov^skyshrinetwo^https://cov.eqresource.com/ablessedracnar.php
+Professor Atkru^a tenured mentor^cov^skyshrinetwo^https://cov.eqresource.com/professoratkru.php
+Ziglark Whisperwing^an obsidian believer^cov^skyshrinetwo^https://cov.eqresource.com/ziglarkwhisperwing.php
+Dagarn the Destroyer^a pretentious wurm^cov^skyshrinetwo^https://cov.eqresource.com/dagarnthedestroyer.php
+Shoen the Fanatic^a subservient convert^cov^skyshrinetwo^https://cov.eqresource.com/shoenthefanatic.php
+Lord Koi`Doken^an onyx conspirator^cov^skyshrinetwo^https://cov.eqresource.com/lordkoidoken.php
+Templeton the Clear^a crystal abomination^cov^skyshrinetwo^https://cov.eqresource.com/templetontheclear.php
+Dozekar the Cursed^a shimmering priest^cov^templeveeshantwo^https://cov.eqresource.com/dozekarthecursed.php
+Ikatiar the Venom^a wyvern scholar^cov^templeveeshantwo^https://cov.eqresource.com/ikatiarthevenom.php
+Lady Mirenilla^a shard hatchling^cov^templeveeshantwo^https://cov.eqresource.com/ladymirenilla.php
+Feshlak^a scarlet sycophant^cov^templeveeshantwo^https://cov.eqresource.com/feshlak.php
+Jorlleag^a distrusting devout^cov^templeveeshantwo^https://cov.eqresource.com/jorlleag.php
+Lord Vyemm^a vile defender^cov^templeveeshantwo^https://cov.eqresource.com/lordvyemm.php
+Gozzrem^a pious martyr^cov^templeveeshantwo^https://cov.eqresource.com/gozzrem.php
+Ktheek the Ripper^a sapphire devotee^cov^templeveeshantwo^https://cov.eqresource.com/ktheektheripper.php
+Kildrukaun the Ancient^a restless drakeen^cov^sleepertwo^https://cov.eqresource.com/kildrukauntheancient.php
+The Progenitor Reborn^The Progenitor^cov^sleepertwo^https://cov.eqresource.com/theprogenitorreborn.php
+Vyskudra the Ancient^a lonely drakeen^cov^sleepertwo^https://cov.eqresource.com/vyskudratheancient.php
+Milas An`Rev^a venerated sadist^cov^sleepertwo^https://cov.eqresource.com/milasanrev.php
+Tjudawos the Ancient^a shimmering drakeen^cov^sleepertwo^https://cov.eqresource.com/tjudawostheancient.php
+Zeixshi`Kar the Ancient^a forgotten drakeen^cov^sleepertwo^https://cov.eqresource.com/zeixshikartheancient.php
+The Overseer Reborn^The Captain of the Guard^cov^sleepertwo^https://cov.eqresource.com/theoverseerreborn.php
+The Overseer Reborn^Master of The Guard^cov^sleepertwo^https://cov.eqresource.com/theoverseerreborn.php
+Ulessa the Insane^a wyvern sentinel^cov^sleepertwo^https://cov.eqresource.com/ulessatheinsane.php
+Bloodwretch^a netherbian ripper^tol^umbraltwo^https://tol.eqresource.com/bloodwretch.php
+Fleshrot^a netherbian carrion^tol^umbraltwo^https://tol.eqresource.com/fleshrot.php
+Captain Resh Sogran^a fallen sergeant^tol^umbraltwo^https://tol.eqresource.com/captainreshsogran.php
+Nightfall^a dark shadow^tol^umbraltwo^https://tol.eqresource.com/nightfall.php
+Gantru Shojralen^a gantru ralktran^tol^umbraltwo^https://tol.eqresource.com/gantrushojralen.php
+Rumblecrush^a hefty stone guardian^tol^umbraltwo^https://tol.eqresource.com/rumblecrush.php
+Telaris Xeturisun^Torgarath Renthais^tol^umbraltwo^https://tol.eqresource.com/telarisxeturisun.php
+Fyrthek Fior^a fyr jen keeper^tol^umbraltwo^https://tol.eqresource.com/fyrthekfior.php
+Shak Dathor Warlord^a shak dathor keeper^tol^umbraltwo^https://tol.eqresource.com/shakdathorwarlord.php
+Sylra Fris^a syl ren keeper^tol^umbraltwo^https://tol.eqresource.com/sylrafris.php
+Centien Rashen Xaui^Pli Torgarath Xi Vex^tol^maidentwo^https://tol.eqresource.com/centienrashenxaui.php
+Lucca Brightfeld^a winged scavenger^tol^maidentwo^https://tol.eqresource.com/luccabrightfeld.php
+Temariel Xi Tetoracu^Dabo Xi Vereor^tol^maidentwo^https://tol.eqresource.com/temarielxitetoracu.php
+Xenacious Von Deek^a rabid bat^tol^maidentwo^https://tol.eqresource.com/xenaciousvondeek.php
+Xenacious Von Deek^a repressed vampyre^tol^maidentwo^https://tol.eqresource.com/xenaciousvondeek.php
+Xenacious Von Deek^a pacified vampyre^tol^maidentwo^https://tol.eqresource.com/xenaciousvondeek.php
+Darkmeat^a luclin scavenger^tol^maidentwo^https://tol.eqresource.com/darkmeat.php
+Darkmeat^a luclin stalker^tol^maidentwo^https://tol.eqresource.com/darkmeat.php
+Namdrows^a mind burrower^tol^maidentwo^https://tol.eqresource.com/namdrows.php
+Tess Zelinstein^a peckish vampyre^tol^maidentwo^https://tol.eqresource.com/tesszelinstein.php
+Tess Zelinstein^a beaten vampyre^tol^maidentwo^https://tol.eqresource.com/tesszelinstein.php
+Diabo Xi Akuel^a well-fed rockbreaker^tol^maidentwo^https://tol.eqresource.com/diaboxiakuel.php
+Quietus the Forgotten^an erased hero's guard^tol^maidentwo^https://tol.eqresource.com/quietustheforgotten.php
+Quietus the Forgotten^a lost shade^tol^maidentwo^https://tol.eqresource.com/quietustheforgotten.php
+Quietus the Forgotten^forlorn^tol^maidentwo^https://tol.eqresource.com/quietustheforgotten.php
+Txiki^a gleeful miscreant^tol^maidentwo^https://tol.eqresource.com/txiki.php
+Centi Thall^Centi Atulus^tol^akhevatwo^https://tol.eqresource.com/centithall.php
+Diabo Xi Va^Fer'Temariel Centi^tol^akhevatwo^https://tol.eqresource.com/diaboxiva.php
+Diabo Tatrua^Gel'Temariel Centi^tol^akhevatwo^https://tol.eqresource.com/diabotatrua.php
+Diabo Xi Xin^Teka'Temariel Centi^tol^akhevatwo^https://tol.eqresource.com/diaboxixin.php
+Diabo Va Thall^Fer'Tatrua Centi^tol^akhevatwo^https://tol.eqresource.com/diabovathall.php
+The Protector^a shade guardian^tol^akhevatwo^https://tol.eqresource.com/theprotector.php
+Diabo Xi Va Temariel^Kela Va^tol^vexthaltwo^https://tol.eqresource.com/diaboxivatemariel.php
+Thall Va Kelun^Thall Xi Va^tol^vexthaltwo^https://tol.eqresource.com/thallvakelun.php
+Va Xakra^Kaas Xakra^tol^vexthaltwo^https://tol.eqresource.com/vaxakra.php
+Diabo Xi Xin Thall^Xin Thall^tol^vexthaltwo^https://tol.eqresource.com/diaboxixinthall.php
+Thall Xundraux Diabo^Kela Thall^tol^vexthaltwo^https://tol.eqresource.com/thallxundrauxdiabo.php
+Kaas Thox Xi Ans Dyek^Qua Kaas Thox^tol^vexthaltwo^https://tol.eqresource.com/kaasthoxxiansdyek.php
+Thox Xakra^Raux Xakra^tol^vexthaltwo^https://tol.eqresource.com/thoxxakra.php
+Congealed Shadow Mass^a tangible shadow^tol^basilica^https://tol.eqresource.com/congealedshadowmass.php
+Irate Servant of Luclin^a shrewd abettor of Luclin^tol^basilica^https://tol.eqresource.com/irateservantofluclin.php
+Xetheg, Luclin's Warden^a tekuel^tol^basilica^https://tol.eqresource.com/xethegluclinswarden.php
+Dark Agent of Luclin^a basilica secret keeper^tol^basilica^https://tol.eqresource.com/darkagentofluclin.php
+Itzal, Luclin's Hunter^a tekuels^tol^basilica^https://tol.eqresource.com/itzalluclinshunter.php
+Gloomclaw^an obsidian taskmaster^tol^basilica^https://tol.eqresource.com/gloomclaw.php
+Mistakenly Animated Salt Golem^an animated experiment^tol^basilica^https://tol.eqresource.com/mistakenlyanimatedsaltgolem.php
+A Retainer of Shadow^a laborer of shadow^tol^bloodfalls^https://tol.eqresource.com/aretainerofshadow.php
+Cruor^a sanguineous blood beast^tol^bloodfalls^https://tol.eqresource.com/cruor.php
+Pli Xin Laiko^Zun Xin Liako^tol^bloodfalls^https://tol.eqresource.com/plixinlaiko.php
+Centien Xi Va Xakra^a war shade^tol^bloodfalls^https://tol.eqresource.com/centienxivaxakra.php
+Lady Constance^a nameless vampire^tol^bloodfalls^https://tol.eqresource.com/ladyconstance.php
+Coagulus^a viscious blood bag^tol^bloodfalls^https://tol.eqresource.com/coagulus.php
+Nikolas the Exiled^a lost vampire^tol^bloodfalls^https://tol.eqresource.com/nikolastheexiled.php
+a returned dracoliche^a restless dracoliche^tov^eastwastestwo^https://tov.eqresource.com/areturneddracoliche.php
+Coldears^a frosted mammoth^tov^eastwastestwo^https://tov.eqresource.com/coldears.php
+Servant of the Sleeper^a restless dracholiche^tov^eastwastestwo^https://tov.eqresource.com/servantofthesleeper.php
+Windchill^a frosted dire wolf^tov^eastwastestwo^https://tov.eqresource.com/windchill.php
+Bolman^a frozen fright^tov^eastwastestwo^https://tov.eqresource.com/bolman.php
+Mahaha^a hypothermic ghoul^tov^eastwastestwo^https://tov.eqresource.com/mahaha.php
+Sofia the Quiet^a wandering mourner^tov^eastwastestwo^https://tov.eqresource.com/sofiathequiet.php
+Zburator the Damned^a hoarfrost cadaver^tov^eastwastestwo^https://tov.eqresource.com/zburatorthedamned.php
+Cadcane the Unmourned^a cold skeleton^tov^eastwastestwo^https://tov.eqresource.com/cadcanetheunmourned.php
+Monolith the Unstoppable^an exiled sentry^tov^eastwastestwo^https://tov.eqresource.com/monoliththeunstoppable.php
+Vekboz Wolfpunch^a Coldain fighter^tov^eastwastestwo^https://tov.eqresource.com/vekbozwolfpunch.php
+Ry`Gorr Herbalist^a Ry'Gorr apprentice^tov^crystaltwoa^https://tov.eqresource.com/rygorrherbalist.php
+Ry`Gorr Inspector^a restless Ry'Gorr foreman^tov^crystaltwoa^https://tov.eqresource.com/rygorrinspector.php
+Crystal Grinder^a crystal skitterer^tov^crystaltwob^https://tov.eqresource.com/crystalgrinder.php
+Queen Dracnia^a crystal skitterer^tov^crystaltwob^https://tov.eqresource.com/queendracnia.php
+Gem Collector^a focus geonid^tov^crystaltwob^https://tov.eqresource.com/gemcollector.php
+Life Leech^a terror carver^tov^crystaltwob^https://tov.eqresource.com/lifeleech.php
+Life Leech^a hollow carver^tov^crystaltwob^https://tov.eqresource.com/lifeleech.php
+a forgotten raid leader^a forgotten enforcer^tov^greatdividetwo^https://tov.eqresource.com/aforgottenraidleader.php
+Bloodmaw^a frosted kodiak^tov^greatdividetwo^https://tov.eqresource.com/bloodmaw.php
+Laima Ratgur^a frigid coldain^tov^greatdividetwo^https://tov.eqresource.com/laimaratgur.php
+Margidor^a shivering corpse^tov^greatdividetwo^https://tov.eqresource.com/margidor.php
+a tizmak augur^a shivering tizmak^tov^greatdividetwo^https://tov.eqresource.com/atizmakaugur.php
+Gerton Dumkin^a Coldain fighter^tov^greatdividetwo^https://tov.eqresource.com/gertondumkin.php
+Loremaster Metiheib the Lost^a windchilled marrowbones^tov^greatdividetwo^https://tov.eqresource.com/loremastermetiheibthelost.php
+Orfur, Priest of Zek^a shivering screamer^tov^greatdividetwo^https://tov.eqresource.com/orfurpriestofzek.php
+Blizzent^a shivering shardwurm^tov^greatdividetwo^https://tov.eqresource.com/blizzent.php
+Gorul Longshanks^a corrupted giant^tov^greatdividetwo^https://tov.eqresource.com/gorullongshanks.php
+Lost Squire of Narandi^a forgotten enforcer^tov^greatdividetwo^https://tov.eqresource.com/lostsquireofnarandi.php
+Thosgromri Warmgranite^a frigid cadaver^tov^greatdividetwo^https://tov.eqresource.com/thosgromriwarmgranite.php
+Ascendant Svartmane^a restless tutor^tov^frozenshadowtwo^https://tov.eqresource.com/ascendantsvartmane.php
+D`dee the Chilled^a restless mummy^tov^frozenshadowtwo^https://tov.eqresource.com/ddeethechilled.php
+Narmak Berreka^a possessed armor^tov^frozenshadowtwo^https://tov.eqresource.com/narmakberreka.php
+Zorglim the Dead^a disturbed student^tov^frozenshadowtwo^https://tov.eqresource.com/zorglimthedead.php
+a skeleton sleeper^a shadowbone^tov^frozenshadowtwo^https://tov.eqresource.com/askeletonsleeper.php
+Cara Omica^a zombie maid^tov^frozenshadowtwo^https://tov.eqresource.com/caraomica.php
+Deacon Foels Tomorin^a drolvarg guard^tov^frozenshadowtwo^https://tov.eqresource.com/deaconfoelstomorin.php
+Vhal`Sera^a restless spectre^tov^frozenshadowtwo^https://tov.eqresource.com/vhalsera.php
+Amontehepna the Second^a frost mummy^tov^frozenshadowtwo^https://tov.eqresource.com/amontehepnathesecond.php
+Dark Huntress^an undead dancer^tov^frozenshadowtwo^https://tov.eqresource.com/darkhuntress.php
+Dark Huntress^an undead musician^tov^frozenshadowtwo^https://tov.eqresource.com/darkhuntress.php
+Malvus Darque^a shrouded bat^tov^frozenshadowtwo^https://tov.eqresource.com/malvusdarque.php
+Xalgoti^a returned shadow beast^tov^frozenshadowtwo^https://tov.eqresource.com/xalgoti.php
+a restless devourer^a restless spider^tov^velketortwo^https://tov.eqresource.com/arestlessdevourer.php
+an icy torment^a living spire^tov^velketortwo^https://tov.eqresource.com/anicytorment.php
+Marlek Icepaw^an undying kobold^tov^velketortwo^https://tov.eqresource.com/marlekicepaw.php
+Vorgak^a mindless orc^tov^velketortwo^https://tov.eqresource.com/vorgak.php
+a restless tarantula^a wandering arachnid^tov^velketortwo^https://tov.eqresource.com/arestlesstarantula.php
+Bledrek^a living ice construct^tov^velketortwo^https://tov.eqresource.com/bledrek.php
+Neemzaq^a freezing shade^tov^velketortwo^https://tov.eqresource.com/neemzaq.php
+Zarhbub Icepaw^a wandering icepaw^tov^velketortwo^https://tov.eqresource.com/zarhbubicepaw.php
+a velium horror^a glaring gargoyle^tov^velketortwo^https://tov.eqresource.com/aveliumhorror.php
+Kerdelb^a restless ice construct^tov^velketortwo^https://tov.eqresource.com/kerdelb.php
+Qabruh^an icy gargoyle^tov^velketortwo^https://tov.eqresource.com/qabruh.php
+Black Fang^a frost giant gladiator^tov^kaeltwo^https://tov.eqresource.com/blackfang.php
+Fjokar Frozenshard^a storm giant soldier^tov^kaeltwo^https://tov.eqresource.com/fjokarfrozenshard.php
+Keldor Dek`Torek^a storm giant soldiers^tov^kaeltwo^https://tov.eqresource.com/keldordektorek.php
+Vkjen Thunderslayer^a storm giant soldierss^tov^kaeltwo^https://tov.eqresource.com/vkjenthunderslayer.php
+Direfang^a restless direwolf^tov^kaeltwo^https://tov.eqresource.com/direfang.php
+Irrek Bloodfist^a storm giant soldiersss^tov^kaeltwo^https://tov.eqresource.com/irrekbloodfist.php
+Klraggek the Slayer^a storm giant soldierssss^tov^kaeltwo^https://tov.eqresource.com/klraggektheslayer.php
+Drendar Blackblade^a storm giant soldiersssss^tov^kaeltwo^https://tov.eqresource.com/drendarblackblade.php
+Kallis Stormcaller^a storm giant soldierssssss^tov^kaeltwo^https://tov.eqresource.com/kallisstormcaller.php
+Velden Dragonbane^a storm giant soldiersssssss^tov^kaeltwo^https://tov.eqresource.com/kallisstormcaller.php
+Armor of the Dead^a steel hurricane^voa^argath^https://voa.eqresource.com/armorofthedead.php
+Blades of Forgotten Heros^living blades^voa^argath^https://voa.eqresource.com/bladesofforgottenheros.php
+Core of the Mountain^molten steel^voa^argath^https://voa.eqresource.com/coreofthemountain.php
+Gravemaster of the Pillars^a dark spellrazer^voa^argath^https://voa.eqresource.com/gravemasterofthepillars.php
+Interrogator Galectes^a Blade Guide of Erillion^voa^argath^https://voa.eqresource.com/interrogatorgalectes.php
+Keramar the Naeya^an abandoned naeya^voa^argath^https://voa.eqresource.com/keramarthenaeya.php
+Seed of Battle^living steel^voa^argath^https://voa.eqresource.com/seedofbattle.php
+Tactician Krucidon^a Blade Overseer of Erillion^voa^argath^https://voa.eqresource.com/tacticiankrucidon.php
+Bane of Argath^a plated slaughterer^voa^argath^https://voa.eqresource.com/baneofargath.php
+Blademaster of the Order^a Blade Regulant of Erillion^voa^argath^https://voa.eqresource.com/blademasteroftheorder.php
+Emissary Drucifel^a footsoldier of erillion^voa^argath^https://voa.eqresource.com/emissarydrucifel.php
+Husk of Starvation^a hungry thief^voa^argath^https://voa.eqresource.com/huskofstarvation.php
+Kaledor the Tide Turner^a Blade Regulant of Erillion^voa^argath^https://voa.eqresource.com/kaledorthetideturner.php
+Legendary Swords^empowered blades^voa^argath^https://voa.eqresource.com/legendaryswords.php
+Shards of Battle^a steel hurricane^voa^argath^https://voa.eqresource.com/shardsofbattle.php
+The Collector^a greedy looter^voa^argath^https://voa.eqresource.com/thecollector.php
+Breath of Ryken^an exhalation^voa^argath^https://voa.eqresource.com/breathofryken.php
+Burnmaster of the Pillars^a dark deathcaller^voa^argath^https://voa.eqresource.com/burnmasterofthepillars.php
+Felsalath^a wind tamer^voa^argath^https://voa.eqresource.com/felsalath.php
+Illdaeras Tear^molten steel^voa^argath^https://voa.eqresource.com/illdaerastear.php
+Illdaeras Tear^a steel cyclone^voa^argath^https://voa.eqresource.com/illdaerastear.php
+Kalkek^a wind tamer^voa^argath^https://voa.eqresource.com/kalkek.php
+Reviler of Argath^an Argathian defector^voa^argath^https://voa.eqresource.com/revilerofargath.php
+Shieldbearer of the Gods^a plated soldier^voa^argath^https://voa.eqresource.com/shieldbearerofthegods.php
+Vigorous Turncoat^an Argathian traitor^voa^argath^https://voa.eqresource.com/vigorousturncoat.php
+an angry mob leader^a farmer^voa^arelis^https://voa.eqresource.com/anangrymobleader.php
+Hungry Spirit^a farmers^voa^arelis^https://voa.eqresource.com/hungryspirit.php
+Nareneth,the Heart Tree^a mosstrooper^voa^arelis^https://voa.eqresource.com/nareneththehearttree.php
+The Moonflower^a farmerss^voa^arelis^https://voa.eqresource.com/themoonflower.php
+Archon Haerin^a trooper^voa^arelis^https://voa.eqresource.com/archonhaerin.php
+Lancer Archon Gaoril^an impaler^voa^arelis^https://voa.eqresource.com/lancerarchongaoril.php
+Overgrown Dung Beetle^a farmersss^voa^arelis^https://voa.eqresource.com/overgrowndungbeetle.php
+Enraged Fertility Spirit^a farmerssss^voa^arelis^https://voa.eqresource.com/enragedfertilityspirit.php
+Moonshade^a tired farmer^voa^arelis^https://voa.eqresource.com/moonshade.php
+Supply Archon Tergat^a ranger^voa^arelis^https://voa.eqresource.com/supplyarchontergat.php
+Aethra the Mad^a mature oashim^voa^arelis^https://voa.eqresource.com/aethrathemad.php
+Blood-gorged Huntsman^a huntsman^voa^arelis^https://voa.eqresource.com/bloodgorgedhuntsman.php
+Elsha the Mournful^a lingering shade^voa^arelis^https://voa.eqresource.com/elshathemournful.php
+Lor Reega^a nefarious reega^voa^arelis^https://voa.eqresource.com/lorreega.php
+Taer Reega^a nefarious reegas^voa^arelis^https://voa.eqresource.com/taerreega.php
+Urash, Specter of Death^a mature oashims^voa^arelis^https://voa.eqresource.com/urashspecterofdeath.php
+Aggrieved Fertility Spirit^a mature oashimss^voa^arelis^https://voa.eqresource.com/aggrievedfertilityspirit.php
+Bloodborn Spirit^a huntsmans^voa^arelis^https://voa.eqresource.com/bloodbornspirit.php
+Ker Reega^a vile reega^voa^arelis^https://voa.eqresource.com/kerreega.php
+Oashim Progenitor^a mature oashimsss^voa^arelis^https://voa.eqresource.com/oashimprogenitor.php
+The Battlesteel Dead^an oashim^voa^arelis^https://voa.eqresource.com/thebattlesteeldead.php
+Arth, Village Guardian^a wraith of Arelis^voa^arelis^https://voa.eqresource.com/arthvillageguardian.php
+Bloodstalker^a ferocious grendlaen^voa^arelis^https://voa.eqresource.com/bloodstalker.php
+Krongar the Enrager^a rallosian defector^voa^arelis^https://voa.eqresource.com/kongartheenrager.php
+Ranger Archon Daetas^roaming soldier^voa^arelis^https://voa.eqresource.com/rangerarchondaetas.php
+Trooper Archon Feht^trooper^voa^arelis^https://voa.eqresource.com/trooperarchonfeht.php
+Assassin Thale^an Orator's army assassin^voa^sarithcity^https://voa.eqresource.com/assassinthale.php
+Captain Dahlena^an Orator's army commander^voa^sarithcity^https://voa.eqresource.com/captaindahlena.php
+Kaneida^a grizzled war beast^voa^sarithcity^https://voa.eqresource.com/kaneida.php
+Master Trainer Ganelin^an Orator's master beast trainer^voa^sarithcity^https://voa.eqresource.com/mastertrainerganelin.php
+Primal Mage Mollens^an Orator's army primal mage^voa^sarithcity^https://voa.eqresource.com/primalmagemollens.php
+Tactician Perak^an Orator's army strategist^voa^sarithcity^https://voa.eqresource.com/tacticianperak.php
+The Megaladon^a great white shark^voa^sarithcity^https://voa.eqresource.com/themegaladon.php
+Battlemage Resk^an Orator's army archmage^voa^sarithcity^https://voa.eqresource.com/battlemageresk.php
+Dark Mage Naxin^an Orator's army dark mage^voa^sarithcity^https://voa.eqresource.com/darkmagenaxin.php
+Lieutenant Vasko^a Sarith guardsman veteran^voa^sarithcity^https://voa.eqresource.com/lieutenantvasko.php
+Ocean Mage Rettun^an Orator's army nature mage^voa^sarithcity^https://voa.eqresource.com/oceanmagerettun.php
+Sariths Guardian^a sarith tidal guardian^voa^sarithcity^https://voa.eqresource.com/sarithsguardian.php
+The Giant Crab^a king crab^voa^sarithcity^https://voa.eqresource.com/thegiantcrab.php
+Tidalmage Narens^a Sarith tidalmage master^voa^sarithcity^https://voa.eqresource.com/tidalmagenarens.php
+Bishop Kyzer^an Orator's army bishop^voa^sarithcity^https://voa.eqresource.com/bishopkyzer.php
+Death Knight Sharris^an Orator's army death knight^voa^sarithcity^https://voa.eqresource.com/deathknightsharris.php
+Life Knight Jasul^an Orator's army life knight^voa^sarithcity^https://voa.eqresource.com/lifeknightjasul.php
+Osekas Chosen Ikallis^an Oseka's Chosen defender^voa^sarithcity^https://voa.eqresource.com/osekaschosenikallis.php
+Sea Ranger Huren^an Orator's army ranger^voa^sarithcity^https://voa.eqresource.com/searangerhuren.php
+The Kraken^a large squid^voa^sarithcity^https://voa.eqresource.com/thekraken.php
+Curate Zlinair^a priest^voa^rubak^https://voa.eqresource.com/curatezlinair.php
+Sacred Ophidian^a coral snake^voa^rubak^https://voa.eqresource.com/sacredophidian.php
+Tiuanid the Faithful^a priests^voa^rubak^https://voa.eqresource.com/tiuanidthefaithful.php
+Evangelizer Runarn^an acolyte^voa^rubak^https://voa.eqresource.com/evangelizerrunarn.php
+Slorn the Holy^an zealot^voa^rubak^https://voa.eqresource.com/slorntheholy.php
+Zealot of Oseka^an zealots^voa^rubak^https://voa.eqresource.com/zealotofoseka.php
+Holy Ophidian^a coral snakes^voa^rubak^https://voa.eqresource.com/holyophidian.php
+Templar Razkin^an acolytes^voa^rubak^https://voa.eqresource.com/templarrazkin.php
+A Twisted Strangler^an okiina vinethrasher^voa^beastdomain^https://voa.eqresource.com/atwistedstrangler.php
+Bonecracker^a goral leafstalker^voa^beastdomain^https://voa.eqresource.com/bonecracker.php
+Deathglider^a monstrious wyvern^voa^beastdomain^https://voa.eqresource.com/deathglider.php
+Elder Gotikan^a domain hunter^voa^beastdomain^https://voa.eqresource.com/eldergotikan.php
+King Rex^a giant binaesa^voa^beastdomain^https://voa.eqresource.com/kingrex.php
+Nightleaper^a goral hunter^voa^beastdomain^https://voa.eqresource.com/nightleaper.php
+Stonebark^a braxi swiftrunner^voa^beastdomain^https://voa.eqresource.com/stonebark.php
+Tangledeath^an okiina vinethrasher^voa^beastdomain^https://voa.eqresource.com/tangledeath.php
+Willowcrush^an izon rootgrabber^voa^beastdomain^https://voa.eqresource.com/willowcrush.php
+An Ancient Selyrah^a braxi fungus seeker^voa^beastdomain^https://voa.eqresource.com/anancientselyrah.php
+Bonecruncher^a grendlaen pouncer^voa^beastdomain^https://voa.eqresource.com/bonecruncher.php
+Deathleaper^a rampaging wyvern^voa^beastdomain^https://voa.eqresource.com/deathleaper.php
+Jorth Hunter of Beasts^a domain hunters^voa^beastdomain^https://voa.eqresource.com/jorthhunterofbeasts.php
+Maw Lurker^a lashtail crocodile^voa^beastdomain^https://voa.eqresource.com/mawlurker.php
+Ribcrusher^a stealthy grendlaen^voa^beastdomain^https://voa.eqresource.com/ribcrusher.php
+Stranglefang^a terrible raptor^voa^beastdomain^https://voa.eqresource.com/stranglefang.php
+Thundercut^a braxi^voa^beastdomain^https://voa.eqresource.com/thundercut.php
+Blightwing^a ravenous wyvern^voa^beastdomain^https://voa.eqresource.com/blightwing.php
+Bopo^a loathsome ape^voa^beastdomain^https://voa.eqresource.com/bopo.php
+Deathsquirm^a fierce wyvern^voa^beastdomain^https://voa.eqresource.com/deathsquirm.php
+Karn the Hunter^an alaran wilder^voa^beastdomain^https://voa.eqresource.com/karnthehunter.php
+Nighthowl^a naeya scavenger^voa^beastdomain^https://voa.eqresource.com/nighthowl.php
+Slaughter^an izon^voa^beastdomain^https://voa.eqresource.com/slaughter.php
+Swiftwind^a bloodthirsty wyvern^voa^beastdomain^https://voa.eqresource.com/swiftwind.php
+Thunderpunch^a filthy ape^voa^beastdomain^https://voa.eqresource.com/thunderpunch.php
+A Prismatic Selyrah^a colorful selyrah^voa^resplendent^https://voa.eqresource.com/aprismaticselyrah.php
+Ambassador Khorin^a nitore liason^voa^resplendent^https://voa.eqresource.com/ambassadorkhorin.php
+Arms Master Hegul^an armed guard^voa^resplendent^https://voa.eqresource.com/armsmasterhegul.php
+Cijerst, Lord of Decay^a filthy swinetor^voa^resplendent^https://voa.eqresource.com/cijerstlordofdecay.php
+Groundskeeper Areut^a groundskeeper^voa^resplendent^https://voa.eqresource.com/groundskeeperareut.php
+Hiqork the Putrid^a putrid swinetor^voa^resplendent^https://voa.eqresource.com/hiqorktheputrid.php
+Larsena the Lunatic^a nitore worshipper^voa^resplendent^https://voa.eqresource.com/larsenathelunatic.php
+Summoner Sirqo^a swinetor summoner^voa^resplendent^https://voa.eqresource.com/summonersirqo.php
+Ungimar^a hostile goral^voa^resplendent^https://voa.eqresource.com/ungimar.php
+Advisor Enaris^a temple aide^voa^resplendent^https://voa.eqresource.com/advisorenaris.php
+An Animated Servant^an animated corpse^voa^resplendent^https://voa.eqresource.com/ananimatedservant.php
+Chancellor Mardis^a nitore apprentice^voa^resplendent^https://voa.eqresource.com/chancellormardis.php
+Gisette^a grazing braxi^voa^resplendent^https://voa.eqresource.com/gisette.php
+High Guard Alsera^a nitore watcher^voa^resplendent^https://voa.eqresource.com/highguardalsera.php
+King Piqiorn^an Ulork noble^voa^resplendent^https://voa.eqresource.com/kingpiqiorn.php
+Miggles^a tame goral^voa^resplendent^https://voa.eqresource.com/miggles.php
+The Rat Queen^a diseased rat^voa^resplendent^https://voa.eqresource.com/theratqueen.php
+Afton the Cleanser^a nitore cleanser^voa^resplendent^https://voa.eqresource.com/aftonthecleanser.php
+An Ivory Serpent^an albino serpent^voa^resplendent^https://voa.eqresource.com/anivoryserpent.php
+Chief Recruiter Joceil^a Nitore neophyte^voa^resplendent^https://voa.eqresource.com/chiefrecruiterjoceil.php
+Grimlop^a diseased hopper^voa^resplendent^https://voa.eqresource.com/grimlop.php
+High Priest Nelori^a nitore priest^voa^resplendent^https://voa.eqresource.com/highpriestnelori.php
+King Zarq^a piq`a noble^voa^resplendent^https://voa.eqresource.com/kingzarq.php
+Pledgemaster Oeslik^a devoted pledge^voa^resplendent^https://voa.eqresource.com/pledgemasteroeslik.php
+The Slothlord^a sloth cube^voa^resplendent^https://voa.eqresource.com/theslothlord.php
+A Fleetfooted Braxi^a haze jumper^voa^windsong^https://voa.eqresource.com/afleetfootedbraxi.php
+Saduulj Tsepir^a soundless devotee^voa^windsong^https://voa.eqresource.com/saduuljtsepir.php
+The Forlorn Drummer^a soundless devotees^voa^windsong^https://voa.eqresource.com/theforlorndrummer.php
+Unvoiced Brute^a silent guardian^voa^windsong^https://voa.eqresource.com/unvoicedbrute.php
+Breezeglider^a fluttering kangon^voa^windsong^https://voa.eqresource.com/breezeglider.php
+Stormcaller^a haze jumper^voa^windsong^https://voa.eqresource.com/stormcaller.php
+The Hornmaster^a soundless devotee^voa^windsong^https://voa.eqresource.com/thehornmaster.php
+Riffmaz the Flute Master^a soundless devotees^voa^windsong^https://voa.eqresource.com/riffmaztheflutemaster.php
+The Conductor^a soundless devoteess^voa^windsong^https://voa.eqresource.com/theconductor.php
+The Windrunner^a fluttering kangons^voa^windsong^https://voa.eqresource.com/thewindrunner.php
+an unusual creature^a selyrah plainsfeeder^voa^pillarsalra^https://voa.eqresource.com/anunusualcreature.php
+Ivrikdal the Infuser^a shadow harvester^voa^pillarsalra^https://voa.eqresource.com/ivrikdaltheinfuser.php
+Peacekeeper of Anriella^a quiet naturetender^voa^pillarsalra^https://voa.eqresource.com/peacekeeperofanriella.php
+Peacekeeper of Melretia^a verdantguard reflector^voa^pillarsalra^https://voa.eqresource.com/peacekeeperofmelretia.php
+Tonmek the Mind-Drainer^a mana harvester^voa^pillarsalra^https://voa.eqresource.com/tonmektheminddrainer.php
+VakRidel the Shadowcaller^a verdantguard trainee^voa^pillarsalra^https://voa.eqresource.com/vakrideltheshadowcaller.php
+Cysivir the Constructor^an essence keeper^voa^pillarsalra^https://voa.eqresource.com/cysivirtheconstructor.php
+Korellister the Stoic^ardent scholar^voa^pillarsalra^https://voa.eqresource.com/korellisterthestoic.php
+Korellister the Stoic^a student of Erion^voa^pillarsalra^https://voa.eqresource.com/korellisterthestoic.php
+Peacekeeper of Erion^a verdantguard squire^voa^pillarsalra^https://voa.eqresource.com/peacekeeperoferion.php
+Soliadal the Timid^a manatender^voa^pillarsalra^https://voa.eqresource.com/soliadalthetimid.php
+Tsianvar the Studious^a pensive scholar^voa^pillarsalra^https://voa.eqresource.com/tsianvarthestudious.php
+Varinyr the Construct of Life^a greater life-essence^voa^pillarsalra^https://voa.eqresource.com/varinyrtheconstructoflife.php
+II`Valrikar the Purifier^an essence purifier^voa^pillarsalra^https://voa.eqresource.com/ilvalrikarthepurifier.php
+Opholonas the Harvester^a light harvester^voa^pillarsalra^https://voa.eqresource.com/orpholonastheharvester.php
+Peacekeeper of Fal`Kaa^a verdantguard novice^voa^pillarsalra^https://voa.eqresource.com/peacekeeperoffalkaa.php
+The Utlen Depthkeeper^an ut`len flaremind^voa^pillarsalra^https://voa.eqresource.com/theutlendepthkeeper.php
+VDralk the Construct of Shade^a greater blistering shade^voa^pillarsalra^https://voa.eqresource.com/vdralktheconstructofshade.php
+Wreliard the Arctender^an arcane essencegazer^voa^pillarsalra^https://voa.eqresource.com/wreliardthearctender.php
+A Rabid Selyrah^a wild selyrah^voa^cityofbronze^https://voa.eqresource.com/arabidselyrah.php
+Archon Norandi^an archon^voa^cityofbronze^https://voa.eqresource.com/archonnorandi.php
+Carnifex Korum^a carnifex^voa^cityofbronze^https://voa.eqresource.com/carnifexkorum.php
+Citizen Silaindi^an honest citizen^voa^cityofbronze^https://voa.eqresource.com/citizensilaindi.php
+Fuandir the Master Potter^a potter^voa^cityofbronze^https://voa.eqresource.com/fuandirthemasterpotter.php
+Guard Tulzix^a guard^voa^cityofbronze^https://voa.eqresource.com/guardtulzix.php
+A Raging Braxi^a wild braxi^voa^cityofbronze^https://voa.eqresource.com/aragingbraxi.php
+Blacksmith Julandi^an industrious blacksmith^voa^cityofbronze^https://voa.eqresource.com/blacksmithjulandi.php
+Citizen Jlane^a citizen^voa^cityofbronze^https://voa.eqresource.com/citizenjlane.php
+Cook Goranan^a cook^voa^cityofbronze^https://voa.eqresource.com/cookgoranan.php
+Cook Goranan^a busy cook^voa^cityofbronze^https://voa.eqresource.com/cookgoranan.php
+Cook Goranan^a tired cook^voa^cityofbronze^https://voa.eqresource.com/cookgoranan.php
+Guard Horlian^a guards^voa^cityofbronze^https://voa.eqresource.com/guardhorlian.php
+Guggles^a diseased oashim^voa^cityofbronze^https://voa.eqresource.com/guggles.php
+Archon Kinafu^an archons^voa^cityofbronze^https://voa.eqresource.com/archonkinafu.php
+Bloodclaw^a feral grendlaen^voa^cityofbronze^https://voa.eqresource.com/bloodclaw.php
+Citizen Julazir^a faithful citizen^voa^cityofbronze^https://voa.eqresource.com/citizenjulazir.php
+Deathsqueak^a diseased oashim^voa^cityofbronze^https://voa.eqresource.com/deathsqueak.php
+Guard Tuankod^a dutiful guard^voa^cityofbronze^https://voa.eqresource.com/guardtuankod.php
+The Record Master^a record keepe^voa^cityofbronze^https://voa.eqresource.com/therecordmaster.php
+Agralta^thelara alsa ril of Alra^voa^sepulcher^https://voa.eqresource.com/agralta.php
+Champion of the Triumvirate^a protector of alsa thel^voa^sepulcher^https://voa.eqresource.com/championofthetriumvirate.php
+Excrucidator^brutalizer of alsa thelara^voa^sepulcher^https://voa.eqresource.com/excrucidator.php
+Primordial Steel^a zephyr of steel^voa^sepulcher^https://voa.eqresource.com/primordialsteel.php
+Tendros^a dense mound^voa^sepulcher^https://voa.eqresource.com/tendros.php
+Alsara the Ansel Ereth^a departed thelasa^voa^sepulcher^https://voa.eqresource.com/alsaratheanselereth.php
+Clampgrit^a starving raptor^voa^sepulcher^https://voa.eqresource.com/clampgrit.php
+Gleaming Tricor^a sublime tricrystal^voa^sepulcher^https://voa.eqresource.com/gleamingtricor.php
+Spernal^a wind liege^voa^sepulcher^https://voa.eqresource.com/spernal.php
+The Dark^an aspect of darkness^voa^sepulcher^https://voa.eqresource.com/thedark.php
+Bonemeal^a denuded ser thel^voa^sepulcher^https://voa.eqresource.com/bonemeal.php
+Eldanum of the Ser Alsa^an ereth of law^voa^sepulcher^https://voa.eqresource.com/eldanumoftheseralsa.php
+Paleodontis^a fortified tideshell^voa^sepulcher^https://voa.eqresource.com/paleodontis.php
+Tegleth^a blade mentor of alsa thelara^voa^sepulcher^https://voa.eqresource.com/tegleth.php
+The Exalted Ser Alsa Thel^an ascended ser alsa thel^voa^sepulcher^https://voa.eqresource.com/theexaltedseralsathel.php
+Blackbone^a bloodbathed skeleton^hot^feerrott2^https://hot.eqresource.com/blackbone.php
+Blackbone^a bloodbone skeleton^hot^feerrott2^https://hot.eqresource.com/blackbone.php
+Donna the Explorer^a waterlogged explorer^hot^feerrott2^https://hot.eqresource.com/donnatheexplorer.php
+Fearful Specter^a bloodbone lich^hot^feerrott2^https://hot.eqresource.com/fearfulspecter.php
+Fearful Specter^a lingering revenant^hot^feerrott2^https://hot.eqresource.com/fearfulspecter.php
+The Leaper^a stalking crawler^hot^feerrott2^https://hot.eqresource.com/theleaper.php
+Sable^a sinuous adder^hot^feerrott2^https://hot.eqresource.com/sable.php
+Tanglewolf Alpha^a tanglewolf hunter^hot^feerrott2^https://hot.eqresource.com/tanglewolfalpha.php
+Vermillion^a deadly viper^hot^feerrott2^https://hot.eqresource.com/vermillion.php
+Whitepaw^a tanglefang huntress^hot^feerrott2^https://hot.eqresource.com/whitepaw.php
+Bouncer Captain Grak^Bouncer Flerb^hot^feerrott2^https://hot.eqresource.com/bouncercaptaingrak.php
+Bouncer Captain Grak^Bouncer Hurd^hot^feerrott2^https://hot.eqresource.com/bouncercaptaingrak.php
+Enraged Gorilla Patriarch^an angry gorilla patriarch^hot^feerrott2^https://hot.eqresource.com/enragedgorillapatriarch.php
+Festerback^a decaying gorilla^hot^feerrott2^https://hot.eqresource.com/festerback.php
+Malice^a corrupt orbweaver^hot^feerrott2^https://hot.eqresource.com/malice.php
+Sentinel Quilaztli^a frenzied Tae Ew^hot^feerrott2^https://hot.eqresource.com/sentinelquilaztli.php
+Temilotzin the Zealot^a Tae Ew devotee^hot^feerrott2^https://hot.eqresource.com/temilotzinthezealot.php
+Voracious Feeder^a frenzied feeder^hot^feerrott2^https://hot.eqresource.com/voraciousfeeder.php
+Xiucozcatl the Feared^a bloody Tae Ew ritualist^hot^feerrott2^https://hot.eqresource.com/xiucozcatlthefeared.php
+Diggory the Traveler^a deceased traveler^hot^feerrott2^https://hot.eqresource.com/diggorythetraveler.php
+Expedition Leader Krupp^a restless spirit^hot^feerrott2^https://hot.eqresource.com/expeditionleaderkrupp.php
+Huetzin the Brute^a lizardman thug^hot^feerrott2^https://hot.eqresource.com/huetzinthebrute.php
+Patches^a ravenous rotdog^hot^feerrott2^https://hot.eqresource.com/patches.php
+Shaman Ixchell^a lizardman visionary^hot^feerrott2^https://hot.eqresource.com/shamanixchell.php
+Terror Unleashed^a frightful spirit^hot^feerrott2^https://hot.eqresource.com/terrorunleashed.php
+Watcher Yaotl^a lizardman watcher^hot^feerrott2^https://hot.eqresource.com/watcheryaotl.php
+Bonecracker^a frightening skeleton^hot^thulehouse1^https://hot.eqresource.com/bonecracker.php
+Dreamslayer^a dreadful bone golem^hot^thulehouse1^https://hot.eqresource.com/dreamslayer.php
+Fearhowler^a rotdog fearfinder^hot^thulehouse1^https://hot.eqresource.com/fearhowler.php
+Gibbering Haunt^a frightening skeleton^hot^thulehouse1^https://hot.eqresource.com/gibberinghaunt.php
+Isabeaux Darkdreamer^a vile bone crafter^hot^thulehouse1^https://hot.eqresource.com/isabeauxdarkdreamer.php
+Nightscale^a worrisome snake^hot^thulehouse1^https://hot.eqresource.com/nightscale.php
+Sleepeater^a sleepeating cube^hot^thulehouse1^https://hot.eqresource.com/sleepeater.php
+Darnor the Terror Lord^a vile bone crafter^hot^thulehouse1^https://hot.eqresource.com/darnortheterrorlord.php
+The Executioner^a horror guard^hot^thulehouse1^https://hot.eqresource.com/theexecutioner.php
+Fearsniffer^a rotdog fearstalker^hot^thulehouse1^https://hot.eqresource.com/fearsniffer.php
+Giblets^a rotdog fearsniffer^hot^thulehouse1^https://hot.eqresource.com/giblets.php
+Nightmare Golem^a frightful bone golem^hot^thulehouse1^https://hot.eqresource.com/nightmaregolem.php
+Old Rusty^a fright guard^hot^thulehouse1^https://hot.eqresource.com/oldrusty.php
+Dreameater^a shivering haunt^hot^thulehouse1^https://hot.eqresource.com/dreameater.php
+Executioner Brand^a terror guard^hot^thulehouse1^https://hot.eqresource.com/executionerbrand.php
+Ganborn^a frightening skeleton^hot^thulehouse1^https://hot.eqresource.com/ganborn.php
+Gristle^a rotdog fearsmeller^hot^thulehouse1^https://hot.eqresource.com/gristle.php
+Nightmare Widow^a fright spinner^hot^thulehouse1^https://hot.eqresource.com/nightmarewidow.php
+Archivist Herrdar^a languid poetry teacher^hot^thulelibrary^https://hot.eqresource.com/archivistherrdar.php
+Compendium of Nightmares^an unusual tome^hot^thulelibrary^https://hot.eqresource.com/compendiumofnightmares.php
+Professor Glumb^a lonely librarian^hot^thulelibrary^https://hot.eqresource.com/professorglumb.php
+Ardull the Watcher^an ethereal watcher^hot^thulelibrary^https://hot.eqresource.com/ardullthewatcher.php
+Curator Majda^a curious custodian^hot^thulelibrary^https://hot.eqresource.com/curatormajda.php
+Tome of the Fallen^a dusty codex^hot^thulelibrary^https://hot.eqresource.com/tomeofthefallen.php
+Chronicler Cerro^a corporeal scholarly researcher^hot^thulelibrary^https://hot.eqresource.com/chroniclercerro.php
+Head Librarian Matilda^a dutiful librarian^hot^thulelibrary^https://hot.eqresource.com/headlibrarianmatilda.php
+Agraena^a forlorn bone golem^hot^breedinggrounds^https://hot.eqresource.com/agraena.php
+Arenrhaed^a forlorn bone golems^hot^breedinggrounds^https://hot.eqresource.com/arenrhaed.php
+Chaotic Heap^a petulant heap^hot^breedinggrounds^https://hot.eqresource.com/chaoticheap.php
+Distraught Heap^a petulant heaps^hot^breedinggrounds^https://hot.eqresource.com/distraughtheap.php
+Kijaemz^a bitter treant^hot^breedinggrounds^https://hot.eqresource.com/kijaemz.php
+Pelias^a disgruntled aquadervish^hot^breedinggrounds^https://hot.eqresource.com/pelias.php
+Riggbit^a wicked thornfrog^hot^breedinggrounds^https://hot.eqresource.com/riggbit.php
+Vile Wasp^a truculent wasp^hot^breedinggrounds^https://hot.eqresource.com/vilewasp.php
+Andrevas^an obedient servant^hot^breedinggrounds^https://hot.eqresource.com/andrevas.php
+Beget Cube^a mad mulch cube^hot^breedinggrounds^https://hot.eqresource.com/begetcube.php
+Compost Cube^a mad mulch cubes^hot^breedinggrounds^https://hot.eqresource.com/compostcube.php
+Grigoran^an obedient servant^hot^breedinggrounds^https://hot.eqresource.com/grigoran.php
+Minadra^a bixie guard^hot^breedinggrounds^https://hot.eqresource.com/minadra.php
+Raze^a mangy rotdog^hot^breedinggrounds^https://hot.eqresource.com/raze.php
+Slynassin^an aggresive snake^hot^breedinggrounds^https://hot.eqresource.com/slynassin.php
+Vicious Gourd^a putrified peponnite^hot^breedinggrounds^https://hot.eqresource.com/visciousgourd.php
+Angry Wasp^a truculent wasp^hot^breedinggrounds^https://hot.eqresource.com/angrywasp.php
+Biunahde^a bitter treant^hot^breedinggrounds^https://hot.eqresource.com/biunahde.php
+Croakem^a wicked thornfrogs^hot^breedinggrounds^https://hot.eqresource.com/croakem.php
+Helias^a disgruntled aquadervish^hot^breedinggrounds^https://hot.eqresource.com/helias.php
+Patch Guardian^a putrified peponnite^hot^breedinggrounds^https://hot.eqresource.com/patchguardian.php
+Rend^a mangy rotdog^hot^breedinggrounds^https://hot.eqresource.com/rend.php
+Venilinam^an aggresive snake^hot^breedinggrounds^https://hot.eqresource.com/venilinam.php
+Zonoraz^a bixie guard^hot^breedinggrounds^https://hot.eqresource.com/zonoraz.php
+Death Stinger^a feldark scorpion^hot^well^https://hot.eqresource.com/deathstinger.php
+Death Spider^a feldark spider^hot^well^https://hot.eqresource.com/deathspider.php
+Doom Snake^a bold cave viper^hot^well^https://hot.eqresource.com/doomsnake.php
+Algot the Deathshaper^a heretic death dabbler^hot^fallen^https://hot.eqresource.com/algotthedeathshaper.php
+Femurstack^a bone golem terrorizer^hot^fallen^https://hot.eqresource.com/femurstack.php
+Femurstack^golem horror^hot^fallen^https://hot.eqresource.com/femurstack.php
+Femurstack^a bone golem tormentor^hot^fallen^https://hot.eqresource.com/femurstack.php
+Kanah the Heartslicer^a heretic brute^hot^fallen^https://hot.eqresource.com/kanahtheheartslicer.php
+Vindel the Ripper^a Terris-Thule apostle^hot^fallen^https://hot.eqresource.com/vindeltheripper.php
+Brutus^a ravenous dock rat^hot^fallen^https://hot.eqresource.com/brutus.php
+Garnak Pryphan^a heretic brutes^hot^fallen^https://hot.eqresource.com/garnakpryphan.php
+Garnak Pryphan^heretic fell warden^hot^fallen^https://hot.eqresource.com/garnakpryphan.php
+Maggotscalp^a skeleton sentry^hot^fallen^https://hot.eqresource.com/maggotscalp.php
+Damar the Overseer^a heretic ravager^hot^fallen^https://hot.eqresource.com/damartheoverseer.php
+Handar Prentius^a Terris Thule apostle^hot^fallen^https://hot.eqresource.com/handarprentius.php
+The Tome-Eater^a burning tome whirlwind^hot^fallen^https://hot.eqresource.com/thetomeeater.php
+Bloodmane^a dripping blood elemental^hot^thulehouse2^https://hot.eqresource.com/bloodmane.php
+Icy Devourer^an icy ooze^hot^thulehouse2^https://hot.eqresource.com/icydevourer.php
+Spitecrawler^a nightmarish centipede^hot^thulehouse2^https://hot.eqresource.com/spitecrawler.php
+Bodabas^a bloodthirsty beast^hot^thulehouse2^https://hot.eqresource.com/bodabas.php
+Nightfang^a funnelweb leaper^hot^thulehouse2^https://hot.eqresource.com/nightfang.php
+Swirling Fog Elemental^a drifting fog elemental^hot^thulehouse2^https://hot.eqresource.com/swirlingfogelemental.php
+Icefang^a hungry beast^hot^thulehouse2^https://hot.eqresource.com/icefang.php
+Rotticus^a filthy rotdog^hot^thulehouse2^https://hot.eqresource.com/rotticus.php
+a berserk mammoth^an enraged mammoth^hot^alkabormare^https://hot.eqresource.com/aberserkmammoth.php
+a drolvarg captain^a drolvarg lieutenant^hot^alkabormare^https://hot.eqresource.com/adrolvargcaptain.php
+Graster^a snow orc scout^hot^alkabormare^https://hot.eqresource.com/graster.php
+Mooto^a Runnyeye thief^hot^alkabormare^https://hot.eqresource.com/mooto.php
+Princess Klaknak^a klaknak guard^hot^alkabormare^https://hot.eqresource.com/princessklaknak.php
+Zyren Shadowriver^a wood elf warden^hot^alkabormare^https://hot.eqresource.com/zyrenshadowriver.php
+a drachnid bloodknight^a drachnid knight^hot^alkabormare^https://hot.eqresource.com/adrachnidbloodknight.php
+Emperor Crush^a crushbone strategist^hot^alkabormare^https://hot.eqresource.com/emperorcrush.php
+Heartwood Master^a wood elf seer^hot^alkabormare^https://hot.eqresource.com/heartwoodmaster.php
+a mountain giant patriarch^an angry mountain giant^hot^alkabormare^https://hot.eqresource.com/amountaingiantpatriarch.php
+Queen Klaknak^a klaknak guard^hot^alkabormare^https://hot.eqresource.com/queenklaknak.php
+Drenz^an ice goblin raider^hot^alkabormare^https://hot.eqresource.com/drenz.php
+General Jyleel^a high elf sentry^hot^alkabormare^https://hot.eqresource.com/generaljyleel.php
+Jenni Hollowfield^a halfling guard^hot^alkabormare^https://hot.eqresource.com/jennihollowfield.php
+Plaguebone Overlord^a lurid plaguebone^hot^alkabormare^https://hot.eqresource.com/plagueboneoverlord.php
+Winfrey the Mad^a crazed halfling^hot^alkabormare^https://hot.eqresource.com/winfreythemad.php
+Bloodfeather^a darkshadow raven^hot^miragulmare^https://hot.eqresource.com/bloodfeather.php
+Gilibus the Unseen^an unseen warrior^hot^miragulmare^https://hot.eqresource.com/gilibustheunseen.php
+Sotor the Unmerciful^a shadowed golem^hot^miragulmare^https://hot.eqresource.com/sotortheunmerciful.php
+Fearstalker^a mournful shade^hot^miragulmare^https://hot.eqresource.com/fearstalker.php
+Iglum the Deformed^a darkbone golem^hot^miragulmare^https://hot.eqresource.com/iglumthedeformed.php
+Soul Taster^a silent shadow^hot^miragulmare^https://hot.eqresource.com/soultaster.php
+Foeslicer^an ancient guardian^hot^miragulmare^https://hot.eqresource.com/foeslicer.php
+Shadowlord Gixblat^a darkshadow mephit^hot^miragulmare^https://hot.eqresource.com/shadowlordgixblat.php
+Ancient Dracoliche^a shadowed wraith^hot^thuledream^https://hot.eqresource.com/ancientdracoliche.php
+Ancient Dracoliche^a shadowed phantasm^hot^thuledream^https://hot.eqresource.com/ancientdracoliche.php
+Ancient Dracoliche^a shadowed fiend^hot^thuledream^https://hot.eqresource.com/ancientdracoliche.php
+Ancient Dracoliche^a shadowed bleeder^hot^thuledream^https://hot.eqresource.com/ancientdracoliche.php
+Deranged Toad^a decrepit toad^hot^thuledream^https://hot.eqresource.com/derangedtoad.php
+Engorged Spinechiller^a spinechiller widow^hot^thuledream^https://hot.eqresource.com/engorgedspinechiller.php
+Giant Phoboplasm^a curious phoboplasm^hot^thuledream^https://hot.eqresource.com/giantphoboplasm.php
+Iron Fist^an enraged frightfinger^hot^thuledream^https://hot.eqresource.com/ironfist.php
+Mindleech^a mindless bleeder^hot^thuledream^https://hot.eqresource.com/mindleech.php
+Possessed Samhain^a delirious samhain^hot^thuledream^https://hot.eqresource.com/possessedsamhain.php
+Tempest Reaver^a delirious samhains^hot^thuledream^https://hot.eqresource.com/tempestreaver.php
+Undaleen^an amygdalan guard^hot^thuledream^https://hot.eqresource.com/undaleen.php
+Zykean^an enraged glarelord^hot^thuledream^https://hot.eqresource.com/zykean.php
+Argendev^an amygdalan guards^hot^thuledream^https://hot.eqresource.com/argendev.php
+Dread^an amygdalan soldier^hot^thuledream^https://hot.eqresource.com/dread.php
+Essence of Terror^a terror wraith^hot^thuledream^https://hot.eqresource.com/essenceofterror.php
+Irak Altil^a putrid fiend^hot^thuledream^https://hot.eqresource.com/irakaltil.php
+Katerra the Anguished^an anguished fiend^hot^thuledream^https://hot.eqresource.com/katerratheanguished.php
+Nightmare of Thule^a fearful nightmare^hot^thuledream^https://hot.eqresource.com/nightmareofthule.php
+Rerekalen^an amygdalan guardss^hot^thuledream^https://hot.eqresource.com/rerekalen.php
+Terror^an amygdalan soldiers^hot^thuledream^https://hot.eqresource.com/terror.php
+Undead Shiverback^an enraged shiverback^hot^thuledream^https://hot.eqresource.com/undeadshiverback.php
+Decrepit Warder^a decrepit toad^hot^thuledream^https://hot.eqresource.com/decrepitwarder.php
+Dyalgem^an amygdalan guardsss^hot^thuledream^https://hot.eqresource.com/dyalgem.php
+Fright^an amygdalan soldierss^hot^thuledream^https://hot.eqresource.com/fright.php
+Ireblind Imp^an enraged scareling^hot^thuledream^https://hot.eqresource.com/ireblindimp.php
+Mastelyn^an amygdalan guardssss^hot^thuledream^https://hot.eqresource.com/mastelyn.php
+Odium^a boogeyman lurker^hot^thuledream^https://hot.eqresource.com/odium.php
+Shakare^a bitter gorgon^hot^thuledream^https://hot.eqresource.com/shakare.php
+Twisted Tormentor^a vile tormentor^hot^thuledream^https://hot.eqresource.com/twistedtormentor.php
+Wraith of a Shissar^a bitter gorgons^hot^thuledream^https://hot.eqresource.com/wraithofashissar.php
+Bielaisk^a shellscale guard^hot^morellcastle^https://hot.eqresource.com/bielaisk.php
+The Constructor^an idle hand^hot^morellcastle^https://hot.eqresource.com/theconstructor.php
+Esmeralda the Vengeful^a vengeful marauder^hot^morellcastle^https://hot.eqresource.com/esmeraldathevengeful.php
+Gezriela^a decrepit confectioner^hot^morellcastle^https://hot.eqresource.com/gezriela.php
+Guardian Ather^a dutiful defender^hot^morellcastle^https://hot.eqresource.com/guardianather.php
+Omander the Devoted^a devoted guard^hot^morellcastle^https://hot.eqresource.com/omanderthedevoted.php
+Redmur the Dreamlancer^an enraged sandman^hot^morellcastle^https://hot.eqresource.com/redmurthedreamlancer.php
+Songstress Laioni^a singing siren^hot^morellcastle^https://hot.eqresource.com/songstresslaioni.php
+Zerkelos the Damned^a dream devourer^hot^morellcastle^https://hot.eqresource.com/zerkelosthedamned.php
+Bishop the Scorned^a scorned marauder^hot^morellcastle^https://hot.eqresource.com/bishopthescorned.php
+Daelai^an enchanted mare^hot^morellcastle^https://hot.eqresource.com/daelai.php
+Feral Jackrabbit^a rabid rabbit^hot^morellcastle^https://hot.eqresource.com/feraljackrabbit.php
+Gnarlvine^a tangled hedgewalker^hot^morellcastle^https://hot.eqresource.com/gnarlvine.php
+Hans^a crazed candy hoarder^hot^morellcastle^https://hot.eqresource.com/hans.php
+Oruff the Seer^a forest protector^hot^morellcastle^https://hot.eqresource.com/orufftheseer.php
+Seawitch Persion^a seawitch^hot^morellcastle^https://hot.eqresource.com/seawitchpersion.php
+Speckles^a speckled hare^hot^morellcastle^https://hot.eqresource.com/speckles.php
+Chief Maeder^a hoofed guardian^hot^morellcastle^https://hot.eqresource.com/chiefmaeder.php
+Dreamweaver^a dream drake^hot^morellcastle^https://hot.eqresource.com/dreamweaver.php
+Forest Phantasm^a night terror^hot^morellcastle^https://hot.eqresource.com/forestphantasm.php
+Greeta^a crazed candy hoarders^hot^morellcastle^https://hot.eqresource.com/greeta.php
+Nesseun^a water serpent^hot^morellcastle^https://hot.eqresource.com/nesseun.php
+The Puppeteer^a marionette^hot^morellcastle^https://hot.eqresource.com/thepuppeteer.php
+Silbacle^a shellscale guard^hot^morellcastle^https://hot.eqresource.com/silbacle.php
+Wisp of Hope^a daydream^hot^morellcastle^https://hot.eqresource.com/wispofhope.php
+a bladedancer guardian^a master guardian^hot^somnium^https://hot.eqresource.com/abladedancerguardian.php
+a giant warlord^a giant warrior veteran^hot^somnium^https://hot.eqresource.com/agiantwarlord.php
+a psychotic leprechaun^a strange leprechaun^hot^somnium^https://hot.eqresource.com/apsychoticleprechaun.php
+a soulmage servant^a personal servant^hot^somnium^https://hot.eqresource.com/asoulmageservant.php
+an arcane warden^a tower warden sergeant^hot^somnium^https://hot.eqresource.com/anarcanewarden.php
+Archmagus Nesalie^a royal archmage^hot^somnium^https://hot.eqresource.com/archmagusnesalie.php
+Dream Destroyer^a dream shade figment^hot^somnium^https://hot.eqresource.com/dreamdestroyer.php
+High Priest Darsia^a royal high priest^hot^somnium^https://hot.eqresource.com/highpriestdarsia.php
+Larrow the Demented^a deranged beggar^hot^somnium^https://hot.eqresource.com/larrowthedemented.php
+The Beast King^a shadowy dark beast^hot^somnium^https://hot.eqresource.com/thebeastking.php
+a bright warden^a tower warden sergeants^hot^somnium^https://hot.eqresource.com/abrightwarden.php
+a goblin raid leader^a goblin raider captain^hot^somnium^https://hot.eqresource.com/agoblinraidleader.php
+a shadow warden^a tower warden sergeantss^hot^somnium^https://hot.eqresource.com/ashadowwarden.php
+a spellsword guardian^a master guardians^hot^somnium^https://hot.eqresource.com/aspellswordguardian.php
+an infected rat^a filthy rabid rat^hot^somnium^https://hot.eqresource.com/aninfectedrat.php
+Conjurer Nallen^a dark ritualist expert^hot^somnium^https://hot.eqresource.com/conjurernallen.php
+Executor Bashka^a dark occulist researcher^hot^somnium^https://hot.eqresource.com/executorbashka.php
+Knight Captain Elena^a royal knight errant^hot^somnium^https://hot.eqresource.com/knightcaptainelena.php
+Master Thief Quentin^a strange leprechauns^hot^somnium^https://hot.eqresource.com/masterthiefquentin.php
+The Dream Collector^a dream phantom illusion^hot^somnium^https://hot.eqresource.com/thedreamcollector.php
+a flesheating beetle^a hungry scavenger beetle^hot^somnium^https://hot.eqresource.com/aflesheatingbeetle.php
+a lifeweaver servant^a personal servants^hot^somnium^https://hot.eqresource.com/alifeweaverservant.php
+a shieldbearer guardian^a master guardianss^hot^somnium^https://hot.eqresource.com/ashieldbearerguardian.php
+a spellward servant^a personal servantss^hot^somnium^https://hot.eqresource.com/aspellwardservant.php
+Archmagus Erlen^a royal archmages^hot^somnium^https://hot.eqresource.com/archmaguserlen.php
+Demonologist Sharra^a dark occulist researchers^hot^somnium^https://hot.eqresource.com/demonologistsharra.php
+High Priest Casmion^a royal high priests^hot^somnium^https://hot.eqresource.com/highpriestcasmion.php
+Knight Captain Rosch^a royal knight errant^hot^somnium^https://hot.eqresource.com/knightcaptainrosch.php
+Rites Master Lorett^a dark ritualist experts^hot^somnium^https://hot.eqresource.com/ritesmasterlorett.php
+Stoneclaw Broodmother^a stoneclaw crawler^nos^shadeweavertwo^https://nos.eqresource.com/stoneclawbroodmother.php
+Thorn Petal^a gloompetal thistle^nos^shadeweavertwo^https://nos.eqresource.com/thornpetal.php
+Bedrock Burrower^a Firefall hollower^nos^firefall^https://nos.eqresource.com/bedrockburrower.php
+Diabo Xi Vesta^Qua Liako,Qua Centien,Qua Zethon^nos^firefall^https://nos.eqresource.com/diaboxivesta.php
+Firefallizard^a cinderscale saurek^nos^firefall^https://nos.eqresource.com/firefallizard.php
+Fowl Matriarch^a soot-specked hawk,firefall falcon^nos^firefall^https://nos.eqresource.com/fowlmatriarch.php
+Igneous Insect^a ravine roamer^nos^firefall^https://nos.eqresource.com/igneousinsect.php
+Rock Lobber^a fissure fiend^nos^firefall^https://nos.eqresource.com/rocklobber.php
+Crimsonclaw^a rockhopper adolescent^nos^sharvahltwo^https://nos.eqresource.com/crimsonclaw.php
+Geerot Stabgut^a grimling invader^nos^sharvahltwo^https://nos.eqresource.com/geerotstabgut.php
+Gheg Gorespit^a grimling scout^nos^sharvahltwo^https://nos.eqresource.com/gheggorespit.php
+Kurati the Feral^a wrathful Sahtebi^nos^sharvahltwo^https://nos.eqresource.com/kuratitheferal.php
+Tailfang^a scorpion elder^nos^sharvahltwo^https://nos.eqresource.com/tailfang.php
+Toraji, Korath`s Warder^an ancient skeleton^nos^sharvahltwo^https://nos.eqresource.com/torajikorathswarder.php
+Wiggle^a hungry xakra worm^nos^sharvahltwo^https://nos.eqresource.com/wiggle.php
+Arly Golyeck^a recondite roughhouser^nos^paludaltwo^https://nos.eqresource.com/allnamepaludaldepths.php
+Herachuel^a royal guardian^nos^paludaltwo^https://nos.eqresource.com/herachuel.php
+Maricella Slithra^a recondite footpad^nos^paludaltwo^https://nos.eqresource.com/maricellaslithra.php
+Merrimore Ychansk^a recondite wanderer^nos^paludaltwo^https://nos.eqresource.com/merrimoreychansk.php
+Toxiplax^a dead eye shik'nar^nos^paludaltwo^https://nos.eqresource.com/toxiplax.php
+Vahlkamph^a fungal aberrant^nos^paludaltwo^https://nos.eqresource.com/vahlkamph.php
+Brute^a toughened phlarg fiend^nos^shadowhaventwo^https://nos.eqresource.com/brute.php
+Flail^spirit-touched scrap^nos^shadowhaventwo^https://nos.eqresource.com/flail.php
+Mace^animated scrap^nos^shadowhaventwo^https://nos.eqresource.com/mace.php
+Overgrowth^a contaminated digger^nos^shadowhaventwo^https://nos.eqresource.com/overgrowth.php
+Skitter^an elder shik'nar outcast^nos^shadowhaventwo^https://nos.eqresource.com/skitter.php
+Stone Chitin^a dour delver^nos^shadowhaventwo^https://nos.eqresource.com/stonechitin.php
+Velutipes^a sensate reishi^nos^shadowhaventwo^https://nos.eqresource.com/velutipes.php
+Agaricusus^a hearty saprophyte^nos^deepshade^https://nos.eqresource.com/agaricusus.php
+Ayoaenae^an apathetic thespian^nos^deepshade^https://nos.eqresource.com/ayoaenae.php
+Bavanjam^a spectral grizzly^nos^deepshade^https://nos.eqresource.com/bavanjam.php
+Drinil^a rowdy stand in^nos^deepshade^https://nos.eqresource.com/drinil.php
+Faceted Windra^a crystal medusa^nos^deepshade^https://nos.eqresource.com/facetedwindra.php
+Psylopsybyl^a pungent stinkhorn^nos^deepshade^https://nos.eqresource.com/psylopsybyl.php
+Sehtab Mahlinee^a disgrunted stagehand^nos^deepshade^https://nos.eqresource.com/sehtabmahlinee.php
+Chromatic Widow Queen^an ethereal widow^nos^darklight^https://nos.eqresource.com/chromaticwidowqueen.php
+Eelworm^an overgrown nematode^nos^darklight^https://nos.eqresource.com/eelworm.php
+Geoxyle^a root reaper^nos^darklight^https://nos.eqresource.com/geoxyle.php
+Kezhda the Frenzied^a spirit sapper^nos^darklight^https://nos.eqresource.com/kezhdathefrenzied.php
+Mycorrhizal Mutation^a spore stalker^nos^darklight^https://nos.eqresource.com/mycorrhizalmutation.php
+Rabid Rhizanthella^a prickly perennial^nos^darklight^https://nos.eqresource.com/rabidrhizanthella.php
+Variegated Monstera^an aberrant blossom^nos^darklight^https://nos.eqresource.com/variegatedmonstera.php

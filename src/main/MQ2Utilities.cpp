@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,9 @@
 
 #include "MQ2Mercenaries.h"
 #include "MQ2Utilities.h"
+
+#include <mq/api/Items.h>
+#include <mq/base/WString.h>
 
 #include <DbgHelp.h>
 #include <PathCch.h>
@@ -41,9 +44,9 @@ static void LogToFile(const char* szOutput)
 	FILE* fOut = nullptr;
 
 	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
-	const errno_t err = fopen_s(&fOut, pathDebugSpew.string().c_str(), "at");
+	fOut = _fsopen(pathDebugSpew.string().c_str(), "at", _SH_DENYWR);
 
-	if (err || !fOut)
+	if (!fOut)
 		return;
 
 #ifdef DBG_CHARNAME
@@ -1250,7 +1253,7 @@ void GetGameTime(int* Hour, int* Minute, int* Night)
 	if (Minute)
 		*Minute = eqMinute;
 	if (Night)
-		*Night = ((eqHour < 7) || (eqHour > 18));
+		*Night = eqHour >= 19 || eqHour < 5; // [7pm, 5am)
 }
 
 // ***************************************************************************
@@ -1355,6 +1358,10 @@ int GetCurrencyIDByName(char* szName)
 	if (!_stricmp(szName, "Warforged Emblem")) return ALTCURRENCY_WARFORGEDEMBLEM;
 	if (!_stricmp(szName, "Scarlet Marks")) return ALTCURRENCY_SCARLETMARKS;
 	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
+	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
+	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
+	if (!_stricmp(szName, "Laurion Inn Voucher")) return ALTCURRENCY_LAURIONINNVOUCHER;
+	if (!_stricmp(szName, "Shalowains Private Reserve")) return ALTCURRENCY_SHALOWAINSPRIVATERESERVE;
 	return -1;
 }
 
@@ -1979,9 +1986,8 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 
 	if (std::filesystem::exists(pathFilename, ec_exists))
 	{
-		FILE* file = nullptr;
-		errno_t err = 0;
-		if ((err = fopen_s(&file,pathFilename.string().c_str(),"rt")) == 0)
+		FILE* file = _fsopen(pathFilename.string().c_str(), "rt", _SH_DENYNO);
+		if (file)
 		{
 			char szBuffer[MAX_STRING] = { 0 };
 			while (fgets(szBuffer, MAX_STRING, file))
@@ -4545,7 +4551,7 @@ const char* GetLDoNTheme(int LDTheme)
 
 uint32_t GetItemTimer(ItemClient* pItem)
 {
-	uint32_t Timer = pLocalPC->GetItemRecastTimer(pItem, eActivatableSpell);
+	uint32_t Timer = pLocalPC->GetItemRecastTimer(pItem, ItemSpellType_Clicky);
 
 	if (Timer < GetFastTime())
 		return 0;
@@ -4702,7 +4708,7 @@ bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggering
 		|| (aAttrib == SPA_PROC_SKILL_MODIFIER || bAttrib == SPA_PROC_SKILL_MODIFIER)   // Skill_Proc_Modifier
 		|| (LargerEffectTest(aSpell, bSpell, i, bTriggeredEffectCheck))	                // Ignore if the new effect is greater than the old effect
 		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i))) // Ignore triggering effects validation
-		|| ((aSpell->SpellType == eProcSpell || aSpell->SpellType == eWornSpell) && (bSpell->SpellType == eProcSpell || bSpell->SpellType == eWornSpell) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
+		|| ((aSpell->SpellType == ItemSpellType_Proc || aSpell->SpellType == ItemSpellType_Worn) && (bSpell->SpellType == ItemSpellType_Proc || bSpell->SpellType == ItemSpellType_Worn) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
 }
 
 template <typename ...Args>
@@ -5015,30 +5021,16 @@ uint32_t GetSpellGemTimer(int nGem)
 
 uint32_t GetSpellBuffTimer(int SpellID)
 {
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pBuffWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pBuffWnd->BuffTimer[nBuff]) {
-				return pBuffWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
 
-	// look, this probably is an oversight by the eqdevs
-	// but the struct only have 0x2a BuffTimers so...
-	// even though there could be 0x37 shortbuffs
-	// we can only check up to 0x2a...
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pSongWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pSongWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pSongWnd->BuffTimer[nBuff])
-			{
-				return pSongWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
+
 	return 0;
 }
 
@@ -5151,6 +5143,11 @@ int GetHighestAvailableBagSlot()
 
 	int highestInvSlot = InvSlot_LastBonusBagSlot;
 
+	// GM accounts do not hide inventory slots based on expansion
+	// This is (most likely) only valid for Emu
+	if (pLocalPC->bGM)
+		return highestInvSlot;
+
 	// If no HoT, subtract two slots.
 	if (!HasExpansion(EXPANSION_HoT))
 		highestInvSlot -= 2;
@@ -5237,7 +5234,11 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 #endif
 #if HAS_DRAGON_HOARD
 	case eItemContainerDragonHoard:
-		return &pLocalPC->DragonHoardItems;
+		return &pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
+#endif
+#if HAS_TRADESKILL_DEPOT
+	case eItemContainerTradeskillDepot:
+		return pTradeskillDepotWnd ? &pTradeskillDepotWnd->Items : nullptr;
 #endif
 
 	case eItemContainerRealEstate:   // todo
@@ -5371,20 +5372,6 @@ ItemClient* FindItemByID(int ItemID)
 }
 
 template <typename T>
-static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlot, T& checkItem)
-{
-	int count = 0;
-	auto predicatedCountVisitor = [&](const ItemPtr& pItem, const ItemIndex& index)
-	{
-		if (checkItem(pItem, index))
-			count += pItem->GetItemCount();
-	};
-
-	container.VisitItems(fromSlot, toSlot, -1, predicatedCountVisitor);
-	return count;
-}
-
-template <typename T>
 int CountInventoryItems(T& checkItem, int minSlot, int maxSlot)
 {
 	PcProfile* pProfile = GetPcProfile();
@@ -5424,8 +5411,7 @@ int CountItems(T&& checkItem)
 int FindInventoryItemCountByName(const char* pName, StringMatchType matchType, int slotBegin, int slotEnd)
 {
 	return CountInventoryItems(
-		[pName, matchType](const ItemPtr& pItem, const ItemIndex&)
-		{ return StringCompare(pItem->GetName(), pName, matchType); },
+		[pName, matchType](const ItemPtr& pItem) { return StringCompare(pItem->GetName(), pName, matchType); },
 		slotBegin, slotEnd);
 }
 
@@ -5438,20 +5424,19 @@ ItemClient* FindInventoryItemByName(const char* pName, StringMatchType matchType
 int FindInventoryItemCountByID(int ItemID, int slotBegin, int slotEnd)
 {
 	return CountInventoryItems(
-		[ItemID](const ItemPtr& pItem, const ItemIndex&)
-		{ return pItem->GetID() == ItemID; },
+		[ItemID](const ItemPtr& pItem) { return pItem->GetID() == ItemID; },
 		slotBegin, slotEnd);
 }
 
 int FindItemCountByName(const char* pName)
 {
-	return CountItems([pName](const ItemPtr& pItem, const ItemIndex&)
+	return CountItems([pName](const ItemPtr& pItem)
 		{ return MaybeExactCompare(pItem->GetName(), pName); });
 }
 
 int FindItemCountByID(int ItemID)
 {
-	return CountItems([ItemID](const ItemPtr& pItem, const ItemIndex&)
+	return CountItems([ItemID](const ItemPtr& pItem)
 		{ return pItem->GetID() == ItemID; });
 }
 
@@ -5505,13 +5490,13 @@ int CountBankItems(T&& checkItem)
 
 int FindBankItemCountByName(const char* pName, bool bExact)
 {
-	return CountBankItems([pName, bExact](const ItemPtr& pItem, const ItemIndex&)
+	return CountBankItems([pName, bExact](const ItemPtr& pItem)
 		{ return ci_equals(pItem->GetItemDefinition()->Name, pName, bExact); });
 }
 
 int FindBankItemCountByID(int ItemID)
 {
-	return CountBankItems([ItemID](const ItemPtr& pItem, const ItemIndex&)
+	return CountBankItems([ItemID](const ItemPtr& pItem)
 		{ return pItem->GetItemDefinition()->ItemNumber == ItemID; });
 }
 
@@ -6509,7 +6494,11 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_TOL))
+	if (HasExpansion(EXPANSION_LS))
+	{
+		MaxLevel = 125;
+	}
+	else if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
 	{
 		MaxLevel = 120;
 	}
@@ -6625,9 +6614,9 @@ eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
 			return NPC;
 
 		case CharacterProperty_Construct:
-			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" in the Name
+			// "Invisible Man" Race containing "Aura" / "Circle_of" / "Guardian_Circle" / "Earthen_Strength" / "Pact_of_the_Wolf" in the Name
 			if ((pSpawn->GetRace() == EQR_INVISIBLE_MAN) &&
-				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength")))
+				(strstr(pSpawn->Name, "Aura") || strstr(pSpawn->Name, "Circle_of") || strstr(pSpawn->Name, "Guardian_Circle") || strstr(pSpawn->Name, "Earthen_Strength") || strstr(pSpawn->Name, "Pact_of_the_Wolf")))
 				return AURA;
 			// "Spike Trap" Race containing "Poison" in the Name
 			if ((pSpawn->GetRace() == EQR_SPIKE_TRAP) && (strstr(pSpawn->Name, "poison") || strstr(pSpawn->Name, "Poison")))
@@ -6873,24 +6862,6 @@ inline SPAWNINFO* GetGroupMember(int index)
 	return nullptr;
 }
 
-uint32_t GetGroupMainAssistTargetID()
-{
-	if (!pLocalPC || !pLocalPC->Group) return 0;
-	if (!pLocalPlayer) return 0;
-
-	return pLocalPlayer->GroupAssistNPC[0];
-}
-
-uint32_t GetRaidMainAssistTargetID(int index)
-{
-	if (!pLocalPlayer) return 0;
-
-	if (index < 0 || index >= (int)lengthof(pLocalPlayer->RaidAssistNPC))
-		return 0;
-
-	return pLocalPlayer->RaidAssistNPC[index];
-}
-
 uint32_t GetGroupMarkedTargetID(int index)
 {
 	if (!pLocalPlayer || !pLocalPC->Group) return 0;
@@ -6909,33 +6880,6 @@ uint32_t GetRaidMarkedTargetID(int index)
 		return 0;
 
 	return pLocalPlayer->RaidMarkNPC[index];
-}
-
-bool IsAssistNPC(SPAWNINFO* pSpawn)
-{
-	if (!pSpawn)
-		return false;
-
-	if (uint32_t AssistID = GetGroupMainAssistTargetID())
-	{
-		if (AssistID == pSpawn->SpawnID)
-		{
-			return true;
-		}
-	}
-
-	for (int nAssist = 0; nAssist < MAX_RAID_ASSISTS; nAssist++)
-	{
-		if (uint32_t AssistID = GetRaidMainAssistTargetID(nAssist))
-		{
-			if (AssistID == pSpawn->SpawnID)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 void DoFace(SPAWNINFO* pChar, CVector3 Position)
@@ -7127,7 +7071,11 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 
 		// Ensure that alpha is set to fully opaque
 		MQColor color{ MQColor::format_bgr, CDisplay::GetUserDefinedColor(chatColor) };
-		if ((color.ARGB & 0x00ffffff) == 0) {
+		if (gGameState != GAMESTATE_CHARCREATE
+			|| gGameState != GAMESTATE_CHARSELECT
+			|| gGameState != GAMESTATE_INGAME
+			|| (color.ARGB & 0x00ffffff) == 0x00ffffff)
+		{
 			// Hasn't been set yet. Use defaults.
 			color = gUserColors[chatColor];
 		}
@@ -7185,6 +7133,19 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 uint32_t mqGetColorForChatColor(uint32_t chatColor)
 {
 	return GetColorForChatColor(chatColor).ARGB;
+}
+
+// TODO: We should move library code to its own tree
+std::string to_string(MQColor color)
+{
+	if (color.Alpha != 255)
+	{
+		return fmt::format("RGBA({}, {}, {}, {})",
+			static_cast<int>(color.Red), static_cast<int>(color.Green), static_cast<int>(color.Blue), static_cast<int>(color.Alpha));
+	}
+
+	return fmt::format("RGB({}, {}, {})",
+		static_cast<int>(color.Red), static_cast<int>(color.Green), static_cast<int>(color.Blue));
 }
 
 // TODO: Rewrite this using string_view
@@ -7673,15 +7634,11 @@ const char* GetTeleportName(DWORD id)
 	return "UNKNOWN";
 }
 
-int GetSubscriptionLevel()
+MembershipLevel GetMembershipLevel()
 {
-	if (EQADDR_SUBSCRIPTIONTYPE) {
-		if (uintptr_t dwsubtype = *(uintptr_t*)EQADDR_SUBSCRIPTIONTYPE) {
-			BYTE subtype = *(BYTE*)dwsubtype;
-			return subtype;
-		}
-	}
-	return 0;
+	FreeToPlayClient& client = FreeToPlayClient::Instance();
+
+	return client.MembershipLevel;
 }
 
 std::string GetCurrentUI()

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -35,7 +35,7 @@ MQ2EvolvingItemType::MQ2EvolvingItemType() : MQ2Type("Evolving")
 
 bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	ItemClient* pItem = reinterpret_cast<ItemClient*>(VarPtr.Ptr);
+	ItemPtr pItem = VarPtr.Item;
 	if (!pItem)
 		return false;
 
@@ -85,7 +85,9 @@ bool MQ2EvolvingItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* I
 
 bool MQ2EvolvingItemType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	strcpy_s(Destination, MAX_STRING, (VarPtr.Ptr && IsEvolvingItem((ItemClient*)VarPtr.Ptr)) ? "TRUE" : "FALSE");
+	ItemPtr pItem = VarPtr.Item;
+
+	strcpy_s(Destination, MAX_STRING, (pItem && IsEvolvingItem(pItem)) ? "TRUE" : "FALSE");
 	return true;
 }
 

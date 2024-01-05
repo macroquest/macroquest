@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,22 +15,23 @@
 #include "pch.h"
 #include "ImGuiManager.h"
 
-#include "ImGuiBackend.h"
+#include "GraphicsEngine.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
 
 #include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
+#include "imgui/implot/implot.h"
 
  // I was trying to avoid including main, but we just got too many globals
 #include "MQ2Main.h"
 
 // move to mq/utils? or do we need a new static lib?
 #include "common/HotKeys.h"
+#include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
 
-#include <cfenv>
+#include "imgui/implot/implot_internal.h"
 
 namespace ImGui
 {
@@ -305,12 +306,13 @@ namespace ImGui
 			}
 
 			int show_count = isNeedFilter ? static_cast<int>(itemScoreVector.size()) : items_count;
-			if (ImGui::ListBoxHeader("##ComboWithFilter_itemList", show_count))
+			float height = GetTextLineHeightWithSpacing() * ((items_count < 7 ? items_count : 7) + 0.25f) + GetStyle().FramePadding.y * 2.0f;
+			if (ImGui::BeginListBox("##ComboWithFilter_itemList", ImVec2(0.0f, height)))
 			{
 				for (int i = 0; i < show_count; i++)
 				{
 					int idx = isNeedFilter ? itemScoreVector[i].first : i;
-					PushID((void*)(intptr_t)idx);
+					PushID(idx);
 					const bool item_selected = (idx == *current_item);
 					const char* item_text = accessor(items, idx).c_str();
 					if (Selectable(item_text, item_selected))
@@ -323,7 +325,7 @@ namespace ImGui
 						SetItemDefaultFocus();
 					PopID();
 				}
-				ImGui::ListBoxFooter();
+				ImGui::EndListBox();
 			}
 			ImGui::PopItemWidth();
 			ImGui::EndPopup();
@@ -364,11 +366,17 @@ static bool gbToggleConsoleHotkeyReady = false;
 // Critical error occurred and imgui needs to be reset
 bool gbManualResetRequired = false;
 
-extern bool gbToggleConsoleRequested;
+static ImFontAtlas* s_fontAtlas = nullptr;
 
-void InitializeMQ2Overlay();
-void ShutdownMQ2Overlay();
-void PulseMQ2Overlay();
+static char ImGuiSettingsFile[MAX_PATH] = { 0 };
+
+static bool s_deferredClearSettings = false;
+extern bool gbToggleConsoleRequested;
+extern bool gbAutoDockspaceViewport;
+extern bool gbAutoDockspacePreserveRatio;
+
+// We forward declare this so that we don't need windows.h types in the header
+LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void SetOverlayEnabled(bool visible)
 {
@@ -382,14 +390,18 @@ bool IsOverlayEnabled()
 
 static void StartupOverlayComponents()
 {
-	InitializeMQ2Overlay();
+	engine::Initialize();
 	InitializeImGuiConsole();
+
+	AddSettingsPanel("Overlay", ImGuiManager_OverlaySettings);
 }
 
 static void ShutdownOverlayComponents()
 {
-	ShutdownMQ2Overlay();
+	RemoveSettingsPanel("Overlay");
+
 	ShutdownImGuiConsole();
+	engine::Shutdown();
 }
 
 void DoImGuiUpdateInternal()
@@ -506,7 +518,7 @@ void UpdateImGuiDebugInfo()
 
 			if (ImGui::BeginTabItem("Graphics", nullptr, (s_selectDebugTab == DebugTab::Graphics) ? ImGuiTabItemFlags_SetSelected : 0))
 			{
-				ImGuiRenderDebug_UpdateImGui();
+				engine::ImGuiRenderDebug_UpdateImGui();
 				ImGui::EndTabItem();
 			}
 
@@ -528,80 +540,86 @@ void UpdateImGuiDebugInfo()
 	ImGui::End();
 }
 
-void ImGuiManager_DrawFrame()
+static void ResumeOverlay()
 {
-	if (!gbRenderImGui)
-		return;
-
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
-
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	// Prepare the new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-
-	try
+	// Reset Implot context because it might be dirty after unexpected abort.
+	if (auto imPlotContext = ImPlot::GetCurrentContext())
 	{
-		ImGui::NewFrame();
-
-		{
-			MQScopedBenchmark bm1(bmUpdateImGui);
-			DoImGuiUpdateInternal();
-
-			// Plugins will get disabled if an error occurs.
-			if (!gbManualResetRequired)
-			{
-				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-				PluginsUpdateImGui();
-			}
-
-			if (s_bOverlayDebug)
-			{
-				UpdateImGuiDebugInfo();
-			}
-		}
-
-		// Render the ui
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		ImGui::UpdatePlatformWindows();
-
-		// Update and Render additional Platform Windows
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			ImGui::RenderPlatformWindowsDefault();
-		}
-	}
-	catch (const ImGuiException& ex)
-	{
-		gbManualResetRequired = true;
-
-		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
+		ImPlot::ResetCtxForNextPlot(imPlotContext);
+		ImPlot::ResetCtxForNextSubplot(imPlotContext);
 	}
 
-	stateBlock->Apply();
-	stateBlock->Release();
-
-	fesetround(round);
+	gbManualResetRequired = false;
 }
 
-bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
+void ImGuiManager_DrawFrame()
+{
+	MQScopedBenchmark bm1(bmUpdateImGui);
+	DoImGuiUpdateInternal();
+
+	// Plugins will get disabled if an error occurs.
+	if (!gbManualResetRequired)
+	{
+		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
+		PluginsUpdateImGui();
+	}
+	else
+	{
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
+		ImVec2 size = ImVec2(360, 120);
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+		ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+		float windowWidth = ImGui::GetWindowSize().x;
+
+		{
+			const char* message = "The Overlay is paused due to an ImGui error.";
+			float textWidth = ImGui::CalcTextSize(message).x;
+
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+		}
+
+		{
+			const char* message = "Please fix the problem before resuming.";
+			float textWidth = ImGui::CalcTextSize(message).x;
+
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+		}
+
+		ImGui::NewLine();
+
+		{
+			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
+
+			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
+				ResumeOverlay();
+		}
+
+		ImGui::End();
+	}
+
+	if (s_bOverlayDebug)
+	{
+		UpdateImGuiDebugInfo();
+	}
+}
+
+bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
 {
 	if (msg == WM_KEYDOWN
 		&& gbToggleConsoleHotkeyReady)
 	{
 		// Match the vkey and modifiers
-		if (wparam == gToggleConsoleHotkey.virtualKey)
+		if (wParam == gToggleConsoleHotkey.virtualKey)
 		{
 			// Check the modifiers, don't allow repeats.
-			if ((HIWORD(lparam) & KF_REPEAT) == 0
+			if ((HIWORD(lParam) & KF_REPEAT) == 0
 				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
 			{
 				gbToggleConsoleRequested = true;
@@ -609,6 +627,9 @@ bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
 			}
 		}
 	}
+
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
 
 	return false;
 }
@@ -656,6 +677,124 @@ void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
 	return nullptr;
 }
 
+void ImGuiManager_ReloadContext()
+{
+	if (ImGui::GetCurrentContext() != nullptr)
+	{
+		ImGui::DestroyContext();
+	}
+
+	ImGuiManager_CreateContext();
+}
+
+void ImGuiManager_CreateContext()
+{
+	bool buildFonts = false;
+	if (s_fontAtlas == nullptr)
+	{
+		s_fontAtlas = new ImFontAtlas();
+		buildFonts = true;
+	}
+	else
+	{
+		// If we crashed in the middle of a frame, the atlas might be locked.
+		s_fontAtlas->Locked = false;
+	}
+
+	// Initialize ImGui context
+	ImGui::CreateContext(s_fontAtlas);
+	ImPlot::CreateContext();
+
+	if (buildFonts)
+	{
+		ImGuiManager_BuildFonts(s_fontAtlas);
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+
+	if (s_deferredClearSettings)
+	{
+		std::error_code ec;
+		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
+			std::filesystem::remove(ImGuiSettingsFile, ec);
+	}
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	ImGui::StyleColorsDark();
+	mq::imgui::ConfigureStyle();
+}
+
+void ImGuiManager_DestroyContext()
+{
+	ImPlot::DestroyContext();
+	ImGui::DestroyContext();
+
+	delete s_fontAtlas;
+	s_fontAtlas = nullptr;
+}
+
+void ImGuiManager_OverlaySettings()
+{
+	if (ImGui::Checkbox("Enable Viewports", &gbEnableImGuiViewports))
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		ResetOverlay();
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("The viewports feature allows ImGui windows to be dragged out of the window into "
+		"their own floating windows. This feature is BETA quality and has some known issues.\n"
+		"\n"
+		"Viewports are disabled when running in full screen mode.");
+
+	if (ImGui::Checkbox("Resize EverQuest viewport to fit dockspace (Experimental)", &gbAutoDockspaceViewport))
+	{
+		if (!gbAutoDockspaceViewport)
+		{
+			ImGuiManager_ResetGameViewport();
+		}
+
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, if a window is docked to the side of the screen,\n"
+		"the EverQuest viewport will be resized to fit the available screen space");
+
+	ImGui::BeginDisabled(!gbAutoDockspaceViewport);
+	ImGui::Indent();
+	{
+		if (ImGui::Checkbox("Preserve aspect ratio", &gbAutoDockspacePreserveRatio))
+		{
+			WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		}
+	}
+	ImGui::Unindent();
+	ImGui::EndDisabled();
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved ImGui Window Settings"))
+	{
+		s_deferredClearSettings = true;
+		ResetOverlay();
+	}
+}
+
+void ImGuiManager_ResetGameViewport()
+{
+	if (pEverQuestInfo)
+	{
+		pEverQuestInfo->Render_MinX = 0;
+		pEverQuestInfo->Render_MinY = 0;
+		pEverQuestInfo->Render_MaxX = pEverQuestInfo->ScreenXRes;
+		pEverQuestInfo->Render_MaxY = pEverQuestInfo->ScreenYRes;
+	}
+}
+
+
 //============================================================================
 
 void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
@@ -669,7 +808,15 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	}
 	else if (ci_equals(szArg, "resume"))
 	{
-		gbManualResetRequired = false;
+		if (gbManualResetRequired)
+		{
+			WriteChatf("Resuming overlay...");
+			ResumeOverlay();
+		}
+		else
+		{
+			WriteChatf("Overlay is already running");
+		}
 	}
 	else if (ci_equals(szArg, "stop"))
 	{
@@ -721,6 +868,16 @@ void ImGuiManager_Initialize()
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
 	s_bOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
+	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -767,7 +924,7 @@ void ImGuiManager_Shutdown()
 
 void ImGuiManager_Pulse()
 {
-	PulseMQ2Overlay();
+	engine::OnUpdateFrame();
 	PulseFonts();
 }
 

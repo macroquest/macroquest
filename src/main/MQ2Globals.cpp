@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -31,7 +31,6 @@ HANDLE ghInitializeSpellDbThread = nullptr;
 
 /* BENCHMARKS */
 uint32_t bmRenderScene = 0;
-uint32_t bmParseMacroParameter = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
 uint32_t bmSpellLoad = 0;
@@ -42,13 +41,15 @@ MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
 
 ePVPServer PVPServer = PVP_NONE;
-char gszVersion[32] = VersionString;
-char gszTime[32] = TimeString;
+char gszVersion[32] = __ExpectedVersionDate;
+char gszTime[32] = __ExpectedVersionTime;
 
-#if defined(TEST)
-int gBuild = 2;               // TEST
+#if defined(EMULATOR)
+int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)
+#elif defined(TEST)
+int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
 #else
-int gBuild = 1;               // LIVE
+int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
 #endif
 
 DWORD gGameState = 0;
@@ -254,9 +255,6 @@ EQSwitch* pDoorTarget = nullptr;
 // Alternatively, move it into the macro block.
 int gParserVersion = 1;
 
-MOUSESPOOF* gMouseData = nullptr;
-bool bDetMouse = true;
-
 // EQ Functions Initialization
 fEQCommand cmdHelp = nullptr;
 fEQCommand cmdWho = nullptr;
@@ -283,7 +281,7 @@ fEQCommand cmdQuit = nullptr;
 const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
 
-char DataTypeTemp[MAX_STRING] = { 0 };
+SGlobalBuffer DataTypeTemp;
 
 MQRank* EQP_DistArray = nullptr;
 int gSpawnCount = 0;
@@ -503,6 +501,7 @@ const char* szZoneExpansionName[] = {
 	"Torment of Velious",       // 26
 	"Claws of Veeshan",         // 27
 	"Terror of Luclin",         // 28
+	"Night of Shadows",         // 29
 };
 
 const char* GetZoneExpansionName(int expansion)
@@ -740,7 +739,6 @@ bool gbMQ2LoadingMsg = true;
 bool gbExactSearchCleanNames = false;
 
 std::map<std::string, MQDataVar*> VariableMap;
-std::unordered_map<std::string, std::unique_ptr<MQDataItem>> MQ2DataMap;
 
 size_t g_eqgameimagesize = 0;
 bool gUseTradeOnTarget = true;

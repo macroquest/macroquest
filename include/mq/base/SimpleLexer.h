@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -72,7 +72,7 @@ private:
 			map.emplace(*keyword, rule);
 	}
 
-	Reducible&& lexer(std::vector<std::string_view>::iterator& it, std::vector<std::string_view>::iterator& end)
+	Reducible lexer(std::vector<std::string_view>::iterator& it, std::vector<std::string_view>::iterator& end)
 	{
 		// the default will get completely replaced on the first successful term evaluation
 		Reducible&& parsed = std::move(m_error());
@@ -167,7 +167,7 @@ private:
 		else if (current_modifier || current_reducer)
 			throw SimpleLexerParseError("Parse error: dangling keyword.");
 
-		return std::move(parsed);
+		return parsed;
 	}
 
 	std::vector<std::string_view> explode(std::string_view line)

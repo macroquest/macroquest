@@ -4,8 +4,6 @@
 #include <locale>
 #include <string>
 
-#include <codecvt>
-
 #include "zep/mcommon/string/stringutils.h"
 
 namespace Zep

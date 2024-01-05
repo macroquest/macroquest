@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -49,7 +49,10 @@ enum class EverQuestMembers
 	HWND,
 	Foreground,
 	ValidLoc,
-	Path
+	Path,
+	MaxFPS,
+	MaxBGFPS,
+	UiScale,
 };
 
 MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
@@ -85,6 +88,9 @@ MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
 	ScopedTypeMember(EverQuestMembers, Foreground);
 	ScopedTypeMember(EverQuestMembers, ValidLoc);
 	ScopedTypeMember(EverQuestMembers, Path);
+	ScopedTypeMember(EverQuestMembers, MaxFPS);
+	ScopedTypeMember(EverQuestMembers, MaxBGFPS);
+	ScopedTypeMember(EverQuestMembers, UiScale);
 }
 
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -260,7 +266,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		HWND hEQWnd = GetEQWindowHandle();
 		if (hEQWnd)
 		{
-			GetWindowTextA(hEQWnd, DataTypeTemp, MAX_STRING);
+			GetWindowTextA(hEQWnd, DataTypeTemp, static_cast<int>(DataTypeTemp.size()));
 
 			if (DataTypeTemp[0] != 0)
 			{
@@ -279,6 +285,16 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case EverQuestMembers::xScreenMode:
 		Dest.DWord = ScreenMode;
+		Dest.Type = pIntType;
+		return true;
+
+	case EverQuestMembers::MaxFPS:
+		Dest.DWord = pEverQuestInfo->gOpt.maxFPS;
+		Dest.Type = pIntType;
+		return true;
+
+	case EverQuestMembers::MaxBGFPS:
+		Dest.DWord = pEverQuestInfo->gOpt.maxBGFPS;
 		Dest.Type = pIntType;
 		return true;
 
@@ -400,6 +416,16 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case EverQuestMembers::Path: {
 		Dest.Type = pStringType;
 		Dest.Ptr = &mq::internal_paths::EverQuest[0];
+		return true;
+	}
+
+	case EverQuestMembers::UiScale: {
+		Dest.Type = pFloatType;
+#if HAS_GAMEFACE_UI
+		Dest.Float = static_cast<float>(pEverQuestInfo->UiScale);
+#else
+		Dest.Float = 1.0f;
+#endif
 		return true;
 	}
 

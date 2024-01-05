@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -221,6 +221,7 @@ public:
 		ItemID,
 		Trader,
 		Name,
+		FullName,
 	};
 
 	enum class BazaarItemMethods
@@ -235,6 +236,7 @@ public:
 		ScopedTypeMember(BazaarItemMembers, ItemID);
 		ScopedTypeMember(BazaarItemMembers, Trader);
 		ScopedTypeMember(BazaarItemMembers, Name);
+		ScopedTypeMember(BazaarItemMembers, FullName);
 
 		ScopedTypeMethod(BazaarItemMethods, Select);
 	}
@@ -290,6 +292,12 @@ public:
 			strcpy_s(DataTypeTemp, item.ItemName);
 			if (char* pDest = strrchr(DataTypeTemp, '('))
 				*pDest = '\0';
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+
+		case BazaarItemMembers::FullName:
+			strcpy_s(DataTypeTemp, item.ItemName);
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = pStringType;
 			return true;

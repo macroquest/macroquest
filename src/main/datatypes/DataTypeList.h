@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -52,7 +52,7 @@ DATATYPE(MQ2BuffType, pBuffType, pSpellType);
 DATATYPE(MQ2CharacterType, pCharacterType, pSpawnType);
 DATATYPE(MQ2ClassType, pClassType, nullptr);
 DATATYPE(MQ2CorpseType, pCorpseType, pSpawnType);
-DATATYPE(MQ2CurrentZoneType, pCurrentZoneType, nullptr);
+DATATYPE(MQ2CurrentZoneType, pCurrentZoneType, pZoneType);
 DATATYPE(MQ2DeityType, pDeityType, nullptr);
 DATATYPE(MQ2DynamicZoneType, pDynamicZoneType, nullptr);
 DATATYPE(MQ2DZMemberType, pDZMemberType, nullptr);
@@ -70,9 +70,9 @@ DATATYPE(MQ2ItemType, pItemType, nullptr);
 DATATYPE(MQ2ItemSpellType, pItemSpellType, nullptr);
 DATATYPE(MQ2MacroQuestType, pMacroQuestType, pEverQuestType);
 DATATYPE(MQ2MercenaryType, pMercenaryType, pSpawnType);
-DATATYPE(MQ2MerchantType, pMerchantType, nullptr);
-DATATYPE(MQ2PointMerchantType, pPointMerchantType, nullptr);
-DATATYPE(MQ2PointMerchantItemType, pPointMerchantItemType, nullptr);
+DATATYPE(MQ2MerchantType, pMerchantType, pSpawnType);
+DATATYPE(MQ2PointMerchantType, pPointMerchantType, pSpawnType);
+DATATYPE(MQ2PointMerchantItemType, pPointMerchantItemType, pSpawnType);
 DATATYPE(MQ2PetType, pPetType, pSpawnType);
 DATATYPE(MQ2PetBuffType, pPetBuffType, pSpellType);
 DATATYPE(MQ2RaceType, pRaceType, nullptr);
@@ -105,6 +105,15 @@ DATATYPE(MQ2AchievementType, pAchievementType, nullptr);
 DATATYPE(MQ2AchievementManagerType, pAchievementManagerType, nullptr);
 DATATYPE(MQ2AchievementCategoryType, pAchievementCategoryType, nullptr);
 DATATYPE(MQ2AchievementObjectiveType, pAchievementObjectiveType, nullptr);
+DATATYPE(MQIniFileSectionKeyType, pIniFileSectionKeyType, nullptr);
+DATATYPE(MQIniFileSectionType, pIniFileSectionType, nullptr);
+DATATYPE(MQIniFileType, pIniFileType, nullptr);
+DATATYPE(MQIniType, pIniType, nullptr);
+DATATYPE(MQ2TradeskillDepotType, pTradeskillDepotType, nullptr);
+DATATYPE(MQBankType, pBankType, nullptr);
+DATATYPE(MQInventoryType, pInventoryType, nullptr);
+DATATYPE(MQCursorAttachmentType, pCursorAttachmentType, nullptr);
+DATATYPE(MQInvSlotWindowType, pInvSlotWindowType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -211,7 +211,9 @@ enum class AdvLootItemMembers
 	AlwaysGreed,
 	Never,
 	IconID,
-	NoDrop
+	NoDrop,
+	FreeGrab,
+	Status,
 };
 
 MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
@@ -230,6 +232,8 @@ MQ2AdvLootItemType::MQ2AdvLootItemType() : MQ2Type("advlootitem")
 	ScopedTypeMember(AdvLootItemMembers, Never);
 	ScopedTypeMember(AdvLootItemMembers, IconID);
 	ScopedTypeMember(AdvLootItemMembers, NoDrop);
+	ScopedTypeMember(AdvLootItemMembers, FreeGrab);
+	ScopedTypeMember(AdvLootItemMembers, Status);
 }
 
 bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -241,9 +245,10 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		return false;
 
 	AdvancedLootItemList* itemList = nullptr;
-	if (VarPtr.HighPart == static_cast<int>(ListType::CList))
+	ListType listType = static_cast<ListType>(VarPtr.HighPart);
+	if (listType == ListType::CList)
 		itemList = pAdvancedLootWnd->pCLootList;
-	else if (VarPtr.HighPart == static_cast<int>(ListType::PList))
+	else if (listType == ListType::PList)
 		itemList = pAdvancedLootWnd->pPLootList;
 	if (itemList == nullptr)
 		return false;
@@ -337,6 +342,44 @@ bool MQ2AdvLootItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 		Dest.Set(item.NoDrop);
 		Dest.Type = pBoolType;
 		return true;
+
+	case AdvLootItemMembers::FreeGrab:
+		Dest.DWord = item.FG;
+		Dest.Type = pBoolType;
+		return true;
+
+	case AdvLootItemMembers::Status:
+		if (listType == ListType::PList)
+			return false;
+
+		Dest.Type = pStringType;
+		switch (item.Status)
+		{
+		case eAdvLootStatusWaiting:
+			strcpy_s(DataTypeTemp, "WAITING");
+			break;
+		case eAdvLootStatusAsking:
+			strcpy_s(DataTypeTemp, "ASKING");
+			break;
+		case eAdvLootStatusRolling:
+			strcpy_s(DataTypeTemp, "ROLLING");
+			break;
+		case eAdvLootStatusStopped:
+			strcpy_s(DataTypeTemp, "STOPPED");
+			break;
+		case eAdvLootStatusClickRoll:
+			strcpy_s(DataTypeTemp, "CLICKROLL");
+			break;
+		case eAdvLootStatusFreeGrab:
+			strcpy_s(DataTypeTemp, "FREEGRAB");
+			break;
+		default:
+			sprintf_s(DataTypeTemp, "UNKNOWN(%d)", item.Status);
+			break;
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
 
 	default: break;
 	}

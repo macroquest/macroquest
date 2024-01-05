@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DataTypes.h"
+#include <string_view>
 
 namespace mq::datatypes {
 
@@ -234,72 +235,35 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case MathMembers::Distance:
+	{
 		Dest.Float = 0.0;
 		Dest.Type = pFloatType;
 		// TODO: This code appears in LineOfSight function, possibly clean and combine
-		if (Index[0])
+		auto cleaned_index = replace(Index, ",", " ");						// Replace commas with spaces
+		if (cleaned_index.size() > 0)
 		{
-			float P1[3];
-			float P2[3];
-			P1[0] = P2[0] = pControlledPlayer->Y;
-			P1[1] = P2[1] = pControlledPlayer->X;
-			P1[2] = P2[2] = pControlledPlayer->Z;
+			//auto sv_index = std::string_view(cleaned_index);				// Create a view of cleaned index
+			auto p_list = split_view(cleaned_index, ':', true);				// create a list of points, ignore empty
 
-			if (char* pColon = strchr(Index, ':'))
+			float P[2][3];													// Create 2d array, [Loc][Dimension]
+			P[0][0] = P[1][0] = pControlledPlayer->Y;
+			P[0][1] = P[1][1] = pControlledPlayer->X;
+			P[0][2] = P[1][2] = pControlledPlayer->Z;
+
+			for (size_t i = 0; i < p_list.size() && i < 2; i++)				// for ever separate location
 			{
-				*pColon = 0;
-				if (char* pComma = strchr(&pColon[1], ','))
+				auto pointList = split_view(p_list[i], ' ', true);			// create a string view list of each float
+				for (size_t j = 0; j < pointList.size() && j < 3; j++)		// for every string broken by spaces
 				{
-					*pComma = 0;
-					P2[0] = GetFloatFromString(&pColon[1], P2[0]);
-					*pComma = ',';
-
-					if (char* pComma2 = strchr(&pComma[1], ','))
-					{
-						*pComma2 = 0;
-						P2[1] = GetFloatFromString(&pComma[1], P2[1]);
-						*pComma2 = ',';
-						P2[2] = GetFloatFromString(&pComma2[1], P2[2]);
-					}
-					else
-					{
-						P2[1] = GetFloatFromString(&pComma[1], P2[1]);
-					}
-				}
-				else
-				{
-					P2[0] = GetFloatFromString(&pColon[1], P2[0]);
+					P[i][j] = GetFloatFromString(pointList[j], P[i][j]);	// Convert jth float and store in ith array
 				}
 			}
 
-			if (char* pComma = strchr(Index, ','))
-			{
-				*pComma = 0;
-				P1[0] = GetFloatFromString(Index, P1[0]);
-				*pComma = ',';
-
-				if (char* pComma2 = strchr(&pComma[1], ','))
-				{
-					*pComma2 = 0;
-					P1[1] = GetFloatFromString(&pComma[1], P1[1]);
-					*pComma2 = ',';
-					P1[2] = GetFloatFromString(&pComma2[1], P1[2]);
-				}
-				else
-				{
-					P1[1] = GetFloatFromString(&pComma[1], P1[1]);
-				}
-			}
-			else
-			{
-				P1[0] = GetFloatFromString(Index, P1[0]);
-			}
-
-			Dest.Float = (float)GetDistance3D(P1[0], P1[1], P1[2], P2[0], P2[1], P2[2]);
+			Dest.Float = (float)GetDistance3D(P[0][0], P[0][1], P[0][2], P[1][0], P[1][1], P[1][2]);  // parse distance from p[0] to p[1]
 			return true;
 		}
 		return false;
-
+	}
 	default: break;
 	}
 

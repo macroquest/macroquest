@@ -104,7 +104,7 @@ std::string ZepFileSystemCPP::Read(const ZepPath& fileName)
 bool ZepFileSystemCPP::Write(const ZepPath& fileName, const void* pData, size_t size)
 {
     FILE* pFile;
-    pFile = fopen(fileName.string().c_str(), "wb");
+    pFile = _fsopen(fileName.string().c_str(), "wb", _SH_DENYWR);
     if (!pFile)
     {
         return false;

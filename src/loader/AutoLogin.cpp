@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -12,12 +12,12 @@
  * GNU General Public License for more details.
  */
 
-#include "AutoLogin.h"
 #include "MacroQuest.h"
 #include "resource.h"
 #include "HotKeyControl.h"
 
-#include "plugins/autologin/AutoLoginShared.h"
+#include "login/Login.h"
+#include "routing/PostOffice.h"
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -31,7 +31,44 @@
 
 namespace fs = std::filesystem;
 
-std::map<std::string, std::map<DWORD, ProfileInfo>> LoginMap;
+struct ProfileInfo
+{
+	std::string profileName;
+	std::string CharacterName;
+	std::string Inifile;
+	std::string Hotkey;
+	std::string PlayerClass;
+	bool Loaded = false;
+	DWORD PID = 0;
+	DWORD PlayerLevel = 0;
+};
+
+struct RawProfileRecord
+{
+	std::string profileName;
+	std::string serverName;
+	std::string characterName;
+
+	std::string eqPath;
+	std::string encryptedBlob;
+	bool checked;
+};
+
+struct ExportEntry
+{
+	std::string profileKey;
+	std::string profile;
+	std::string keyName;
+	std::string eqPath;
+	bool checked;
+	std::string blob;
+
+};
+
+using ProfileMap = std::map<DWORD, ProfileInfo>;
+using ProfileSetMap = std::map<std::string, ProfileMap>;
+
+ProfileSetMap LoginMap;
 
 // profile editor dialog controls
 HWND hEditProfileWnd;
@@ -66,6 +103,8 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
+
+postoffice::Dropbox s_dropbox;
 
 namespace internal_paths
 {
@@ -192,12 +231,22 @@ std::string ReadEncryptedFile(const std::string& filename, const std::string& pa
 	wil::unique_hcryptprov hCryptProv;
 	if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, 0))
 	{
-		DWORD lasterr = GetLastError();
+		if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		{
+			DWORD lasterr = GetLastError();
 
-		// FIXME: Logging instead
-		char szErr[MAX_STRING] = { 0 };
-		sprintf_s(szErr, "CryptAcquireContext returned %d", lasterr);
-		MessageBox(nullptr, szErr, "Unexpected Error", MB_SYSTEMMODAL | MB_OK);
+			// FIXME: Logging instead
+			char szErr[MAX_STRING] = { 0 };
+			if (lasterr == NTE_BAD_KEYSET)
+			{
+				strcpy_s(szErr, "CryptAcquireContext: Access denied");
+			}
+			else
+			{
+				sprintf_s(szErr, "CryptAcquireContext returned: %x", lasterr);
+			}
+			MessageBox(nullptr, szErr, "Unexpected Error", MB_SYSTEMMODAL | MB_OK);
+		}
 	}
 
 	wil::unique_hcrypthash hHash;
@@ -417,11 +466,23 @@ bool WriteToFileEncrypted(const std::string& data, const std::string& filename, 
 	wil::unique_hcryptprov hCryptProv;
 	if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, 0))
 	{
-		char szMessage[MAX_STRING] = { 0 };
-		sprintf_s(szMessage, "CryptAcquireContext Failed Error: %x", GetLastError());
-		MessageBox(hAskPassWnd, szMessage, "Unexpected Error", MB_OK | MB_SYSTEMMODAL);
+		if (!CryptAcquireContext(&hCryptProv, nullptr, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		{
+			char szMessage[MAX_STRING] = { 0 };
+			auto lasterr = GetLastError();
+			if (lasterr == NTE_BAD_KEYSET)
+			{
+				strcpy_s(szMessage, "CryptAcquireContext: Access denied");
+			}
+			else
+			{
+				sprintf_s(szMessage, "CryptAcquireContext returned: %x", lasterr);
+			}
 
-		return false;
+			MessageBox(hAskPassWnd, szMessage, "Unexpected Error", MB_OK | MB_SYSTEMMODAL);
+
+			return false;
+		}
 	}
 
 	wil::unique_hcrypthash hHash;
@@ -813,8 +874,8 @@ void LoadIt(ProfileInfo& pi, int id)
 		{
 			// this isn't a valid eq process, so let's unload it from our map
 			ActOnPid(pi.PID, [](const DWORD id, ProfileInfo& pi) {
-				SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, id, pi.PID);
-				SendMessage(hMainWnd, WM_USER_RESETLOADED, id, pi.PID);
+				SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, id, pi.PID);
+				SendMessageA(hMainWnd, WM_USER_RESETLOADED, id, pi.PID);
 				});
 		}
 		else
@@ -826,7 +887,7 @@ void LoadIt(ProfileInfo& pi, int id)
 
 	if (pi.PID != 0 && IsEQGameProcessId(pi.PID)) // TODO: do we need to check for 0 here first?
 	{
-		// the PID alreay exists, just need to add to the map
+		// the PID already exists, just need to add to the map
 		Inject(pi.PID);
 		LoginMap[pi.profileName][id].Loaded = true;
 		LoginMap[pi.profileName][id].PID = pi.PID;
@@ -873,7 +934,15 @@ void LoadIt(ProfileInfo& pi, int id)
 			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_WAITFORINPUTIDLE;
 			sei.lpVerb = "open";
 			sei.nShow = SW_SHOW;
-			auto params = fmt::format("patchme /login:{}_{}:{}", pi.profileName, server, character);
+
+			// Format login param and add quotes if necessary.
+			std::string arg = fmt::format("{}_{}:{}", pi.profileName, server, character);
+			if (arg.find(" ") != std::string::npos)
+			{
+				arg = fmt::format("\"{}\"", arg);
+			}
+
+			auto params = fmt::format("patchme /login:{}", arg);
 			sei.lpParameters = params.c_str();
 			sei.lpDirectory = eqpath.c_str();
 			auto file = fmt::format("{}\\eqgame.exe", eqpath);
@@ -1620,8 +1689,8 @@ void AutoLoginRemoveProcess(DWORD processId)
 			{
 				if (j.second.PID == processId)
 				{
-					SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, 0, j.second.PID);
-					SendMessage(hMainWnd, WM_USER_RESETLOADED, 0, j.second.PID);
+					SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, 0, j.second.PID);
+					SendMessageA(hMainWnd, WM_USER_RESETLOADED, 0, j.second.PID);
 
 					j.second.Loaded = false;
 					j.second.PID = 0;
@@ -1629,139 +1698,6 @@ void AutoLoginRemoveProcess(DWORD processId)
 				}
 			}
 		}
-	}
-}
-
-// Handle IPC message when character profile is finished loading into game
-void HandleAutoLoginProfileLoaded(std::string_view szMessage)
-{
-	// profile:account:server:char:pid
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 5)
-	{
-		// assume any other size is a malformed message and don't process
-		auto profile = std::string(tokens[0]);
-		auto charString = fmt::format("[{}] {}->{}", tokens[1], tokens[2], tokens[3]);
-		auto pid = GetIntFromString(tokens[4], 0);
-
-		auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-			[&charString](auto& login) {
-				return login.second.CharacterName == charString;
-			});
-
-		if (login_it != LoginMap[profile].cend())
-		{
-			login_it->second.Loaded = true;
-			login_it->second.PID = pid;
-			SendMessage(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessage(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
-		}
-	}
-}
-
-void HandleAutoLoginProfileUnloaded(std::string_view szMessage)
-{
-	// profile:account:server:char:pid
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 5)
-	{
-		// assume any other size is a malformed message and don't process
-		auto profile = std::string(tokens[0]);
-		auto pid = GetIntFromString(tokens[4], 0);
-
-		auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-			[&pid](auto& login) {
-				return login.second.PID == pid;
-			});
-
-		if (login_it != LoginMap[profile].end())
-		{
-			SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
-			SendMessage(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
-		}
-	}
-}
-
-void HandleAutoLoginMQ2Unload(std::string_view szMessage)
-{
-	auto pid = GetIntFromString(szMessage, 0);
-
-	for (auto& i : LoginMap)
-	{
-		for (auto& j : i.second)
-		{
-			if (j.second.PID == pid)
-			{
-				SendMessage(hMainWnd, WM_USER_UNREGISTER_HK, j.first, j.second.PID);
-				SendMessage(hMainWnd, WM_USER_RESETLOADED, j.first, j.second.PID);
-				break;
-			}
-		}
-	}
-}
-
-void HandleAutoLoginUpdateCharacterDetails(std::string_view szMessage)
-{
-	// pid:class:level
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 3)
-	{
-		// assume any other size is a malformed message and don't process
-		auto pid = GetIntFromString(tokens[0], 0);
-		auto playerClass = GetIntFromString(tokens[1], -1);
-		auto playerLevel = GetIntFromString(tokens[2], -1);
-
-		for (auto& profile : LoginMap)
-		{
-			for (auto& login : profile.second)
-			{
-				auto& pi = login.second;
-				if (pi.PID == pid)
-				{
-					SendMessage(hMainWnd, WM_USER_UPDATELEVEL, playerLevel, pi.PID);
-					SendMessage(hMainWnd, WM_USER_UPDATECLASS, playerClass, pi.PID);
-					break;
-				}
-			}
-		}
-	}
-}
-
-void HandleAutoLoginStartInstance(std::string_view szMessage)
-{
-	// s:login:pass:server -- load to character select
-	// c:login:pass:server:character -- load character
-	// p:profile:server:character -- load profile/server/character
-	auto tokens = split_view(szMessage, ':');
-	if (tokens.size() == 4)
-	{
-		if (tokens[0][0] == 's')
-		{
-			DoPlainLogin(tokens[3], tokens[1], tokens[2], "");
-		}
-		else if (tokens[0][0] == 'p')
-		{
-			// TODO: This is not a great way to do it, but it's not time critical, change this when ProfileInfo has actual discrete fields
-			auto profile = std::string(tokens[1]);
-			// we don't have account, but server/char is necessarily unique
-			auto charString = fmt::format("{}->{}", tokens[2], tokens[3]);
-
-			auto login_it = std::find_if(LoginMap[profile].begin(), LoginMap[profile].end(),
-				[&charString](auto& login) {
-					// CharacterName is `[account] server->char` -- assume none of the things have spaces, and grab only the server->char portion
-					auto s = login.second.CharacterName.substr(login.second.CharacterName.find_first_of(' ') + 1);
-					return s == charString;
-				});
-
-			if (login_it != LoginMap[profile].end())
-			{
-				LoadIt(login_it->second, login_it->first);
-			}
-		}
-	}
-	else if (tokens.size() == 5 && tokens[0][0] == 'c')
-	{
-		DoPlainLogin(tokens[3], tokens[1], tokens[2], tokens[4]);
 	}
 }
 
@@ -1779,7 +1715,7 @@ INT_PTR CALLBACK ExportProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 		::SetWindowPos(hWnd, nullptr, ::GetSystemMetrics(SM_CXFULLSCREEN) / 2 - (rect.right - rect.left) / 2,
 			::GetSystemMetrics(SM_CYFULLSCREEN) / 2 - (rect.bottom - rect.top) / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-		::SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		::SendMessageA(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
 		return TRUE;
 	}
@@ -1887,7 +1823,7 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 		::SetWindowPos(hWnd, nullptr, ::GetSystemMetrics(SM_CXFULLSCREEN) / 2 - (rect.right - rect.left) / 2,
 			::GetSystemMetrics(SM_CYFULLSCREEN) / 2 - (rect.bottom - rect.top) / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
-		::SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		::SendMessageA(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
 		::SetWindowTextA(hPathEdit, internal_paths::EQRoot.c_str());
 
@@ -2054,8 +1990,147 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
+void ReceivedMessageHandler(ProtoMessagePtr&& message)
+{
+	auto login_message = message->Parse<proto::login::LoginMessage>();
+	switch (login_message.id())
+	{
+	case proto::login::MessageId::ProfileLoaded:
+		if (login_message.has_payload())
+		{
+			proto::login::ProfileMethod profile;
+			profile.ParseFromString(login_message.payload());
+
+			if (profile.has_target() && profile.target().has_character() && message->GetSender() && message->GetSender()->has_pid())
+			{
+				ProfileMap& login = LoginMap[profile.profile()];
+
+				std::string charString = fmt::format("[{}] {}->{}", profile.account(), profile.target().server(), profile.target().character());
+				auto login_it = std::find_if(login.begin(), login.end(),
+					[&charString](const auto& l) { return l.second.CharacterName == charString; });
+
+				if (login_it != login.end() && message->GetSender())
+				{
+					login_it->second.Loaded = true;
+					login_it->second.PID = message->GetSender()->pid();
+					SendMessageA(hMainWnd, WM_USER_REGISTER_HK, login_it->first, login_it->second.PID);
+					SendMessageA(hMainWnd, WM_USER_SETLOADED, login_it->first, login_it->second.PID);
+				}
+			}
+		}
+
+		break;
+
+	case proto::login::MessageId::ProfileUnloaded:
+		if (login_message.has_payload())
+		{
+			proto::login::ProfileMethod profile;
+			profile.ParseFromString(login_message.payload());
+
+			if (message->GetSender() && message->GetSender()->has_pid())
+			{
+				uint32_t pid = message->GetSender()->pid();
+
+				ProfileMap& login = LoginMap[profile.profile()];
+				auto login_it = std::find_if(login.begin(), login.end(),
+					[&pid](const auto& l) { return l.second.PID == pid; });
+
+				if (login_it != login.end())
+				{
+					SendMessageA(hMainWnd, WM_USER_UNREGISTER_HK, login_it->first, login_it->second.PID);
+					SendMessageA(hMainWnd, WM_USER_RESETLOADED, login_it->first, login_it->second.PID);
+				}
+			}
+		}
+
+		break;
+
+	case proto::login::MessageId::ProfileCharInfo:
+		if (login_message.has_payload())
+		{
+			proto::login::CharacterInfoMissive charinfo;
+			charinfo.ParseFromString(login_message.payload());
+
+			if (message->GetSender() && message->GetSender()->has_pid())
+			{
+				uint32_t pid = message->GetSender()->pid();
+
+				for (const auto& [profileKey, profile] : LoginMap)
+				{
+					for (const auto& [id, profileInfo] : profile)
+					{
+						if (profileInfo.PID == pid)
+						{
+							SendMessageA(hMainWnd, WM_USER_UPDATELEVEL, charinfo.level(), profileInfo.PID);
+							SendMessageA(hMainWnd, WM_USER_UPDATECLASS, charinfo.class_(), profileInfo.PID);
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		break;
+
+	case proto::login::MessageId::StartInstance:
+		if (login_message.has_payload())
+		{
+			proto::login::StartInstanceMissive start;
+			start.ParseFromString(login_message.payload());
+
+			switch (start.method_case())
+			{
+			case proto::login::StartInstanceMissive::MethodCase::kDirect:
+				if (start.direct().has_target())
+				{
+					DoPlainLogin(
+						start.direct().target().server(),
+						start.direct().login(),
+						start.direct().password(),
+						start.direct().target().has_character() ? start.direct().target().character() : ""
+					);
+				}
+				break;
+
+			case proto::login::StartInstanceMissive::MethodCase::kProfile:
+				if (start.profile().has_target() && start.profile().target().has_character())
+				{
+					ProfileMap& login = LoginMap[start.profile().profile()];
+
+					std::string charString = fmt::format("{}->{}", start.profile().target().server(), start.profile().target().character());
+					auto login_it = std::find_if(login.begin(), login.end(),
+						[&charString](const auto& login)
+						{
+							// CharacterName is `[account] server->char` -- assume none of the things have spaces, and grab only the server->char portion
+							auto s = login.second.CharacterName.substr(login.second.CharacterName.find_first_of(' ') + 1);
+							return s == charString;
+						});
+
+					if (login_it != login.end())
+					{
+						LoadIt(login_it->second, login_it->first);
+					}
+				}
+				break;
+
+			default:
+				break;
+			}
+
+			break;
+		}
+
+		break;
+
+	default:
+		break;
+	}
+}
+
 void InitializeAutoLogin()
 {
+	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
+
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
 	internal_paths::AutoLoginIni = pathAutoLoginIni.string();
@@ -2097,7 +2172,7 @@ void InitializeAutoLogin()
 	// make the editmenu
 	hEditPopup = CreatePopupMenu();
 
-	auto& popupMap = LoginMap["Popups"];
+	ProfileMap& popupMap = LoginMap["Popups"];
 	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_EDIT, "&Edit");
 	popupMap[ID_CHARACTER_EDIT].profileName = "Edit";
 	AppendMenuA(hEditPopup, MF_STRING, ID_CHARACTER_DELETE, "&Delete");
@@ -2131,4 +2206,5 @@ void InitializeAutoLogin()
 
 void ShutdownAutoLogin()
 {
+	s_dropbox.Remove();
 }

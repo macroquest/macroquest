@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -359,12 +359,33 @@ void SetNameSpriteTint(SPAWNINFO* pSpawn);
 class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
 {
 public:
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_LS)
+	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*, bool b))
+		PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn, bool b)
+	{
+		// PrepForDestroyPlayer can be called twice through the same code path
+		static unsigned int lastSpawnID = 0;
+		if (lastSpawnID != spawn->GetId())
+		{
+			lastSpawnID = spawn->GetId();
+			PluginsRemoveSpawn(spawn);
+		}
+		return PrepForDestroyPlayer_Trampoline(spawn, b);
+	}
+#else
 	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
 	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
 	{
-		PluginsRemoveSpawn(spawn);
+		// PrepForDestroyPlayer can be called twice through the same code path
+		static unsigned int lastSpawnID = 0;
+		if (lastSpawnID != spawn->GetId())
+		{
+			lastSpawnID = spawn->GetId();
+			PluginsRemoveSpawn(spawn);
+		}
 		return PrepForDestroyPlayer_Trampoline(spawn);
 	}
+#endif
 
 #if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 	DETOUR_TRAMPOLINE_DEF(void, DestroyAllPlayers_Trampoline, ())
@@ -906,17 +927,17 @@ static void Spawns_Initialize()
 		}
 	}
 
-	AddMQ2Data("NamingSpawn", dataNamingSpawn);
+	pDataAPI->AddTopLevelObject("NamingSpawn", dataNamingSpawn);
 
 	AddCommand("/caption", CaptionCmd, false, false);
-	AddCommand("/captioncolor", CaptionColorCmd, true, false);
+	AddCommand("/captioncolor", CaptionColorCmd, false, false);
 }
 
 static void Spawns_Shutdown()
 {
 	DebugSpew("Shutting Down Spawn-related Hooks");
 
-	RemoveMQ2Data("NamingSpawn");
+	pDataAPI->RemoveTopLevelObject("NamingSpawn");
 
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");

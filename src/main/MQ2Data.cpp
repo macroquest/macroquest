@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,6 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+
+#include <date/date.h>
 
 namespace mq::datatypes {
 
@@ -125,174 +127,6 @@ bool dataIf(const char* szIndex, MQTypeVar& Ret)
 			}
 		}
 	}
-	return false;
-}
-
-
-bool dataGameTime(const char* szIndex, MQTypeVar& Ret)
-{
-	struct tm* pTime = (struct tm*)&DataTypeTemp[0];
-	ZeroMemory(pTime, sizeof(struct tm));
-	pTime->tm_sec = 0;
-	pTime->tm_min = pWorldData->Minute;
-	pTime->tm_hour = pWorldData->Hour - 1;
-	pTime->tm_mday = pWorldData->Day;
-	pTime->tm_mon = pWorldData->Month - 1;
-	pTime->tm_year = pWorldData->Year - 1900;
-	pTime->tm_wday = (pWorldData->Day - 1) % 7;
-	pTime->tm_isdst = 0;
-
-	Ret.Ptr = pTime;
-	Ret.Type = pTimeType;
-	return true;
-}
-
-bool dataIni(const char* szIndex, MQTypeVar& Ret)
-{
-	if (!szIndex || szIndex[0] == 0)
-		return false;
-
-	std::string sTemp = szIndex;
-
-	int count = 0;
-	std::map<int, DWORD> argMap;
-
-	// lets see how many commas are in the string
-	for (auto i = sTemp.begin(); i != sTemp.end(); i++)
-	{
-		if (i[0] == ',' && i + 1 != sTemp.end() && i[1] != ' ')
-		{
-			argMap[count] = static_cast<DWORD>(std::distance(sTemp.begin(), i));
-			count++;
-		}
-	}
-
-	std::string IniFile = sTemp;
-	bool bNoParse = false;
-
-	std::string Section;
-	std::string Key;
-	std::string Default;
-
-	if (!argMap.empty())
-	{
-		IniFile.erase(argMap[0]);
-		Section = sTemp.substr(argMap[0] + 1);
-		if (argMap.size() >= 2)
-		{
-			Section.erase(argMap[1] - argMap[0] - 1);
-			Key = sTemp.substr(argMap[1] + 1);
-			if (argMap.size() >= 3)
-			{
-				Key.erase(argMap[2] - argMap[1] - 1);
-				Default = sTemp.substr(argMap[2] + 1);
-				if (argMap.size() >= 4)
-				{
-					Default.erase(argMap[3] - argMap[2] - 1);
-					std::string Parse = sTemp.substr(argMap[3] + 1);
-
-					if (Parse == "noparse")
-						bNoParse = true;
-				}
-			}
-		}
-	}
-
-	if (IniFile.empty())
-		return false;
-
-	std::filesystem::path pathIniFile = IniFile;
-	if (!pathIniFile.has_extension())
-	{
-		pathIniFile += ".ini";
-	}
-
-	if (pathIniFile.is_relative())
-	{
-		// Config is the primary path, but fall back to the old path if needed
-		if (!exists(internal_paths::Config / pathIniFile) && exists(internal_paths::Macros / pathIniFile))
-		{
-			pathIniFile = internal_paths::Macros / pathIniFile;
-		}
-		else
-		{
-			pathIniFile = mq::internal_paths::Config / pathIniFile;
-		}
-	}
-
-	std::error_code ec_exists;
-	if (std::filesystem::exists(pathIniFile, ec_exists))
-	{
-		const int nSize = GetPrivateProfileString(Section, Key, Default, DataTypeTemp, MAX_STRING, pathIniFile.string());
-
-		if (nSize)
-		{
-			if (nSize > 2)
-			{
-				for (int index = 0; index < nSize - 2; index++)
-				{
-					if (DataTypeTemp[index] == 0)
-						DataTypeTemp[index] = '|';
-				}
-			}
-
-			if ((Section.empty() || Key.empty()) && (nSize < MAX_STRING - 3))
-				strcat_s(DataTypeTemp, "||");
-
-			if (bNoParse)
-			{
-				if (gParserVersion == 2)
-				{
-					// If we are not supposed to parse and there is a ${
-					if (strstr(DataTypeTemp, "${"))
-					{
-						// Modify Macro String with parameter to wrap Parse Zero
-						strcpy_s(DataTypeTemp, ModifyMacroString(DataTypeTemp, true, ModifyMacroMode::Wrap).data());
-					}
-				}
-				else if (strchr(DataTypeTemp, '$'))
-				{
-					bAllowCommandParse = false;
-				}
-			}
-
-			Ret.Ptr = &DataTypeTemp[0];
-			Ret.Type = pStringType;
-			return true;
-		}
-	}
-
-	if (!Default.empty())
-	{
-		if (bNoParse)
-		{
-			if (gParserVersion == 2)
-			{
-				// If we're set not to parse and there's a ${
-				if (Default.find("${") != std::string::npos)
-				{
-
-					// Modify Macro String with parameter to wrap Parse Zero
-					Default = ModifyMacroString(Default, true, ModifyMacroMode::Wrap);
-				}
-			}
-
-			// I think the below is actually wrong, since it's checking whatever was stored in
-			// DataTypeTemp BEFORE instead of checking what's in Default, but I didn't track it down
-			// to see if DataTypeTemp was getting set to default somewhere else and this is how
-			// it was originally in parser v1. So I left it.  -- Knightly
-			else if (strchr(DataTypeTemp, '$'))
-			{
-				bAllowCommandParse = false;
-			}
-		}
-
-		strcpy_s(DataTypeTemp, Default.c_str());
-		Ret.Ptr = &DataTypeTemp[0];
-		Ret.Type = pStringType;
-		return true;
-	}
-
 	return false;
 }
 

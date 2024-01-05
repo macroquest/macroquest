@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -21,6 +21,9 @@
 #include <regex>
 
 namespace mq {
+
+// Defined in MQ2DataVars.cpp
+void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
 
 static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
 uint64_t s_commandCount = 0;
@@ -260,7 +263,7 @@ void ProfileCommand(PlayerClient* pPlayer, char* szLine)
 	g_pProfile->Call("Main", std::move(args));
 }
 
-void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All)
+void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = false)
 {
 	int Scope = 1;
 
@@ -366,7 +369,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 	char szVal[MAX_STRING] = { 0 };
 	GetArg(szVal, szLine, 1);
 
-	ParseMacroParameter(pLocalPlayer, szVal);
+	ParseMacroData(szVal, MAX_STRING);
 	strcpy_s(gDelayCondition, GetNextArg(szLine));
 
 	int VarValue = GetIntFromString(szVal, 0);
@@ -391,7 +394,7 @@ void Delay(SPAWNINFO* pChar, char* szLine)
 		char szCond[MAX_STRING];
 		strcpy_s(szCond, gDelayCondition);
 
-		ParseMacroParameter(pLocalPlayer, szCond);
+		ParseMacroData(szCond, MAX_STRING);
 
 		double Result;
 		if (!Calculate(szCond, Result))
@@ -510,9 +513,8 @@ void CleanMacroLine(char* szLine)
 // TODO:  Switch this to take input of filesystem::path instead of const char*  Breaking change?
 bool Include(const char* szFile, int* LineNumber)
 {
-	FILE* fMacro = nullptr;
-	const errno_t err = fopen_s(&fMacro, szFile, "rt");
-	if (err || fMacro == nullptr)
+	FILE* fMacro = _fsopen(szFile, "rt", _SH_DENYNO);
+	if (fMacro == nullptr)
 	{
 		FatalError("Couldn't open include file: %s", szFile);
 		return false;
@@ -1025,10 +1027,9 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 		macFilePath = mq::internal_paths::Macros / macFilePath;
 	}
 
-	FILE* fMacro = nullptr;
-	const errno_t err = fopen_s(&fMacro, macFilePath.string().c_str(), "rt");
+	FILE* fMacro = _fsopen(macFilePath.string().c_str(), "rt", _SH_DENYNO);
 
-	if (err || fMacro == nullptr)
+	if (fMacro == nullptr)
 	{
 		FatalError("Couldn't open macro file: %s", macFilePath.string().c_str());
 		gszMacroName[0] = 0;
@@ -1344,25 +1345,44 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 	strcpy_s(MacroName, pBlock->Name.c_str());
 
 	// Code allowing for a routine for "OnExit"
-	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); i++)
+	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); ++i)
 	{
-		if (!_stricmp(":OnExit", i->second.Command.c_str()))
+		if (!_strnicmp(i->second.Command.c_str(), ":OnExit", 7))
 		{
-			i++;
 			pBlock->CurrIndex = i->first;
 			// Force unpause to finish processing
 			pBlock->Paused = false;
-			if (gReturn)            // return to the macro the first time around
+			// Return to the macro the first time around
+			if (gReturn)
 			{
-				gReturn = false;    // We don't want to return the 2nd time.
+				// While there are more items in the global macro stack
+				while (gMacroStack->pNext)
+				{
+					if (gMacroStack->LocalVariables)
+						ClearMQ2DataVariables(&gMacroStack->LocalVariables);
+					if (gMacroStack->Parameters)
+						ClearMQ2DataVariables(&gMacroStack->Parameters);
+
+					// Save the next pointer before deleting the current stack item
+					MQMacroStack* pNext = gMacroStack->pNext;
+
+					// Delete the current stack item
+					delete gMacroStack;
+
+					// Move to the next item in the stack
+					gMacroStack = pNext;
+				}
+
+				// We don't want to return the 2nd time
+				gReturn = false;
 				return;
 			}
-			else
-				break;
+
+			break;
 		}
 	}
 
-	// Set the parse back to whatever the default is
+	// Set the parser back to whatever the default is
 	const int iTemp = GetPrivateProfileInt("MacroQuest", "ParserEngine", 1, mq::internal_paths::MQini);
 	if (iTemp != gParserVersion)
 	{
@@ -1390,8 +1410,8 @@ void EndMacro(PSPAWNINFO pChar, char* szLine)
 			// Open new profiling log file
 			strcpy_s(Filename, i->second.SourceFile.c_str());
 			sprintf_s(Buffer, "%s\\%s.mqp", gszMacroPath, Filename);
-			errno_t err = fopen_s(&fMacro, Buffer, "w");
-			if (!err) {
+			fMacro = _fsopen(Buffer, "w", _SH_DENYWR);
+			if (fMacro) {
 				fprintf(fMacro, " Execute |  Total   | Avg uSec | Line | Macro Source Code\n");
 				fprintf(fMacro, " Count   |   uSec   | Per 1000 |\n");
 				fprintf(fMacro, "------------------------------------------------------------------------------------------------------------- \n");
@@ -1613,7 +1633,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 
 			GetFuncParam(name, StackNum, szParamName, MAX_STRING, szParamType, MAX_STRING);
 
-			MQ2Type* pType = FindMQ2DataType(szParamType);
+			MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 			if (!pType)
 				pType = datatypes::pStringType;
 
@@ -2197,7 +2217,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 	char ForLine[MAX_STRING];
 	strcpy_s(ForLine, iter->second.Command.c_str());
 
-	ParseMacroParameter(pChar, ForLine);
+	ParseMacroData(ForLine, MAX_STRING);
 	int VarNum = GetIntFromString(&szLine[1], 0);
 	int StepSize = 1;
 

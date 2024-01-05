@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -224,7 +224,7 @@ void Settings::SetItemColor(MQColor color)
 	m_itemColor = color;
 
 	WritePrivateProfileString("Settings", "CustomColor_Item",
-		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+		fmt::format("#{:06X}", color.ToRGB()), INIFileName);
 
 	s_refreshItemDisplay = true;
 }
@@ -572,9 +572,7 @@ public:
 		MQTypeMember* pMember = MQ2DisplayItemType::FindMember(Member);
 		if (!pMember)
 		{
-			MQVarPtr varPtr;
-			varPtr.Ptr = pItem.get();
-
+			MQVarPtr varPtr = pItemType->MakeVarPtr(pItem);
 			return pItemType->GetMember(varPtr, Member, Index, Dest);
 		}
 
@@ -632,8 +630,7 @@ public:
 			Dest.Type = pWindowType;
 			return true;
 		case DisplayItemMembers::Item:
-			Dest.Ptr = pWindow->pItem;
-			Dest.Type = pItemType;
+			Dest = pItemType->MakeTypeVar(pWindow->pItem);
 			return true;
 		case DisplayItemMembers::Next: {
 			Dest.Type = pDisplayItemType;
@@ -670,7 +667,7 @@ public:
 
 		if (toType == pItemType)
 		{
-			toVar.Ptr = pWindow ? pWindow->pItem.get() : nullptr;
+			toVar = pItemType->MakeVarPtr(pWindow ? pWindow->pItem : nullptr);
 			return true;
 		}
 
@@ -773,7 +770,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell);
 static CXStr CreateItemSpellTag(ItemSpellData::SpellData* Effect, EQ_Spell* pSpell)
 {
 	fmt::memory_buffer buf;
-	fmt::format_to(fmt::appender(buf), "{:d}^{:d}^{:d}", 3, pSpell->ID, Effect->EffectType);
+	fmt::format_to(fmt::appender(buf), "{:d}^{:d}^{:d}", 3, pSpell->ID, static_cast<int>(Effect->EffectType));
 
 	return CStmlWnd::MakeWndNotificationTag(XWM_SPELL_LINK, Effect->OverrideName[0] ? Effect->OverrideName : pSpell->Name,
 		CXStr{ buf.data(), buf.size() });
@@ -857,7 +854,7 @@ struct class_name_level {
 template <>
 struct fmt::formatter<class_name_level> : fmt::formatter<string_view> {
 	template <typename FormatContext>
-	auto format(const class_name_level& r, FormatContext& ctx) {
+	auto format(const class_name_level& r, FormatContext& ctx) const {
 		return format_to(ctx.out(), "{}({})", GetClassDesc(r.class_id), r.level);
 	}
 };
@@ -871,7 +868,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell)
 
 	fmt::format_to(buffer, "ID: {:04d}{}", pSpell->ID, rep(28, "&nbsp;"));
 
-	int Ticks = GetSpellDuration(pSpell, pLocalPlayer);
+	int Ticks = GetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, true);
 	if (Ticks == -1)
 		fmt::format_to(buffer, "Duration: Permanent<br>");
 	else if (Ticks == -2)
@@ -1531,8 +1528,15 @@ public:
 				ItemSpellType_Blessing,
 			};
 
+			bool spellTypeUsed[ItemSpellType_Max] = {};
+
 			for (eItemSpellType spellType : spellTypes)
 			{
+				// Some of these enums might be duplicates depending on the client
+				if (spellTypeUsed[spellType])
+					continue;
+				spellTypeUsed[spellType] = true;
+
 				ItemSpellData::SpellData* spellData = pItem->GetSpellData(spellType);
 				if (spellData->SpellID > 0)
 				{
@@ -1907,6 +1911,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/inote", ItemNoteCmd);
 
 	pDisplayItemType = new MQ2DisplayItemType;
+	pDisplayItemType->SetInheritance(pItemType);
 	AddMQ2Data("DisplayItem", MQ2DisplayItemType::dataDisplayItem);
 
 	AddSettingsPanel("plugins/ItemDisplay", DrawItemDisplaySettingsPanel);

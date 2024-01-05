@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -110,7 +110,7 @@ static bool InitVariableValue(MQTypeVar& TypeVar, const DefaultValueType& defaul
 	return false;
 }
 
-static bool InitArrayValue(CDataArray* pArray, const DefaultValueType& defaultValue)
+static bool InitArrayValue(const std::shared_ptr<CDataArray>& pArray, const DefaultValueType& defaultValue)
 {
 	switch (defaultValue.index())
 	{
@@ -141,8 +141,9 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
-		return false; // name in use
+	// Make sure that the name isn't already in use.
+	if (pDataAPI->FindTopLevelObject(Name) != nullptr || pDataAPI->FindDataType(Name) != nullptr)
+		return false;
 	if (!pType)
 		return false;
 
@@ -158,8 +159,9 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, Index);
-		pVar->Var.Ptr = pArray;
+		auto pArray = std::make_shared<CDataArray>(pType, Index);
+		pVar->Var.Set(pArray);
+		pVar->Var.Type = pArrayType;
 
 		InitArrayValue(pArray, defaultValue);
 	}
@@ -188,7 +190,7 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
+	if (FindMQ2DataVariable(Name) || pDataAPI->IsReservedName(Name))
 		return false; // name in use
 	if (!pType)
 		return false;
@@ -205,11 +207,19 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 
 	if (Index[0])
 	{
-		CDataArray* pArray = new CDataArray(pType, Index);
-		pVar->Var.Ptr = pArray;
-		pVar->Var.Type = pArrayType;
+		// Allow for creation of size 0 arrays, but not less (functionality in use)
+		if (GetIntFromString(Index, -1) >= 0)
+		{
+			auto pArray = std::make_shared<CDataArray>(pType, Index);
+			pVar->Var.Set(pArray);
+			pVar->Var.Type = pArrayType;
 
-		InitArrayValue(pArray, defaultValue);
+			InitArrayValue(pArray, defaultValue);
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
@@ -303,7 +313,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		// scope comes AFTER type, so next must be default
 		pDefault = GetNextArg(szLine, 2);
 	}
-	else if (pType = FindMQ2DataType(Arg))
+	else if (pType = pDataAPI->FindDataType(Arg))
 	{
 		// next is either scope or default
 		GetArg(Arg, szLine, 3);
@@ -333,7 +343,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		}
 		else
 		{
-			MacroError("/declare '%s' failed.  No macro in execution and no variable scope given", szName);
+			MacroError("/declare '%s' failed.  No macro in execution and variable scope invalid: %s", szName, Arg[0] != '\0' ? Arg : "NULL");
 			return;
 		}
 	}
@@ -347,11 +357,13 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+	bool hasArrayIndex = false;
 	if (char* pBracket = strchr(szName, '['))
 	{
 		*pBracket = 0;
 		strcpy_s(szIndex, &pBracket[1]);
 		szIndex[strlen(szIndex) - 1] = 0;
+		hasArrayIndex = true;
 	}
 
 	if (pType == pTimerType && szIndex[0])
@@ -362,7 +374,14 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 
 	if (!AddMQ2DataVariable(szName, szIndex, pType, pScope, pDefault))
 	{
-		MacroError("/declare '%s' failed.  Name already in use.", szName);
+		if (hasArrayIndex)
+		{
+			MacroError("/declare '%s' failed.  Name already in use or array index invalid: %s", szName, szIndex);
+		}
+		else
+		{
+			MacroError("/declare '%s' failed.  Name already in use.", szName);
+		}
 	}
 	else
 	{
@@ -428,7 +447,7 @@ void NewVarset(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
+		auto pArray = pVar->Var.Get<CDataArray>();
 		int index = pArray->GetElement(szIndex);
 		if (index == -1)
 		{
@@ -500,8 +519,7 @@ void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)pVar->Var.Ptr;
-
+		auto pArray = pVar->Var.Get<CDataArray>();
 		int index = pArray->GetElement(szIndex);
 		if (index == -1)
 		{
@@ -557,7 +575,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	}
 
 	MQTypeVar sourceVar;
-	if (!ParseMQ2DataPortion(szRest, sourceVar))
+	if (!pDataAPI->ParseMQ2DataPortion(szRest, sourceVar))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
 		return;
@@ -575,7 +593,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 			return;
 		}
 
-		CDataArray* pArray = (CDataArray*)destVar->Var.Ptr;
+		auto pArray = destVar->Var.Get<CDataArray>();
 		num = pArray->GetElement(szIndex);
 		if (num == -1)
 		{
@@ -649,7 +667,7 @@ static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 
 				GetFuncParam(&line.Command[0], i, szParamName, MAX_STRING, szParamType, MAX_STRING);
 
-				MQ2Type* pType = FindMQ2DataType(szParamType);
+				MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 				if (!pType)
 					pType = pStringType;
 
@@ -703,7 +721,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 		GetFuncParam(&eventIter->second.Command[0], 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
 	}
 
-	MQ2Type* pType = FindMQ2DataType(szParamType);
+	MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 	if (!pType)
 		pType = pStringType;
 
@@ -719,7 +737,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 				GetFuncParam(&eventIter2->second.Command[0], GetIntFromString(pValues->Name, 0), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
 
-			MQ2Type* pType2 = FindMQ2DataType(szParamType);
+			MQ2Type* pType2 = pDataAPI->FindDataType(szParamType);
 			if (!pType2)
 				pType2 = pStringType;
 
@@ -753,9 +771,9 @@ static void TellCheck(const char* szClean)
 	if (!gbFlashOnTells && !gbBeepOnTells)
 		return;
 
-	if (!pLocalPC) return;
+	if (!pLocalPlayer) return;
 
-	char name[2048] = { 0 };
+	char name[MAX_STRING] = { 0 };
 	bool isTell = false;
 	if (const char* pDest = strstr(szClean, " tells you, "))
 	{
@@ -768,15 +786,15 @@ static void TellCheck(const char* szClean)
 		isTell = true;
 	}
 
-	if (!isTell || strlen(name) >= 64)
+	if (!isTell || strlen(name) >= EQ_MAX_NAME)
 		return;
 
 	// don't perform action if its us doing the tell
-	if (!_stricmp(pLocalPC->Name, name))
+	if (!_stricmp(pLocalPlayer->Name, name))
 		return;
 
 	// don't perform action if its our pet
-	if (pLocalPC->pSpawn->PetID != -1)
+	if (pLocalPlayer->PetID != -1)
 	{
 		if (SPAWNINFO* pPet = GetSpawnByID(pLocalPlayer->PetID))
 		{
@@ -986,6 +1004,25 @@ void DropTimers()
 			}
 		}
 		pTimer = pTimer->pNext;
+	}
+}
+
+namespace detail
+{
+	void PrintMacroDataConversionError(const char* fromType, const char* toType)
+	{
+		WriteChatf("Tried to convert unlike types %s and %s", fromType, toType);
+
+		if (gMacroBlock != nullptr && gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
+		{
+			WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+		}
+
+		if (gMacroStack != nullptr)
+		{
+			char buf[MAX_STRING];
+			WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+		}
 	}
 }
 

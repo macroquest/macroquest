@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -143,9 +143,8 @@ void LoadPHs(char* szMyName)
 	std::string phs;
 	size_t commapos = 0;
 	char szBuffer[MAX_STRING] = { 0 };
-	FILE* fp = nullptr;
-	errno_t err = fopen_s(&fp, szMyName, "rb");
-	if (!err && fp != nullptr)
+	FILE* fp = _fsopen(szMyName, "rb", _SH_DENYNO);
+	if (fp != nullptr)
 	{
 		while (fgets(szBuffer, MAX_STRING, fp) != nullptr)
 		{
@@ -355,9 +354,8 @@ void UnpackIni()
 			if (void* pMyBinaryData = LockResource(bin))
 			{
 				std::size_t ressize = SizeofResource(hMe, hRes);
-				FILE* File = nullptr;
-				const errno_t err = fopen_s(&File, INIFileName, "wb");
-				if (!err && File != nullptr)
+				FILE* File = _fsopen(INIFileName, "wb", _SH_DENYWR);
+				if (File != nullptr)
 				{
 					fwrite(pMyBinaryData, ressize, 1, File);
 					fclose(File);
@@ -744,9 +742,8 @@ PLUGIN_API void InitializePlugin()
 				if (void* pMyBinaryData = LockResource(bin))
 				{
 					std::size_t ressize = SizeofResource(hMe, hRes);
-					FILE* File = nullptr;
-					errno_t err = fopen_s(&File, curFilepath.string().c_str(), "wb");
-					if (!err && File != nullptr)
+					FILE* File = _fsopen(curFilepath.string().c_str(), "wb", _SH_DENYWR);
+					if (File != nullptr)
 					{
 						fwrite(pMyBinaryData, ressize, 1, File);
 						fclose(File);

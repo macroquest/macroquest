@@ -27,16 +27,10 @@
     <ClCompile Include="ProcessMonitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\plugins\autologin\AutoLoginShared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ProcessList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Crashpad.cpp">
@@ -48,27 +42,18 @@
     <ClCompile Include="MacroQuest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AutoLogin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HotKeyControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProcessMonitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\plugins\autologin\AutoLoginShared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\NamedPipes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\NamedPipesProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Crashpad.h">
@@ -81,6 +66,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Naming.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\BuildInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

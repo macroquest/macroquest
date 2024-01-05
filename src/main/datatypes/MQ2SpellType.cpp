@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -61,7 +61,6 @@ enum class SpellMembers
 	AutoCast,
 	Extra,
 	RecastTimerID,
-	SPA,
 	ReagentID,
 	ReagentCount,
 	CastByOther,
@@ -103,10 +102,16 @@ enum class SpellMembers
 	HastePct,
 	MyDuration,
 	BaseEffectsFocusCap,
+	CategoryID,
+	SubcategoryID,
+	Dispellable,
+	Link,
+	MinCasterLevel,
 };
 
 enum class SpellMethods
 {
+	Inspect,
 };
 
 MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
@@ -153,7 +158,6 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, AutoCast);
 	ScopedTypeMember(SpellMembers, Extra);
 	ScopedTypeMember(SpellMembers, RecastTimerID);
-	ScopedTypeMember(SpellMembers, SPA);
 	ScopedTypeMember(SpellMembers, ReagentID);
 	ScopedTypeMember(SpellMembers, ReagentCount);
 	ScopedTypeMember(SpellMembers, CastByOther);
@@ -195,7 +199,14 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, HastePct);
 	ScopedTypeMember(SpellMembers, MyDuration);
 	ScopedTypeMember(SpellMembers, BaseEffectsFocusCap);
+	ScopedTypeMember(SpellMembers, CategoryID);
+	ScopedTypeMember(SpellMembers, SubcategoryID);
+	ScopedTypeMember(SpellMembers, Dispellable);
+	ScopedTypeMember(SpellMembers, Link);
 	AddMember(static_cast<int>(SpellMembers::BaseEffectsFocusCap), "SongCap");
+	ScopedTypeMember(SpellMembers, MinCasterLevel);
+
+	ScopedTypeMethod(SpellMethods, Inspect);
 }
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -206,7 +217,30 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	MQTypeMember* pMember = MQ2SpellType::FindMember(Member);
 	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQ2SpellType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<SpellMethods>(pMethod->ID))
+			{
+			case SpellMethods::Inspect:
+			{
+				char buffer[512] = { 0 };
+				if (Index[0])
+					FormatSpellLink(buffer, 512, pSpell, Index);
+				else
+					FormatSpellLink(buffer, 512, pSpell);
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
+				return true;
+			}
+			default:
+				return false;
+			}
+		}
+		
 		return false;
+	}
 
 	switch (static_cast<SpellMembers>(pMember->ID))
 	{
@@ -217,7 +251,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Name:
 		strcpy_s(DataTypeTemp, pSpell->Name);
-		Dest.Ptr = &DataTypeTemp;
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
@@ -491,18 +525,14 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 	}
 
-	case SpellMembers::Duration:
-		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer);
-		Dest.Type = pTicksType;
-		return true;
-
 	case SpellMembers::MyDuration:
-		Dest.DWord = EQGetMySpellDuration(pSpell);
+		Dest.DWord = GetMySpellDuration(pSpell);
 		Dest.Type = pTicksType;
 		return true;
 
 	case SpellMembers::EQSpellDuration:
-		Dest.DWord = EQGetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
+	case SpellMembers::Duration:
+		Dest.DWord = GetSpellDuration(pSpell, pLocalPlayer ? pLocalPlayer->Level : 0, false);
 		Dest.Type = pTicksType;
 		return true;
 
@@ -604,7 +634,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (ret && SlotIndex != -1)
 		{
 			int duration = GetIntFromString(Index, 0);
-			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer) >= 1 && ret->Duration < duration))
+			if (duration == 0 || (duration > 0 && GetSpellDuration(pSpell, pLocalPlayer->Level, false) >= 1 && ret->Duration < duration))
 				Dest.Set(true);
 		}
 
@@ -638,7 +668,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 			if (!pBuffSpell)
 				continue;
 
@@ -650,7 +680,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				// Blocking buff duration is greater than duration argument
 				int duration = GetIntFromString(Index, 0);
 				if (duration == 0 ||
-					(GetSpellDuration(pBuffSpell, pLocalPlayer) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->GetBuffTimer(nBuff) / 6000) > duration))
 				{
 					Dest.Set(false);
 					return true;
@@ -672,7 +702,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 
 			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
@@ -774,6 +804,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pStringType;
 		return true;
 
+	case SpellMembers::CategoryID:
+		Dest.Type = pIntType;
+		Dest.DWord = GetSpellCategory(pSpell);
+		return true;
+
 	case SpellMembers::Subcategory:
 		strcpy_s(DataTypeTemp, "Unknown");
 		if (int cat = GetSpellSubcategory(pSpell))
@@ -788,6 +823,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pStringType;
 		return true;
 
+	case SpellMembers::SubcategoryID:
+		Dest.Type = pIntType;
+		Dest.DWord = GetSpellSubcategory(pSpell);
+		return true;
+
 	case SpellMembers::Restrictions:
 	{
 		Dest.Type = pStringType;
@@ -798,8 +838,8 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (nIndex < 0)
 			return false;
 
-		memset(DataTypeTemp, 0, sizeof(DataTypeTemp));
-		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, sizeof(DataTypeTemp));
+		memset(DataTypeTemp, 0, DataTypeTemp.size());
+		const char* ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp, DataTypeTemp.size());
 		if (!ptr)
 			strcpy_s(DataTypeTemp, "Unknown");
 
@@ -913,11 +953,6 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pIntType;
 		return true;
 
-	case SpellMembers::SPA:
-		Dest.DWord = pSpell->spaindex;
-		Dest.Type = pIntType;
-		return true;
-
 	case SpellMembers::ReagentID:
 	{
 		Dest.Type = pIntType;
@@ -926,11 +961,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->ReagentID[nIndex];
-
 		return true;
 	}
 
@@ -942,11 +976,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->NoExpendReagent[nIndex];
-
 		return true;
 	}
 
@@ -958,11 +991,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			return false;
 
 		int nIndex = GetIntFromString(Index, 0) - 1;
-		if (nIndex < 0)
+		if (nIndex < 0 || nIndex >= MAX_SPELL_REAGENTS)
 			return false;
 
 		Dest.DWord = pSpell->ReagentCount[nIndex];
-
 		return true;
 	}
 
@@ -1275,6 +1307,25 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		Dest.Type = pIntType;
 		Dest.Set(pSpell->BaseEffectsFocusCap);
 		return true;
+
+	case SpellMembers::Dispellable:
+		Dest.Set(!pSpell->IsNoDispell());
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpellMembers::Link:
+		if (Index[0])
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell, Index);
+		else
+			FormatSpellLink(DataTypeTemp, DataTypeTemp.size(), pSpell);
+		Dest.Ptr = DataTypeTemp;
+		Dest.Type = pStringType;
+		return true;
+
+	case SpellMembers::MinCasterLevel:
+		Dest.Int = CalcMinSpellLevel(pSpell);
+		Dest.Type = pIntType;
+		return true;
 	}
 
 	return false;
@@ -1290,59 +1341,68 @@ bool MQ2SpellType::ToString(MQVarPtr VarPtr, char* Destination)
 	return true;
 }
 
-void MQ2SpellType::InitVariable(MQVarPtr& VarPtr)
+static bool GetVarPtrFromString(MQVarPtr& VarPtr, const char* szIndex)
 {
-	// FIXME: Do not allocate a SPELL
-	VarPtr.Ptr = new SPELL();
-}
+	if (!szIndex[0])
+	{
+		VarPtr.Ptr = nullptr;
+		return false;
+	}
 
-void MQ2SpellType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate a SPELL
-	SPELL* pSpell = static_cast<SPELL*>(VarPtr.Ptr);
-	delete pSpell;
+	int spellID = GetIntFromString(szIndex, -1);
+	if (spellID >= 0)
+	{
+		if (VarPtr.Ptr = GetSpellByID(spellID))
+			return true;
+	}
+	else
+	{
+		// is it a spell?
+		if (VarPtr.Ptr = GetSpellByName(szIndex))
+			return true;
+
+		// is it an AA?
+		if (VarPtr.Ptr = GetSpellByAAName(szIndex))
+			return true;
+	}
+
+	return false;
 }
 
 bool MQ2SpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
-	if (Source.Type != pSpellType)
-		return false;
+	if (Source.Type == pSpellType)
+	{
+		VarPtr.Ptr = Source.Ptr;
+		return true;
+	}
 
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(SPELL));
+	if (Source.Type == pIntType)
+	{
+		VarPtr.Ptr = GetSpellByID(Source.Int);
+		return true;
+	}
+
+	if (Source.Type == pStringType)
+	{
+		GetVarPtrFromString(VarPtr, pStringType->GetValue(Source));
+		return true;
+	}
+
+	return false;
+}
+
+bool MQ2SpellType::FromString(MQVarPtr& VarPtr, const char* Source)
+{
+	GetVarPtrFromString(VarPtr, Source);
 	return true;
 }
 
 bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 {
-	if (szIndex[0])
-	{
-		int spellID = GetIntFromString(szIndex, -1);
-		if (spellID >= 0)
-		{
-			if ((Ret.Ptr = GetSpellByID(spellID)))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-		else
-		{
-			if (Ret.Ptr = GetSpellByName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-
-			//is it an AA?
-			if (Ret.Ptr = GetSpellByAAName(szIndex))
-			{
-				Ret.Type = pSpellType;
-				return true;
-			}
-		}
-	}
-
-	return false;
+	GetVarPtrFromString(Ret, szIndex);
+	Ret.Type = pSpellType;
+	return true;
 }
 
 } // namespace mq::datatypes

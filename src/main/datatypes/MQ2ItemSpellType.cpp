@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -55,8 +55,8 @@ MQ2ItemSpellType::MQ2ItemSpellType() : MQ2Type("itemspell")
 
 bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	ITEMSPELLS* pItemSpell = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
-	if (!VarPtr.Ptr)
+	ItemSpellData::SpellData* pItemSpell = GetItemSpellData(VarPtr);
+	if (!pItemSpell)
 		return false;
 
 	MQTypeMember* pMember = MQ2ItemSpellType::FindMember(Member);
@@ -112,26 +112,26 @@ bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case ItemSpellMembers::OverrideName:
 	case ItemSpellMembers::OtherName:
-		strcpy_s(DataTypeTemp, pItemSpell->OtherName);
+		strcpy_s(DataTypeTemp, pItemSpell->OverrideName);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 
 	case ItemSpellMembers::OtherID:
-		Dest.DWord = pItemSpell->OtherID;
+		Dest.DWord = pItemSpell->OverrideDesc;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemSpellMembers::OverrideDescription:
-		if (pItemSpell->OtherID > 0)
+		if (pItemSpell->OverrideDesc > 0)
 		{
-			if (const char* ptr = pDBStr->GetString(pItemSpell->OtherID, eSpellDescription))
+			if (const char* ptr = pDBStr->GetString(pItemSpell->OverrideDesc, eSpellDescription))
 			{
 				strcpy_s(DataTypeTemp, ptr);
 			}
 			else
 			{
-				sprintf_s(DataTypeTemp, "UnknownDescription(%d)", pItemSpell->OtherID);
+				sprintf_s(DataTypeTemp, "UnknownDescription(%d)", pItemSpell->OverrideDesc);
 			}
 		}
 		else
@@ -154,11 +154,11 @@ bool MQ2ItemSpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 bool MQ2ItemSpellType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	if (!VarPtr.Ptr)
+	ItemSpellData::SpellData* data = GetItemSpellData(VarPtr);
+	if (!data)
 		return false;
 
-	ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
-	if (int spellid = pItemSpells->SpellID)
+	if (int spellid = data->SpellID)
 	{
 		if (SPELL* pSpell = GetSpellByID(spellid))
 		{
@@ -171,15 +171,7 @@ bool MQ2ItemSpellType::ToString(MQVarPtr VarPtr, char* Destination)
 
 void MQ2ItemSpellType::InitVariable(MQVarPtr& VarPtr)
 {
-	// FIXME: Do not allocate an ITEMSPELLS
-	VarPtr.Ptr = new ITEMSPELLS();
-}
-
-void MQ2ItemSpellType::FreeVariable(MQVarPtr& VarPtr)
-{
-	// FIXME: Do not allocate an ITEMSPELLS
-	ITEMSPELLS* pItemSpells = static_cast<ITEMSPELLS*>(VarPtr.Ptr);
-	delete pItemSpells;
+	VarPtr.Set<Data>({});
 }
 
 bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
@@ -187,7 +179,7 @@ bool MQ2ItemSpellType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 	if (Source.Type != pItemSpellType)
 		return false;
 
-	memcpy(VarPtr.Ptr, Source.Ptr, sizeof(ITEMSPELLS));
+	VarPtr.Set<Data>(Source.Get<Data>());
 	return true;
 }
 

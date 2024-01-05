@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -146,6 +146,8 @@ void MapGenerate()
 			pItem = pItem->pNext;
 		}
 	}
+
+	CreateAllMapLocs();
 }
 
 void MapClear()
@@ -645,8 +647,6 @@ int MakeTime()
 
 void PrintDefaultMapLocSettings()
 {
-	UpdateDefaultMapLocParams();
-
 	WriteChatf("%s", fmt::format("MapLoc Defaults: Width:{}, Size:{}, Color:{},{},{}, Radius:{}, Radius Color:{},{},{}",
 		gDefaultMapLocParams.width,
 		gDefaultMapLocParams.lineSize,
@@ -671,7 +671,7 @@ bool IsFloat(const std::string& in)
 	return !((sstr >> std::noskipws >> f).rdstate() ^ std::ios_base::eofbit);
 }
 
-void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
+void MapRemoveLocation(const char* szLine)
 {
 	char arg[MAX_STRING];
 	std::stringstream ss(szLine);
@@ -680,7 +680,7 @@ void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
 	if (!ss || ss.eof())
 	{
 		DeleteAllMapLocs();
-		WriteChatColor("MapLocs removed", USERCOLOR_DEFAULT);
+		WriteChatf("%d MapLoc(s) removed", (int)gMapLocTemplates.size());
 		return;
 	}
 
@@ -699,7 +699,7 @@ void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
 	}
 
 	strcpy_s(yloc, arg);
-	MapObjectMapLoc* loc = nullptr;
+	MapLocTemplate* loc = nullptr;
 
 	if (ss && !ss.eof())
 	{
@@ -740,13 +740,31 @@ void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
 		strcpy_s(zloc, temp.substr(0, temp.find(delim)).c_str());
 
 		sprintf_s(tag, "%s,%s,%s", yloc, xloc, zloc);
-		loc = GetMapLocByTag(tag);
+
+		auto maploc = GetMapLocTemplateByTag(tag);
+
+		if (maploc == nullptr)
+		{
+			SyntaxError("Could not find MapLoc: %s", tag);
+			return;
+		}
+
+		loc = maploc;
 	}
 	else // remove by index
 	{
-		int index = static_cast<int>(std::stof(yloc));
-		loc = GetMapLocByIndex(index);
+		size_t index;
+		try
+		{
+			index = static_cast<size_t>(std::stoul(yloc));
+		}
+		catch (const std::exception&)
+		{
+			SyntaxError("Could not parse index: %s", yloc);
+			return;
+		}
 
+		loc = GetMapLocByIndex((int)index);
 		if (!loc)
 		{
 			WriteChatf("\arRemove loc by index out of bounds: %s", yloc);
@@ -762,8 +780,6 @@ void MapRemoveLocation(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	std::string index = std::to_string(loc->GetIndex());
-
 	DeleteMapLoc(loc);
-	WriteChatf("MapLoc removed: Index:%s, loc:%s", index.c_str(), tag);
+	WriteChatf("MapLoc removed: Index:%d, loc:%s", loc->GetIndex(), tag);
 }

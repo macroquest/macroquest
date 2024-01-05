@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -155,17 +155,17 @@ struct SpellClassMask : public SpellAttribute<SpellClassMask>, SpellAttributeVal
 	bool operator()(const Buff& buff) const { return IsSpellUsableForClass(buff, Value); }
 };
 
-struct SpellCasterAttribute : public SpellAttribute<SpellCasterAttribute>, SpellAttributeValue<const char*>
+struct SpellCasterAttribute : public SpellAttribute<SpellCasterAttribute>, SpellAttributeValue<std::string_view>
 {
-	SpellCasterAttribute(const char* value) : SpellAttributeValue(value) {}
+	SpellCasterAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetSpellCaster(buff), Value); }
 };
 
-struct PetSpellCasterAttribute : public SpellAttribute<PetSpellCasterAttribute>, SpellAttributeValue<const char*>
+struct PetSpellCasterAttribute : public SpellAttribute<PetSpellCasterAttribute>, SpellAttributeValue<std::string_view>
 {
-	PetSpellCasterAttribute(const char* value) : SpellAttributeValue(value) {}
+	PetSpellCasterAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetPetSpellCaster(buff), Value); }
@@ -184,12 +184,12 @@ struct SpellIDAttribute : public SpellAttribute<SpellIDAttribute>, SpellAttribut
 	SpellIDAttribute(DWORD value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
-	bool operator()(const Buff& buff) const { return GetSpellID(buff); }
+	bool operator()(const Buff& buff) const { return GetSpellID(buff) == Value; }
 };
 
-struct SpellNameAttribute : public SpellAttribute<SpellNameAttribute>, SpellAttributeValue<const char*>
+struct SpellNameAttribute : public SpellAttribute<SpellNameAttribute>, SpellAttributeValue<std::string_view>
 {
-	SpellNameAttribute(const char* value) : SpellAttributeValue(value) {}
+	SpellNameAttribute(std::string_view value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return MaybeExactCompare(GetSpellName(buff), Value); }

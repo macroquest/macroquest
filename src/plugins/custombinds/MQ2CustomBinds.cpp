@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -103,9 +103,8 @@ static void LoadCustomBinds()
 {
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
-	FILE* file = nullptr;
-	const errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "rt");
-	if (err || file == nullptr)
+	FILE* file = _fsopen(pathCustomBinds.string().c_str(), "rt", _SH_DENYNO);
+	if (file == nullptr)
 		return;
 
 	char szLine[MAX_STRING];
@@ -145,9 +144,8 @@ static void SaveCustomBinds()
 {
 	std::filesystem::path pathCustomBinds = gPathConfig;
 	pathCustomBinds /= BindsFile;
-	FILE* file = nullptr;
-	const errno_t err = fopen_s(&file, pathCustomBinds.string().c_str(), "wt");
-	if (err || file == nullptr)
+	FILE* file = _fsopen(pathCustomBinds.string().c_str(), "wt", _SH_DENYWR);
+	if (file == nullptr)
 		return;
 
 	for (const auto& pBind : sCustomBinds)

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2023 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -22,8 +22,6 @@ class Blech;
 struct BLECHVALUE;
 
 namespace mq::lua {
-
-void MQ_RegisterLua_Events(sol::table& lua);
 
 class LuaThread;
 class LuaEventProcessor;
@@ -115,11 +113,11 @@ public:
 	LuaEventProcessor(LuaThread* thread);
 	~LuaEventProcessor();
 
-	void AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
-	void RemoveEvent(std::string_view name);
+	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
+	bool RemoveEvent(std::string_view name);
 
-	void AddBind(std::string_view name, const sol::function& function);
-	void RemoveBind(std::string_view name);
+	bool AddBind(std::string_view name, const sol::function& function);
+	bool RemoveBind(std::string_view name);
 
 	void Process(std::string_view line) const;
 
