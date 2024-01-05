@@ -83,9 +83,6 @@ namespace mq {
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
 
-void InitializeInputAPI();
-void ShutdownInputAPI();
-
 void InitializeDisplayHook();
 void ShutdownDisplayHook();
 
