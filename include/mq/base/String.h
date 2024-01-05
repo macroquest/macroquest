@@ -487,8 +487,8 @@ private:
 	{
 		using is_transparent = void;
 
-		template <typename T>
-		bool operator()(const T& a, const T& b) const
+		template <typename T, typename U>
+		bool operator()(const T& a, const U& b) const
 		{
 			return ci_equals(a, b);
 		}
@@ -511,12 +511,18 @@ private:
 		{
 			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
 			size_t hash = FNV_offset_basis;
-			for (unsigned char c : a)
+			for (char c : a)
 			{
-				hash ^= static_cast<size_t>(::tolower(c));
+				hash ^= static_cast<size_t>(::tolower(static_cast<unsigned char>(c)));
 				hash *= FNV_prime;
 			}
 			return hash;
+		}
+
+		size_t operator()(const char* a) const
+		{
+			std::string_view sv{ a };
+			return operator()(sv);
 		}
 	};
 

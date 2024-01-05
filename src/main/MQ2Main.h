@@ -46,6 +46,7 @@ using namespace eqlib;
 
 #define MAX_VARNAME           64
 
+#include "mq/base/Traits.h"
 #include "../common/Common.h"
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
@@ -415,8 +416,8 @@ enum class MQGroundSpawnType
 	Placed
 };
 
-inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
-inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
+inline auto EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline auto EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
 struct MQGroundSpawn
 {
@@ -441,7 +442,7 @@ struct MQGroundSpawn
 	MQLIB_OBJECT MQGameObject ToGameObject() const;
 	MQLIB_OBJECT void Reset();
 
-	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
+	template <typename T> T* Get() const { static_assert(mq::always_false<T>::value, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
 	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
 
@@ -499,8 +500,8 @@ MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 
-inline int EQObjectID(SPAWNINFO* pSpawn) { return pSpawn->SpawnID; }
-using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
+inline auto EQObjectID(PlayerClient* pSpawn) { return pSpawn->SpawnID; }
+using ObservedSpawnPtr = MQEQObjectPtr<PlayerClient>;
 
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
 MQLIB_API void InvalidateObservedEQObject(void* Object);
