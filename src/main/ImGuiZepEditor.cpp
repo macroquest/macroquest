@@ -127,8 +127,8 @@ private:
 	virtual void DrawRectFilled(const NRectf& rc, ZepColor col) const override;
 	virtual void SetClipRect(const NRectf& rc) override { m_clipRect = rc; }
 	virtual Zep::ZepFont& GetFont(ZepTextType type) override;
-
-private:
+	
+	private:
 	float m_lastClick = -1.0f;
 	bool m_mouseDrag = false;
 	bool m_mouseInside = false;
@@ -171,7 +171,7 @@ void ZepEditor_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
 		drawList->PopClipRect();
 	}
@@ -188,7 +188,7 @@ void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor 
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
 		drawList->PopClipRect();
 	}
@@ -205,7 +205,7 @@ void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
 		drawList->PopClipRect();
 	}

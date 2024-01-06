@@ -262,15 +262,19 @@ public:
 
 	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
 	{
+		Zep::ZepColor finalColor = Zep::ZepTheme::GetColor(themeColor);
+		
 		if ((int)themeColor >= UserColorStart)
-			return m_userColors[(size_t)themeColor - UserColorStart];
+			finalColor = m_userColors[(size_t)themeColor - UserColorStart];
+		else if (themeColor == Zep::ThemeColor::Background)
+			finalColor = Zep::ZepColor(0, 0, 0, 0);
+		else if (themeColor == Zep::ThemeColor::VisualSelectBackground)
+			finalColor = Zep::ZepColor(66, 150, 249, 89);
+		
+		// apply user alpha
+		finalColor.a = static_cast<uint8_t>(finalColor.a*m_alphaMultiplier);
 
-		if (themeColor == Zep::ThemeColor::Background)
-			return Zep::ZepColor(0, 0, 0, 0);
-		if (themeColor == Zep::ThemeColor::VisualSelectBackground)
-			return Zep::ZepColor(66, 150, 249, 89);
-
-		return Zep::ZepTheme::GetColor(themeColor);
+		return finalColor;
 	}
 
 	// This overrides GetUniqueColor to treat any value over UniqueColorLast as a color value.
@@ -292,8 +296,15 @@ public:
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
+	float GetAlphaMultiplier() { return m_alphaMultiplier;  }
+
+	void SetAlphaMultiplier(const float alpha)
+	{
+		m_alphaMultiplier = alpha;
+	}
 private:
 	std::vector<Zep::ZepColor> m_userColors;
+	float m_alphaMultiplier = 1.0;
 };
 
 //----------------------------------------------------------------------------
@@ -592,6 +603,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
+	float m_alphaOverride = 1.0f;
 	std::string m_id;
 
 	ImGuiZepConsole(std::string_view id)
@@ -891,6 +903,13 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	void SetMaxBufferLines(int maxBufferLines) override
 	{
 		m_maxBufferLines = maxBufferLines;
+	}
+
+	float GetAlphaMultiplier() const override { return m_theme->GetAlphaMultiplier(); }
+
+	void SetAlphaMultiplier(float alphaMultiplier) override
+	{
+		m_theme->SetAlphaMultiplier(alphaMultiplier);
 	}
 };
 
