@@ -53,7 +53,6 @@ public:
 
 	virtual float GetOpacity() const = 0;
 	virtual void SetOpacity(float opacity) = 0;
-
 };
 
 } // namespace mq::imgui
