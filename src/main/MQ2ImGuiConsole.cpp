@@ -605,7 +605,6 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
-	float m_alphaOverride = 1.0f;
 	std::string m_id;
 
 	ImGuiZepConsole(std::string_view id)
