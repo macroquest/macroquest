@@ -127,8 +127,8 @@ private:
 	virtual void DrawRectFilled(const NRectf& rc, ZepColor col) const override;
 	virtual void SetClipRect(const NRectf& rc) override { m_clipRect = rc; }
 	virtual Zep::ZepFont& GetFont(ZepTextType type) override;
-	
-	private:
+
+private:
 	float m_lastClick = -1.0f;
 	bool m_mouseDrag = false;
 	bool m_mouseInside = false;
