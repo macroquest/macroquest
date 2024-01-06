@@ -262,7 +262,7 @@ public:
 
 	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
 	{
-		Zep::ZepColor finalColor = Zep::ZepTheme::GetColor(themeColor);
+		Zep::ZepColor finalColor;
 		
 		if ((int)themeColor >= UserColorStart)
 			finalColor = m_userColors[(size_t)themeColor - UserColorStart];
@@ -270,9 +270,11 @@ public:
 			finalColor = Zep::ZepColor(0, 0, 0, 0);
 		else if (themeColor == Zep::ThemeColor::VisualSelectBackground)
 			finalColor = Zep::ZepColor(66, 150, 249, 89);
+		else
+			finalColor = Zep::ZepTheme::GetColor(themeColor);
 		
 		// apply user alpha
-		finalColor.a = static_cast<uint8_t>(finalColor.a*m_alphaMultiplier);
+		finalColor.a = static_cast<uint8_t>(finalColor.a*m_opacity);
 
 		return finalColor;
 	}
@@ -296,15 +298,15 @@ public:
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
-	float GetAlphaMultiplier() { return m_alphaMultiplier;  }
+	float GetOpacity() { return m_opacity;  }
 
-	void SetAlphaMultiplier(const float alpha)
+	void SetOpacity(const float opacity)
 	{
-		m_alphaMultiplier = alpha;
+		m_opacity = opacity;
 	}
 private:
 	std::vector<Zep::ZepColor> m_userColors;
-	float m_alphaMultiplier = 1.0;
+	float m_opacity = 1.0;
 };
 
 //----------------------------------------------------------------------------
@@ -905,11 +907,11 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 		m_maxBufferLines = maxBufferLines;
 	}
 
-	float GetAlphaMultiplier() const override { return m_theme->GetAlphaMultiplier(); }
+	float GetOpacity() const override { return m_theme->GetOpacity(); }
 
-	void SetAlphaMultiplier(float alphaMultiplier) override
+	void SetOpacity(float opacity) override
 	{
-		m_theme->SetAlphaMultiplier(alphaMultiplier);
+		m_theme->SetOpacity(opacity);
 	}
 };
 

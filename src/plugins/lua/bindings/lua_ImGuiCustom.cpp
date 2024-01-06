@@ -63,7 +63,7 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		"ScrollToBottom"             , &mq::imgui::ConsoleWidget::ScrollToBottom,
 		"autoScroll"                 , sol::property(&mq::imgui::ConsoleWidget::GetAutoScroll, &mq::imgui::ConsoleWidget::SetAutoScroll),
 		"maxBufferLines"             , sol::property(&mq::imgui::ConsoleWidget::GetMaxBufferLines, &mq::imgui::ConsoleWidget::SetMaxBufferLines),
-		"alphaMultiplier"            , sol::property(&mq::imgui::ConsoleWidget::GetAlphaMultiplier, &mq::imgui::ConsoleWidget::SetAlphaMultiplier),
+		"opacity"                    , sol::property(&mq::imgui::ConsoleWidget::GetOpacity, &mq::imgui::ConsoleWidget::SetOpacity),
 
 		"AppendText",                sol::overload(
 			[](mq::imgui::ConsoleWidget* pThis, std::string_view text) { pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, true); },
