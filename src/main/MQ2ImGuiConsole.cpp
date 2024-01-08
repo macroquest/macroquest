@@ -262,15 +262,21 @@ public:
 
 	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
 	{
+		Zep::ZepColor finalColor;
+		
 		if ((int)themeColor >= UserColorStart)
-			return m_userColors[(size_t)themeColor - UserColorStart];
+			finalColor = m_userColors[(size_t)themeColor - UserColorStart];
+		else if (themeColor == Zep::ThemeColor::Background)
+			finalColor = Zep::ZepColor(0, 0, 0, 0);
+		else if (themeColor == Zep::ThemeColor::VisualSelectBackground)
+			finalColor = Zep::ZepColor(66, 150, 249, 89);
+		else
+			finalColor = Zep::ZepTheme::GetColor(themeColor);
+		
+		// apply user alpha
+		finalColor.a = static_cast<uint8_t>(finalColor.a*m_opacity);
 
-		if (themeColor == Zep::ThemeColor::Background)
-			return Zep::ZepColor(0, 0, 0, 0);
-		if (themeColor == Zep::ThemeColor::VisualSelectBackground)
-			return Zep::ZepColor(66, 150, 249, 89);
-
-		return Zep::ZepTheme::GetColor(themeColor);
+		return finalColor;
 	}
 
 	// This overrides GetUniqueColor to treat any value over UniqueColorLast as a color value.
@@ -292,8 +298,15 @@ public:
 		return (Zep::ThemeColor)(index + UserColorStart);
 	}
 
+	float GetOpacity() { return m_opacity;  }
+
+	void SetOpacity(const float opacity)
+	{
+		m_opacity = opacity;
+	}
 private:
 	std::vector<Zep::ZepColor> m_userColors;
+	float m_opacity = 1.0;
 };
 
 //----------------------------------------------------------------------------
@@ -891,6 +904,13 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	void SetMaxBufferLines(int maxBufferLines) override
 	{
 		m_maxBufferLines = maxBufferLines;
+	}
+
+	float GetOpacity() const override { return m_theme->GetOpacity(); }
+
+	void SetOpacity(float opacity) override
+	{
+		m_theme->SetOpacity(opacity);
 	}
 };
 

@@ -140,6 +140,12 @@ private:
 
 					// TODO: forward new ID to all mailboxes here
 				}
+				else
+				{
+					// this is a message from the server to identify self (as a handshake)
+					// so resend the init
+					m_postOffice->SetGameStatePostOffice(0);
+				}
 				break;
 
 			case MQMessageId::MSG_DROPPED:
@@ -216,7 +222,7 @@ private:
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
 
 			// send a self-identification
-			pipeclient::SetGameStatePostOffice(0);
+			m_postOffice->SetGameStatePostOffice(0);
 
 			// and then ask for the list of all ID's
 			m_postOffice->m_pipeClient.SendMessage(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);

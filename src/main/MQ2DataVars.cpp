@@ -1007,4 +1007,23 @@ void DropTimers()
 	}
 }
 
+namespace detail
+{
+	void PrintMacroDataConversionError(const char* fromType, const char* toType)
+	{
+		WriteChatf("Tried to convert unlike types %s and %s", fromType, toType);
+
+		if (gMacroBlock != nullptr && gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
+		{
+			WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+		}
+
+		if (gMacroStack != nullptr)
+		{
+			char buf[MAX_STRING];
+			WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+		}
+	}
+}
+
 } // namespace mq

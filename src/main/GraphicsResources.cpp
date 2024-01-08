@@ -99,19 +99,25 @@ void MQTexture::AcquireTexture()
 		BMI* bmi = pGraphicsEngine->pResourceManager->CreateBMI(m_name.c_str(), m_name.c_str(),
 			nullptr, eMemoryPoolManagerTypePersistent);
 
-		if (!bmi->pBmp || bmi->pBmp->GetTexture() == nullptr)
+		if (!bmi->pBmp)
 		{
 			pGraphicsEngine->pResourceManager->DestroyBMI(bmi);
 		}
 		else
 		{
-			m_bmi = bmi;
-
 #if HAS_DIRECTX_11
 			// Force the creation of the device state for this texture
 			gpD3D9Device->SetTexture(0, bmi->pBmp->GetD3DTexture());
 			gpD3D9Device->SetTexture(0, nullptr);
 #endif
+			if (bmi->pBmp->GetTexture() == nullptr)
+			{
+				pGraphicsEngine->pResourceManager->DestroyBMI(bmi);
+			}
+			else
+			{
+				m_bmi = bmi;
+			}
 		}
 	}
 }

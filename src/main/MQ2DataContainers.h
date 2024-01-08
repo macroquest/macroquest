@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/Traits.h"
+
 // this header is to create containers used for passing data around
 // try to make them generic and reusable
 
@@ -72,9 +74,9 @@ auto EQObjectID(EQType* Object)
 	*/
 
 #if !defined(COMMENT_UPDATER)
-	static_assert(false,
+	static_assert(mq::always_false<EQType>::value,
 		"No function found to provide a unique identifier for an EQ type. "
-		"Please provide a function named EQObjectID that returns a unique identifier for this object type.")
+		"Please provide a function named EQObjectID that returns a unique identifier for this object type.");
 #endif
 }
 
