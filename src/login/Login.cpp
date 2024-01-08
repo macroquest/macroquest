@@ -753,6 +753,27 @@ void login::db::DeleteAccount(std::string_view account)
 
 // ================================================================================================================================
 // characters
+std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account)
+{
+	return WithDb<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT server, character FROM characters WHERE account = ?)",
+		[account](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
+		{
+			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
+
+			std::vector<std::pair<std::string, std::string>> characters;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				characters.push_back(std::make_pair(
+					(const char*)sqlite3_column_text(stmt, 0),
+					(const char*)sqlite3_column_text(stmt, 1)
+				));
+			}
+
+			return characters;
+		});
+}
+
 void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb<void>(SQLITE_OPEN_READWRITE)(

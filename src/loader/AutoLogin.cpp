@@ -1133,17 +1133,19 @@ bool ToggleSlider(const char* label, bool* v)
 	return ret;
 }
 
-void SetEQDir()
+float ButtonWidth(const char* text)
 {
-	auto eqDir = login::db::ReadEQPath();
-	ImGui::SetNextItemWidth(-105.0f);
+	return ImGui::GetStyle().FramePadding.x * 2 + ImGui::CalcTextSize(text).x + ImGui::GetStyle().WindowPadding.x;
+}
+
+void SetEQDir(std::optional<std::string>& eq_path)
+{
+	auto eqDir = eq_path.value_or(login::db::ReadEQPath());
 	ImGui::InputText("EQ Dir", &eqDir[0], eqDir.size(), ImGuiInputTextFlags_ReadOnly);
 
 	if (!s_eqDirDialog)
 		s_eqDirDialog = IGFD_Create();
 
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(80.0f);
 	if (ImGui::Button("Choose##eqdir"))
 	{
 		IGFD_OpenDialog2(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
@@ -1158,8 +1160,7 @@ void SetEQDir()
 			std::error_code ec;
 			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
 			{
-				auto eq_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
-				login::db::CreateEQPath(eq_path);
+				eq_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
 			}
 		}
 
@@ -1167,14 +1168,14 @@ void SetEQDir()
 	}
 }
 
-void ShowAccountWindow()
+void ShowAccountWindow(std::optional<std::string>& selected)
 {
 	// declare account statics
-	static std::optional<std::string> selected;
 	static bool show_password = false;
 	static std::string password;
 	static std::string account_name;
 
+	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 	if (ImGui::BeginListBox("##accountslist"))
 	{
 		for (const auto& account : login::db::ListAccounts())
@@ -1317,9 +1318,469 @@ void ShowAccountWindow()
 	if (ImGui::Button("Remove Account") && selected) ImGui::OpenPopup("Delete Account");
 }
 
-void ShowProfileWindow()
+void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::string, std::string>>& selected, std::string& preview)
 {
+	auto set_selection = [&selected, &preview](const std::pair<std::string, std::string> character)
+		{
+			selected = character;
+			preview = fmt::format("{} : {}", character.first, character.second);
+		};
 
+	static std::string accountName;
+	static std::string serverName;
+	static std::string characterName;
+
+	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+	if (ImGui::BeginListBox("##characterslist"))
+	{
+		// this avoids a buffer allocation
+		static auto buf = [](size_t size)
+			{
+				fmt::memory_buffer buf;
+				buf.reserve(size);
+
+				std::string buf_str;
+				buf_str.reserve(size);
+
+				return std::make_pair(std::move(buf), std::move(buf_str));
+			}(256);
+
+		for (const auto& character : login::db::ListCharacters(account))
+		{
+			const bool is_selected = selected &&
+				ci_equals(character.first, selected->first) &&
+				ci_equals(character.second, selected->second);
+
+			fmt::format_to(std::back_inserter(buf.first), "{} : {}", character.first, character.second);
+			buf.second = fmt::to_string(buf.first);
+
+			if (ImGui::Selectable(buf.second.c_str(), is_selected))
+				set_selection(character);
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+
+			buf.first.clear();
+			buf.second.clear();
+		}
+
+		ImGui::EndListBox();
+	}
+
+	if (selected)
+	{
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenPopup("Delete Character");
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+		{
+			accountName = account;
+			serverName = selected->first;
+			characterName = selected->second;
+
+			ImGui::OpenPopup("Edit Character");
+		}
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
+	}
+
+	if (ImGui::BeginPopupModal("Delete Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Are you sure you want to delete character '%s : %s'? All associated profiles will also be removed.", selected->first.c_str(), selected->second.c_str());
+		ImGui::Spacing();
+
+		if (ImGui::Button("Yes##deletecharacter", ImVec2(120, 0)))
+		{
+			login::db::DeleteCharacter(selected->first, selected->second);
+			selected = {};
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("No##deletecharacter", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopupModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Update existing character.");
+		ImGui::Spacing();
+
+		ImGui::InputText("Account##editcharacter", &accountName);
+		ImGui::Spacing();
+
+		ImGui::InputText("Server##editcharacter", &serverName);
+		ImGui::Spacing();
+
+		ImGui::InputText("Name##editcharacter", &characterName);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK##editcharacter", ImVec2(120, 0)))
+		{
+			ProfileRecord record;
+			record.accountName = accountName;
+			record.serverName = serverName;
+			record.characterName = characterName;
+
+			login::db::UpdateCharacter(selected->first, selected->second, record);
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel##editcharacter", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopupModal("Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::TextWrapped("Create a new character, or update existing character.");
+		ImGui::Spacing();
+
+		ImGui::InputText("Account##createcharacter", &accountName);
+		ImGui::Spacing();
+
+		ImGui::InputText("Server##createcharacter", &serverName);
+		ImGui::Spacing();
+
+		ImGui::InputText("Name##createcharacter", &characterName);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK##createcharacter", ImVec2(120, 0)))
+		{
+			ProfileRecord record;
+			record.accountName = accountName;
+			record.serverName = serverName;
+			record.characterName = characterName;
+			login::db::CreateCharacter(record);
+			selected = std::make_pair(serverName, characterName);
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel##createcharacter", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::Button("Add Character"))
+	{
+		accountName = account;
+		if (selected)
+		{
+			serverName = selected->first;
+			characterName = selected->second;
+		}
+		else
+		{
+			serverName.clear();
+			characterName.clear();
+		}
+		ImGui::OpenPopup("Create Character");
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Edit Character") && selected)
+	{
+		accountName = account;
+		serverName = selected->first;
+		characterName = selected->second;
+
+		ImGui::OpenPopup("Edit Character");
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("Remove Character") && selected) ImGui::OpenPopup("Delete Character");
+}
+
+static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
+	{ ImGuiKey_LeftArrow, "LEFT" },
+	{ ImGuiKey_RightArrow, "RIGHT" },
+	{ ImGuiKey_UpArrow, "UP" },
+	{ ImGuiKey_DownArrow, "DOWN" },
+	{ ImGuiKey_PageUp, "PAGEUP" },
+	{ ImGuiKey_PageDown, "PAGEDOWN" },
+	{ ImGuiKey_Home, "HOME" },
+	{ ImGuiKey_End, "END" },
+	{ ImGuiKey_Insert, "INSERT" },
+	{ ImGuiKey_Delete, "DELETE" },
+	{ ImGuiKey_Space, "SPACE" },
+	{ ImGuiKey_Enter, "RETURN" },
+	{ ImGuiKey_Escape, "ESCAPE" },
+	{ ImGuiKey_0, "0" }, { ImGuiKey_1, "1" }, { ImGuiKey_2, "2" }, { ImGuiKey_3, "3" }, { ImGuiKey_4, "4" }, { ImGuiKey_5, "5" }, { ImGuiKey_6, "6" }, { ImGuiKey_7, "7" }, { ImGuiKey_8, "8" }, { ImGuiKey_9, "9" },
+	{ ImGuiKey_A, "A" }, { ImGuiKey_B, "B" }, { ImGuiKey_C, "C" }, { ImGuiKey_D, "D" }, { ImGuiKey_E, "E" }, { ImGuiKey_F, "F" }, { ImGuiKey_G, "G" }, { ImGuiKey_H, "H" }, { ImGuiKey_I, "I" }, { ImGuiKey_J, "J" },
+	{ ImGuiKey_K, "K" }, { ImGuiKey_L, "L" }, { ImGuiKey_M, "M" }, { ImGuiKey_N, "N" }, { ImGuiKey_O, "O" }, { ImGuiKey_P, "P" }, { ImGuiKey_Q, "Q" }, { ImGuiKey_R, "R" }, { ImGuiKey_S, "S" }, { ImGuiKey_T, "T" },
+	{ ImGuiKey_U, "U" }, { ImGuiKey_V, "V" }, { ImGuiKey_W, "W" }, { ImGuiKey_X, "X" }, { ImGuiKey_Y, "Y" }, { ImGuiKey_Z, "Z" },
+	{ ImGuiKey_F1, "F1" }, { ImGuiKey_F2, "F2" }, { ImGuiKey_F3, "F3" }, { ImGuiKey_F4, "F4" }, { ImGuiKey_F5, "F5" }, { ImGuiKey_F6, "F6" },
+	{ ImGuiKey_F7, "F7" }, { ImGuiKey_F8, "F8" }, { ImGuiKey_F9, "F9" }, { ImGuiKey_F10, "F10" }, { ImGuiKey_F11, "F11" }, { ImGuiKey_F12, "F12" },
+	{ ImGuiKey_F13, "F13" }, { ImGuiKey_F14, "F14" }, { ImGuiKey_F15, "F15" }, { ImGuiKey_F16, "F16" }, { ImGuiKey_F17, "F17" }, { ImGuiKey_F18, "F18" },
+	{ ImGuiKey_F19, "F19" }, { ImGuiKey_F20, "F20" }, { ImGuiKey_F21, "F21" }, { ImGuiKey_F22, "F22" }, { ImGuiKey_F23, "F23" }, { ImGuiKey_F24, "F24" },
+	{ ImGuiKey_Apostrophe, "'" },
+	{ ImGuiKey_Comma, "," },
+	{ ImGuiKey_Minus, "-" },
+	{ ImGuiKey_Period, "." },
+	{ ImGuiKey_Slash, "/" },
+	{ ImGuiKey_Semicolon, ";" },
+	{ ImGuiKey_Equal, "=" },
+	{ ImGuiKey_LeftBracket, "[" },
+	{ ImGuiKey_Backslash, "\\" },
+	{ ImGuiKey_RightBracket, "]" },
+	{ ImGuiKey_GraveAccent, "`" },
+	{ ImGuiKey_NumLock, "NUMLOCK" },
+	{ ImGuiKey_Keypad0, "NUMPAD0" }, { ImGuiKey_Keypad1, "NUMPAD1" }, { ImGuiKey_Keypad2, "NUMPAD2" }, { ImGuiKey_Keypad3, "NUMPAD3" }, { ImGuiKey_Keypad4, "NUMPAD4" },
+	{ ImGuiKey_Keypad5, "NUMPAD5" }, { ImGuiKey_Keypad6, "NUMPAD6" }, { ImGuiKey_Keypad7, "NUMPAD7" }, { ImGuiKey_Keypad8, "NUMPAD8" }, { ImGuiKey_Keypad9, "NUMPAD9" },
+	{ ImGuiKey_KeypadDecimal, "NUMPAD." },
+	{ ImGuiKey_KeypadDivide, "NUMPAD/" },
+	{ ImGuiKey_KeypadMultiply, "NUMPAD*" },
+	{ ImGuiKey_KeypadSubtract, "NUMPAD-" },
+	{ ImGuiKey_KeypadAdd, "NUMPAD+" },
+	{ ImGuiKey_KeypadEqual, "NUMPAD=" },
+};
+
+void ShowHotkeyWindow(std::optional<std::string>& hotkey)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	fmt::memory_buffer buf;
+	ImGuiKeyChord chord = 0;
+
+	if (io.KeyCtrl)
+	{
+		chord |= ImGuiMod_Ctrl;
+		fmt::format_to(std::back_inserter(buf), "CTRL+");
+	}
+
+	if (io.KeyShift)
+	{
+		chord |= ImGuiMod_Shift;
+		fmt::format_to(std::back_inserter(buf), "SHIFT+");
+	}
+
+	if (io.KeyAlt)
+	{
+		chord |= ImGuiMod_Alt;
+		fmt::format_to(std::back_inserter(buf), "ALT+");
+	}
+
+	if (io.KeySuper)
+	{
+		chord |= ImGuiMod_Super;
+		fmt::format_to(std::back_inserter(buf), "WIN+");
+	}
+
+	for (const auto& [key, name] : s_hotkeyMap)
+	{
+		if (ImGui::IsKeyChordPressed(chord | key))
+		{
+			fmt::format_to(std::back_inserter(buf), name);
+			hotkey = fmt::to_string(buf);
+			break;
+		}
+	}
+
+	ImGui::Text("Pressed: %s", fmt::to_string(buf).c_str());
+	if (hotkey) ImGui::Text("Current: %s", hotkey->c_str());
+}
+
+void ShowAddProfile(std::string_view profile_group)
+{
+	ImGui::PushID("addprofilewindow");
+
+	// drop down for account or create new
+	static std::optional<std::string> current_account;
+	static std::optional<std::pair<std::string, std::string>> current_character;
+	static std::optional<std::string> hotkey;
+	static std::optional<std::string> eq_path;
+
+	if (ImGui::BeginCombo("##chooseaccount", current_account.value_or("").c_str()))
+	{
+		for (const auto& account : login::db::ListAccounts())
+		{
+			bool is_selected = current_account && ci_equals(account, *current_account);
+			if (ImGui::Selectable(account.c_str(), is_selected))
+				current_account = account;
+
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("...##account"))
+		ImGui::OpenPopup("Select or Create Account");
+
+	if (ImGui::BeginPopupModal("Select or Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ShowAccountWindow(current_account);
+
+		ImGui::Separator();
+		if (ImGui::Button("OK"))
+			ImGui::CloseCurrentPopup();
+
+		ImGui::EndPopup();
+	}
+
+	// drop down for character or create new, only show this if an account has been selected
+	if (current_account)
+	{
+		static std::string char_preview = "";
+		if (ImGui::BeginCombo("##choosecharacter", char_preview.c_str()))
+		{
+			// this avoids a buffer allocation
+			static auto buf = [](size_t size)
+				{
+					fmt::memory_buffer buf;
+					buf.reserve(size);
+
+					std::string buf_str;
+					buf_str.reserve(size);
+
+					return std::make_pair(std::move(buf), std::move(buf_str));
+				}(256);
+
+				for (const auto& character : login::db::ListCharacters(*current_account))
+				{
+					const bool is_selected = current_character &&
+						ci_equals(character.first, current_character->first) &&
+						ci_equals(character.second, current_character->second);
+
+					fmt::format_to(std::back_inserter(buf.first), "{} : {}", character.first, character.second);
+					buf.second = fmt::to_string(buf.first);
+
+					if (ImGui::Selectable(buf.second.c_str(), is_selected))
+					{
+						current_character = character;
+						char_preview = buf.second;
+					}
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+
+					buf.first.clear();
+					buf.second.clear();
+				}
+				ImGui::EndCombo();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("...##character"))
+			ImGui::OpenPopup("Select or Create Character");
+
+		if (ImGui::BeginPopupModal("Select or Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ShowCharacterWindow(*current_account, current_character, char_preview);
+
+			ImGui::Separator();
+			if (ImGui::Button("OK"))
+			{
+				ProfileRecord record;
+				record.profileName = profile_group;
+				record.serverName = current_character->first;
+				record.characterName = current_character->second;
+
+				login::db::ReadProfile(record);
+				if (!record.hotkey.empty())
+					hotkey = record.hotkey;
+
+				eq_path = record.eqPath;
+
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+	else if (current_character)
+		current_character = {};
+
+	if (current_account && current_character)
+	{
+		// input box for hotkey (optional)
+		if (ImGui::Button("Hotkey"))
+			ImGui::OpenPopup("Input Hotkey");
+
+		ImGui::SameLine();
+		ImGui::Text("%s", hotkey.value_or("<None>").c_str());
+
+		if (ImGui::BeginPopupModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ShowHotkeyWindow(hotkey);
+
+			ImGui::Separator();
+			if (ImGui::Button("OK"))
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
+
+		// input for eq path override (optional)
+		if (ImGui::Button("EQ Path"))
+			ImGui::OpenPopup("Input EQ Path");
+
+		ImGui::SameLine();
+		ImGui::Text("%s", eq_path.value_or("<Default>").c_str());
+
+		if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			SetEQDir(eq_path);
+
+			ImGui::Separator();
+			if (ImGui::Button("OK"))
+				ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
+	}
+
+	if (ImGui::Button("Cancel"))
+	{
+		current_account = {};
+		current_character = {};
+		hotkey = {};
+		eq_path = {};
+
+		ImGui::CloseCurrentPopup();
+	}
+
+
+	ImGui::SameLine();
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ButtonWidth("Cancel"));
+	if (ImGui::Button("OK", ImVec2(ButtonWidth("Cancel"), ImGui::GetStyle().FramePadding.y * 2 + ImGui::CalcTextSize("Cancel").y)))
+	{
+		if (current_character)
+		{
+			ProfileRecord record;
+			record.profileName = profile_group;
+			record.serverName = current_character->first;
+			record.characterName = current_character->second;
+			record.hotkey = hotkey.value_or("");
+			record.eqPath = eq_path;
+			record.checked = true;
+
+			login::db::CreateProfile(record);
+		}
+
+		current_account = {};
+		current_character = {};
+		hotkey = {};
+		eq_path = {};
+
+		ImGui::CloseCurrentPopup();
+	}
+
+	ImGui::PopID();
 }
 
 void ShowAutoLoginWindow()
@@ -1356,14 +1817,13 @@ void ShowAutoLoginWindow()
 			ImGui::PopID();
 
 			ImGui::PushID("profilecombo");
-			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x * 2 - ImGui::CalcTextSize("Play").x - ImGui::GetStyle().WindowPadding.x);
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Profile") - ButtonWidth("Launch Group"));
 			// TODO: This hits the db each frame, is that fine with sqlite? is that fine when I open a new connection each frame?
-			const auto& groups = login::db::ListProfileGroups();
 			// TODO: persist current group in the db and get it here (set/write it below, whenever we set this value)
 			static std::optional<std::string> current_group;
 			if (ImGui::BeginCombo("##profilegroups", current_group.value_or("").c_str()))
 			{
-				for (const auto& group : groups)
+				for (const auto& group : login::db::ListProfileGroups())
 				{
 					bool is_selected = current_group && ci_equals(group, *current_group);
 					if (ImGui::Selectable(group.c_str(), is_selected))
@@ -1377,7 +1837,20 @@ void ShowAutoLoginWindow()
 			ImGui::PopID();
 
 			ImGui::SameLine();
-			ImGui::Button("Play"); // TODO: Launch the group here
+			if (ImGui::Button("Add Profile"))
+				ImGui::OpenPopup("Add Profile");
+
+			if (current_group && ImGui::BeginPopupModal("Add Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ShowAddProfile(*current_group);
+				ImGui::EndPopup();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Launch Group"))
+			{
+				// TODO: Launch the group here
+			}
 
 			ImGui::PushID("mainlist");
 			if (ImGui::BeginTable("##maintable", 5, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
@@ -1410,15 +1883,8 @@ void ShowAutoLoginWindow()
 
 						if (ImGui::BeginPopup("row_popup"))
 						{
-							if (ImGui::Selectable("Add"))
-							{
-								// add a new profile
-							}
-
 							if (ImGui::Selectable("Remove"))
-							{
-								// remove an existing profile
-							}
+								login::db::DeleteProfile(profile.serverName, profile.characterName, *current_group);
 
 							ImGui::EndPopup();
 						}
@@ -2698,4 +3164,7 @@ void InitializeAutoLogin()
 void ShutdownAutoLogin()
 {
 	s_dropbox.Remove();
+
+	if (s_eqDirDialog != nullptr)
+		IGFD_Destroy(s_eqDirDialog);
 }
