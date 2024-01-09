@@ -1369,13 +1369,15 @@ static char* GetStatShortName(int StatType, char(&szBuffer)[Size])
 template <unsigned int Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
-	if ((size_t)FactionID < MAX_FACTIONNAMES)
+	char szTemp[MAX_STRING] = { 0 };
+	if (const char* ptr = pCDBStr->GetString(FactionID, eFactionName, nullptr))
 	{
-		strcat_s(szBuffer, Size, szFactionNames[FactionID]);
+		// The parentheses here are to match previous hardcoded behavior
+		sprintf_s(szTemp, "(%s)", ptr);
+		strcat_s(szBuffer, Size, ptr);
 	}
 	else
 	{
-		char szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
 		strcat_s(szBuffer, Size, szTemp);
 	}
