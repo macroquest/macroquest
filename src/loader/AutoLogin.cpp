@@ -110,6 +110,32 @@ bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 int gMenuItemCount = 0;
 HMENU hProfilesMenu = nullptr;
 
+struct LoginInstance
+{
+	mutable unsigned long PID;
+
+	std::string Server;
+	std::string Character;
+
+	mutable std::optional<std::string> ProfileGroup;
+	mutable std::optional<std::string> EQPath;
+	mutable std::optional<std::string> Hotkey;
+
+	bool operator==(const LoginInstance& other) const
+	{
+		return ci_equals(Server, other.Server) && ci_equals(Character, other.Character);
+	}
+
+	// hash function, based on server and character
+	size_t operator()(const LoginInstance& instance) const
+	{
+		return std::hash<std::string>()(instance.Server) ^ std::hash<std::string>()(instance.Character);
+	}
+};
+
+// set of loaded instances
+static std::unordered_set<LoginInstance, LoginInstance> s_loadedInstances;
+
 postoffice::Dropbox s_dropbox;
 
 static ImGuiFileDialog* s_eqDirDialog = nullptr;
@@ -840,6 +866,114 @@ void ResetLoaded(ProfileInfo pi, int id, HMENU hmenuPopup)
 	SetMenuItemInfo(hmenuPopup, id, FALSE, &mi);
 }
 
+void LoadCharacter(const LoginInstance& instance_template)
+{
+	auto login_it = s_loadedInstances.find(instance_template);
+	if (login_it != s_loadedInstances.end())
+	{
+		// already mapped into our loaded instances
+		if (!IsEQGameProcessId(login_it->PID))
+		{
+			// somehow we have a PID in our map that isn't EQ
+			if (login_it->Hotkey) UnregisterGlobalHotkey(*login_it->Hotkey);
+			s_loadedInstances.erase(login_it);
+		}
+		else
+		{
+			// trying to load an already loaded instance, update hotkey and reinject
+			// assume the provided hotkey is absolute truth to allow for clearing of hotkey
+			if (login_it->Hotkey != instance_template.Hotkey)
+			{
+				if (login_it->Hotkey)
+					UnregisterGlobalHotkey(*login_it->Hotkey);
+
+				login_it->Hotkey = instance_template.Hotkey;
+
+				if (login_it->Hotkey)
+					RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login_it->PID), *login_it->Hotkey);
+			}
+
+			if (login_it->ProfileGroup != instance_template.ProfileGroup)
+				login_it->ProfileGroup = instance_template.ProfileGroup;
+
+			// specifically do not update EQ path because we launched this instance with the existing value
+
+			Inject(login_it->PID);
+		}
+	}
+	else
+	{
+		// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
+		// because we got a list at startup of the current running instances
+
+		std::string eq_path = instance_template.EQPath.value_or(instance_template.ProfileGroup ? 
+			login::db::GetEQPath(*instance_template.ProfileGroup, instance_template.Server, instance_template.Character) :
+			login::db::ReadEQPath());
+
+		if (!eq_path.empty())
+		{
+			SHELLEXECUTEINFOA sei = { sizeof(SHELLEXECUTEINFOA) };
+			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_WAITFORINPUTIDLE;
+			sei.lpVerb = "open";
+			sei.nShow = SW_SHOW;
+
+			std::string arg;
+			if (instance_template.ProfileGroup)
+			{
+				arg = fmt::format("{}_{}:{}",
+					*instance_template.ProfileGroup,
+					instance_template.Server,
+					instance_template.Character);
+			}
+			else
+			{
+				ProfileRecord record;
+				record.serverName = instance_template.Server;
+				record.characterName = instance_template.Character;
+
+				if (login::db::ReadAccount(record))
+				{
+					// password was read successfully
+					if (!instance_template.Character.empty())
+					{
+						arg = fmt::format("{}^{}^{}^{}",
+							record.serverName, record.accountName,
+							record.characterName, record.accountPassword);
+					}
+					else
+					{
+						arg = fmt::format("{}^{}^{}",
+							record.serverName, record.accountName, record.accountPassword);
+					}
+				}
+				else
+				{
+					arg = fmt::format("{}:{}", record.serverName, record.characterName);
+				}
+			}
+
+			auto params = fmt::format("patchme /login:{}", arg);
+			sei.lpParameters = params.c_str();
+			sei.lpDirectory = eq_path.c_str();
+
+			auto file = fmt::format("{}\\eqgame.exe", eq_path);
+			sei.lpFile = file.c_str();
+
+			if (ShellExecuteEx(&sei))
+			{
+				auto [it, _] = s_loadedInstances.emplace(instance_template);
+				it->PID = GetProcessId(sei.hProcess);
+			}
+		}
+		else
+		{
+			SPDLOG_ERROR("No eq_path found for %s : %s (profile group %s)",
+				instance_template.Server, instance_template.Character,
+				instance_template.ProfileGroup.value_or("<None>"));
+		}
+	}
+}
+
 void SetLoaded(ProfileInfo pi, int id, HMENU hmenuPopup)
 {
 	std::string label;
@@ -1085,6 +1219,8 @@ void LaunchCleanSession()
 	::CreateProcessA(nullptr, &parameters[0], nullptr, nullptr, FALSE, 0, nullptr, internal_paths::EQRoot.c_str(), &si, &pi);
 }
 
+#pragma region ImGui
+
 bool SmallCheckbox(const char* label, bool* v)
 {
 	float backup_padding_y = ImGui::GetStyle().FramePadding.y;
@@ -1137,8 +1273,6 @@ float ButtonWidth(const char* text)
 {
 	return ImGui::GetStyle().FramePadding.x * 2 + ImGui::CalcTextSize(text).x + ImGui::GetStyle().WindowPadding.x;
 }
-
-#pragma region ImGui
 
 void SetEQDir(std::optional<std::string>& eq_path)
 {
@@ -1786,7 +1920,6 @@ void ShowAutoLoginWindow()
 			static std::optional<std::string> current_group;
 			// Code goes into this scope for selecting and modifying profiles/groups
 			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
-			//ImGui::BeginChild("##mainchild", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
 			ImGui::PushID("menubar");
 			if (ImGui::BeginMenuBar())
@@ -1934,9 +2067,18 @@ void ShowAutoLoginWindow()
 			}
 
 			ImGui::SameLine();
-			if (ImGui::Button("Launch Group"))
+			if (ImGui::Button("Launch Group") && current_group)
 			{
-				// TODO: Launch the group here
+				for (const auto& profile : login::db::GetProfiles(*current_group))
+				{
+					LoginInstance instance;
+					instance.ProfileGroup = current_group;
+					instance.Server = profile.serverName;
+					instance.Character = profile.characterName;
+					if (!profile.hotkey.empty()) instance.Hotkey = profile.hotkey;
+
+					LoadCharacter(instance);
+				}
 			}
 
 			ImGui::PushID("mainlist");
@@ -1977,7 +2119,7 @@ void ShowAutoLoginWindow()
 								interim_profile.hotkey = profile.hotkey;
 								interim_profile.eq_path = profile.eqPath;
 								interim_profile.char_preview = fmt::format("{} : {}", profile.serverName, profile.characterName);
-
+								
 								interim_profile.finalize = false;
 
 								edit_profile = true;
@@ -2003,14 +2145,14 @@ void ShowAutoLoginWindow()
 
 						ImGui::TableNextColumn();
 						if (ImGui::SmallButton("Play")) // TODO: launch the profile here
-							ImGui::OpenPopup("test_popup");
-
-						if (ImGui::BeginPopup("test_popup"))
 						{
-							ImGui::Text("test1");
-							ImGui::Text("test2");
-							ImGui::Text("test3");
-							ImGui::EndPopup();
+							LoginInstance instance;
+							instance.ProfileGroup = current_group;
+							instance.Server = profile.serverName;
+							instance.Character = profile.characterName;
+							if (!profile.hotkey.empty()) instance.Hotkey = profile.hotkey;
+
+							LoadCharacter(instance);
 						}
 
 						ImGui::PopID();
@@ -3155,6 +3297,8 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 void InitializeAutoLogin()
 {
 	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
+	// TODO: build list of logged in instances from the list of registered clients in the post office
+	// TODO: figure out how to determine hotkeys from that list
 
 	// Get path to mq2autologin.ini
 	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";

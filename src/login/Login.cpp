@@ -704,6 +704,35 @@ void login::db::CreateAccount(const ProfileRecord& profile)
 
 std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 {
+	if (profile.accountName.empty())
+	{
+		return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+			R"(
+				SELECT account, password
+				FROM accounts
+				JOIN characters USING (account)
+				WHERE server = ? AND character = ?)",
+			[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+			{
+				sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
+
+				profile.accountName = (const char*)sqlite3_column_text(stmt, 0);
+
+				auto master_pass = GetMasterPass();
+				if (master_pass && sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_type(stmt, 1) == SQLITE_TEXT)
+				{
+					std::string pass((const char*)sqlite3_column_text(stmt, 1), sqlite3_column_bytes(stmt, 1));
+					pass = XorEncryptDecrypt(pass, *master_pass);
+					profile.accountPassword = pass;
+					return pass;
+				}
+
+				SPDLOG_ERROR("AutoLogin Error failed to load account {}: {}", profile.accountName, sqlite3_errmsg(db));
+				return {};
+			});
+	}
+
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT password FROM accounts WHERE account = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
@@ -1151,19 +1180,19 @@ void login::db::DeleteProfile(std::string_view server, std::string_view name, st
 }
 // ================================================================================================================================
 
-std::optional<std::string> login::db::GetEQPath(std::string_view group, std::string_view server, std::string_view name)
+std::string login::db::GetEQPath(std::string_view group, std::string_view server, std::string_view name)
 {
 	ProfileRecord profile;
 	profile.profileName = group;
 	profile.serverName = server;
 	profile.characterName = name;
 	if (ReadProfile(profile) && profile.eqPath)
-		return profile.eqPath;
+		return *profile.eqPath;
 
 	ProfileGroup grp;
 	grp.profileName = group;
 	if (ReadProfileGroup(grp) && grp.eqPath)
-		return grp.eqPath;
+		return *grp.eqPath;
 
 	return ReadEQPath();
 }

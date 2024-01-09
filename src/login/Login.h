@@ -112,7 +112,7 @@ std::optional<unsigned int> ReadFullProfile(std::string_view group, std::string_
 void UpdateProfile(const ProfileRecord& profile);
 void DeleteProfile(std::string_view server, std::string_view name, std::string_view group);
 
-std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
+std::string GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups);
 bool InitDatabase(const std::string& path);
