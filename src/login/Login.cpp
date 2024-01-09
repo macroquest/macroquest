@@ -817,6 +817,41 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::
 		});
 }
 
+std::vector<std::pair<std::string, std::string>> login::db::ListCharacterMatches(std::string_view search)
+{
+	return WithDb::Query<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+		R"(
+			SELECT server, character
+			FROM characters
+			LEFT JOIN personas ON characters.id = character_id
+			WHERE LOWER(server) LIKE '%' || ? || '%'
+			   OR LOWER(character) LIKE '%' || ? || '%'
+			   OR LOWER(account) LIKE '%' || ? || '%'
+               OR LOWER(class) LIKE '%' || ? || '%'
+			GROUP BY characters.id)",
+		[search](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
+		{
+			std::string lower_search(search);
+			to_lower(lower_search);
+
+			sqlite3_bind_text(stmt, 1, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
+			sqlite3_bind_text(stmt, 2, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
+			sqlite3_bind_text(stmt, 3, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
+			sqlite3_bind_text(stmt, 4, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
+
+			std::vector<std::pair<std::string, std::string>> characters;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				characters.push_back(std::make_pair(
+					(const char*)sqlite3_column_text(stmt, 0),
+					(const char*)sqlite3_column_text(stmt, 1)
+				));
+			}
+
+			return characters;
+		});
+}
+
 void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(

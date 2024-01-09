@@ -94,6 +94,7 @@ void UpdateAccount(std::string_view account, const ProfileRecord& record);
 void DeleteAccount(std::string_view account);
 
 std::vector<std::pair<std::string, std::string>> ListCharacters(std::string_view account);
+std::vector<std::pair<std::string, std::string>> ListCharacterMatches(std::string_view search);
 void CreateCharacter(const ProfileRecord& profile);
 std::optional<unsigned int> ReadCharacter(ProfileRecord& profile);
 void UpdateCharacter(std::string_view server, std::string_view name, const ProfileRecord& profile);
