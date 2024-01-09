@@ -280,7 +280,6 @@ void ProfileRecord::FormatTo(char* buffer, size_t length) const
 	*result.out = 0;
 }
 
-template <typename T>
 class WithDb
 {
 public:
@@ -299,18 +298,33 @@ public:
 		if (m_db != nullptr) sqlite3_close(m_db);
 	}
 
-	T operator()(const std::string& query, const std::function<T(sqlite3_stmt*, sqlite3*)>& action)
+	template <typename T>
+	static std::function<T(const std::string&, const std::function<T(sqlite3_stmt*, sqlite3*)>&)> Query(int flags)
 	{
-		return WithStatement(m_db, query)(action);
+		return [flags](const std::string& query, const std::function<T(sqlite3_stmt*, sqlite3*)>& action)
+			{
+				auto connection = Get(flags);
+				return WithStatement<T>(connection->m_db, query)(action);
+			};
 	}
 
 private:
+	static const std::shared_ptr<WithDb>& Get(int flags)
+	{
+		static std::map<int, std::shared_ptr<WithDb>> connections;
+
+		auto [connection, _] = connections.try_emplace(flags, std::move(std::make_shared<WithDb>(flags)));
+
+		return connection->second;
+	}
+
+	template <typename T>
 	class WithStatement
 	{
 	public:
-		WithStatement(sqlite3* db, const std::string& query) : m_db(db)
+		WithStatement(sqlite3* db, const std::string& query) : m_db(db), m_stmt(nullptr)
 		{
-			sqlite3_prepare_v2(db, query.c_str(), -1, &m_stmt, nullptr);
+			sqlite3_prepare_v2(m_db, query.c_str(), -1, &m_stmt, nullptr);
 		}
 
 		~WithStatement()
@@ -318,7 +332,7 @@ private:
 			sqlite3_finalize(m_stmt);
 		}
 
-		T operator()(const std::function<T(sqlite3_stmt*, sqlite3*)> action)
+		T operator()(const std::function<T(sqlite3_stmt*, sqlite3*)>& action)
 		{
 			return action(m_stmt, m_db);
 		}
@@ -358,7 +372,7 @@ struct HashParams
 
 bool login::db::ValidatePass(std::string_view pass, bool empty_is_valid)
 {
-	auto hash = WithDb<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+	auto hash = WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT value FROM settings WHERE key = 'master_pass')",
 		[](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
@@ -392,7 +406,7 @@ std::optional<std::string> login::db::GetMasterPass()
 bool login::db::CreateMasterPass(std::string_view pass)
 {
 	// first update the db with the new pass
-	auto db = WithDb<std::optional<std::string>>(SQLITE_OPEN_READWRITE);
+	auto db = WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READWRITE);
 	auto get_setting = [&db](std::string_view setting)
 		{
 			return db(
@@ -525,7 +539,7 @@ std::optional<std::string> login::db::ReadMasterPass()
 
 void login::db::CreateEQPath(std::string_view path)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO SETTINGS (key, value, description) VALUES('eq_path', ?, 'Default EQ path')
 			ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)",
@@ -538,7 +552,7 @@ void login::db::CreateEQPath(std::string_view path)
 
 std::string login::db::ReadEQPath()
 {
-	return WithDb<std::string>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::string>(SQLITE_OPEN_READONLY)(
 		R"(SELECT value FROM settings WHERE key = 'eq_path')",
 		[](sqlite3_stmt* stmt, sqlite3* db) -> std::string
 		{
@@ -553,7 +567,7 @@ std::string login::db::ReadEQPath()
 // profile_groups
 std::vector<std::string> login::db::ListProfileGroups()
 {
-	return WithDb<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT name FROM profile_groups)",
 		[](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -568,7 +582,7 @@ std::vector<std::string> login::db::ListProfileGroups()
 }
 void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO profile_groups (name, eq_path) VALUES(?, ?)
 			ON CONFLICT(name) DO UPDATE SET eq_path=excluded.eq_path)",
@@ -588,7 +602,7 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 
 std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 {
-	return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT id, eq_path FROM profile_groups WHERE name = ?)",
 		[&group](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
@@ -609,7 +623,7 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 
 void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& group)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE OR REPLACE profile_groups
 			SET name    = ?,
@@ -633,7 +647,7 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 
 void login::db::DeleteProfileGroup(std::string_view name)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM profile_groups WHERE name = ?)",
 		[name](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -649,7 +663,7 @@ void login::db::DeleteProfileGroup(std::string_view name)
 // accounts
 std::vector<std::string> login::db::ListAccounts()
 {
-	return WithDb<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT account FROM accounts)",
 		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::string>
 		{
@@ -665,7 +679,7 @@ std::vector<std::string> login::db::ListAccounts()
 
 void login::db::CreateAccount(const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO accounts (account, password) VALUES (?, ?)
 			ON CONFLICT (account) DO UPDATE SET password=excluded.password)",
@@ -690,7 +704,7 @@ void login::db::CreateAccount(const ProfileRecord& profile)
 
 std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 {
-	return WithDb<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT password FROM accounts WHERE account = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
@@ -712,7 +726,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 
 void login::db::UpdateAccount(std::string_view account, const ProfileRecord& record)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE OR REPLACE accounts
 			SET account = ?,
@@ -741,7 +755,7 @@ void login::db::UpdateAccount(std::string_view account, const ProfileRecord& rec
 
 void login::db::DeleteAccount(std::string_view account)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM accounts WHERE account = ?)",
 		[account](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -755,7 +769,7 @@ void login::db::DeleteAccount(std::string_view account)
 // characters
 std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account)
 {
-	return WithDb<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT server, character FROM characters WHERE account = ?)",
 		[account](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
 		{
@@ -776,7 +790,7 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::
 
 void login::db::CreateCharacter(const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO characters (character, server, account) VALUES(?, ?, ?)
 			ON CONFLICT(character, server) DO UPDATE SET account=excluded.account)",
@@ -792,7 +806,7 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 
 std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 {
-	return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(
 			SELECT id, account
 			FROM characters
@@ -815,7 +829,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 
 void login::db::UpdateCharacter(std::string_view server, std::string_view name, const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE OR REPLACE characters
 			SET character = ?,
@@ -837,7 +851,7 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 
 void login::db::DeleteCharacter(std::string_view server, std::string_view name)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(DELETE FROM characters WHERE character = ? AND server = ?)",
 		[server, name](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -853,7 +867,7 @@ void login::db::DeleteCharacter(std::string_view server, std::string_view name)
 // personas
 void login::db::CreatePersona(const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO personas (character_id, class, level) VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?)
 			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level)",
@@ -870,7 +884,7 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 
 std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 {
-	return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(
 			SELECT p.id, level
 			FROM personas p
@@ -896,7 +910,7 @@ std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 
 void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE OR REPLACE personas
 			SET class = ?,
@@ -916,7 +930,7 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 
 void login::db::DeletePersona(std::string_view server, std::string_view name, std::string_view cls)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			DELETE FROM personas
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
@@ -936,9 +950,9 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
 {
 	// TODO: personas or characters should have a "current persona" -- this will currently return multiple entries for the same character
-	return WithDb<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
 		R"(
-			SELECT hotkey, character, server, class, level, account, selected
+			SELECT hotkey, character, server, class, level, account, selected, eq_path
 			FROM profiles
 			JOIN (SELECT id AS character_id, character, server, account FROM characters) USING (character_id)
 			JOIN (SELECT id AS group_id FROM profile_groups WHERE name = ?) USING (group_id)
@@ -967,6 +981,9 @@ std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
 				if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
 					record.checked = sqlite3_column_int(stmt, 6) != 0;
 
+				if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
+					record.eqPath = (const char*)sqlite3_column_text(stmt, 7);
+
 				record.profileName = group;
 
 				records.push_back(std::move(record));
@@ -978,7 +995,7 @@ std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
 
 void login::db::CreateProfile(const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, selected)
 			VALUES((SELECT id FROM characters WHERE server = ? AND character = ?), (SELECT id FROM profile_groups WHERE name = ?), ?, ?, ?)
@@ -1003,7 +1020,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 
 std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
-	return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT id, eq_path, hotkey, selected FROM profiles
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
@@ -1037,7 +1054,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 	if (auto master_pass = GetMasterPass())
 	{
 		// left join group here to allow for empty group (in the case where you want character/server and it doesn't matter)
-		return WithDb<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
+		return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 			R"(
 			SELECT id, eq_path, hotkey, level, account, password, selected
 			FROM profiles
@@ -1091,7 +1108,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(std::string_view group, s
 
 void login::db::UpdateProfile(const ProfileRecord& profile)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE OR REPLACE profiles
 			SET eq_path = ?,
@@ -1118,7 +1135,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 
 void login::db::DeleteProfile(std::string_view server, std::string_view name, std::string_view group)
 {
-	WithDb<void>(SQLITE_OPEN_READWRITE)(
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			DELETE FROM profiles
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
@@ -1157,7 +1174,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 
 	if (auto pass = GetMasterPass())
 	{
-		auto groups = WithDb<std::map<unsigned int, ProfileGroup>>(SQLITE_OPEN_READONLY)(
+		auto groups = WithDb::Query<std::map<unsigned int, ProfileGroup>>(SQLITE_OPEN_READONLY)(
 			R"(SELECT id, name, eq_path FROM profile_groups)",
 			[](sqlite3_stmt* stmt, sqlite3* db)
 			{
@@ -1179,7 +1196,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 
 		for (auto& [id, group] : groups)
 		{
-			WithDb<void>(SQLITE_OPEN_READONLY)(
+			WithDb::Query<void>(SQLITE_OPEN_READONLY)(
 				R"(
 					SELECT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path, l.class, l.level
 					FROM profiles p
