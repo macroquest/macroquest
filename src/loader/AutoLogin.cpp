@@ -1138,6 +1138,8 @@ float ButtonWidth(const char* text)
 	return ImGui::GetStyle().FramePadding.x * 2 + ImGui::CalcTextSize(text).x + ImGui::GetStyle().WindowPadding.x;
 }
 
+#pragma region ImGui
+
 void SetEQDir(std::optional<std::string>& eq_path)
 {
 	auto eqDir = eq_path.value_or(login::db::ReadEQPath());
@@ -1392,6 +1394,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 		{
 			login::db::DeleteCharacter(selected->first, selected->second);
 			selected = {};
+			preview = "";
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -1427,6 +1430,8 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			record.characterName = characterName;
 
 			login::db::UpdateCharacter(selected->first, selected->second, record);
+			set_selection(std::make_pair(serverName, characterName));
+
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -1461,7 +1466,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			record.serverName = serverName;
 			record.characterName = characterName;
 			login::db::CreateCharacter(record);
-			selected = std::make_pair(serverName, characterName);
+			set_selection(std::make_pair(serverName, characterName));
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -1778,6 +1783,7 @@ void ShowAutoLoginWindow()
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
 		if (ImGui::BeginTabItem("Profiles"))
 		{
+			static std::optional<std::string> current_group;
 			// Code goes into this scope for selecting and modifying profiles/groups
 			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 			//ImGui::BeginChild("##mainchild", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
@@ -1785,12 +1791,89 @@ void ShowAutoLoginWindow()
 			ImGui::PushID("menubar");
 			if (ImGui::BeginMenuBar())
 			{
+				static std::string new_group;
+				static std::optional<std::string> new_group_path;
 				if (ImGui::SmallButton("Create"))
 				{
+					new_group = "";
+					new_group_path = {};
+					ImGui::OpenPopup("Create Profile Group");
 				}
 
-				if (ImGui::SmallButton("Remove"))
+				if (ImGui::BeginPopupModal("Create Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 				{
+					ImGui::InputText("Group Name", &new_group);
+
+					ImGui::Spacing();
+					if (ImGui::Button("EQ Path"))
+						ImGui::OpenPopup("Input EQ Path");
+
+					ImGui::SameLine();
+					ImGui::Text("%s", new_group_path.value_or("<Default>").c_str());
+
+					if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					{
+						SetEQDir(new_group_path);
+
+						ImGui::Separator();
+						if (ImGui::Button("OK"))
+							ImGui::CloseCurrentPopup();
+
+						ImGui::EndPopup();
+					}
+
+					ImGui::Separator();
+					if (ImGui::Button("Cancel"))
+					{
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ButtonWidth("Cancel"));
+					if (ImGui::Button("OK", ImVec2(ButtonWidth("Cancel"), ImGui::GetStyle().FramePadding.y * 2 + ImGui::CalcTextSize("Cancel").y)))
+					{
+						if (!new_group.empty())
+						{
+							ProfileGroup group;
+							group.profileName = new_group;
+							group.eqPath = new_group_path;
+
+							login::db::CreateProfileGroup(group);
+						}
+
+						current_group = new_group;
+						new_group = {};
+						new_group_path = {};
+
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::EndPopup();
+				}
+
+				if (ImGui::SmallButton("Remove") && current_group)
+					ImGui::OpenPopup("Delete Profile Group");
+
+				if (ImGui::BeginPopupModal("Delete Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize) && current_group)
+				{
+					ImGui::TextWrapped("Are you sure you want to delete profile group '%s'? All associated profiles will also be removed.", current_group->c_str());
+					ImGui::Spacing();
+
+					if (ImGui::Button("Yes##deletegroup", ImVec2(120, 0)))
+					{
+						login::db::DeleteProfileGroup(*current_group);
+						current_group = {};
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::SetItemDefaultFocus();
+					ImGui::SameLine();
+					if (ImGui::Button("No##deletegroup", ImVec2(120, 0)))
+					{
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::EndPopup();
 				}
 
 				constexpr const char* label = "Profiles";
@@ -1803,9 +1886,6 @@ void ShowAutoLoginWindow()
 
 			ImGui::PushID("profilecombo");
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Profile") - ButtonWidth("Launch Group"));
-			// TODO: This hits the db each frame, is that fine with sqlite? is that fine when I open a new connection each frame?
-			// TODO: persist current group in the db and get it here (set/write it below, whenever we set this value)
-			static std::optional<std::string> current_group;
 			if (ImGui::BeginCombo("##profilegroups", current_group.value_or("").c_str()))
 			{
 				for (const auto& group : login::db::ListProfileGroups())
@@ -2010,6 +2090,8 @@ void ShowAutoLoginWindow()
 
 	ImGui::PopStyleVar();
 }
+
+#pragma endregion
 
 bool HandleAutoLoginMenuCommand(WPARAM wParam, LPARAM lParam)
 {
