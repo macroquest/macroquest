@@ -31,6 +31,7 @@
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
 #include <cfenv>
+#include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
 

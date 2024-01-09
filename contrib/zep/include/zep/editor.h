@@ -14,11 +14,12 @@
 #include "zep/mcommon/animation/timer.h"
 #include "zep/mcommon/threadpool.h"
 #include "zep/mcommon/file/path.h"
-#include "zep/mcommon/file/cpptoml.h"
 
 #include "zep/keymap.h"
 
 #include "splits.h"
+
+namespace cpptoml { class table; }
 
 // Basic Architecture
 
