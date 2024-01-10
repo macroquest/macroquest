@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <tuple>
 
+#include <glm/glm.hpp>
 #include <fmt/format.h>
 
 // ***************************************************************************

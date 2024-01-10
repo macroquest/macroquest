@@ -6,6 +6,8 @@
 #include "zep/filesystem.h"
 #include "zep/indexer.h"
 
+#include "zep/mcommon/file/cpptoml.h"
+
 namespace Zep
 {
 

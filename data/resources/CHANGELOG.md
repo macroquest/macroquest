@@ -1,3 +1,7 @@
+Jan 8, 2024:
+- Fix clipping of ImGuiConsole, add opacity. (#805)
+- Fix Window.SetText correctly sending change event.
+
 Dec 18, 2023:
 - Update ImGui to 1.90
 - Update ImPlot to 0.17

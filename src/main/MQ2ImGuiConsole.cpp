@@ -253,19 +253,19 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 // UserColor values of the ThemeColor enum.
 class ZepConsoleTheme : public Zep::ZepTheme
 {
-	static inline constexpr int UserColorStart = (int)Zep::ThemeColor::UniqueColorLast + 1;
+	static inline constexpr int UserColorStart = static_cast<int>(Zep::ThemeColor::UniqueColorLast) + 1;
 
 public:
 	ZepConsoleTheme()
 	{
 	}
 
-	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
+	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const override
 	{
 		Zep::ZepColor finalColor;
 		
-		if ((int)themeColor >= UserColorStart)
-			finalColor = m_userColors[(size_t)themeColor - UserColorStart];
+		if (static_cast<int>(themeColor) >= UserColorStart)
+			finalColor = m_userColors[static_cast<size_t>(themeColor) - UserColorStart];
 		else if (themeColor == Zep::ThemeColor::Background)
 			finalColor = Zep::ZepColor(0, 0, 0, 0);
 		else if (themeColor == Zep::ThemeColor::VisualSelectBackground)
@@ -274,7 +274,7 @@ public:
 			finalColor = Zep::ZepTheme::GetColor(themeColor);
 		
 		// apply user alpha
-		finalColor.a = static_cast<uint8_t>(finalColor.a*m_opacity);
+		finalColor.a = static_cast<uint8_t>(finalColor.a * m_opacity);
 
 		return finalColor;
 	}
@@ -284,29 +284,26 @@ public:
 	Zep::ThemeColor GetUserColor(Zep::ZepColor color)
 	{
 		uint32_t id = color.ABGR;
-		if (id < (int)Zep::ThemeColor::UniqueColorLast - (int)Zep::ThemeColor::UniqueColor0)
+		if (id < static_cast<int>(Zep::ThemeColor::UniqueColorLast) - static_cast<int>(Zep::ThemeColor::UniqueColor0))
 			return Zep::ZepTheme::GetUniqueColor(id);
 
 		auto iter = std::find(std::begin(m_userColors), std::end(m_userColors), color);
 		if (iter == std::end(m_userColors))
 		{
 			m_userColors.emplace_back(id);
-			return (Zep::ThemeColor)(m_userColors.size() - 1 + UserColorStart);
+			return static_cast<Zep::ThemeColor>(m_userColors.size() - 1 + UserColorStart);
 		}
 
 		int index = static_cast<int>(std::distance(std::begin(m_userColors), iter));
-		return (Zep::ThemeColor)(index + UserColorStart);
+		return static_cast<Zep::ThemeColor>(index + UserColorStart);
 	}
 
-	float GetOpacity() { return m_opacity;  }
+	float GetOpacity() { return m_opacity; }
+	void SetOpacity(const float opacity) { m_opacity = opacity; }
 
-	void SetOpacity(const float opacity)
-	{
-		m_opacity = opacity;
-	}
 private:
 	std::vector<Zep::ZepColor> m_userColors;
-	float m_opacity = 1.0;
+	float m_opacity = 1.0f;
 };
 
 //----------------------------------------------------------------------------

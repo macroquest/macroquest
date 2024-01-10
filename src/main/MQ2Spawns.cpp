@@ -356,6 +356,8 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 
 void SetNameSpriteTint(SPAWNINFO* pSpawn);
 
+static unsigned int lastRemovedSpawnID = 0;
+
 class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
 {
 public:
@@ -364,10 +366,9 @@ public:
 		PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn, bool b)
 	{
 		// PrepForDestroyPlayer can be called twice through the same code path
-		static unsigned int lastSpawnID = 0;
-		if (lastSpawnID != spawn->GetId())
+		if (lastRemovedSpawnID != spawn->GetId())
 		{
-			lastSpawnID = spawn->GetId();
+			lastRemovedSpawnID = spawn->GetId();
 			PluginsRemoveSpawn(spawn);
 		}
 		return PrepForDestroyPlayer_Trampoline(spawn, b);
@@ -377,10 +378,9 @@ public:
 	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
 	{
 		// PrepForDestroyPlayer can be called twice through the same code path
-		static unsigned int lastSpawnID = 0;
-		if (lastSpawnID != spawn->GetId())
+		if (lastRemovedSpawnID != spawn->GetId())
 		{
-			lastSpawnID = spawn->GetId();
+			lastRemovedSpawnID = spawn->GetId();
 			PluginsRemoveSpawn(spawn);
 		}
 		return PrepForDestroyPlayer_Trampoline(spawn);
@@ -413,6 +413,11 @@ public:
 	{
 		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g, h);
 		PluginsAddSpawn(spawn);
+		// Set the last removed spawn to zero if the ID was reused
+		if (lastRemovedSpawnID == spawn->GetId())
+		{
+			lastRemovedSpawnID = 0;
+		}
 		return spawn;
 	}
 #else
@@ -421,6 +426,11 @@ public:
 	{
 		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g);
 		PluginsAddSpawn(spawn);
+		// Set the last removed spawn to zero if the ID was reused
+		if (lastRemovedSpawnID == spawn->GetId())
+		{
+			lastRemovedSpawnID = 0;
+		}
 		return spawn;
 	}
 #endif
