@@ -400,6 +400,7 @@ void login::db::MemoizeMasterPass(std::string_view pass)
 
 std::optional<std::string> login::db::GetMasterPass()
 {
+	if (!s_masterPass) ReadMasterPass();
 	return s_masterPass;
 }
 
@@ -529,7 +530,10 @@ std::optional<std::string> login::db::ReadMasterPass()
 		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
 		std::string entered_pass(cvt.to_bytes(pass->c_str()));
 		if (ValidatePass(entered_pass, false))
+		{
+			MemoizeMasterPass(entered_pass);
 			return entered_pass;
+		}
 
 		SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
 	}
@@ -717,15 +721,18 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 				sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
 				sqlite3_bind_text(stmt, 2, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
 
-				profile.accountName = (const char*)sqlite3_column_text(stmt, 0);
-
-				auto master_pass = GetMasterPass();
-				if (master_pass && sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_type(stmt, 1) == SQLITE_TEXT)
+				if (sqlite3_step(stmt) == SQLITE_ROW)
 				{
-					std::string pass((const char*)sqlite3_column_text(stmt, 1), sqlite3_column_bytes(stmt, 1));
-					pass = XorEncryptDecrypt(pass, *master_pass);
-					profile.accountPassword = pass;
-					return pass;
+					profile.accountName = (const char*)sqlite3_column_text(stmt, 0);
+
+					auto master_pass = GetMasterPass();
+					if (master_pass && sqlite3_column_type(stmt, 1) == SQLITE_TEXT)
+					{
+						std::string pass((const char*)sqlite3_column_text(stmt, 1), sqlite3_column_bytes(stmt, 1));
+						pass = XorEncryptDecrypt(pass, *master_pass);
+						profile.accountPassword = pass;
+						return pass;
+					}
 				}
 
 				SPDLOG_ERROR("AutoLogin Error failed to load account {}: {}", profile.accountName, sqlite3_errmsg(db));

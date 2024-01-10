@@ -959,10 +959,11 @@ void LoadCharacter(const LoginInstance& instance_template)
 			auto file = fmt::format("{}\\eqgame.exe", eq_path);
 			sei.lpFile = file.c_str();
 
-			if (ShellExecuteEx(&sei))
+			if (ShellExecuteEx(&sei) && sei.hProcess != 0)
 			{
 				auto [it, _] = s_loadedInstances.emplace(instance_template);
 				it->PID = GetProcessId(sei.hProcess);
+				//Inject(it->PID);
 			}
 		}
 		else
@@ -3544,7 +3545,6 @@ void InitializeAutoLogin()
 
 	if (pass)
 	{
-		login::db::MemoizeMasterPass(*pass);
 		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::AutoLoginIni));
 
 		// Initialize path to EQ
