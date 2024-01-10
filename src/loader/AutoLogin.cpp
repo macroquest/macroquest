@@ -1687,37 +1687,23 @@ static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
 
 void ShowHotkeyWindow(std::optional<std::string>& hotkey)
 {
-	ImGuiIO& io = ImGui::GetIO();
 	fmt::memory_buffer buf;
-	ImGuiKeyChord chord = 0;
 
-	if (io.KeyCtrl)
-	{
-		chord |= ImGuiMod_Ctrl;
+	if (ImGui::IsKeyDown(ImGuiMod_Ctrl))
 		fmt::format_to(std::back_inserter(buf), "CTRL+");
-	}
 
-	if (io.KeyShift)
-	{
-		chord |= ImGuiMod_Shift;
+	if (ImGui::IsKeyDown(ImGuiMod_Shift))
 		fmt::format_to(std::back_inserter(buf), "SHIFT+");
-	}
 
-	if (io.KeyAlt)
-	{
-		chord |= ImGuiMod_Alt;
+	if (ImGui::IsKeyDown(ImGuiMod_Alt))
 		fmt::format_to(std::back_inserter(buf), "ALT+");
-	}
 
-	if (io.KeySuper)
-	{
-		chord |= ImGuiMod_Super;
+	if (ImGui::IsKeyDown(ImGuiMod_Super))
 		fmt::format_to(std::back_inserter(buf), "WIN+");
-	}
 
 	for (const auto& [key, name] : s_hotkeyMap)
 	{
-		if (ImGui::IsKeyChordPressed(chord | key))
+		if (ImGui::IsKeyDown(key))
 		{
 			fmt::format_to(std::back_inserter(buf), name);
 			hotkey = fmt::to_string(buf);
@@ -1726,7 +1712,7 @@ void ShowHotkeyWindow(std::optional<std::string>& hotkey)
 	}
 
 	ImGui::Text("Pressed: %s", fmt::to_string(buf).c_str());
-	if (hotkey) ImGui::Text("Current: %s", hotkey->c_str());
+	ImGui::Text("Current: %s", hotkey.value_or("<None>").c_str());
 }
 
 struct InterimProfileRecord
