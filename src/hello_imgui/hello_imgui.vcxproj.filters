@@ -207,9 +207,6 @@
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_widgets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\image_gl_deprecated.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -389,9 +386,6 @@
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_dx11.cpp">
       <Filter>Source Files\internal</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_gl_deprecated.cpp">
-      <Filter>Source Files\internal</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_opengl.cpp">
       <Filter>Source Files\internal</Filter>
     </ClCompile>
@@ -453,6 +447,12 @@
       <Filter>Source Files\internal\platform</Filter>
     </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_impl_hello_imgui.cpp">
+      <Filter>Source Files\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_image.cpp">
+      <Filter>Source Files\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_image_write.cpp">
       <Filter>Source Files\external</Filter>
     </ClCompile>
   </ItemGroup>
