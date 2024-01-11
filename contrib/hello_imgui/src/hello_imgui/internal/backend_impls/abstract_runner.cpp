@@ -1,10 +1,11 @@
 #include "hello_imgui/internal/backend_impls/abstract_runner.h"
-#include "hello_imgui/internal/hello_imgui_ini_settings.h"
-#include "hello_imgui/internal/docking_details.h"
-#include "hello_imgui/internal/menu_statusbar.h"
-#include "hello_imgui/image_from_asset.h"
 #include "hello_imgui/hello_imgui_theme.h"
+#include "hello_imgui/internal/borderless_movable.h"
 #include "hello_imgui/internal/clock_seconds.h"
+#include "hello_imgui/internal/docking_details.h"
+#include "hello_imgui/internal/hello_imgui_ini_settings.h"
+#include "hello_imgui/internal/menu_statusbar.h"
+#include "hello_imgui/internal/platform/ini_folder_locations.h"
 #include "imgui.h"
 
 #include "hello_imgui/internal/imgui_global_context.h" // must be included before imgui_internal.h
@@ -14,12 +15,17 @@
 
 #include <chrono>
 #include <cassert>
-#include <fstream>
-#include <sstream>
-#include <thread>
+#include <filesystem>
+
+#if __APPLE__
+#include <TargetConditionals.h>
+#endif
 
 #ifdef HELLOIMGUI_MACOS
 #import <AppKit/NSScreen.h>
+#endif
+#if TARGET_OS_IOS
+#include "hello_imgui/internal/platform/getAppleBundleResourcePath.h"
 #endif
 
 #ifdef HELLOIMGUI_HAS_OPENGL
@@ -32,6 +38,13 @@
 #endif
 
 
+//
+// NOTE: AbstractRunner should *not* care in any case of:
+//   - the platform backend (SDL, Glfw, ...)
+//   - the rendering backend (OpenGL, Metal, ...)
+// For legacy reasons, there are still few references to OpenGL in this file, but this needs to be refactored out.
+//
+
 
 namespace HelloImGui
 {
@@ -40,16 +53,15 @@ void setFinalAppWindowScreenshotRgbBuffer(const ImageBuffer& b);
 
 
 AbstractRunner::AbstractRunner(RunnerParams &params_)
-    : params(params_)
-{};
+    : params(params_) {}
 
 // Advanced: ImGui_ImplOpenGL3_CreateFontsTexture might cause an OpenGl error when the font texture is too big
 // We detect it soon after calling ImGui::NewFrame by setting mPotentialFontLoadingError.
-// In that case, we try to set FontGlobalScale to 1 if it is < 1 (i.e stop increasing the font
+// In that case, we try to set FontGlobalScale to 1 if it is < 1 (i.e. stop increasing the font
 // size for a crisper rendering) and try to reload the fonts.
 // This only works if the user provided callback LoadAdditionalFonts() uses DpiFontLoadingFactor()
 // to multiply its font size.
-void AbstractRunner::ReloadFontIfFailed()
+void AbstractRunner::ReloadFontIfFailed() const
 {
     fprintf(stderr, "Detected a potential font loading error! You might try to reduce the number of loaded fonts and/or their size!\n");
 #ifdef HELLOIMGUI_HAS_OPENGL
@@ -68,6 +80,7 @@ void AbstractRunner::ReloadFontIfFailed()
 #endif
 }
 
+#ifndef USEHACK
 void AbstractRunner::Run()
 {
     Setup();
@@ -92,6 +105,7 @@ void AbstractRunner::Run()
     }
 #endif
 }
+#endif
 
 #ifdef HELLO_IMGUI_IMGUI_SHARED
 static void*   MyMallocWrapper(size_t size, void* user_data)    { IM_UNUSED(user_data); return malloc(size); }
@@ -103,11 +117,11 @@ void AbstractRunner::PrepareWindowGeometry()
     mGeometryHelper = std::make_unique<WindowGeometryHelper>(
         params.appWindowParams.windowGeometry,
         params.appWindowParams.restorePreviousGeometry,
-        IniPartsFilename()
+        IniSettingsLocation(params)
         );
     auto windowBounds = mGeometryHelper->AppWindowBoundsInitial(mBackendWindowHelper->GetMonitorsWorkAreas());
     if (params.appWindowParams.restorePreviousGeometry &&
-        HelloImGuiIniSettings::LoadLastRunWindowBounds(IniPartsFilename()).has_value())
+        HelloImGuiIniSettings::LoadLastRunWindowBounds(IniSettingsLocation(params)).has_value())
         params.appWindowParams.windowGeometry.positionMode = WindowPositionMode::FromCoords;
     params.appWindowParams.windowGeometry.position = windowBounds.position;
     params.appWindowParams.windowGeometry.size = windowBounds.size;
@@ -132,7 +146,7 @@ bool AbstractRunner::ShallSizeWindowRelativeTo96Ppi()
     bool shallSizeRelativeTo96Ppi;
     {
         bool doRestorePreviousGeometry = (params.appWindowParams.restorePreviousGeometry &&
-            HelloImGuiIniSettings::LoadLastRunWindowBounds(IniPartsFilename()).has_value()
+            HelloImGuiIniSettings::LoadLastRunWindowBounds(IniSettingsLocation(params)).has_value()
                                           );
 
         bool isWindowPpiRelativeSize = (params.appWindowParams.windowGeometry.windowSizeMeasureMode ==
@@ -164,7 +178,7 @@ float AbstractRunner::ImGuiDefaultFontGlobalScale()
     fontSizeIncreaseFactor = windowDevicePixelRatio;
 #endif
 #ifdef HELLOIMGUI_MACOS
-    // Crisp fonts on MacOS:
+    // Crisp fonts on macOS:
     // cf https://github.com/ocornut/imgui/issues/5301
     // Issue with macOS is that it pretends screen has 2x fewer pixels than it actually does.
     // This simplifies application development in most cases, but in our case we happen to render fonts at 1x scale
@@ -226,7 +240,10 @@ void AbstractRunner::MakeWindowSizeRelativeTo96Ppi_IfRequired()
 // This will change the window size if we want a size relative to 96ppi and rescale the imgui style
 void AbstractRunner::HandleDpiOnSecondFrame()
 {
+#ifndef __ANDROID__
     MakeWindowSizeRelativeTo96Ppi_IfRequired();
+#endif
+    
     // High DPI handling on windows & linux
     {
         float dpiScale = DpiWindowSizeFactor();
@@ -239,33 +256,6 @@ void AbstractRunner::HandleDpiOnSecondFrame()
 }
 
 
-std::string AbstractRunner::IniPartsFilename()
-{
-    auto _stringToSaneFilename=[](const std::string& s, const std::string& extension) -> std::string
-    {
-        std::string filenameSanitized;
-        for (char c : s)
-            if (isalnum(c))
-                filenameSanitized += c;
-            else
-                filenameSanitized += "_";
-        filenameSanitized += extension;
-        return filenameSanitized;
-    };
-
-    if (! params.iniFilename.empty())
-        return params.iniFilename.c_str();
-    else
-    {
-        if (params.iniFilename_useAppWindowTitle && !params.appWindowParams.windowTitle.empty())
-        {
-            std::string iniFilenameSanitized = _stringToSaneFilename(params.appWindowParams.windowTitle, ".ini");
-            return iniFilenameSanitized;
-        }
-        else
-            return "imgui.ini";
-    }
-}
 
 void AbstractRunner::LayoutSettings_SwitchLayout(const std::string& layoutName)
 {
@@ -306,7 +296,7 @@ void AbstractRunner::LayoutSettings_SwitchLayout(const std::string& layoutName)
 // Those Layout_XXX functions are called before ImGui::NewFrame()
 void AbstractRunner::LayoutSettings_HandleChanges()
 {
-    static std::string lastLoadedLayout = "";
+    static std::string lastLoadedLayout;
     if (params.dockingParams.layoutName != lastLoadedLayout)
     {
         LayoutSettings_Load();
@@ -315,8 +305,8 @@ void AbstractRunner::LayoutSettings_HandleChanges()
 }
 void AbstractRunner::LayoutSettings_Load()
 {
-    HelloImGuiIniSettings::LoadImGuiSettings(IniPartsFilename(), params.dockingParams.layoutName);
-    HelloImGuiIniSettings::LoadDockableWindowsVisibility(IniPartsFilename(), &params.dockingParams);
+    HelloImGuiIniSettings::LoadImGuiSettings(IniSettingsLocation(params), params.dockingParams.layoutName);
+    HelloImGuiIniSettings::LoadDockableWindowsVisibility(IniSettingsLocation(params), &params.dockingParams);
 
     // SetLayoutResetIfNeeded() may set params.dockingParams.layoutReset = true
     // (which will cause the layout to be recreated from scratch, overriding user changes)
@@ -324,22 +314,13 @@ void AbstractRunner::LayoutSettings_Load()
 }
 void AbstractRunner::LayoutSettings_Save()
 {
-    HelloImGuiIniSettings::SaveImGuiSettings(IniPartsFilename(), params.dockingParams.layoutName);
-    HelloImGuiIniSettings::SaveDockableWindowsVisibility(IniPartsFilename(), params.dockingParams);
+    HelloImGuiIniSettings::SaveImGuiSettings(IniSettingsLocation(params), params.dockingParams.layoutName);
+    HelloImGuiIniSettings::SaveDockableWindowsVisibility(IniSettingsLocation(params), params.dockingParams);
 }
 
-void AbstractRunner::Setup()
+void AbstractRunner::InitImGuiContext()
 {
-    Impl_InitBackend();
-    Impl_Select_Gl_Version();
-
-    PrepareWindowGeometry();
-    Impl_CreateWindow();
-
-    Impl_CreateGlContext();
-    Impl_InitGlLoader();
     IMGUI_CHECKVERSION();
-
 #ifdef HELLO_IMGUI_IMGUI_SHARED
     auto ctx = ImGui::CreateContext();
     GImGui = ctx;
@@ -348,32 +329,63 @@ void AbstractRunner::Setup()
 #else
     ImGui::CreateContext();
 #endif
+}
 
-    ImGui::GetIO().IniFilename = NULL;
-
-    Impl_SetupImgGuiContext();
-    params.callbacks.SetupImGuiConfig();
+void AbstractRunner::SetImGuiPrefs()
+{
     if (params.imGuiWindowParams.enableViewports)
     {
 #ifndef __EMSCRIPTEN__
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 #endif
     }
-    params.callbacks.SetupImGuiStyle();
 
-#ifdef HELLOIMGUI_WITH_TEST_ENGINE
-    if (params.useImGuiTestEngine)
-        TestEngineCallbacks::Setup();
+    #ifndef IMGUI_BUNDLE_PYTHON_API
+        ImGui::GetIO().IniFilename = NULL;
+    #else
+        ImGui::GetIO().IniFilename = "";
+    #endif
+}
+
+void AbstractRunner::Setup()
+{
+    Impl_InitRenderBackendCallbacks();
+
+    InitImGuiContext();
+    SetImGuiPrefs();
+
+    // Init platform backend (SDL, Glfw)
+    Impl_InitPlatformBackend();
+
+#ifdef HELLOIMGUI_HAS_OPENGL
+    Impl_Select_Gl_Version();
 #endif
 
-    // This should be done before Impl_SetupPlatformRendererBindings()
+    PrepareWindowGeometry();
+    Impl_CreateWindow();
+
+#ifdef HELLOIMGUI_HAS_OPENGL
+    Impl_CreateGlContext();
+    Impl_InitGlLoader();
+#endif
+
+    Impl_SetWindowIcon();
+
+    // This should be done before Impl_LinkPlatformAndRenderBackends()
     // because, in the case of glfw ImGui_ImplGlfw_InstallCallbacks
     // will chain the user callbacks with ImGui callbacks; and PostInit()
     // is a good place for the user to install callbacks
     if (params.callbacks.PostInit)
         params.callbacks.PostInit();
 
-    Impl_SetupPlatformRendererBindings();
+    Impl_LinkPlatformAndRenderBackends();
+
+    params.callbacks.SetupImGuiConfig();
+
+#ifdef HELLOIMGUI_WITH_TEST_ENGINE
+    if (params.useImGuiTestEngine)
+        TestEngineCallbacks::Setup();
+#endif
 
     //
     // load fonts & set ImGui::GetIO().FontGlobalScale
@@ -384,10 +396,11 @@ void AbstractRunner::Setup()
     // LoadAdditionalFonts will load fonts and resize them by 1./FontGlobalScale
     // (if and only if it uses HelloImGui::LoadFontTTF instead of ImGui's font loading functions)
     params.callbacks.LoadAdditionalFonts();
-    ImGui::GetIO().Fonts->Build();
+    bool buildSuccess = ImGui::GetIO().Fonts->Build();
+    IM_ASSERT(buildSuccess && "ImGui::GetIO().Fonts->Build() failed!");
     {
         // Reset FontGlobalScale if we did not use HelloImGui font loading mechanism
-        if (! HelloImGui::ImGuiDefaultSettings::DidCallHelloImGuiLoadFontTTF())
+        if (! HelloImGui::DidCallHelloImGuiLoadFontTTF())
         {
             float dpiFactor = mBackendWindowHelper->GetWindowSizeDpiScaleFactor(mWindow);
             ImGui::GetIO().FontGlobalScale = dpiFactor;
@@ -395,10 +408,20 @@ void AbstractRunner::Setup()
     }
 
     DockingDetails::ConfigureImGuiDocking(params.imGuiWindowParams);
-    HelloImGuiIniSettings::LoadHelloImGuiMiscSettings(IniPartsFilename(), &params);
+    HelloImGuiIniSettings::LoadHelloImGuiMiscSettings(IniSettingsLocation(params), &params);
     SetLayoutResetIfNeeded();
 
     ImGuiTheme::ApplyTweakedTheme(params.imGuiWindowParams.tweakedTheme);
+
+    // Fix issue with ImGui & Viewports: title bar cannot be transparent
+    if (params.imGuiWindowParams.enableViewports)
+    {
+        auto& style = ImGui::GetStyle();
+        style.Colors[ImGuiCol_TitleBg].w = 1.f;
+        style.Colors[ImGuiCol_TitleBgActive].w = 1.f;
+        style.Colors[ImGuiCol_TitleBgCollapsed].w = 1.f;
+    }
+    params.callbacks.SetupImGuiStyle();
 }
 
 void AbstractRunner::SetLayoutResetIfNeeded()
@@ -407,7 +430,7 @@ void AbstractRunner::SetLayoutResetIfNeeded()
     {
         if (params.dockingParams.layoutCondition == DockingLayoutCondition::FirstUseEver)
         {
-            if (!HelloImGuiIniSettings::HasUserDockingSettingsInImguiSettings(IniPartsFilename(), params.dockingParams))
+            if (!HelloImGuiIniSettings::HasUserDockingSettingsInImguiSettings(IniSettingsLocation(params), params.dockingParams))
                 params.dockingParams.layoutReset = true;
             else
                 params.dockingParams.layoutReset = false;
@@ -421,10 +444,20 @@ void AbstractRunner::SetLayoutResetIfNeeded()
 
 void AbstractRunner::RenderGui()
 {
-    DockingDetails::ProvideWindowOrDock(params);
-
+    DockingDetails::ShowToolbars(params);
     if (params.imGuiWindowParams.showMenuBar)
         Menu_StatusBar::ShowMenu(params);
+
+    DockingDetails::ProvideWindowOrDock(params);
+
+    if (params.appWindowParams.borderless) // Need to add params.appWindowParams.borderlessResizable
+    {
+#if !defined(HELLOIMGUI_MOBILEDEVICE) && !defined(__EMSCRIPTEN__)
+        bool shouldClose = HandleBorderlessMovable(mWindow, mBackendWindowHelper.get(), params);
+        if (shouldClose)
+            params.appShallExit = true;
+#endif
+    }
 
     if (params.callbacks.ShowGui)
     {
@@ -458,6 +491,14 @@ void AbstractRunner::RenderGui()
 void AbstractRunner::CreateFramesAndRender()
 {
     LayoutSettings_HandleChanges();
+
+#if TARGET_OS_IOS
+    auto insets = GetIPhoneSafeAreaInsets();
+    params.appWindowParams.edgeInsets.top = insets.top;
+    params.appWindowParams.edgeInsets.left = insets.left;
+    params.appWindowParams.edgeInsets.bottom = insets.bottom;
+    params.appWindowParams.edgeInsets.right = insets.right;
+#endif
 
     #ifdef HELLOIMGUI_WITH_TEST_ENGINE
     if (mIdxFrame == 1)
@@ -548,8 +589,11 @@ void AbstractRunner::CreateFramesAndRender()
     //
     // Rendering logic
     //
-    Impl_NewFrame_3D();
-    Impl_NewFrame_Backend();
+    if (params.callbacks.PreNewFrame)
+        params.callbacks.PreNewFrame();
+
+    mRenderingBackendCallbacks->Impl_NewFrame_3D();
+    Impl_NewFrame_PlatformBackend();
     {
         // Workaround against SDL clock that sometimes leads to io.DeltaTime=0.f on emscripten
         // (which fails to an `IM_ASSERT(io.DeltaTime) > 0` in ImGui::NewFrame())
@@ -560,9 +604,6 @@ void AbstractRunner::CreateFramesAndRender()
         if (io.DeltaTime <= 0.f)
             io.DeltaTime = 1.f / 60.f;
     }
-
-    if (params.callbacks.PreNewFrame)
-        params.callbacks.PreNewFrame();
 
     ImGui::NewFrame();
 
@@ -580,6 +621,11 @@ void AbstractRunner::CreateFramesAndRender()
         }
 #endif
     }
+    
+    if (params.callbacks.CustomBackground)
+        params.callbacks.CustomBackground();
+    else
+        mRenderingBackendCallbacks->Impl_Frame_3D_ClearColor(params.imGuiWindowParams.backgroundColor);
 
     // iii/ At the end of the second frame, we measure the size of the widgets and use it as the application window size, if the user required auto size
     // ==> Note: RenderGui() may measure the size of the window and resize it if mIdxFrame==1
@@ -589,8 +635,7 @@ void AbstractRunner::CreateFramesAndRender()
         params.callbacks.BeforeImGuiRender();
 
     ImGui::Render();
-    Impl_Frame_3D_ClearColor();
-    Impl_RenderDrawData_To_3D();
+    mRenderingBackendCallbacks->Impl_RenderDrawData_To_3D();
 
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         Impl_UpdateAndRenderAdditionalPlatformWindows();
@@ -649,7 +694,7 @@ bool AbstractRunner::ShallIdleThisFrame_Emscripten()
     ImGuiContext& g = *GImGui;
     bool hasInputEvent =  ! g.InputEventsQueue.empty();
 
-    if (! params.fpsIdling.enableIdling)
+    if (! params.fpsIdling.enableIdling || (params.fpsIdling.fpsIdle <= 0.f) )
     {
         params.fpsIdling.isIdling = false;
         return false;
@@ -658,19 +703,21 @@ bool AbstractRunner::ShallIdleThisFrame_Emscripten()
     static double lastRefreshTime = 0.;
     double now = Internal::ClockSeconds();
 
-    bool shallIdleThisFrame = false;
-    if (hasInputEvent)
+    bool shallIdleThisFrame;
     {
-        params.fpsIdling.isIdling = false;
-        shallIdleThisFrame = false;
-    }
-    else
-    {
-        params.fpsIdling.isIdling = true;
-        if ((now - lastRefreshTime) < 1. / params.fpsIdling.fpsIdle)
-            shallIdleThisFrame = true;
-        else
+        if (hasInputEvent)
+        {
+            params.fpsIdling.isIdling = false;
             shallIdleThisFrame = false;
+        }
+        else
+        {
+            params.fpsIdling.isIdling = true;
+            if ((now - lastRefreshTime) < 1. / params.fpsIdling.fpsIdle)
+                shallIdleThisFrame = true;
+            else
+                shallIdleThisFrame = false;
+        }
     }
 
     if (! shallIdleThisFrame)
@@ -721,10 +768,10 @@ void AbstractRunner::TearDown(bool gotException)
             setFinalAppWindowScreenshotRgbBuffer(b);
         }
         if (params.appWindowParams.restorePreviousGeometry)
-            HelloImGuiIniSettings::SaveLastRunWindowBounds(IniPartsFilename(),
+            HelloImGuiIniSettings::SaveLastRunWindowBounds(IniSettingsLocation(params),
                                                            mBackendWindowHelper->GetWindowBounds(mWindow));
         LayoutSettings_Save();
-        HelloImGuiIniSettings::SaveHelloImGuiMiscSettings(IniPartsFilename(), params);
+        HelloImGuiIniSettings::SaveHelloImGuiMiscSettings(IniSettingsLocation(params), params);
     }
 
     HelloImGui::internal::Free_ImageFromAssetMap();
@@ -736,7 +783,9 @@ void AbstractRunner::TearDown(bool gotException)
         TestEngineCallbacks::TearDown_ImGuiContextAlive();
 #endif
 
+    mRenderingBackendCallbacks->Impl_Shutdown_3D();
     Impl_Cleanup();
+
 
     if (params.callbacks.BeforeExit_PostCleanup)
         params.callbacks.BeforeExit_PostCleanup();
@@ -749,11 +798,11 @@ void AbstractRunner::TearDown(bool gotException)
 
 void AbstractRunner::SaveUserPref(const std::string& userPrefName, const std::string& userPrefContent)
 {
-    HelloImGuiIniSettings::SaveUserPref(IniPartsFilename(), userPrefName, userPrefContent);
+    HelloImGuiIniSettings::SaveUserPref(IniSettingsLocation(params), userPrefName, userPrefContent);
 }
 std::string AbstractRunner::LoadUserPref(const std::string& userPrefName)
 {
-    return HelloImGuiIniSettings::LoadUserPref(IniPartsFilename(), userPrefName);
+    return HelloImGuiIniSettings::LoadUserPref(IniSettingsLocation(params), userPrefName);
 }
 
 }  // namespace HelloImGui

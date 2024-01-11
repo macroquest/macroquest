@@ -5,15 +5,12 @@
 #include "hello_imgui/internal/backend_impls/backend_window_helper/win32_dpi_awareness.h"
 #include "SDL.h"
 
-#ifdef _WIN32
-#include "SDL_syswm.h"
-#ifdef CreateWindow
-#undef CreateWindow
-#endif
-#include "winuser.h"
-#endif
-
 #include <cassert>
+
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#include "hello_imgui/internal/platform/getAppleBundleResourcePath.h"
+#endif
 
 
 namespace HelloImGui { namespace BackendApi
@@ -86,17 +83,27 @@ namespace HelloImGui { namespace BackendApi
             window_pos_sdl[1] = SDL_WINDOWPOS_CENTERED_DISPLAY(realMonitorIdx);
         }
 
+        // Note: This is RenderingCallbacks_Impl_Hint_WindowingBackend
         auto backend3DMode = backendOptions.backend3DMode;
         if (backend3DMode == Backend3dMode::OpenGl)
             window_flags |= SDL_WINDOW_OPENGL;
         else if (backend3DMode == Backend3dMode::Metal)
+        {
+            // Inform SDL that we will be using metal for rendering. Without this hint initialization of metal renderer may fail.
+            SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
             window_flags |= SDL_WINDOW_METAL;
+        }
         else if (backend3DMode == Backend3dMode::Vulkan)
             window_flags |= SDL_WINDOW_VULKAN;
         else if (backend3DMode == Backend3dMode::No3d)
             {}
         else
             BACKEND_THROW("Unsupported backend3DMode");
+
+        // From 2.0.18: Enable native IME.
+        #ifdef SDL_HINT_IME_SHOW_UI
+        SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+        #endif
 
         // If the window is created with the SDL_WINDOW_ALLOW_HIGHDPI flag,
         // its size in pixels may differ from its size in screen coordinates on platforms with high-DPI support
@@ -193,29 +200,33 @@ namespace HelloImGui { namespace BackendApi
         SDL_WaitEventTimeout(NULL, timeout_ms);
     }
 
-    #ifdef _WIN32
-    HWND SdlWindowToHwnd(WindowPointer window) 
-    {
-        SDL_Window *sdlwindow = (SDL_Window *)window;
-        SDL_SysWMinfo info;
-        SDL_VERSION(&info.version);
-        bool success = SDL_GetWindowWMInfo(sdlwindow, &info);
-        return info.info.win.window;
-    }
-    #endif
     
     float SdlWindowHelper::GetWindowSizeDpiScaleFactor(WindowPointer window)
     {
-        // SDL does not support HighDPI
-        // See https://github.com/libsdl-org/SDL/issues/2119
-
-        // We have to implement manual workarounds for windows
-        #ifdef _WIN32
-        int dpi = GetDpiForWindow(SdlWindowToHwnd(window));
-        float dpiScale = dpi / 96.f;
-        return dpiScale;
+        #if TARGET_OS_MAC // is true for any software platform that's derived from macOS, which includes iOS, watchOS, and tvOS
+            // with apple, the OS handles the scaling, so we don't need to do anything
+            return 1.f;
+        #elif defined(_WIN32) || defined(__ANDROID__)
+            // Shall linux use this branch? To be confirmed
+            // under linux: SDL_GetDisplayDPI can fail (at least on ubuntu 22 / Parallels VM)
+            float ddpi, hdpi, vdpi;
+            if (SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi) != 0)
+            {
+                std::cerr << "GetWindowSizeDpiScaleFactor: Failed to get DPI: " << SDL_GetError() << std::endl;
+                return 1.f;
+            }
+            #ifndef __ANDROID__
+                // normally images are displayed at 96PPI on a desktop screen.
+                // That means, that independently of the screen DPI, the image size in millimeters
+                // corresponds to a hypothetical 9DPPI screen.
+                float targetPpi = 96.f;
+            #else
+                // However on a mobile device, we choose to display them at 140PPI (so that widgets and images appear smaller)
+                float targetPpi = 140.f;
+            #endif
+            return ddpi / targetPpi;
         #else
-        return 1.f;
+            return 1.f;
         #endif
 
     }

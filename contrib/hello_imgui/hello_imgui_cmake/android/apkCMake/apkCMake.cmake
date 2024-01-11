@@ -1,15 +1,9 @@
-if (NOT DEFINED apkCMake_projectTemplateFolder)
-    message(FATAL_ERROR "Please define apkCMake_projectTemplateFolder")
-endif()
-if (NOT DEFINED apkCMake_resTemplateFolder)
-    message(FATAL_ERROR "Please define apkCMake_resTemplateFolder")
-endif()
-
+set(apkCMake_projectTemplateFolder ${HELLOIMGUI_CMAKE_PATH}/android/apkCMake/templates/sdl CACHE STRING "" FORCE)
 include(${apkCMake_projectTemplateFolder}/apkCMake_makeSymLinks.cmake)
 
 
 function (apkCMake_logVar var_name)
-    message("    > ${var_name}=${${var_name}}")
+    message(VERBOSE "    > ${var_name}=${${var_name}}")
 endfunction()
 
 
@@ -36,16 +30,18 @@ macro(apkCMake_fillAndroidSdkVariables)
     endif()
     apkCMake_logVar(ANDROID_NDK_HOME)
 
-
     if (NOT DEFINED apkCMake_sdkDir)
         set(apkCMake_sdkDir ${ANDROID_HOME})
     endif()
     apkCMake_logVar(apkCMake_sdkDir)
 
-    if (NOT DEFINED apkCMake_ndkDir)
-        set(apkCMake_ndkDir ${ANDROID_NDK_HOME})
+    if (NOT DEFINED apkCMake_ndkVersion)
+        # message(FATAL_ERROR "ANDROID_NDK_HOME=${ANDROID_NDK_HOME} but apkCMake_ndkVersion is not defined")
+        # apkCMake_ndkVersion is the dirname of ANDROID_NDK_HOME
+        get_filename_component(apkCMake_ndkVersion ${ANDROID_NDK_HOME} NAME)
+        message(VERBOSE "apkCMake_ndkVersion=${apkCMake_ndkVersion}, inferred from NDK_HOME=${ANDROID_NDK_HOME}")
     endif()
-    apkCMake_logVar(apkCMake_ndkDir)
+
 endmacro()
 
 
@@ -61,7 +57,7 @@ macro(apkCMake_fillAndroidWantedVersions)
     apkCMake_logVar(apkCMake_minSdkVersion)
 
     if (NOT DEFINED apkCMake_targetSdkVersion)
-        set(apkCMake_targetSdkVersion 26)
+        set(apkCMake_targetSdkVersion 34)
     endif()
     apkCMake_logVar(apkCMake_targetSdkVersion)
 
@@ -178,28 +174,26 @@ function(apkCMake_copyAndConfigureDirectoryContent src dst)
         file(COPY ${src}/${dirname}/${basename} DESTINATION ${dst}/${dirname})
         if (basename MATCHES ".*\.in$") # if basename endWith(".in")
             string(REGEX REPLACE ".in$" "" basename_no_in ${basename})
-            message("Should configure ${basename}")
+            message(VERBOSE "Should configure ${basename}")
             apkCMake_configureFile_InPlace(${dst}/${dirname}/${basename_no_in})
         endif()
     endforeach()
 endfunction()
 
 
-function(apkCMake_addResFolder resFolder)
-    set(resOutputFolder ${apkCMake_outputProjectFolder}/app/src/main/res)
-    apkCMake_copyDirectoryContent(${resFolder} ${resOutputFolder})
-endfunction()
-
-
 function(apkCMake_addTemplateResFolder)
-    apkCMake_addResFolder(${apkCMake_resTemplateFolder})
+    set(apkCMake_resTemplateFolder ${HELLOIMGUI_CMAKE_PATH}/android/res)
+    set(resOutputFolder ${apkCMake_outputProjectFolder}/app/src/main/res)
+    apkCMake_copyDirectoryContent(${apkCMake_resTemplateFolder} ${resOutputFolder})
 endfunction()
 
 
-function(apkCMake_addLocalResFolder)
-    if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/android/res)
-        message("hello_imgui_platform_customization: ${app_name} found local res")
-        apkCMake_addResFolder(${CMAKE_CURRENT_SOURCE_DIR}/android/res)
+function(apkCMake_addAppSettingsAndroidFolder assets_location)
+    set(local_settings_location ${assets_location}/app_settings/android)
+    if (IS_DIRECTORY ${local_settings_location})
+        message(VERBOSE "apkCMake_addAppSettingsAndroidFolder: ${app_name} found local settings in ${local_settings_location}")
+        set(settingsOutputFolder ${apkCMake_outputProjectFolder}/app/src/main/)
+        apkCMake_copyDirectoryContent(${local_settings_location} ${settingsOutputFolder})
     endif()
 endfunction()
 
@@ -220,16 +214,15 @@ function (apkCmake_processActivityClass)
 endfunction()
 
 
-function(apkCMake_makeAndroidStudioProject appTargetToEmbed)
-    #message(FATAL_ERROR "ANDROID_STL=${ANDROID_STL}")
-    message(STATUS "apkCMake_makeAndroidStudioProject ${appTargetToEmbed}")
+function(apkCMake_makeAndroidStudioProject appTargetToEmbed assets_location)
+    message(VERBOSE "apkCMake_makeAndroidStudioProject ${appTargetToEmbed}")
     apkCMake_fillVariables(${appTargetToEmbed})
     apkCMake_copyAndConfigureDirectoryContent(${apkCMake_projectTemplateFolder}/gradle_template ${apkCMake_outputProjectFolder})
     apkCmake_processActivityClass()
     apkCMake_makeSymLinks()
 
     apkCMake_addTemplateResFolder()
-    apkCMake_addLocalResFolder()
+    apkCMake_addAppSettingsAndroidFolder(${assets_location})
 
     message(STATUS "    ---> Success: please open the project ${apkCMake_outputProjectFolder} with Android Studio!")
 endfunction()

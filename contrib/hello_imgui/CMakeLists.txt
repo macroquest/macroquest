@@ -3,34 +3,153 @@ if (EMSCRIPTEN)
 else()
     cmake_minimum_required(VERSION 3.10)
 endif()
+
+project(HelloImGui LANGUAGES C CXX VERSION "1.3.0") # 1.3.0 WIP
+set(CMAKE_CXX_STANDARD 17)
+
 if (IOS)
     set(DEPLOYMENT_TARGET "13.0" CACHE STRING "" FORCE)
 endif()
 
-project(HelloImGui LANGUAGES C CXX VERSION "1.0.0")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(MACOSX TRUE CACHE BOOL "" FORCE)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 
+# Set HELLOIMGUI_BASEPATH / HELLOIMGUI_CMAKE_PATH
+include(${CMAKE_CURRENT_LIST_DIR}/hello_imgui_cmake/utils/cache_hello_imgui_paths.cmake)
 
 ###############################################################################
 # hello_imgui_add_app
 ###############################################################################
-# hello_imgui_add_app is a helper function, similar to cmake's "add_executable"
-# Usage:
-# hello_imgui_add_app(app_name file1.cpp file2.cpp ...)
 #
-# Features: 
-#     * It will automaticaly link the target to the required libraries (hello_imgui, OpenGl, glad, etc)
+# hello_imgui_add_app is a helper function, similar to cmake's "add_executable"
+#
+# Usage:
+#     hello_imgui_add_app(app_name file1.cpp file2.cpp ...)
+# Or:
+#     hello_imgui_add_app(app_name file1.cpp file2.cpp ... ASSETS_LOCATION "path/to/assets")
+# (By default, ASSETS_LOCATION is "assets", which means that the assets will be searched in the "assets" folder,
+# relative to the location of the CMakeLists.txt file)
+#
+# Features:
+#     * It will automatically link the target to the required libraries (hello_imgui, OpenGl, glad, etc)
 #     * It will embed the assets (for desktop, mobile, and emscripten apps)
 #     * It will perform additional customization (app icon and name on mobile platforms, etc)
-set(HELLOIMGUI_CMAKE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/hello_imgui_cmake CACHE STRING "" FORCE)
-# Make cmake function `hello_imgui_add_app` available
-list(APPEND CMAKE_MODULE_PATH ${HELLOIMGUI_CMAKE_PATH})
+#
 include(hello_imgui_add_app)
 
+# HELLOIMGUI_ADD_APP_WITH_INSTALL: if ON, hello_imgui_add_app will add install() instructions for the app.
+# (this works under Windows, Linux, macOS, and emscripten)
+# On desktop platforms, it will install the "app exe" and the "assets" folder in the install folder.
+option(HELLOIMGUI_ADD_APP_WITH_INSTALL "Add cmake install() instructions with hello_imgui_add_app" ON)
+
+# </hello_imgui_add_app>  # do not remove this line (used by the script that generates the documentation)
 
 ###############################################################################
 # HelloImGui Build options
 ###############################################################################
+
+################################################################################
+# <Backends> # do not remove this line (used by the script that generates the documentation)
+# Available backends combinations: HelloImGui needs to use at least one of them.
+# If you specify no option:
+# - HELLOIMGUI_USE_GLFW_OPENGL3 will be used for Windows, Linux, and macOS
+# - HELLOIMGUI_USE_SDL_OPENGL3 will be used for Android, iOS and emscripten
+#
+# Note:
+# - Only one rendering backend can be used at a time (OpenGL3, Metal or Vulkan)!
+# - You may select multiple platform backends
+#   (for example, you may select both SDL and Glfw3)
+# - Combinations using OpenGL3 as a renderer are easier to use,
+#   and are recommended, especially for beginners.
+################################################################################
+# Standard backends:
+# Use Glfw3 + OpenGl3
+option(HELLOIMGUI_USE_GLFW_OPENGL3 "Build HelloImGui for Glfw3+OpenGL3" OFF)
+# Use SDL2 + OpenGL3
+option(HELLOIMGUI_USE_SDL_OPENGL3 "Build HelloImGui for SDL2+OpenGL3" OFF)
+
+# Advanced backends, for experienced users:
+#   Vulkan, Metal, and DirectX11 do work, but you may need to customize the rendering code inside HelloImGui:
+#   see src/hello_imgui/internal/backend_impls/rendering_xxxx.[h,cpp]
+#   (using those backends probably implies that you want to heavily customize the rendering code)
+# Use Glfw3 + Metal (Apple only)
+option(HELLOIMGUI_USE_GLFW_METAL "Build HelloImGui for Glfw3+Metal" OFF)
+# Use SDL2 + Metal (Apple only)
+option(HELLOIMGUI_USE_SDL_METAL "Build HelloImGui for SDL2+Metal" OFF)
+# Use Glfw3 + Vulkan
+option(HELLOIMGUI_USE_GLFW_VULKAN "Build HelloImGui for Glfw3+Vulkan" OFF)
+# Use SDL2 + Vulkan
+option(HELLOIMGUI_USE_SDL_VULKAN "Build HelloImGui for SDL2+Vulkan" OFF)
+# Use SDL2 + DirectX 11 (Note: there is a known issue with DirectX11, see src/hello_imgui/internal/backend_impls/rendering_dx11.h)
+option(HELLOIMGUI_USE_SDL_DIRECTX11 "Build HelloImGui for SDL2+DirectX11" OFF)
+# Use Glfw3 + DirectX 11 (Note: there is a known issue with DirectX11, see src/hello_imgui/internal/backend_impls/rendering_dx11.h)
+option(HELLOIMGUI_USE_GLFW_DIRECTX11 "Build HelloImGui for Glfw3+DirectX11" OFF)
+# Experimental! DirectX12 was not tested, although it does compile!
+option(HELLOIMGUI_USE_SDL_DIRECTX12 "Build HelloImGui for SDL2+DirectX12" OFF)
+
+# </Backends>  # do not remove this line (used by the script that generates the documentation)
+
+
+#------------------------------------------------------------------------------
+# Options / Freetype
+#------------------------------------------------------------------------------
+set(freetype_default ON)
+if(ANDROID OR MINGW)
+    # Freetype is not available on Android. The mix SDL + Freetype cause issues (cannot find SDL.h)
+    # Freetype currently fails to build on MinGW
+    set(freetype_default OFF)
+endif()
+# Note: to reduce wasm size, you may want to disable freetype on emscripten.
+option(HELLOIMGUI_USE_FREETYPE "Use freetype for text rendering" ${freetype_default})
+
+#------------------------------------------------------------------------------
+# <Dependencies> # do not remove this line (used by the script that generates the documentation)
+# Automatic download of Glfw3, SDL2, and Freetype (provided as a convenience)
+#
+# (this is disabled by default on Linux, which prefers to use the system libraries,
+# enabled by default on other platforms)
+#
+# Note:
+#
+# SDL and Glfw3 will be downloaded only if:
+# -----------------------------------------
+#   - HELLOIMGUI_DOWNLOAD_GLFW_IF_NEEDED or HELLOIMGUI_DOWNLOAD_SDL_IF_NEEDED is ON
+#   - HELLOIMGUI_USE_SDL_XXXX or HELLOIMGUI_USE_GLFW_XXXX is ON
+#   - SDL and/or Glfw3 were not added as CMake target
+#     (add_subdirectory(external/SDL) or add_subdirectory(external/glfw) for example)
+#   - find_package(glfw3 or SDL2) fails. If a system library is found,
+#     or a user library provided in a path added to CMAKE_PREFIX_PATH,
+#     it will be used instead
+#
+# - Freetype will be downloaded only if:
+# --------------------------------------
+#   - HELLOIMGUI_DOWNLOAD_FREETYPE is ON, HELLOIMGUI_USE_FREETYPE is ON
+#   - Freetype was not added as a CMake target
+#         (add_subdirectory(external/freetype) for example)
+#   - find_package(freetype) fails
+#   (it will also be forcibly downloaded if HELLOIMGUI_FREETYPE_STATIC is ON)
+#
+#
+# Automatic download of SDL2, Glfw3, and Freetype is disabled by default on Linux,
+# because it is recommended to use the system libraries instead:
+# On ubuntu, you can install them with:
+#    sudo apt install libglfw3-dev libsdl2-dev libfreetype-dev
+#
+#------------------------------------------------------------------------------
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(autodownload_default OFF)
+else()
+    set(autodownload_default ON)
+endif()
+option(HELLOIMGUI_DOWNLOAD_GLFW_IF_NEEDED "Download and build GLFW if needed" ${autodownload_default})
+option(HELLOIMGUI_DOWNLOAD_SDL_IF_NEEDED "Download and build GLFW if needed" ${autodownload_default})
+option(HELLOIMGUI_DOWNLOAD_FREETYPE_IF_NEEDED "Download and build Freetype if needed" ${autodownload_default})
+option(HELLOIMGUI_FREETYPE_STATIC "Force static linking of freetype (only used for python bindings)" OFF)
+
+# </Dependencies>  # do not remove this line (used by the script that generates the documentation)
 
 #------------------------------------------------------------------------------
 # Options / Windows: provide WinMain automatically
@@ -41,37 +160,12 @@ if (WIN32)
 endif()
 
 #------------------------------------------------------------------------------
-# Options / Backend selection
+# Options / macOS: provide regular terminal executables, not app bundles
 #------------------------------------------------------------------------------
-# If no backend option is selected, automatically download glfw and build it
-if (NOT HELLOIMGUI_WITH_GLFW
-    AND NOT HELLOIMGUI_WITH_SDL
-    AND NOT HELLOIMGUI_USE_SDL_OPENGL3
-    AND NOT HELLOIMGUI_USE_GLFW_OPENGL3
-    AND NOT HELLOIMGUI_USE_QT
-    AND NOT EMSCRIPTEN
-    )
-    set(HELLOIMGUI_WITH_GLFW ON CACHE BOOL "")
-    message(WARNING "
-            HelloImGui: using Glfw as default default backend (it will be downloaded and built inside {CMAKE_CURRENT_BINARY_DIR}/_deps/glfw-*)
-            In order to select your own backend, use one of the cmake options below:
-                -DHELLOIMGUI_WITH_GLFW=ON            # To download and build glfw automatically
-                -DHELLOIMGUI_WITH_SDL=ON             # To download and build SDL automatically
-                -DHELLOIMGUI_USE_GLFW_OPENGL3=ON      # To use your own version of GLFW (it should be findable via find_package(glfw3))
-                -DHELLOIMGUI_USE_SDL_OPENGL3=ON       # To use your own version of SDL (it should be findable via find_package(SDL2))
-            ")
+if(MACOSX)
+    option(HELLOIMGUI_MACOS_NO_BUNDLE "Under macOS, build regular terminal executables, not app bundles" OFF)
 endif()
 
-# Backend selection with automatic backend compilation
-# (if you set any of those options, the corresponding backend will be automatically downloaded at build time)
-option(HELLOIMGUI_WITH_GLFW "Add GLFW+OpenGl3 support (glfw will be automatically compiled via ExternalProject_Add)" OFF)
-option(HELLOIMGUI_WITH_SDL "Add SDL+OpenGl3 support (SDL will be automatically compiled via ExternalProject_Add)" OFF)
-
-# Backend selection with manual backend compilation
-# (setting those options without setting HELLOIMGUI_WITH_XXX will require that the backend can be found by find_package())
-option(HELLOIMGUI_USE_SDL_OPENGL3 "Build HelloImGui for SDL+OpenGL3" OFF)
-option(HELLOIMGUI_USE_GLFW_OPENGL3 "Build HelloImGui for GLFW+OpenGL3" OFF)
-option(HELLOIMGUI_USE_QT "Build HelloImGui for Qt" OFF)
 
 #------------------------------------------------------------------------------
 # Build options / ImGui
@@ -90,20 +184,19 @@ endif()
 #------------------------------------------------------------------------------
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     option(HELLOIMGUI_BUILD_DEMOS "Build demos" ON)
-    option(HELLOIMGUI_BUILD_TESTS "Build tests" ON)
 else()
     option(HELLOIMGUI_BUILD_DEMOS "Build demos" OFF)
-    option(HELLOIMGUI_BUILD_TESTS "Build tests" OFF)
 endif()
+option(HELLOIMGUI_BUILD_TESTS "Build tests" OFF)
 
 #------------------------------------------------------------------------------
 # Options / ImGui Test Engine
 #------------------------------------------------------------------------------
 option(HELLOIMGUI_WITH_TEST_ENGINE "Provide ImGui Test engine" OFF)
-message(WARNING "HELLOIMGUI_WITH_TEST_ENGINE=${HELLOIMGUI_WITH_TEST_ENGINE}")
+message(STATUS "HELLOIMGUI_WITH_TEST_ENGINE=${HELLOIMGUI_WITH_TEST_ENGINE}")
 
 #------------------------------------------------------------------------------
-# Instructions: how to enable Esmcripten multihtread support
+# Instructions: how to enable Emscripten multithreading support
 #------------------------------------------------------------------------------
 if (EMSCRIPTEN)
     # 1. set HELLOIMGUI_EMSCRIPTEN_PTHREAD to ON to enable support for multithreading
@@ -131,6 +224,11 @@ endif()
 #------------------------------------------------------------------------------
 # Advanced build options / HelloImGui
 #------------------------------------------------------------------------------
+option(HELLOIMGUI_STB_IMAGE_IMPLEMENTATION "Implement STB_IMAGE_IMPLEMENTATION inside hello_imgui" ON)
+option(HELLOIMGUI_STB_IMAGE_WRITE_IMPLEMENTATION "Implement STB_IMAGE_WRITE_IMPLEMENTATION inside hello_imgui" ON)
+
+set(HELLOIMGUI_TARGET hello_imgui CACHE STRING "Name of the hello_imgui target")
+
 option(HELLOIMGUI_BUILD_DOCS "Build docs" OFF)
 mark_as_advanced(HELLOIMGUI_BUILD_DOCS)
 
@@ -143,70 +241,16 @@ mark_as_advanced(HELLOIMGUI_CREATE_ANDROID_STUDIO_PROJECT)
 option(HELLO_IMGUI_IMGUI_SHARED "Use imgui as a shared library" OFF)
 mark_as_advanced(HELLO_IMGUI_IMGUI_SHARED)
 
-if (IOS OR EMSCRIPTEN)
-    set(need_opengl_loader OFF)
-else()
-    set(need_opengl_loader ON)
-endif()
-option(HELLOIMGUI_USE_GLAD "Use Glad OpenGl loader" ${need_opengl_loader})
-
-
-
 ###############################################################################
 # End of options
 ###############################################################################
 
 
+
+
 ###############################################################################
 # HelloImGui Build Actions
 ###############################################################################
-
-#------------------------------------------------------------------------------
-# use SDL for emscripten
-#------------------------------------------------------------------------------
-if (EMSCRIPTEN AND NOT HELLOIMGUI_USE_SDL_OPENGL3 AND NOT HELLOIMGUI_USE_GLFW_OPENGL3)
-    set(HELLOIMGUI_USE_SDL_OPENGL3 ON)
-endif()
-
-#------------------------------------------------------------------------------
-# Download backend glfw or sdl if required
-#------------------------------------------------------------------------------
-if (HELLOIMGUI_WITH_GLFW)
-    set(HELLOIMGUI_USE_GLFW_OPENGL3 ON CACHE BOOL "" FORCE)
-    if (NOT TARGET glfw AND NOT EMSCRIPTEN)
-        include(FetchContent)
-        Set(FETCHCONTENT_QUIET FALSE)
-        FetchContent_Declare(glfw
-            GIT_REPOSITORY    https://github.com/glfw/glfw.git
-            GIT_TAG           3.3.8
-            GIT_PROGRESS TRUE
-            )
-        set(need_fetch_make_available_glfw ON)
-    endif()
-endif()
-
-if (HELLOIMGUI_WITH_SDL)
-    set(HELLOIMGUI_USE_SDL_OPENGL3 ON CACHE BOOL "" FORCE)
-    if (NOT TARGET sdl AND NOT EMSCRIPTEN)
-        include(FetchContent)
-        Set(FETCHCONTENT_QUIET FALSE)
-        FetchContent_Declare(sdl
-            GIT_REPOSITORY    https://github.com/libsdl-org/SDL.git
-            GIT_TAG           release-2.24.2
-            GIT_PROGRESS TRUE
-            )
-        set(need_fetch_make_available_sdl ON)
-    endif()
-endif()
-
-if (NOT (HELLOIMGUI_USE_SDL_OPENGL3 OR HELLOIMGUI_USE_GLFW_OPENGL3 OR HELLOIMGUI_USE_QT OR HELLOIMGUI_CREATE_ANDROID_STUDIO_PROJECT))
-    message(FATAL_ERROR "Select at least one backend: use either
-        -DHELLOIMGUI_USE_SDL_OPENGL3=ON
-        -DHELLOIMGUI_USE_GLFW_OPENGL3=ON
-        -DHELLOIMGUI_USE_QT=ON
-        -DHELLOIMGUI_CREATE_ANDROID_STUDIO_PROJECT=ON
-    ")
-endif()
 
 #------------------------------------------------------------------------------
 # MSVC: Select the solution folder where hello_imgui should be placed
@@ -217,31 +261,29 @@ if (MSVC)
     endif()
 endif()
 
-
 #------------------------------------------------------------------------------
 # Main build actions
 #------------------------------------------------------------------------------
-set(HELLOIMGUI_BASEPATH ${CMAKE_CURRENT_LIST_DIR} CACHE STRING "Hello imgui base path" FORCE)
 include(cmake/StandardProjectSettings.cmake)
 include(cmake/StaticAnalyzers.cmake)
 include(msvc/msvc_target_group)
-
 
 if (EMSCRIPTEN)
     include(${HELLOIMGUI_BASEPATH}/hello_imgui_cmake/emscripten/hello_imgui_emscripten_global_options.cmake)
 endif()
 
-
-add_subdirectory(external)
-add_subdirectory(src)
-
-#------------------------------------------------------------------------------
-# imgui_test_engine integration
-#------------------------------------------------------------------------------
-if (HELLOIMGUI_WITH_TEST_ENGINE)
-    include(${CMAKE_CURRENT_LIST_DIR}/src/hello_imgui_test_engine_integration/hello_imgui_test_engine_cmake.cmake)
-    add_imgui_test_engine()
+# Add stb for HelloImGui
+add_library(stb_hello_imgui STATIC external/stb_hello_imgui/stb_impl_hello_imgui.cpp)
+target_include_directories(stb_hello_imgui PUBLIC external)
+if(HELLOIMGUI_STB_IMAGE_IMPLEMENTATION)
+    target_compile_definitions(stb_hello_imgui PRIVATE STB_IMAGE_IMPLEMENTATION)
 endif()
+if(HELLOIMGUI_STB_IMAGE_WRITE_IMPLEMENTATION)
+    target_compile_definitions(stb_hello_imgui PRIVATE STB_IMAGE_WRITE_IMPLEMENTATION)
+endif()
+
+
+add_subdirectory(src)
 
 #------------------------------------------------------------------------------
 # automation tests (set cache var HELLOIMGUI_BUILD_AUTOMATION_TEST to enable)
@@ -262,10 +304,15 @@ endif()
 if (HELLOIMGUI_BUILD_DOCS)
     add_custom_target(hello_imgui_build_doc ALL
         ${PROJECT_SOURCE_DIR}/tools/doc/process_md_docs.py
-        COMMENT "Generating md doc files"
+        COMMENT "Generating doc"
     )
 endif()
 
-if (NOT IOS AND NOT ANDROID)
+if (PROJECT_IS_TOP_LEVEL AND NOT IOS AND NOT ANDROID)
     install(FILES README.md DESTINATION .)
 endif()
+
+#------------------------------------------------------------------------------
+# Log info
+#------------------------------------------------------------------------------
+him_log_configuration()

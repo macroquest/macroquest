@@ -78,10 +78,10 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;STB_IMAGE_IMPLEMENTATION;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -92,13 +92,13 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;STB_IMAGE_IMPLEMENTATION;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -111,10 +111,10 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;STB_IMAGE_IMPLEMENTATION;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -125,13 +125,13 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW_OPENGL3;HELLOIMGUI_USE_GLFW;HELLOIMGUI_HAS_OPENGL;STB_IMAGE_IMPLEMENTATION;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_image.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_image_write.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\app_window_params.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\backend_pointers.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\docking_params.h" />
@@ -148,37 +150,55 @@
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_assets.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_error.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_font.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_include_opengl.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_logger.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_screenshot.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_theme.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_widgets.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\icons_font_awesome.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\image_from_asset.h" />
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\image_gl.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\image_gl_deprecated.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\imgui_default_settings.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\imgui_theme.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\imgui_window_params.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\abstract_runner.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\backend_window_helper.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\glfw_window_helper.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\sdl_window_helper.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\win32_dpi_awareness.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\window_geometry_helper.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\opengl_setup_helper\opengl_screenshot.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\opengl_setup_helper\opengl_setup_api.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\opengl_setup_helper\opengl_setup_glfw.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\opengl_setup_helper\opengl_setup_sdl.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_callbacks.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_metal.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_opengl3.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_emscripten.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_factory.h" />
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw_opengl3.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw3.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_sdl2.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\borderless_movable.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\clock_seconds.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\docking_details.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\functional_utils.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\hello_imgui_ini_settings.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_abstract.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_dx11.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_metal.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_opengl.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_vulkan.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\imguial_term.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\imgui_global_context.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\inicpp.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\main_screen_resolution.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\menu_statusbar.h" />
+    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\platform\ini_folder_locations.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\pnm.h" />
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\stb_image.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\whereami\whereami.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\whereami\whereami_cpp.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\runner_callbacks.h" />
@@ -191,6 +211,12 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\contrib\hello_imgui\external\stb_hello_imgui\stb_impl_hello_imgui.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\dpi_aware.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -203,6 +229,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_font.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_screenshot.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -210,6 +242,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_theme.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\hello_imgui_widgets.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -245,6 +283,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\sdl_window_helper.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\win32_dpi_awareness.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -275,13 +319,103 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\opengl_setup_helper\opengl_setup_sdl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_callbacks.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11_glfw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11_sdl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12_sdl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_opengl3.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_glfw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_sdl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_setup.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_emscripten.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_factory.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw_opengl3.cpp">
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw3.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_sdl2.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\borderless_movable.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -323,13 +457,37 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_abstract.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_dx11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_from_asset.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_gl.cpp">
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_gl_deprecated.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_opengl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_vulkan.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -354,6 +512,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\menu_statusbar.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\platform\ini_folder_locations.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

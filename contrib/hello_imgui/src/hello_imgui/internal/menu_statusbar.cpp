@@ -1,3 +1,4 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "hello_imgui/internal/menu_statusbar.h"
 #include "hello_imgui/internal/docking_details.h"
 
@@ -51,11 +52,9 @@ void ShowDefaultAppMenu_Quit(RunnerParams & runnerParams)
 
 void ShowMenu(RunnerParams & runnerParams)
 {
-    bool hasMenu = (ImGui::GetCurrentWindow()->Flags & ImGuiWindowFlags_MenuBar) != 0;
-    if (!hasMenu)
+    if (!runnerParams.imGuiWindowParams.showMenuBar)
         return;
-
-    ImGui::BeginMenuBar();
+    ImGui::BeginMainMenuBar();
 
     if (runnerParams.imGuiWindowParams.showMenu_App)
         ShowDefaultAppMenu_Quit(runnerParams);
@@ -66,7 +65,7 @@ void ShowMenu(RunnerParams & runnerParams)
     if (runnerParams.callbacks.ShowMenus)
         runnerParams.callbacks.ShowMenus();
 
-    ImGui::EndMenuBar();
+    ImGui::EndMainMenuBar();
 }
 
 
@@ -74,8 +73,20 @@ void ShowStatusBar(RunnerParams & params)
 {
     float statusWindowHeight = ImGui::GetFrameHeight() * 1.4f;
     ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y + viewport->Size.y - statusWindowHeight));
-    ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, statusWindowHeight));
+
+    ImVec2 statusBarSize, statusBarPos;
+    {
+        // One some platform, like iOS, we need to take into account the insets
+        // so that our app does not go under the notch or the home indicator
+        EdgeInsets edgeInsets;
+        if (params.appWindowParams.handleEdgeInsets)
+            edgeInsets = params.appWindowParams.edgeInsets;
+        statusBarSize = ImVec2(viewport->Size.x - (float)edgeInsets.left - (float)edgeInsets.right, statusWindowHeight);
+        statusBarPos = viewport->Pos + ImVec2((float)edgeInsets.left, viewport->Size.y - (float)edgeInsets.bottom - statusBarSize.y);
+    }
+
+    ImGui::SetNextWindowPos(statusBarPos);
+    ImGui::SetNextWindowSize(statusBarSize);
     ImGui::SetNextWindowViewport(viewport->ID);
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking;
@@ -101,7 +112,6 @@ void ShowStatusBar(RunnerParams & params)
 
     ImGui::End();
 }
-
 
 }  // namespace Menu_StatusBar
 }  // namespace HelloImGui

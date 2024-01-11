@@ -66,6 +66,11 @@ namespace HelloImGui { namespace BackendApi
 
         // info.backend3DMode: not handled here
 
+        // Note: This is RenderingCallbacks_Impl_Hint_WindowingBackend
+#if defined(HELLOIMGUI_HAS_VULKAN) || defined(HELLOIMGUI_HAS_METAL) || defined(HELLOIMGUI_HAS_DIRECTX11) || defined(HELLOIMGUI_HAS_DIRECTX12)
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#endif
+
         if (appWindowParams.borderless)
             glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
         else
@@ -210,6 +215,12 @@ namespace HelloImGui { namespace BackendApi
         int visible = glfwGetWindowAttrib((GLFWwindow *) window, GLFW_VISIBLE);
         return (visible == 0);
     }
+
+//    void truc(WindowPointer window)
+//    {
+//        glfwCur
+//
+//    }
 
 }} // namespace HelloImGui { namespace BackendApi
 #endif // #ifdef HELLOIMGUI_USE_GLFW

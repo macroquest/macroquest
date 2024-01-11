@@ -1,14 +1,15 @@
 #include "hello_imgui/hello_imgui_assets.h"
 #include "imgui.h"
 
-#if defined(IOS)
+#ifdef HELLOIMGUI_INSIDE_APPLE_BUNDLE
 #include "hello_imgui/internal/platform/getAppleBundleResourcePath.h"
-#else
-#include "hello_imgui/internal/whereami/whereami_cpp.h"
+#include <unistd.h>
 #endif
 
+#include "hello_imgui/internal/whereami/whereami_cpp.h"
 
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
+
+#ifdef HELLOIMGUI_USE_SDL
 #include "SDL_system.h"
 #endif
 
@@ -23,6 +24,17 @@
 #include <windows.h>
 #else
 #include <unistd.h>
+#endif
+
+#ifdef HELLOIMGUI_INSIDE_APPLE_BUNDLE
+// We are inside an apple bundle, so we need to chdir to the bundle resources folder
+// (otherwise, the assets folder would not be found)
+static void ChdirToBundleResourcesFolder()
+{
+    std::string bundlePath = GetBundlePath();
+    std::string resourceFolder = bundlePath + "/Contents/Resources";
+    chdir(resourceFolder.c_str());
+}
 #endif
 
 namespace FileUtils
@@ -125,11 +137,23 @@ std::vector<AssetFolderWithDesignation> computePossibleAssetsFolders()
 {
     std::vector<AssetFolderWithDesignation> r;
 
-    // 1. Search inside gOverrideAssetsFolder set by SetAssetsFolder()
+    // Search inside gOverrideAssetsFolder set by SetAssetsFolder()
     if (! gOverrideAssetsFolder.empty())
         r.push_back({gOverrideAssetsFolder, "folder provided by HelloImGui::SetAssetsFolder()"});
 
-    // 2. Search inside a subfolder of the exe
+    // For apple bundle, search at the bundle resources folder
+    #ifdef HELLOIMGUI_INSIDE_APPLE_BUNDLE
+    r.push_back({GetBundlePath() + "/Contents/Resources/" + gAssetsSubfolderFolderName, "AppleAppBundle/Contents/Resources/assets"});
+    #endif
+
+    // Search inside a subfolder of the current working directory
+    #if !defined(HELLOIMGUI_MOBILEDEVICE)
+    {
+        r.push_back({FileUtils::GetCurrentDirectory() +  "/" + gAssetsSubfolderFolderName, "current_folder/assets"});
+    }
+    #endif
+
+    // Search inside a subfolder of the exe
     #if !defined(HELLOIMGUI_MOBILEDEVICE) && !defined(__EMSCRIPTEN__)
     {
         r.push_back({wai_getExecutableFolder_string() + "/" + gAssetsSubfolderFolderName, "exe_folder/assets"});
@@ -143,14 +167,7 @@ std::vector<AssetFolderWithDesignation> computePossibleAssetsFolders()
     }
     #endif
 
-    // 3. Search inside a subfolder of the current working directory
-    #if !defined(HELLOIMGUI_MOBILEDEVICE)
-    {
-        r.push_back({FileUtils::GetCurrentDirectory() +  "/" + gAssetsSubfolderFolderName, "current_folder/assets"});
-    }
-    #endif
-
-    // 3. For emscripten, search at "/"
+    // For emscripten, search at "/"
     #ifdef __EMSCRIPTEN__
     {
         r.push_back({"/", "root folder for emscripten"});
@@ -162,18 +179,14 @@ std::vector<AssetFolderWithDesignation> computePossibleAssetsFolders()
 }
 
 /// Access font files in application bundle or assets/fonts/
-std::string AssetFileFullPath(const std::string& assetFilename)
+std::string AssetFileFullPath(const std::string& assetFilename, bool assertIfNotFound)
 {
-#if defined(IOS)
-    std::string path = getAppleBundleResourcePath(assetFilename.c_str());
-    if (! FileUtils::IsRegularFile(path))
-        return  "";
-    return path;
-#elif defined(__ANDROID__)
+#if defined(__ANDROID__)
     // Under android, assets can be compressed
     // You cannot use standard file operations!`
     (void)assetFilename;
     IM_ASSERT(false); //assetFileFullPath does not work on android!
+    return "";
 #else
     auto possibleAssetsFolders = computePossibleAssetsFolders();
     for (const auto& assetsFolder: possibleAssetsFolders)
@@ -182,7 +195,39 @@ std::string AssetFileFullPath(const std::string& assetFilename)
         if (FileUtils::IsRegularFile(path))
             return path;
     }
+    #if defined(IOS)
+    {
+        std::string path = getAppleBundleResourcePath(std::string("assets/") + assetFilename.c_str());
+        if (FileUtils::IsRegularFile(path))
+            return path;
+    }
+    #endif
+
+    //
+    // Handle failures below
+    //
+
+    #ifdef HELLOIMGUI_INSIDE_APPLE_BUNDLE
+    {
+        // if we are inside an apple bundle, we may have to chdir to the bundle resources folder
+        // let's try this once
+        static bool triedChdirToBundleResourcesFolder = false;
+        if (!triedChdirToBundleResourcesFolder && gOverrideAssetsFolder.empty())
+        {
+            triedChdirToBundleResourcesFolder = true;
+            auto current_path = std::filesystem::current_path();
+            ChdirToBundleResourcesFolder();
+            std::string newPath = AssetFileFullPath(assetFilename, false);
+            if (!newPath.empty())
+                return newPath;
+            else
+                std::filesystem::current_path(current_path);
+        }
+    };
+    #endif
+
     // Display nice message on error
+    if (assertIfNotFound)
     {
         std::string errorMessage;
         errorMessage += "assetFileFullPath(" + assetFilename + ") failed!\n";
@@ -194,26 +239,29 @@ std::string AssetFileFullPath(const std::string& assetFilename)
         }
         errorMessage += "    (you can call HelloImGui::SetAssetsFolder() to set the default search location)\n";
         HIMG_ERROR(errorMessage);
-        return "";
     }
+    return "";
 #endif
 }
 
 // Returns true if this asset file exists
 bool AssetExists(const std::string& assetFilename)
 {
-    auto possibleAssetsFolders = computePossibleAssetsFolders();
-    for (const auto& assetsFolder: possibleAssetsFolders)
-    {
-        std::string path = assetsFolder.folder + "/" + assetFilename;
-        if (FileUtils::IsRegularFile(path))
-            return true;
-    }
-    return false;
+#ifdef __ANDROID__
+    size_t dataSize;
+    void *data = SDL_LoadFile(assetFilename.c_str(), &dataSize);
+    bool exists = (data != nullptr);
+    if (data != nullptr)
+        SDL_free(data);
+    return exists;
+#else
+    std::string fullPath = AssetFileFullPath(assetFilename, false);
+    return ! fullPath.empty();
+#endif
 }
 
 
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
+#ifdef HELLOIMGUI_USE_SDL
 
 AssetFileData LoadAssetFileData(const char *assetPath)
 {
@@ -300,7 +348,7 @@ void FreeAssetFileData(AssetFileData * assetFileData)
     assetFileData = nullptr;
 }
 
-#endif // #ifdef HELLOIMGUI_USE_SDL_OPENGL3
+#endif // #ifdef HELLOIMGUI_USE_SDL
 
 
 }  // namespace HelloImGui

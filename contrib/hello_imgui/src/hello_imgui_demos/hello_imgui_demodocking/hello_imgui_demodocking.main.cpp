@@ -1,19 +1,16 @@
 /*
-A more complex app demo,
+A more complex app demo
 
-It demonstrates:
-- How to use a specific application state (instead of using static variables)
-- How to set up a complex docking layouts (with several possible layouts):
-- How to use the status bar
-- How to use default menus (App and view menu), and how to customize them
-- How to display a log window
-- How to load additional fonts
+It demonstrates how to:
+- set up a complex docking layouts (with several possible layouts):
+- use the status bar
+- use default menus (App and view menu), and how to customize them
+- display a log window
+- load additional fonts, possibly colored, and with emojis
+- use a specific application state (instead of using static variables)
+- save some additional user settings within imgui ini file
+- use borderless windows, that are movable and resizable
 */
-
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
-#define SDL_MAIN_HANDLED // Tell SDL not to #define main!!!
-#include <SDL.h>
-#endif
 
 #include "hello_imgui/hello_imgui.h"
 #include "imgui.h"
@@ -21,6 +18,20 @@ It demonstrates:
 #include "imgui_internal.h"
 
 #include <sstream>
+
+// Poor man's fix for C++ late arrival in the unicode party:
+//    - C++17: u8"my string" is of type const char*
+//    - C++20: u8"my string" is of type const char8_t*
+// However, ImGui text functions expect const char*.
+#ifdef __cpp_char8_t
+#define U8_TO_CHAR(x) reinterpret_cast<const char*>(x)
+#else
+#define U8_TO_CHAR(x) x
+#endif
+// And then, we need to tell gcc to stop validating format string (it gets confused by the u8"" string)
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wformat"
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,19 +59,37 @@ struct AppState
     RocketState rocket_state = RocketState::Init;
 
     MyAppSettings myAppSettings; // This values will be stored in the application settings
+
+    ImFont* TitleFont = nullptr;
+    ImFont* ColorFont = nullptr;
+    ImFont* EmojiFont = nullptr;
+    ImFont* LargeIconFont = nullptr;
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //    Additional fonts handling
 //////////////////////////////////////////////////////////////////////////
-ImFont * gTitleFont;
-void LoadFonts() // This is called by runnerParams.callbacks.LoadAdditionalFonts
+void LoadFonts(AppState& appState) // This is called by runnerParams.callbacks.LoadAdditionalFonts
 {
     // First, load the default font (the default font should be loaded first)
     HelloImGui::ImGuiDefaultSettings::LoadDefaultFont_WithFontAwesomeIcons();
-    // Then load the title font
-    gTitleFont = HelloImGui::LoadFontTTF("fonts/DroidSans.ttf", 18.f);
+    // Then load the other fonts
+    appState.TitleFont = HelloImGui::LoadFont("fonts/DroidSans.ttf", 18.f);
+
+    HelloImGui::FontLoadingParams fontLoadingParamsEmoji;
+    fontLoadingParamsEmoji.useFullGlyphRange = true;
+    appState.EmojiFont = HelloImGui::LoadFont("fonts/NotoEmoji-Regular.ttf", 24.f, fontLoadingParamsEmoji);
+
+    HelloImGui::FontLoadingParams fontLoadingParamsLargeIcon;
+    fontLoadingParamsLargeIcon.useFullGlyphRange = true;
+    appState.LargeIconFont = HelloImGui::LoadFont("fonts/fontawesome-webfont.ttf", 24.f, fontLoadingParamsLargeIcon);
+#ifdef IMGUI_ENABLE_FREETYPE
+    // Found at https://www.colorfonts.wtf/
+    HelloImGui::FontLoadingParams fontLoadingParamsColor;
+    fontLoadingParamsColor.loadColor = true;
+    appState.ColorFont = HelloImGui::LoadFont("fonts/Playbox/Playbox-FREE.otf", 24.f, fontLoadingParamsColor);
+#endif
 }
 
 
@@ -105,17 +134,17 @@ void SaveMyAppSettings(const AppState& appState)
 //////////////////////////////////////////////////////////////////////////
 
 // Display a button that will hide the application window
-void DemoHideWindow()
+void DemoHideWindow(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("Hide app window"); ImGui::PopFont();
-    ImGui::TextWrapped("By clicking the button below, you can hide the window for 3 seconds.");
-
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Hide app window"); ImGui::PopFont();
     static double lastHideTime = -1.;
     if (ImGui::Button("Hide"))
     {
         lastHideTime =  ImGui::GetTime();
         HelloImGui::GetRunnerParams()->appWindowParams.hidden = true;
     }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("By clicking this button, you can hide the window for 3 seconds.");
     if (lastHideTime > 0.)
     {
         double now = ImGui::GetTime();
@@ -128,7 +157,7 @@ void DemoHideWindow()
 }
 
 // Display a button that will show an additional window
-void DemoShowAdditionalWindow()
+void DemoShowAdditionalWindow(AppState& appState)
 {
     // Notes:
     //     - it is *not* possible to modify the content of the vector runnerParams.dockingParams.dockableWindows
@@ -137,7 +166,7 @@ void DemoShowAdditionalWindow()
     //           * either make them initially invisible, and exclude them from the view menu (such as shown here)
     //           * or modify runnerParams.dockingParams.dockableWindows inside the callback RunnerCallbacks.PreNewFrame
     const char* windowName = "Additional Window";
-    ImGui::PushFont(gTitleFont); ImGui::Text("Dynamically add window"); ImGui::PopFont();
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Dynamically add window"); ImGui::PopFont();
     if (ImGui::Button("Show additional window"))
     {
         auto additionalWindowPtr = HelloImGui::GetRunnerParams()->dockingParams.dockableWindowOfName(windowName);
@@ -147,13 +176,15 @@ void DemoShowAdditionalWindow()
             additionalWindowPtr->isVisible = true;
         }
     }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("By clicking this button, you can show an additional window");
 }
 
-void DemoBasicWidgets(AppState& appState)
+void DemoLogs(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("Basic widgets demo"); ImGui::PopFont();
-    ImGui::TextWrapped("The widgets below will interact with the log window");
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Log Demo"); ImGui::PopFont();
 
+    ImGui::BeginGroup();
     // Edit a float using a slider from 0.0f to 1.0f
     bool changed = ImGui::SliderFloat("float", &appState.f, 0.0f, 1.0f);
     if (changed)
@@ -168,22 +199,29 @@ void DemoBasicWidgets(AppState& appState)
 
     ImGui::SameLine();
     ImGui::Text("counter = %d", appState.counter);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("These widgets will interact with the log window");
 }
 
 void DemoUserSettings(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("User settings"); ImGui::PopFont();
-    ImGui::TextWrapped("The values below are stored in the application settings ini file and restored at startup");
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("User settings"); ImGui::PopFont();
+    ImGui::BeginGroup();
     ImGui::SetNextItemWidth(HelloImGui::EmSize(7.f));
     ImGui::InputText("Name", &appState.myAppSettings.name);
     ImGui::SetNextItemWidth(HelloImGui::EmSize(7.f));
     ImGui::SliderInt("Value", &appState.myAppSettings.value, 0, 100);
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("The values below are stored in the application settings ini file and restored at startup");
+
 }
 
 void DemoRocket(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("Rocket demo"); ImGui::PopFont();
-    ImGui::TextWrapped("How to show a progress bar in the status bar");
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Status Bar Demo"); ImGui::PopFont();
+    ImGui::BeginGroup();
     if (appState.rocket_state == AppState::RocketState::Init)
     {
         if (ImGui::Button(ICON_FA_ROCKET" Launch rocket"))
@@ -212,11 +250,14 @@ void DemoRocket(AppState& appState)
             appState.rocket_progress = 0.f;
         }
     }
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Look at the status bar after clicking");
 }
 
-void DemoDockingFlags()
+void DemoDockingFlags(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("Main dock space node flags"); ImGui::PopFont();
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Main dock space node flags"); ImGui::PopFont();
     ImGui::TextWrapped(R"(
 This will edit the ImGuiDockNodeFlags for "MainDockSpace".
 Most flags are inherited by children dock spaces.
@@ -241,7 +282,7 @@ Most flags are inherited by children dock spaces.
     };
 
     auto & mainDockSpaceNodeFlags = HelloImGui::GetRunnerParams()->dockingParams.mainDockSpaceNodeFlags;
-    for (auto flag: all_flags)
+    for (const auto& flag: all_flags)
     {
         ImGui::CheckboxFlags(flag.label.c_str(), &mainDockSpaceNodeFlags, flag.flag);
         if (ImGui::IsItemHovered())
@@ -249,37 +290,126 @@ Most flags are inherited by children dock spaces.
     }
 }
 
-void GuiWindowLayoutCustomization()
+void GuiWindowLayoutCustomization(AppState& appState)
 {
-    ImGui::PushFont(gTitleFont); ImGui::Text("Switch between layouts"); ImGui::PopFont();
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Switch between layouts"); ImGui::PopFont();
     ImGui::Text("with the menu \"View/Layouts\"");
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Each layout remembers separately the modifications applied by the user, \nand the selected layout is restored at startup");
     ImGui::Separator();
 
-    ImGui::PushFont(gTitleFont); ImGui::Text("Change the theme"); ImGui::PopFont();
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Change the theme"); ImGui::PopFont();
     ImGui::Text("with the menu \"View/Theme\"");
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("The selected theme is remembered and restored at startup");
     ImGui::Separator();
 
-    DemoDockingFlags();
+    DemoDockingFlags(appState);
     ImGui::Separator();
 }
 
 
+void DemoAssets(AppState& appState)
+{
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Image From Asset"); ImGui::PopFont();
+
+    HelloImGui::BeginGroupColumn();
+    ImGui::Dummy(HelloImGui::EmToVec2(0.f, 0.45f));
+    ImGui::Text("Hello");
+    HelloImGui::EndGroupColumn();
+    HelloImGui::ImageFromAsset("images/world.png", HelloImGui::EmToVec2(2.5f, 2.5f));
+}
+
+void DemoFonts(AppState& appState)
+{
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Fonts"); ImGui::PopFont();
+
+    ImGui::TextWrapped("Mix icons " ICON_FA_SMILE " and text " ICON_FA_ROCKET "");
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Example with Font Awesome Icons");
+
+    ImGui::Text("Emojis");
+
+    ImGui::BeginGroup();
+    {
+        ImGui::PushFont(appState.EmojiFont);
+        // ✌️ (Victory Hand Emoji)
+        ImGui::Text(U8_TO_CHAR(u8"\U0000270C\U0000FE0F"));
+        ImGui::SameLine();
+
+        // ❤️ (Red Heart Emoji)
+        ImGui::Text(U8_TO_CHAR(u8"\U00002764\U0000FE0F"));
+        ImGui::SameLine();
+
+#ifdef IMGUI_USE_WCHAR32
+        // 🌴 (Palm Tree Emoji)
+        ImGui::Text(U8_TO_CHAR(u8"\U0001F334"));
+        ImGui::SameLine();
+
+        // 🚀 (Rocket Emoji)
+        ImGui::Text(U8_TO_CHAR(u8"\U0001F680"));
+        ImGui::SameLine();
+#endif
+
+        ImGui::PopFont();
+    }
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Example with NotoEmoji font");
+
+#ifdef IMGUI_ENABLE_FREETYPE
+    ImGui::Text("Colored Fonts");
+    ImGui::PushFont(appState.ColorFont);
+    ImGui::Text("C O L O R !");
+    ImGui::PopFont();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Example with Playbox-FREE.otf font");
+#endif
+}
+
+void DemoThemes(AppState& appState)
+{
+    ImGui::PushFont(appState.TitleFont); ImGui::Text("Themes"); ImGui::PopFont();
+    auto& tweakedTheme = HelloImGui::GetRunnerParams()->imGuiWindowParams.tweakedTheme;
+
+    ImGui::BeginGroup();
+    ImVec2 buttonSize = HelloImGui::EmToVec2(7.f, 0.f);
+    if (ImGui::Button("Cherry", buttonSize))
+    {
+        tweakedTheme.Theme = ImGuiTheme::ImGuiTheme_Cherry;
+        ImGuiTheme::ApplyTweakedTheme(tweakedTheme);
+    }
+    if (ImGui::Button("DarculaDarker", buttonSize))
+    {
+        tweakedTheme.Theme = ImGuiTheme::ImGuiTheme_DarculaDarker;
+        ImGuiTheme::ApplyTweakedTheme(tweakedTheme);
+    }
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered())
+            ImGui::SetTooltip(
+                "There are lots of other themes: look at the menu View/Theme\n"
+                "The selected theme is remembered and restored at startup"
+            );
+}
+
 // The Gui of the demo feature window
 void GuiWindowDemoFeatures(AppState& appState)
 {
-    DemoBasicWidgets(appState);
+    DemoFonts(appState);
+    ImGui::Separator();
+    DemoAssets(appState);
+    ImGui::Separator();
+    DemoLogs(appState);
     ImGui::Separator();
     DemoRocket(appState);
     ImGui::Separator();
     DemoUserSettings(appState);
     ImGui::Separator();
-    DemoHideWindow();
+    DemoHideWindow(appState);
     ImGui::Separator();
-    DemoShowAdditionalWindow();
+    DemoShowAdditionalWindow(appState);
+    ImGui::Separator();
+    DemoThemes(appState);
     ImGui::Separator();
 }
 
@@ -295,8 +425,11 @@ void StatusBarGui(AppState& app_state)
 }
 
 // The menu gui
-void ShowMenuGui()
+void ShowMenuGui(HelloImGui::RunnerParams& runnerParams)
 {
+    HelloImGui::ShowAppMenu(runnerParams);
+    HelloImGui::ShowViewMenu(runnerParams);
+
     if (ImGui::BeginMenu("My Menu"))
     {
         bool clicked = ImGui::MenuItem("Test me", "", false);
@@ -314,6 +447,37 @@ void ShowAppMenuItems()
         HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on A Custom app menu item");
 }
 
+void ShowTopToolbar(AppState& appState)
+{
+    ImGui::PushFont(appState.LargeIconFont);
+    if (ImGui::Button(ICON_FA_POWER_OFF))
+        HelloImGui::GetRunnerParams()->appShallExit = true;
+
+    ImGui::SameLine(ImGui::GetWindowWidth() - HelloImGui::EmSize(7.f));
+    if (ImGui::Button(ICON_FA_HOME))
+        HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on Home in the top toolbar");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_SAVE))
+        HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on Save in the top toolbar");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_ADDRESS_BOOK))
+        HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on Address Book in the top toolbar");
+
+    ImGui::SameLine(ImGui::GetWindowWidth() - HelloImGui::EmSize(2.f));
+    ImGui::Text(ICON_FA_BATTERY_THREE_QUARTERS);
+    ImGui::PopFont();
+}
+
+void ShowRightToolbar(AppState& appState)
+{
+    ImGui::PushFont(appState.LargeIconFont);
+    if (ImGui::Button(ICON_FA_ARROW_CIRCLE_LEFT))
+        HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on Circle left in the right toolbar");
+
+    if (ImGui::Button(ICON_FA_ARROW_CIRCLE_RIGHT))
+        HelloImGui::Log(HelloImGui::LogLevel::Info, "Clicked on Circle right in the right toolbar");
+    ImGui::PopFont();
+}
 
 //////////////////////////////////////////////////////////////////////////
 //    Docking Layouts and Docking windows
@@ -405,7 +569,7 @@ std::vector<HelloImGui::DockableWindow> CreateDockableWindows(AppState& appState
     HelloImGui::DockableWindow layoutCustomizationWindow;
     layoutCustomizationWindow.label = "Layout customization";
     layoutCustomizationWindow.dockSpaceName = "MainDockSpace";
-    layoutCustomizationWindow.GuiFunction = GuiWindowLayoutCustomization;
+    layoutCustomizationWindow.GuiFunction = [&appState]() { GuiWindowLayoutCustomization(appState); };
 
     // A Log window named "Logs" will be placed in "MiscSpace". It uses the HelloImGui logger gui
     HelloImGui::DockableWindow logsWindow;
@@ -417,6 +581,7 @@ std::vector<HelloImGui::DockableWindow> CreateDockableWindows(AppState& appState
     HelloImGui::DockableWindow dearImGuiDemoWindow;
     dearImGuiDemoWindow.label = "Dear ImGui Demo";
     dearImGuiDemoWindow.dockSpaceName = "MainDockSpace";
+    dearImGuiDemoWindow.imGuiWindowFlags = ImGuiWindowFlags_MenuBar;
     dearImGuiDemoWindow.GuiFunction = [] { ImGui::ShowDemoWindow(); };
 
     // additionalWindow is initially not visible (and not mentioned in the view menu).
@@ -437,7 +602,7 @@ std::vector<HelloImGui::DockableWindow> CreateDockableWindows(AppState& appState
         additionalWindow,
     };
     return dockableWindows;
-};
+}
 
 //
 // 3. Define the layouts:
@@ -472,7 +637,7 @@ std::vector<HelloImGui::DockingParams> CreateAlternativeLayouts(AppState& appSta
         tabsLayout.dockingSplits = {};
     }
     return {alternativeLayout, tabsLayout};
-};
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -480,26 +645,28 @@ std::vector<HelloImGui::DockingParams> CreateAlternativeLayouts(AppState& appSta
 //////////////////////////////////////////////////////////////////////////
 int main(int, char**)
 {
-    //###############################################################################################
-    // Part 1: Define the application state, fill the status and menu bars, and load additional font
-    //###############################################################################################
+    //#############################################################################################
+    // Part 1: Define the application state, fill the status and menu bars, load additional font
+    //#############################################################################################
 
     // Our application state
     AppState appState;
 
     // Hello ImGui params (they hold the settings as well as the Gui callbacks)
     HelloImGui::RunnerParams runnerParams;
-
-    // Note: by setting the window title, we also set the name of the ini files in which the settings for the user
-    // layout will be stored: Docking_demo.ini
-    runnerParams.appWindowParams.windowTitle = "Docking demo";
-
-    runnerParams.imGuiWindowParams.menuAppTitle = "Docking App";
-    runnerParams.appWindowParams.windowGeometry.size = {1000, 900};
+    runnerParams.appWindowParams.windowTitle = "Docking Demo";
+    runnerParams.imGuiWindowParams.menuAppTitle = "Docking Demo";
+    runnerParams.appWindowParams.windowGeometry.size = {1200, 1000};
     runnerParams.appWindowParams.restorePreviousGeometry = true;
+    
+    // Our application uses a borderless window, but is movable/resizable
+    runnerParams.appWindowParams.borderless = true;
+    runnerParams.appWindowParams.borderlessMovable = true;
+    runnerParams.appWindowParams.borderlessResizable = true;
+    runnerParams.appWindowParams.borderlessClosable = true;
 
     // Load additional font
-    runnerParams.callbacks.LoadAdditionalFonts = LoadFonts;
+    runnerParams.callbacks.LoadAdditionalFonts = [&appState]() { LoadFonts(appState); };
 
     //
     // Status bar
@@ -513,15 +680,56 @@ int main(int, char**)
     //
     // Menu bar
     //
-    runnerParams.imGuiWindowParams.showMenuBar = true;          // We use the default menu of Hello ImGui
-    runnerParams.callbacks.ShowMenus = ShowMenuGui;             // where we add items to the default menu
-    runnerParams.callbacks.ShowAppMenuItems = ShowAppMenuItems; // and where add items to the App menu
+    // Here, we fully customize the menu bar:
+    // by setting `showMenuBar` to true, and `showMenu_App` and `showMenu_View` to false,
+    // HelloImGui will display an empty menu bar, which we can fill with our own menu items via the callback `ShowMenus`
+    runnerParams.imGuiWindowParams.showMenuBar = true;
+    runnerParams.imGuiWindowParams.showMenu_App = false;
+    runnerParams.imGuiWindowParams.showMenu_View = false;
+    // Inside `ShowMenus`, we can call `HelloImGui::ShowViewMenu` and `HelloImGui::ShowAppMenu` if desired
+    runnerParams.callbacks.ShowMenus = [&runnerParams]() {ShowMenuGui(runnerParams);};
+    // Optional: add items to Hello ImGui default App menu
+    runnerParams.callbacks.ShowAppMenuItems = ShowAppMenuItems;
+
+    //
+    // Top and bottom toolbars
+    //
+    // toolbar options
+    HelloImGui::EdgeToolbarOptions edgeToolbarOptions;
+    edgeToolbarOptions.sizeEm = 2.5f;
+    edgeToolbarOptions.WindowBg = ImVec4(0.8, 0.8, 0.8, 0.35f);
+    // top toolbar
+    runnerParams.callbacks.AddEdgeToolbar(
+        HelloImGui::EdgeToolbarType::Top,
+        [&appState]() { ShowTopToolbar(appState); },
+        edgeToolbarOptions
+        );
+    // right toolbar
+    edgeToolbarOptions.WindowBg.w = 0.4f;
+    runnerParams.callbacks.AddEdgeToolbar(
+            HelloImGui::EdgeToolbarType::Right,
+            [&appState]() { ShowRightToolbar(appState); },
+            edgeToolbarOptions
+            );
 
     //
     // Load user settings at `PostInit` and save them at `BeforeExit`
     //
     runnerParams.callbacks.PostInit = [&appState]   { LoadMyAppSettings(appState);};
     runnerParams.callbacks.BeforeExit = [&appState] { SaveMyAppSettings(appState);};
+
+    //
+    // Change style
+    //
+    // 1. Change theme
+    auto& tweakedTheme = runnerParams.imGuiWindowParams.tweakedTheme;
+    tweakedTheme.Theme = ImGuiTheme::ImGuiTheme_MaterialFlat;
+    tweakedTheme.Tweaks.Rounding = 10.f;
+    // 2. Customize ImGui style at startup
+    runnerParams.callbacks.SetupImGuiStyle = []() {
+        // Reduce spacing between items ((8, 4) by default)
+        ImGui::GetStyle().ItemSpacing = ImVec2(6.f, 4.f);
+    };
 
     //###############################################################################################
     // Part 2: Define the application layout and windows
@@ -541,10 +749,38 @@ int main(int, char**)
     // runnerParams.dockingParams.layoutCondition = HelloImGui::DockingLayoutCondition::ApplicationStart;
 
     //###############################################################################################
-    // Part 3: Run the app
+    // Part 3: Where to save the app settings
     //###############################################################################################
-    HelloImGui::Run(runnerParams); // Note: with ImGuiBundle, it is also possible to use ImmApp::Run(...)
+    // By default, HelloImGui will save the settings in the current folder. This is convenient when developing,
+    // but not so much when deploying the app.
+    //     You can tell HelloImGui to save the settings in a specific folder: choose between
+    //         CurrentFolder
+    //         AppUserConfigFolder
+    //         AppExecutableFolder
+    //         HomeFolder
+    //         TempFolder
+    //         DocumentsFolder
+    //
+    //     Note: AppUserConfigFolder is:
+    //         AppData under Windows (Example: C:\Users\[Username]\AppData\Roaming)
+    //         ~/.config under Linux
+    //         "~/Library/Application Support" under macOS or iOS
+    runnerParams.iniFolderType = HelloImGui::IniFolderType::AppUserConfigFolder;
 
+    // runnerParams.iniFilename: this will be the name of the ini file in which the settings
+    // will be stored.
+    // In this example, the subdirectory Docking_Demo will be created under the folder defined
+    // by runnerParams.iniFolderType.
+    //
+    // Note: if iniFilename is left empty, the name of the ini file will be derived
+    // from appWindowParams.windowTitle
+    runnerParams.iniFilename = "Docking_Demo/Docking_demo.ini";
+
+    //###############################################################################################
+    // Part 4: Run the app
+    //###############################################################################################
+    HelloImGui::DeleteIniSettings(runnerParams);
+    HelloImGui::Run(runnerParams); // Note: with ImGuiBundle, it is also possible to use ImmApp::Run(...)
 
     return 0;
 }

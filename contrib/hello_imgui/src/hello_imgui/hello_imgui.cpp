@@ -1,5 +1,7 @@
 #include "hello_imgui/hello_imgui.h"
 #include "hello_imgui/internal/backend_impls/runner_factory.h"
+#include "hello_imgui/internal/menu_statusbar.h"
+#include "hello_imgui/internal/docking_details.h"
 #include "imgui_internal.h"
 #include <deque>
 #include <set>
@@ -10,6 +12,7 @@ namespace HelloImGui
 {
 RunnerParams* gLastRunnerParams = nullptr;
 std::unique_ptr<AbstractRunner> gLastRunner;
+
 
 bool _CheckAdditionLayoutNamesUniqueness(RunnerParams &runnerParams)
 {
@@ -87,8 +90,14 @@ AbstractRunner *GetAbstractRunner()
 // Private API, not mentioned in headers!
 std::string GlslVersion()
 {
+#ifdef HELLOIMGUI_HAS_OPENGL
     std::string r = GetAbstractRunner()->Impl_GlslVersion();
     return r;
+#else
+    bool GlslVersionNotAvailable = false;
+    IM_ASSERT(GlslVersionNotAvailable);
+    return "";
+#endif
 }
 
 
@@ -159,6 +168,16 @@ void SaveUserPref(const std::string& userPrefName, const std::string& userPrefCo
 std::string LoadUserPref(const std::string& userPrefName)
 {
     return gLastRunner->LoadUserPref(userPrefName);
+}
+
+
+void ShowViewMenu(RunnerParams & runnerParams)
+{
+    DockingDetails::ShowViewMenu(runnerParams);
+}
+void ShowAppMenu(RunnerParams & runnerParams)
+{
+    Menu_StatusBar::ShowDefaultAppMenu_Quit(runnerParams);
 }
 
 }  // namespace HelloImGui

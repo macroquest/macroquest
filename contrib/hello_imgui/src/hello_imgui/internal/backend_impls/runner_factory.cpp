@@ -1,34 +1,23 @@
 #include "hello_imgui/internal/backend_impls/runner_factory.h"
 
 #include "hello_imgui/internal/backend_impls/runner_emscripten.h"
-#include "hello_imgui/internal/backend_impls/runner_glfw_opengl3.h"
-#include "hello_imgui/internal/backend_impls/runner_qt.h"
-#include "hello_imgui/internal/backend_impls/runner_sdl_opengl3.h"
-#include "hello_imgui/hello_imgui_error.h"
-
-#include <stdexcept>
+#include "hello_imgui/internal/backend_impls/runner_glfw3.h"
+#include "hello_imgui/internal/backend_impls/runner_sdl2.h"
 
 
 namespace HelloImGui
 {
-#ifdef HELLOIMGUI_USE_GLFW_OPENGL3
-std::unique_ptr<AbstractRunner> FactorRunnerGlfwOpenGl3(RunnerParams& params)
+#ifdef HELLOIMGUI_USE_GLFW3
+std::unique_ptr<AbstractRunner> FactorRunnerGlfw3(RunnerParams& params)
 {
-    return std::make_unique<RunnerGlfwOpenGl3>(params);
+    return std::make_unique<RunnerGlfw3>(params);
 }
 #endif
 
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
-std::unique_ptr<AbstractRunner> FactorRunnerSdlOpenGl3(RunnerParams& params)
+#ifdef HELLOIMGUI_USE_SDL2
+std::unique_ptr<AbstractRunner> FactorRunnerSdl2(RunnerParams& params)
 {
-    return std::make_unique<RunnerSdlOpenGl3>(params);
-}
-#endif
-
-#ifdef HELLOIMGUI_USE_QT
-std::unique_ptr<AbstractRunner> FactorRunnerQt(RunnerParams & params)
-{
-    return std::make_unique<RunnerQt>(params);
+    return std::make_unique<RunnerSdl2>(params);
 }
 #endif
 
@@ -46,14 +35,11 @@ std::unique_ptr<AbstractRunner> FactorRunner(RunnerParams& params)
 #ifdef __EMSCRIPTEN__
         return FactorRunnerEmscripten(params);
 #endif
-#ifdef HELLOIMGUI_USE_GLFW_OPENGL3
-        return FactorRunnerGlfwOpenGl3(params);
+#ifdef HELLOIMGUI_USE_GLFW3
+        return FactorRunnerGlfw3(params);
 #endif
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
-        return FactorRunnerSdlOpenGl3(params);
-#endif
-#ifdef HELLOIMGUI_USE_QT
-        return FactorRunnerQt(params);
+#ifdef HELLOIMGUI_USE_SDL2
+        return FactorRunnerSdl2(params);
 #endif
         IM_ASSERT(false); // HelloImGui::FactorRunner no backend selected!"
         return nullptr;
@@ -62,26 +48,18 @@ std::unique_ptr<AbstractRunner> FactorRunner(RunnerParams& params)
     {
         if (params.backendType == BackendType::Sdl)
         {
-#ifdef HELLOIMGUI_USE_SDL_OPENGL3
-            return FactorRunnerSdlOpenGl3(params);
+#ifdef HELLOIMGUI_USE_SDL2
+            return FactorRunnerSdl2(params);
 #else
             IM_ASSERT(false); //Sdl backend is not available!
 #endif
         }
         else if(params.backendType == BackendType::Glfw)
         {
-#ifdef HELLOIMGUI_USE_GLFW_OPENGL3
-            return FactorRunnerGlfwOpenGl3(params);
+#ifdef HELLOIMGUI_USE_GLFW3
+            return FactorRunnerGlfw3(params);
 #else
             IM_ASSERT(false); //Glfw backend is not available!
-#endif
-        }
-        else if(params.backendType == BackendType::Qt)
-        {
-#ifdef HELLOIMGUI_USE_QT
-            return FactorRunnerQt(params);
-#else
-            IM_ASSERT(false); //Qt backend is not available!
 #endif
         }
         else
