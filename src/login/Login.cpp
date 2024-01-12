@@ -541,30 +541,62 @@ std::optional<std::string> login::db::ReadMasterPass()
 	return {};
 }
 
+void login::db::WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description)
+{
+	if (description)
+	{
+		WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
+			R"(
+			INSERT INTO SETTINGS (key, value, description) VALUES(?, ?, ?)
+			ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)",
+			[key, value, description = *description](sqlite3_stmt* stmt, sqlite3* db)
+			{
+				sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 2, value.data(), static_cast<int>(value.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 3, description.data(), static_cast<int>(description.length()), SQLITE_STATIC);
+
+				sqlite3_step(stmt);
+			});
+	}
+	else
+	{
+		WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
+			R"(
+			INSERT INTO SETTINGS (key, value, description) VALUES(?, ?, '')
+			ON CONFLICT (key) DO UPDATE SET value=excluded.value)",
+			[key, value](sqlite3_stmt* stmt, sqlite3* db)
+			{
+				sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.length()), SQLITE_STATIC);
+				sqlite3_bind_text(stmt, 2, value.data(), static_cast<int>(value.length()), SQLITE_STATIC);
+
+				sqlite3_step(stmt);
+			});
+	}
+}
+
+std::optional<std::string> login::db::ReadSetting(std::string_view key)
+{
+	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT value FROM settings WHERE key = ?)",
+		[key](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		{
+			sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.length()), SQLITE_STATIC);
+
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return (const char*)sqlite3_column_text(stmt, 0);
+
+			return {};
+		});
+}
+
 void login::db::CreateEQPath(std::string_view path)
 {
-	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
-		R"(
-			INSERT INTO SETTINGS (key, value, description) VALUES('eq_path', ?, 'Default EQ path')
-			ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)",
-		[path](sqlite3_stmt* stmt, sqlite3* db)
-		{
-			sqlite3_bind_text(stmt, 1, path.data(), static_cast<int>(path.length()), SQLITE_STATIC);
-			sqlite3_step(stmt);
-		});
+	WriteSetting("eq_path", path, "Default EQ path");
 }
 
 std::string login::db::ReadEQPath()
 {
-	return WithDb::Query<std::string>(SQLITE_OPEN_READONLY)(
-		R"(SELECT value FROM settings WHERE key = 'eq_path')",
-		[](sqlite3_stmt* stmt, sqlite3* db) -> std::string
-		{
-			if (sqlite3_step(stmt) == SQLITE_ROW)
-				return (const char*)sqlite3_column_text(stmt, 0);
-
-			return "";
-		});
+	return ReadSetting("eq_path").value_or("");
 }
 
 // ================================================================================================================================
@@ -824,11 +856,13 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::
 		});
 }
 
-std::vector<std::pair<std::string, std::string>> login::db::ListCharacterMatches(std::string_view search)
+std::vector<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
 {
-	return WithDb::Query<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
 		R"(
-			SELECT server, character
+			SELECT DISTINCT server, character, account,
+				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
+				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level
 			FROM characters
 			LEFT JOIN personas ON characters.id = character_id
 			WHERE LOWER(server) LIKE '%' || ? || '%'
@@ -836,7 +870,7 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacterMatches
 			   OR LOWER(account) LIKE '%' || ? || '%'
                OR LOWER(class) LIKE '%' || ? || '%'
 			GROUP BY characters.id)",
-		[search](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
+		[search](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<ProfileRecord>
 		{
 			std::string lower_search(search);
 			to_lower(lower_search);
@@ -846,13 +880,22 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacterMatches
 			sqlite3_bind_text(stmt, 3, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 4, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
 
-			std::vector<std::pair<std::string, std::string>> characters;
+			std::vector<ProfileRecord> characters;
 			while (sqlite3_step(stmt) == SQLITE_ROW)
 			{
-				characters.push_back(std::make_pair(
-					(const char*)sqlite3_column_text(stmt, 0),
-					(const char*)sqlite3_column_text(stmt, 1)
-				));
+				ProfileRecord record;
+				record.serverName = (const char*)sqlite3_column_text(stmt, 0);
+				record.characterName = (const char*)sqlite3_column_text(stmt, 1);
+				record.accountName = (const char*)sqlite3_column_text(stmt, 2);
+
+				// these can be null because of the left join
+				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+					record.characterClass = (const char*)sqlite3_column_text(stmt, 3);
+
+				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+					record.characterLevel = sqlite3_column_int(stmt, 4);
+
+				characters.emplace_back(std::move(record));
 			}
 
 			return characters;
@@ -1023,11 +1066,16 @@ std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
 	// TODO: personas or characters should have a "current persona" -- this will currently return multiple entries for the same character
 	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
 		R"(
-			SELECT hotkey, character, server, class, level, account, selected, eq_path
+			SELECT DISTINCT hotkey, character, server,
+				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
+				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
+				account, selected,
+				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path
 			FROM profiles
-			JOIN (SELECT id AS character_id, character, server, account FROM characters) USING (character_id)
-			JOIN (SELECT id AS group_id FROM profile_groups WHERE name = ?) USING (group_id)
-			LEFT JOIN (SELECT character_id, class, level FROM personas) USING (character_id))",
+			JOIN characters ON characters.id = character_id
+			JOIN profile_groups ON profile_groups.id = group_id
+			LEFT JOIN personas USING (character_id)
+			WHERE profile_groups.name = ?)",
 		[group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			std::vector<ProfileRecord> records;
@@ -1427,6 +1475,7 @@ bool login::db::InitDatabase(const std::string& path)
 			  character_id integer not null,
 			  class text not null,
 			  level integer not null,
+			  last_seen text,
 			  foreign key (character_id) references characters(id) on delete cascade,
 			  unique (character_id, class)
 			))",

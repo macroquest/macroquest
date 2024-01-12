@@ -19,6 +19,8 @@
 #include "login/Login.h"
 #include "routing/PostOffice.h"
 
+#include "ImGui.h"
+
 #include <commdlg.h>
 #include <shellapi.h>
 
@@ -970,7 +972,7 @@ void LoadCharacter(const LoginInstance& instance_template)
 		{
 			SPDLOG_ERROR("No eq_path found for %s : %s (profile group %s)",
 				instance_template.Server, instance_template.Character,
-				instance_template.ProfileGroup.value_or("<None>"));
+				instance_template.ProfileGroup ? *instance_template.ProfileGroup : "<None>");
 		}
 	}
 }
@@ -1436,7 +1438,7 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 
 	if (ImGui::Button("Add Account"))
 	{
-		account_name = selected.value_or("");
+		account_name = selected ? *selected : "";
 		ImGui::OpenPopup("Create Account");
 	}
 
@@ -1688,31 +1690,32 @@ static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
 void ShowHotkeyWindow(std::optional<std::string>& hotkey)
 {
 	fmt::memory_buffer buf;
+	auto buf_ins = std::back_inserter(buf);
 
 	if (ImGui::IsKeyDown(ImGuiMod_Ctrl))
-		fmt::format_to(std::back_inserter(buf), "CTRL+");
+		fmt::format_to(buf_ins, "CTRL+");
 
 	if (ImGui::IsKeyDown(ImGuiMod_Shift))
-		fmt::format_to(std::back_inserter(buf), "SHIFT+");
+		fmt::format_to(buf_ins, "SHIFT+");
 
 	if (ImGui::IsKeyDown(ImGuiMod_Alt))
-		fmt::format_to(std::back_inserter(buf), "ALT+");
+		fmt::format_to(buf_ins, "ALT+");
 
 	if (ImGui::IsKeyDown(ImGuiMod_Super))
-		fmt::format_to(std::back_inserter(buf), "WIN+");
+		fmt::format_to(buf_ins, "WIN+");
 
 	for (const auto& [key, name] : s_hotkeyMap)
 	{
 		if (ImGui::IsKeyDown(key))
 		{
-			fmt::format_to(std::back_inserter(buf), name);
+			fmt::format_to(buf_ins, name);
 			hotkey = fmt::to_string(buf);
 			break;
 		}
 	}
 
-	ImGui::Text("Pressed: %s", fmt::to_string(buf).c_str());
-	ImGui::Text("Current: %s", hotkey.value_or("<None>").c_str());
+	ImGui::Text("Pressed: %.*s", buf.size(), buf.data());
+	ImGui::Text("Current: %s", hotkey ? hotkey->c_str() : "<None>");
 }
 
 struct InterimProfileRecord
@@ -1731,7 +1734,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 	ImGui::PushID("addprofilewindow");
 
 	// drop down for account or create new
-	if (ImGui::BeginCombo("##chooseaccount", profile.current_account.value_or("").c_str()))
+	if (ImGui::BeginCombo("##chooseaccount", profile.current_account ? profile.current_account->c_str() : ""))
 	{
 		for (const auto& account : login::db::ListAccounts())
 		{
@@ -1839,7 +1842,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 			ImGui::OpenPopup("Input Hotkey");
 
 		ImGui::SameLine();
-		ImGui::Text("%s", profile.hotkey.value_or("<None>").c_str());
+		ImGui::Text("%s", profile.hotkey ? profile.hotkey->c_str() : "<None>");
 
 		if (ImGui::BeginPopupModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -1857,7 +1860,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 			ImGui::OpenPopup("Input EQ Path");
 
 		ImGui::SameLine();
-		ImGui::Text("%s", profile.eq_path.value_or("<Default>").c_str());
+		ImGui::Text("%s", profile.eq_path ? profile.eq_path->c_str() : "<Default>");
 
 		if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -1925,7 +1928,7 @@ void ShowAutoLoginWindow()
 						ImGui::OpenPopup("Input EQ Path");
 
 					ImGui::SameLine();
-					ImGui::Text("%s", new_group_path.value_or("<Default>").c_str());
+					ImGui::Text("%s", new_group_path ? new_group_path->c_str() : "<Default>");
 
 					if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
@@ -2002,7 +2005,7 @@ void ShowAutoLoginWindow()
 
 			ImGui::PushID("profilecombo");
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Profile") - ButtonWidth("Launch Group"));
-			if (ImGui::BeginCombo("##profilegroups", current_group.value_or("").c_str()))
+			if (ImGui::BeginCombo("##profilegroups", current_group ? current_group->c_str() : ""))
 			{
 				for (const auto& group : login::db::ListProfileGroups())
 				{
@@ -2040,7 +2043,7 @@ void ShowAutoLoginWindow()
 				record.profileName = *current_group;
 				record.serverName = interim_profile.current_character->first;
 				record.characterName = interim_profile.current_character->second;
-				record.hotkey = interim_profile.hotkey.value_or("");
+				record.hotkey = interim_profile.hotkey ? *interim_profile.hotkey : "";
 				record.eqPath = interim_profile.eq_path;
 				record.checked = true;
 
@@ -2065,13 +2068,14 @@ void ShowAutoLoginWindow()
 			}
 
 			ImGui::PushID("mainlist");
-			if (ImGui::BeginTable("##maintable", 5, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			if (ImGui::BeginTable("##maintable", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				if (current_group)
 				{
 					ImGui::TableSetupColumn("Account");
 					ImGui::TableSetupColumn("Server");
 					ImGui::TableSetupColumn("Character");
+					ImGui::TableSetupColumn("Persona");
 					ImGui::TableSetupColumn("Hotkey");
 					ImGui::TableSetupColumn("##play");
 					ImGui::TableHeadersRow();
@@ -2124,6 +2128,12 @@ void ShowAutoLoginWindow()
 						ImGui::Text(profile.characterName.c_str());
 
 						ImGui::TableNextColumn();
+						if (profile.characterClass.empty())
+							ImGui::Text("<None>");
+						else
+							ImGui::Text("%s %d", profile.characterClass.c_str(), profile.characterLevel);
+
+						ImGui::TableNextColumn();
 						ImGui::Text(profile.hotkey.c_str());
 
 						ImGui::TableNextColumn();
@@ -2157,7 +2167,7 @@ void ShowAutoLoginWindow()
 						record.profileName = *current_group;
 						record.serverName = interim_profile.current_character->first;
 						record.characterName = interim_profile.current_character->second;
-						record.hotkey = interim_profile.hotkey.value_or("");
+						record.hotkey = interim_profile.hotkey ? *interim_profile.hotkey : "";
 						record.eqPath = interim_profile.eq_path;
 						record.checked = true;
 
@@ -2231,17 +2241,19 @@ void ShowAutoLoginWindow()
 			}
 
 			ImGui::PushID("mainlist");
-			if (ImGui::BeginTable("##maintable", 3, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			if (ImGui::BeginTable("##maintable", 5, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
+				ImGui::TableSetupColumn("Account");
 				ImGui::TableSetupColumn("Server");
 				ImGui::TableSetupColumn("Character");
+				ImGui::TableSetupColumn("Persona");
 				ImGui::TableSetupColumn("##buttons");
 				ImGui::TableHeadersRow();
 
-				for (const auto& [server, character] : matches)
+				for (const auto& match : matches)
 				{
-					ImGui::PushID(server.c_str());
-					ImGui::PushID(character.c_str());
+					ImGui::PushID(match.serverName.c_str());
+					ImGui::PushID(match.characterName.c_str());
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
@@ -2257,31 +2269,40 @@ void ShowAutoLoginWindow()
 						if (ImGui::Selectable("Edit"))
 						{
 							interim_profile = {};
-							interim_profile.serverName = server;
-							interim_profile.characterName = character;
+							interim_profile.serverName = match.serverName;
+							interim_profile.characterName = match.characterName;
 							login::db::ReadCharacter(interim_profile);
 
-							selected = std::make_pair(server, character);
+							selected = std::make_pair(match.serverName, match.characterName);
 						}
 
 						if (ImGui::Selectable("Remove"))
-							login::db::DeleteCharacter(server, character);
+							login::db::DeleteCharacter(match.serverName, match.characterName);
 
 						ImGui::EndPopup();
 					}
 
 					ImGui::SameLine();
-					ImGui::Text(server.c_str());
+					ImGui::Text(match.accountName.c_str());
 
 					ImGui::TableNextColumn();
-					ImGui::Text(character.c_str());
+					ImGui::Text(match.serverName.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::Text(match.characterName.c_str());
+
+					ImGui::TableNextColumn();
+					if (match.characterClass.empty())
+						ImGui::Text("<None>");
+					else
+						ImGui::Text("%s %d", match.characterClass.c_str(), match.characterLevel);
 
 					ImGui::TableNextColumn();
 					if (ImGui::SmallButton("Play"))
 					{
 						LoginInstance instance;
-						instance.Server = server;
-						instance.Character = character;
+						instance.Server = match.serverName;
+						instance.Character = match.characterName;
 
 						LoadCharacter(instance);
 					}
@@ -2291,10 +2312,9 @@ void ShowAutoLoginWindow()
 					static std::optional<std::string> hotkey;
 					if (ImGui::SmallButton("...##playwithparams"))
 					{
-						// TODO: Launch modal that allows us to specify hotkey and path and launch
 						interim_profile = {};
-						interim_profile.serverName = server;
-						interim_profile.characterName = character;
+						interim_profile.serverName = match.serverName;
+						interim_profile.characterName = match.characterName;
 						hotkey = {};
 						ImGui::OpenPopup("Play With Params");
 					}
@@ -2306,7 +2326,7 @@ void ShowAutoLoginWindow()
 							ImGui::OpenPopup("Input Hotkey");
 
 						ImGui::SameLine();
-						ImGui::Text("%s", hotkey.value_or("<None>").c_str());
+						ImGui::Text("%s", hotkey ? hotkey->c_str() : "<None>");
 
 						if (ImGui::BeginPopupModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 						{
@@ -2324,7 +2344,7 @@ void ShowAutoLoginWindow()
 							ImGui::OpenPopup("Input EQ Path");
 
 						ImGui::SameLine();
-						ImGui::Text("%s", interim_profile.eqPath.value_or("<Default>").c_str());
+						ImGui::Text("%s", interim_profile.eqPath ? interim_profile.eqPath->c_str() : "<Default>");
 
 						if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 						{
@@ -2422,14 +2442,8 @@ bool HandleAutoLoginMenuCommand(WPARAM wParam, LPARAM lParam)
 	switch (menuId)
 	{
 	case ID_MENU_MQ2AUTOLOGIN:
-		HelloImGui::Run(
-			ShowAutoLoginWindow,
-			"AutoLogin Profile Editor",
-			false,
-			true,
-			HelloImGui::DefaultWindowSize
-		);
 		break;
+
 	case ID_PROFILES_LAUNCH_CLEAN:
 		LaunchCleanSession();
 		break;
@@ -2437,32 +2451,49 @@ bool HandleAutoLoginMenuCommand(WPARAM wParam, LPARAM lParam)
 	case ID_FILE_MQ2LOGINIS:
 	{
 		HMENU hSubMenu = GetSubMenu(hMenu, 0);
-		MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
+		//MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
 
-		char Title[64];
-		mi2.dwTypeData = Title;
-		mi2.cch = 64;
-		mi2.fMask = MIIM_DATA | MIIM_SUBMENU | MIIM_ID | MIIM_STATE | MIIM_STRING;
+		//char Title[64];
+		//mi2.dwTypeData = Title;
+		//mi2.cch = 64;
+		//mi2.fMask = MIIM_DATA | MIIM_SUBMENU | MIIM_ID | MIIM_STATE | MIIM_STRING;
+		//GetMenuItemInfo(hSubMenu, (UINT)wParam, MF_BYCOMMAND, &mi2);
+
+		//char szText[64] = { 0 };
+		//mi2.fMask = MIIM_STRING | MIIM_STATE;
+		//if (mi2.fState & MF_CHECKED)
+		//{
+		//	mi2.fState = MF_UNCHECKED;
+		//	strcpy_s(szText, "MQ2Login is: Disabled");
+		//	WritePrivateProfileBool("Settings", "UseMQ2Login", false, internal_paths::AutoLoginIni.c_str());
+		//}
+		//else
+		//{
+		//	mi2.fState = MF_CHECKED;
+		//	strcpy_s(szText, "MQ2Login is: Enabled");
+		//	WritePrivateProfileBool("Settings", "UseMQ2Login", true, internal_paths::AutoLoginIni.c_str());
+		//}
+
+		//mi2.cch = (UINT)strlen(szText) + 1;
+		//mi2.dwTypeData = szText;
+		//SetMenuItemInfo(hSubMenu, (UINT)wParam, false, &mi2);
+
+		MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
 		GetMenuItemInfo(hSubMenu, (UINT)wParam, MF_BYCOMMAND, &mi2);
 
-		char szText[64] = { 0 };
-		mi2.fMask = MIIM_STRING | MIIM_STATE;
+		// Update enabled state
 		if (mi2.fState & MF_CHECKED)
 		{
 			mi2.fState = MF_UNCHECKED;
-			strcpy_s(szText, "MQ2Login is: Disabled");
-			WritePrivateProfileBool("Settings", "UseMQ2Login", false, internal_paths::AutoLoginIni.c_str());
+			login::db::WriteSetting("is_paused", "false");
 		}
 		else
 		{
 			mi2.fState = MF_CHECKED;
-			strcpy_s(szText, "MQ2Login is: Enabled");
-			WritePrivateProfileBool("Settings", "UseMQ2Login", true, internal_paths::AutoLoginIni.c_str());
+			login::db::WriteSetting("is_paused", "true");
 		}
 
-		mi2.cch = (UINT)strlen(szText) + 1;
-		mi2.dwTypeData = szText;
-		SetMenuItemInfo(hSubMenu, (UINT)wParam, false, &mi2);
+		SetMenuItemInfo(hSubMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
 		break;
 	}
 
@@ -3339,6 +3370,7 @@ INT_PTR CALLBACK SettingsProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 void ReceivedMessageHandler(ProtoMessagePtr&& message)
 {
+	// TODO: This needs to handle identify messages (to fill loaded instance set)
 	auto login_message = message->Parse<proto::login::LoginMessage>();
 	switch (login_message.id())
 	{
@@ -3489,7 +3521,7 @@ void InitializeAutoLogin()
 	auto pass = login::db::ReadMasterPass();
 	if (!pass)
 	{
-		HelloImGui::Run(
+		LauncherImGui::Run(
 			[&pass]() {
 				static const char* label = "Please Enter Master Password";
 				ImGui::Text(label);
@@ -3586,28 +3618,47 @@ void InitializeAutoLogin()
 		LoadProfiles();
 
 		// Update enabled state
-		int ichecked = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, internal_paths::AutoLoginIni);
+		//int ichecked = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, internal_paths::AutoLoginIni);
 
-		char szText[64] = { 0 };
+		//char szText[64] = { 0 };
+		//MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
+		//mi2.fMask = MIIM_STRING | MIIM_STATE;
+		//if (!ichecked)
+		//{
+		//	mi2.fState = MF_UNCHECKED;
+		//	strcpy_s(szText, "AutoLogin is: Disabled");
+		//}
+		//else
+		//{
+		//	mi2.fState = MF_CHECKED;
+		//	strcpy_s(szText, "AutoLogin is: Enabled");
+		//}
+
+		//mi2.cch = (UINT)strlen(szText) + 1;
+		//mi2.dwTypeData = szText;
+
 		MENUITEMINFOA mi2 = { sizeof(MENUITEMINFOA) };
+		//char Title[64];
+		//mi2.dwTypeData = Title;
+		//mi2.cch = 64;
+		//mi2.fMask = MIIM_DATA | MIIM_SUBMENU | MIIM_ID | MIIM_STATE | MIIM_STRING;
+		//GetMenuItemInfoA(hMainMenu, (UINT)wParam, MF_BYCOMMAND, &mi2);
+		char paused_text[64] = { 0 };
+		strcpy_s(paused_text, "Pause Login on Startup");
+		mi2.cch = (UINT)strlen(paused_text) + 1;
+		mi2.dwTypeData = paused_text;
 		mi2.fMask = MIIM_STRING | MIIM_STATE;
-		if (!ichecked)
-		{
-			mi2.fState = MF_UNCHECKED;
-			strcpy_s(szText, "AutoLogin is: Disabled");
-		}
-		else
-		{
-			mi2.fState = MF_CHECKED;
-			strcpy_s(szText, "AutoLogin is: Enabled");
-		}
 
-		mi2.cch = (UINT)strlen(szText) + 1;
-		mi2.dwTypeData = szText;
-		SetMenuItemInfo(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
+		// Update enabled state
+		if (GetBoolFromString(login::db::ReadSetting("is_paused").value_or("false"), false))
+			mi2.fState = MF_CHECKED;
+		else
+			mi2.fState = MF_UNCHECKED;
+		SetMenuItemInfoA(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
 
 		// TODO: This is for testing
-		HelloImGui::Run(ShowAutoLoginWindow, "AutoLogin Profile Editor", false, true);
+		//LauncherImGui::Run(ShowAutoLoginWindow, "AutoLogin Profile Editor Test", false, true);
+		LauncherImGui::AddWindow("AutoLogin", ShowAutoLoginWindow);
 	}
 }
 

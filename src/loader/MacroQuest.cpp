@@ -16,6 +16,10 @@
 #include "ProcessMonitor.h"
 #include "Crashpad.h"
 #include "PostOffice.h"
+#include "ImGui.h"
+
+#include "imgui/fonts/IconsFontAwesome.h"
+#include "imgui/ImGuiUtils.h"
 
 #include "resource.h"
 
@@ -830,13 +834,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 
 			switch (lParam)
 			{
-			case WM_LBUTTONDBLCLK:
-			{
-				char lpModulePath[_MAX_PATH] = { 0 };
-				GetCurrentDirectory(_MAX_PATH, lpModulePath);
-				ShellExecute(hWnd, "open", "https://macroquest.org", nullptr, lpModulePath, SW_SHOW);
+			case WM_LBUTTONUP:
+				LauncherImGui::Run();
 				break;
-			}
 
 			case WM_RBUTTONUP:
 				GetCursorPos(&mp);
@@ -934,6 +934,49 @@ void InitializeVersionInfo()
 	Shell_NotifyIcon(NIM_MODIFY, &NID);
 }
 
+void ShowMacroQuestInfo()
+{
+	auto link = [](const std::string& label, const std::string& url)
+		{
+			auto add_underline = [](ImColor color)
+				{
+					ImVec2 min = ImGui::GetItemRectMin();
+					ImVec2 max = ImGui::GetItemRectMax();
+					min.y = max.y;
+					ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
+				};
+
+			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+			ImGui::Text(label.c_str());
+			ImGui::PopStyleColor();
+
+			if (ImGui::IsItemHovered())
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
+				}
+				add_underline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+				ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
+			}
+			else
+			{
+				add_underline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+			}
+		};
+
+	ImGui::Spacing();
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("MacroQuest Useful Links");
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PopFont();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
+	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
+	ImGui::Bullet(); link("MacroQuest on Github", "https://github.com/macroquest/macroquest");
+}
+
 // ***************************************************************************
 // Function:    WinMain
 // Description: EXE entry point
@@ -941,6 +984,8 @@ void InitializeVersionInfo()
 int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	g_hInst = hInstance;
+
+	LauncherImGui::AddWindow("MacroQuest Info", ShowMacroQuestInfo);
 
 	// Initialize Paths so we know where to put our logs and where to load our config from
 	InitializePaths();

@@ -600,6 +600,11 @@ void ReadINI()
 		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
 	else
 		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
+
+	if (auto is_paused = login::db::ReadSetting("is_paused"))
+	{
+		if (GetBoolFromString(*is_paused, false)) Login::dispatch(PauseLogin());
+	}
 }
 
 void LoginReset()
@@ -615,8 +620,8 @@ PLUGIN_API void InitializePlugin()
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
 	Login::set_initial_state();
-	ReadINI();
 	login::db::InitDatabase((fs::path(mq::gPathConfig) / "login.db").string());
+	ReadINI();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);

@@ -128,6 +128,7 @@
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
+    <ClCompile Include="ImGui.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="ProcessList.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
+    <ClInclude Include="ImGui.h" />
     <ClInclude Include="MacroQuest.h" />
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProcessMonitor.h" />

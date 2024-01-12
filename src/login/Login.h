@@ -78,6 +78,10 @@ std::optional<std::string> GetMasterPass();
 
 bool CreateMasterPass(std::string_view pass);
 std::optional<std::string> ReadMasterPass();
+
+void WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description = {});
+std::optional<std::string> ReadSetting(std::string_view key);
+
 void CreateEQPath(std::string_view path);
 std::string ReadEQPath();
 
@@ -94,7 +98,7 @@ void UpdateAccount(std::string_view account, const ProfileRecord& record);
 void DeleteAccount(std::string_view account);
 
 std::vector<std::pair<std::string, std::string>> ListCharacters(std::string_view account);
-std::vector<std::pair<std::string, std::string>> ListCharacterMatches(std::string_view search);
+std::vector<ProfileRecord> ListCharacterMatches(std::string_view search);
 void CreateCharacter(const ProfileRecord& profile);
 std::optional<unsigned int> ReadCharacter(ProfileRecord& profile);
 void UpdateCharacter(std::string_view server, std::string_view name, const ProfileRecord& profile);

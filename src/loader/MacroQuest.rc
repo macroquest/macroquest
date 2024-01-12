@@ -126,9 +126,9 @@ BEGIN
         MENUITEM "&Change Log",                 ID_MENU_CHANGELOG
         MENUITEM "&INI File",                   ID_MENU_INI
         MENUITEM SEPARATOR
-        MENUITEM "MQ2AutoLogin",                ID_MENU_MQ2AUTOLOGIN
-        MENUITEM "AutoLogin is: Enabled",       ID_FILE_MQ2LOGINIS, CHECKED
-        POPUP "Profiles"
+        MENUITEM "AutoLogin",                   ID_MENU_MQ2AUTOLOGIN
+        MENUITEM "Pause Login on Startup",      ID_FILE_MQ2LOGINIS
+        POPUP "Quick Launch"
         BEGIN
             MENUITEM "Create New...",               ID_PROFILES_CREATENEW
             MENUITEM "Launch Clean",                ID_PROFILES_LAUNCH_CLEAN

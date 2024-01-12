@@ -6,6 +6,12 @@
 // https://github.com/FortAwesome/Font-Awesome/blob/master/webfonts/fa-regular-400.ttf,
 #pragma once
 
+#include "imgui/fonts/embedded_fonts.h"
+#include "imgui/fonts/IconsFontAwesome.h"
+#include "imgui/fonts/IconsMaterialDesign.h"
+
+#if 0
+
 #define FONT_ICON_FILE_NAME_FAR "fa-regular-400.ttf"
 #define FONT_ICON_FILE_NAME_FAS "fa-solid-900.ttf"
 
@@ -968,3 +974,5 @@
 #define ICON_FA_CHEVRON_UP "\xEF\x81\xB7"
 #define ICON_FA_HAND_SPOCK "\xEF\x89\x99"
 #define ICON_FA_HAND_POINT_UP "\xEF\x82\xA6"
+
+#endif // #if 0
