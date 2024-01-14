@@ -350,6 +350,9 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 				CEditWnd* pEditWnd = static_cast<CEditWnd*>(pWnd);
 
 				pEditWnd->SetWindowText(Index);
+				pEditWnd->ParentWndNotification(pEditWnd, XWM_NEWVALUE, nullptr);
+
+				WeDidStuff();
 			}
 			return true;
 

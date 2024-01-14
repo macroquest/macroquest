@@ -57,6 +57,7 @@
 #include <string_view>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 // Windows Header Files:
 #include <windows.h>
@@ -70,6 +71,7 @@
 #include <ctime>
 #include <winsock.h>
 
+#include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
 

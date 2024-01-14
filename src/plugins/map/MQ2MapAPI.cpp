@@ -90,7 +90,7 @@ void MapInit()
 	PullCircle.Clear();
 }
 
-MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow)
+MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow /* = false */)
 {
 	return MakeMapObject(pNewSpawn, ExplicitAllow);
 }
