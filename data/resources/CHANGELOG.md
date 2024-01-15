@@ -1,3 +1,6 @@
+Jan 14, 2024:
+- test: Updated for latest patch
+
 Jan 11, 2024:
 - Prospective fix for map crash (#798)
 - PackageMan now accepts the debug parameter (see docs)
