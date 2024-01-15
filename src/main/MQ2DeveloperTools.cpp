@@ -5409,13 +5409,14 @@ static GameFaceInspector* s_gameFaceInspector = nullptr;
 //============================================================================
 //============================================================================
 
-struct WindowMenuEntry
+struct ConsoleMenuEntry
 {
 	ImGuiWindowBase* window;
+	std::string command;
 	std::string menuName;
 	std::string itemName;
 };
-static std::vector<WindowMenuEntry> s_inspectorMenus;
+static std::vector<ConsoleMenuEntry> s_inspectorMenus;
 static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
@@ -5457,8 +5458,16 @@ void DeveloperTools_DrawMenu()
 
 		if (isMenuOpen)
 		{
-			if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
-				entry.window->Toggle();
+			if (entry.window != nullptr)
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
+					entry.window->Toggle();
+			}
+			else
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, false))
+					EzCommand(entry.command.c_str());
+			}
 		}
 	}
 
@@ -5470,7 +5479,14 @@ void DeveloperTools_DrawMenu()
 
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)
 {
-	s_inspectorMenus.push_back(WindowMenuEntry{ window, menuName ? menuName : "Tools", itemName });
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ window, "", menuName ? menuName : "Tools", itemName });
+
+	s_inspectorMenusDirty = true;
+}
+
+void DeveloperTools_RegisterMenuItem(const char* command, const char* itemName, const char* menuName)
+{
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ nullptr, command, menuName ? menuName : "Tools", itemName });
 
 	s_inspectorMenusDirty = true;
 }
@@ -5480,6 +5496,14 @@ void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window)
 	s_inspectorMenus.erase(
 		std::remove_if(std::begin(s_inspectorMenus), std::end(s_inspectorMenus),
 			[&](const auto& p) { return p.window == window; }),
+		std::end(s_inspectorMenus));
+}
+
+void DeveloperTools_UnregisterMenuItem(const char* itemName)
+{
+	s_inspectorMenus.erase(
+		std::remove_if(std::begin(s_inspectorMenus), std::end(s_inspectorMenus),
+			[&](const auto& p) { return p.itemName == itemName; }),
 		std::end(s_inspectorMenus));
 }
 
@@ -5527,6 +5551,8 @@ static void DeveloperTools_Initialize()
 	s_macroEvaluator = new MacroExpressionEvaluator();
 	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
 
+	DeveloperTools_RegisterMenuItem("/squelch /lua run mq/eval", "Lua Expression Evaluator", s_menuNameTools);
+
 #if HAS_GAMEFACE_UI
 	s_gameFaceInspector = new GameFaceInspector();
 	DeveloperTools_RegisterMenuItem(s_gameFaceInspector, "GameFace UI Inspector", s_menuNameInspectors);
@@ -5572,6 +5598,8 @@ static void DeveloperTools_Shutdown()
 
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;
+
+	DeveloperTools_UnregisterMenuItem("Lua Expression Evaluator");
 
 #if HAS_GAMEFACE_UI
 	DeveloperTools_UnregisterMenuItem(s_gameFaceInspector);
