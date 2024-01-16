@@ -145,7 +145,6 @@ public:
 							pCheck->SetData(list->GetItemData(i));
 							pCheck->SetVisible(true);
 							pCheck->SetActive(true);
-							pCheck->SetClickThroughMenuItemStatus(true);
 							pCheck->pController = nullptr;
 							pCheck->SetShowClickThroughMenuItem(true);
 							pCheck->SetLocation({ 4, 0, 16, 12 });

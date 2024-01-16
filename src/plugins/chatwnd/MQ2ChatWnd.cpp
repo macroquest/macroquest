@@ -76,7 +76,7 @@ public:
 		OutputBox->SetParentWindow(this);
 		InputBox->SetParentWindow(this);
 		OutputBox->MaxLines = MAX_LINES_OUTBOX;
-		OutputBox->SetClickable(true);
+		OutputBox->SetClickThrough(true);
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
 		iCurrentCmd = -1;
 		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)

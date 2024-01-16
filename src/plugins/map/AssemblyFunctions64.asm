@@ -75,7 +75,7 @@ make_override 0x1c8, ?AboutToShow@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@e
 make_override 0x1d0, ?AboutToHide@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAA_NXZ
 make_override 0x1d8, ?RequestDockInfo@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHIPEAVCXWnd@3@PEAVCXRect@3@@Z
 make_override 0x1e0, ?GetTooltip@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBA?AVCXStr@3@XZ
-make_override 0x1e8, ?Unknown0x0EC@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x1e8, ?ClickThroughMenuItemTriggered@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
 make_override 0x1f0, ?SetLocked@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
 make_override 0x1f8, ?HitTest@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAHAEBVCXPoint@3@PEAH@Z
 make_override 0x200, ?GetHitTestRect@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBA?AVCXRect@3@H@Z
