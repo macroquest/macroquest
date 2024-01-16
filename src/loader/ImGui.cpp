@@ -94,9 +94,6 @@ void Run(std::function<void()> mainLoop, float fpsIdle)
 
 			ImGuiIO& io = ImGui::GetIO();
 
-			// set this here because it is supported, just not set
-			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_RendererHasViewports;
-
 			io.ConfigViewportsNoTaskBarIcon = true;
 			io.ConfigViewportsNoDefaultParent = true;
 			io.ConfigViewportsNoAutoMerge = true;
