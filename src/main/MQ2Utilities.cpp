@@ -6936,6 +6936,9 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 	{
 		chatColor -= 256;
 
+		if (chatColor >= NUM_USER_COLORS)
+			chatColor = 0;
+
 		// Ensure that alpha is set to fully opaque
 		MQColor color{ MQColor::format_bgr, CDisplay::GetUserDefinedColor(chatColor) };
 		if (gGameState != GAMESTATE_CHARCREATE

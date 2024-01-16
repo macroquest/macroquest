@@ -1,3 +1,14 @@
+Jan 15, 2024:
+- Update CrashDetected popup with reminder that text can be copied and also add PID (#765).
+- Update faction names by using dbstr_us.txt (#806)
+- Fix Me.Origin (#807)
+- Fix several window properties that had been swapped (Click Through, Show Border, Escapable)
+
+Jan 11, 2024:
+- Prospective fix for map crash (#798)
+- PackageMan now accepts the debug parameter (see docs)
+- luarocks cache has been moved to the modules folder
+
 Jan 8, 2024:
 - Fix clipping of ImGuiConsole, add opacity. (#805)
 - Fix Window.SetText correctly sending change event.

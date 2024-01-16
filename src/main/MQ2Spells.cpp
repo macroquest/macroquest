@@ -1366,19 +1366,15 @@ static char* GetStatShortName(int StatType, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
-template <unsigned int Size>
+template <size_t Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
-	if ((size_t)FactionID < MAX_FACTIONNAMES)
-	{
-		strcat_s(szBuffer, Size, szFactionNames[FactionID]);
-	}
-	else
-	{
-		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
-		strcat_s(szBuffer, Size, szTemp);
-	}
+	char szTemp[MAX_STRING] = { 0 };
+	eqlib::GetFactionName(FactionID, szTemp, MAX_STRING);
+
+	strcat_s(szBuffer, "(");
+	strcat_s(szBuffer, szTemp);
+	strcat_s(szBuffer, ")");
 
 	return szBuffer;
 }

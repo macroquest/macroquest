@@ -2165,10 +2165,6 @@ public:
 				ColumnCXSize("Min size", pWnd->MinClientSize);
 				ColumnCXSize("Max size", pWnd->MaxClientSize);
 
-				// escape-to-close
-				ColumnCheckBox("Escapable", &pWnd->CloseOnESC);
-				ColumnCheckBox("Escapable locked", &pWnd->bEscapableLocked);
-
 				ColumnText("Horizontal scroll", "{ pos=%d, max=%d }", pWnd->HScrollPos, pWnd->HScrollMax);
 				ColumnText("Vertical scroll", "{ pos=%d, max=%d }", pWnd->VScrollPos, pWnd->VScrollMax);
 
@@ -2217,14 +2213,26 @@ public:
 				}
 
 				ColumnText("Valid", pWnd->ValidCXWnd ? "true" : "false");
+
 				ColumnCheckBox("Unlockable", &pWnd->Unlockable);
-				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
 				ColumnCheckBox("Locked", &pWnd->Locked);
+
+				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
 				ColumnCheckBox("Clip to parent", &pWnd->bClipToParent);
-				ColumnCheckBox("Clickable", &pWnd->Clickable);
-				ColumnCheckBox("Click through", &pWnd->bClickThrough);
-				ColumnCheckBox("Show click through menu item", &pWnd->bShowClickThroughMenuItem);
 				ColumnCheckBox("Active", &pWnd->bActive);
+
+				ColumnCheckBox("Escapable", &pWnd->bEscapable);
+				ColumnCheckBox("Escapable locked", &pWnd->bEscapableLocked);
+
+				ColumnCheckBox("Show Border MenuItem Enabled", &pWnd->bEnableShowBorder);
+				ColumnCheckBox("Show Border", &pWnd->bShowBorder);
+
+				ColumnCheckBox("Click Through", &pWnd->bClickThrough);
+				ColumnCheckBox("Click Through (to background)", &pWnd->bClickThroughToBackground);
+				ColumnCheckBox("Click Through Menu Status", &pWnd->bClickThroughMenuItemStatus);
+				ColumnCheckBox("Click Through Menu Enabled", &pWnd->bShowClickThroughMenuItem);
+
+				ColumnCheckBox("Capture Events from Title", &pWnd->bCaptureTitle);
 
 				//ColumnText("Resizable mask", "0x%08x", pWnd->bResizableMask);
 				//ColumnCheckBox("Border", &pWnd->bBorder);

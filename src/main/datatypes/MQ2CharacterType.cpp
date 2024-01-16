@@ -3110,8 +3110,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		}
 		return true;
 
-		// this case adds all resist Counters and returns that, why is this useful?
-		// should we split these into 4? one for each debuff?
 	case CharacterMembers::TotalCounters:
 		Dest.Int64 = GetMyTotalSpellCounters();
 		Dest.Type = pInt64Type;
