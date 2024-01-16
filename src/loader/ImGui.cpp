@@ -20,6 +20,8 @@
 #include "hello_imgui/hello_imgui.h"
 #include "imgui/ImGuiUtils.h"
 
+#include "spdlog/spdlog.h"
+
 static std::map<std::string, std::function<void()>> s_windows;
 static std::vector<HelloImGui::DockableWindow> s_pendingViewports;
 
@@ -82,7 +84,12 @@ void Run(std::function<void()> mainLoop, float fpsIdle)
 			// and then add in pending viewports
 			for (auto& viewport : s_pendingViewports)
 			{
-				viewports.emplace_back(std::move(viewport));
+				auto it = std::find_if(viewports.begin(), viewports.end(),
+					[&label = viewport.label](const HelloImGui::DockableWindow& vp)
+					{ return ci_equals(vp.label, label); });
+
+				if (it == viewports.end())
+					viewports.emplace_back(std::move(viewport));
 			}
 
 			s_pendingViewports.clear();
@@ -121,8 +128,15 @@ void Run(std::function<void()> mainLoop, float fpsIdle)
 
 void Terminate()
 {
-	// This throws is Run has not been called
-	HelloImGui::GetRunnerParams()->appShallExit = true;
+	// This throws if Run has not been called
+	try
+	{
+		HelloImGui::GetRunnerParams()->appShallExit = true;
+	}
+	catch (std::runtime_error&)
+	{
+		SPDLOG_ERROR("Failed to initialize ImGui before attempting to exit.");
+	}
 }
 
 void AddViewport()

@@ -267,12 +267,6 @@
     <ClInclude Include="backends\imgui_impl_sdl2.h">
       <Filter>Header Files\backends</Filter>
     </ClInclude>
-    <ClInclude Include="backends\imgui_impl_win32.h">
-      <Filter>Header Files\backends</Filter>
-    </ClInclude>
-    <ClInclude Include="backends\imgui_impl_glfw.h">
-      <Filter>Header Files\backends</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\dpi_aware.cpp">
@@ -456,12 +450,6 @@
       <Filter>Source Files\backends</Filter>
     </ClCompile>
     <ClCompile Include="backends\imgui_impl_sdl2.cpp">
-      <Filter>Source Files\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="backends\imgui_impl_win32.cpp">
-      <Filter>Source Files\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="backends\imgui_impl_glfw.cpp">
       <Filter>Source Files\backends</Filter>
     </ClCompile>
   </ItemGroup>
