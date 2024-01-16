@@ -599,6 +599,12 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
+    <ClInclude Include="..\eqdata\actordef.h" />
+    <ClInclude Include="..\eqdata\combines.h" />
+    <ClInclude Include="..\eqdata\dikeys.h" />
+    <ClInclude Include="..\eqdata\itemclasses.h" />
+    <ClInclude Include="..\eqdata\skills.h" />
+    <ClInclude Include="..\eqdata\spelleffects.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />

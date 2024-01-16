@@ -50,6 +50,9 @@ public:
 
 	virtual int GetMaxBufferLines() const = 0;
 	virtual void SetMaxBufferLines(int maxBufferLines) = 0;
+
+	virtual float GetOpacity() const = 0;
+	virtual void SetOpacity(float opacity) = 0;
 };
 
 } // namespace mq::imgui

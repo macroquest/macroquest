@@ -422,9 +422,14 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 #pragma endregion
 
 	#pragma region Tables
-	ImGui.set_function("BeginTable", [](const char* str_id, int column, std::optional<int> flags, std::optional<ImVec2> outer_size, std::optional<float> inner_width) {
-		return ImGui::BeginTable(str_id, column, flags.value_or(0), outer_size.value_or(ImVec2(0, 0)), inner_width.value_or(0.0f));
-		});
+	ImGui.set_function("BeginTable", sol::overload(
+		[](const char* str_id, int column, std::optional<int> flags, std::optional<ImVec2> outer_size, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags.value_or(0), outer_size.value_or(ImVec2(0, 0)), inner_width.value_or(0.0f));
+		},
+		[](const char* str_id, int column, int flags, float outer_size_x, float outer_size_y, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags, ImVec2(outer_size_x, outer_size_y), inner_width.value_or(0.0f));
+		}
+	));
 	ImGui.set_function("EndTable", &ImGui::EndTable);
 	ImGui.set_function("TableNextRow", [](std::optional<int> flags, std::optional<float> min_row_height) { ImGui::TableNextRow(flags.value_or(0), min_row_height.value_or(0.0f)); });
 	ImGui.set_function("TableNextColumn", &ImGui::TableNextColumn);

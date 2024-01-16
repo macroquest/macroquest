@@ -849,8 +849,8 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::object obj, int flags, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); return ImGui::TreeNodeEx(obj.pointer(), flags, "%s", text.c_str()); }
 	));
 	ImGui.set_function("TreePush", sol::overload(
-		[](std::optional<const char*> strId) { ImGui::TreePush(strId.value_or(nullptr)); },
-		[](sol::object obj) { ImGui::TreePush(obj.pointer()); }
+		[](const char* strId) { ImGui::TreePush(strId); },
+		[](std::optional<sol::object> obj) { if (obj.has_value()) ImGui::TreePush(obj->pointer()); else ImGui::TreePush(static_cast<void*>(nullptr)); }
 	));
 	ImGui.set_function("TreePop", &ImGui::TreePop);
 	ImGui.set_function("GetTreeNodeToLabelSpacing", &ImGui::GetTreeNodeToLabelSpacing);
