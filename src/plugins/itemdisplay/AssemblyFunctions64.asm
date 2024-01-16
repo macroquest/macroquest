@@ -75,7 +75,7 @@ make_override 0x1c8, ?AboutToShow@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@det
 make_override 0x1d0, ?AboutToHide@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEAA_NXZ
 make_override 0x1d8, ?RequestDockInfo@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEAAHIPEAVCXWnd@3@PEAVCXRect@3@@Z
 make_override 0x1e0, ?GetTooltip@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEBA?AVCXStr@3@XZ
-make_override 0x1e8, ?Unknown0x0EC@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x1e8, ?ClickThroughMenuItemTriggered@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEAAXXZ
 make_override 0x1f0, ?SetLocked@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEAAX_N@Z
 make_override 0x1f8, ?HitTest@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEBAHAEBVCXPoint@3@PEAH@Z
 make_override 0x200, ?GetHitTestRect@?$CXWndTrampoline@VCItemDisplayWnd@eqlib@@@detail@eqlib@@UEBA?AVCXRect@3@H@Z
