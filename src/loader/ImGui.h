@@ -19,19 +19,21 @@
 
 #include "hello_imgui/screen_bounds.h"
 
+#include "imgui/imgui.h"
+
 namespace LauncherImGui {
 
-void Run(
+void AddViewport(
 	const std::function<void()>& render,
-	const std::string& windowTitle = "",
-	bool windowSizeAuto = false,
-	bool windowRestorePreviousGeometry = false,
-	const HelloImGui::ScreenSize& windowSize = HelloImGui::DefaultWindowSize,
-	float fpsIdle = 10.f
+	const std::string& windowTitle,
+	const ImVec2& windowSize = ImVec2((float)HelloImGui::DefaultWindowSize[0], (float)HelloImGui::DefaultWindowSize[1]),
+	const ImVec2& windowPosition = ImVec2((float)HelloImGui::DefaultScreenPosition[0], (float)HelloImGui::DefaultScreenPosition[1])
 );
 
 bool AddWindow(const std::string& name, const std::function<void()> callback);
 bool RemoveWindow(const std::string& name);
-void Run();
+void Run(std::function<void()> mainLoop, float fpsIdle = 10.f);
+void Terminate();
+void AddViewport();
 
 } // namespace LauncherImGui

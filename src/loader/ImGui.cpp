@@ -21,34 +21,28 @@
 #include "imgui/ImGuiUtils.h"
 
 static std::map<std::string, std::function<void()>> s_windows;
+static std::vector<HelloImGui::DockableWindow> s_pendingViewports;
 
 namespace LauncherImGui {
 
-void Run(
+void AddViewport(
 	const std::function<void()>& render,
-	const std::string& windowTitle, // = ""
-	bool windowSizeAuto, // = false
-	bool windowRestorePreviousGeometry, // = false
-	const HelloImGui::ScreenSize& windowSize, // = HelloImGui::DefaultWindowSize
-	float fpsIdle // = 10.f
+	const std::string& windowTitle,
+	const ImVec2& windowSize, // = HelloImGui::DefaultWindowSize
+	const ImVec2& windowPosition // = HelloImGui::DefaultWindowSize
 )
 {
-	HelloImGui::RunnerParams params;
-	params.callbacks.ShowGui = render;
+	HelloImGui::DockableWindow viewport;
+	viewport.GuiFunction = render;
 
-	params.appWindowParams.windowTitle = windowTitle;
-	params.appWindowParams.windowGeometry.sizeAuto = windowSizeAuto;
-	params.appWindowParams.restorePreviousGeometry = windowRestorePreviousGeometry;
-	params.appWindowParams.windowGeometry.size = windowSize;
-	params.fpsIdling.fpsIdle = fpsIdle;
+	viewport.label = windowTitle; // this must be unique
+	viewport.dockSpaceName = fmt::format("{}Space", windowTitle);
+	viewport.windowSize = windowSize;
+	viewport.windowPosition = windowPosition;
 
-	// This will technically build the font atlas twice, but doing it this way allows us to reuse MQ's font code
-	// TODO: test if this matters, if it does then we just have to call the constituent functions
-	params.callbacks.LoadAdditionalFonts = []() { mq::imgui::ConfigureFonts(ImGui::GetIO().Fonts); };
+	viewport.focusWindowAtNextFrame = true;
 
-	params.callbacks.SetupImGuiStyle = []() { mq::imgui::ConfigureStyle(); };
-
-	HelloImGui::Run(params);
+	s_pendingViewports.emplace_back(std::move(viewport));
 }
 
 bool AddWindow(const std::string& name, const std::function<void()> callback)
@@ -62,9 +56,81 @@ bool RemoveWindow(const std::string& name)
 	return s_windows.erase(name) > 0;
 }
 
-void Run()
+void Run(std::function<void()> mainLoop, float fpsIdle)
 {
-	Run(
+	HelloImGui::RunnerParams params;
+
+	//params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
+	params.imGuiWindowParams.enableViewports = true;
+
+	params.callbacks.BeforeImGuiRender = mainLoop;
+	params.fpsIdling.fpsIdle = fpsIdle;
+
+	// prevent begin/end from being called at all
+	params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
+	params.appWindowParams.hidden = true;
+	params.appWindowParams.borderless = true;
+
+	params.callbacks.PreNewFrame = []()
+		{
+			auto& viewports = HelloImGui::GetRunnerParams()->dockingParams.dockableWindows;
+
+			// first clear out all removed viewports
+			viewports.erase(std::remove_if(viewports.begin(), viewports.end(),
+				[](const HelloImGui::DockableWindow& viewport) { return !viewport.isVisible; }), viewports.end());
+
+			// and then add in pending viewports
+			for (auto& viewport : s_pendingViewports)
+			{
+				viewports.emplace_back(std::move(viewport));
+			}
+
+			s_pendingViewports.clear();
+		};
+
+	params.callbacks.SetupImGuiConfig = []()
+		{
+			HelloImGui::ImGuiDefaultSettings::SetupDefaultImGuiConfig();
+
+			ImGuiIO& io = ImGui::GetIO();
+
+			// set this here because it is supported, just not set
+			io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_RendererHasViewports;
+
+			io.ConfigViewportsNoTaskBarIcon = true;
+			io.ConfigViewportsNoDefaultParent = true;
+			io.ConfigViewportsNoAutoMerge = true;
+			io.ConfigViewportsNoDecoration = true;
+		};
+
+	// This will technically build the font atlas twice, but doing it this way allows us to reuse MQ's font code
+	// TODO: test if this matters, if it does then we just have to call the constituent functions
+	params.callbacks.LoadAdditionalFonts = []()
+		{
+			//HelloImGui::ImGuiDefaultSettings::LoadDefaultFont_WithFontAwesomeIcons();
+
+			mq::imgui::ConfigureFonts(ImGui::GetIO().Fonts);
+		};
+
+	params.callbacks.SetupImGuiStyle = []()
+		{
+			HelloImGui::ImGuiDefaultSettings::SetupDefaultImGuiStyle();
+
+			mq::imgui::ConfigureStyle();
+		};
+
+	HelloImGui::Run(params);
+}
+
+void Terminate()
+{
+	// This throws is Run has not been called
+	HelloImGui::GetRunnerParams()->appShallExit = true;
+}
+
+void AddViewport()
+{
+	AddViewport(
 		[]()
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
@@ -95,10 +161,7 @@ void Run()
 
 			ImGui::PopStyleVar();
 		},
-		"MacroQuest",
-		false,
-		true,
-		HelloImGui::DefaultWindowSize
+		"MacroQuest"
 	);
 }
 

@@ -835,7 +835,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 			switch (lParam)
 			{
 			case WM_LBUTTONUP:
-				LauncherImGui::Run();
+				LauncherImGui::AddViewport();
 				break;
 
 			case WM_RBUTTONUP:
@@ -984,8 +984,6 @@ void ShowMacroQuestInfo()
 int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	g_hInst = hInstance;
-
-	LauncherImGui::AddWindow("MacroQuest Info", ShowMacroQuestInfo);
 
 	// Initialize Paths so we know where to put our logs and where to load our config from
 	InitializePaths();
@@ -1144,6 +1142,8 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	InitializeWindows();
 	InitializeAutoLogin();
 
+	LauncherImGui::AddWindow("MacroQuest Info", ShowMacroQuestInfo);
+
 	auto pMonitorEvents = std::make_unique<MQ2ProcessMonitorEvents>();
 	StartProcessMonitor(pMonitorEvents.get());
 
@@ -1195,27 +1195,25 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		CheckAppCompat();
 
 	SPDLOG_INFO("Waiting for events...");
-
 	MSG msg;
-	BOOL bRet;
-	while ((bRet = GetMessage(&msg, nullptr, 0, 0)) != 0)
-	{
-		if (bRet == -1)
+	LauncherImGui::Run([&msg]() {
+		if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 		{
-			break;
-		}
-		else
-		{
-			if (msg.message == WM_QUIT)
-				break;
-
-			if (!IsDialogMessage(hEditProfileWnd, &msg))
+			switch (msg.message)
 			{
-				TranslateMessage(&msg);
-				DispatchMessageA(&msg);
+			case WM_QUIT:
+				LauncherImGui::Terminate();
+				break;
+			default:
+				if (!IsDialogMessageA(hEditProfileWnd, &msg))
+				{
+					TranslateMessage(&msg);
+					DispatchMessageA(&msg);
+				}
+				break;
 			}
 		}
-	}
+	});
 
 	SPDLOG_INFO("Shutting down...");
 

@@ -3521,7 +3521,7 @@ void InitializeAutoLogin()
 	auto pass = login::db::ReadMasterPass();
 	if (!pass)
 	{
-		LauncherImGui::Run(
+		LauncherImGui::AddViewport(
 			[&pass]() {
 				static const char* label = "Please Enter Master Password";
 				ImGui::Text(label);
@@ -3555,8 +3555,6 @@ void InitializeAutoLogin()
 				ImGui::Spacing();
 			},
 			"Enter Master Password",
-			false,
-			true,
 			{ 300, 200 }
 		);
 	}
@@ -3657,7 +3655,7 @@ void InitializeAutoLogin()
 		SetMenuItemInfoA(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
 
 		// TODO: This is for testing
-		//LauncherImGui::Run(ShowAutoLoginWindow, "AutoLogin Profile Editor Test", false, true);
+		//LauncherImGui::AddViewport(ShowAutoLoginWindow, "AutoLogin Profile Editor Test", false, true);
 		LauncherImGui::AddWindow("AutoLogin", ShowAutoLoginWindow);
 	}
 }

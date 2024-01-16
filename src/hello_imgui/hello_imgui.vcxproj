@@ -76,12 +76,12 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW;HELLOIMGUI_USE_GLFW3;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HELLOIMGUI_USE_SDL;HELLOIMGUI_USE_SDL2;HELLOIMGUI_HAS_DIRECTX11;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;$(VCPKG_IncludeStatic)\SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -90,15 +90,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW;HELLOIMGUI_USE_GLFW3;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HELLOIMGUI_USE_SDL;HELLOIMGUI_USE_SDL2;HELLOIMGUI_HAS_DIRECTX11;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;$(VCPKG_IncludeStatic)\SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,12 +109,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW;HELLOIMGUI_USE_GLFW3;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HELLOIMGUI_USE_SDL;HELLOIMGUI_USE_SDL2;HELLOIMGUI_HAS_DIRECTX11;WIN32;_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;$(VCPKG_IncludeStatic)\SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,15 +123,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>IMGUI_IMPL_OPENGL_LOADER_GLAD;HELLOIMGUI_USE_GLAD;HELLOIMGUI_USE_GLFW;HELLOIMGUI_USE_GLFW3;HELLOIMGUI_HAS_OPENGL;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HELLOIMGUI_USE_SDL;HELLOIMGUI_USE_SDL2;HELLOIMGUI_HAS_DIRECTX11;WIN32;_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external;$(MQ2Root)contrib\hello_imgui\src;$(MQ2Root)contrib\hello_imgui\src\hello_imgui;$(MQ2Root)contrib\hello_imgui\external\OpenGL_Loaders\glad\includex;$(VCPKG_IncludeStatic)\SDL2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,9 +204,10 @@
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\runner_params.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\screen_bounds.h" />
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\widgets\logger.h" />
+    <ClInclude Include="backends\imgui_impl_dx11.h" />
     <ClInclude Include="backends\imgui_impl_glfw.h" />
-    <ClInclude Include="backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="backends\imgui_impl_sdl2.h" />
+    <ClInclude Include="backends\imgui_impl_win32.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -564,13 +565,25 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="backends\imgui_impl_dx11.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="backends\imgui_impl_glfw.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="backends\imgui_impl_opengl3.cpp">
+    <ClCompile Include="backends\imgui_impl_sdl2.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="backends\imgui_impl_win32.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

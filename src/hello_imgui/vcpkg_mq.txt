@@ -1,3 +1,1 @@
-glfw3
-opengl
-glad[wgl]
+sdl2
