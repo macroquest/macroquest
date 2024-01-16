@@ -1,3 +1,9 @@
+Jan 15, 2024:
+- Update CrashDetected popup with reminder that text can be copied and also add PID (#765).
+- Update faction names by using dbstr_us.txt (#806)
+- Fix Me.Origin (#807)
+- Fix several window properties that had been swapped (Click Through, Show Border, Escapable)
+
 Jan 14, 2024:
 - test: Updated for latest patch
 
