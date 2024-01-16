@@ -1366,22 +1366,13 @@ static char* GetStatShortName(int StatType, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
-template <unsigned int Size>
+template <size_t Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
-	if (const char* ptr = pCDBStr->GetString(FactionID, eFactionName, nullptr))
-	{
-		// The parentheses here are to match previous hardcoded behavior
-		sprintf_s(szTemp, "(%s)", ptr);
-		strcat_s(szBuffer, Size, ptr);
-	}
-	else
-	{
-		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
-		strcat_s(szBuffer, Size, szTemp);
-	}
+	eqlib::GetFactionName(FactionID, szBuffer, Size);
 
+	strcat_s(szBuffer, Size, szTemp);
 	return szBuffer;
 }
 
