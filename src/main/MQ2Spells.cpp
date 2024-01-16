@@ -1370,9 +1370,12 @@ template <size_t Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
 	char szTemp[MAX_STRING] = { 0 };
-	eqlib::GetFactionName(FactionID, szBuffer, Size);
+	eqlib::GetFactionName(FactionID, szTemp, MAX_STRING);
 
-	strcat_s(szBuffer, Size, szTemp);
+	strcat_s(szBuffer, "(");
+	strcat_s(szBuffer, szTemp);
+	strcat_s(szBuffer, ")");
+
 	return szBuffer;
 }
 
