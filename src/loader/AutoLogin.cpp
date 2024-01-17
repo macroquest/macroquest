@@ -20,6 +20,7 @@
 #include "routing/PostOffice.h"
 
 #include "ImGui.h"
+#include "hello_imgui/docking_params.h" // to create the viewport
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -1198,6 +1199,10 @@ LRESULT HandleAutoLoginMenuRightclick(HMENU hSubMenu, int menuId, LPARAM lParam)
 
 			TrackPopupMenuEx(hEditPopup, TPM_LEFTBUTTON | TPM_RECURSE, point.x, point.y, hMainWnd, nullptr);
 		}
+	}
+	else if (unmaskedMenuId == ID_MENU_MQ2AUTOLOGIN)
+	{
+		LauncherImGui::AddViewport();
 	}
 
 	return 0;
@@ -2433,6 +2438,15 @@ void ShowAutoLoginWindow()
 	ImGui::PopStyleVar();
 }
 
+void ShowContextMenu()
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
+
+	if (ImGui::Selectable("Pause Login on Startup"))
+
+	ImGui::PopStyleVar();
+}
+
 #pragma endregion
 
 bool HandleAutoLoginMenuCommand(WPARAM wParam, LPARAM lParam)
@@ -3654,8 +3668,6 @@ void InitializeAutoLogin()
 			mi2.fState = MF_UNCHECKED;
 		SetMenuItemInfoA(hMainMenu, ID_FILE_MQ2LOGINIS, FALSE, &mi2);
 
-		// TODO: This is for testing
-		//LauncherImGui::AddViewport(ShowAutoLoginWindow, "AutoLogin Profile Editor Test", false, true);
 		LauncherImGui::AddWindow("AutoLogin", ShowAutoLoginWindow);
 	}
 }

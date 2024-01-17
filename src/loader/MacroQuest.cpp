@@ -1195,25 +1195,21 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		CheckAppCompat();
 
 	SPDLOG_INFO("Waiting for events...");
-	MSG msg;
-	LauncherImGui::Run([&msg]() {
-		if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+	static int exit_return = 1;
+
+	LauncherImGui::Run([](void*, void* hWnd, unsigned int message, uint64_t wParam, int64_t lParam)
 		{
-			switch (msg.message)
+			switch (message)
 			{
 			case WM_QUIT:
+				exit_return = static_cast<int>(wParam);
 				LauncherImGui::Terminate();
 				break;
 			default:
-				if (!IsDialogMessageA(hEditProfileWnd, &msg))
-				{
-					TranslateMessage(&msg);
-					DispatchMessageA(&msg);
-				}
+				// nothing to do here, translate and dispatch are already called in SDL
 				break;
 			}
-		}
-	});
+		});
 
 	SPDLOG_INFO("Shutting down...");
 
@@ -1236,7 +1232,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 
 	spdlog::shutdown();
 
-	return (int)msg.wParam;
+	return exit_return;
 }
 
 HWND LocateHotkeyWindow(WORD modkey, WORD hotkey)

@@ -22,10 +22,18 @@
 
 #include "spdlog/spdlog.h"
 
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_system.h>
+
 static std::map<std::string, std::function<void()>> s_windows;
 static std::vector<HelloImGui::DockableWindow> s_pendingViewports;
 
 namespace LauncherImGui {
+
+void AddViewport(HelloImGui::DockableWindow&& params)
+{
+	s_pendingViewports.emplace_back(std::move(params));
+}
 
 void AddViewport(
 	const std::function<void()>& render,
@@ -44,7 +52,7 @@ void AddViewport(
 
 	viewport.focusWindowAtNextFrame = true;
 
-	s_pendingViewports.emplace_back(std::move(viewport));
+	AddViewport(std::move(viewport));
 }
 
 bool AddWindow(const std::string& name, const std::function<void()> callback)
@@ -58,20 +66,24 @@ bool RemoveWindow(const std::string& name)
 	return s_windows.erase(name) > 0;
 }
 
-void Run(std::function<void()> mainLoop, float fpsIdle)
+void Run(SDL_WindowsMessageHook eventHandler, float fpsIdle)
 {
 	HelloImGui::RunnerParams params;
 
 	//params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
 	params.imGuiWindowParams.enableViewports = true;
 
-	params.callbacks.BeforeImGuiRender = mainLoop;
 	params.fpsIdling.fpsIdle = fpsIdle;
 
 	// prevent begin/end from being called at all
 	params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
 	params.appWindowParams.hidden = true;
 	params.appWindowParams.borderless = true;
+
+	params.callbacks.PostInit = [&eventHandler]()
+		{
+			SDL_SetWindowsMessageHook(eventHandler, nullptr);
+		};
 
 	params.callbacks.PreNewFrame = []()
 		{

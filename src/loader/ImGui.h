@@ -21,8 +21,15 @@
 
 #include "imgui/imgui.h"
 
+typedef void (_cdecl * SDL_WindowsMessageHook)(void *userdata, void *hWnd, unsigned int message, uint64_t wParam, int64_t lParam);
+
+namespace HelloImGui {
+struct DockableWindow;
+} // namespace HelloImGui
+
 namespace LauncherImGui {
 
+void AddViewport(HelloImGui::DockableWindow&& params);
 void AddViewport(
 	const std::function<void()>& render,
 	const std::string& windowTitle,
@@ -32,7 +39,7 @@ void AddViewport(
 
 bool AddWindow(const std::string& name, const std::function<void()> callback);
 bool RemoveWindow(const std::string& name);
-void Run(std::function<void()> mainLoop, float fpsIdle = 10.f);
+void Run(SDL_WindowsMessageHook eventHandler, float fpsIdle = 10.f);
 void Terminate();
 void AddViewport();
 
