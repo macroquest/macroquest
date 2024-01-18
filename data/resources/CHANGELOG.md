@@ -1,3 +1,8 @@
+Jan 17, 2024:
+- live: Updated for latest patch
+- live: DirectX 11 is now on the live client, some visual features may be
+  missing or not working correctly.
+
 Jan 15, 2024:
 - Update CrashDetected popup with reminder that text can be copied and also add PID (#765).
 - Update faction names by using dbstr_us.txt (#806)
