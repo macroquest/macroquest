@@ -209,10 +209,19 @@ struct ImGuiTextureObject
         , textureType(obj.textureType)
     {}
 
-    ImGuiTextureObject(int value)
-        : voidPtr(nullptr)
+    explicit ImGuiTextureObject(int value)
+        : voidPtr((void*)(uintptr_t)value)
         , textureType(None)
-    {}
+    {
+        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
+    }
+
+    ImGuiTextureObject(intptr_t value)
+        : voidPtr((void*)(uintptr_t)value)
+        , textureType(None)
+    {
+        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
+    }
 
     ImGuiTextureObject& operator=(const ImGuiTextureObject& other)
     {
@@ -225,6 +234,16 @@ struct ImGuiTextureObject
     ImGuiTextureObject& operator=(nullptr_t)
     {
         voidPtr = nullptr;
+        textureType = None;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(int value)
+    {
+        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
+
+        voidPtr = (void*)(uintptr_t)value;
         textureType = None;
 
         return *this;
