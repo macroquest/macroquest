@@ -1331,7 +1331,7 @@ int GetCurrencyIDByName(const char* szName)
 		}
 	}
 
-	// Crowns sit outside the ALTCURRENCY_MAX range
+	// Crowns sit outside the ALTCURRENCY_LAST range
 	if (ci_equals(currency, "Crowns") || ci_equals(currency, "Crown"))
 		return ALTCURRENCY_CROWNS;
 
