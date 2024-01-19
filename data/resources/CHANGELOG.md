@@ -1,3 +1,6 @@
+Jan 19, 2024:
+- Fix mq.pickle not properly escaping backslashes and not properly serializing numbers. (#815, #771).
+
 Jan 18, 2024:
 - Fix issue where textures would not draw if they had not already been preloaded.
 - Fix FPS plot in benchmark window to use its own axis.
