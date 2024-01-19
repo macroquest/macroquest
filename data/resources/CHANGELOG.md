@@ -1,3 +1,7 @@
+Jan 18, 2024:
+- Fix issue where textures would not draw if they had not already been preloaded.
+- Fix FPS plot in benchmark window to use its own axis.
+
 Jan 17, 2024:
 - live: Updated for latest patch
 - live: DirectX 11 is now on the live client, some visual features may be
