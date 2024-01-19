@@ -19,6 +19,11 @@
 #include <stdexcept>
 
 #include "imgui.h"
+#include "eqlib/BuildType.h"
+
+#if HAS_DIRECTX_11
+#include <d3d11.h>
+#endif
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
@@ -154,3 +159,110 @@ namespace ImGui
     void MyFunction(const char* name, MyMatrix44* mtx);
 }
 */
+
+namespace eqlib
+{
+    class CEQGBitmap;
+}
+
+#if HAS_DIRECTX_11
+
+struct ImGuiTextureObject
+{
+    enum Type
+    {
+        None,
+        ShaderResourceView,
+        Bitmap,
+    };
+
+    union
+    {
+        void* voidPtr;
+        const eqlib::CEQGBitmap* bitmap;
+        ID3D11ShaderResourceView* shaderResourceView;
+    };
+    Type textureType;
+
+    ImGuiTextureObject()
+        : voidPtr(nullptr)
+        , textureType(None)
+    {}
+
+    ImGuiTextureObject(nullptr_t)
+        : voidPtr(nullptr)
+        , textureType(None)
+    {}
+
+    ImGuiTextureObject(ID3D11ShaderResourceView* shaderResourceView)
+        : shaderResourceView(shaderResourceView)
+        , textureType(ShaderResourceView)
+    {}
+
+    ImGuiTextureObject(const eqlib::CEQGBitmap* bitmap)
+        : bitmap(bitmap)
+        , textureType(Bitmap)
+    {}
+
+    ImGuiTextureObject(const ImGuiTextureObject& obj)
+        : voidPtr(obj.voidPtr)
+        , textureType(obj.textureType)
+    {}
+
+    ImGuiTextureObject(int value)
+        : voidPtr(nullptr)
+        , textureType(None)
+    {}
+
+    ImGuiTextureObject& operator=(const ImGuiTextureObject& other)
+    {
+        voidPtr = other.voidPtr;
+        textureType = other.textureType;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(nullptr_t)
+    {
+        voidPtr = nullptr;
+        textureType = None;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(const eqlib::CEQGBitmap* bitmap)
+    {
+        this->bitmap = bitmap;
+        textureType = Bitmap;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(ID3D11ShaderResourceView* shaderResourceView)
+    {
+        this->shaderResourceView = shaderResourceView;
+        textureType = ShaderResourceView;
+
+        return *this;
+    }
+
+    operator intptr_t() const { return reinterpret_cast<intptr_t>(voidPtr); }
+    operator void*() const { return voidPtr; }
+
+    bool operator==(nullptr_t) const { return voidPtr == nullptr; }
+    bool operator!=(nullptr_t) const { return voidPtr != nullptr; }
+};
+
+inline bool operator==(const ImGuiTextureObject& left, const ImGuiTextureObject& right)
+{
+    return left.textureType == right.textureType && left.voidPtr == right.voidPtr;
+}
+
+inline bool operator!=(const ImGuiTextureObject& left, const ImGuiTextureObject& right)
+{
+    return !(left.textureType == right.textureType && left.voidPtr == right.voidPtr);
+}
+
+#define ImTextureID ImGuiTextureObject
+
+#endif // HAS_DIRECTX_11

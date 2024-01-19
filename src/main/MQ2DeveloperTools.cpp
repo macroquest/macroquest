@@ -2251,7 +2251,12 @@ public:
 				ImGui::Text("Can Reclaim: %s", pBitmap->m_canReclaim ? "Yes" : "No");
 				ImGui::Text("Tracking Type: %s", TrackingTypeToString(pBitmap->m_nTrackingType));
 
+#if HAS_DIRECTX_11
+				ImTextureID TexID = pBitmap;
+#else
 				ImTextureID TexID = pBitmap->GetTexture();
+#endif
+
 				if (TexID != nullptr)
 				{
 					ImGui::Separator();

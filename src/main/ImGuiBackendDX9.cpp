@@ -13,6 +13,9 @@
  */
 
 #include "pch.h"
+#include "eqlib/BuildType.h"
+
+#if HAS_DIRECTX_9
 
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
@@ -598,3 +601,5 @@ static void ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows()
 #pragma endregion
 
 } // namespace mq
+
+#endif // HAS_DIRECTX_9

@@ -17,9 +17,12 @@
 
 #if HAS_DIRECTX_11
 
+#include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
 #include "../common/Common.h"
+#include "eqlib/EQDX9.h"
+#include "eqlib/GraphicsResources.h"
 
 #include <imgui.h>
 
@@ -303,7 +306,34 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 				ctx->RSSetScissorRects(1, &r);
 
 				// Bind texture, Draw
-				ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)pcmd->GetTexID();
+				ID3D11ShaderResourceView* texture_srv = nullptr;
+				ImGuiTextureObject::Type texture_type = pcmd->GetTexID().textureType;
+				if (texture_type == ImGuiTextureObject::ShaderResourceView)
+				{
+					texture_srv = pcmd->GetTexID().shaderResourceView;
+				}
+				else if (texture_type == ImGuiTextureObject::Bitmap)
+				{
+					const eqlib::CEQGBitmap* bitmap = pcmd->GetTexID().bitmap;
+
+					if (bitmap != nullptr)
+					{
+						eqlib::Direct3DTexture9* texture = bitmap->GetD3DTexture();
+
+						if (texture != nullptr)
+						{
+							// Force a load of the texture if it hasn't been loaded yet.
+							if (bitmap->GetTexture() == nullptr)
+							{
+								gpD3D9Device->SetTexture(0, bitmap->GetD3DTexture());
+								gpD3D9Device->SetTexture(0, nullptr);
+							}
+
+							texture_srv = texture->GetShaderResourceView();
+						}
+					}
+				}
+
 				ctx->PSSetShaderResources(0, 1, &texture_srv);
 				ctx->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
 			}
@@ -558,7 +588,7 @@ void ImGui_ImplDX11_InvalidateDeviceObjects()
 		return;
 
 	if (bd->pFontSampler) { bd->pFontSampler->Release(); bd->pFontSampler = nullptr; }
-	if (bd->pFontTextureView) { bd->pFontTextureView->Release(); bd->pFontTextureView = nullptr; ImGui::GetIO().Fonts->SetTexID(0); } // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
+	if (bd->pFontTextureView) { bd->pFontTextureView->Release(); bd->pFontTextureView = nullptr; ImGui::GetIO().Fonts->SetTexID(nullptr); } // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
 	if (bd->pIB) { bd->pIB->Release(); bd->pIB = nullptr; }
 	if (bd->pVB) { bd->pVB->Release(); bd->pVB = nullptr; }
 	if (bd->pBlendState) { bd->pBlendState->Release(); bd->pBlendState = nullptr; }
