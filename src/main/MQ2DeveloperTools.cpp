@@ -4170,16 +4170,13 @@ public:
 			ResetLastTimes();
 			m_resetNext = false;
 		}
-		//ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
-		//if (ImGui::CollapsingHeader("Benchmark Plot"))
-		{
-			DrawPlot();
-		}
 
-		//if (ImGui::CollapsingHeader("Benchmark Table"))
-		//{
-		//	DrawTable();
-		//}
+		DrawPlot();
+
+		if (ImGui::CollapsingHeader("Benchmark Table"))
+		{
+			DrawTable();
+		}
 
 		ResetLastTimes();
 	}
@@ -4259,6 +4256,7 @@ public:
 			ImPlot::SetupAxis(ImAxis_X1, "Time");
 			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
+			ImPlot::SetupAxis(ImAxis_Y3, "Frames Per Second", ImPlotAxisFlags_LockMin | ImPlotAxisFlags_Opposite);
 
 			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
 
@@ -4272,7 +4270,7 @@ public:
 
 			if (!m_fpsData.Data.empty())
 			{
-				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y3);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
 				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0].x, &m_fpsData.Data[0].y,
