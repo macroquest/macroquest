@@ -471,6 +471,7 @@ const char* szInnates[] = {
 	nullptr
 };
 
+[[deprecated("Use GetZoneExpansionName or GetExpansionNumber")]]
 const char* szZoneExpansionName[] = {
 	"Original EQ",              // 0
 	"Kunark",                   // 1
@@ -502,13 +503,15 @@ const char* szZoneExpansionName[] = {
 	"Claws of Veeshan",         // 27
 	"Terror of Luclin",         // 28
 	"Night of Shadows",         // 29
+	"Laurion's Song",           // 30
 };
 
 const char* GetZoneExpansionName(int expansion)
 {
-	if (expansion >= 0 && expansion < (int)lengthof(szZoneExpansionName))
+	if (expansion >= 0 && expansion <= NUM_EXPANSIONS)
 	{
-		return szZoneExpansionName[expansion];
+		if (const char* ptr = pCDBStr->GetString(expansion, eExpansionName, nullptr))
+			return ptr;
 	}
 
 	return "Unknown";
@@ -516,13 +519,11 @@ const char* GetZoneExpansionName(int expansion)
 
 uint32_t GetExpansionNumber(std::string_view expansionName)
 {
-	if (ci_equals(expansionName, "EverQuest"))
-		return 0;
-
-	for (uint32_t i = 0; i < lengthof(szZoneExpansionName); ++i)
+	for (int i = 0; i <= NUM_EXPANSIONS; ++i)
 	{
-		if (ci_equals(szZoneExpansionName[i], expansionName))
-			return i;
+		if (const char* ptr = pCDBStr->GetString(i, eExpansionName, nullptr))
+			if (ci_equals(ptr, expansionName))
+				return i;
 	}
 
 	return 0;

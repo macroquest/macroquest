@@ -312,6 +312,36 @@ inline std::string replace(std::string_view str, std::string_view search, std::s
 	return s;
 }
 
+/**
+ * @fn remove_chars
+ *
+ * @brief Removes specified characters from a string
+ *
+ * Iterates over each character of the input string and constructs a new string by
+ * excluding characters that are found in `chars_to_remove`. This function does not modify the 
+ * original string but returns a new string with the specified characters removed.
+ *
+ * @param str The input string from which characters are to be removed
+ * @param chars_to_remove A string containing characters that should be removed from `str`
+ *
+ * @return std::string A new string with the specified characters removed
+ *
+ **/
+inline std::string remove_chars(std::string_view str, std::string_view chars_to_remove) {
+	std::string result;
+	result.reserve(str.size());
+
+	for (const char ch : str)
+	{
+		if (chars_to_remove.find(ch) == std::string_view::npos)
+		{
+			result += ch;
+		}
+	}
+
+	return result;
+}
+
 // helper function that calls replace with the normal command line argument
 // escape sequences
 inline std::string unescape_args(std::string_view str) {

@@ -1310,58 +1310,31 @@ int GetLanguageIDByName(const char* szName)
 	return -1;
 }
 
-// TOOD: Convert to data table
-int GetCurrencyIDByName(char* szName)
+int GetCurrencyIDByName(const char* szName)
 {
-	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;
-	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX;
-	if (!_stricmp(szName, "Phosphenes")) return ALTCURRENCY_PHOSPHENES;
-	if (!_stricmp(szName, "Phosphites")) return ALTCURRENCY_PHOSPHITES;
-	if (!_stricmp(szName, "Faycitum")) return ALTCURRENCY_FAYCITES;
-	if (!_stricmp(szName, "Chronobines")) return ALTCURRENCY_CHRONOBINES;
-	if (!_stricmp(szName, "Silver Tokens")) return ALTCURRENCY_SILVERTOKENS;
-	if (!_stricmp(szName, "Gold Tokens")) return ALTCURRENCY_GOLDTOKENS;
-	if (!_stricmp(szName, "McKenzie's Special Brew")) return ALTCURRENCY_MCKENZIE;
-	if (!_stricmp(szName, "Bayle Marks")) return ALTCURRENCY_BAYLE;
-	if (!_stricmp(szName, "Tokens of Reclamation")) return ALTCURRENCY_RECLAMATION;
-	if (!_stricmp(szName, "Brellium Tokens")) return ALTCURRENCY_BRELLIUM;
-	if (!_stricmp(szName, "Dream Motes")) return ALTCURRENCY_MOTES;
-	if (!_stricmp(szName, "Rebellion Chits")) return ALTCURRENCY_REBELLIONCHITS;
-	if (!_stricmp(szName, "Diamond Coins")) return ALTCURRENCY_DIAMONDCOINS;
-	if (!_stricmp(szName, "Bronze Fiats")) return ALTCURRENCY_BRONZEFIATS;
-	if (!_stricmp(szName, "Expedient Delivery Vouchers")) return ALTCURRENCY_VOUCHER;
-	if (!_stricmp(szName, "Velium Shards")) return ALTCURRENCY_VELIUMSHARDS;
-	if (!_stricmp(szName, "Crystallized Fear")) return ALTCURRENCY_CRYSTALLIZEDFEAR;
-	if (!_stricmp(szName, "Shadowstones")) return ALTCURRENCY_SHADOWSTONES;
-	if (!_stricmp(szName, "Dreadstones")) return ALTCURRENCY_DREADSTONES;
-	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR;
-	if (!_stricmp(szName, "Medals of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM;
-	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS;
-	if (!_stricmp(szName, "Fists of Bayle")) return ALTCURRENCY_FISTSOFBAYLE;
-	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES;
-	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS;
-	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT;
-	if (!_stricmp(szName, "Remnants of Tranquility")) return ALTCURRENCY_REMNANTSOFTRANQUILITY;
-	if (!_stricmp(szName, "Bifurcated Coin")) return ALTCURRENCY_BIFURCATEDCOIN;
-	if (!_stricmp(szName, "Adoptive Coins")) return ALTCURRENCY_ADOPTIVE;
-	if (!_stricmp(szName, "Sathir's Trade Gems")) return ALTCURRENCY_SATHIRSTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Sebilisian Coins")) return ALTCURRENCY_ANCIENTSEBILISIANCOINS;
-	if (!_stricmp(szName, "Bathezid Trade Gems")) return ALTCURRENCY_BATHEZIDTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Draconic Coin")) return ALTCURRENCY_ANCIENTDRACONICCOIN;
-	if (!_stricmp(szName, "Fetterred Ifrit Coins")) return ALTCURRENCY_FETTERREDIFRITCOINS;
-	if (!_stricmp(szName, "Entwined Djinn Coins")) return ALTCURRENCY_ENTWINEDDJINNCOINS;
-	if (!_stricmp(szName, "Crystallized Luck")) return ALTCURRENCY_CRYSTALLIZEDLUCK;
-	if (!_stricmp(szName, "Froststone Ducat")) return ALTCURRENCY_FROSTSTONEDUCAT;
-	if (!_stricmp(szName, "Warlord's Symbol")) return ALTCURRENCY_WARLORDSSYMBOL;
-	if (!_stricmp(szName, "Overseer Tetradrachm")) return ALTCURRENCY_OVERSEERTETRADRACHM;
-	if (!_stricmp(szName, "Restless Mark")) return ALTCURRENCY_RESTLESSMARK;
-	if (!_stricmp(szName, "Warforged Emblem")) return ALTCURRENCY_WARFORGEDEMBLEM;
-	if (!_stricmp(szName, "Scarlet Marks")) return ALTCURRENCY_SCARLETMARKS;
-	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
-	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
-	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
-	if (!_stricmp(szName, "Laurion Inn Voucher")) return ALTCURRENCY_LAURIONINNVOUCHER;
-	if (!_stricmp(szName, "Shalowains Private Reserve")) return ALTCURRENCY_SHALOWAINSPRIVATERESERVE;
+	constexpr std::string_view chars_to_remove = "'`";
+	const std::string currency = remove_chars(szName, chars_to_remove);
+	for (int i = ALTCURRENCY_FIRST; i <= ALTCURRENCY_LAST; ++i)
+	{
+		// Check the plural form first
+		if (const char* currency_name_plural = pCDBStr->GetString(i, eAltCurrencyNamePlural))
+		{
+			if (ci_equals(currency, remove_chars(currency_name_plural, chars_to_remove)))
+				return i;
+
+			// Then check the singular form
+			if (const char* currency_name_singular = pCDBStr->GetString(i, eAltCurrencyName))
+			{
+				if (ci_equals(currency, remove_chars(currency_name_singular, chars_to_remove)))
+					return i;
+			}
+		}
+	}
+
+	// Crowns sit outside the ALTCURRENCY_MAX range
+	if (ci_equals(currency, "Crowns") || ci_equals(currency, "Crown"))
+		return ALTCURRENCY_CROWNS;
+
 	return -1;
 }
 

@@ -263,7 +263,7 @@ MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
 
 MQLIB_API int GetLanguageIDByName(const char* szName);
-MQLIB_API int GetCurrencyIDByName(char* szName);
+MQLIB_API int GetCurrencyIDByName(const char* szName);
 MQLIB_API const char* GetSpellNameByID(int dwSpellID);
 MQLIB_API EQ_Spell* GetSpellByName(std::string_view name);
 MQLIB_API EQ_Spell* GetSpellByAAName(const char* szName);

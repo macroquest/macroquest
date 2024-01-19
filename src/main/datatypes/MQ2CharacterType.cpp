@@ -3456,6 +3456,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::AltCurrency:
+	{
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
@@ -3467,15 +3468,13 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			Dest.DWord = pPlayerPointManager->GetAltCurrency(GetIntFromString(Index, 0));
 			return true;
 		}
-		else
-		{
-			int nCurrency = GetCurrencyIDByName(Index);
-			if (nCurrency < 0)
-				return false;
-			Dest.DWord = pPlayerPointManager->GetAltCurrency(nCurrency);
-			return true;
-		}
-		return false;
+
+		int nCurrency = GetCurrencyIDByName(Index);
+		if (nCurrency < 0)
+			return false;
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(nCurrency);
+		return true;
+	}
 
 	case CharacterMembers::Slowed:
 		Dest.Type = pBuffType;
