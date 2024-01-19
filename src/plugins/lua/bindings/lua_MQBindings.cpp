@@ -357,6 +357,11 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	case sol::type::string:
 	{
 		auto str = obj.as<std::string>();
+		for (size_t pos = str.find("\\"); pos != std::string::npos; pos = str.find("\\", pos))
+		{
+			str.replace(pos, 1, "\\\\");
+			pos += 2;
+		}
 		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
 		{
 			str.replace(pos, 1, "\\'");
@@ -366,11 +371,14 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 		return;
 	}
 	case sol::type::number:
-		if (obj.is<int>())
+	{
+		double number = obj.as<double>();
+		if (std::floor(number) == number)
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
 		else
 			fmt::format_to(appender, "{}", obj.as<double>());
 		return;
+	}
 	case sol::type::boolean:
 		fmt::format_to(appender, "{}", obj.as<bool>());
 		return;
