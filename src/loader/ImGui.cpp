@@ -61,33 +61,50 @@ bool RemoveWindow(const std::string& name)
 	return s_windows.erase(name) > 0;
 }
 
+ImGuiWindowClass cl;
+
 void MaybeShowContextMenu();
 void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop)
 {
+	cl.ViewportFlagsOverrideSet = ImGuiViewportFlags_NoAutoMerge | ImGuiViewportFlags_TopMost;
+	cl.ViewportFlagsOverrideClear |= ImGuiViewportFlags_NoFocusOnAppearing;
+	cl.ParentViewportId = 0;
+	cl.ClassId = 1;
+
 	LauncherImGui::Backend::Init(hMainWnd);
 
 	auto drawMain = [&mainWindow]() -> bool
+	{
+
+		bool ret = false;
+		if (ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoDecoration))
 		{
-			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoDecoration);
-			bool ret = mainWindow();
-			MaybeShowContextMenu();
+			ret = mainWindow();
+		}
+		ImGui::End();
 
-			for (auto it = s_viewports.begin(); it != s_viewports.end();)
-			{
-				ImGuiWindowClass cl;
-				cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_NoAutoMerge;
-				cl.ParentViewportId = 0;
-				ImGui::SetNextWindowClass(&cl);
-				if (!it->second())
-					it = s_viewports.erase(it);
-				else
-					++it;
-			}
+		for (auto it = s_viewports.begin(); it != s_viewports.end();)
+		{
+			ImGui::SetNextWindowClass(&cl);
+			if (!it->second())
+				it = s_viewports.erase(it);
+			else
+				++it;
+		}
 
-			ImGui::End();
+		// we do this as a popup to let imgui handle styling as a popup. _However_ imgui fails to handle some
+		// things correctly because we aren't popping up over an imgui window, but are instead implicitly
+		// creating a viewport.
+		if (s_contextOpen)
+		{
+			ImGui::OpenPopup("Context Popup");
+			s_contextOpen = false;
+		}
 
-			return ret;
-		};
+		MaybeShowContextMenu();
+
+		return ret;
+	};
 
 	while (LauncherImGui::Backend::DrawFrame(drawMain) && mainLoop())
 	{
@@ -160,24 +177,41 @@ void MaybeShowContextMenu()
 	//static bool do_init;
 	//do_init = true;
 
-	ImGui::PushID("Context Menu");
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
-
-	// we do this as a popup to let imgui handle styling as a popup. _However_ imgui fails to handle some
-	// things correctly because we aren't popping up over an imgui window, but are instead implicitly
-	// creating a viewport.
-	if (s_contextOpen)
-	{
-		ImGui::OpenPopup("Context Popup");
-		s_contextOpen = false;
-	}
-
 	static ImVec2 cr = ImGui::GetContentRegionMax();
-	ImGuiWindowClass cl;
-	cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_TopMost;
-	cl.ParentViewportId = 0;
+
 	ImGui::SetNextWindowClass(&cl);
 	//ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Always, popup_pivot);
+
+	if (ImGui::BeginPopup("Context Popup", ImGuiWindowFlags_NoMove))
+	{
+		ImGui::MenuItem("Menu Item 1");
+		ImGui::MenuItem("Menu Item 2");
+		ImGui::MenuItem("Menu Item 3");
+		ImGui::MenuItem("Menu Item 4");
+		ImGui::MenuItem("Menu Item 5");
+		if (ImGui::BeginMenu("SubMenu"))
+		{
+			ImGui::MenuItem("Menu Item 1");
+			ImGui::MenuItem("Menu Item 2");
+			ImGui::MenuItem("Menu Item 3");
+
+			if (ImGui::BeginMenu("Another SubMenu"))
+			{
+				ImGui::MenuItem("Menu Item 1");
+				ImGui::MenuItem("Menu Item 2");
+				ImGui::MenuItem("Menu Item 3");
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndPopup();
+	}
+
+#if 0
 	if (ImGui::BeginPopup("Context Popup"))
 	{
 		if (ImGui::Button("Another Popup"))
@@ -314,8 +348,8 @@ void MaybeShowContextMenu()
 		ImGui::EndPopup();
 	}
 
+#endif
 	ImGui::PopStyleVar();
-	ImGui::PopID();
 }
 
 } // namespace LauncherImGui
