@@ -71,6 +71,19 @@ void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& m
 			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoDecoration);
 			bool ret = mainWindow();
 			MaybeShowContextMenu();
+
+			for (auto it = s_viewports.begin(); it != s_viewports.end();)
+			{
+				ImGuiWindowClass cl;
+				cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_NoAutoMerge;
+				cl.ParentViewportId = 0;
+				ImGui::SetNextWindowClass(&cl);
+				if (!it->second())
+					it = s_viewports.erase(it);
+				else
+					++it;
+			}
+
 			ImGui::End();
 
 			return ret;
@@ -78,7 +91,6 @@ void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& m
 
 	while (LauncherImGui::Backend::DrawFrame(drawMain) && mainLoop())
 	{
-		// TODO: draw viewports here?
 	}
 
 	LauncherImGui::Backend::Cleanup();
