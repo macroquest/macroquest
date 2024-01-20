@@ -1,3 +1,15 @@
+Jan 19, 2024:
+- Fix mq.pickle not properly escaping backslashes and not properly serializing numbers. (#815, #771).
+
+Jan 18, 2024:
+- Fix issue where textures would not draw if they had not already been preloaded.
+- Fix FPS plot in benchmark window to use its own axis.
+
+Jan 17, 2024:
+- live: Updated for latest patch
+- live: DirectX 11 is now on the live client, some visual features may be
+  missing or not working correctly.
+
 Jan 15, 2024:
 - Update CrashDetected popup with reminder that text can be copied and also add PID (#765).
 - Update faction names by using dbstr_us.txt (#806)
