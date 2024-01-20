@@ -1900,7 +1900,9 @@ bool MQ2HeadingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	if (!pMember)
 		return false;
 
-	float Heading = 360.0f - VarPtr.Float;
+	float Heading = 360.0f - fmod(VarPtr.Float, 360.0f);
+	if (Heading < 0) Heading += 360.0f;
+
 	switch (static_cast<HeadingMembers>(pMember->ID))
 	{
 	case HeadingMembers::Clock:
