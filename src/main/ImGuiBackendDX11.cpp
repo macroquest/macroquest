@@ -305,35 +305,32 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 				const D3D11_RECT r = { (LONG)clip_min.x, (LONG)clip_min.y, (LONG)clip_max.x, (LONG)clip_max.y };
 				ctx->RSSetScissorRects(1, &r);
 
-				// Bind texture, Draw
 				ID3D11ShaderResourceView* texture_srv = nullptr;
-				ImGuiTextureObject::Type texture_type = pcmd->GetTexID().textureType;
-				if (texture_type == ImGuiTextureObject::ShaderResourceView)
+				ImTextureID texID = pcmd->GetTexID();
+				
+				if (texID.IsBitmap())
 				{
-					texture_srv = pcmd->GetTexID().shaderResourceView;
-				}
-				else if (texture_type == ImGuiTextureObject::Bitmap)
-				{
-					const eqlib::CEQGBitmap* bitmap = pcmd->GetTexID().bitmap;
+					const eqlib::CEQGBitmap* bitmap = texID.GetBitmap();
 
-					if (bitmap != nullptr)
+					eqlib::Direct3DTexture9* texture = bitmap->GetD3DTexture();
+					if (texture != nullptr)
 					{
-						eqlib::Direct3DTexture9* texture = bitmap->GetD3DTexture();
-
-						if (texture != nullptr)
+						// Force a load of the texture if it hasn't been loaded yet.
+						if (bitmap->GetTexture() == nullptr)
 						{
-							// Force a load of the texture if it hasn't been loaded yet.
-							if (bitmap->GetTexture() == nullptr)
-							{
-								gpD3D9Device->SetTexture(0, bitmap->GetD3DTexture());
-								gpD3D9Device->SetTexture(0, nullptr);
-							}
-
-							texture_srv = texture->GetShaderResourceView();
+							gpD3D9Device->SetTexture(0, bitmap->GetD3DTexture());
+							gpD3D9Device->SetTexture(0, nullptr);
 						}
+
+						texture_srv = texture->GetShaderResourceView();
 					}
 				}
+				else
+				{
+					texture_srv = texID;
+				}
 
+				// Bind texture, Draw
 				ctx->PSSetShaderResources(0, 1, &texture_srv);
 				ctx->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
 			}

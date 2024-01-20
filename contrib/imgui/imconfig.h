@@ -167,74 +167,47 @@ namespace eqlib
 
 #if HAS_DIRECTX_11
 
-struct ImGuiTextureObject
+class ImGuiTextureObject
 {
-    enum Type
-    {
-        None,
-        ShaderResourceView,
-        Bitmap,
-    };
+public:
+    ImGuiTextureObject() = default;
 
-    union
-    {
-        void* voidPtr;
-        const eqlib::CEQGBitmap* bitmap;
-        ID3D11ShaderResourceView* shaderResourceView;
-    };
-    Type textureType;
-
-    ImGuiTextureObject()
-        : voidPtr(nullptr)
-        , textureType(None)
-    {}
-
-    ImGuiTextureObject(nullptr_t)
-        : voidPtr(nullptr)
-        , textureType(None)
+    ImGuiTextureObject(void* value)
+        : value(reinterpret_cast<uintptr_t>(value))
     {}
 
     ImGuiTextureObject(ID3D11ShaderResourceView* shaderResourceView)
-        : shaderResourceView(shaderResourceView)
-        , textureType(ShaderResourceView)
+        : value(reinterpret_cast<uintptr_t>(shaderResourceView))
+    {}
+
+    ImGuiTextureObject(nullptr_t)
+        : value(0)
     {}
 
     ImGuiTextureObject(const eqlib::CEQGBitmap* bitmap)
-        : bitmap(bitmap)
-        , textureType(Bitmap)
+    {
+        SetBitmap(bitmap);
+    }
+
+    ImGuiTextureObject(const ImGuiTextureObject& other)
+        : value(other.value)
     {}
 
-    ImGuiTextureObject(const ImGuiTextureObject& obj)
-        : voidPtr(obj.voidPtr)
-        , textureType(obj.textureType)
-    {}
-
-    explicit ImGuiTextureObject(int value)
-        : voidPtr((void*)(uintptr_t)value)
-        , textureType(None)
+    ImGuiTextureObject(int value)
+        : value(value)
     {
         IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
     }
 
     ImGuiTextureObject(intptr_t value)
-        : voidPtr((void*)(uintptr_t)value)
-        , textureType(None)
+        : value(value)
     {
         IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
     }
 
     ImGuiTextureObject& operator=(const ImGuiTextureObject& other)
     {
-        voidPtr = other.voidPtr;
-        textureType = other.textureType;
-
-        return *this;
-    }
-
-    ImGuiTextureObject& operator=(nullptr_t)
-    {
-        voidPtr = nullptr;
-        textureType = None;
+        value = other.value;
 
         return *this;
     }
@@ -242,45 +215,70 @@ struct ImGuiTextureObject
     ImGuiTextureObject& operator=(int value)
     {
         IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
-
-        voidPtr = (void*)(uintptr_t)value;
-        textureType = None;
+        this->value = value;
 
         return *this;
     }
 
     ImGuiTextureObject& operator=(const eqlib::CEQGBitmap* bitmap)
     {
-        this->bitmap = bitmap;
-        textureType = Bitmap;
+        SetBitmap(bitmap);
 
         return *this;
     }
 
     ImGuiTextureObject& operator=(ID3D11ShaderResourceView* shaderResourceView)
     {
-        this->shaderResourceView = shaderResourceView;
-        textureType = ShaderResourceView;
+        SetPointer(shaderResourceView);
 
         return *this;
     }
 
-    operator intptr_t() const { return reinterpret_cast<intptr_t>(voidPtr); }
-    operator void*() const { return voidPtr; }
+    ImGuiTextureObject& operator=(void* value)
+    {
+        SetPointer(value);
 
-    bool operator==(nullptr_t) const { return voidPtr == nullptr; }
-    bool operator!=(nullptr_t) const { return voidPtr != nullptr; }
+        return *this;
+    }
+
+    bool IsBitmap() const { return (value & 0x8000000000000000) != 0; }
+
+    const eqlib::CEQGBitmap* GetBitmap() const
+    {
+        return IsBitmap() ? static_cast<const eqlib::CEQGBitmap*>(GetPointer()) : nullptr;
+    }
+    ID3D11ShaderResourceView* GetShaderResourceView() const
+    {
+        return IsBitmap() ? nullptr : static_cast<ID3D11ShaderResourceView*>(GetPointer());
+    }
+
+    operator intptr_t() const { return reinterpret_cast<intptr_t>(GetPointer()); }
+    operator ID3D11ShaderResourceView*() const { return GetShaderResourceView(); }
+
+    bool operator==(nullptr_t) const { return value == 0; }
+    bool operator!=(nullptr_t) const { return value != 0; }
+
+    void* GetPointer() const
+    {
+        return reinterpret_cast<void*>(value & ~0x8000000000000000);
+    }
+
+private:
+    void SetBitmap(const eqlib::CEQGBitmap* bitmap)
+    {
+        value = reinterpret_cast<uintptr_t>(bitmap) | 0x8000000000000000;
+    }
+
+    void SetPointer(void* pointer)
+    {
+        value = reinterpret_cast<uintptr_t>(pointer);
+    }
+
+    uintptr_t value;
 };
 
-inline bool operator==(const ImGuiTextureObject& left, const ImGuiTextureObject& right)
-{
-    return left.textureType == right.textureType && left.voidPtr == right.voidPtr;
-}
-
-inline bool operator!=(const ImGuiTextureObject& left, const ImGuiTextureObject& right)
-{
-    return !(left.textureType == right.textureType && left.voidPtr == right.voidPtr);
-}
+inline bool operator==(const ImGuiTextureObject& a, const ImGuiTextureObject& b) { return a.GetPointer() == b.GetPointer(); }
+inline bool operator!=(const ImGuiTextureObject& a, const ImGuiTextureObject& b) { return a.GetPointer() != b.GetPointer(); }
 
 #define ImTextureID ImGuiTextureObject
 
