@@ -788,10 +788,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
     case WM_KILLFOCUS:
         io.AddFocusEvent(msg == WM_SETFOCUS);
         return 0;
-	case WM_ACTIVATE:
-		SPDLOG_INFO("ACTIVATE MESSAGE {} : 0x{}", wParam, (void*)hwnd);
-		io.AddFocusEvent(wParam != WA_INACTIVE);
-		return 0;
     case WM_INPUTLANGCHANGE:
         ImGui_ImplWin32_UpdateKeyboardCodePage();
         return 0;
@@ -1244,8 +1240,6 @@ static void ImGui_ImplWin32_OnChangedViewport(ImGuiViewport* viewport)
 
 static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	if (msg == WM_ACTIVATE)
-		SPDLOG_INFO("Caught activate");
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
         return true;
 
@@ -1273,6 +1267,13 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
             // your main loop after calling UpdatePlatformWindows(). Iterate all viewports/platform windows and pass the flag to your windowing system.
             if (viewport->Flags & ImGuiViewportFlags_NoInputs)
                 return HTTRANSPARENT;
+            break;
+
+        case WM_ACTIVATE:
+            if (wParam == WA_INACTIVE)
+            {
+                CloseWindow(hWnd);
+            }
             break;
         }
     }
