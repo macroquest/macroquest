@@ -17,30 +17,37 @@
 #include <functional>
 #include <string>
 
-#include "hello_imgui/screen_bounds.h"
-
 #include "imgui/imgui.h"
+
+#include <windows.h>
 
 typedef void (_cdecl * SDL_WindowsMessageHook)(void *userdata, void *hWnd, unsigned int message, uint64_t wParam, int64_t lParam);
 
-namespace HelloImGui {
-struct DockableWindow;
-} // namespace HelloImGui
+namespace ImGui {
+bool SmallCheckbox(const char* label, bool* v);
+}
+
+//namespace HelloImGui {
+//struct DockableWindow;
+//} // namespace HelloImGui
 
 namespace LauncherImGui {
 
-void AddViewport(HelloImGui::DockableWindow&& params);
+struct Viewport
+{
+	std::function<bool()> DrawFrame;
+};
+
 void AddViewport(
-	const std::function<void()>& render,
-	const std::string& windowTitle,
-	const ImVec2& windowSize = ImVec2((float)HelloImGui::DefaultWindowSize[0], (float)HelloImGui::DefaultWindowSize[1]),
-	const ImVec2& windowPosition = ImVec2((float)HelloImGui::DefaultScreenPosition[0], (float)HelloImGui::DefaultScreenPosition[1])
+	const std::function<bool()>& render,
+	const std::string& label
 );
 
 bool AddWindow(const std::string& name, const std::function<void()> callback);
 bool RemoveWindow(const std::string& name);
-void Run(SDL_WindowsMessageHook eventHandler, float fpsIdle = 10.f);
-void Terminate();
-void AddViewport();
+void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop);
+bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
+void OpenMainWindow();
+void OpenContextMenu();
 
 } // namespace LauncherImGui

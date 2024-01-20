@@ -15,44 +15,39 @@
 #include "ImGui.h"
 #include "MacroQuest.h"
 
-#include "imgui/imgui.h"
+#include "imgui_backend/imgui_engine.h"
 
-#include "hello_imgui/hello_imgui.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+
 #include "imgui/ImGuiUtils.h"
 
 #include "spdlog/spdlog.h"
 
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_system.h>
-
 static std::map<std::string, std::function<void()>> s_windows;
-static std::vector<HelloImGui::DockableWindow> s_pendingViewports;
+static std::map<std::string, std::function<bool()>> s_viewports;
+
+// for the context  menu
+static std::map<std::string, std::function<void()>> s_menuGroups;
+static bool s_contextOpen;
+
+bool ImGui::SmallCheckbox(const char* label, bool* v)
+{
+	float backup_padding_y = ImGui::GetStyle().FramePadding.y;
+	ImGui::GetStyle().FramePadding.y = 0.f;
+	bool pressed = ImGui::Checkbox(label, v);
+	ImGui::GetStyle().FramePadding.y = backup_padding_y;
+	return pressed;
+}
 
 namespace LauncherImGui {
 
-void AddViewport(HelloImGui::DockableWindow&& params)
-{
-	s_pendingViewports.emplace_back(std::move(params));
-}
-
 void AddViewport(
-	const std::function<void()>& render,
-	const std::string& windowTitle,
-	const ImVec2& windowSize, // = HelloImGui::DefaultWindowSize
-	const ImVec2& windowPosition // = HelloImGui::DefaultWindowSize
+	const std::function<bool()>& render,
+	const std::string& label
 )
 {
-	HelloImGui::DockableWindow viewport;
-	viewport.GuiFunction = render;
-
-	viewport.label = windowTitle; // this must be unique
-	viewport.dockSpaceName = fmt::format("{}Space", windowTitle);
-	viewport.windowSize = windowSize;
-	viewport.windowPosition = windowPosition;
-
-	viewport.focusWindowAtNextFrame = true;
-
-	AddViewport(std::move(viewport));
+	s_viewports.emplace(label, render);
 }
 
 bool AddWindow(const std::string& name, const std::function<void()> callback)
@@ -66,126 +61,249 @@ bool RemoveWindow(const std::string& name)
 	return s_windows.erase(name) > 0;
 }
 
-void Run(SDL_WindowsMessageHook eventHandler, float fpsIdle)
+void MaybeShowContextMenu();
+void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop)
 {
-	HelloImGui::RunnerParams params;
+	LauncherImGui::Backend::Init(hMainWnd);
 
-	//params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
-	params.imGuiWindowParams.enableViewports = true;
-
-	params.fpsIdling.fpsIdle = fpsIdle;
-
-	// prevent begin/end from being called at all
-	params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::NoDefaultWindow;
-	params.appWindowParams.hidden = true;
-	params.appWindowParams.borderless = true;
-
-	params.callbacks.PostInit = [&eventHandler]()
+	auto drawMain = [&mainWindow]() -> bool
 		{
-			SDL_SetWindowsMessageHook(eventHandler, nullptr);
+			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoDecoration);
+			bool ret = mainWindow();
+			MaybeShowContextMenu();
+			ImGui::End();
+
+			return ret;
 		};
 
-	params.callbacks.PreNewFrame = []()
-		{
-			auto& viewports = HelloImGui::GetRunnerParams()->dockingParams.dockableWindows;
+	while (LauncherImGui::Backend::DrawFrame(drawMain) && mainLoop())
+	{
+		// TODO: draw viewports here?
+	}
 
-			// first clear out all removed viewports
-			viewports.erase(std::remove_if(viewports.begin(), viewports.end(),
-				[](const HelloImGui::DockableWindow& viewport) { return !viewport.isVisible; }), viewports.end());
-
-			// and then add in pending viewports
-			for (auto& viewport : s_pendingViewports)
-			{
-				auto it = std::find_if(viewports.begin(), viewports.end(),
-					[&label = viewport.label](const HelloImGui::DockableWindow& vp)
-					{ return ci_equals(vp.label, label); });
-
-				if (it == viewports.end())
-					viewports.emplace_back(std::move(viewport));
-			}
-
-			s_pendingViewports.clear();
-		};
-
-	params.callbacks.SetupImGuiConfig = []()
-		{
-			HelloImGui::ImGuiDefaultSettings::SetupDefaultImGuiConfig();
-
-			ImGuiIO& io = ImGui::GetIO();
-
-			io.ConfigViewportsNoTaskBarIcon = true;
-			io.ConfigViewportsNoDefaultParent = true;
-			io.ConfigViewportsNoAutoMerge = true;
-			io.ConfigViewportsNoDecoration = true;
-		};
-
-	// This will technically build the font atlas twice, but doing it this way allows us to reuse MQ's font code
-	// TODO: test if this matters, if it does then we just have to call the constituent functions
-	params.callbacks.LoadAdditionalFonts = []()
-		{
-			//HelloImGui::ImGuiDefaultSettings::LoadDefaultFont_WithFontAwesomeIcons();
-
-			mq::imgui::ConfigureFonts(ImGui::GetIO().Fonts);
-		};
-
-	params.callbacks.SetupImGuiStyle = []()
-		{
-			HelloImGui::ImGuiDefaultSettings::SetupDefaultImGuiStyle();
-
-			mq::imgui::ConfigureStyle();
-		};
-
-	HelloImGui::Run(params);
+	LauncherImGui::Backend::Cleanup();
 }
 
-void Terminate()
+bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
 {
-	// This throws if Run has not been called
-	try
-	{
-		HelloImGui::GetRunnerParams()->appShallExit = true;
-	}
-	catch (std::runtime_error&)
-	{
-		SPDLOG_ERROR("Failed to initialize ImGui before attempting to exit.");
-	}
+	return LauncherImGui::Backend::HandleWndProc(hWnd, msg, wParam, lParam);
 }
 
-void AddViewport()
+void OpenMainWindow()
 {
 	AddViewport(
 		[]()
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 
-			static std::optional<std::string> current_window;
-
-			ImGui::BeginChild("Window Selection", ImVec2(ImGui::GetContentRegionAvail().x * 0.2f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
-			for (const auto& [name, callback] : s_windows)
+			bool is_open = true;
+			if (ImGui::Begin("MacroQuest", &is_open))
 			{
-				bool is_selected = current_window && ci_equals(name, *current_window);
-				if (ImGui::Selectable(name.c_str(), is_selected))
-					current_window = name;
+				static std::optional<const std::function<void()>*> current_callback;
 
-				if (is_selected) ImGui::SetItemDefaultFocus();
+				ImGui::BeginChild("Window Selection", ImVec2(ImGui::GetContentRegionAvail().x * 0.2f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
+				for (const auto& [name, callback] : s_windows)
+				{
+					bool is_selected = current_callback && &callback == *current_callback;
+					if (ImGui::Selectable(name.c_str(), is_selected))
+						current_callback = &callback;
+
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndChild();
+
+				ImGui::SameLine();
+
+				ImGui::BeginChild("Window Display", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+
+				if (current_callback && *current_callback != nullptr)
+					(*current_callback.value())();
+
+				ImGui::EndChild();
 			}
-			ImGui::EndChild();
 
-			ImGui::SameLine();
-
-			ImGui::BeginChild("Window Display", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
-			if (current_window)
-			{
-				const auto& window_it = s_windows.find(*current_window);
-				if (window_it != s_windows.end())
-					window_it->second();
-			}
-			ImGui::EndChild();
-
+			ImGui::End();
 			ImGui::PopStyleVar();
+
+			return is_open;
 		},
 		"MacroQuest"
 	);
+}
+
+void OpenContextMenu()
+{
+	// force a mouse position update for 2 reasons:
+	// first, mouse position is completely invalid unless it has been clicked inside an imgui window
+	// second, this makes the animation cleaner by hinting at the correct rendering position on the screen
+	POINT cursorPos = { 0 };
+	GetCursorPos(&cursorPos);
+	ImGui::GetIO().AddMousePosEvent((float)cursorPos.x, (float)cursorPos.y);
+	s_contextOpen = true;
+}
+
+void MaybeShowContextMenu()
+{
+	// these needs to be be set to true whenever we attempt to show the context menu
+	//static bool do_init;
+	//do_init = true;
+
+	ImGui::PushID("Context Menu");
+	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
+
+	// we do this as a popup to let imgui handle styling as a popup. _However_ imgui fails to handle some
+	// things correctly because we aren't popping up over an imgui window, but are instead implicitly
+	// creating a viewport.
+	if (s_contextOpen)
+	{
+		ImGui::OpenPopup("Context Popup");
+		s_contextOpen = false;
+	}
+
+	static ImVec2 cr = ImGui::GetContentRegionMax();
+	ImGuiWindowClass cl;
+	cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_TopMost;
+	cl.ParentViewportId = 0;
+	ImGui::SetNextWindowClass(&cl);
+	//ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Always, popup_pivot);
+	if (ImGui::BeginPopup("Context Popup"))
+	{
+		if (ImGui::Button("Another Popup"))
+			ImGui::OpenPopup("Another Popup");
+
+		if (ImGui::BeginPopup("Another Popup"))
+		{
+			ImGui::Text("Check it out");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
+
+			ImGui::EndPopup();
+		}
+
+		static bool test;
+		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
+		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
+		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
+		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
+
+		ImGui::Separator();
+
+		ImGui::Text("%.2f, %.2f", cr.x, cr.y);
+
+		{
+			auto cursorPos = ImGui::GetMousePos();
+			ImGui::Text("%.2f %.2f", cursorPos.x, cursorPos.y);
+
+			for (const auto& monitor : ImGui::GetPlatformIO().Monitors)
+			{
+				ImGui::Text("%.2f %.2f %.2f %.2f", monitor.WorkPos.x, monitor.WorkPos.y, monitor.WorkSize.x, monitor.WorkSize.y);
+			}
+		}
+
+		ImGui::Separator();
+
+		ImGui::Text("FocusLost: %s", ImGui::GetIO().AppFocusLost ? "true" : "false");
+		ImGui::Text("Clicked: %s", ImGui::IsMouseClicked(ImGuiMouseButton_Left) ? "true" : "false");
+		ImGui::Text("Focused: %s", ImGui::IsWindowFocused() ? "true" : "false");
+		ImGui::Text("WantCaptureMouse: %s (%s)",
+			ImGui::GetIO().WantCaptureMouse ? "true" : "false",
+			ImGui::GetIO().WantCaptureMouseUnlessPopupClose ? "true" : "false");
+
+		ImGui::Separator();
+
+		auto currentViewport = ImGui::GetWindowViewport();
+		auto currentWindow = (HWND)currentViewport->PlatformHandleRaw;
+		WINDOWINFO pw;
+		::GetWindowInfo(currentWindow, &pw);
+		::GetWindow(currentWindow, GW_OWNER);
+		ImGui::Text("Current Window: 0x%p", currentViewport->PlatformHandleRaw);
+		ImGui::Text("Current Window: 0x%p", currentViewport->PlatformHandle);
+		ImGui::Text("Focused Window: 0x%p", ::GetForegroundWindow());
+
+		ImGui::Separator();
+
+		if (ImGui::SmallButton("Close"))
+			ImGui::CloseCurrentPopup();
+
+		for (const auto& [name, callback] : s_menuGroups)
+		{
+			ImGui::PushID(name.c_str());
+			ImGui::BeginChild("grouping", ImVec2(0.f, 0.f), ImGuiChildFlags_Border, ImGuiWindowFlags_None);
+
+			callback();
+
+			ImGui::EndChild();
+			ImGui::PopID();
+		}
+
+		// we need to set the viewport of the popup to active because imgui doesn't automatically
+		// but after we do, we need to check if it's lost focus because imgui doesn't handle that
+		// outside of imgui windows
+		//static auto currentViewport = ImGui::GetWindowViewport();
+		//auto newViewport = ImGui::GetWindowViewport();
+		//if (currentViewport == newViewport)
+		//{
+		//	// PlatformHandleRaw should always be the HWND on windows, but some backends
+		//	// might leave it nullptr, which means we assume that PlatformHandle is the HWND
+		//	HWND currentWindow = currentViewport->PlatformHandleRaw == nullptr ?
+		//		(HWND)currentViewport->PlatformHandle :
+		//		(HWND)currentViewport->PlatformHandleRaw;
+
+		//	// it can take 2 frames to populate the handles
+		//	if (currentWindow)
+		//	{
+		//		if (do_init)
+		//		{
+		//			::SetForegroundWindow(currentWindow);
+		//			do_init = false;
+		//		}
+		//		else if (currentWindow != ::GetForegroundWindow())
+		//		{
+		//			ImGui::CloseContextMenu();
+		//		}
+		//	}
+		//}
+		//else
+		//{
+		//	currentViewport = newViewport;
+		//	do_init = true;
+		//}
+
+		cr = ImGui::GetContentRegionMax();
+
+		ImGui::EndPopup();
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::PopID();
 }
 
 } // namespace LauncherImGui

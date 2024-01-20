@@ -764,6 +764,9 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 {
+	if (LauncherImGui::HandleWndProc(hWnd, MSG, wParam, lParam))
+		return true;
+
 	LRESULT autoLoginResult = 0;
 	if (HandleAutoLoginWindowMessage(hWnd, MSG, wParam, lParam, &autoLoginResult))
 		return autoLoginResult;
@@ -824,7 +827,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	}
 
 	case WM_USER_CALLBACK:
-		ProcessPipeServer();
 		break;
 
 	default:
@@ -835,21 +837,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 			switch (lParam)
 			{
 			case WM_LBUTTONUP:
-				LauncherImGui::AddViewport();
+				LauncherImGui::OpenMainWindow();
 				break;
 
 			case WM_RBUTTONUP:
-				GetCursorPos(&mp);
-				SetForegroundWindow(hWnd);
-				TrackPopupMenu(GetSubMenu(hMenu, 0),
-					TPM_LEFTBUTTON | TPM_RECURSE,
-					mp.x,
-					mp.y,
-					0,
-					hWnd,
-					nullptr);
-
-				PostMessage(hWnd, WM_NULL, 0, 0);
+				LauncherImGui::OpenContextMenu();
 				break;
 			}
 			break;
@@ -1195,20 +1187,27 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		CheckAppCompat();
 
 	SPDLOG_INFO("Waiting for events...");
-	static int exit_return = 1;
 
-	LauncherImGui::Run([](void*, void* hWnd, unsigned int message, uint64_t wParam, int64_t lParam)
+	MSG msg;
+	LauncherImGui::Run(
+		[]() { return true; },
+		[&msg]()
 		{
-			switch (message)
+			ProcessPipeServer();
+			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
-			case WM_QUIT:
-				exit_return = static_cast<int>(wParam);
-				LauncherImGui::Terminate();
-				break;
-			default:
-				// nothing to do here, translate and dispatch are already called in SDL
-				break;
+				switch (msg.message)
+				{
+				case WM_QUIT:
+					return false;
+				default:
+					TranslateMessage(&msg);
+					DispatchMessageA(&msg);
+					return true;
+				}
 			}
+
+			return true;
 		});
 
 	SPDLOG_INFO("Shutting down...");
@@ -1232,7 +1231,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 
 	spdlog::shutdown();
 
-	return exit_return;
+	return (int)msg.wParam;
 }
 
 HWND LocateHotkeyWindow(WORD modkey, WORD hotkey)

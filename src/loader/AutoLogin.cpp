@@ -20,7 +20,6 @@
 #include "routing/PostOffice.h"
 
 #include "ImGui.h"
-#include "hello_imgui/docking_params.h" // to create the viewport
 
 #include <commdlg.h>
 #include <shellapi.h>
@@ -33,7 +32,6 @@
 
 #include <fmt/format.h>
 
-#include "hello_imgui/hello_imgui.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_internal.h"
@@ -1200,10 +1198,6 @@ LRESULT HandleAutoLoginMenuRightclick(HMENU hSubMenu, int menuId, LPARAM lParam)
 			TrackPopupMenuEx(hEditPopup, TPM_LEFTBUTTON | TPM_RECURSE, point.x, point.y, hMainWnd, nullptr);
 		}
 	}
-	else if (unmaskedMenuId == ID_MENU_MQ2AUTOLOGIN)
-	{
-		LauncherImGui::AddViewport();
-	}
 
 	return 0;
 }
@@ -1228,15 +1222,6 @@ void LaunchCleanSession()
 }
 
 #pragma region ImGui
-
-bool SmallCheckbox(const char* label, bool* v)
-{
-	float backup_padding_y = ImGui::GetStyle().FramePadding.y;
-	ImGui::GetStyle().FramePadding.y = 0.f;
-	bool pressed = ImGui::Checkbox(label, v);
-	ImGui::GetStyle().FramePadding.y = backup_padding_y;
-	return pressed;
-}
 
 bool ToggleSlider(const char* label, bool* v)
 {
@@ -2440,11 +2425,34 @@ void ShowAutoLoginWindow()
 
 void ShowContextMenu()
 {
+	ImGui::PushID("contextmenu");
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 
-	if (ImGui::Selectable("Pause Login on Startup"))
+	if (ImGui::BeginTable("##main", 2, ImGuiTableFlags_SizingFixedFit))
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		bool is_paused = false;
+		if (auto raw_pause = login::db::ReadSetting("is_paused"))
+			is_paused = GetBoolFromString(*raw_pause, false);
+
+		if (ImGui::Checkbox("##pausetoggle", &is_paused))
+		{
+			login::db::WriteSetting("is_paused", is_paused ? "true" : "false");
+		}
+
+		ImGui::TableNextColumn();
+		if (ImGui::Selectable("Pause Login on Startup"))
+		{
+			login::db::WriteSetting("is_paused", !is_paused ? "true" : "false");
+		}
+
+		ImGui::EndTable();
+	}
 
 	ImGui::PopStyleVar();
+	ImGui::PopID();
 }
 
 #pragma endregion
@@ -3537,39 +3545,46 @@ void InitializeAutoLogin()
 	{
 		LauncherImGui::AddViewport(
 			[&pass]() {
-				static const char* label = "Please Enter Master Password";
-				ImGui::Text(label);
-				ImGui::Spacing();
-
-				// TODO: This can be a lot nicer -- also the hashing can take a bit so it should
-				// probably happen in a thread to prevent the UI from hanging on slower computers
-				static bool show_password = false;
-				static std::string password;
-
-				ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
-				if (!show_password) flags |= ImGuiInputTextFlags_Password;
-
-				if (ImGui::InputText("##password", &password, flags))
+				bool is_open = true;
+				if (ImGui::Begin("Enter Master Password", &is_open))
 				{
-					if (login::db::ValidatePass(password, true))
-					{
-						login::db::CreateMasterPass(password);
-						pass = password;
-						HelloImGui::GetRunnerParams()->appShallExit = true;
-						label = "Please Enter Master Password";
-					}
-					else
-					{
-						label = "Incorrect Password, Please Enter Master Password";
-					}
-				}
-				ImGui::Spacing();
+					static const char* label = "Please Enter Master Password";
+					ImGui::Text(label);
+					ImGui::Spacing();
 
-				ImGui::Checkbox("Show password", &show_password);
-				ImGui::Spacing();
+					// TODO: This can be a lot nicer -- also the hashing can take a bit so it should
+					// probably happen in a thread to prevent the UI from hanging on slower computers
+					static bool show_password = false;
+					static std::string password;
+
+					ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
+					if (!show_password) flags |= ImGuiInputTextFlags_Password;
+
+
+					if (ImGui::InputText("##password", &password, flags))
+					{
+						if (login::db::ValidatePass(password, true))
+						{
+							login::db::CreateMasterPass(password);
+							pass = password;
+							is_open = false;
+							label = "Please Enter Master Password";
+						}
+						else
+						{
+							label = "Incorrect Password, Please Enter Master Password";
+						}
+					}
+					ImGui::Spacing();
+
+					ImGui::Checkbox("Show password", &show_password);
+					ImGui::Spacing();
+				}
+
+				ImGui::End();
+				return is_open;
 			},
-			"Enter Master Password",
-			{ 300, 200 }
+			"Enter Master Password"
 		);
 	}
 

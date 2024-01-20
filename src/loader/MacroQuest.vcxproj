@@ -129,6 +129,9 @@
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
     <ClCompile Include="ImGui.cpp" />
+    <ClCompile Include="imgui_backend\imgui_engine.cpp" />
+    <ClCompile Include="imgui_backend\imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui_backend\imgui_impl_win32.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="ProcessList.cpp" />
@@ -143,6 +146,9 @@
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="ImGui.h" />
+    <ClInclude Include="imgui_backend\imgui_engine.h" />
+    <ClInclude Include="imgui_backend\imgui_impl_dx11.h" />
+    <ClInclude Include="imgui_backend\imgui_impl_win32.h" />
     <ClInclude Include="MacroQuest.h" />
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProcessMonitor.h" />
@@ -158,8 +164,8 @@
     <Manifest Include="MacroQuest.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\hello_imgui\hello_imgui.vcxproj">
-      <Project>{20e5fe5e-be28-488e-b7eb-af867be5df42}</Project>
+    <ProjectReference Include="..\imgui\imgui.vcxproj">
+      <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
     </ProjectReference>
     <ProjectReference Include="..\login\login.vcxproj">
       <Project>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</Project>

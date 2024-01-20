@@ -135,9 +135,6 @@
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\hello_imgui_ini_settings.h">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\imgui_global_context.h">
-      <Filter>Header Files\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\imguial_term.h">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
@@ -163,9 +160,6 @@
       <Filter>Header Files\internal\backend_impls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\backend_window_helper.h">
-      <Filter>Header Files\internal\backend_impls\backend_window_helper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\glfw_window_helper.h">
       <Filter>Header Files\internal\backend_impls\backend_window_helper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\win32_dpi_awareness.h">
@@ -207,15 +201,6 @@
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_dx11.h">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_metal.h">
-      <Filter>Header Files\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_opengl.h">
-      <Filter>Header Files\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\image_vulkan.h">
-      <Filter>Header Files\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\borderless_movable.h">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
@@ -223,24 +208,6 @@
       <Filter>Header Files\internal\backend_impls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_metal.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_opengl3.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_emscripten.h">
-      <Filter>Header Files\internal\backend_impls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw3.h">
       <Filter>Header Files\internal\backend_impls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_sdl2.h">
@@ -347,9 +314,6 @@
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\backend_window_helper.cpp">
       <Filter>Source Files\internal\backend_impls\backend_window_helper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\glfw_window_helper.cpp">
-      <Filter>Source Files\internal\backend_impls\backend_window_helper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\backend_window_helper\win32_dpi_awareness.cpp">
       <Filter>Source Files\internal\backend_impls\backend_window_helper</Filter>
     </ClCompile>
@@ -392,37 +356,7 @@
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11.cpp">
       <Filter>Source Files\internal\backend_impls</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11_glfw.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx11_sdl.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_dx12_sdl.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_opengl3.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_glfw.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_sdl.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\rendering_vulkan_setup.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_emscripten.cpp">
-      <Filter>Source Files\internal\backend_impls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_glfw3.cpp">
       <Filter>Source Files\internal\backend_impls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\contrib\hello_imgui\src\hello_imgui\internal\backend_impls\runner_sdl2.cpp">
