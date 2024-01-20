@@ -362,6 +362,16 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 			str.replace(pos, 1, "\\\\");
 			pos += 2;
 		}
+		for (size_t pos = str.find("\t"); pos != std::string::npos; pos = str.find("\t", pos))
+		{
+			str.replace(pos, 1, "\\t");
+			pos += 2;
+		}
+		for (size_t pos = str.find("\n"); pos != std::string::npos; pos = str.find("\n", pos))
+		{
+			str.replace(pos, 1, "\\n");
+			pos += 2;
+		}
 		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
 		{
 			str.replace(pos, 1, "\\'");
