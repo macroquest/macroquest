@@ -1,3 +1,6 @@
+Jan 20, 2024:
+- Fix Mercenary.State reporting unknown when mercenary is active (#811)
+
 Jan 19, 2024:
 - Fix mq.pickle not properly escaping backslashes and not properly serializing numbers. (#815, #771).
 
