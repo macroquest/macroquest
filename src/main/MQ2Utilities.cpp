@@ -1310,62 +1310,43 @@ int GetLanguageIDByName(const char* szName)
 	return -1;
 }
 
-// TOOD: Convert to data table
-int GetCurrencyIDByName(char* szName)
+void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value, eDatabaseStringType type)
 {
-	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;
-	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX;
-	if (!_stricmp(szName, "Phosphenes")) return ALTCURRENCY_PHOSPHENES;
-	if (!_stricmp(szName, "Phosphites")) return ALTCURRENCY_PHOSPHITES;
-	if (!_stricmp(szName, "Faycitum")) return ALTCURRENCY_FAYCITES;
-	if (!_stricmp(szName, "Chronobines")) return ALTCURRENCY_CHRONOBINES;
-	if (!_stricmp(szName, "Silver Tokens")) return ALTCURRENCY_SILVERTOKENS;
-	if (!_stricmp(szName, "Gold Tokens")) return ALTCURRENCY_GOLDTOKENS;
-	if (!_stricmp(szName, "McKenzie's Special Brew")) return ALTCURRENCY_MCKENZIE;
-	if (!_stricmp(szName, "Bayle Marks")) return ALTCURRENCY_BAYLE;
-	if (!_stricmp(szName, "Tokens of Reclamation")) return ALTCURRENCY_RECLAMATION;
-	if (!_stricmp(szName, "Brellium Tokens")) return ALTCURRENCY_BRELLIUM;
-	if (!_stricmp(szName, "Dream Motes")) return ALTCURRENCY_MOTES;
-	if (!_stricmp(szName, "Rebellion Chits")) return ALTCURRENCY_REBELLIONCHITS;
-	if (!_stricmp(szName, "Diamond Coins")) return ALTCURRENCY_DIAMONDCOINS;
-	if (!_stricmp(szName, "Bronze Fiats")) return ALTCURRENCY_BRONZEFIATS;
-	if (!_stricmp(szName, "Expedient Delivery Vouchers")) return ALTCURRENCY_VOUCHER;
-	if (!_stricmp(szName, "Velium Shards")) return ALTCURRENCY_VELIUMSHARDS;
-	if (!_stricmp(szName, "Crystallized Fear")) return ALTCURRENCY_CRYSTALLIZEDFEAR;
-	if (!_stricmp(szName, "Shadowstones")) return ALTCURRENCY_SHADOWSTONES;
-	if (!_stricmp(szName, "Dreadstones")) return ALTCURRENCY_DREADSTONES;
-	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR;
-	if (!_stricmp(szName, "Medals of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM;
-	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS;
-	if (!_stricmp(szName, "Fists of Bayle")) return ALTCURRENCY_FISTSOFBAYLE;
-	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES;
-	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS;
-	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT;
-	if (!_stricmp(szName, "Remnants of Tranquility")) return ALTCURRENCY_REMNANTSOFTRANQUILITY;
-	if (!_stricmp(szName, "Bifurcated Coin")) return ALTCURRENCY_BIFURCATEDCOIN;
-	if (!_stricmp(szName, "Adoptive Coins")) return ALTCURRENCY_ADOPTIVE;
-	if (!_stricmp(szName, "Sathir's Trade Gems")) return ALTCURRENCY_SATHIRSTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Sebilisian Coins")) return ALTCURRENCY_ANCIENTSEBILISIANCOINS;
-	if (!_stricmp(szName, "Bathezid Trade Gems")) return ALTCURRENCY_BATHEZIDTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Draconic Coin")) return ALTCURRENCY_ANCIENTDRACONICCOIN;
-	if (!_stricmp(szName, "Fetterred Ifrit Coins")) return ALTCURRENCY_FETTERREDIFRITCOINS;
-	if (!_stricmp(szName, "Entwined Djinn Coins")) return ALTCURRENCY_ENTWINEDDJINNCOINS;
-	if (!_stricmp(szName, "Crystallized Luck")) return ALTCURRENCY_CRYSTALLIZEDLUCK;
-	if (!_stricmp(szName, "Froststone Ducat")) return ALTCURRENCY_FROSTSTONEDUCAT;
-	if (!_stricmp(szName, "Warlord's Symbol")) return ALTCURRENCY_WARLORDSSYMBOL;
-	if (!_stricmp(szName, "Overseer Tetradrachm")) return ALTCURRENCY_OVERSEERTETRADRACHM;
-	if (!_stricmp(szName, "Restless Mark")) return ALTCURRENCY_RESTLESSMARK;
-	if (!_stricmp(szName, "Warforged Emblem")) return ALTCURRENCY_WARFORGEDEMBLEM;
-	if (!_stricmp(szName, "Scarlet Marks")) return ALTCURRENCY_SCARLETMARKS;
-	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
-	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
-	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
-	if (!_stricmp(szName, "Laurion Inn Voucher")) return ALTCURRENCY_LAURIONINNVOUCHER;
-	if (!_stricmp(szName, "Shalowains Private Reserve")) return ALTCURRENCY_SHALOWAINSPRIVATERESERVE;
+	constexpr std::string_view chars_to_remove = "'`";
+	if (const char* ptr = pCDBStr->GetString(value, type))
+	{
+		const std::string currency = to_lower_copy(ptr);
+		cache[currency] = value;
+		cache[remove_chars(currency, chars_to_remove)] = value;
+	}
+}
+
+int GetCurrencyIDByName(const char* szName)
+{
+	static std::unordered_map<std::string, int> cache;
+
+	if (cache.empty())
+	{
+		for (int i = ALTCURRENCY_FIRST; i <= ALTCURRENCY_LAST; ++i)
+		{
+			UpdateCurrencyCache(cache, i, eAltCurrencyNamePlural);
+			UpdateCurrencyCache(cache, i, eAltCurrencyName);
+		}
+		// Crowns are outside ALTCURRENCY_LAST
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyNamePlural);
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyName);
+	}
+
+	const auto it = cache.find(to_lower_copy(szName));
+	if (it != cache.end())
+	{
+		return it->second;
+	}
+
 	return -1;
 }
 
-// This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
+// This wrapper is here to deal with older plugins and to preserve backwards compatibility with older clients (emu)
 CAltAbilityData* GetAAById(int nAbilityId, int playerLevel)
 {
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);

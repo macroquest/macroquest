@@ -38,7 +38,7 @@ public:
 	bool IsValid() const { return m_bmi != nullptr; }
 	const std::string& GetFilename() const { return m_name; }
 
-	MQLIB_OBJECT void* GetTextureID() const;
+	MQLIB_OBJECT ImTextureID GetTextureID() const;
 	MQLIB_OBJECT eqlib::CXSize GetTextureSize() const;
 
 	void ReleaseTexture();

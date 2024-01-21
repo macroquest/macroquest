@@ -41,12 +41,11 @@ static const char* GetMercenaryStateString()
 	{
 	case MercenaryState_Dead:
 		return "DEAD";
-	case MercenaryState_Suspended:
-		return "SUSPENDED";
 	case MercenaryState_Active:
 		return "ACTIVE";
+
 	default:
-		return "UNKNOWN";
+		return "SUSPENDED";
 	}
 }
 

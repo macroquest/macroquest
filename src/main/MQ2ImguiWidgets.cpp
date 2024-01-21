@@ -59,7 +59,11 @@ static bool DrawUITextureInternal(ImDrawList* drawList,
 	if (!pEQGBitmap)
 		return false;
 
+#if HAS_DIRECTX_11
+	ImTextureID TexID = pEQGBitmap;
+#else
 	ImTextureID TexID = (ImTextureID)pEQGBitmap->GetTexture();
+#endif
 	if (TexID == nullptr)
 		return false;
 
