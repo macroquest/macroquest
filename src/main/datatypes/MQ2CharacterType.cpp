@@ -2837,7 +2837,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Faycites:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FAYCITES);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FAYCITUM);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2847,7 +2847,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Commemoratives:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_COMMEMORATIVE_COINS);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_COMMEMORATIVECOINS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2862,7 +2862,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::EnergyCrystals:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENERGYCRYSTALS);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ARXENERGYCRYSTALS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2882,27 +2882,27 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::McKenzie:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MCKENZIE);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MCKENZIESSPECIALBREW);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Bayle:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BAYLE);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BAYLEMARKS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Reclamation:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RECLAMATION);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_TOKENSOFRECLAMATION);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Brellium:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRELLIUM);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BRELLIUMTOKENS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::Motes:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_MOTES);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DREAMMOTES);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2922,7 +2922,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Voucher:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_VOUCHER);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_EXPEDIENTDELIVERYVOUCHERS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2962,17 +2962,17 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::BifurcatedCoin:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BIFURCATEDCOIN);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_BIFURCATEDCOINS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::AdoptiveCoin:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ADOPTIVE);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ADOPTIONCOINS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::SathirsTradeGems:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SATHIRSTRADEGEMS);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SATHIRTRADEGEMS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -2992,7 +2992,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::FetterredIfritCoins:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FETTERREDIFRITCOINS);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FETTEREDIFRITCOINS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -3007,27 +3007,27 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::FroststoneDucat:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FROSTSTONEDUCAT);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FROSTSTONEDUCATS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::WarlordsSymbol:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARLORDSSYMBOL);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARLORDSSYMBOLS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::OverseerTetradrachm:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHM);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_OVERSEERTETRADRACHMS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::WarforgedEmblem:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARFORGEDEMBLEM);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_WARFORGEDEMBLEMS);
 		Dest.Type = pIntType;
 		return true;
 
 	case CharacterMembers::RestlessMark:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARK);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_RESTLESSMARKS);
 		Dest.Type = pIntType;
 		return true;
 
@@ -3047,7 +3047,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::SpiritualMedallions:
-		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SPIRITUALMEDALLION);
+		Dest.DWord = pPlayerPointManager->GetAltCurrency(ALTCURRENCY_SPIRITUALMEDALLIONS);
 		Dest.Type = pIntType;
 		return true;
 
