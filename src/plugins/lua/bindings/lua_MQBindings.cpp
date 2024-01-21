@@ -356,21 +356,53 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	{
 	case sol::type::string:
 	{
-		auto str = obj.as<std::string>();
-		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
+		const char* str = obj.as<const char*>();
+		size_t length = strlen(str);
+
+		*appender++ = '\'';
+		for (size_t pos = 0; pos < length; ++pos)
 		{
-			str.replace(pos, 1, "\\'");
-			pos += 2;
+			char c = str[pos];
+			switch (c)
+			{
+			case '\\':
+				*appender++ = '\\';
+				*appender++ = '\\';
+				break;
+			case '\'':
+				*appender++ = '\\';
+				*appender++ = '\'';
+				break;
+			case '\r':
+				*appender++ = '\\';
+				*appender++ = 'r';
+				break;
+			case '\n':
+				*appender++ = '\\';
+				*appender++ = 'n';
+				break;
+			case '\t':
+				*appender++ = '\\';
+				*appender++ = 't';
+				break;
+
+			default:
+				*appender++ = c;
+				break;
+			}
 		}
-		fmt::format_to(appender, "'{}'", str);
+		*appender++ = '\'';
 		return;
 	}
 	case sol::type::number:
-		if (obj.is<int>())
+	{
+		double number = obj.as<double>();
+		if (std::floor(number) == number)
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
 		else
 			fmt::format_to(appender, "{}", obj.as<double>());
 		return;
+	}
 	case sol::type::boolean:
 		fmt::format_to(appender, "{}", obj.as<bool>());
 		return;

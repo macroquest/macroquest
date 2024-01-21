@@ -105,12 +105,7 @@ void MQTexture::AcquireTexture()
 		}
 		else
 		{
-#if HAS_DIRECTX_11
-			// Force the creation of the device state for this texture
-			gpD3D9Device->SetTexture(0, bmi->pBmp->GetD3DTexture());
-			gpD3D9Device->SetTexture(0, nullptr);
-#endif
-			if (bmi->pBmp->GetTexture() == nullptr)
+			if (bmi->pBmp->GetD3DTexture() == nullptr)
 			{
 				pGraphicsEngine->pResourceManager->DestroyBMI(bmi);
 			}
@@ -131,11 +126,15 @@ void MQTexture::ReleaseTexture()
 	}
 }
 
-void* MQTexture::GetTextureID() const
+ImTextureID MQTexture::GetTextureID() const
 {
 	if (m_bmi && m_bmi->pBmp)
 	{
+#if HAS_DIRECTX_11
+		return m_bmi->pBmp;
+#else
 		return m_bmi->pBmp->GetTexture();
+#endif
 	}
 	
 	return nullptr;
