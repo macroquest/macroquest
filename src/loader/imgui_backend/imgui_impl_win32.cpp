@@ -28,7 +28,6 @@
 #include <windowsx.h> // GET_X_LPARAM(), GET_Y_LPARAM()
 #include <tchar.h>
 #include <dwmapi.h>
-#include <spdlog/spdlog.h>
 
 // Configuration flags to add in your imconfig.h file:
 //#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support. This was meaningful before <1.81 but we now load XInput dynamically so the option is now less relevant.
@@ -707,8 +706,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
         bd->MouseButtonsDown |= 1 << button;
         io.AddMouseSourceEvent(mouse_source);
         io.AddMouseButtonEvent(button, true);
-		if (io.WantCaptureMouse && !io.WantCaptureMouseUnlessPopupClose)
-			ImGui::ClosePopupsExceptModals();
         return 0;
     }
     case WM_LBUTTONUP:
@@ -727,8 +724,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
             ::ReleaseCapture();
         io.AddMouseSourceEvent(mouse_source);
         io.AddMouseButtonEvent(button, false);
-		if (io.WantCaptureMouse && !io.WantCaptureMouseUnlessPopupClose)
-			ImGui::ClosePopupsExceptModals();
         return 0;
     }
     case WM_MOUSEWHEEL:
@@ -1270,10 +1265,21 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
             break;
 
         case WM_ACTIVATE:
-            if (wParam == WA_INACTIVE)
-            {
-                CloseWindow(hWnd);
-            }
+			if (wParam == WA_INACTIVE)
+			{
+				// if this is a popup window, grab its parent and close popups over the parent,
+				// otherwise close popups over the window itself (this closes modals)
+				auto window = ((ImGuiViewportP*)viewport)->Window;
+				if (window->ParentWindow) window = window->ParentWindow;
+				ImGui::ClosePopupsOverWindow(window, false);
+			}
+			else
+			{
+				// sometimes windows don't get focused when being reopened, this ensures that they do
+				// this still won't set focus on windows that are appearing with nofocusonappearing set
+				// since they don't get activated
+				ImGui_ImplWin32_SetWindowFocus(viewport);
+			}
             break;
         }
     }

@@ -67,7 +67,7 @@ void MaybeShowContextMenu();
 void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop)
 {
 	cl.ViewportFlagsOverrideSet = ImGuiViewportFlags_NoAutoMerge | ImGuiViewportFlags_TopMost;
-	cl.ViewportFlagsOverrideClear |= ImGuiViewportFlags_NoFocusOnAppearing;
+	cl.ViewportFlagsOverrideClear |= ImGuiViewportFlags_NoFocusOnAppearing | ImGuiViewportFlags_NoFocusOnClick;
 	cl.ParentViewportId = 0;
 	cl.ClassId = 1;
 
@@ -173,15 +173,10 @@ void OpenContextMenu()
 
 void MaybeShowContextMenu()
 {
-	// these needs to be be set to true whenever we attempt to show the context menu
-	//static bool do_init;
-	//do_init = true;
-
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 	static ImVec2 cr = ImGui::GetContentRegionMax();
 
 	ImGui::SetNextWindowClass(&cl);
-	//ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Always, popup_pivot);
 
 	if (ImGui::BeginPopup("Context Popup", ImGuiWindowFlags_NoMove))
 	{
@@ -211,144 +206,6 @@ void MaybeShowContextMenu()
 		ImGui::EndPopup();
 	}
 
-#if 0
-	if (ImGui::BeginPopup("Context Popup"))
-	{
-		if (ImGui::Button("Another Popup"))
-			ImGui::OpenPopup("Another Popup");
-
-		if (ImGui::BeginPopup("Another Popup"))
-		{
-			ImGui::Text("Check it out");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-			ImGui::Text("Right Here Right Here Right Here Right Here Right Here Right Here Right Here Right Here ");
-
-			ImGui::EndPopup();
-		}
-
-		static bool test;
-		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
-		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
-		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
-		ImGui::SmallCheckbox("Test With Some Really Long Text To See If It Goes Off The Screen", &test);
-
-		ImGui::Separator();
-
-		ImGui::Text("%.2f, %.2f", cr.x, cr.y);
-
-		{
-			auto cursorPos = ImGui::GetMousePos();
-			ImGui::Text("%.2f %.2f", cursorPos.x, cursorPos.y);
-
-			for (const auto& monitor : ImGui::GetPlatformIO().Monitors)
-			{
-				ImGui::Text("%.2f %.2f %.2f %.2f", monitor.WorkPos.x, monitor.WorkPos.y, monitor.WorkSize.x, monitor.WorkSize.y);
-			}
-		}
-
-		ImGui::Separator();
-
-		ImGui::Text("FocusLost: %s", ImGui::GetIO().AppFocusLost ? "true" : "false");
-		ImGui::Text("Clicked: %s", ImGui::IsMouseClicked(ImGuiMouseButton_Left) ? "true" : "false");
-		ImGui::Text("Focused: %s", ImGui::IsWindowFocused() ? "true" : "false");
-		ImGui::Text("WantCaptureMouse: %s (%s)",
-			ImGui::GetIO().WantCaptureMouse ? "true" : "false",
-			ImGui::GetIO().WantCaptureMouseUnlessPopupClose ? "true" : "false");
-
-		ImGui::Separator();
-
-		auto currentViewport = ImGui::GetWindowViewport();
-		auto currentWindow = (HWND)currentViewport->PlatformHandleRaw;
-		WINDOWINFO pw;
-		::GetWindowInfo(currentWindow, &pw);
-		::GetWindow(currentWindow, GW_OWNER);
-		ImGui::Text("Current Window: 0x%p", currentViewport->PlatformHandleRaw);
-		ImGui::Text("Current Window: 0x%p", currentViewport->PlatformHandle);
-		ImGui::Text("Focused Window: 0x%p", ::GetForegroundWindow());
-
-		ImGui::Separator();
-
-		if (ImGui::SmallButton("Close"))
-			ImGui::CloseCurrentPopup();
-
-		for (const auto& [name, callback] : s_menuGroups)
-		{
-			ImGui::PushID(name.c_str());
-			ImGui::BeginChild("grouping", ImVec2(0.f, 0.f), ImGuiChildFlags_Border, ImGuiWindowFlags_None);
-
-			callback();
-
-			ImGui::EndChild();
-			ImGui::PopID();
-		}
-
-		// we need to set the viewport of the popup to active because imgui doesn't automatically
-		// but after we do, we need to check if it's lost focus because imgui doesn't handle that
-		// outside of imgui windows
-		//static auto currentViewport = ImGui::GetWindowViewport();
-		//auto newViewport = ImGui::GetWindowViewport();
-		//if (currentViewport == newViewport)
-		//{
-		//	// PlatformHandleRaw should always be the HWND on windows, but some backends
-		//	// might leave it nullptr, which means we assume that PlatformHandle is the HWND
-		//	HWND currentWindow = currentViewport->PlatformHandleRaw == nullptr ?
-		//		(HWND)currentViewport->PlatformHandle :
-		//		(HWND)currentViewport->PlatformHandleRaw;
-
-		//	// it can take 2 frames to populate the handles
-		//	if (currentWindow)
-		//	{
-		//		if (do_init)
-		//		{
-		//			::SetForegroundWindow(currentWindow);
-		//			do_init = false;
-		//		}
-		//		else if (currentWindow != ::GetForegroundWindow())
-		//		{
-		//			ImGui::CloseContextMenu();
-		//		}
-		//	}
-		//}
-		//else
-		//{
-		//	currentViewport = newViewport;
-		//	do_init = true;
-		//}
-
-		cr = ImGui::GetContentRegionMax();
-
-		ImGui::EndPopup();
-	}
-
-#endif
 	ImGui::PopStyleVar();
 }
 
