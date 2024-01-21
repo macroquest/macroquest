@@ -449,9 +449,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("TableGetColumnFlags", [](std::optional<int> column_n) { return ImGui::TableGetColumnFlags(column_n.value_or(-1)); });
 	ImGui.set_function("TableSetColumnEnabled", [](int column_n, bool v) { ImGui::TableSetColumnEnabled(column_n, v); });
 	ImGui.set_function("TableSetBgColor", sol::overload(
-		[](int target, ImU32 color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, color, column_n.value_or(-1)); },
 		[](int target, const ImVec4& color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32(color), column_n.value_or(-1)); },
-		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); }
+		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); },
+		[](int target, ImU32 color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, color, column_n.value_or(-1)); }
 	));
 
 	ImGui.set_function("TableGetColumnIsVisible", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsVisible) != 0; });
