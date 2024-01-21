@@ -1310,52 +1310,43 @@ int GetLanguageIDByName(const char* szName)
 	return -1;
 }
 
+void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value, eDatabaseStringType type)
+{
+	constexpr std::string_view chars_to_remove = "'`";
+	if (const char* ptr = pCDBStr->GetString(value, type))
+	{
+		const std::string currency = to_lower_copy(ptr);
+		cache[currency] = value;
+		cache[remove_chars(currency, chars_to_remove)] = value;
+	}
+}
+
 int GetCurrencyIDByName(const char* szName)
 {
 	static std::unordered_map<std::string, int> cache;
 
-	const auto it = cache.find(szName);
-	if (it != cache.end()) {
+	if (cache.empty())
+	{
+		for (int i = ALTCURRENCY_FIRST; i <= ALTCURRENCY_LAST; ++i)
+		{
+			UpdateCurrencyCache(cache, i, eAltCurrencyNamePlural);
+			UpdateCurrencyCache(cache, i, eAltCurrencyName);
+		}
+		// Crowns are outside ALTCURRENCY_LAST
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyNamePlural);
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyName);
+	}
+
+	const auto it = cache.find(to_lower_copy(szName));
+	if (it != cache.end())
+	{
 		return it->second;
 	}
 
-	constexpr std::string_view chars_to_remove = "'`";
-	const std::string currency = remove_chars(szName, chars_to_remove);
-	for (int i = ALTCURRENCY_FIRST; i <= ALTCURRENCY_LAST; ++i)
-	{
-		// Check the plural form first
-		if (const char* currency_name_plural = pCDBStr->GetString(i, eAltCurrencyNamePlural))
-		{
-			if (ci_equals(currency, remove_chars(currency_name_plural, chars_to_remove)))
-			{
-				cache[szName] = i;
-				return i;
-			}
-
-			// Then check the singular form
-			if (const char* currency_name_singular = pCDBStr->GetString(i, eAltCurrencyName))
-			{
-				if (ci_equals(currency, remove_chars(currency_name_singular, chars_to_remove)))
-				{
-					cache[szName] = i;
-					return i;
-				}
-			}
-		}
-	}
-
-	// Crowns sit outside the ALTCURRENCY_LAST range
-	if (ci_equals(currency, "Crowns") || ci_equals(currency, "Crown"))
-	{
-		cache[szName] = ALTCURRENCY_CROWNS;
-		return ALTCURRENCY_CROWNS;
-	}
-
-	cache[szName] = -1;
 	return -1;
 }
 
-// This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
+// This wrapper is here to deal with older plugins and to preserve backwards compatibility with older clients (emu)
 CAltAbilityData* GetAAById(int nAbilityId, int playerLevel)
 {
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
