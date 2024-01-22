@@ -1267,11 +1267,10 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
         case WM_ACTIVATE:
 			if (wParam == WA_INACTIVE)
 			{
-				// if this is a popup window, grab its parent and close popups over the parent,
-				// otherwise close popups over the window itself (this closes modals)
-				auto window = ((ImGuiViewportP*)viewport)->Window;
-				if (window->ParentWindow) window = window->ParentWindow;
-				ImGui::ClosePopupsOverWindow(window, false);
+				// If any window goes inactive (where an OS window becomes active, not another
+				// viewport), then we need to make sure to close all popups over that window
+				// to create consistent behavior
+				ImGui::ClosePopupsExceptModals();
 			}
 			else
 			{
