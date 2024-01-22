@@ -88,8 +88,8 @@ bool MQ2WorldLocationType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 		return true;
 
 	case WorldLocationTypeMembers::Heading:
-		Dest.Float = pProfile->BoundLocations[index].ZoneBoundHeading;
-		Dest.Type = pFloatType;
+		Dest.Float = pProfile->BoundLocations[index].ZoneBoundHeading * 0.703125f;
+		Dest.Type = pHeadingType;
 		return true;
 
 	default: break;

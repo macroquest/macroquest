@@ -146,10 +146,8 @@ public:
 
 	LuaThreadStatus Pause();
 
-	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default)
-	{
-		m_allowYield = allowYield; m_yieldDisabledReason = reason;
-	}
+	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default);
+
 	bool GetAllowYield() const { return m_allowYield; }
 	YieldDisabledReason GetYieldDisabledReason() const { return m_yieldDisabledReason; }
 

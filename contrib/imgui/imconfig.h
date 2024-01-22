@@ -202,7 +202,6 @@ public:
     ImGuiTextureObject(intptr_t value)
         : value(value)
     {
-        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
     }
 
     ImGuiTextureObject& operator=(const ImGuiTextureObject& other)

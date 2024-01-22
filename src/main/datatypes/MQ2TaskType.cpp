@@ -633,7 +633,7 @@ bool MQ2TaskObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member, char* 
 
 	case TaskObjectiveTypeMembers::Zone:
 	{
-		int zid = GetIntFromString(pTaskObjective->TargetZoneID, 0) & 0x7FFF;
+		int zid = GetIntFromString(pTaskObjective->ZoneID, 0) & 0x7FFF;
 
 		if (zid == 0)
 		{
