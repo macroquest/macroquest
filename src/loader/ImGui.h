@@ -38,16 +38,19 @@ struct Viewport
 	std::function<bool()> DrawFrame;
 };
 
-void AddViewport(
+void OpenWindow(
 	const std::function<bool()>& render,
 	const std::string& label
 );
 
-bool AddWindow(const std::string& name, const std::function<void()> callback);
-bool RemoveWindow(const std::string& name);
+bool AddMainPanel(const std::string& name, const std::function<void()> callback);
+bool RemoveMainPanel(const std::string& name);
+bool AddContextGroup(const std::string& name, const std::function<void()>& callback);
+bool RemoveContextGroup(const std::string& name);
 void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop);
 bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
 void OpenMainWindow();
 void OpenContextMenu();
+void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title);
 
 } // namespace LauncherImGui

@@ -618,150 +618,6 @@ void CheckAppCompat(bool alwaysDisplay = false)
 	}
 }
 
-void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
-{
-	char lpModulePath[_MAX_PATH] = { 0 };
-	GetCurrentDirectory(_MAX_PATH, lpModulePath);
-
-	switch (wParam)
-	{
-	case ID_ADVANCED_TOGGLECONSOLE:
-		UpdateShowConsole(!gbConsoleVisible, true);
-		break;
-
-	case ID_MENU_WEBSITE:
-		ShellExecute(hWnd, "open", "https://macroquest.org", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_FORUMS:
-		ShellExecute(hWnd, "open", "https://macroquest.org/phpBB3", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MQSITES_WIKI:
-		ShellExecute(hWnd, "open", "https://docs.macroquest.org", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MQSITES_GITHUB:
-		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MQSITES_ISSUETRACKER:
-		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest/issues", nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_CHANGELOG: {
-		// NOTE: This change log search logic is duplicated in the news feed in MQ2Main.cpp
-		// This is one of the few places we want to hardcode the path since if the user redirects their resources we would not have distributed that file and they would always have old news.
-		const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
-		const std::filesystem::path pathResourceChangeLog = std::filesystem::path(internal_paths::Resources) / "CHANGELOG.md";
-		// Default to the one in the resource path.
-		std::filesystem::path pathChangeLog = pathResourceChangeLog;
-
-		std::error_code ec;
-		// If the paths are different, and the Resource Change Log doesn't exist or is older than the Root\Resource changelog
-		if (pathMQRootChangeLog != pathResourceChangeLog
-			&& (!exists(pathResourceChangeLog, ec)
-				|| last_write_time(pathMQRootChangeLog, ec) > last_write_time(pathResourceChangeLog, ec)))
-		{
-			pathChangeLog = pathMQRootChangeLog;
-		}
-		// END Duplicate logic
-
-		if (exists(pathChangeLog))
-		{
-			ShellExecute(hWnd, "open", pathChangeLog.string().c_str(), nullptr, lpModulePath, SW_SHOW);
-		}
-		else
-		{
-			const std::string strMessage = "Could not find CHANGELOG.md: " + pathChangeLog.string();
-			MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
-		}
-		break;
-	}
-
-	case ID_FILE_OPENFOLDERMQ2:
-		ShellExecute(hWnd, "explore", internal_paths::MQRoot.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERCONFIG:
-		ShellExecute(hWnd, "explore", internal_paths::Config.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERMACROS:
-		ShellExecute(hWnd, "explore", internal_paths::Macros.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERRESOURCES:
-		ShellExecute(hWnd, "explore", internal_paths::Resources.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERLOGS:
-		ShellExecute(hWnd, "explore", internal_paths::Logs.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERCRASHDUMPS:
-		ShellExecute(hWnd, "explore", internal_paths::CrashDumps.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_INI:
-		ShellExecute(hWnd, "open", internal_paths::MQini.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_STARTEQBCS:
-		if (IsProcessRunning("eqbcs.exe"))
-		{
-			ThreadedMessage("EQBCS is already running.", MB_OK | MB_ICONWARNING);
-		}
-		else
-		{
-			std::string strCommandLine = fmt::format("{}\\eqbcs.exe", lpModulePath);
-			std::error_code ec;
-			if (std::filesystem::exists(strCommandLine, ec))
-			{
-				ShellExecute(hWnd, "open", strCommandLine.c_str(), nullptr, lpModulePath, SW_SHOW);
-			}
-			else
-			{
-				ThreadedMessage(fmt::format("EQBCS could not be found: {}", strCommandLine), MB_OK | MB_ICONWARNING);
-			}
-		}
-		break;
-
-	case ID_MENU_EXIT:
-		PostQuitMessage(0);
-		break;
-
-	case ID_FILE_REFRESH:
-		RefreshInjections();
-		break;
-
-	case ID_FORCEUNLOADOFALLMQ2:
-		SendForceUnloadAllCommand();
-		break;
-
-	case ID_UNLOADALLMQ:
-		SendUnloadAllCommand();
-		break;
-
-	case ID_MENU_CHECKAPPCOMPAT:
-	{
-		CheckAppCompat(true);
-		break;
-	}
-
-#ifdef MQ_UPDATE_URL
-	case ID_MENU_CHECKFORUPDATES:
-	{
-		CheckMQ2MainUpdate(true);
-		break;
-	}
-#endif
-
-	default:
-		SPDLOG_INFO("Unhandled WM_COMMAND: {}", wParam);
-	}
-}
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 {
 	if (LauncherImGui::HandleWndProc(hWnd, MSG, wParam, lParam))
@@ -780,10 +636,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 		BeginPaint(hWnd, &PS);
 		dc = PS.hdc;
 		EndPaint(hWnd, &PS);
-		break;
-
-	case WM_COMMAND:
-		HandleCommand(hWnd, wParam, lParam);
 		break;
 
 	case WM_WINDOWPOSCHANGING:
@@ -851,6 +703,165 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, MSG, wParam, lParam);
 }
 
+void ShowMacroQuestInfo()
+{
+	auto link = [](const std::string& label, const std::string& url)
+		{
+			auto add_underline = [](ImColor color)
+				{
+					ImVec2 min = ImGui::GetItemRectMin();
+					ImVec2 max = ImGui::GetItemRectMax();
+					min.y = max.y;
+					ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
+				};
+
+			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+			ImGui::Text(label.c_str());
+			ImGui::PopStyleColor();
+
+			if (ImGui::IsItemHovered())
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
+				}
+				add_underline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+				ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
+			}
+			else
+			{
+				add_underline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+			}
+		};
+
+	ImGui::Spacing();
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("MacroQuest Useful Links");
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PopFont();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
+	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
+	ImGui::Bullet(); link("MacroQuest on Github", "https://github.com/macroquest/macroquest");
+}
+
+void ShowMacroQuestMenu()
+{
+	if (ImGui::BeginMenu("Open Folder"))
+	{
+		if (ImGui::MenuItem("MacroQuest Root"))
+			ShellExecuteA(nullptr, "explore", internal_paths::MQRoot.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Config"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Config.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Macros"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Macros.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Resources"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Resources.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Logs"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Logs.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Crash Dumps"))
+			ShellExecuteA(nullptr, "explore", internal_paths::CrashDumps.c_str(), nullptr, nullptr, SW_SHOW);
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu("MQ Sites"))
+	{
+		if (ImGui::MenuItem("GitHub"))
+			ShellExecuteA(nullptr, "open", "https://github.com/macroquest/macroquest", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Issue Tracker"))
+			ShellExecuteA(nullptr, "open", "https://github.com/macroquest/macroquest/issues", nullptr, nullptr, SW_SHOW);
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Website"))
+			ShellExecuteA(nullptr, "open", "https://macroquest.org", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Forums"))
+			ShellExecuteA(nullptr, "open", "https://macroquest.org/phpBB3", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Wiki"))
+			ShellExecuteA(nullptr, "open", "https://docs.macroquest.org", nullptr, nullptr, SW_SHOW);
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::MenuItem("Change Log"))
+	{
+		// NOTE: This change log search logic is duplicated in the news feed in MQ2Main.cpp
+		// This is one of the few places we want to hardcode the path since if the user redirects their resources we would not have distributed that file and they would always have old news.
+		const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
+		const std::filesystem::path pathResourceChangeLog = std::filesystem::path(internal_paths::Resources) / "CHANGELOG.md";
+		// Default to the one in the resource path.
+		std::filesystem::path pathChangeLog = pathResourceChangeLog;
+
+		std::error_code ec;
+		// If the paths are different, and the Resource Change Log doesn't exist or is older than the Root\Resource changelog
+		if (pathMQRootChangeLog != pathResourceChangeLog
+			&& (!exists(pathResourceChangeLog, ec)
+				|| last_write_time(pathMQRootChangeLog, ec) > last_write_time(pathResourceChangeLog, ec)))
+		{
+			pathChangeLog = pathMQRootChangeLog;
+		}
+		// END Duplicate logic
+
+		if (exists(pathChangeLog))
+		{
+			ShellExecuteA(nullptr, "open", pathChangeLog.string().c_str(), nullptr, nullptr, SW_SHOW);
+		}
+		else
+		{
+			LauncherImGui::OpenMessageBox(nullptr, fmt::format("Could not find CHANGELOG.md: {}", pathChangeLog.string()), "View Changelog");
+		}
+	}
+
+	if (ImGui::MenuItem("INI File"))
+		ShellExecuteA(nullptr, "open", internal_paths::MQini.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
+
+	if (ImGui::MenuItem("Start EQBC Server"))
+	{
+		if (IsProcessRunning("eqbcs.exe"))
+		{
+			LauncherImGui::OpenMessageBox(nullptr, "EQBCS is already running.", "EQBCS Launcher");
+		}
+		else
+		{
+			std::string strCommandLine = fmt::format("{}\\eqbcs.exe", internal_paths::MQRoot);
+			std::error_code ec;
+			if (std::filesystem::exists(strCommandLine, ec))
+			{
+				ShellExecuteA(nullptr, "open", strCommandLine.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
+			}
+			else
+			{
+				LauncherImGui::OpenMessageBox(nullptr, fmt::format("EQBCS could not be found: {}", strCommandLine), "EQBCS Launcher");
+			}
+		}
+	}
+}
+
+void ShowAdvancedMenu()
+{
+	if (ImGui::BeginMenu("Advanced"))
+	{
+		if (ImGui::MenuItem("Toggle Debug Console"))
+			UpdateShowConsole(!gbConsoleVisible, true);
+
+		if (ImGui::MenuItem("Unload All Instances"))
+			SendUnloadAllCommand();
+
+		if (ImGui::MenuItem("Unload All Instances (Forced)"))
+			SendForceUnloadAllCommand();
+
+		if (ImGui::MenuItem("Check App Compatibility"))
+			CheckAppCompat(true);
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::MenuItem("Refresh Injections"))
+		RefreshInjections();
+}
+
 void InitializeWindows()
 {
 	WNDCLASS wc;
@@ -881,6 +892,9 @@ void InitializeWindows()
 	NID.uID = WM_USER_SYSTRAY;
 	NID.uFlags = NIF_TIP | NIF_ICON | NIF_MESSAGE;
 	Shell_NotifyIcon(NIM_ADD, &NID);
+
+	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
+	LauncherImGui::AddContextGroup("MacroQuest Menu", ShowMacroQuestMenu);
 }
 
 class MQ2ProcessMonitorEvents : public ProcessMonitorEvents
@@ -924,49 +938,6 @@ void InitializeVersionInfo()
 	sprintf_s(NID.szTip, "%s [%s]", gszWinName, gszMQVersion);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
 	Shell_NotifyIcon(NIM_MODIFY, &NID);
-}
-
-void ShowMacroQuestInfo()
-{
-	auto link = [](const std::string& label, const std::string& url)
-		{
-			auto add_underline = [](ImColor color)
-				{
-					ImVec2 min = ImGui::GetItemRectMin();
-					ImVec2 max = ImGui::GetItemRectMax();
-					min.y = max.y;
-					ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
-				};
-
-			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-			ImGui::Text(label.c_str());
-			ImGui::PopStyleColor();
-
-			if (ImGui::IsItemHovered())
-			{
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-				{
-					ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
-				}
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-				ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
-			}
-			else
-			{
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
-			}
-		};
-
-	ImGui::Spacing();
-	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
-	ImGui::Text("MacroQuest Useful Links");
-	if (mq::imgui::LargeTextFont != nullptr) ImGui::PopFont();
-	ImGui::Separator();
-	ImGui::Spacing();
-
-	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
-	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
-	ImGui::Bullet(); link("MacroQuest on Github", "https://github.com/macroquest/macroquest");
 }
 
 // ***************************************************************************
@@ -1134,8 +1105,6 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	InitializeWindows();
 	InitializeAutoLogin();
 
-	LauncherImGui::AddWindow("MacroQuest Info", ShowMacroQuestInfo);
-
 	auto pMonitorEvents = std::make_unique<MQ2ProcessMonitorEvents>();
 	StartProcessMonitor(pMonitorEvents.get());
 
@@ -1185,6 +1154,9 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 
 	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
 		CheckAppCompat();
+
+	// advanced menu items
+	LauncherImGui::AddContextGroup("Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
 

@@ -856,6 +856,56 @@ std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::
 		});
 }
 
+std::vector<std::string> login::db::ListServers()
+{
+	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(SELECT DISTINCT server FROM characters)",
+		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::string>
+		{
+			std::vector<std::string> servers;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+				servers.emplace_back((const char*)sqlite3_column_text(stmt, 0));
+
+			return servers;
+		});
+}
+
+std::vector<ProfileRecord> login::db::ListCharactersOnServer(std::string_view server)
+{
+	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+		R"(
+			SELECT DISTINCT character, account,
+				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
+				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level
+			FROM characters
+			LEFT JOIN personas ON characters.id = character_id
+			WHERE server = ?
+			GROUP BY characters.id)",
+		[server](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<ProfileRecord>
+		{
+			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
+
+			std::vector<ProfileRecord> characters;
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				ProfileRecord record;
+				record.serverName = server;
+				record.characterName = (const char*)sqlite3_column_text(stmt, 0);
+				record.accountName = (const char*)sqlite3_column_text(stmt, 1);
+
+				if (sqlite3_column_type(stmt, 2) != SQLITE_NULL)
+					record.characterClass = (const char*)sqlite3_column_text(stmt, 2);
+
+				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+					record.characterLevel = sqlite3_column_int(stmt, 3);
+
+				characters.emplace_back(std::move(record));
+			}
+
+			return characters;
+		});
+}
+
 std::vector<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
 {
 	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
