@@ -202,8 +202,8 @@ void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const s
 			bool is_open = true;
 
 			auto monitor = ImGui::GetViewportPlatformMonitor(viewport != nullptr ? viewport : ImGui::GetMainViewport());
-			ImGui::SetNextWindowSize({ 300.f, 200.f }, ImGuiCond_Always);
-			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_Always, { 0.5f, 0.5f });
+			ImGui::SetNextWindowSize({ 300.f, 200.f }, ImGuiCond_Appearing);
+			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_Appearing, { 0.5f, 0.5f });
 
 			ImGui::SetNextWindowClass(&cl);
 			if (ImGui::Begin(title.c_str(), &is_open))
