@@ -19,9 +19,9 @@
 #include <TlHelp32.h>
 
 // TODO:
-// - Re-do the UI (can I pull alynel's work?, if not maybe ImGui? -- but that means I'll have to pull it into tools)
 // - Injecting while running doesn't load the config
 // - fix /relog -- it seems to timeout just as it tries to log back in?
+// - update LoginType to only use the db (still need stationnames for isboxer?)
 
 // State Class forward declarations
 class Wait;
@@ -70,12 +70,10 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 
 		auto record = ProfileRecord::FromString(input);
 		if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
-		{
-			record = ProfileRecord::FromINI(
-				record.profileName,
-				fmt::format("{}:{}_Blob", record.serverName, record.characterName),
-				INIFileName);
-		}
+			login::db::ReadProfile(record);
+
+		if (!record.serverName.empty() && !record.characterName.empty())
+			login::db::ReadAccount(record);
 
 		return record;
 	}

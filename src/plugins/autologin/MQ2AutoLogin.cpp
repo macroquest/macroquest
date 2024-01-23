@@ -222,35 +222,47 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 // This can be revisited later when we think a little bit about autologin
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	proto::login::ProfileMethod profile;
+	proto::login::StartInstanceMissive start;
+	start.set_pid(GetCurrentProcessId());
+
+	proto::login::ProfileMethod& profile = *start.mutable_profile();
 	profile.set_profile(Profile);
 	profile.set_account(Account);
+
 	proto::login::LoginTarget& target = *profile.mutable_target();
 	target.set_server(Server);
 	target.set_character(Character);
 
-	Post(proto::login::ProfileLoaded, profile);
+	Post(proto::login::ProfileLoaded, start);
 }
 
-void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
+void NotifyCharacterUnload()
 {
-	proto::login::ProfileMethod profile;
-	profile.set_profile(Profile);
-	profile.set_account(Account);
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+	proto::login::StopInstanceMissive stop;
+	stop.set_pid(GetCurrentProcessId());
 
-	Post(proto::login::ProfileUnloaded, profile);
+	Post(proto::login::ProfileUnloaded, stop);
 }
 
-void NotifyCharacterUpdate(int Class, int Level)
+void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character)
 {
 	proto::login::CharacterInfoMissive info;
 	info.set_class_(Class);
 	info.set_level(Level);
+	info.set_server(Server);
+	info.set_character(Character);
 
 	Post(proto::login::ProfileCharInfo, info);
+}
+
+void LoginServerSelect(const char* Login, const char* Pass)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
+	method.set_login(Login);
+	method.set_password(Pass);
+
+	Post(proto::login::StartInstance, start);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
@@ -292,7 +304,7 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload();
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
@@ -435,9 +447,13 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 			record.serverName.c_str(),
 			record.characterName.c_str());
 	}
-	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
+	else if (!record.accountName.empty() && !record.accountPassword.empty())
 	{
-		if (record.characterName.empty())
+		if (record.serverName.empty())
+			LoginServerSelect(
+				record.accountName.c_str(),
+				record.accountPassword.c_str());
+		else if (record.characterName.empty())
 			LoginServer(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
@@ -656,7 +672,7 @@ PLUGIN_API void InitializePlugin()
 
 PLUGIN_API void ShutdownPlugin()
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload();
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
@@ -804,7 +820,7 @@ PLUGIN_API void OnPulse()
 	{
 		s_lastCharacterClass = pLocalPlayer->GetClass();
 		s_lastCharacterLevel = pLocalPlayer->Level;
-		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
+		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel, GetServerShortName(), pLocalPlayer->DisplayedName);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)

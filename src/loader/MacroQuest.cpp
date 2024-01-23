@@ -56,7 +56,6 @@ HWND hMainWnd;
 
 PROCESS_INFORMATION pInfo = { 0 };
 STARTUPINFO sInfo = { 0 };
-HDC dc = { 0 };
 NOTIFYICONDATA NID;
 PAINTSTRUCT PS;
 
@@ -69,8 +68,6 @@ uint32_t gBossModeHotKey = 0;
 
 bool gbAllEQWindowsHidden = false;
 DWORD gLastEQGameSwitchedTo = 0;
-bool gbMinimized = false;
-HMENU hMenu = nullptr;
 HINSTANCE g_hInst = nullptr;
 
 char gszWinClassName[64] = { 0 };
@@ -149,31 +146,17 @@ void ShowConsole()
 
 void UpdateShowConsole(bool showConsole, bool updateIni)
 {
-	if (showConsole == gbConsoleVisible)
-		return;
-
-	HMENU hSubMenu = GetSubMenu(hMenu, 0);
-	MENUITEMINFOA mi = { sizeof(MENUITEMINFOA) };
-	mi.fMask = MIIM_STATE;
-
-	if (showConsole)
+	if (showConsole != gbConsoleVisible)
 	{
-		mi.fState = MF_CHECKED;
-		ShowConsole();
-	}
-	else
-	{
-		mi.fState = MF_UNCHECKED;
-		HideConsole();
-	}
+		if (showConsole)
+			ShowConsole();
+		else
+			HideConsole();
 
-	gbConsoleVisible = showConsole;
+		gbConsoleVisible = showConsole;
 
-	SetMenuItemInfo(hSubMenu, ID_ADVANCED_TOGGLECONSOLE, FALSE, &mi);
-
-	if (updateIni)
-	{
-		WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
+		if (updateIni)
+			WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
 	}
 }
 
@@ -448,7 +431,14 @@ bool IsWow64()
     //Use GetModuleHandle to get a handle to the DLL that contains the function
     //and GetProcAddress to get a pointer to the function if available.
 
-    const LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+	const LPFN_ISWOW64PROCESS fnIsWow64Process = []()
+		{
+			const auto handle = GetModuleHandleA("kernel32");
+			if (handle != 0)
+				return (LPFN_ISWOW64PROCESS)GetProcAddress(handle, "IsWow64Process");
+
+			return (LPFN_ISWOW64PROCESS)nullptr;
+		}();
 
     if(nullptr != fnIsWow64Process)
     {
@@ -457,6 +447,7 @@ bool IsWow64()
             //handle error (but I'm not going to)
         }
     }
+
     return bIsWow64;
 }
 
@@ -495,10 +486,11 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 				retVal = AppCompatFlagReturn::SUCCESS;
 				for (DWORD i = 0; i < n; ++i)
 				{
-					char value[wil::max_registry_value_name_length + 1] = { 0 };
+					std::string value;
+					value.reserve(wil::max_registry_value_name_length);
 					DWORD valueSize = wil::max_registry_value_name_length;
 					// We know we're done on the first error since they're sequential
-					if (const int res = RegEnumValue(hRegKey, i, value, &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+					if (const int res = RegEnumValue(hRegKey, i, &value[0], &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
 					{
 						if (res != ERROR_NO_MORE_ITEMS)
 						{
@@ -516,9 +508,10 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 						}
 						else
 						{
-							char data[wil::max_registry_value_name_length + 1] = { 0 };
+							std::string data;
+							data.reserve(wil::max_registry_value_name_length);
 							DWORD dataSize = wil::max_registry_value_name_length;
-							if (RegGetValue(hRegKey, nullptr, value, RRF_RT_REG_SZ, nullptr, data, &dataSize) == ERROR_SUCCESS)
+							if (RegGetValue(hRegKey, nullptr, &value[0], RRF_RT_REG_SZ, nullptr, &data[0], &dataSize) == ERROR_SUCCESS)
 							{
 								if (ci_find_substr(value, searchItem) != -1)
 								{
@@ -623,29 +616,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	if (LauncherImGui::HandleWndProc(hWnd, MSG, wParam, lParam))
 		return true;
 
-	LRESULT autoLoginResult = 0;
-	if (HandleAutoLoginWindowMessage(hWnd, MSG, wParam, lParam, &autoLoginResult))
-		return autoLoginResult;
-
 	switch (MSG)
 	{
 	case WM_HOTKEY:
 		return HandleHotkey(wParam, lParam);
-
-	case WM_PAINT:
-		BeginPaint(hWnd, &PS);
-		dc = PS.hdc;
-		EndPaint(hWnd, &PS);
-		break;
 
 	case WM_WINDOWPOSCHANGING:
 		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
 
 	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-			gbMinimized = true;
-		ShowWindow(hWnd, SW_HIDE); // Hide our window just after the minimize is done.
 		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
 
@@ -653,8 +633,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 		switch (LOWORD(wParam)) // We capture the 'X' button
 		{
 		case SC_CLOSE:
-			gbMinimized = false;
-			ShowWindow(hWnd, SW_HIDE);
 			Shell_NotifyIcon(NIM_ADD, &NID);
 			return 0;
 
@@ -665,18 +643,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_USER_PROCESS_ADDED:
-	case WM_USER_PROCESS_REMOVED: {
-		DWORD processId = (DWORD)wParam;
-		if (MSG == WM_USER_PROCESS_ADDED)
-		{
-			Inject(processId, 1s);
-		}
-		else
-		{
-			AutoLoginRemoveProcess(processId);
-		}
+		Inject((DWORD)wParam, 1s);
 		break;
-	}
+
+	case WM_USER_PROCESS_REMOVED:
+		AutoLoginRemoveProcess((DWORD)wParam);
+		break;
 
 	case WM_USER_CALLBACK:
 		break;
@@ -684,8 +656,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	default:
 		if (MSG == NID.uCallbackMessage) // This is where we get our SysTray Icon notifications.
 		{
-			POINT mp;
-
 			switch (lParam)
 			{
 			case WM_LBUTTONUP:
@@ -883,8 +853,6 @@ void InitializeWindows()
 
 	::SendMessageA(hMainWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
-	hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_MENU1));
-
 	NID.cbSize = sizeof(NID);
 	NID.hIcon = LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ICON1));
 	NID.uCallbackMessage = WM_USER_SHELLNOTIFY_CALLBACK;
@@ -909,7 +877,7 @@ public:
 	virtual void HandleProcessDestruction(uint32_t processId) override
 	{
 		SPDLOG_DEBUG("Process closed: {}", processId);
-		SendMessageA(hMainWnd, WM_USER_PROCESS_REMOVED, processId, 0);
+		::SendMessageA(hMainWnd, WM_USER_PROCESS_REMOVED, processId, 0);
 	}
 };
 
@@ -944,7 +912,11 @@ void InitializeVersionInfo()
 // Function:    WinMain
 // Description: EXE entry point
 // ***************************************************************************
-int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int WINAPI CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nShowCmd)
 {
 	g_hInst = hInstance;
 

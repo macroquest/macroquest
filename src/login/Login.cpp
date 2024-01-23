@@ -104,6 +104,8 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 	static std::regex plain_regex("([^\\^]+)\\^(\\S+)\\^(\\S+)\\^(\\S+)");
 	// <server>^<account>^<password>
 	static std::regex plain2_regex("([^\\^])\\^(\\S+)\\^(\\S+)");
+	// <account>^<password>
+	static std::regex plain3_regex("([^\\^])\\^(\\S+)");
 	// <server>;<profile>:<character>
 	static std::regex special_regex("([^;]);(\\S+):(\\S+);");
 	// <server>:<character>
@@ -134,6 +136,13 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 		record.serverName = matches[1].str();
 		record.accountName = matches[2].str();
 		record.accountPassword = matches[3].str();
+	}
+	else if (std::regex_match(input, matches, plain3_regex))
+	{
+		// <stationname>^<pass>
+		record.profileName = "";
+		record.accountName = matches[1].str();
+		record.accountPassword = matches[2].str();
 	}
 	else if (std::regex_match(input, matches, special_regex))
 	{
@@ -186,19 +195,6 @@ ProfileRecord ProfileRecord::FromBlob(const std::string& blob)
 
 		LocalFree(db.pbData);
 	}
-
-	return record;
-}
-
-ProfileRecord ProfileRecord::FromINI(const std::string& profile, const std::string& blobKey, const std::string& iniFile)
-{
-	std::string blob = GetPrivateProfileString(profile, blobKey, "", iniFile);
-	if (!blob.empty())
-		blob = split(blob, '=').at(0); // remove the "checked" status
-
-	auto record = ProfileRecord::FromBlob(blob);
-	record.profileName = profile;
-	record.serverName = split(blobKey, ':').at(0); // <server>:<character>_Blob
 
 	return record;
 }
@@ -1033,7 +1029,8 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			INSERT INTO personas (character_id, class, level) VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?)
+			INSERT INTO personas (character_id, class, level, last_seen)
+			VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?, datetime())
 			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1078,7 +1075,8 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 		R"(
 			UPDATE OR REPLACE personas
 			SET class = ?,
-			    level = ?
+			    level = ?,
+			    last_seen = datetime()
 			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
 		[cls, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1438,6 +1436,7 @@ void login::db::WriteProfileGroups(const std::vector<ProfileGroup>& groups)
 
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 // TODO: test this (open a bunch of clients simultaneously)
+// TODO: LOWER() account, character, server and UPPER() class
 bool login::db::InitDatabase(const std::string& path)
 {
 	s_dbPath = path;

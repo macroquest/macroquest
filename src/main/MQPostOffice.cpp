@@ -277,6 +277,7 @@ public:
 			{ return ci_ends_with(pair.first, address.mailbox()); });
 	}
 
+	// TODO: This needs to call dispatch message instead of DeliverTo so that any self-sends end up on the right thread
 	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
