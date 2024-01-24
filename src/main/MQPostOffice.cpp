@@ -77,30 +77,30 @@ private:
 			case MQMessageId::MSG_ROUTE:
 			{
 				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				const auto& address = envelope.address();
+				const auto& address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
 				// was within the client. In either case, we can safely assume that we should route it to an
 				// internal mailbox
-				if (address.has_mailbox() && !ci_equals(address.mailbox(), "pipe_client"))
+				if (address && address->has_mailbox())
 				{
 					// we need to loop all mailboxes and deliver to all of them that end with the address
 					// if this is an RPC message, then we need to ensure that we have only one
 					if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
 					{
-						auto mailbox = m_postOffice->FindMailbox(address, m_postOffice->m_mailboxes.begin());
+						auto mailbox = m_postOffice->FindMailbox(*address, m_postOffice->m_mailboxes.begin());
 
 						if (mailbox == m_postOffice->m_mailboxes.end()) // no addresses
 							RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
-						else if (m_postOffice->FindMailbox(address, std::next(mailbox)) != m_postOffice->m_mailboxes.end()) // multiple addresses
+						else if (m_postOffice->FindMailbox(*address, std::next(mailbox)) != m_postOffice->m_mailboxes.end()) // multiple addresses
 							RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
 						else // we have exactly one recipient, this is valid
-							m_postOffice->DeliverTo(address.mailbox(), std::move(message));
+							m_postOffice->DeliverTo(address->mailbox(), std::move(message));
 					}
 					else
 					{
 						// in any other case, just route the message
-						m_postOffice->DeliverTo(address.mailbox(), std::move(message));
+						m_postOffice->DeliverTo(address->mailbox(), std::move(message));
 					}
 				}
 				else
@@ -272,12 +272,14 @@ public:
 		const proto::routing::Address& address,
 		const std::unordered_map<const std::string, std::unique_ptr<postoffice::Mailbox>>::iterator& from)
 	{
+		if (!address.has_mailbox())
+			return m_mailboxes.end();
+
 		return std::find_if(from, m_mailboxes.end(),
 			[&address](const std::pair<const std::string, std::unique_ptr<postoffice::Mailbox>>& pair)
 			{ return ci_ends_with(pair.first, address.mailbox()); });
 	}
 
-	// TODO: This needs to call dispatch message instead of DeliverTo so that any self-sends end up on the right thread
 	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
@@ -313,33 +315,29 @@ public:
 					else
 						m_pipeClient.SendMessageWithResponse(std::move(message), callback);
 				}
-				else if (address.has_pid() && address.pid() == GetCurrentProcessId() && address.has_mailbox())
+				else if (address.has_pid() && address.pid() == GetCurrentProcessId() && callback != nullptr)
 				{
-					if (callback == nullptr)
-						DeliverTo(address.mailbox(), std::move(message));
-					else
-					{
-						auto mailbox = FindMailbox(address, m_mailboxes.begin());
+					// special handling for local RPC messages
+					auto mailbox = FindMailbox(address, m_mailboxes.begin());
 
-						// need to set the request mode here to ensure that failed messages get returned
-						message->SetRequestMode(MQRequestMode::CallAndResponse);
+					// need to set the request mode here to ensure that failed messages get returned
+					message->SetRequestMode(MQRequestMode::CallAndResponse);
 
-						if (mailbox == m_mailboxes.end()) // no addresses
-							RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
-						else if (FindMailbox(address, std::next(mailbox)) != m_mailboxes.end()) // multiple addresses
-							RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
-						else // we have exactly one recipient, this is valid
-							m_pipeClient.SendMessageWithResponse(std::move(message), callback);
-					}
+					if (mailbox == m_mailboxes.end()) // no addresses
+						RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+					else if (FindMailbox(address, std::next(mailbox)) != m_mailboxes.end()) // multiple addresses
+						RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+					else // we have exactly one recipient, this is valid
+						m_pipeClient.SendMessageWithResponse(std::move(message), callback);
 				}
-				else // address.has_pid() && address.pid() == GetCurrentProcessId()
+				else // address.has_pid() && address.pid() == GetCurrentProcessId() && callback == nullptr
 				{
-					DeliverTo("pipe_client", std::move(message));
+					m_pipeClient.DispatchMessage(std::move(message));
 				}
 			}
-			else
+			else // no address, just dispatch
 			{
-				DeliverTo("pipe_client", std::move(message));
+				m_pipeClient.DispatchMessage(std::move(message));
 			}
 		}
 		else
