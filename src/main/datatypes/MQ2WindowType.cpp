@@ -283,7 +283,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint32_t color = std::stoi(Index, nullptr, 16);
+					uint32_t color = std::stoul(Index, nullptr, 16);
 					pWnd->SetBGColor(color);
 					pWnd->Refade();
 				}
@@ -296,7 +296,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					uint8_t alpha = static_cast<uint8_t>(std::stoul(Index, nullptr, 0));
 					pWnd->SetAlpha(alpha);
 					pWnd->Refade();
 				}
@@ -309,7 +309,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					uint8_t alpha = static_cast<uint8_t>(std::stoul(Index, nullptr, 0));
 					pWnd->SetFadeToAlpha(alpha);
 					pWnd->Refade();
 				}
