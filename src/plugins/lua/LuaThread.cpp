@@ -530,8 +530,6 @@ LuaThreadStatus LuaThread::Pause()
 
 void LuaThread::SetAllowYield(bool allowYield, YieldDisabledReason reason)
 {
-	// if we are disallowing yield, then we need to clear any hooks that have been set
-	if (!allowYield) lua_sethook(GetLuaThread().lua_state(), nullptr, 0, 0);
 	m_allowYield = allowYield;
 	m_yieldDisabledReason = reason;
 }
