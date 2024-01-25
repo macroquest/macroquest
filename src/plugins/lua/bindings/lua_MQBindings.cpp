@@ -481,14 +481,7 @@ static sol::object lua_unpickle(sol::this_state L, std::string_view file_path)
 
 	try
 	{
-		sol::protected_function script = lua.load_file(path.string());
-		if (!script.valid())
-		{
-			LuaError("Failed to load file %.*s due to an invalid script.", file_path.size(), file_path.data());
-			return sol::make_object(lua, sol::nil);
-		}
-
-		sol::protected_function_result result = script();
+		sol::protected_function_result result = lua.do_file(path.string());
 		if (!result.valid())
 		{
 			sol::error err = result;
@@ -504,9 +497,6 @@ static sol::object lua_unpickle(sol::this_state L, std::string_view file_path)
 		return sol::make_object(lua, sol::nil);
 	}
 }
-
-
-
 
 #pragma endregion
 
