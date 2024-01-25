@@ -474,39 +474,37 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 	}
 }
 
-static sol::table lua_unpickle(sol::this_state L, std::string_view file_path)
+static sol::object lua_unpickle(sol::this_state L, std::string_view file_path)
 {
-	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
-
-	std::ifstream ifs(path, std::ios_base::in);
-	if (!ifs.is_open())
-	{
-		LuaError("Failed to open file %.*s for unpickling", file_path.size(), file_path.data());
-	}
-
-	std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-	ifs.close();
-
 	sol::state_view lua(L);
+	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
 
 	try
 	{
-		sol::protected_function_result result = lua.script(str);
+		sol::protected_function script = lua.load_file(path.string());
+		if (!script.valid())
+		{
+			LuaError("Failed to load file %.*s due to an invalid script.", file_path.size(), file_path.data());
+			return sol::make_object(lua, sol::nil);
+		}
+
+		sol::protected_function_result result = script();
 		if (!result.valid())
 		{
 			sol::error err = result;
 			LuaError("Failed to execute file %.*s with error: %s", file_path.size(), file_path.data(), err.what());
+			return sol::make_object(lua, sol::nil);
 		}
 
-		sol::table table = result;
-		table.push();
-		return table;
+		return sol::make_object(lua, result);
 	}
 	catch (std::exception& e)
 	{
 		LuaError("Exception occurred while unpickling file %.*s: %s", file_path.size(), file_path.data(), e.what());
+		return sol::make_object(lua, sol::nil);
 	}
 }
+
 
 
 
