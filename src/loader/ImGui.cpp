@@ -49,7 +49,7 @@ static std::map<std::string, Modal> s_modals;
 
 bool ImGui::SmallCheckbox(const char* label, bool* v)
 {
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, 0.f);
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, ImGui::GetStyle().FramePadding.y });
 	bool pressed = ImGui::Checkbox(label, v);
 	ImGui::PopStyleVar();
 	return pressed;
