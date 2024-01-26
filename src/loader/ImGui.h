@@ -23,19 +23,12 @@
 
 typedef void (_cdecl * SDL_WindowsMessageHook)(void *userdata, void *hWnd, unsigned int message, uint64_t wParam, int64_t lParam);
 
-namespace ImGui {
+namespace LauncherImGui {
 bool SmallCheckbox(const char* label, bool* v);
 void OpenModal(const std::string& name);
 bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags);
 void EndModal();
 void CloseModal();
-}
-
-//namespace HelloImGui {
-//struct DockableWindow;
-//} // namespace HelloImGui
-
-namespace LauncherImGui {
 
 struct Viewport
 {

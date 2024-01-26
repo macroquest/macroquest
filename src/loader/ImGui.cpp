@@ -47,7 +47,17 @@ struct Modal
 
 static std::map<std::string, Modal> s_modals;
 
-bool ImGui::SmallCheckbox(const char* label, bool* v)
+struct DimRatio
+{
+	float Ratio = 0.f;
+	bool Open = true;
+};
+
+static std::map<ImGuiID, DimRatio> s_dimRatios;
+
+namespace LauncherImGui {
+
+bool SmallCheckbox(const char* label, bool* v)
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, ImGui::GetStyle().FramePadding.y });
 	bool pressed = ImGui::Checkbox(label, v);
@@ -55,22 +65,26 @@ bool ImGui::SmallCheckbox(const char* label, bool* v)
 	return pressed;
 }
 
-static void DimParentViewport(ImGuiViewportP* viewport, Modal& modal)
+static bool DimParentViewport(ImGuiViewportP* viewport, DimRatio& ratio)
 {
-    ImRect viewport_rect = viewport->GetMainRect();
-	ImDrawList* draw_list = ImGui::GetForegroundDrawList(viewport);
+	if (ratio.Ratio > 0.f)
+	{
+		const ImU32 dim_bg_col = ImGui::GetColorU32(ImGuiCol_ModalWindowDimBg, ratio.Ratio);
 
-	// TODO: the ratio should fade in/out like this
-    //if (modal_open)
-    //    g.DimBgRatio = ImMin(g.DimBgRatio + g.IO.DeltaTime * 6.0f, 1.0f);
-    //else // (this means we need to persist the dim until it's 0 or less)
-    //    g.DimBgRatio = ImMax(g.DimBgRatio - g.IO.DeltaTime * 10.0f, 0.0f);
-	const ImU32 dim_bg_col = ImGui::GetColorU32(ImGuiCol_ModalWindowDimBg, 1.f);
+		ImDrawList* draw_list = ImGui::GetForegroundDrawList(viewport);
+		draw_list->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, dim_bg_col);
+	}
 
-	draw_list->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, dim_bg_col);
+	ImGuiIO io = ImGui::GetIO();
+	if (ratio.Open && ratio.Ratio < 1.f)
+		ratio.Ratio = std::min(ratio.Ratio + io.DeltaTime * 6.f, 1.f);
+	else if (!ratio.Open)
+		ratio.Ratio = ratio.Ratio - io.DeltaTime * 10.f, 0.f;
+
+	return ratio.Open || ratio.Ratio > 0.f;
 }
 
-void ImGui::OpenModal(const std::string& name)
+void OpenModal(const std::string& name)
 {
 	auto viewport = (ImGuiViewportP*)ImGui::GetWindowViewport();
 	if (viewport == nullptr)
@@ -91,12 +105,12 @@ void ImGui::OpenModal(const std::string& name)
 		viewport->Window->WindowClass.ViewportFlagsOverrideClear &= ~(ImGuiViewportFlags_NoInputs | ImGuiViewportFlags_NoFocusOnClick);
 	}
 
+	s_dimRatios[viewport->ID] = DimRatio{ 0.f, true };
 	s_modals[name] = std::move(modal);
 }
 
-bool ImGui::BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
+bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 {
-	ImGui::ShowMetricsWindow();
 	auto it = s_modals.find(name);
 	if (it == s_modals.end())
 		return false;
@@ -109,9 +123,6 @@ bool ImGui::BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags f
 	{
 		if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos) == 0)
 				ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-
-		//viewport->Alpha = modal.Alpha;
-		DimParentViewport(viewport, modal);
 	}
 
 	if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSize) == 0)
@@ -130,13 +141,13 @@ bool ImGui::BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags f
     return is_open;
 }
 
-void ImGui::EndModal()
+void EndModal()
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     if (g.NavWindow == window)
-        NavMoveRequestTryWrapping(window, ImGuiNavMoveFlags_LoopY);
+        ImGui::NavMoveRequestTryWrapping(window, ImGuiNavMoveFlags_LoopY);
 
     // Child-popups don't need to be laid out
     IM_ASSERT(g.WithinEndChild == false);
@@ -146,7 +157,7 @@ void ImGui::EndModal()
     g.WithinEndChild = false;
 }
 
-void ImGui::CloseModal()
+void CloseModal()
 {
     IM_ASSERT(s_modals.size() > 0);
 
@@ -163,12 +174,22 @@ void ImGui::CloseModal()
 	{
 		viewport->Window->WindowClass.ViewportFlagsOverrideSet = modal.OriginalFlagsSet;
 		viewport->Window->WindowClass.ViewportFlagsOverrideClear = modal.OriginalFlagsClear;
+
+		auto it = s_dimRatios.find(viewport->ID);
+		if (it != s_dimRatios.end())
+			it->second.Open = false;
+
+		// we need to focus the parent at the platform level here, just doing it in imgui
+		// with ImGui::FocusWindow will not actually set the focus
+		if (g.PlatformIO.Platform_SetWindowFocus)
+			g.PlatformIO.Platform_SetWindowFocus(viewport);
+
+		// after platform focus has been established, we can set the correct child focus
+		ImGui::FocusWindow(viewport->Window, ImGuiFocusRequestFlags_RestoreFocusedChild);
 	}
 
 	s_modals.erase(it);
 }
-
-namespace LauncherImGui {
 
 void OpenWindow(
 	const std::function<bool()>& draw,
@@ -230,6 +251,20 @@ void Run(const std::function<bool()>& mainLoop)
 				it = s_viewports.erase(it);
 			else
 				++it;
+		}
+
+		for (auto it = s_dimRatios.begin(); it != s_dimRatios.end();)
+		{
+			auto viewport = (ImGuiViewportP*)ImGui::FindViewportByID(it->first);
+			if (viewport == nullptr)
+				it = s_dimRatios.erase(it);
+			else
+			{
+				if (DimParentViewport(viewport, it->second))
+					++it;
+				else
+					it = s_dimRatios.erase(it);
+			}
 		}
 
 		// we do this as a popup to let imgui handle styling as a popup. _However_ imgui fails to handle some

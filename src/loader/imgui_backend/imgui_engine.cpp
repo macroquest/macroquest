@@ -17,6 +17,7 @@
 #include "imgui/ImGuiUtils.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
@@ -82,6 +83,23 @@ void LauncherImGui::Backend::DrawFrame(const std::function<void()>& drawFrame)
 	drawFrame();
 
 	ImGui::EndFrame();
+
+	ImGuiContext& g = *ImGui::GetCurrentContext();
+	if (g.HoveredWindow == nullptr)
+	{
+		if (g.NavWindow != nullptr)
+		{
+			if (ImGui::GetIO().MouseClicked[0])
+			{
+				ImGui::ClearActiveID();
+			}
+		}
+	}
+	if (g.HoveredWindow == nullptr && g.NavWindow != nullptr && ImGui::GetIO().MouseClicked[ImGuiMouseButton_Left])
+	{
+		ImGui::FocusWindow(nullptr, ImGuiFocusRequestFlags_None);
+		ImGui::ClearActiveID();
+	}
 
 	// render
 	ImGui::Render();

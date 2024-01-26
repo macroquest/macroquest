@@ -1264,23 +1264,14 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
             if (viewport->Flags & ImGuiViewportFlags_NoInputs)
                 return HTTRANSPARENT;
             break;
-
-        case WM_ACTIVATE:
-			if (wParam == WA_INACTIVE)
-			{
-				// If any window goes inactive (where an OS window becomes active, not another
-				// viewport), then we need to make sure to close all popups over that window
-				// to create consistent behavior
-				ImGui::ClosePopupsExceptModals();
-			}
-			else if ((((ImGuiViewportP*)viewport)->Window->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Modal)) == ImGuiWindowFlags_Popup)
-			{
-				// sometimes windows don't get focused when being reopened, this ensures that they do
-				// this still won't set focus on windows that are appearing with nofocusonappearing set
-				// since they don't get activated
-				ImGui_ImplWin32_SetWindowFocus(viewport);
-			}
-            break;
+		case WM_SETFOCUS:
+			if (::GetForegroundWindow() != hWnd)
+				::SetForegroundWindow(hWnd);
+			break;
+		case WM_KILLFOCUS:
+			ImGui::ClearActiveID();
+			ImGui::FocusWindow(nullptr);
+			break;
         }
     }
 
