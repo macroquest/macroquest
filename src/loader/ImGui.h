@@ -25,6 +25,10 @@ typedef void (_cdecl * SDL_WindowsMessageHook)(void *userdata, void *hWnd, unsig
 
 namespace ImGui {
 bool SmallCheckbox(const char* label, bool* v);
+void OpenModal(const std::string& name);
+bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags);
+void EndModal();
+void CloseModal();
 }
 
 //namespace HelloImGui {
@@ -39,7 +43,7 @@ struct Viewport
 };
 
 void OpenWindow(
-	const std::function<bool()>& render,
+	const std::function<bool()>& draw,
 	const std::string& label
 );
 
@@ -47,7 +51,7 @@ bool AddMainPanel(const std::string& name, const std::function<void()> callback)
 bool RemoveMainPanel(const std::string& name);
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback);
 bool RemoveContextGroup(const std::string& name);
-void Run(const std::function<bool()>& mainWindow, const std::function<bool()>& mainLoop);
+void Run(const std::function<bool()>& mainLoop);
 bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
 void OpenMainWindow();
 void OpenContextMenu();

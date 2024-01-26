@@ -21,7 +21,7 @@
 namespace LauncherImGui {
 namespace Backend {
 void Init(HWND hWnd);
-bool DrawFrame(const std::function<bool()>& drawFrame);
+void DrawFrame(const std::function<void()>& drawFrame);
 void Cleanup();
 bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
 } // namespace Backend

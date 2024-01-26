@@ -497,7 +497,7 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 
 	if (selected)
 	{
-		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenPopup("Delete Account");
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenModal("Delete Account");
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
@@ -506,13 +506,13 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 			if (auto pass = login::db::ReadAccount(profile))
 				password = *pass;
 
-			ImGui::OpenPopup("Edit Account");
+			ImGui::OpenModal("Edit Account");
 		}
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
 	}
 
-	if (ImGui::BeginPopupModal("Delete Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Delete Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextWrapped("Are you sure you want to delete account '%s'? All associated characters and profiles will also be removed.", selected->c_str());
 		ImGui::Spacing();
@@ -521,20 +521,20 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 		{
 			login::db::DeleteAccount(*selected);
 			selected = {};
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("No##deleteaccount", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
-	if (ImGui::BeginPopupModal("Edit Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Edit Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextWrapped("Set password for account '%s':", selected->c_str());
 		ImGui::Spacing();
@@ -553,20 +553,20 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 			record.accountName = *selected;
 			record.accountPassword = password;
 			login::db::UpdateAccount(*selected, record);
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel##editaccount", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
-	if (ImGui::BeginPopupModal("Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextWrapped("Create a new account, or update existing account.");
 		ImGui::Spacing();
@@ -589,23 +589,23 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 			record.accountPassword = password;
 			login::db::CreateAccount(record);
 			selected = account_name;
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel##createaccount", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
 	if (ImGui::Button("Add Account"))
 	{
 		account_name = selected ? *selected : "";
-		ImGui::OpenPopup("Create Account");
+		ImGui::OpenModal("Create Account");
 	}
 
 	ImGui::SameLine();
@@ -616,11 +616,11 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 		if (auto pass = login::db::ReadAccount(profile))
 			password = *pass;
 
-		ImGui::OpenPopup("Edit Account");
+		ImGui::OpenModal("Edit Account");
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Remove Account") && selected) ImGui::OpenPopup("Delete Account");
+	if (ImGui::Button("Remove Account") && selected) ImGui::OpenModal("Delete Account");
 }
 
 void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::string, std::string>>& selected, std::string& preview)
@@ -680,7 +680,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 	if (selected)
 	{
-		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenPopup("Delete Character");
+		if (ImGui::IsKeyPressed(ImGuiKey_Delete)) ImGui::OpenModal("Delete Character");
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
@@ -688,13 +688,13 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			serverName = selected->first;
 			characterName = selected->second;
 
-			ImGui::OpenPopup("Edit Character");
+			ImGui::OpenModal("Edit Character");
 		}
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
 	}
 
-	if (ImGui::BeginPopupModal("Delete Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Delete Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextWrapped("Are you sure you want to delete character '%s : %s'? All associated profiles will also be removed.", selected->first.c_str(), selected->second.c_str());
 		ImGui::Spacing();
@@ -704,20 +704,20 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			login::db::DeleteCharacter(selected->first, selected->second);
 			selected = {};
 			preview = "";
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("No##deletecharacter", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
-	if (ImGui::BeginPopupModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::InputText("Account##editcharacter", &accountName);
 		ImGui::Spacing();
@@ -741,20 +741,20 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 				set_selection(std::make_pair(serverName, characterName));
 			}
 
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel##editcharacter", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
-	if (ImGui::BeginPopupModal("Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::InputText("Account##createcharacter", &accountName);
 		ImGui::Spacing();
@@ -775,17 +775,17 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			login::db::CreateCharacter(record);
 			set_selection(std::make_pair(serverName, characterName));
 
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel##createcharacter", ImVec2(120, 0)))
 		{
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 		}
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
 	if (ImGui::Button("Add Character"))
@@ -801,7 +801,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 			serverName.clear();
 			characterName.clear();
 		}
-		ImGui::OpenPopup("Create Character");
+		ImGui::OpenModal("Create Character");
 	}
 
 	ImGui::SameLine();
@@ -811,11 +811,11 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 		serverName = selected->first;
 		characterName = selected->second;
 
-		ImGui::OpenPopup("Edit Character");
+		ImGui::OpenModal("Edit Character");
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("Remove Character") && selected) ImGui::OpenPopup("Delete Character");
+	if (ImGui::Button("Remove Character") && selected) ImGui::OpenModal("Delete Character");
 }
 
 static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
@@ -925,17 +925,17 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 
 	ImGui::SameLine();
 	if (ImGui::Button("...##account"))
-		ImGui::OpenPopup("Select or Create Account");
+		ImGui::OpenModal("Select or Create Account");
 
-	if (ImGui::BeginPopupModal("Select or Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginModal("Select or Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ShowAccountWindow(profile.current_account);
 
 		ImGui::Separator();
 		if (ImGui::Button("OK"))
-			ImGui::CloseCurrentPopup();
+			ImGui::CloseModal();
 
-		ImGui::EndPopup();
+		ImGui::EndModal();
 	}
 
 	// drop down for character or create new, only show this if an account has been selected
@@ -980,9 +980,9 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 
 		ImGui::SameLine();
 		if (ImGui::Button("...##character"))
-			ImGui::OpenPopup("Select or Create Character");
+			ImGui::OpenModal("Select or Create Character");
 
-		if (ImGui::BeginPopupModal("Select or Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginModal("Select or Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ShowCharacterWindow(*profile.current_account, profile.current_character, profile.char_preview);
 
@@ -1000,10 +1000,10 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 
 				profile.eq_path = record.eqPath;
 
-				ImGui::CloseCurrentPopup();
+				ImGui::CloseModal();
 			}
 
-			ImGui::EndPopup();
+			ImGui::EndModal();
 		}
 	}
 	else if (profile.current_character)
@@ -1013,44 +1013,44 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 	{
 		// input box for hotkey (optional)
 		if (ImGui::Button("Hotkey"))
-			ImGui::OpenPopup("Input Hotkey");
+			ImGui::OpenModal("Input Hotkey");
 
 		ImGui::SameLine();
 		ImGui::Text("%s", profile.hotkey ? profile.hotkey->c_str() : "<None>");
 
-		if (ImGui::BeginPopupModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ShowHotkeyWindow(profile.hotkey);
 
 			ImGui::Separator();
 			if (ImGui::Button("OK"))
-				ImGui::CloseCurrentPopup();
+				ImGui::CloseModal();
 
-			ImGui::EndPopup();
+			ImGui::EndModal();
 		}
 
 		// input for eq path override (optional)
 		if (ImGui::Button("EQ Path"))
-			ImGui::OpenPopup("Input EQ Path");
+			ImGui::OpenModal("Input EQ Path");
 
 		ImGui::SameLine();
 		ImGui::Text("%s", profile.eq_path ? profile.eq_path->c_str() : "<Default>");
 
-		if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			SetEQDir(profile.eq_path);
 
 			ImGui::Separator();
 			if (ImGui::Button("OK"))
-				ImGui::CloseCurrentPopup();
+				ImGui::CloseModal();
 
-			ImGui::EndPopup();
+			ImGui::EndModal();
 		}
 	}
 
 	if (ImGui::Button("Cancel"))
 	{
-		ImGui::CloseCurrentPopup();
+		ImGui::CloseModal();
 	}
 
 
@@ -1061,7 +1061,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 		if (profile.current_character)
 			profile.finalize = true;
 
-		ImGui::CloseCurrentPopup();
+		ImGui::CloseModal();
 	}
 
 	ImGui::PopID();
@@ -1091,35 +1091,35 @@ void ShowAutoLoginWindow()
 				{
 					new_group = "";
 					new_group_path = {};
-					ImGui::OpenPopup("Create Profile Group");
+					ImGui::OpenModal("Create Profile Group");
 				}
 
-				if (ImGui::BeginPopupModal("Create Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+				if (ImGui::BeginModal("Create Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 				{
 					ImGui::InputText("Group Name", &new_group);
 
 					ImGui::Spacing();
 					if (ImGui::Button("EQ Path"))
-						ImGui::OpenPopup("Input EQ Path");
+						ImGui::OpenModal("Input EQ Path");
 
 					ImGui::SameLine();
 					ImGui::Text("%s", new_group_path ? new_group_path->c_str() : "<Default>");
 
-					if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					if (ImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
 						SetEQDir(new_group_path);
 
 						ImGui::Separator();
 						if (ImGui::Button("OK"))
-							ImGui::CloseCurrentPopup();
+							ImGui::CloseModal();
 
-						ImGui::EndPopup();
+						ImGui::EndModal();
 					}
 
 					ImGui::Separator();
 					if (ImGui::Button("Cancel"))
 					{
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
 					ImGui::SameLine();
@@ -1139,16 +1139,16 @@ void ShowAutoLoginWindow()
 						new_group = {};
 						new_group_path = {};
 
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
-					ImGui::EndPopup();
+					ImGui::EndModal();
 				}
 
 				if (ImGui::SmallButton("Remove") && current_group)
-					ImGui::OpenPopup("Delete Profile Group");
+					ImGui::OpenModal("Delete Profile Group");
 
-				if (ImGui::BeginPopupModal("Delete Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize) && current_group)
+				if (ImGui::BeginModal("Delete Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize) && current_group)
 				{
 					ImGui::TextWrapped("Are you sure you want to delete profile group '%s'? All associated profiles will also be removed.", current_group->c_str());
 					ImGui::Spacing();
@@ -1157,17 +1157,17 @@ void ShowAutoLoginWindow()
 					{
 						login::db::DeleteProfileGroup(*current_group);
 						current_group = {};
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
 					ImGui::SetItemDefaultFocus();
 					ImGui::SameLine();
 					if (ImGui::Button("No##deletegroup", ImVec2(120, 0)))
 					{
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
-					ImGui::EndPopup();
+					ImGui::EndModal();
 				}
 
 				constexpr const char* label = "Profiles";
@@ -1203,13 +1203,13 @@ void ShowAutoLoginWindow()
 			{
 				// reset to defaults
 				interim_profile = {};
-				ImGui::OpenPopup("Add Profile");
+				ImGui::OpenModal("Add Profile");
 			}
 
-			if (current_group && ImGui::BeginPopupModal("Add Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (current_group && ImGui::BeginModal("Add Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ShowAddProfile(*current_group, interim_profile);
-				ImGui::EndPopup();
+				ImGui::EndModal();
 			}
 
 			if (!edit_profile && current_group && interim_profile.finalize && interim_profile.current_character)
@@ -1315,12 +1315,12 @@ void ShowAutoLoginWindow()
 					}
 
 					if (edit_profile && interim_profile.current_character)
-						ImGui::OpenPopup("Edit Profile");
+						ImGui::OpenModal("Edit Profile");
 
-					if (ImGui::BeginPopupModal("Edit Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					if (ImGui::BeginModal("Edit Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
 						ShowAddProfile(*current_group, interim_profile);
-						ImGui::EndPopup();
+						ImGui::EndModal();
 					}
 
 					if (interim_profile.finalize && interim_profile.current_character)
@@ -1372,10 +1372,10 @@ void ShowAutoLoginWindow()
 			{
 				// reset to defaults
 				interim_profile = {};
-				ImGui::OpenPopup("Add Character");
+				ImGui::OpenModal("Add Character");
 			}
 
-			if (ImGui::BeginPopupModal("Add Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (ImGui::BeginModal("Add Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ImGui::InputText("Account##createcharacter", &interim_profile.accountName);
 				ImGui::Spacing();
@@ -1389,17 +1389,17 @@ void ShowAutoLoginWindow()
 				if (ImGui::Button("OK##createcharacter", ImVec2(120, 0)))
 				{
 					login::db::CreateCharacter(interim_profile);
-					ImGui::CloseCurrentPopup();
+					ImGui::CloseModal();
 				}
 
 				ImGui::SetItemDefaultFocus();
 				ImGui::SameLine();
 				if (ImGui::Button("Cancel##createcharacter", ImVec2(120, 0)))
 				{
-					ImGui::CloseCurrentPopup();
+					ImGui::CloseModal();
 				}
 
-				ImGui::EndPopup();
+				ImGui::EndModal();
 			}
 
 			ImGui::PushID("mainlist");
@@ -1478,49 +1478,49 @@ void ShowAutoLoginWindow()
 						interim_profile.serverName = match.serverName;
 						interim_profile.characterName = match.characterName;
 						hotkey = {};
-						ImGui::OpenPopup("Play With Params");
+						ImGui::OpenModal("Play With Params");
 					}
 
-					if (ImGui::BeginPopupModal("Play With Params", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+					if (ImGui::BeginModal("Play With Params", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
 						// input box for hotkey (optional)
 						if (ImGui::Button("Hotkey"))
-							ImGui::OpenPopup("Input Hotkey");
+							ImGui::OpenModal("Input Hotkey");
 
 						ImGui::SameLine();
 						ImGui::Text("%s", hotkey ? hotkey->c_str() : "<None>");
 
-						if (ImGui::BeginPopupModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+						if (ImGui::BeginModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 						{
 							ShowHotkeyWindow(hotkey);
 
 							ImGui::Separator();
 							if (ImGui::Button("OK"))
-								ImGui::CloseCurrentPopup();
+								ImGui::CloseModal();
 
-							ImGui::EndPopup();
+							ImGui::EndModal();
 						}
 
 						// input for eq path override (optional)
 						if (ImGui::Button("EQ Path"))
-							ImGui::OpenPopup("Input EQ Path");
+							ImGui::OpenModal("Input EQ Path");
 
 						ImGui::SameLine();
 						ImGui::Text("%s", interim_profile.eqPath ? interim_profile.eqPath->c_str() : "<Default>");
 
-						if (ImGui::BeginPopupModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+						if (ImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 						{
 							SetEQDir(interim_profile.eqPath);
 
 							ImGui::Separator();
 							if (ImGui::Button("OK"))
-								ImGui::CloseCurrentPopup();
+								ImGui::CloseModal();
 
-							ImGui::EndPopup();
+							ImGui::EndModal();
 						}
 
 						if (ImGui::Button("Cancel"))
-							ImGui::CloseCurrentPopup();
+							ImGui::CloseModal();
 
 
 						ImGui::SameLine();
@@ -1535,10 +1535,10 @@ void ShowAutoLoginWindow()
 
 							LoadCharacter(instance);
 
-							ImGui::CloseCurrentPopup();
+							ImGui::CloseModal();
 						}
 
-						ImGui::EndPopup();
+						ImGui::EndModal();
 					}
 
 					ImGui::PopID();
@@ -1546,9 +1546,9 @@ void ShowAutoLoginWindow()
 				}
 
 				if (selected)
-					ImGui::OpenPopup("Edit Character");
+					ImGui::OpenModal("Edit Character");
 
-				if (ImGui::BeginPopupModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+				if (ImGui::BeginModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 				{
 					ImGui::InputText("Account##editcharacter", &interim_profile.accountName);
 					ImGui::Spacing();
@@ -1566,17 +1566,17 @@ void ShowAutoLoginWindow()
 
 						selected = {};
 						interim_profile = {};
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
 					ImGui::SetItemDefaultFocus();
 					ImGui::SameLine();
 					if (ImGui::Button("Cancel##editcharacter", ImVec2(120, 0)))
 					{
-						ImGui::CloseCurrentPopup();
+						ImGui::CloseModal();
 					}
 
-					ImGui::EndPopup();
+					ImGui::EndModal();
 				}
 
 				ImGui::EndTable();

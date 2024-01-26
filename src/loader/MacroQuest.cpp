@@ -1134,7 +1134,6 @@ int WINAPI CALLBACK WinMain(
 
 	MSG msg;
 	LauncherImGui::Run(
-		[]() { return true; },
 		[&msg]()
 		{
 			ProcessPipeServer();

@@ -51,7 +51,7 @@ void LauncherImGui::Backend::Init(HWND hWnd)
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	io.ConfigViewportsNoTaskBarIcon = false;
 	io.ConfigViewportsNoDefaultParent = true;
-	io.ConfigViewportsNoAutoMerge = false;
+	io.ConfigViewportsNoAutoMerge = true;
 	io.ConfigViewportsNoDecoration = true;
 
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
@@ -69,7 +69,7 @@ void LauncherImGui::Backend::Init(HWND hWnd)
 	mq::imgui::ConfigureStyle();
 }
 
-bool LauncherImGui::Backend::DrawFrame(const std::function<bool()>& drawFrame)
+void LauncherImGui::Backend::DrawFrame(const std::function<void()>& drawFrame)
 {
 	// don't think we need to resize buffers
 
@@ -79,7 +79,9 @@ bool LauncherImGui::Backend::DrawFrame(const std::function<bool()>& drawFrame)
 	ImGui::NewFrame();
 
 	// draw the user-defined windows
-	bool ret = drawFrame();
+	drawFrame();
+
+	ImGui::EndFrame();
 
 	// render
 	ImGui::Render();
@@ -96,8 +98,6 @@ bool LauncherImGui::Backend::DrawFrame(const std::function<bool()>& drawFrame)
 	}
 
 	s_swapChain->Present(1, 0);
-
-	return ret;
 }
 
 void LauncherImGui::Backend::Cleanup()
