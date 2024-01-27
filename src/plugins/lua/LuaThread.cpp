@@ -528,6 +528,12 @@ LuaThreadStatus LuaThread::Pause()
 	return LuaThreadStatus::Paused;
 }
 
+void LuaThread::SetAllowYield(bool allowYield, YieldDisabledReason reason)
+{
+	m_allowYield = allowYield;
+	m_yieldDisabledReason = reason;
+}
+
 // this is the special sauce that lets us execute everything on the main thread without blocking
 /*static*/ void LuaThread::lua_forceYield(lua_State* L, lua_Debug* D)
 {
