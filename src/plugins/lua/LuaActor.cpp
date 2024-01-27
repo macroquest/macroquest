@@ -476,6 +476,11 @@ void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
 
 void LuaDropbox::Process()
 {
+	// remove any existing hooks, they will be re-installed when running in onpulse
+	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
+	if (auto thread = LuaThread::get_from(m_thread.state()))
+		lua_sethook(thread->GetLuaThread().lua_state(), nullptr, 0, 0);
+
 	for (auto& callback : m_queue)
 	{
 		callback->Run();
