@@ -1,3 +1,6 @@
+Jan 27, 2024:
+- test: Updated for latest patch
+
 Jan 20, 2024:
 - Fix Mercenary.State reporting unknown when mercenary is active (#811)
 - Fix Heading.Name/Heading.ShortName potentially going out of bounds (#813)
