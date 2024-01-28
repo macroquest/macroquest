@@ -29,25 +29,26 @@ namespace mq {
 class PluginInterface;
 
 // Plugin Function Types
-using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);
-using fMQPulse               = void   (*)();
-using fMQIncomingChat        = bool   (*)(const char* Line, DWORD Color);
-using fMQInitializePlugin    = void   (*)();
-using fMQShutdownPlugin      = void   (*)();
-using fMQZoned               = void   (*)();
-using fMQReloadUI            = void   (*)();
-using fMQCleanUI             = void   (*)();
-using fMQDrawHUD             = void   (*)();
-using fMQSetGameState        = void   (*)(DWORD GameState);
-using fMQSpawn               = void   (*)(PlayerClient*);
-using fMQGroundItem          = void   (*)(EQGroundItem*);
-using fMQBeginZone           = void   (*)();
-using fMQEndZone             = void   (*)();
-using fMQUpdateImGui         = void   (*)();
-using fMQMacroStart          = void   (*)(const char*);
-using fMQMacroStop           = void   (*)(const char*);
-using fMQLoadPlugin          = void   (*)(const char*);
-using fMQUnloadPlugin        = void   (*)(const char*);
+using fMQWriteChatColor      = DWORD            (*)(const char*, DWORD, DWORD);
+using fMQPulse               = void             (*)();
+using fMQIncomingChat        = bool             (*)(const char* Line, DWORD Color);
+using fMQInitializePlugin    = void             (*)();
+using fMQShutdownPlugin      = void             (*)();
+using fMQJoinServer          = void             (*)(int, void*, int);
+using fMQZoned               = void             (*)();
+using fMQReloadUI            = void             (*)();
+using fMQCleanUI             = void             (*)();
+using fMQDrawHUD             = void             (*)();
+using fMQSetGameState        = void             (*)(DWORD GameState);
+using fMQSpawn               = void             (*)(PlayerClient*);
+using fMQGroundItem          = void             (*)(EQGroundItem*);
+using fMQBeginZone           = void             (*)();
+using fMQEndZone             = void             (*)();
+using fMQUpdateImGui         = void             (*)();
+using fMQMacroStart          = void             (*)(const char*);
+using fMQMacroStop           = void             (*)(const char*);
+using fMQLoadPlugin          = void             (*)(const char*);
+using fMQUnloadPlugin        = void             (*)(const char*);
 using fMQGetPluginInterface  = PluginInterface* (*)();
 
 struct MQPlugin
@@ -60,6 +61,7 @@ struct MQPlugin
 	bool                 bCustom = false;
 	fMQInitializePlugin  Initialize = 0;
 	fMQShutdownPlugin    Shutdown = 0;
+	fMQJoinServer        JoinServer = 0;
 	fMQZoned             Zoned = 0;
 	fMQWriteChatColor    WriteChatColor = 0;
 	fMQPulse             Pulse = 0;

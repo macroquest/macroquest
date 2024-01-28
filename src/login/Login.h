@@ -110,6 +110,11 @@ std::optional<unsigned int> ReadPersona(ProfileRecord& profile);
 void UpdatePersona(std::string_view cls, const ProfileRecord& profile);
 void DeletePersona(std::string_view server, std::string_view name, std::string_view cls);
 
+void CreateOrUpdateServer(std::string_view shortName, std::string_view longName);
+std::optional<std::string> ReadLongServer(std::string_view shortName);
+std::optional<std::string> ReadShortServer(std::string_view longName);
+void DeleteServer(std::string_view shortName, std::string_view longName);
+
 std::vector<ProfileRecord> GetProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);

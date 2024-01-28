@@ -42,6 +42,7 @@ std::string DBPath = (fs::path(mq::gPathConfig) / "login.db").string();
 fs::path CustomIni;
 uint64_t ReenableTime = 0;
 postoffice::DropboxAPI s_autologinDropbox;
+bool s_detoursInstalled = false;
 
 class LoginProfileType : public MQ2Type
 {
@@ -627,6 +628,62 @@ void LoginReset()
 {
 	AutoLoginDebug("LoginReset()");
 	ReadINI();
+}
+
+PLUGIN_API void OnJoinServer(int serverID, void* userdata, int timeoutseconds)
+{
+	Login::m_currentLogin.Account = g_pLoginClient->LoginName;
+	Login::m_currentLogin.Password = g_pLoginClient->Password;
+
+	for (auto server : g_pLoginClient->ServerList)
+	{
+		if (server->ID == static_cast<ServerID>(serverID))
+		{
+			Login::m_currentLogin.ServerName = server->ServerName;
+			return;
+		}
+	}
+}
+
+PLUGIN_API void SetGameState(int GameState)
+{
+	if (GameState == GAMESTATE_CHARSELECT)
+	{
+		// at character select now, if we have a memoized long name let's update the db for the server name pairing
+		if (Login::m_currentLogin.ServerName)
+			login::db::CreateOrUpdateServer(GetServerShortName(), *Login::m_currentLogin.ServerName);
+	}
+	else if (GameState == GAMESTATE_INGAME)
+	{
+		if (Login::m_currentLogin.Account && Login::m_currentLogin.Password)
+		{
+			ProfileRecord profile;
+			profile.accountName = *Login::m_currentLogin.Account;
+			to_lower(profile.accountName);
+			profile.accountPassword = *Login::m_currentLogin.Password;
+			login::db::CreateAccount(profile);
+		}
+
+		if (Login::m_currentLogin.Account && Login::m_currentLogin.ServerName)
+		{
+			ProfileRecord profile;
+			profile.accountName = *Login::m_currentLogin.Account;
+			to_lower(profile.accountName);
+
+			if (GetServerIDFromServerName(GetServerShortName()) != ServerID::Invalid)
+				profile.serverName = GetServerShortName();
+			else
+				profile.serverName = *Login::m_currentLogin.ServerName;
+
+			profile.characterName = pLocalPC->Name;
+			to_lower(profile.characterName);
+
+			login::db::CreateCharacter(profile);
+		}
+
+		Login::m_currentLogin.reset();
+	}
+
 }
 
 PLUGIN_API void InitializePlugin()

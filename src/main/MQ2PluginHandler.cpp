@@ -427,6 +427,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(pPlugin->hModule, "OnIncomingChat");
 	pPlugin->Pulse             = (fMQPulse)GetProcAddress(pPlugin->hModule, "OnPulse");
 	pPlugin->WriteChatColor    = (fMQWriteChatColor)GetProcAddress(pPlugin->hModule, "OnWriteChatColor");
+	pPlugin->JoinServer        = (fMQJoinServer)GetProcAddress(pPlugin->hModule, "OnJoinServer");
 	pPlugin->Zoned             = (fMQZoned)GetProcAddress(pPlugin->hModule, "OnZoned");
 	pPlugin->CleanUI           = (fMQCleanUI)GetProcAddress(pPlugin->hModule, "OnCleanUI");
 	pPlugin->ReloadUI          = (fMQReloadUI)GetProcAddress(pPlugin->hModule, "OnReloadUI");
@@ -716,6 +717,23 @@ void PulsePlugins()
 		{
 			if (plugin->Pulse)
 				plugin->Pulse();
+		});
+}
+
+void PluginsJoinServer(int serverID, void* userdata, int timeoutseconds)
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	PluginDebug("PluginsJoinServer()");
+
+	ForEachPlugin([serverID, userdata, timeoutseconds](const MQPlugin* plugin)
+		{
+			if (plugin->JoinServer)
+			{
+				DebugSpew("%s->JoinServer()", plugin->szFilename);
+				plugin->JoinServer(serverID, userdata, timeoutseconds);
+			}
 		});
 }
 

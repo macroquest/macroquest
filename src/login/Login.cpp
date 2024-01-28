@@ -1031,7 +1031,7 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 		R"(
 			INSERT INTO personas (character_id, class, level, last_seen)
 			VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?, datetime())
-			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level)",
+			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level, last_seen=excluded.last_seen)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -1105,6 +1105,74 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 			sqlite3_step(stmt);
 		});
 }
+// ================================================================================================================================
+
+// ================================================================================================================================
+// servers
+
+void login::db::CreateOrUpdateServer(std::string_view shortName, std::string_view longName)
+{
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
+		R"(
+			INSERT INTO servers (short_name, long_name, last_seen) VALUES (?, ?, datetime())
+			ON CONFLICT (short_name, long_name) DO UPDATE SET last_seen=excluded.last_seen)",
+		[shortName, longName](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			sqlite3_bind_text(stmt, 1, shortName.data(), static_cast<int>(shortName.length()), SQLITE_STATIC);
+			sqlite3_bind_text(stmt, 2, longName.data(), static_cast<int>(longName.length()), SQLITE_STATIC);
+
+			sqlite3_step(stmt);
+		});
+}
+
+std::optional<std::string> login::db::ReadLongServer(std::string_view shortName)
+{
+	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(
+			SELECT long_name FROM servers WHERE short_name = ?
+			ORDER BY last_seen DESC LIMIT 1)",
+		[shortName](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		{
+			sqlite3_bind_text(stmt, 1, shortName.data(), static_cast<int>(shortName.length()), SQLITE_STATIC);
+
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return (const char*)sqlite3_column_text(stmt, 0);
+
+			return {};
+		});
+}
+
+std::optional<std::string> login::db::ReadShortServer(std::string_view longName)
+{
+	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+		R"(
+			SELECT short_name FROM servers WHERE long_name = ?
+			ORDER BY last_seen DESC LIMIT 1)",
+		[longName](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		{
+			sqlite3_bind_text(stmt, 1, longName.data(), static_cast<int>(longName.length()), SQLITE_STATIC);
+
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return (const char*)sqlite3_column_text(stmt, 0);
+
+			return {};
+		});
+}
+
+void login::db::DeleteServer(std::string_view shortName, std::string_view longName)
+{
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
+		R"(
+			DELETE FROM servers WHERE short_name = ? AND long_name = ?)",
+		[shortName, longName](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			sqlite3_bind_text(stmt, 1, shortName.data(), static_cast<int>(shortName.length()), SQLITE_STATIC);
+			sqlite3_bind_text(stmt, 2, longName.data(), static_cast<int>(longName.length()), SQLITE_STATIC);
+
+			sqlite3_step(stmt);
+		});
+}
+
 // ================================================================================================================================
 
 // ================================================================================================================================
@@ -1477,14 +1545,14 @@ bool login::db::InitDatabase(const std::string& path)
 			  description text
 			))", nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating settings table.");
-		else if (sqlite3_exec(db, R"(
+		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS accounts (
 			  account text primary key,
 			  password text
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating accounts table.");
-		else if (sqlite3_exec(db, R"(
+		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS characters (
 			  id integer primary key,
 			  character text not null,
@@ -1495,7 +1563,7 @@ bool login::db::InitDatabase(const std::string& path)
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating characters table.");
-		else if (sqlite3_exec(db, R"(
+		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS profile_groups (
 			  id integer primary key,
 			  name text not null,
@@ -1504,7 +1572,7 @@ bool login::db::InitDatabase(const std::string& path)
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating profile_groups table.");
-		else if (sqlite3_exec(db, R"(
+		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS profiles (
 			  id integer primary key,
 			  character_id integer not null,
@@ -1518,7 +1586,7 @@ bool login::db::InitDatabase(const std::string& path)
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating profiles table.");
-		else if (sqlite3_exec(db, R"(
+		if (sqlite3_exec(db, R"(
 			CREATE TABLE IF NOT EXISTS personas (
 			  id integer primary key,
 			  character_id integer not null,
@@ -1530,6 +1598,16 @@ bool login::db::InitDatabase(const std::string& path)
 			))",
 			nullptr, nullptr, &err_msg) != SQLITE_OK)
 			err("AutoLogin Error creating personas table.");
+		if (sqlite3_exec(db, R"(
+			CREATE TABLE IF NOT EXISTS servers (
+			  id integer primary key,
+			  short_name text,
+			  long_name text,
+			  last_seen text,
+			  unique (short_name, long_name)
+			))",
+			nullptr, nullptr, &err_msg) != SQLITE_OK)
+			err("AutoLogin Error creating servers table.");
 	}
 
 	sqlite3_close(db);

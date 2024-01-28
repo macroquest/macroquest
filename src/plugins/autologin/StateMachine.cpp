@@ -394,26 +394,24 @@ public:
 class ServerSelect : public Login
 {
 public:
-	template <typename Predicate>
-	static EQLS::EQClientServerData* GetServer(Predicate predicate)
+	static EQLS::EQClientServerData* GetServer(ServerID serverId, std::string_view serverName)
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
 		if (!g_pLoginClient)
 			return nullptr;
 
-		if (auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList"))
-		{
-			ArrayClass<SListWndLine>* server_items = GetItemsArray(server_list);
-			if (server_items && !server_items->IsEmpty())
-			{
-				for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
-				{
-					if (predicate(pServer))
-						return pServer;
-				}
-			}
-		}
+		auto server_it = g_pLoginClient->ServerList.end();
+		if (serverId != ServerID::Invalid)
+			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
+				[serverId](EQLS::EQClientServerData* s) { return s->ID == serverId; });
+
+		if (server_it == g_pLoginClient->ServerList.end())
+			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
+				[serverName](EQLS::EQClientServerData* s) { return ci_equals(s->ServerName, serverName); });
+
+		if (server_it != g_pLoginClient->ServerList.end())
+			return *server_it;
 
 		return nullptr;
 	}
@@ -428,24 +426,24 @@ public:
 			return false;
 		}
 
-		// get server
+		// we want the long server name or the server ID here because that's what's available at server select
 		std::string serverName = m_record->serverName;
 		ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
 		if (serverId == ServerID::Invalid)
 		{
-			// Try looking up a name from the custom server list.
-			serverName = GetServerLongName(m_record->serverName);
+			// see if there is a long name mapping for this serverName
+			// since we are allowing long name to be saved as a serverName, it's okay if this
+			// lookup fails, and we are assuming that any long name is never a short name
+			// or they are exactly equal
+			if (auto name = login::db::ReadLongServer(serverName))
+				serverName = *name;
 		}
 
-		auto server = GetServer([&serverName, &serverId](EQLS::EQClientServerData* s)
-			{
-				return (serverId != ServerID::Invalid && s->ID == serverId) || ci_equals(s->ServerName, serverName);
-			});
-
+		auto server = GetServer(serverId, serverName);
 		if (!server)
 		{
 			// no server found, wait
-			AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
+			AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record->serverName));
 			return false;
 		}
 
@@ -719,5 +717,6 @@ uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
 unsigned char Login::m_retries = 0;
 struct Login::Settings Login::m_settings;
+struct CurrentLogin Login::m_currentLogin;
 
 FSM_INITIAL_STATE(Login, Wait)

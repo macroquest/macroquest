@@ -21,8 +21,22 @@
 #include <variant>
 
 static bool AUTOLOGIN_DBG = false;
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 
+struct CurrentLogin
+{
+	std::optional<std::string> Account;
+	std::optional<std::string> Password;
+	std::optional<std::string> ServerName;
+
+	void reset()
+	{
+		Account = {};
+		Password = {};
+		ServerName = {};
+	}
+};
+
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
 CXStr GetWindowText(CXWnd* pWnd);
 CXStr GetEditWndText(CEditWnd* pWnd);
@@ -227,7 +241,7 @@ public:
 		if (m_record)
 		{
 			if (!m_paused && ev.ShowMessage)
-				WriteChatf("\ag[AutoLogin]\ax \ayEND\ax key pressed. Login of \ag%s\ax paused.", m_record ? m_record->characterName.c_str() : "characters");
+				WriteChatf("\ag[AutoLogin]\ax \ayEND\ax key pressed. Login of \ag%s\ax paused.", m_record->characterName.c_str());
 			m_paused = true;
 		}
 	}
@@ -285,13 +299,8 @@ public:
 		Type LoginType;
 	};
 	static Settings m_settings;
+	static CurrentLogin m_currentLogin;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
-
-// Look up the long name for a server name stored in the configuration
-inline std::string GetServerLongName(const std::string& serverName)
-{
-	return GetPrivateProfileString("Servers", serverName, "", INIFileName);
-}
 
