@@ -43,6 +43,7 @@ fs::path CustomIni;
 uint64_t ReenableTime = 0;
 postoffice::DropboxAPI s_autologinDropbox;
 bool s_detoursInstalled = false;
+uintptr_t s_joinServer = 0;
 
 class LoginProfileType : public MQ2Type
 {
@@ -630,23 +631,45 @@ void LoginReset()
 	ReadINI();
 }
 
-PLUGIN_API void OnJoinServer(int serverID, void* userdata, int timeoutseconds)
+class LoginServer_Hook
 {
-	Login::m_currentLogin.Account = g_pLoginClient->LoginName;
-	Login::m_currentLogin.Password = g_pLoginClient->Password;
-
-	for (auto server : g_pLoginClient->ServerList)
+public:
+	DETOUR_TRAMPOLINE_DEF(unsigned int, JoinServer_Trampoline, (int, void*, int))
+	unsigned int JoinServer_Detour(int serverID, void* userdata, int timeoutseconds)
 	{
-		if (server->ID == static_cast<ServerID>(serverID))
-		{
-			Login::m_currentLogin.ServerName = server->ServerName;
-			return;
-		}
+		Login::m_currentLogin.Account = g_pLoginClient->LoginName;
+		Login::m_currentLogin.Password = g_pLoginClient->Password;
+
+		Login::m_currentLogin.ServerName =
+			[serverID = static_cast<ServerID>(serverID)]() -> std::optional<std::string>
+			{
+				for (auto server : g_pLoginClient->ServerList)
+					if (server->ID == serverID)
+						return server->ServerName.c_str();
+
+				return std::nullopt;
+			}();
+
+		return JoinServer_Trampoline(serverID, userdata, timeoutseconds);
 	}
-}
+};
 
 PLUGIN_API void SetGameState(int GameState)
 {
+	// this works because we will always have a gamestate change after loading or unloading eqmain
+	// GAMESTATE_PRECHARSELECT when transitioning from character select to server select, and
+	// GAMESTATE_CHARSELECT when transitioning to character select from server select
+	if (s_joinServer != EQMain__LoginServerAPI__JoinServer)
+	{
+		if (s_joinServer != 0)
+			RemoveDetour(s_joinServer);
+
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+
+		if (s_joinServer != 0)
+			EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
+	}
+
 	if (GameState == GAMESTATE_CHARSELECT)
 	{
 		// at character select now, if we have a memoized long name let's update the db for the server name pairing
@@ -701,6 +724,13 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/relog", Cmd_Relog, false, true, true);
 	AddCommand("/loginchar", Cmd_Loginchar);
 
+	if (EQMain__LoginServerAPI__JoinServer != 0)
+	{
+		// we have eqmain offset, save the offset because it gets cleared before we can unset the detou
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+		EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
+	}
+
 	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
 	{
 		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
@@ -735,6 +765,13 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
 	RemoveCommand("/loginchar");
+
+	if (s_joinServer != 0)
+	{
+		// if this is set, then we have the detour set
+		RemoveDetour(s_joinServer);
+		s_joinServer = 0;
+	}
 
 	uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);

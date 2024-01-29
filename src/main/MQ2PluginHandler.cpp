@@ -720,23 +720,6 @@ void PulsePlugins()
 		});
 }
 
-void PluginsJoinServer(int serverID, void* userdata, int timeoutseconds)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsJoinServer()");
-
-	ForEachPlugin([serverID, userdata, timeoutseconds](const MQPlugin* plugin)
-		{
-			if (plugin->JoinServer)
-			{
-				DebugSpew("%s->JoinServer()", plugin->szFilename);
-				plugin->JoinServer(serverID, userdata, timeoutseconds);
-			}
-		});
-}
-
 void PluginsZoned()
 {
 	if (!s_pluginsInitialized)

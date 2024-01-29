@@ -159,7 +159,6 @@ MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
 void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
 
 void PulsePlugins();
-void PluginsJoinServer(int serverID, void* userdata, int timeoutseconds);
 void PluginsZoned();
 bool PluginsIncomingChat(const char* Line, DWORD Color);
 void PluginsCleanUI();

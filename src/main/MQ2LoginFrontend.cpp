@@ -122,18 +122,6 @@ public:
 	}
 };
 
-class LoginServer_Hook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(unsigned int, JoinServer_Trampoline, (int, void*, int))
-	unsigned int JoinServer_Detour(int serverID, void* userdata, int timeoutseconds)
-	{
-		PluginsJoinServer(serverID, userdata, timeoutseconds);
-
-		return JoinServer_Trampoline(serverID, userdata, timeoutseconds);
-	}
-};
-
 void InitializeLoginDetours()
 {
 	if (gbDetoursInstalled)
@@ -143,7 +131,6 @@ void InitializeLoginDetours()
 
 	AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline, "GiveTime");
 	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
-	EzDetour(EQMain__LoginServerAPI__JoinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
 
 #if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
 	if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
@@ -166,7 +153,6 @@ void RemoveLoginDetours()
 	uintptr_t detours[] = {
 		EQMain__LoginController__GiveTime,
 		EQMain__WndProc,
-		EQMain__LoginServerAPI__JoinServer,
 #if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
 		EQMain__CXWndManager__GetCursorToDisplay
 #endif // defined(EQMain__CXWndManager__GetCursorToDisplay_x)
