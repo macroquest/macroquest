@@ -4048,8 +4048,11 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				// numeric
 				if (int nSkill = GetIntFromString(Index, 0))
 				{
-					Dest.Int64 = pSkillMgr->SkillTimerDuration[nSkill];
-					return true;
+					if (nSkill > 0 && nSkill < NUM_SKILLS)
+					{
+						Dest.Int64 = pSkillMgr->SkillTimerDuration[nSkill];
+						return true;
+					}
 				}
 				return false;
 			}
