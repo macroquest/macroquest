@@ -340,6 +340,7 @@ enum class CharacterMembers
 	CanMount,
 	SpellRankCap,
 	AbilityTimer,
+	AbilityReuse,
 	CastTimeLeft,
 	MaxLevel,
 	AirSupply,
@@ -686,6 +687,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, CanMount);
 	ScopedTypeMember(CharacterMembers, SpellRankCap);
 	ScopedTypeMember(CharacterMembers, AbilityTimer);
+	ScopedTypeMember(CharacterMembers, AbilityReuse);
 	ScopedTypeMember(CharacterMembers, CastTimeLeft);
 	ScopedTypeMember(CharacterMembers, MaxLevel);
 	ScopedTypeMember(CharacterMembers, AirSupply);
@@ -4031,6 +4033,38 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				}
 
 				return false;
+			}
+		}
+		return false;
+
+	case CharacterMembers::AbilityReuse:
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = 0;
+
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				// numeric
+				if (int nSkill = GetIntFromString(Index, 0))
+				{
+					Dest.Int64 = pSkillMgr->SkillTimerDuration[nSkill];
+					return true;
+				}
+				return false;
+			}
+
+			// name
+			for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
+			{
+				int nToken = pSkillMgr->GetNameToken(nSkill);
+				const char* thename = pStringTable->getString(nToken);
+
+				if (!thename || _stricmp(Index, thename) != 0)
+					continue;
+
+				Dest.Int64 = pSkillMgr->SkillTimerDuration[nSkill];;
+				return true;
 			}
 		}
 		return false;
