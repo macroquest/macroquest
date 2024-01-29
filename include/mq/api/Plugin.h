@@ -34,7 +34,6 @@ using fMQPulse               = void             (*)();
 using fMQIncomingChat        = bool             (*)(const char* Line, DWORD Color);
 using fMQInitializePlugin    = void             (*)();
 using fMQShutdownPlugin      = void             (*)();
-using fMQJoinServer          = void             (*)(int, void*, int);
 using fMQZoned               = void             (*)();
 using fMQReloadUI            = void             (*)();
 using fMQCleanUI             = void             (*)();
@@ -61,7 +60,6 @@ struct MQPlugin
 	bool                 bCustom = false;
 	fMQInitializePlugin  Initialize = 0;
 	fMQShutdownPlugin    Shutdown = 0;
-	fMQJoinServer        JoinServer = 0;
 	fMQZoned             Zoned = 0;
 	fMQWriteChatColor    WriteChatColor = 0;
 	fMQPulse             Pulse = 0;
