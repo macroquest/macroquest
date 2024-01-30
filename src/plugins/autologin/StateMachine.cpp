@@ -94,6 +94,8 @@ static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::str
 		ProfileRecord record;
 		record.profileName = "";
 		record.accountName = account;
+
+
 		record.accountPassword = GetPrivateProfileString(account, "Password", "", INIFileName);
 		record.serverName = GetPrivateProfileString(account, "Server", "", INIFileName);
 		record.characterName = GetPrivateProfileString(account, "Character", "", INIFileName);
@@ -597,8 +599,26 @@ public:
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (GetServerShortName()[0] == 0 || !m_record
-				|| (!m_record->serverName.empty() && !ci_equals(GetServerShortName(), m_record->serverName)))
+			auto is_invalid_server = []()
+				{
+					// trivial cases: if the server shortname is empty or there is no record
+					if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
+						return true;
+
+					// valid if server short name is what is in the record
+					if (ci_equals(GetServerShortName(), m_record->serverName))
+						return false;
+
+					// valid if server long name is what is in the record
+					if (auto shortname = login::db::ReadShortServer(m_record->serverName))
+						if (ci_equals(GetServerShortName(), *shortname))
+							return false;
+
+					// no matches, not a valid server
+					return true;
+				}();
+
+			if (is_invalid_server)
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -687,6 +707,7 @@ public:
 				}
 
 				transit<Wait>();
+				[[fallthrough]];
 			default:
 				Wait::react(e);
 				break;
@@ -716,7 +737,7 @@ bool Login::m_paused = false;
 uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
 unsigned char Login::m_retries = 0;
-struct Login::Settings Login::m_settings;
-struct CurrentLogin Login::m_currentLogin;
+Login::Settings Login::m_settings;
+CurrentLogin Login::m_currentLogin;
 
 FSM_INITIAL_STATE(Login, Wait)

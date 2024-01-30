@@ -16,6 +16,7 @@
 
 #include "Login.pb.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include <Windows.h>
 #include <wincrypt.h>
 
@@ -35,6 +36,7 @@ struct ProfileRecord
 {
 	std::string profileName; // this is the group of characters
 	std::string serverName;
+	std::string serverType;
 
 	std::string accountName;
 	std::string accountPassword;
@@ -60,7 +62,7 @@ struct ProfileGroup
 	std::vector<ProfileRecord> records;
 };
 
-std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& szIniFileName);
+std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name);
 
 // TODO:
 //	master pass should be stored in launcher and gotten via a message
@@ -82,7 +84,8 @@ void WriteSetting(std::string_view key, std::string_view value, std::optional<st
 std::optional<std::string> ReadSetting(std::string_view key);
 
 void CreateEQPath(std::string_view path);
-std::string ReadEQPath();
+void CreateEQPath(std::string_view key, std::string_view path);
+std::string ReadEQPath(std::string_view key);
 
 std::vector<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
@@ -90,13 +93,14 @@ std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
 void DeleteProfileGroup(std::string_view name);
 
-std::vector<std::string> ListAccounts();
+std::vector<std::pair<std::string, std::string>> ListAccounts();
 void CreateAccount(const ProfileRecord& profile);
 std::optional<std::string> ReadAccount(ProfileRecord& profile);
-void UpdateAccount(std::string_view account, const ProfileRecord& record);
-void DeleteAccount(std::string_view account);
+std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type);
+void UpdateAccount(std::string_view account, std::string_view server_type, const ProfileRecord& record);
+void DeleteAccount(std::string_view account, std::string_view server_type);
 
-std::vector<std::pair<std::string, std::string>> ListCharacters(std::string_view account);
+std::vector<std::pair<std::string, std::string>> ListCharacters(std::string_view account, std::string_view server_type);
 std::vector<std::string> ListServers();
 std::vector<ProfileRecord> ListCharactersOnServer(std::string_view server);
 std::vector<ProfileRecord> ListCharacterMatches(std::string_view search);
@@ -110,10 +114,16 @@ std::optional<unsigned int> ReadPersona(ProfileRecord& profile);
 void UpdatePersona(std::string_view cls, const ProfileRecord& profile);
 void DeletePersona(std::string_view server, std::string_view name, std::string_view cls);
 
-void CreateOrUpdateServer(std::string_view shortName, std::string_view longName);
-std::optional<std::string> ReadLongServer(std::string_view shortName);
-std::optional<std::string> ReadShortServer(std::string_view longName);
-void DeleteServer(std::string_view shortName, std::string_view longName);
+void CreateOrUpdateServer(std::string_view short_name, std::string_view long_name);
+std::optional<std::string> ReadLongServer(std::string_view short_name);
+std::optional<std::string> ReadShortServer(std::string_view long_name);
+void DeleteServer(std::string_view short_name, std::string_view long_name);
+
+void CreateOrUpdateServerType(std::string_view server_type, std::string_view eq_path);
+std::vector<std::string> ListServerTypes();
+std::optional<std::string> GetPathFromServerType(std::string_view server_type);
+std::optional<std::string> GetServerTypeFromPath(std::string_view path);
+void DeleteServerType(std::string_view server_type);
 
 std::vector<ProfileRecord> GetProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
@@ -123,7 +133,7 @@ std::optional<unsigned int> ReadFullProfile(std::string_view group, std::string_
 void UpdateProfile(const ProfileRecord& profile);
 void DeleteProfile(std::string_view server, std::string_view name, std::string_view group);
 
-std::string GetEQPath(std::string_view group, std::string_view server, std::string_view name);
+std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups);
 bool InitDatabase(const std::string& path);

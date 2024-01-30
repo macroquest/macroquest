@@ -701,6 +701,17 @@ PLUGIN_API void SetGameState(int GameState)
 			profile.characterName = pLocalPC->Name;
 			to_lower(profile.characterName);
 
+			char path[MAX_PATH] = { 0 };
+			GetModuleFileName(nullptr, path, MAX_PATH);
+			const std::filesystem::path fs_path(path);
+
+			if (const auto server_type = login::db::GetServerTypeFromPath(fs_path.parent_path().string()))
+				profile.serverType = *server_type;
+			else
+				profile.serverType = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+
+			to_lower(profile.serverType);
+
 			login::db::CreateCharacter(profile);
 		}
 
@@ -726,7 +737,7 @@ PLUGIN_API void InitializePlugin()
 
 	if (EQMain__LoginServerAPI__JoinServer != 0)
 	{
-		// we have eqmain offset, save the offset because it gets cleared before we can unset the detou
+		// we have eqmain offset, save the offset because it gets cleared before we can unset the detour
 		s_joinServer = EQMain__LoginServerAPI__JoinServer;
 		EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
 	}
@@ -749,6 +760,18 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+
+	// create a server type for this build if it doesn't already exist (to ensure that automatic character creation works)
+	std::string server_type = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+	to_lower(server_type);
+	if (!login::db::GetPathFromServerType(server_type))
+	{
+		char path[MAX_PATH] = { 0 };
+		GetModuleFileName(nullptr, path, MAX_PATH);
+		const std::filesystem::path fs_path(path);
+
+		login::db::CreateOrUpdateServerType(server_type, fs_path.parent_path().string());
+	}
 
 	s_autologinDropbox = postoffice::AddActor("autologin",
 		[](const std::shared_ptr<postoffice::Message>& message)

@@ -12,6 +12,7 @@
  * GNU General Public License for more details.
  */
 
+// ReSharper disable CppClangTidyClangDiagnosticFormatSecurity
 #include "MacroQuest.h"
 #include "HotKeyControl.h"
 
@@ -34,22 +35,11 @@
 
 namespace fs = std::filesystem;
 
-struct RawProfileRecord
-{
-	std::string profileName;
-	std::string serverName;
-	std::string characterName;
-
-	std::string eqPath;
-	std::string encryptedBlob;
-	bool checked;
-};
-
-CHotKeyCtrl* pHotKeyCtrl = nullptr;
+CHotKeyCtrl* s_hotKeyCtrl = nullptr;
 
 struct LoginInstance
 {
-	mutable unsigned long PID;
+	mutable unsigned long PID = 0;
 
 	std::string Server;
 	std::string Character;
@@ -72,18 +62,20 @@ struct LoginInstance
 	}
 };
 
+namespace {
 // set of loaded instances -- be careful to only read/write this from actors to ensure no race conditions
-static std::unordered_set<LoginInstance, LoginInstance> s_loadedInstances;
+std::unordered_set<LoginInstance, LoginInstance> s_loadedInstances;
 using LoginIterator = std::unordered_set<LoginInstance, LoginInstance>::const_iterator;
 
 postoffice::Dropbox s_dropbox;
 
-static ImGuiFileDialog* s_eqDirDialog = nullptr;
+ImGuiFileDialog* s_eqDirDialog = nullptr;
+}
 
 namespace internal_paths
 {
-	std::string AutoLoginIni;
-	std::string EQRoot;
+	std::string s_autoLoginIni;
+	std::string s_eqRoot;
 }
 
 // need a map of shortname to name (TODO: Use long names in the display)
@@ -94,7 +86,8 @@ struct SClassInfo
 	const char* UCShortName;
 };
 
-static SClassInfo ClassInfo[] =
+namespace {
+SClassInfo s_classInfo[] =
 {
 	{ "",             ""    },
 	{ "Warrior",      "WAR" },
@@ -114,22 +107,16 @@ static SClassInfo ClassInfo[] =
 	{ "Beastlord",    "BST" },
 	{ "Berserker",    "BER" },
 };
-
-const char* GetClassShortName(DWORD playerclass)
-{
-	return ClassInfo[playerclass].UCShortName;
 }
 
-static void ActOnPid(DWORD pid, const std::function<void(const LoginIterator&)>& func)
+const char* GetClassShortName(const DWORD player_class)
 {
-	auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-		[pid](const LoginInstance& instance) { return instance.PID == pid; });
-	if (login_it != s_loadedInstances.end())
-		func(login_it);
+	return s_classInfo[player_class].UCShortName;
 }
 
+namespace {
 // This sends a message to self so that we ensure that all access of s_loadedInstances happens on the main thread
-static void LoadCharacter(const LoginInstance& instance_template)
+void LoadCharacter(const LoginInstance& instance_template)
 {
 	proto::login::StartInstanceMissive start;
 	if (instance_template.ProfileGroup)
@@ -178,11 +165,12 @@ static void LoadCharacter(const LoginInstance& instance_template)
 
 	s_dropbox.Post(address, message);
 }
+}
 
-void AutoLoginRemoveProcess(DWORD processId)
+void AutoLoginRemoveProcess(const DWORD process_id)
 {
 	proto::login::StopInstanceMissive stop;
-	stop.set_pid(processId);
+	stop.set_pid(process_id);
 
 	mq::proto::login::LoginMessage message;
 	message.set_id(mq::proto::login::ProfileUnloaded);
@@ -195,8 +183,9 @@ void AutoLoginRemoveProcess(DWORD processId)
 	s_dropbox.Post(address, message);
 }
 
+namespace {
 // TODO: hotkey/eqpath information is lost once we start the instance because the ack will unset them
-static LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool do_inject)
+LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool do_inject)
 {
 	auto login_it = s_loadedInstances.find(instance_template);
 	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(instance_template.PID))
@@ -222,7 +211,7 @@ static LoginIterator StartOrUpdateInstance(const LoginInstance& instance_templat
 		if (IsEQGameProcessId(instance_template.PID) && instance_template.PID != login_it->PID)
 		{
 			// this is a failsafe case in case something external causes the eq instance
-			// to reload and we aren't catching that event
+			// to reload, and we aren't catching that event
 			login_it->PID = instance_template.PID;
 		}
 
@@ -260,14 +249,30 @@ static LoginIterator StartOrUpdateInstance(const LoginInstance& instance_templat
 	{
 		// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
 		// because we got a list at startup of the current running instances
+		ProfileRecord record;
+		record.serverName = instance_template.Server;
+		record.characterName = instance_template.Character;
 
-		std::string eq_path = instance_template.EQPath.value_or(instance_template.ProfileGroup ? 
-			login::db::GetEQPath(*instance_template.ProfileGroup, instance_template.Server, instance_template.Character) :
-			login::db::ReadEQPath());
+		std::string eq_path;
+		if (login::db::ReadAccount(record) && record.eqPath)
+			eq_path = *record.eqPath;
+		else if (auto path = login::db::ReadSetting("eq_path")) // TODO: grab the type of build to get a default eq path
+			eq_path = *path;
+
+		if (instance_template.EQPath)
+			eq_path = *instance_template.EQPath;
+		else if (instance_template.ProfileGroup)
+			if (auto path =
+				login::db::GetEQPath(
+					*instance_template.ProfileGroup,
+					instance_template.Server,
+					instance_template.Character))
+				eq_path = *path;
 
 		if (!eq_path.empty())
 		{
-			SHELLEXECUTEINFOA sei = { sizeof(SHELLEXECUTEINFOA) };
+			SHELLEXECUTEINFOA sei;
+			sei.cbSize = sizeof(SHELLEXECUTEINFOA);
 			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_WAITFORINPUTIDLE;
 			sei.lpVerb = "open";
 			sei.nShow = SW_SHOW;
@@ -306,11 +311,7 @@ static LoginIterator StartOrUpdateInstance(const LoginInstance& instance_templat
 			}
 			else
 			{
-				ProfileRecord record;
-				record.serverName = instance_template.Server;
-				record.characterName = instance_template.Character;
-
-				if (login::db::ReadAccount(record))
+				if (!record.accountPassword.empty())
 				{
 					// password was read successfully
 					if (!instance_template.Character.empty())
@@ -338,7 +339,7 @@ static LoginIterator StartOrUpdateInstance(const LoginInstance& instance_templat
 			auto file = fmt::format("{}\\eqgame.exe", eq_path);
 			sei.lpFile = file.c_str();
 
-			if (ShellExecuteEx(&sei) && sei.hProcess != 0)
+			if (ShellExecuteEx(&sei) && sei.hProcess != nullptr)
 			{
 				login_it = s_loadedInstances.insert(s_loadedInstances.end(), instance_template);
 				login_it->PID = GetProcessId(sei.hProcess);
@@ -381,48 +382,50 @@ void LoadProfileGroup(std::string_view group)
 void LaunchCleanSession()
 {
 	// Get path to the login server data file
-	fs::path eqlsPlayerDataIni = fs::path{ internal_paths::EQRoot } / "eqlsPlayerData.ini";
+	const fs::path eqls_player_data_ini = fs::path{ internal_paths::s_eqRoot } / "eqlsPlayerData.ini";
 
 	// Get default username from eqlsPlayerData.ini
-	std::string username = GetPrivateProfileString("PLAYER", "Username", "<>", eqlsPlayerDataIni.string());
+	std::string username = GetPrivateProfileString("PLAYER", "Username", "<>", eqls_player_data_ini.string());
 
 	// create command line arguments
-	std::string parameters = fmt::format("{}\\eqgame.exe patchme /login:{}", internal_paths::EQRoot, username);
+	std::string parameters = fmt::format("{}\\eqgame.exe patchme /login:{}", internal_paths::s_eqRoot, username);
 
-	STARTUPINFOA si = { sizeof(STARTUPINFOA) };
+	STARTUPINFOA si;
+	si.cb = sizeof(STARTUPINFOA);
 	si.wShowWindow = SW_SHOWNORMAL;
 	si.dwFlags = STARTF_USESHOWWINDOW;
 
 	wil::unique_process_information pi;
-	::CreateProcessA(nullptr, &parameters[0], nullptr, nullptr, FALSE, 0, nullptr, internal_paths::EQRoot.c_str(), &si, &pi);
+	::CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi);
+}
 }
 
 #pragma region ImGui
 
+namespace {
 bool ToggleSlider(const char* label, bool* v)
 {
-	ImVec4* colors = ImGui::GetStyle().Colors;
-	ImVec2 position = ImGui::GetCursorScreenPos();
+	const ImVec4* colors = ImGui::GetStyle().Colors;
+	const ImVec2 position = ImGui::GetCursorScreenPos();
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	float height = ImGui::GetFrameHeight();
-	float width = height * 1.55f;
-	float radius = height * 0.5f;
+	const float height = ImGui::GetFrameHeight();
+	const float width = height * 1.55f;
+	const float radius = height * 0.5f;
 
-	bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
+	const bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
 	if (ImGui::IsItemClicked()) *v = !*v;
 
 	float t = *v ? 1.f : 0.f;
 
-	ImGuiContext* g = ImGui::GetCurrentContext();
-	float animation_speed = 8.5f;
-	if (g->LastActiveId == g->CurrentWindow->GetID(label))
+	if (const ImGuiContext* g = ImGui::GetCurrentContext(); g->LastActiveId == g->CurrentWindow->GetID(label))
 	{
-		float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
+		constexpr float animation_speed = 8.5f;
+		const float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
 		t = *v ? t_anim : (1.f - t_anim);
 	}
 
-	ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
+	const ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
 
 	ImU32 fg_color;
 	if (ImGui::IsItemClicked())
@@ -445,25 +448,31 @@ float ButtonWidth(const char* text)
 
 void SetEQDir(std::optional<std::string>& eq_path)
 {
-	auto eqDir = eq_path.value_or(login::db::ReadEQPath());
-	ImGui::InputText("EQ Dir", &eqDir[0], eqDir.size(), ImGuiInputTextFlags_ReadOnly);
+	ImGui::PushID("EQ Dir");
+
+	std::string eqDir;
+	if (eq_path)
+		eqDir = *eq_path;
+	else if (const auto path = login::db::ReadSetting("eq_path"))
+		eqDir = *path;
+
+	ImGui::InputText("EQ Dir", eqDir.data(), eqDir.size(), ImGuiInputTextFlags_ReadOnly);
 
 	if (!s_eqDirDialog)
 		s_eqDirDialog = IGFD_Create();
 
-	if (ImGui::Button("Choose##eqdir"))
+	if (ImGui::Button("Choose"))
 	{
 		IGFD_OpenDialog2(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
-			nullptr, (internal_paths::EQRoot + "/").c_str(), 1, nullptr, ImGuiFileDialogFlags_None);
+			nullptr, (internal_paths::s_eqRoot + "/").c_str(), 1, nullptr, ImGuiFileDialogFlags_None);
 	}
 
 	if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
 	{
 		if (IGFD_IsOk(s_eqDirDialog))
 		{
-			std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
-			std::error_code ec;
-			if (selected_path && std::filesystem::exists(selected_path.get(), ec))
+			const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
+			if (std::error_code ec; selected_path && std::filesystem::exists(selected_path.get(), ec))
 			{
 				eq_path = std::filesystem::canonical(std::filesystem::path(selected_path.get()), ec).string();
 			}
@@ -471,29 +480,61 @@ void SetEQDir(std::optional<std::string>& eq_path)
 
 		IGFD_CloseDialog(s_eqDirDialog);
 	}
+
+	ImGui::PopID();
 }
 
-void ShowAccountWindow(std::optional<std::string>& selected)
+void ShowAccountWindow(std::optional<std::pair<std::string, std::string>>& selected)
 {
 	// declare account statics
 	static bool show_password = false;
 	static std::string password;
 	static std::string account_name;
+	static std::string server_type_name;
+	static std::optional<std::string> server_eq_path;
 
+	ImGui::PushID("Accounts List");
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-	if (ImGui::BeginListBox("##accountslist"))
+	if (ImGui::BeginListBox(""))
 	{
-		for (const auto& account : login::db::ListAccounts())
+		static auto buf = [](const size_t size)
+			{
+				fmt::memory_buffer buffer;
+				buffer.reserve(size);
+
+				return buffer;
+			}(256);
+
+		static auto buf_ins = std::back_inserter(buf);
+
+		for (const auto& [account, server_type] : login::db::ListAccounts())
 		{
-			const bool is_selected = selected && ci_equals(account, *selected);
-			if (ImGui::Selectable(account.c_str(), is_selected))
-				selected = account;
+			ImGui::PushID(account.c_str());
+			ImGui::PushID(server_type.c_str());
+
+			const bool is_selected = selected &&
+				ci_equals(account, selected->first) &&
+				ci_equals(server_type, selected->second);
+
+			fmt::format_to(buf_ins, "{} ({})", account, server_type);
+
+			if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+				selected = std::make_pair(account, server_type);
 
 			if (is_selected) ImGui::SetItemDefaultFocus();
+
+			ImGui::SameLine();
+			ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
+
+			buf.clear();
+
+			ImGui::PopID();
+			ImGui::PopID();
 		}
 
 		ImGui::EndListBox();
 	}
+	ImGui::PopID();
 
 	if (selected)
 	{
@@ -501,9 +542,7 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
-			ProfileRecord profile;
-			profile.accountName = *selected;
-			if (auto pass = login::db::ReadAccount(profile))
+			if (const auto pass = login::db::ReadPassword(selected->first, selected->second))
 				password = *pass;
 
 			LauncherImGui::OpenModal("Edit Account");
@@ -512,108 +551,281 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
 	}
 
-	if (LauncherImGui::BeginModal("Delete Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (selected && LauncherImGui::BeginModal("Delete Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::TextWrapped("Are you sure you want to delete account '%s'? All associated characters and profiles will also be removed.", selected->c_str());
+		ImGui::PushID("Delete Account Modal");
+
+		ImGui::TextWrapped("Are you sure you want to delete account '%s (%s)'? All associated characters and profiles will also be removed.", selected->first.c_str(), selected->second.c_str());
 		ImGui::Spacing();
 
-		if (ImGui::Button("Yes##deleteaccount", ImVec2(120, 0)))
+		if (ImGui::Button("Yes", ImVec2(120, 0)))
 		{
-			login::db::DeleteAccount(*selected);
+			login::db::DeleteAccount(selected->first, selected->second);
 			selected = {};
 			LauncherImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("No##deleteaccount", ImVec2(120, 0)))
+		if (ImGui::Button("No", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
-	if (LauncherImGui::BeginModal("Edit Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (selected && LauncherImGui::BeginModal("Edit Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::TextWrapped("Set password for account '%s':", selected->c_str());
+		ImGui::PushID("Edit Account Modal");
+
+		ImGui::TextWrapped("Update account '%s (%s)':", selected->first.c_str(), selected->second.c_str());
+		ImGui::Spacing();
+
+		ImGui::InputText("Account Name", &account_name);
+		ImGui::Spacing();
+
+		if (ImGui::BeginCombo("Server Type", server_type_name.c_str()))
+		{
+			for (const auto& server_type : login::db::ListServerTypes())
+			{
+				const bool is_selected = ci_equals(server_type, server_type_name);
+				if (ImGui::Selectable(server_type.c_str(), is_selected))
+					server_type_name = server_type;
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("..."))
+		{
+			server_eq_path = login::db::GetPathFromServerType(server_type_name);
+			LauncherImGui::OpenModal("Server Type");
+		}
+
 		ImGui::Spacing();
 
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
 		if (!show_password) flags |= ImGuiInputTextFlags_Password;
-		ImGui::InputText("##password##editaccount", &password, flags);
+		ImGui::InputText("##password", &password, flags);
 		ImGui::Spacing();
 
-		ImGui::Checkbox("Show password##editaccount", &show_password);
+		ImGui::Checkbox("Show password", &show_password);
 		ImGui::Spacing();
 
-		if (ImGui::Button("OK##editaccount", ImVec2(120, 0)))
+		if (ImGui::Button("OK", ImVec2(120, 0)))
 		{
 			ProfileRecord record;
-			record.accountName = *selected;
+			record.accountName = account_name;
+			record.serverType = server_type_name;
 			record.accountPassword = password;
-			login::db::UpdateAccount(*selected, record);
+			login::db::UpdateAccount(selected->first, selected->second, record);
+			selected = std::make_pair(account_name, server_type_name);
 			LauncherImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel##editaccount", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	if (LauncherImGui::BeginModal("Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		ImGui::PushID("Create Account Modal");
+
 		ImGui::TextWrapped("Create a new account, or update existing account.");
 		ImGui::Spacing();
 
-		ImGui::InputText("Account Name##createaccount", &account_name);
+		ImGui::InputText("Account Name", &account_name);
+		ImGui::Spacing();
+
+		ImGui::PushID("Choose Type");
+		if (ImGui::BeginCombo("", server_type_name.c_str()))
+		{
+			for (const auto& server_type : login::db::ListServerTypes())
+			{
+				const bool is_selected = ci_equals(server_type, server_type_name);
+				if (ImGui::Selectable(server_type.c_str(), is_selected))
+					server_type_name = server_type;
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::PopID();
+
+		ImGui::SameLine();
+		if (ImGui::Button("..."))
+		{
+			server_eq_path = login::db::GetPathFromServerType(server_type_name);
+			LauncherImGui::OpenModal("Server Type");
+		}
+
 		ImGui::Spacing();
 
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
 		if (!show_password) flags |= ImGuiInputTextFlags_Password;
-		ImGui::InputText("##password##createaccount", &password, flags);
+		ImGui::InputText("##password", &password, flags);
 		ImGui::Spacing();
 
-		ImGui::Checkbox("Show password##createaccount", &show_password);
+
+		ImGui::Checkbox("Show password", &show_password);
 		ImGui::Spacing();
 
-		if (ImGui::Button("OK##createaccount", ImVec2(120, 0)))
+		if (ImGui::Button("OK", ImVec2(120, 0)))
 		{
 			ProfileRecord record;
 			record.accountName = account_name;
+			record.serverType = server_type_name;
 			record.accountPassword = password;
 			login::db::CreateAccount(record);
-			selected = account_name;
+			selected = std::make_pair(account_name, server_type_name);
 			LauncherImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel##createaccount", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
+		LauncherImGui::EndModal();
+	}
+	
+	if (LauncherImGui::BeginModal("Server Type", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::PushID("Server Type Modal");
+
+		ImGui::Text("Create or select a server type for this account");
+		ImGui::Spacing();
+
+		if (ImGui::BeginListBox("Server Types"))
+		{
+			for (const auto& server_type : login::db::ListServerTypes())
+			{
+				ImGui::PushID(server_type.c_str());
+
+				const bool is_selected = ci_equals(server_type_name, server_type);
+				if (ImGui::Selectable(server_type.c_str(), is_selected))
+					server_type_name = server_type;
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+
+				ImGui::SameLine();
+				if (ImGui::Button("..."))
+				{
+					server_type_name = server_type;
+					server_eq_path = login::db::GetPathFromServerType(server_type);
+					LauncherImGui::OpenModal("Input EQ Path");
+				}
+
+				if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+				{
+					SetEQDir(server_eq_path);
+
+					ImGui::Separator();
+					if (ImGui::Button("OK"))
+					{
+						if (server_eq_path)
+							login::db::CreateOrUpdateServerType(server_type_name, *server_eq_path);
+
+						LauncherImGui::CloseModal();
+					}
+
+					LauncherImGui::EndModal();
+				}
+
+				ImGui::PopID();
+			}
+			ImGui::EndListBox();
+		}
+
+		if (ImGui::Button("New Server Type"))
+			LauncherImGui::OpenModal("Create Server Type");
+
+		if (LauncherImGui::BeginModal("Create Server Type", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::PushID("create server type modal");
+
+			ImGui::InputText("Type", &server_type_name);
+			ImGui::Spacing();
+
+			if (ImGui::Button("EQ Path"))
+				LauncherImGui::OpenModal("Input EQ Path");
+
+			ImGui::SameLine();
+			ImGui::Text("%s", server_eq_path ? server_eq_path->c_str() : "");
+
+			if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				SetEQDir(server_eq_path);
+
+				ImGui::Separator();
+				if (ImGui::Button("OK"))
+					LauncherImGui::CloseModal();
+
+				LauncherImGui::EndModal();
+			}
+
+			if (ImGui::Button("OK", ImVec2(120, 0)))
+			{
+				if (server_eq_path)
+				{
+					login::db::CreateOrUpdateServerType(server_type_name, *server_eq_path);
+					selected = std::make_pair(server_type_name, *server_eq_path);
+				}
+
+				LauncherImGui::CloseModal();
+			}
+
+			ImGui::SetItemDefaultFocus();
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				LauncherImGui::CloseModal();
+			}
+
+			ImGui::PopID();
+			LauncherImGui::EndModal();
+		}
+
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	if (ImGui::Button("Add Account"))
 	{
-		account_name = selected ? *selected : "";
+		if (selected)
+		{
+			account_name = selected->first;
+			server_type_name = selected->second;
+		}
+		else
+		{
+			account_name = "";
+			server_type_name = "";
+		}
 		LauncherImGui::OpenModal("Create Account");
 	}
 
 	ImGui::SameLine();
 	if (ImGui::Button("Edit Account") && selected)
 	{
-		ProfileRecord profile;
-		profile.accountName = *selected;
-		if (auto pass = login::db::ReadAccount(profile))
+		if (const auto pass = login::db::ReadPassword(selected->first, selected->second))
 			password = *pass;
 
 		LauncherImGui::OpenModal("Edit Account");
@@ -623,20 +835,22 @@ void ShowAccountWindow(std::optional<std::string>& selected)
 	if (ImGui::Button("Remove Account") && selected) LauncherImGui::OpenModal("Delete Account");
 }
 
-void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::string, std::string>>& selected, std::string& preview)
+ void ShowCharacterWindow(const std::pair<std::string, std::string>& account, std::optional<std::pair<std::string, std::string>>& selected, std::string& preview)
 {
-	auto set_selection = [&selected, &preview](const std::pair<std::string, std::string> character)
+	auto set_selection = [&selected, &preview](const std::pair<std::string, std::string>& character)
 		{
 			selected = character;
 			preview = fmt::format("{} : {}", character.first, character.second);
 		};
 
-	static std::string accountName;
-	static std::string serverName;
-	static std::string characterName;
+	static std::string account_name;
+	static std::string server_type;
+	static std::string server_name;
+	static std::string character_name;
 
+	ImGui::PushID("Characters List");
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-	if (ImGui::BeginListBox("##characterslist"))
+	if (ImGui::BeginListBox(""))
 	{
 		// this avoids a buffer allocation
 		static auto buf = [](size_t size)
@@ -649,7 +863,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 		static auto buf_ins = std::back_inserter(buf);
 
-		for (const auto& character : login::db::ListCharacters(account))
+		for (const auto& character : login::db::ListCharacters(account.first, account.second))
 		{
 			ImGui::PushID(character.first.c_str());
 			ImGui::PushID(character.second.c_str());
@@ -667,7 +881,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 				ImGui::SetItemDefaultFocus();
 
 			ImGui::SameLine();
-			ImGui::Text("%.*s", buf.size(), buf.data());
+			ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
 
 			buf.clear();
 
@@ -677,6 +891,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 		ImGui::EndListBox();
 	}
+	ImGui::PopID();
 
 	if (selected)
 	{
@@ -684,9 +899,10 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
-			accountName = account;
-			serverName = selected->first;
-			characterName = selected->second;
+			account_name = account.first;
+			server_type = account.second;
+			server_name = selected->first;
+			character_name = selected->second;
 
 			LauncherImGui::OpenModal("Edit Character");
 		}
@@ -694,12 +910,14 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape)) selected = {};
 	}
 
-	if (LauncherImGui::BeginModal("Delete Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (selected && LauncherImGui::BeginModal("Delete Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		ImGui::PushID("Delete Character Modal");
+
 		ImGui::TextWrapped("Are you sure you want to delete character '%s : %s'? All associated profiles will also be removed.", selected->first.c_str(), selected->second.c_str());
 		ImGui::Spacing();
 
-		if (ImGui::Button("Yes##deletecharacter", ImVec2(120, 0)))
+		if (ImGui::Button("Yes", ImVec2(120, 0)))
 		{
 			login::db::DeleteCharacter(selected->first, selected->second);
 			selected = {};
@@ -709,36 +927,43 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("No##deletecharacter", ImVec2(120, 0)))
+		if (ImGui::Button("No", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	if (LauncherImGui::BeginModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::InputText("Account##editcharacter", &accountName);
+		ImGui::PushID("Edit Character Modal");
+
+		ImGui::InputText("Account", &account_name);
 		ImGui::Spacing();
 
-		ImGui::InputText("Server##editcharacter", &serverName);
+		ImGui::InputText("Server Type", &server_type);
 		ImGui::Spacing();
 
-		ImGui::InputText("Name##editcharacter", &characterName);
+		ImGui::InputText("Server", &server_name);
 		ImGui::Spacing();
 
-		if (ImGui::Button("OK##editcharacter", ImVec2(120, 0)))
+		ImGui::InputText("Name", &character_name);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
 		{
 			if (selected)
 			{
 				ProfileRecord record;
-				record.accountName = accountName;
-				record.serverName = serverName;
-				record.characterName = characterName;
+				record.accountName = account_name;
+				record.serverType = server_type;
+				record.serverName = server_name;
+				record.characterName = character_name;
 
 				login::db::UpdateCharacter(selected->first, selected->second, record);
-				set_selection(std::make_pair(serverName, characterName));
+				set_selection(std::make_pair(server_name, character_name));
 			}
 
 			LauncherImGui::CloseModal();
@@ -746,60 +971,69 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel##editcharacter", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	if (LauncherImGui::BeginModal("Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::InputText("Account##createcharacter", &accountName);
+		ImGui::PushID("Create Character Modal");
+
+		ImGui::InputText("Account", &account_name);
 		ImGui::Spacing();
 
-		ImGui::InputText("Server##createcharacter", &serverName);
+		ImGui::InputText("Server Type", &server_type);
 		ImGui::Spacing();
 
-		ImGui::InputText("Name##createcharacter", &characterName);
+		ImGui::InputText("Server", &server_name);
 		ImGui::Spacing();
 
-		if (ImGui::Button("OK##createcharacter", ImVec2(120, 0)))
+		ImGui::InputText("Name", &character_name);
+		ImGui::Spacing();
+
+		if (ImGui::Button("OK", ImVec2(120, 0)))
 		{
 			ProfileRecord record;
-			record.accountName = accountName;
-			record.serverName = serverName;
-			record.characterName = characterName;
+			record.accountName = account_name;
+			record.serverType = server_type;
+			record.serverName = server_name;
+			record.characterName = character_name;
 
 			login::db::CreateCharacter(record);
-			set_selection(std::make_pair(serverName, characterName));
+			set_selection(std::make_pair(server_name, character_name));
 
 			LauncherImGui::CloseModal();
 		}
 
 		ImGui::SetItemDefaultFocus();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel##createcharacter", ImVec2(120, 0)))
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
 		{
 			LauncherImGui::CloseModal();
 		}
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	if (ImGui::Button("Add Character"))
 	{
-		accountName = account;
+		account_name = account.first;
+		server_type = account.second;
 		if (selected)
 		{
-			serverName = selected->first;
-			characterName = selected->second;
+			server_name = selected->first;
+			character_name = selected->second;
 		}
 		else
 		{
-			serverName.clear();
-			characterName.clear();
+			server_name.clear();
+			character_name.clear();
 		}
 		LauncherImGui::OpenModal("Create Character");
 	}
@@ -807,9 +1041,10 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 	ImGui::SameLine();
 	if (ImGui::Button("Edit Character") && selected)
 	{
-		accountName = account;
-		serverName = selected->first;
-		characterName = selected->second;
+		account_name = account.first;
+		server_type = account.second;
+		server_name = selected->first;
+		character_name = selected->second;
 
 		LauncherImGui::OpenModal("Edit Character");
 	}
@@ -818,7 +1053,7 @@ void ShowCharacterWindow(std::string_view account, std::optional<std::pair<std::
 	if (ImGui::Button("Remove Character") && selected) LauncherImGui::OpenModal("Delete Character");
 }
 
-static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
+const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
 	{ ImGuiKey_LeftArrow, "LEFT" },
 	{ ImGuiKey_RightArrow, "RIGHT" },
 	{ ImGuiKey_UpArrow, "UP" },
@@ -865,7 +1100,7 @@ static const std::unordered_map<ImGuiKey, std::string> s_hotkeyMap = {
 void ShowHotkeyWindow(std::optional<std::string>& hotkey)
 {
 	fmt::memory_buffer buf;
-	auto buf_ins = std::back_inserter(buf);
+	const auto buf_ins = std::back_inserter(buf);
 
 	if (ImGui::IsKeyDown(ImGuiMod_Ctrl))
 		fmt::format_to(buf_ins, "CTRL+");
@@ -889,89 +1124,127 @@ void ShowHotkeyWindow(std::optional<std::string>& hotkey)
 		}
 	}
 
-	ImGui::Text("Pressed: %.*s", buf.size(), buf.data());
+	ImGui::Text("Pressed: %.*s", static_cast<int>(buf.size()), buf.data());
 	ImGui::Text("Current: %s", hotkey ? hotkey->c_str() : "<None>");
 }
 
 struct InterimProfileRecord
 {
-	std::optional<std::string> current_account = {};
-	std::optional<std::pair<std::string, std::string>> current_character = {};
-	std::optional<std::string> hotkey = {};
-	std::optional<std::string> eq_path = {};
-	std::string char_preview = "";
+	std::optional<std::pair<std::string, std::string>> CurrentAccount = {};
+	std::optional<std::pair<std::string, std::string>> CurrentCharacter = {};
+	std::optional<std::string> Hotkey = {};
+	std::optional<std::string> EQPath = {};
+	std::string CharPreview;
 
-	bool finalize = false;
+	bool Finalize = false;
 };
 
 void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profile)
 {
-	ImGui::PushID("addprofilewindow");
+	ImGui::PushID("Add Profile Window");
+
+	static std::string account_preview;
 
 	// drop down for account or create new
-	if (ImGui::BeginCombo("##chooseaccount", profile.current_account ? profile.current_account->c_str() : ""))
+	ImGui::PushID("Choose Account");
+	if (ImGui::BeginCombo("", account_preview.c_str()))
 	{
-		for (const auto& account : login::db::ListAccounts())
+		static auto buf = [](size_t size)
+			{
+				fmt::memory_buffer buf;
+				buf.reserve(size);
+
+				return buf;
+			}(256);
+
+		static auto buf_ins = std::back_inserter(buf);
+
+		for (const auto& [account, server_type] : login::db::ListAccounts())
 		{
-			bool is_selected = profile.current_account && ci_equals(account, *profile.current_account);
-			if (ImGui::Selectable(account.c_str(), is_selected))
-				profile.current_account = account;
+			ImGui::PushID(account.c_str());
+			ImGui::PushID(server_type.c_str());
+
+			const bool is_selected = profile.CurrentAccount &&
+				ci_equals(account, profile.CurrentAccount->first) &&
+				ci_equals(server_type, profile.CurrentAccount->second);
+
+			fmt::format_to(buf_ins, "{} ({})", account, server_type);
+
+			if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+			{
+				profile.CurrentAccount = std::make_pair(account, server_type);
+				account_preview = fmt::to_string(buf);
+			}
 
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
+
+			ImGui::SameLine();
+			ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
+
+			buf.clear();
+
+			ImGui::PopID();
+			ImGui::PopID();
 		}
 		ImGui::EndCombo();
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("...##account"))
+	if (ImGui::Button("..."))
 		LauncherImGui::OpenModal("Select or Create Account");
+
+	ImGui::PopID();
 
 	if (LauncherImGui::BeginModal("Select or Create Account", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ShowAccountWindow(profile.current_account);
+		ImGui::PushID("Select or Create Account Modal");
+
+		ShowAccountWindow(profile.CurrentAccount);
 
 		ImGui::Separator();
 		if (ImGui::Button("OK"))
 			LauncherImGui::CloseModal();
 
+		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 
 	// drop down for character or create new, only show this if an account has been selected
-	if (profile.current_account)
+	if (profile.CurrentAccount)
 	{
-		if (ImGui::BeginCombo("##choosecharacter", profile.char_preview.c_str()))
+		ImGui::PushID("Choose Character");
+		if (ImGui::BeginCombo("", profile.CharPreview.c_str()))
 		{
 			// this avoids a buffer allocation
-			static auto buf = [](size_t size)
+			static auto buf = [](const size_t size)
 				{
-					fmt::memory_buffer buf;
-					buf.reserve(size);
+					fmt::memory_buffer buffer;
+					buffer.reserve(size);
 
-					return buf;
+					return buffer;
 				}(256);
 
 				static auto buf_ins = std::back_inserter(buf);
 
-				for (const auto& character : login::db::ListCharacters(*profile.current_account))
+				for (const auto& character : login::db::ListCharacters(profile.CurrentAccount->first, profile.CurrentAccount->second))
 				{
-					const bool is_selected = profile.current_character &&
-						ci_equals(character.first, profile.current_character->first) &&
-						ci_equals(character.second, profile.current_character->second);
+					const bool is_selected = profile.CurrentCharacter &&
+						ci_equals(character.first, profile.CurrentCharacter->first) &&
+						ci_equals(character.second, profile.CurrentCharacter->second);
 
 					fmt::format_to(buf_ins, "{} : {}", character.first, character.second);
 
 					if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
 					{
-						profile.current_character = character;
-						profile.char_preview = fmt::to_string(buf);
+						profile.CurrentCharacter = character;
+						profile.CharPreview = fmt::to_string(buf);
 					}
 
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 
-					ImGui::Text("%.*s", buf.size(), buf.data());
+					ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
 
 					buf.clear();
 				}
@@ -979,48 +1252,52 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("...##character"))
+		if (ImGui::Button("..."))
 			LauncherImGui::OpenModal("Select or Create Character");
+
+		ImGui::PopID();
 
 		if (LauncherImGui::BeginModal("Select or Create Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			ShowCharacterWindow(*profile.current_account, profile.current_character, profile.char_preview);
+			ImGui::PushID("Select or Create Character Modal");
+			ShowCharacterWindow(*profile.CurrentAccount, profile.CurrentCharacter, profile.CharPreview);
 
 			ImGui::Separator();
 			if (ImGui::Button("OK"))
 			{
 				ProfileRecord record;
 				record.profileName = profile_group;
-				record.serverName = profile.current_character->first;
-				record.characterName = profile.current_character->second;
+				record.serverName = profile.CurrentCharacter->first;
+				record.characterName = profile.CurrentCharacter->second;
 
 				login::db::ReadProfile(record);
 				if (!record.hotkey.empty())
-					profile.hotkey = record.hotkey;
+					profile.Hotkey = record.hotkey;
 
-				profile.eq_path = record.eqPath;
+				profile.EQPath = record.eqPath;
 
 				LauncherImGui::CloseModal();
 			}
 
+			ImGui::PopID();
 			LauncherImGui::EndModal();
 		}
 	}
-	else if (profile.current_character)
-		profile.current_character = {};
+	else if (profile.CurrentCharacter)
+		profile.CurrentCharacter = {};
 
-	if (profile.current_account && profile.current_character)
+	if (profile.CurrentAccount && profile.CurrentCharacter)
 	{
 		// input box for hotkey (optional)
 		if (ImGui::Button("Hotkey"))
 			LauncherImGui::OpenModal("Input Hotkey");
 
 		ImGui::SameLine();
-		ImGui::Text("%s", profile.hotkey ? profile.hotkey->c_str() : "<None>");
+		ImGui::Text("%s", profile.Hotkey ? profile.Hotkey->c_str() : "<None>");
 
 		if (LauncherImGui::BeginModal("Input Hotkey", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			ShowHotkeyWindow(profile.hotkey);
+			ShowHotkeyWindow(profile.Hotkey);
 
 			ImGui::Separator();
 			if (ImGui::Button("OK"))
@@ -1034,11 +1311,11 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 			LauncherImGui::OpenModal("Input EQ Path");
 
 		ImGui::SameLine();
-		ImGui::Text("%s", profile.eq_path ? profile.eq_path->c_str() : "<Default>");
+		ImGui::Text("%s", profile.EQPath ? profile.EQPath->c_str() : "<Default>");
 
 		if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			SetEQDir(profile.eq_path);
+			SetEQDir(profile.EQPath);
 
 			ImGui::Separator();
 			if (ImGui::Button("OK"))
@@ -1058,8 +1335,8 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ButtonWidth("Cancel"));
 	if (ImGui::Button("OK", ImVec2(ButtonWidth("Cancel"), ImGui::GetStyle().FramePadding.y * 2 + ImGui::CalcTextSize("Cancel").y)))
 	{
-		if (profile.current_character)
-			profile.finalize = true;
+		if (profile.CurrentCharacter)
+			profile.Finalize = true;
 
 		LauncherImGui::CloseModal();
 	}
@@ -1068,11 +1345,15 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 }
 
 // TODO: Add settings section
+// TODO: Add default path editor (per server type)
+// TODO: Remove all fallthrough eq path handling since it's guaranteed per account now
 void ShowAutoLoginWindow()
 {
+	ImGui::PushID("Main Tab Bar");
+
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 
-	if (ImGui::BeginTabBar("##maintabbar", ImGuiTabBarFlags_FittingPolicyResizeDown))
+	if (ImGui::BeginTabBar("", ImGuiTabBarFlags_FittingPolicyResizeDown))
 	{
 		ImGui::PushID("profile");
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
@@ -1080,9 +1361,9 @@ void ShowAutoLoginWindow()
 		{
 			static std::optional<std::string> current_group;
 			// Code goes into this scope for selecting and modifying profiles/groups
-			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
-			ImGui::PushID("menubar");
+			ImGui::PushID("Menu Bar");
 			if (ImGui::BeginMenuBar())
 			{
 				static std::string new_group;
@@ -1096,6 +1377,8 @@ void ShowAutoLoginWindow()
 
 				if (LauncherImGui::BeginModal("Create Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 				{
+					ImGui::PushID("Create Profile Group Modal");
+
 					ImGui::InputText("Group Name", &new_group);
 
 					ImGui::Spacing();
@@ -1142,6 +1425,7 @@ void ShowAutoLoginWindow()
 						LauncherImGui::CloseModal();
 					}
 
+					ImGui::PopID();
 					LauncherImGui::EndModal();
 				}
 
@@ -1150,10 +1434,12 @@ void ShowAutoLoginWindow()
 
 				if (LauncherImGui::BeginModal("Delete Profile Group", nullptr, ImGuiWindowFlags_AlwaysAutoResize) && current_group)
 				{
+					ImGui::PushID("Delete Profile Group Modal");
+
 					ImGui::TextWrapped("Are you sure you want to delete profile group '%s'? All associated profiles will also be removed.", current_group->c_str());
 					ImGui::Spacing();
 
-					if (ImGui::Button("Yes##deletegroup", ImVec2(120, 0)))
+					if (ImGui::Button("Yes", ImVec2(120, 0)))
 					{
 						login::db::DeleteProfileGroup(*current_group);
 						current_group = {};
@@ -1162,15 +1448,16 @@ void ShowAutoLoginWindow()
 
 					ImGui::SetItemDefaultFocus();
 					ImGui::SameLine();
-					if (ImGui::Button("No##deletegroup", ImVec2(120, 0)))
+					if (ImGui::Button("No", ImVec2(120, 0)))
 					{
 						LauncherImGui::CloseModal();
 					}
 
+					ImGui::PopID();
 					LauncherImGui::EndModal();
 				}
 
-				constexpr const char* label = "Profiles";
+				constexpr auto label = "Profiles";
 				ImGui::SameLine(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(label).x - 5.f);
 				ImGui::Text(label);
 
@@ -1178,13 +1465,13 @@ void ShowAutoLoginWindow()
 			}
 			ImGui::PopID();
 
-			ImGui::PushID("profilecombo");
+			ImGui::PushID("Profile Combo");
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Profile") - ButtonWidth("Launch Group"));
-			if (ImGui::BeginCombo("##profilegroups", current_group ? current_group->c_str() : ""))
+			if (ImGui::BeginCombo("", current_group ? current_group->c_str() : ""))
 			{
 				for (const auto& group : login::db::ListProfileGroups())
 				{
-					bool is_selected = current_group && ci_equals(group, *current_group);
+					const bool is_selected = current_group && ci_equals(group, *current_group);
 					if (ImGui::Selectable(group.c_str(), is_selected))
 						current_group = group;
 
@@ -1212,14 +1499,14 @@ void ShowAutoLoginWindow()
 				LauncherImGui::EndModal();
 			}
 
-			if (!edit_profile && current_group && interim_profile.finalize && interim_profile.current_character)
+			if (!edit_profile && current_group && interim_profile.Finalize && interim_profile.CurrentCharacter)
 			{
 				ProfileRecord record;
 				record.profileName = *current_group;
-				record.serverName = interim_profile.current_character->first;
-				record.characterName = interim_profile.current_character->second;
-				record.hotkey = interim_profile.hotkey ? *interim_profile.hotkey : "";
-				record.eqPath = interim_profile.eq_path;
+				record.serverName = interim_profile.CurrentCharacter->first;
+				record.characterName = interim_profile.CurrentCharacter->second;
+				record.hotkey = interim_profile.Hotkey ? *interim_profile.Hotkey : "";
+				record.eqPath = interim_profile.EQPath;
 				record.checked = true;
 
 				interim_profile = {};
@@ -1233,12 +1520,13 @@ void ShowAutoLoginWindow()
 				LoadProfileGroup(*current_group);
 			}
 
-			ImGui::PushID("mainlist");
-			if (ImGui::BeginTable("##maintable", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			ImGui::PushID("Main List");
+			if (ImGui::BeginTable("", 7, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				if (current_group)
 				{
 					ImGui::TableSetupColumn("Account");
+					ImGui::TableSetupColumn("Server Type");
 					ImGui::TableSetupColumn("Server");
 					ImGui::TableSetupColumn("Character");
 					ImGui::TableSetupColumn("Persona");
@@ -1253,7 +1541,7 @@ void ShowAutoLoginWindow()
 
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable("##rowselect", &profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
+						if (ImGui::Selectable("", &profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 							login::db::UpdateProfile(profile);
 
 						if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -1263,13 +1551,13 @@ void ShowAutoLoginWindow()
 						{
 							if (ImGui::Selectable("Edit"))
 							{
-								interim_profile.current_character = std::make_pair(profile.serverName, profile.characterName);
-								interim_profile.current_account = profile.accountName;
-								interim_profile.hotkey = profile.hotkey;
-								interim_profile.eq_path = profile.eqPath;
-								interim_profile.char_preview = fmt::format("{} : {}", profile.serverName, profile.characterName);
+								interim_profile.CurrentCharacter = std::make_pair(profile.serverName, profile.characterName);
+								interim_profile.CurrentAccount = std::make_pair(profile.accountName, profile.serverType);
+								interim_profile.Hotkey = profile.hotkey;
+								interim_profile.EQPath = profile.eqPath;
+								interim_profile.CharPreview = fmt::format("{} : {}", profile.serverName, profile.characterName);
 								
-								interim_profile.finalize = false;
+								interim_profile.Finalize = false;
 
 								edit_profile = true;
 							}
@@ -1282,6 +1570,9 @@ void ShowAutoLoginWindow()
 
 						ImGui::SameLine();
 						ImGui::Text(profile.accountName.c_str());
+
+						ImGui::TableNextColumn();
+						ImGui::Text(profile.serverType.c_str());
 
 						ImGui::TableNextColumn();
 						ImGui::Text(profile.serverName.c_str());
@@ -1314,7 +1605,7 @@ void ShowAutoLoginWindow()
 						ImGui::PopID();
 					}
 
-					if (edit_profile && interim_profile.current_character)
+					if (edit_profile && interim_profile.CurrentCharacter)
 						LauncherImGui::OpenModal("Edit Profile");
 
 					if (LauncherImGui::BeginModal("Edit Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -1323,14 +1614,14 @@ void ShowAutoLoginWindow()
 						LauncherImGui::EndModal();
 					}
 
-					if (interim_profile.finalize && interim_profile.current_character)
+					if (interim_profile.Finalize && interim_profile.CurrentCharacter)
 					{
 						ProfileRecord record;
 						record.profileName = *current_group;
-						record.serverName = interim_profile.current_character->first;
-						record.characterName = interim_profile.current_character->second;
-						record.hotkey = interim_profile.hotkey ? *interim_profile.hotkey : "";
-						record.eqPath = interim_profile.eq_path;
+						record.serverName = interim_profile.CurrentCharacter->first;
+						record.characterName = interim_profile.CurrentCharacter->second;
+						record.hotkey = interim_profile.Hotkey ? *interim_profile.Hotkey : "";
+						record.eqPath = interim_profile.EQPath;
 						record.checked = true;
 
 						interim_profile = {};
@@ -1354,7 +1645,7 @@ void ShowAutoLoginWindow()
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 		if (ImGui::BeginTabItem("Characters"))
 		{
-			ImGui::BeginChild("##mainchild", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
 			static std::string search;
 			static auto matches = login::db::ListCharacterMatches(search);
@@ -1362,7 +1653,7 @@ void ShowAutoLoginWindow()
 			static std::optional<std::pair<std::string, std::string>> selected;
 
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Character"));
-			if (ImGui::InputText("##searchbar", &search, ImGuiInputTextFlags_EscapeClearsAll))
+			if (ImGui::InputText("##Search Bar", &search, ImGuiInputTextFlags_EscapeClearsAll))
 			{
 				matches = login::db::ListCharacterMatches(search);
 			}
@@ -1377,16 +1668,21 @@ void ShowAutoLoginWindow()
 
 			if (LauncherImGui::BeginModal("Add Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				ImGui::InputText("Account##createcharacter", &interim_profile.accountName);
+				ImGui::PushID("Create Character Modal");
+
+				ImGui::InputText("Account", &interim_profile.accountName);
 				ImGui::Spacing();
 
-				ImGui::InputText("Server##createcharacter", &interim_profile.serverName);
+				ImGui::InputText("Server Type", &interim_profile.serverType);
 				ImGui::Spacing();
 
-				ImGui::InputText("Name##createcharacter", &interim_profile.characterName);
+				ImGui::InputText("Server", &interim_profile.serverName);
 				ImGui::Spacing();
 
-				if (ImGui::Button("OK##createcharacter", ImVec2(120, 0)))
+				ImGui::InputText("Name", &interim_profile.characterName);
+				ImGui::Spacing();
+
+				if (ImGui::Button("OK", ImVec2(120, 0)))
 				{
 					login::db::CreateCharacter(interim_profile);
 					LauncherImGui::CloseModal();
@@ -1394,18 +1690,20 @@ void ShowAutoLoginWindow()
 
 				ImGui::SetItemDefaultFocus();
 				ImGui::SameLine();
-				if (ImGui::Button("Cancel##createcharacter", ImVec2(120, 0)))
+				if (ImGui::Button("Cancel", ImVec2(120, 0)))
 				{
 					LauncherImGui::CloseModal();
 				}
 
+				ImGui::PopID();
 				LauncherImGui::EndModal();
 			}
 
-			ImGui::PushID("mainlist");
-			if (ImGui::BeginTable("##maintable", 5, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			ImGui::PushID("Main List");
+			if (ImGui::BeginTable("", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				ImGui::TableSetupColumn("Account");
+				ImGui::TableSetupColumn("Server Type");
 				ImGui::TableSetupColumn("Server");
 				ImGui::TableSetupColumn("Character");
 				ImGui::TableSetupColumn("Persona");
@@ -1420,9 +1718,9 @@ void ShowAutoLoginWindow()
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					// this allows right clicking
+					// this allows right-clicking
 					bool is_selected = false;
-					ImGui::Selectable("##rowselect", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+					ImGui::Selectable("", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 					if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 						ImGui::OpenPopup("row_popup");
 
@@ -1446,6 +1744,9 @@ void ShowAutoLoginWindow()
 
 					ImGui::SameLine();
 					ImGui::Text(match.accountName.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::Text(match.serverType.c_str());
 
 					ImGui::TableNextColumn();
 					ImGui::Text(match.serverName.c_str());
@@ -1472,7 +1773,8 @@ void ShowAutoLoginWindow()
 					ImGui::SameLine();
 					// this needs to be here to handle the fact that hotkey isn't optional
 					static std::optional<std::string> hotkey;
-					if (ImGui::SmallButton("...##playwithparams"))
+					ImGui::PushID("Play With Params");
+					if (ImGui::SmallButton("..."))
 					{
 						interim_profile = {};
 						interim_profile.serverName = match.serverName;
@@ -1480,9 +1782,12 @@ void ShowAutoLoginWindow()
 						hotkey = {};
 						LauncherImGui::OpenModal("Play With Params");
 					}
+					ImGui::PopID();
 
 					if (LauncherImGui::BeginModal("Play With Params", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 					{
+						ImGui::PushID("Play With Params Modal");
+
 						// input box for hotkey (optional)
 						if (ImGui::Button("Hotkey"))
 							LauncherImGui::OpenModal("Input Hotkey");
@@ -1538,6 +1843,7 @@ void ShowAutoLoginWindow()
 							LauncherImGui::CloseModal();
 						}
 
+						ImGui::PopID();
 						LauncherImGui::EndModal();
 					}
 
@@ -1550,16 +1856,21 @@ void ShowAutoLoginWindow()
 
 				if (LauncherImGui::BeginModal("Edit Character", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 				{
-					ImGui::InputText("Account##editcharacter", &interim_profile.accountName);
+					ImGui::PushID("Edit Character Modal");
+
+					ImGui::InputText("Account", &interim_profile.accountName);
 					ImGui::Spacing();
 
-					ImGui::InputText("Server##editcharacter", &interim_profile.serverName);
+					ImGui::InputText("Server Type", &interim_profile.serverType);
 					ImGui::Spacing();
 
-					ImGui::InputText("Name##editcharacter", &interim_profile.characterName);
+					ImGui::InputText("Server", &interim_profile.serverName);
 					ImGui::Spacing();
 
-					if (ImGui::Button("OK##editcharacter", ImVec2(120, 0)))
+					ImGui::InputText("Name", &interim_profile.characterName);
+					ImGui::Spacing();
+
+					if (ImGui::Button("OK", ImVec2(120, 0)))
 					{
 						if (selected)
 							login::db::UpdateCharacter(selected->first, selected->second, interim_profile);
@@ -1571,11 +1882,12 @@ void ShowAutoLoginWindow()
 
 					ImGui::SetItemDefaultFocus();
 					ImGui::SameLine();
-					if (ImGui::Button("Cancel##editcharacter", ImVec2(120, 0)))
+					if (ImGui::Button("Cancel", ImVec2(120, 0)))
 					{
 						LauncherImGui::CloseModal();
 					}
 
+					ImGui::PopID();
 					LauncherImGui::EndModal();
 				}
 
@@ -1593,21 +1905,24 @@ void ShowAutoLoginWindow()
 	}
 
 	ImGui::PopStyleVar();
+
+	ImGui::PopID();
 }
 
 struct SizedProfileRecord
 {
-	ProfileRecord profile;
-	std::string level_text;
-	float level_size;
-	float class_size;
+	ProfileRecord Profile;
+	std::string LevelText;
+	float LevelSize;
+	float ClassSize;
 };
+
 void ShowAutoLoginMenu()
 {
 	ImGui::PushID("contextmenu");
 
 	bool is_paused = false;
-	if (auto raw_pause = login::db::ReadSetting("is_paused"))
+	if (const auto raw_pause = login::db::ReadSetting("is_paused"))
 		is_paused = GetBoolFromString(*raw_pause, false);
 
 	ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
@@ -1635,10 +1950,10 @@ void ShowAutoLoginMenu()
 					for (auto& profile : login::db::GetProfiles(group))
 					{
 						auto level_text = fmt::format("{}", profile.characterLevel);
-						auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
+						const auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
 						if (level_size > largest_level) largest_level = level_size;
 
-						auto class_size = ImGui::CalcTextSize(profile.characterClass.c_str()).x;
+						const auto class_size = ImGui::CalcTextSize(profile.characterClass.c_str()).x;
 						if (class_size > largest_class) largest_class = class_size;
 
 						profiles.emplace_back(SizedProfileRecord{
@@ -1651,7 +1966,7 @@ void ShowAutoLoginMenu()
 
 					for (auto& sized_profile : profiles)
 					{
-						auto& profile = sized_profile.profile;
+						auto& profile = sized_profile.Profile;
 						ImGui::PushID(profile.characterName.c_str());
 						ImGui::PushID(profile.serverName.c_str());
 
@@ -1671,12 +1986,12 @@ void ShowAutoLoginMenu()
 							LoadCharacter(instance);
 						}
 
-						ImGui::SameLine(0, largest_level - ImGui::CalcTextSize(sized_profile.level_text.c_str()).x);
-						ImGui::TextUnformatted(sized_profile.level_text.c_str());
+						ImGui::SameLine(0, largest_level - sized_profile.LevelSize);
+						ImGui::TextUnformatted(sized_profile.LevelText.c_str());
 
 						ImGui::SameLine(); ImGui::TextUnformatted(" ");
 
-						ImGui::SameLine(0, largest_class - ImGui::CalcTextSize(profile.characterClass.c_str()).x);
+						ImGui::SameLine(0, largest_class - sized_profile.ClassSize);
 						ImGui::TextUnformatted(profile.characterClass.c_str());
 
 						ImGui::SameLine(0, 0); ImGui::Text("] %s ", profile.characterName.c_str());
@@ -1711,10 +2026,10 @@ void ShowAutoLoginMenu()
 					for (auto& profile : login::db::ListCharactersOnServer(server))
 					{
 						auto level_text = fmt::format("{}", profile.characterLevel);
-						auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
+						const auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
 						if (level_size > largest_level) largest_level = level_size;
 
-						auto class_size = ImGui::CalcTextSize(profile.characterClass.c_str()).x;
+						const auto class_size = ImGui::CalcTextSize(profile.characterClass.c_str()).x;
 						if (class_size > largest_class) largest_class = class_size;
 
 						profiles.emplace_back(SizedProfileRecord{
@@ -1727,7 +2042,7 @@ void ShowAutoLoginMenu()
 
 					for (auto& sized_profile : profiles)
 					{
-						auto& profile = sized_profile.profile;
+						auto& profile = sized_profile.Profile;
 						ImGui::PushID(profile.characterName.c_str());
 						ImGui::PushID(profile.serverName.c_str());
 
@@ -1741,18 +2056,18 @@ void ShowAutoLoginMenu()
 							LoadCharacter(instance);
 						}
 
-						ImGui::SameLine(0, largest_level - ImGui::CalcTextSize(sized_profile.level_text.c_str()).x);
-						ImGui::TextUnformatted(sized_profile.level_text.c_str());
+						ImGui::SameLine(0, largest_level - sized_profile.LevelSize);
+						ImGui::TextUnformatted(sized_profile.LevelText.c_str());
 
 						ImGui::SameLine(); ImGui::TextUnformatted(" ");
 
-						ImGui::SameLine(0, largest_class - ImGui::CalcTextSize(profile.characterClass.c_str()).x);
+						ImGui::SameLine(0, largest_class - sized_profile.ClassSize);
 						ImGui::TextUnformatted(profile.characterClass.c_str());
 
 						ImGui::SameLine(0, 0); ImGui::Text("] %s ", profile.characterName.c_str());
 
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
-						ImGui::SameLine(); ImGui::Text(profile.accountName.c_str());
+						ImGui::SameLine(); ImGui::Text("%s (%s)", profile.accountName.c_str(), profile.serverType.c_str());
 						ImGui::PopStyleVar();
 
 						ImGui::PopID();
@@ -1773,14 +2088,16 @@ void ShowAutoLoginMenu()
 
 	ImGui::PopID();
 }
+}
 
 #pragma endregion
 
-static LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive& start)
+namespace {
+LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive& start)
 {
 	LoginInstance instance;
 
-	switch (start.method_case())
+	switch (start.method_case())  // NOLINT(clang-diagnostic-switch-enum)
 	{
 	case proto::login::StartInstanceMissive::MethodCase::kDirect:
 		if (start.direct().has_target())
@@ -1836,11 +2153,10 @@ static LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceM
 	return instance;
 }
 
-void ReceivedMessageHandler(ProtoMessagePtr&& message)
+void ReceivedMessageHandler(ProtoMessagePtr&& message)  // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
 {
 	// TODO: This needs to handle identify messages (to fill loaded instance set)
-	auto login_message = message->Parse<proto::login::LoginMessage>();
-	switch (login_message.id())
+	switch (const auto login_message = message->Parse<proto::login::LoginMessage>(); login_message.id()) // NOLINT(clang-diagnostic-switch-enum)
 	{
 	case proto::login::MessageId::ProfileLoaded:
 		// this message needs to come from the client after it has injected,
@@ -1849,10 +2165,9 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		{
 			proto::login::StartInstanceMissive start;
 			start.ParseFromString(login_message.payload());
-			auto login_it = StartOrUpdateInstance(ParseInstanceFromMessage(start), false);
 
 			// only set the hotkey if the instance reports successfully loaded
-			if (login_it != s_loadedInstances.end() && login_it->Hotkey)
+			if (const auto login_it = StartOrUpdateInstance(ParseInstanceFromMessage(start), false); login_it != s_loadedInstances.end() && login_it->Hotkey)
 				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login_it->PID), *login_it->Hotkey);
 		}
 
@@ -1863,9 +2178,8 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		{
 			proto::login::StopInstanceMissive stop;
 			stop.ParseFromString(login_message.payload());
-			auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-				[pid = stop.pid()](const LoginInstance& instance) { return instance.PID == pid; });
-			if (login_it != s_loadedInstances.end())
+			if (const auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
+			                                       [pid = stop.pid()](const LoginInstance& instance) { return instance.PID == pid; }); login_it != s_loadedInstances.end())
 			{
 				if (login_it->Hotkey)
 					UnregisterGlobalHotkey(*login_it->Hotkey);
@@ -1886,7 +2200,7 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			profile.serverName = charinfo.server();
 			profile.characterName = charinfo.character();
 			profile.characterClass = GetClassShortName(charinfo.class_());
-			profile.characterLevel = charinfo.level();
+			profile.characterLevel = static_cast<int>(charinfo.level());
 			login::db::UpdatePersona(GetClassShortName(charinfo.class_()), profile);
 		}
 
@@ -1906,6 +2220,7 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		break;
 	}
 }
+}
 
 void InitializeAutoLogin()
 {
@@ -1914,9 +2229,9 @@ void InitializeAutoLogin()
 	// TODO: figure out how to determine hotkeys from that list
 
 	// Get path to mq2autologin.ini
-	fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
-	internal_paths::AutoLoginIni = pathAutoLoginIni.string();
-	auto load_ini = login::db::InitDatabase((fs::path(internal_paths::Config) / "login.db").string());
+	const fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
+	internal_paths::s_autoLoginIni = pathAutoLoginIni.string();
+	const auto load_ini = login::db::InitDatabase((fs::path(internal_paths::Config) / "login.db").string());
 
 	// do absolutely nothing until a master pass is set
 	// TODO: add in checkbox for never forget, and a button to pull the password from registry. Also clean up
@@ -1970,21 +2285,24 @@ void InitializeAutoLogin()
 
 	if (pass)
 	{
-		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::AutoLoginIni));
+		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni));
 
 		// Initialize path to EQ
-		internal_paths::EQRoot = login::db::ReadEQPath();
-		if (internal_paths::EQRoot.empty())
+		// TODO: This should probably detect the current build or something and get the path for that build
+		if (const auto path = login::db::ReadSetting("eq_path"))
+			internal_paths::s_eqRoot = *path;
+
+		if (internal_paths::s_eqRoot.empty())
 		{
-			internal_paths::EQRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::AutoLoginIni);
-			if (internal_paths::EQRoot.empty())
+			internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
+			if (internal_paths::s_eqRoot.empty())
 			{
 				SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work.");
 			}
 			else
 			{
 				// update the path to the db
-				login::db::CreateEQPath(internal_paths::EQRoot);
+				login::db::CreateEQPath(internal_paths::s_eqRoot);
 			}
 		}
 

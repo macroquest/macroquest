@@ -609,7 +609,9 @@ public:
  *
  * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
  *
+ * @see GetUIntFromString
  * @see GetInt64FromString
+ * @see GetUInt64FromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -619,6 +621,36 @@ public:
  * @return int The converted integer or the "failure" value
  **/
 inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
+{
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), iReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return iReturnOnFail;
+}
+
+/**
+ * @fn GetUIntFromString
+ *
+ * @brief Gets the unsigned int value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to an int and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoul (removing the undefined behavior) and faster than strtoul.
+ *
+ * @see GetIntFromString
+ * @see GetInt64FromString
+ * @see GetUInt64FromString
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to an integer
+ * @param iReturnOnFail The unsigned integer that should be returned if conversion fails
+ *
+ * @return unsigned int The converted integer or the "failure" value
+ **/
+inline unsigned int GetUIntFromString(const std::string_view svString, unsigned int iReturnOnFail)
 {
 	auto trimmed = trim(svString);
 	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), iReturnOnFail);
@@ -638,6 +670,8 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  * Suitable replacement for atol (removing the undefined behavior) and faster than strtol.
  *
  * @see GetIntFromString
+ * @see GetUIntFromString
+ * @see GetUInt64FromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -647,6 +681,36 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  * @return int64_t The converted int64 or the "failure" value
  **/
 inline int64_t GetInt64FromString(const std::string_view svString, int64_t lReturnOnFail)
+{
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), lReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return lReturnOnFail;
+}
+
+/**
+ * @fn GetUInt64FromString
+ *
+ * @brief Gets the uint64 value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a int64 and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoul (removing the undefined behavior) and faster than strtoull.
+ *
+ * @see GetIntFromString
+ * @see GetUIntFromString
+ * @see GetInt64FromString
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to an int64
+ * @param iReturnOnFail The uint64 that should be returned if conversion fails
+ *
+ * @return uint64_t The converted int64 or the "failure" value
+ **/
+inline uint64_t GetUInt64FromString(const std::string_view svString, uint64_t lReturnOnFail)
 {
 	auto trimmed = trim(svString);
 	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), lReturnOnFail);
