@@ -40,7 +40,7 @@
 	"Feign Death",             // 25
 	"Flying Kick",             // 26
 	"Forage",                  // 27
-	"Hand To Hand",            // 28
+	"Hand to Hand",            // 28
 	"Hide",                    // 29
 	"Kick",                    // 30
 	"Meditate",                // 31
@@ -113,19 +113,19 @@
 	"98",                      // 98
 	"99",                      // 99
 	"100",                     // 100
-	"101",                     // 101
-	"102",                     // 102
-	"103",                     // 103
-	"104",                     // 104
-	"Harm Touch",              // 105
-	"106",                     // 106
-	"Lay Hands",               // 107
-	"108",                     // 108
-	"109",                     // 109
-	"110",                     // 110
+	"Awareness",               // 101
+	"Bash Door",               // 102
+	"Breathe Fire",            // 103
+	"Harmony",                 // 104
+	"Harm Touch",              // 105  Pre-ROF2 clients
+	"Infravision",             // 106
+	"Lay Hands",               // 107  Pre-ROF2 clients
+	"Lore",                    // 108
+	"No Bash",                 // 109
+	"Regeneration",            // 110
 	"Slam",                    // 111
-	"112",                     // 112
-	"113",                     // 113
+	"Surprise",                // 112
+	"Ultravision",             // 113
 	"Inspect",                 // 114
 	"Open",                    // 115
 	"Reveal Trap",             // 116
@@ -136,8 +136,8 @@
 	"121",                     // 121
 	"122",                     // 122
 	"123",                     // 123
-	"124",                     // 124
-	"125",                     // 125
+	"124",                     // 124 // Everything below this line is probably wrong -- the size of Learned skills is 100
+	"125",                     // 125 // While the size of innate skills is 25.  That means 124 should be the max here.
 	"126",                     // 126
 	"127",                     // 127 this should be last one
 	"128",                     // 128 here for compatibility

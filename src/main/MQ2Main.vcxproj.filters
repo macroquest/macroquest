@@ -401,6 +401,9 @@
     <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="api\Abilities.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -636,6 +639,9 @@
     </ClInclude>
     <ClInclude Include="..\eqdata\spelleffects.h">
       <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Abilities.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
