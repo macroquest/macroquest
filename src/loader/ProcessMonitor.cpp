@@ -375,7 +375,7 @@ void ToolHelpProcessMonitor::ThreadProc()
 		{
 			if (waitList.size() >= MAXIMUM_WAIT_OBJECTS)
 			{
-				// SPDLOG_ERROR("Encountered more than the maximum number of proesses while waiting on ToolhelpThread: {}! "
+				// SPDLOG_ERROR("Encountered more than the maximum number of processes while waiting on ToolhelpThread: {}! "
 				// 	"Switching to WMI process monitor.", waitList.size());
 				// switchToWMI = true;
 				// m_running = false;
