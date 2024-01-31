@@ -14,7 +14,8 @@
 
 #pragma once
 
-#include "eqlib/Globals.h"
+#include "eqlib/PcClient.h"
+#include "eqlib/EQClasses.h"
 
 using namespace eqlib;
 
@@ -32,7 +33,10 @@ namespace mq {
  *
  * @return int The adjusted skill level or 0 if pLocalPC is not available.
  **/
-MQLIB_API int GetAdjustedSkill(int nSkill);
+inline int GetAdjustedSkill(int nSkill)
+{
+	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
+}
 
 /**
  * @fn GetBaseSkill
@@ -46,7 +50,10 @@ MQLIB_API int GetAdjustedSkill(int nSkill);
  *
  * @return int The base skill level or 0 if pLocalPC is not available.
  **/
-MQLIB_API int GetBaseSkill(int nSkill);
+inline int GetBaseSkill(int nSkill)
+{
+	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
+}
 
 /**
  * @fn HasSkill
@@ -60,7 +67,10 @@ MQLIB_API int GetBaseSkill(int nSkill);
  *
  * @return bool True if the character has the specified skill, false otherwise
  **/
-MQLIB_API bool HasSkill(int nSkill);
+inline bool HasSkill(int nSkill)
+{
+	return pLocalPC && pLocalPC->HasSkill(nSkill);
+}
 
 /**
  * @fn SkillIsActivatable
@@ -74,7 +84,10 @@ MQLIB_API bool HasSkill(int nSkill);
  *
  * @return bool True if the skill is activatable, false otherwise
  **/
-MQLIB_API bool SkillIsActivatable(int nSkill);
+inline bool SkillIsActivatable(int nSkill)
+{
+	return nSkill < NUM_SKILLS && pSkillMgr && pSkillMgr->pSkill[nSkill]->Activated;
+}
 
 /**
  * @fn HasInnateSkill

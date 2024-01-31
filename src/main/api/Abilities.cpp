@@ -16,36 +16,16 @@
 
 #include "mq/api/Abilities.h"
 
-#include "eqlib/PcClient.h"
-#include "eqlib/EQClasses.h"
+namespace mq {
 
 // Defined in MQ2Globals.cpp but we don't want to bring in all of MQ2Globals.h
 MQLIB_VAR const char* szInnates[];
 
-namespace mq {
-
-int GetAdjustedSkill(int nSkill)
-{
-	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
-}
-
-int GetBaseSkill(int nSkill)
-{
-	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
-}
-
-bool HasSkill(int nSkill)
-{
-	return pLocalPC && pLocalPC->HasSkill(nSkill);
-}
-
-bool SkillIsActivatable(int nSkill)
-{
-	return nSkill < NUM_SKILLS && pSkillMgr && pSkillMgr->pSkill[nSkill]->Activated;
-}
-
 bool HasInnateSkill(int nSkill)
 {
+	if (pLocalPC == nullptr)
+		return false;
+
 	// Innate skills stack on top of normal skills when used with Skill Manager
 	// Allow for both
 	if (nSkill >= NUM_SKILLS)
@@ -54,9 +34,8 @@ bool HasInnateSkill(int nSkill)
 	if (nSkill < 0 || nSkill > NUM_INNATE)
 		return false;
 
-	const PcProfile* pProfile = pLocalPC ? pLocalPC->GetCurrentPcProfile() : nullptr;
 	// 255 is the default value for an unset innate skill
-	return 	pProfile && pProfile->InnateSkill[nSkill] != 255;
+	return pLocalPC->GetCurrentPcProfile()->InnateSkill[nSkill] != 255;
 }
 
 bool InnateSkillIsActivatable(int nSkill)

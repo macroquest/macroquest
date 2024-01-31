@@ -2671,7 +2671,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 					}
 					else
 					{
-						WriteChatf("DoAbility: Skill is not activatable (%s)", szBuffer);
+						WriteChatf("/doability: Skill is not activatable (%s)", szBuffer);
 					}
 				}
 				else
