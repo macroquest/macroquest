@@ -75,6 +75,9 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (!record.serverName.empty() && !record.characterName.empty())
 			login::db::ReadAccount(record);
 
+		if (record.serverName.empty() && record.characterName.empty())
+			login::db::ReadFirstProfile(record);
+
 		return record;
 	}
 

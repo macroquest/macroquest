@@ -479,9 +479,17 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 		else
 			WriteChatf("Could not find %s:%s in your autologin db", record.serverName.c_str(), record.characterName.c_str());
 	}
+	else if (!record.profileName.empty())
+	{
+		login::db::ReadFirstProfile(record);
+		LoginProfile(
+			record.profileName.c_str(),
+			record.serverName.c_str(),
+			record.characterName.c_str());
+	}
 	else
 	{
-		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+		WriteChatf("\ayUsage:\ax /loginchar [profile|profile_server:character|server:character|server^login^character^password|server^login^password]");
 	}
 }
 

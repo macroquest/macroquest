@@ -59,7 +59,7 @@ STARTUPINFO sInfo = { 0 };
 NOTIFYICONDATA NID;
 PAINTSTRUCT PS;
 
-char gszMQVersion[64] = { 0 };
+std::string ServerType;
 char WinDir[_MAX_PATH] = { 0 };
 
 uint32_t gNextWindowHotKey = 0;
@@ -899,13 +899,15 @@ void InitializeVersionInfo()
 		SPDLOG_WARN("Failed to get version from MQ2Main at startup. This may cause issues later");
 		return;
 	}
-	strcpy_s(gszMQVersion, szVersion);
 
-	sprintf_s(gszMQVersion, "%s (%s)", gszMQVersion, GetBuildTargetName(*reinterpret_cast<BuildTarget*>(GetProcAddress(hModule.get(), "gBuild"))));
+	ServerType = GetBuildTargetName(
+		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));  // NOLINT(clang-diagnostic-undefined-reinterpret-cast)
 
-	sprintf_s(NID.szTip, "%s [%s]", gszWinName, gszMQVersion);
+	strcpy_s(NID.szTip, fmt::format("{} [{} ({})]", gszWinName, szVersion, ServerType).c_str());
 	SPDLOG_INFO("Build: {0}", NID.szTip);
 	Shell_NotifyIcon(NIM_MODIFY, &NID);
+
+	to_lower(ServerType);
 }
 
 // ***************************************************************************
@@ -1237,4 +1239,9 @@ void UnregisterGlobalHotkey(HWND hWnd)
 		UnregisterHotKey(wnd_it->second, MAKELONG(std::get<0>(wnd_it->first), std::get<1>(wnd_it->first)));
 		hotkeyMap.erase(wnd_it);
 	}
+}
+
+std::string GetServerType()
+{
+	return ServerType;
 }

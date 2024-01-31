@@ -155,11 +155,11 @@ void LoadCharacter(const LoginInstance& instance_template)
 		target.set_character(instance_template.Character);
 	}
 
-	mq::proto::login::LoginMessage message;
+	proto::login::LoginMessage message;
 	message.set_id(mq::proto::login::StartInstance);
 	message.set_payload(start.SerializeAsString());
 
-	mq::proto::routing::Address address;
+	proto::routing::Address address;
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
@@ -172,11 +172,11 @@ void AutoLoginRemoveProcess(const DWORD process_id)
 	proto::login::StopInstanceMissive stop;
 	stop.set_pid(process_id);
 
-	mq::proto::login::LoginMessage message;
+	proto::login::LoginMessage message;
 	message.set_id(mq::proto::login::ProfileUnloaded);
 	message.set_payload(stop.SerializeAsString());
 
-	mq::proto::routing::Address address;
+	proto::routing::Address address;
 	address.set_name("launcher");
 	address.set_mailbox("autologin");
 
@@ -396,6 +396,19 @@ void LaunchCleanSession()
 	wil::unique_process_information pi;
 	::CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi);
 }
+
+void Import()
+{
+	// set the eq path
+	if (!login::db::GetPathFromServerType(GetServerType()))
+		login::db::CreateOrUpdateServerType(GetServerType(), GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni));
+
+	if (const auto eq_path = login::db::GetPathFromServerType(GetServerType()))
+		internal_paths::s_eqRoot = *eq_path;
+
+	login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni, GetServerType()), internal_paths::s_eqRoot);
+}
+
 }
 
 #pragma region ImGui
@@ -1343,6 +1356,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 }
 
 // TODO: Add settings section
+// TODO: Add master password window button (in settings?)
 // TODO: Add default path editor (per server type)
 // TODO: Remove all fallthrough eq path handling since it's guaranteed per account now
 void ShowAutoLoginWindow()
@@ -2161,6 +2175,13 @@ bool ShowPasswordWindow()
 
 				is_open = false;
 				label = "Please Enter Master Password";
+
+				// do this here because doing it before will attempt to read/write passwords without the master pass
+				if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
+				{
+					Import();
+					login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
+				}
 			}
 			else
 			{
@@ -2326,15 +2347,10 @@ void InitializeAutoLogin()
 	if (!login::db::ReadMasterPass())
 		LauncherImGui::OpenWindow(&ShowPasswordWindow, "Enter Master Password");
 
-	if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
-	{
-		login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni));
-		login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
-	}
-
 	// Initialize path to EQ
-	// TODO: This should detect the current build or something and get the path for that build
-	internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
+	if (const auto eq_path = login::db::GetPathFromServerType(GetServerType()))
+		internal_paths::s_eqRoot = *eq_path;
+
 	if (internal_paths::s_eqRoot.empty())
 	{
 		SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work correctly.");
@@ -2350,4 +2366,5 @@ void ShutdownAutoLogin()
 
 	if (s_eqDirDialog != nullptr)
 		IGFD_Destroy(s_eqDirDialog);
+
 }

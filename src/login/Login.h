@@ -22,9 +22,6 @@
 
 #include <optional>
 
-#include "Login.h"
-#include "Login.h"
-
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")
 #else
@@ -52,6 +49,9 @@ struct ProfileRecord
 	std::optional<std::string> eqPath;
 	bool checked = false;
 
+	std::optional<bool> endAfterSelect;
+	std::optional<int> charSelectDelay;
+
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);
 
@@ -65,14 +65,7 @@ struct ProfileGroup
 	std::vector<ProfileRecord> records;
 };
 
-std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name);
-
-// TODO:
-//	master pass should be stored in launcher and gotten via a message
-//		reset message when new pass is entered
-//		can store locally once retrieved
-//		only the launcher should be retrieving it from the registry/db
-//		allow people to just get pass from the registry easily (it doesn't need to be _that_ secure)
+std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, std::string_view server_type);
 
 struct sqlite3;
 struct sqlite3_stmt;
@@ -233,11 +226,12 @@ void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(std::string_view group, std::string_view server, std::string_view name, ProfileRecord& profile);
+std::optional<unsigned int> ReadFirstProfile(ProfileRecord& profile);
 void UpdateProfile(const ProfileRecord& profile);
 void DeleteProfile(std::string_view server, std::string_view name, std::string_view group);
 
 std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
-void WriteProfileGroups(const std::vector<ProfileGroup>& groups);
+void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
 } // namespace login::db

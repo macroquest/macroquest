@@ -89,8 +89,6 @@ extern HMENU hMenu;
 extern HWND hMainWnd;
 extern HINSTANCE g_hInst;
 
-extern char gszMQVersion[64];
-
 extern bool gEnableCrashpad;
 extern bool gEnableSharedCrashpad;
 extern bool gEnableSilentCrashpad;
@@ -101,6 +99,7 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey);
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString);
 void UnregisterGlobalHotkey(std::string_view hotkeyString);
 void UnregisterGlobalHotkey(HWND hWnd);
+std::string GetServerType();
 
 // ProcessList
 HMODULE GetEQGameModuleByPID(DWORD processId);
