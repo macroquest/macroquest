@@ -256,8 +256,6 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 		std::string eq_path;
 		if (login::db::ReadAccount(record) && record.eqPath)
 			eq_path = *record.eqPath;
-		else if (auto path = login::db::ReadSetting("eq_path")) // TODO: grab the type of build to get a default eq path
-			eq_path = *path;
 
 		if (instance_template.EQPath)
 			eq_path = *instance_template.EQPath;
@@ -453,8 +451,8 @@ void SetEQDir(std::optional<std::string>& eq_path)
 	std::string eqDir;
 	if (eq_path)
 		eqDir = *eq_path;
-	else if (const auto path = login::db::ReadSetting("eq_path"))
-		eqDir = *path;
+	else
+		eqDir = internal_paths::s_eqRoot;
 
 	ImGui::InputText("EQ Dir", eqDir.data(), eqDir.size(), ImGuiInputTextFlags_ReadOnly);
 
@@ -495,7 +493,7 @@ void ShowAccountWindow(std::optional<std::pair<std::string, std::string>>& selec
 
 	ImGui::PushID("Accounts List");
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-	if (ImGui::BeginListBox(""))
+	if (ImGui::BeginListBox("Accounts List"))
 	{
 		static auto buf = [](const size_t size)
 			{
@@ -650,7 +648,7 @@ void ShowAccountWindow(std::optional<std::pair<std::string, std::string>>& selec
 		ImGui::Spacing();
 
 		ImGui::PushID("Choose Type");
-		if (ImGui::BeginCombo("", server_type_name.c_str()))
+		if (ImGui::BeginCombo("##Choose Type", server_type_name.c_str()))
 		{
 			for (const auto& server_type : login::db::ListServerTypes())
 			{
@@ -850,7 +848,7 @@ void ShowAccountWindow(std::optional<std::pair<std::string, std::string>>& selec
 
 	ImGui::PushID("Characters List");
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-	if (ImGui::BeginListBox(""))
+	if (ImGui::BeginListBox("Characters List"))
 	{
 		// this avoids a buffer allocation
 		static auto buf = [](size_t size)
@@ -1147,7 +1145,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 
 	// drop down for account or create new
 	ImGui::PushID("Choose Account");
-	if (ImGui::BeginCombo("", account_preview.c_str()))
+	if (ImGui::BeginCombo("##Choose Account", account_preview.c_str()))
 	{
 		static auto buf = [](size_t size)
 			{
@@ -1214,7 +1212,7 @@ void ShowAddProfile(std::string_view profile_group, InterimProfileRecord& profil
 	if (profile.CurrentAccount)
 	{
 		ImGui::PushID("Choose Character");
-		if (ImGui::BeginCombo("", profile.CharPreview.c_str()))
+		if (ImGui::BeginCombo("##Choose Character", profile.CharPreview.c_str()))
 		{
 			// this avoids a buffer allocation
 			static auto buf = [](const size_t size)
@@ -1353,7 +1351,7 @@ void ShowAutoLoginWindow()
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 
-	if (ImGui::BeginTabBar("", ImGuiTabBarFlags_FittingPolicyResizeDown))
+	if (ImGui::BeginTabBar("Main Tab Bar", ImGuiTabBarFlags_FittingPolicyResizeDown))
 	{
 		ImGui::PushID("profile");
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
@@ -1467,7 +1465,7 @@ void ShowAutoLoginWindow()
 
 			ImGui::PushID("Profile Combo");
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Profile") - ButtonWidth("Launch Group"));
-			if (ImGui::BeginCombo("", current_group ? current_group->c_str() : ""))
+			if (ImGui::BeginCombo("##Profile Combo", current_group ? current_group->c_str() : ""))
 			{
 				for (const auto& group : login::db::ListProfileGroups())
 				{
@@ -1521,7 +1519,7 @@ void ShowAutoLoginWindow()
 			}
 
 			ImGui::PushID("Main List");
-			if (ImGui::BeginTable("", 7, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			if (ImGui::BeginTable("Main List", 7, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				if (current_group)
 				{
@@ -1700,7 +1698,7 @@ void ShowAutoLoginWindow()
 			}
 
 			ImGui::PushID("Main List");
-			if (ImGui::BeginTable("", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+			if (ImGui::BeginTable("Main List", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				ImGui::TableSetupColumn("Account");
 				ImGui::TableSetupColumn("Server Type");
@@ -2288,22 +2286,11 @@ void InitializeAutoLogin()
 		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni));
 
 		// Initialize path to EQ
-		// TODO: This should probably detect the current build or something and get the path for that build
-		if (const auto path = login::db::ReadSetting("eq_path"))
-			internal_paths::s_eqRoot = *path;
-
+		// TODO: This should detect the current build or something and get the path for that build
+		internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
 		if (internal_paths::s_eqRoot.empty())
 		{
-			internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
-			if (internal_paths::s_eqRoot.empty())
-			{
-				SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work.");
-			}
-			else
-			{
-				// update the path to the db
-				login::db::CreateEQPath(internal_paths::s_eqRoot);
-			}
+			SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work correctly.");
 		}
 
 		LauncherImGui::AddMainPanel("AutoLogin", ShowAutoLoginWindow);

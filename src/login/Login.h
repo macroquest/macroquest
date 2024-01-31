@@ -22,6 +22,9 @@
 
 #include <optional>
 
+#include "Login.h"
+#include "Login.h"
+
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")
 #else
@@ -71,7 +74,108 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 //		only the launcher should be retrieving it from the registry/db
 //		allow people to just get pass from the registry easily (it doesn't need to be _that_ secure)
 
+struct sqlite3;
+struct sqlite3_stmt;
+class WithDb;
 namespace login::db {
+
+class StatementHelper
+{
+public:
+	StatementHelper(
+		const std::shared_ptr<WithDb>& db,
+		const std::string& query,
+		const std::function<void(sqlite3_stmt*, sqlite3*)>& bind);
+	~StatementHelper();
+
+	[[nodiscard]] bool Step() const;
+
+	template <typename T>
+	T Result(const std::function<T(sqlite3_stmt*, sqlite3*)>& result) const { return result(m_stmt, m_db); }
+
+	StatementHelper(const StatementHelper&) = delete;
+	StatementHelper(StatementHelper&&) = delete;
+	StatementHelper& operator=(const StatementHelper&) = delete;
+	StatementHelper& operator=(StatementHelper&&) = delete;
+
+private:
+	sqlite3* m_db;
+	sqlite3_stmt* m_stmt;
+};
+
+template <typename T>
+class Results
+{
+public:
+
+	class Iterator
+	{
+	public:
+		using iterator_category = std::input_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = T const;
+		using pointer = T const*const;
+		using reference = T const&;
+
+		explicit Iterator(Results const* results)
+			: m_done(false)
+			, m_results(results)
+		{
+			m_done = m_results->m_stmt.Step();
+			if (!m_done)
+				m_current = m_results->m_stmt.Result(m_results->m_result);
+		}
+
+		explicit operator bool() const { return !m_done; }
+
+		reference operator*() const { return m_current; }
+		pointer operator->() const { return &m_current; }
+
+		Iterator& operator++()
+		{
+			assert(!m_done);
+
+			m_done = m_results->m_stmt.Step();
+			if (!m_done)
+				m_current = m_results->m_stmt.Result(m_results->m_result);
+
+			return *this;
+		}
+
+		friend bool operator==(Iterator l, Iterator r) { return l.m_current == r.m_current; }
+		friend bool operator!=(Iterator l, Iterator r) { return !(l == r); }
+
+		class Sentinel {};
+		friend bool operator==(Iterator it, Sentinel) { return it.m_done; }
+		friend bool operator!=(Iterator it, Sentinel) { return !(it == Sentinel{}); }
+		friend bool operator==(Sentinel, Iterator it) { return it == Sentinel{}; }
+		friend bool operator!=(Sentinel, Iterator it) { return it != Sentinel{}; }
+
+	private:
+		bool m_done;
+		T m_current;
+		Results const* m_results;
+	};
+
+	explicit Results(
+		const std::shared_ptr<WithDb>& db,
+		const std::string& query,
+		const std::function<void(sqlite3_stmt*, sqlite3*)>& bind,
+		const std::function<T(sqlite3_stmt*, sqlite3*)>& result)
+		: m_db(db)
+		, m_stmt(db, query, bind)
+		, m_result(result)
+	{}
+
+	[[nodiscard]] Iterator begin() const { return Iterator(this); }
+	[[nodiscard]] typename Iterator::Sentinel end() const { return Iterator::Sentinel{}; }
+
+private:
+	std::shared_ptr<WithDb> m_db;
+	StatementHelper m_stmt;
+	std::function<T(sqlite3_stmt*, sqlite3*)> m_result;
+};
+
 bool ValidatePass(std::string_view pass, bool empty_is_valid);
 
 void MemoizeMasterPass(std::string_view pass);
@@ -83,11 +187,7 @@ std::optional<std::string> ReadMasterPass();
 void WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description = {});
 std::optional<std::string> ReadSetting(std::string_view key);
 
-void CreateEQPath(std::string_view path);
-void CreateEQPath(std::string_view key, std::string_view path);
-std::string ReadEQPath(std::string_view key);
-
-std::vector<std::string> ListProfileGroups();
+Results<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
 std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);

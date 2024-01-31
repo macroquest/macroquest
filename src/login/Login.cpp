@@ -302,6 +302,8 @@ public:
 		if (m_db != nullptr) sqlite3_close(m_db);
 	}
 
+	[[nodiscard]] sqlite3* GetDB() const { return m_db; }
+
 	template <typename T>
 	static std::function<T(const std::string&, const std::function<T(sqlite3_stmt*, sqlite3*)>&)> Query(int flags)
 	{
@@ -317,7 +319,6 @@ public:
 	WithDb& operator=(const WithDb&) = delete;
 	WithDb& operator=(WithDb&&) = delete;
 
-private:
 	static const std::shared_ptr<WithDb>& Get(int flags)
 	{
 		static std::map<int, std::shared_ptr<WithDb>> connections;
@@ -327,6 +328,7 @@ private:
 		return connection->second;
 	}
 
+private:
 	template <typename T>
 	class WithStatement
 	{
@@ -358,6 +360,27 @@ private:
 
 	sqlite3* m_db = nullptr;
 };
+
+login::db::StatementHelper::StatementHelper(
+	const std::shared_ptr<WithDb>& db,
+	const std::string& query,
+	const std::function<void(sqlite3_stmt*, sqlite3*)>& bind)
+	: m_db(db->GetDB())
+	, m_stmt(nullptr)
+{
+	sqlite3_prepare_v2(m_db, query.c_str(), -1, &m_stmt, nullptr);
+	bind(m_stmt, m_db);
+}
+
+login::db::StatementHelper::~StatementHelper()
+{
+	sqlite3_finalize(m_stmt);
+}
+
+bool login::db::StatementHelper::Step() const
+{
+	return sqlite3_step(m_stmt) != SQLITE_ROW;
+}
 
 namespace {
 // TODO: better encryption
@@ -605,42 +628,17 @@ std::optional<std::string> login::db::ReadSetting(std::string_view key)
 		});
 }
 
-void login::db::CreateEQPath(std::string_view path)
-{
-	CreateEQPath("eq_path", path);
-}
-
-void login::db::CreateEQPath(std::string_view key, std::string_view path)
-{
-	WriteSetting(key, path, "EQ location");
-}
-
-std::string login::db::ReadEQPath(std::string_view key)
-{
-	if (const auto value = ReadSetting(key))
-		return *value;
-
-	if (const auto value = ReadSetting("eq_path"))
-		return *value;
-
-	return "";
-}
-
 // ================================================================================================================================
-// profile_groups
-std::vector<std::string> login::db::ListProfileGroups()
+login::db::Results<std::string> login::db::ListProfileGroups()
 {
-	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+	return login::db::Results<std::string>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT name FROM profile_groups)",
-		[](sqlite3_stmt* stmt, sqlite3* db)
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{},
+		[](sqlite3_stmt* stmt, sqlite3*) -> std::string
 		{
-			std::vector<std::string> groups;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				groups.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-			}
-
-			return groups;
+			return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 		});
 }
 void login::db::CreateProfileGroup(const ProfileGroup& group)
@@ -1711,20 +1709,24 @@ void CreateVersion0Schema()
 
 void MigrateTableSchema(const std::string& create_query)
 {
-	auto query_step = [](const std::string& query)
-		{
-			return WithDb::Query<bool>(SQLITE_OPEN_READWRITE)(
-				query,
-				[](sqlite3_stmt* stmt, sqlite3* db)
-				{ return sqlite3_step(stmt) == SQLITE_DONE; });
-		};
+	const auto db = WithDb::Get(SQLITE_OPEN_READWRITE)->GetDB();
+	char* err_msg = nullptr;
 
-	query_step("PRAGMA foreign_keys = OFF; BEGIN TRANSACTION;");
-
-	if (query_step(create_query) && query_step("PRAGMA foreign_key_check;"))
-		query_step("END TRANSACTION; PRAGMA foreign_keys = ON;");
-	else
-		query_step("ROLLBACK TRANSACTION; PRAGMA foreign_keys = ON;");
+	if (sqlite3_exec(db, "PRAGMA foreign_keys = OFF;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("fkey OFF: {}", err_msg);
+		sqlite3_free(err_msg);
+	}
+	else if (sqlite3_exec(db, fmt::format("{};\nPRAGMA foreign_key_check;", create_query).c_str(), nullptr, nullptr, &err_msg) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("{}\n{}", create_query, err_msg);
+		sqlite3_free(err_msg);
+	}
+	else if (sqlite3_exec(db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+	{
+		SPDLOG_ERROR("fkey ON: {}", err_msg);
+		sqlite3_free(err_msg);
+	}
 }
 
 // when creating a schema migration, follow these steps exactly as per 
@@ -1843,14 +1845,11 @@ bool login::db::InitDatabase(const std::string& path)
 		// first let's get the version number (default to 0, which means no version)
 		// we can't really trust PRAGMA schema_version because that changes with user edits
 
-		switch (WithDb::Query<int>(SQLITE_OPEN_READONLY)("PRAGMA schema_version",
-			[](sqlite3_stmt* stmt, sqlite3*)
-			{
-				if (sqlite3_step(stmt) == SQLITE_ROW)
-					return sqlite3_column_int(stmt, 0);
+		unsigned int version = 0;
+		if (const auto version_setting = login::db::ReadSetting("version"))
+			version = GetUIntFromString(*version_setting, version);
 
-				return 0;
-			}))
+		switch (version)
 		{
 		case 0:
 			CreateVersion0Schema();
@@ -1863,13 +1862,7 @@ bool login::db::InitDatabase(const std::string& path)
 		}
 
 		// set version to latest
-		WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
-			"PRAGMA schema_version = ?",
-			[](sqlite3_stmt* stmt, sqlite3*)
-			{
-				sqlite3_bind_int(stmt, 1, 2);
-				sqlite3_step(stmt);
-			});
+		login::db::WriteSetting("version", "2", "The current schema version");
 	}
 
 	return first_load;
