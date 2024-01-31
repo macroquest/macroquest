@@ -98,7 +98,10 @@ static void lua_delay(sol::object delayObj, std::optional<sol::object> condition
 
 		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
 		{
+			const bool toggled = luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_OFF) == 1;
 			co_ptr->Delay(delayObj, conditionObj, s);
+			if (toggled)
+				luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON);
 		}
 	}
 }
