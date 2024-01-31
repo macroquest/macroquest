@@ -1,3 +1,13 @@
+Jan 30, 2024:
+- Disable jit when delaying so that delays are not optimized away (#822)
+- /doability will now accept quoted or unquoted ability names
+- /doability will now work for innate skills like slam (#371)
+- mq.TLO.Me.Ability is now a boolean. It returns true or false based on whether you have the ability.
+- mq.TLO.Me.AbilityReady will no longer say an ability is ready if you don't have that ability.
+- Added mq.TLO.Me.AbilityTimerTotal which will return the total amount of time an ability takes to refresh. This is only available while the ability is in cooldown, otherwise it returns 0. Useful for converting mq.TLO.Me.AbilityTimer into a percentage. (#823)
+- mq.TLO.Me.AltCurrency now works with the singular or plural name of the currency
+- plugins: GetZoneExpansionName(0) would previously return "Original EQ" but now returns "EverQuest"
+
 Jan 20, 2024:
 - Fix Mercenary.State reporting unknown when mercenary is active (#811)
 - Fix Heading.Name/Heading.ShortName potentially going out of bounds (#813)
