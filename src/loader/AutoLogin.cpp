@@ -441,7 +441,7 @@ bool ToggleSlider(const char* label, bool* v)
 
 float ButtonWidth(const char* text)
 {
-	return ImGui::GetStyle().FramePadding.x * 2 + ImGui::CalcTextSize(text).x + ImGui::GetStyle().WindowPadding.x;
+	return ImGui::GetStyle().FramePadding.x * 2 + ImGui::CalcTextSize(text).x;// +ImGui::GetStyle().WindowPadding.x;
 }
 
 void SetEQDir(std::optional<std::string>& eq_path)
@@ -2086,6 +2086,94 @@ void ShowAutoLoginMenu()
 
 	ImGui::PopID();
 }
+
+bool ShowPasswordWindow()
+{
+	bool is_open = true;
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::Begin("Enter Master Password", &is_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
+	{
+		static std::string label = "Please Enter Master Password";
+
+		ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label.c_str()).x / 2.f));
+		ImGui::Text(label.c_str());
+		ImGui::Spacing();
+
+		static bool show_password = false;
+		static bool perpetual_password = false;
+		static std::string password;
+
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+		if (!show_password) flags |= ImGuiInputTextFlags_Password;
+
+		ImGui::InputText("##password", &password, flags);
+		ImGui::Separator();
+
+		ImGui::BeginDisabled(perpetual_password);
+		int num_hours = 720; // 720 hours is 30 days
+		if (const auto hours = login::db::ReadSetting("password_timeout_hours"))
+			num_hours = GetIntFromString(*hours, num_hours);
+		const std::string hours_label = fmt::format("Hours to Save ({:.1f} days)", static_cast<float>(num_hours) / 24.f);
+
+		ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(hours_label.c_str()).x / 2.f));
+		ImGui::Text(hours_label.c_str());
+		if (ImGui::InputInt("##hours", &num_hours))
+		{
+			login::db::WriteSetting(
+				"password_timeout_hours",
+				std::to_string(num_hours),
+				"Number of hours before master password times out");
+		}
+		ImGui::SetItemTooltip("Number of hours to save this password before requiring re-entry.");
+		ImGui::EndDisabled();
+		ImGui::Separator();
+
+		ImGui::Checkbox("Show password", &show_password);
+		ImGui::SetItemTooltip("Show the password in plain text");
+		ImGui::SameLine();
+		ImGui::Checkbox("Never ask again", &perpetual_password);
+		ImGui::SetItemTooltip("Save the password to this system so that it never has to be entered again.");
+		ImGui::Spacing();
+
+		if (ImGui::Button("Retrieve"))
+			if (const auto pass = login::db::ReadStoredMasterPass())
+				password = *pass;
+		ImGui::SetItemTooltip("Retrieve the stored password from the system registry if present.");
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Reset Stored"))
+			login::db::DeleteSetting("master_pass");
+		ImGui::SetItemTooltip("Reset the stored master mass in the database, allowing a new master pass to be set.");
+
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ButtonWidth("  OK  "));
+		if (ImGui::Button("  OK  "))
+		{
+			if (!login::db::ReadSetting("master_pass") || login::db::ValidatePass(password))
+			{
+				if (!perpetual_password)
+					login::db::CreateMasterPass(password, num_hours);
+				else
+					login::db::CreateMasterPass(password, 0);
+
+				is_open = false;
+				label = "Please Enter Master Password";
+			}
+			else
+			{
+				label = "Incorrect Password, Please Enter Master Password";
+			}
+		}
+		ImGui::SetItemTooltip("Attempt to validate the entered password against the database, or set it if it does not exist.");
+	}
+
+	ImGui::End();
+	return is_open;
+}
+
 }
 
 #pragma endregion
@@ -2227,75 +2315,33 @@ void InitializeAutoLogin()
 	// TODO: figure out how to determine hotkeys from that list
 
 	// Get path to mq2autologin.ini
-	const fs::path pathAutoLoginIni = fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini";
-	internal_paths::s_autoLoginIni = pathAutoLoginIni.string();
-	const auto load_ini = login::db::InitDatabase((fs::path(internal_paths::Config) / "login.db").string());
-
-	// do absolutely nothing until a master pass is set
-	// TODO: add in checkbox for never forget, and a button to pull the password from registry. Also clean up
-	auto pass = login::db::ReadMasterPass();
-	if (!pass)
+	internal_paths::s_autoLoginIni = (fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini").string();
+	if (!login::db::InitDatabase((fs::path(internal_paths::Config) / "login.db").string()))
 	{
-		LauncherImGui::OpenWindow(
-			[&pass]() {
-				bool is_open = true;
-				if (ImGui::Begin("Enter Master Password", &is_open))
-				{
-					static const char* label = "Please Enter Master Password";
-					ImGui::Text(label);
-					ImGui::Spacing();
-
-					// TODO: This can be a lot nicer -- also the hashing can take a bit so it should
-					// probably happen in a thread to prevent the UI from hanging on slower computers
-					static bool show_password = false;
-					static std::string password;
-
-					ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
-					if (!show_password) flags |= ImGuiInputTextFlags_Password;
-
-
-					if (ImGui::InputText("##password", &password, flags))
-					{
-						if (login::db::ValidatePass(password, true))
-						{
-							login::db::CreateMasterPass(password);
-							pass = password;
-							is_open = false;
-							label = "Please Enter Master Password";
-						}
-						else
-						{
-							label = "Incorrect Password, Please Enter Master Password";
-						}
-					}
-					ImGui::Spacing();
-
-					ImGui::Checkbox("Show password", &show_password);
-					ImGui::Spacing();
-				}
-
-				ImGui::End();
-				return is_open;
-			},
-			"Enter Master Password"
-		);
+		SPDLOG_ERROR("Could not load autologin database, Autologin functionality will be disabled");
+		return;
 	}
 
-	if (pass)
+	// test reading the password. if it's not correct, prompt to enter it
+	if (!login::db::ReadMasterPass())
+		LauncherImGui::OpenWindow(&ShowPasswordWindow, "Enter Master Password");
+
+	if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
 	{
-		if (load_ini) login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni));
-
-		// Initialize path to EQ
-		// TODO: This should detect the current build or something and get the path for that build
-		internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
-		if (internal_paths::s_eqRoot.empty())
-		{
-			SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work correctly.");
-		}
-
-		LauncherImGui::AddMainPanel("AutoLogin", ShowAutoLoginWindow);
-		LauncherImGui::AddContextGroup("AutoLogin Menu", ShowAutoLoginMenu);
+		login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni));
+		login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
 	}
+
+	// Initialize path to EQ
+	// TODO: This should detect the current build or something and get the path for that build
+	internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
+	if (internal_paths::s_eqRoot.empty())
+	{
+		SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work correctly.");
+	}
+
+	LauncherImGui::AddMainPanel("AutoLogin", ShowAutoLoginWindow);
+	LauncherImGui::AddContextGroup("AutoLogin Menu", ShowAutoLoginMenu);
 }
 
 void ShutdownAutoLogin()

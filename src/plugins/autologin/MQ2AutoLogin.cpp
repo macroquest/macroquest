@@ -727,7 +727,6 @@ PLUGIN_API void InitializePlugin()
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
 	Login::set_initial_state();
-	login::db::InitDatabase((fs::path(mq::gPathConfig) / "login.db").string());
 	ReadINI();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);

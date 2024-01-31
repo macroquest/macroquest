@@ -176,16 +176,19 @@ private:
 	std::function<T(sqlite3_stmt*, sqlite3*)> m_result;
 };
 
-bool ValidatePass(std::string_view pass, bool empty_is_valid);
+bool ValidatePass(std::string_view pass);
 
 void MemoizeMasterPass(std::string_view pass);
 std::optional<std::string> GetMasterPass();
 
-bool CreateMasterPass(std::string_view pass);
+bool CreateMasterPass(std::string_view pass, int hours_valid);
+std::optional<std::string> ReadStoredMasterPass();
+bool ReadMasterPassExpired();
 std::optional<std::string> ReadMasterPass();
 
 void WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description = {});
 std::optional<std::string> ReadSetting(std::string_view key);
+void DeleteSetting(std::string_view key);
 
 Results<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);

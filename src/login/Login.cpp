@@ -409,25 +409,9 @@ struct HashParams
 	uint32_t Parallelism = 1;
 };
 
-bool login::db::ValidatePass(std::string_view pass, bool empty_is_valid)
+bool login::db::ValidatePass(const std::string_view pass)
 {
-	const auto hash = WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT value FROM settings WHERE key = 'master_pass')",
-		[](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
-		{
-			const auto result = sqlite3_step(stmt);
-			if (result == SQLITE_ROW)
-				return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-
-			if (result != SQLITE_DONE)
-				SPDLOG_ERROR("AutoLogin Error failed to read master pass: {}", sqlite3_errmsg(db));
-
-			return {};
-		});
-
-	if (empty_is_valid)
-		return !hash || argon2id_verify(hash->c_str(), pass.data(), pass.length()) == ARGON2_OK;
-
+	const auto hash = ReadSetting("master_pass");
 	return hash && argon2id_verify(hash->c_str(), pass.data(), pass.length()) == ARGON2_OK;
 }
 
@@ -443,44 +427,33 @@ std::optional<std::string> login::db::GetMasterPass()
 	return s_masterPass;
 }
 
-bool login::db::CreateMasterPass(std::string_view pass)
+bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 {
 	// first update the db with the new pass
-	auto db = WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READWRITE);
-	auto get_setting = [&db](std::string_view setting)
-		{
-			return db(
-				fmt::format("SELECT value FROM settings WHERE key = '{}'", setting),
-				[](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
-				{
-					if (sqlite3_step(stmt) == SQLITE_ROW)
-						return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-
-					return {};
-				}
-			);
-		};
-
 	HashParams hash_params;
-	if (auto val = get_setting("time_cost"))
+	if (const auto val = ReadSetting("time_cost"))
 		hash_params.TimeCost = GetUIntFromString(*val, hash_params.TimeCost);
 
-	if (auto val = get_setting("memory_cost"))
+	if (const auto val = ReadSetting("memory_cost"))
 		hash_params.MemoryCost = GetUIntFromString(*val, hash_params.MemoryCost);
 
-	if (auto val = get_setting("paralellism"))
+	if (const auto val = ReadSetting("paralellism"))
 		hash_params.Parallelism = GetUIntFromString(*val, hash_params.Parallelism);
 
-	if (auto val = get_setting("salt_len"))
+	if (const auto val = ReadSetting("salt_len"))
 		hash_params.SaltLength = GetUInt64FromString(*val, hash_params.SaltLength);
 
-	if (auto val = get_setting("hash_len"))
+	if (const auto val = ReadSetting("hash_len"))
 		hash_params.HashLength = GetUInt64FromString(*val, hash_params.HashLength);
 
-	auto update = [pass, &hash_params](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(R"(
+		INSERT INTO settings (key, value, description)
+		VALUES('master_pass', ?, 'Encoded hash of the user''s master password.')
+		ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)",
+		[pass, &hash_params](sqlite3_stmt* stmt, sqlite3* db)
 		{
-			std::mt19937 generator{std::random_device{}()};
-			std::uniform_int_distribution<unsigned char> distribution{'!', '~'};
+			std::mt19937 generator{ std::random_device{}() };
+			std::uniform_int_distribution<unsigned char> distribution{ '!', '~' };
 			std::string salt(hash_params.SaltLength, '\0');
 			for (auto& c : salt)
 				c = distribution(generator);
@@ -513,41 +486,42 @@ bool login::db::CreateMasterPass(std::string_view pass)
 			{
 				SPDLOG_ERROR("AutoLogin Error failed to hash master pass: {}", argon2_error_message(argon2_err));
 			}
-
-			return {};
-		};
-
-	// ReSharper disable once CppExpressionWithoutSideEffects
-	db(R"(
-		INSERT INTO settings (key, value, description) VALUES('master_pass', ?, 'Encoded hash of the user''s master password.')
-		ON CONFLICT (key) DO UPDATE SET value=excluded.value, description=excluded.description)", update);
+		});
 
 	// then update the registry
 	wil::unique_hkey pass_hkey;
-	if (wil::reg::create_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
+	if (create_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
 	{
 		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
 		// the timestamp is in hours since epoch
-		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp",
-		                                  std::chrono::duration_cast<std::chrono::hours>(
-			                                  std::chrono::system_clock::now().time_since_epoch()).count());
+
+		using namespace std::chrono;
+		const uint32_t expiry_timestamp = hours_valid <= 0 ? 0 : static_cast<uint32_t>(
+			duration_cast<hours>(system_clock::now().time_since_epoch()).count() + hours_valid);
+
+		// ReSharper disable once CppFunctionResultShouldBeUsed
+		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp", expiry_timestamp);
 
 		// the string must be converted to a wide string for the registry
 		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
 		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
+
+		// ReSharper disable once CppFunctionResultShouldBeUsed
 		wil::reg::set_value_string_nothrow(pass_hkey.get(), L"MasterPass", wide_pass.c_str());
 	}
+
+	// and update the memoized value
+	s_masterPass = pass;
 
 	return true;
 }
 
-// this will only try to read from the registry, and then validate against the master key hash
-std::optional<std::string> login::db::ReadMasterPass()
+std::optional<std::string> login::db::ReadStoredMasterPass()
 {
 	wil::unique_hkey pass_hkey;
 	std::optional<std::wstring> pass; // this must be a wstring, that's the only way to store strings in the registry
 
-	if (wil::reg::open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
+	if (open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
 	{
 		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
 	}
@@ -555,28 +529,53 @@ std::optional<std::string> login::db::ReadMasterPass()
 	{
 		SPDLOG_ERROR("AutoLogin Error master pass is missing from registry.");
 	}
-	else if (std::optional<DWORD> pass_timestamp; !((pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp"))))
+
+	if (pass)
+	{
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
+		return std::string(cvt.to_bytes(pass->c_str()));
+	}
+
+	return {};
+}
+
+bool login::db::ReadMasterPassExpired()
+{
+	using namespace std::chrono;
+	wil::unique_hkey pass_hkey;
+	std::optional<DWORD> pass_timestamp;
+
+	if (open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
+	{
+		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
+		return true;
+	}
+
+	if (!((pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp"))))
 	{
 		SPDLOG_ERROR("AutoLogin Error master pass is missing date.");
-	}
-	else if (static_cast<int>(*pass_timestamp) + 720 < std::chrono::duration_cast<std::chrono::hours>(std::chrono::system_clock::now().time_since_epoch()).count())
-	{
-		SPDLOG_ERROR("AutoLogin Error master pass has expired."); // 720 hours is 30 days
-	}
-	else
-	{
-		// we have a stored hash to compare against
-		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-		std::string entered_pass(cvt.to_bytes(pass->c_str()));
-		if (ValidatePass(entered_pass, false))
-		{
-			MemoizeMasterPass(entered_pass);
-			return entered_pass;
-		}
-
-		SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
+		return true;
 	}
 
+	if (*pass_timestamp > 0 && static_cast<int>(*pass_timestamp) < duration_cast<hours>(system_clock::now().time_since_epoch()).count())
+	{
+		SPDLOG_ERROR("AutoLogin Error master pass has expired.");
+		return true;
+	}
+
+	return false;
+}
+
+// this will only try to read from the registry, and then validate against the master key hash
+std::optional<std::string> login::db::ReadMasterPass()
+{
+	if (const auto pass = ReadStoredMasterPass(); pass && !ReadMasterPassExpired() && ValidatePass(*pass))
+	{
+		MemoizeMasterPass(*pass);
+		return pass;
+	}
+
+	SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
 	return {};
 }
 
@@ -626,6 +625,19 @@ std::optional<std::string> login::db::ReadSetting(std::string_view key)
 
 			return {};
 		});
+}
+
+void login::db::DeleteSetting(std::string_view key)
+{
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
+		R"(DELETE FROM settings WHERE key = ?)",
+		[key](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.length()), SQLITE_STATIC);
+
+			sqlite3_step(stmt);
+		}
+	);
 }
 
 // ================================================================================================================================
@@ -1636,7 +1648,7 @@ void login::db::WriteProfileGroups(const std::vector<ProfileGroup>& groups)
 }
 
 namespace {
-void CreateVersion0Schema()
+bool CreateVersion0Schema()
 {
 	auto query = [](const std::string& query, std::string_view table)
 		{
@@ -1705,28 +1717,45 @@ void CreateVersion0Schema()
 			  last_seen text,
 			  unique (short_name, long_name)
 			))", "servers");
+
+	// TODO: This should probably actually check the result of the creations
+	return true;
 }
 
-void MigrateTableSchema(const std::string& create_query)
+bool MigrateTableSchema(const std::string& create_query)
 {
 	const auto db = WithDb::Get(SQLITE_OPEN_READWRITE)->GetDB();
 	char* err_msg = nullptr;
+	auto fail = [&err_msg, &db](std::string_view message)
+	{
+			SPDLOG_INFO("AutoLogin Error Migration failed {} : {}", message, err_msg);
+			sqlite3_free(err_msg);
+			if (sqlite3_exec(db, "ROLLBACK TRANSACTION; PRAGMA foreign_keys = ON;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+			{
+				SPDLOG_INFO("AutoLogin Error Rollback failed : {}", err_msg);
+				sqlite3_free(err_msg);
+			}
+	};
 
-	if (sqlite3_exec(db, "PRAGMA foreign_keys = OFF;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+	if (sqlite3_exec(db, "PRAGMA foreign_keys = OFF; BEGIN TRANSACTION;", nullptr, nullptr, &err_msg) != SQLITE_OK)
 	{
-		SPDLOG_ERROR("fkey OFF: {}", err_msg);
-		sqlite3_free(err_msg);
+		fail("fkey OFF");
+		return false;
 	}
-	else if (sqlite3_exec(db, fmt::format("{};\nPRAGMA foreign_key_check;", create_query).c_str(), nullptr, nullptr, &err_msg) != SQLITE_OK)
+
+	if (sqlite3_exec(db, fmt::format("{};\nPRAGMA foreign_key_check;", create_query).c_str(), nullptr, nullptr, &err_msg) != SQLITE_OK)
 	{
-		SPDLOG_ERROR("{}\n{}", create_query, err_msg);
-		sqlite3_free(err_msg);
+		fail(create_query);
+		return false;
 	}
-	else if (sqlite3_exec(db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &err_msg) != SQLITE_OK)
+
+	if (sqlite3_exec(db, "END TRANSACTION; PRAGMA foreign_keys = ON;", nullptr, nullptr, &err_msg) != SQLITE_OK)
 	{
-		SPDLOG_ERROR("fkey ON: {}", err_msg);
-		sqlite3_free(err_msg);
+		fail("fkey ON");
+		return false;
 	}
+
+	return true;
 }
 
 // when creating a schema migration, follow these steps exactly as per 
@@ -1737,13 +1766,14 @@ void MigrateTableSchema(const std::string& create_query)
 //  4. Rename new into old
 //  5. Re-add all old INDEX, TRIGGER, and VIEW
 // all the fkey and transaction stuff surrounding this is done in MigrateTableSchema
+// finally, return if the migration was successful
 
 // adds end_after_select and char_select_delay options to profile
 // changes accounts to be keyed by id and associates an eq instance with account with uniqueness constraint
 // necessary changes to characters to accomodate new account method
-void MigrateVersion1Schema()
+bool MigrateVersion1Schema()
 {
-	MigrateTableSchema(R"(
+	return MigrateTableSchema(R"(
 		CREATE TABLE new_profiles (
 		  id integer primary key,
 		  character_id integer not null,
@@ -1812,8 +1842,9 @@ void MigrateVersion1Schema()
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 // TODO: test this (open a bunch of clients simultaneously)
 // TODO: LOWER() account, character, server and UPPER() class
-// TODO: add a server edit window, and have a server dropdown in character, and server type dropdown in account
+// TODO: add a server edit window, have a server dropdown in character, and server type dropdown in account
 // TODO: the list getters need to provide iterators/generators
+// TODO: consider never reading the db in the plugin
 bool login::db::InitDatabase(const std::string& path)
 {
 	s_dbPath = path;
@@ -1823,7 +1854,6 @@ bool login::db::InitDatabase(const std::string& path)
 	// we specifically don't want to do this if we have a db already, we assume that it's more recent
 	// than any ini
 	// no matter what happens here, we have to close the db to clear resources as per the sqlite API
-	// TODO: is there a better way to detect if a file exists and is a sqlite db
 	const bool first_load = sqlite3_open_v2(s_dbPath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK;
 	sqlite3_close(db);
 	db = nullptr;
@@ -1831,40 +1861,52 @@ bool login::db::InitDatabase(const std::string& path)
 	// now create the db if it wasn't already present (!first_load means it's already been created)
 	// we're not actually going to use this db as we want to use WithDb to ensure pragmas are set
 	const bool db_ready = !first_load || sqlite3_open_v2(s_dbPath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) == SQLITE_OK;
-	sqlite3_close(db);
-	db = nullptr;
+	if (db != nullptr)
+	{
+		// don't do anything if the second open call wasn't attempted
+		sqlite3_close(db);
+		db = nullptr;
+	}
 
 	if (!db_ready)
 	{
-		SPDLOG_ERROR("AutoLogin Error creating login database: {}", sqlite3_errmsg(db));
+		SPDLOG_ERROR("AutoLogin Error creating or opening login database: {}", sqlite3_errmsg(db));
+		return false;
 	}
-	else
+
+	SPDLOG_INFO("AutoLogin Opening database at {}", path);
+
+	// first let's get the version number (default to 0, which means no version or empty db)
+	// we can't really trust PRAGMA schema_version because that changes with user edits
+
+	unsigned int version = 0;
+	if (const auto version_setting = ReadSetting("version"))
+		version = GetUIntFromString(*version_setting, version);
+
+	std::vector<bool(*)()> migrations;
+	switch (version)
 	{
-		SPDLOG_INFO("AutoLogin Opening database at {}", path);
-
-		// first let's get the version number (default to 0, which means no version)
-		// we can't really trust PRAGMA schema_version because that changes with user edits
-
-		unsigned int version = 0;
-		if (const auto version_setting = login::db::ReadSetting("version"))
-			version = GetUIntFromString(*version_setting, version);
-
-		switch (version)
-		{
-		case 0:
-			CreateVersion0Schema();
-			[[fallthrough]];
-		case 1:
-			MigrateVersion1Schema();
-			[[fallthrough]];
-		default:
-			break;
-		}
-
-		// set version to latest
-		login::db::WriteSetting("version", "2", "The current schema version");
+	case 0:
+		migrations.push_back(&CreateVersion0Schema);
+		[[fallthrough]];
+	case 1:
+		migrations.push_back(&MigrateVersion1Schema);
+		[[fallthrough]];
+	default:
+		break;
 	}
 
-	return first_load;
+	for (const auto& f : migrations)
+	{
+		// we need to stop processing migrations if any of them fail
+		if (!f()) return false;
+
+		// set version here for 2 reasons:
+		//  1) if the migration fails, this correctly sets the last migration that succeeded
+		//  2) if there are no migrations, nothing is written
+		WriteSetting("version", std::to_string(++version), "The current schema version");
+	}
+
+	return true;
 }
 
