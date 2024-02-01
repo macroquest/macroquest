@@ -286,7 +286,8 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 		ProfileRecord record;
 		record.profileName = section;
 		record.accountName = account;
-
+		record.serverType = server_type;
+		record.checked = true;
 
 		record.serverName = GetPrivateProfileString(section, "Server", "", ini_file_name);
 		record.characterName = GetPrivateProfileString(section, "Character", "", ini_file_name);
@@ -1553,6 +1554,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
 			LEFT JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = ?) g USING (group_id)
+			WHERE selected <> 0
 			LIMIT 1)",
 			[&master_pass, &profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 			{
