@@ -189,17 +189,17 @@ std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
 void DeleteProfileGroup(std::string_view name);
 
-std::vector<std::pair<std::string, std::string>> ListAccounts();
+Results<std::pair<std::string, std::string>> ListAccounts();
 void CreateAccount(const ProfileRecord& profile);
 std::optional<std::string> ReadAccount(ProfileRecord& profile);
 std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type);
 void UpdateAccount(std::string_view account, std::string_view server_type, const ProfileRecord& record);
 void DeleteAccount(std::string_view account, std::string_view server_type);
 
-std::vector<std::pair<std::string, std::string>> ListCharacters(std::string_view account, std::string_view server_type);
-std::vector<std::string> ListServers();
-std::vector<ProfileRecord> ListCharactersOnServer(std::string_view server);
-std::vector<ProfileRecord> ListCharacterMatches(std::string_view search);
+Results<std::pair<std::string, std::string>> ListCharacters(std::string_view account, std::string_view server_type);
+Results<std::string> ListServers();
+Results<ProfileRecord> ListCharactersOnServer(std::string_view server);
+Results<ProfileRecord> ListCharacterMatches(std::string_view search);
 void CreateCharacter(const ProfileRecord& profile);
 std::optional<unsigned int> ReadCharacter(ProfileRecord& profile);
 void UpdateCharacter(std::string_view server, std::string_view name, const ProfileRecord& profile);
@@ -216,12 +216,12 @@ std::optional<std::string> ReadShortServer(std::string_view long_name);
 void DeleteServer(std::string_view short_name, std::string_view long_name);
 
 void CreateOrUpdateServerType(std::string_view server_type, std::string_view eq_path);
-std::vector<std::string> ListServerTypes();
+Results<std::string> ListServerTypes();
 std::optional<std::string> GetPathFromServerType(std::string_view server_type);
 std::optional<std::string> GetServerTypeFromPath(std::string_view path);
 void DeleteServerType(std::string_view server_type);
 
-std::vector<ProfileRecord> GetProfiles(std::string_view group);
+Results<ProfileRecord> GetProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(ProfileRecord& profile);

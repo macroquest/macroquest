@@ -1660,15 +1660,11 @@ void ShowAutoLoginWindow()
 			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
 			static std::string search;
-			static auto matches = login::db::ListCharacterMatches(search);
 			static ProfileRecord interim_profile;
 			static std::optional<std::pair<std::string, std::string>> selected;
 
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ButtonWidth("Add Character"));
-			if (ImGui::InputText("##Search Bar", &search, ImGuiInputTextFlags_EscapeClearsAll))
-			{
-				matches = login::db::ListCharacterMatches(search);
-			}
+			ImGui::InputText("##Search Bar", &search, ImGuiInputTextFlags_EscapeClearsAll);
 
 			ImGui::SameLine();
 			if (ImGui::Button("Add Character"))
@@ -1722,7 +1718,7 @@ void ShowAutoLoginWindow()
 				ImGui::TableSetupColumn("##buttons");
 				ImGui::TableHeadersRow();
 
-				for (const auto& match : matches)
+				for (const auto& match : login::db::ListCharacterMatches(search))
 				{
 					ImGui::PushID(match.serverName.c_str());
 					ImGui::PushID(match.characterName.c_str());
@@ -2346,6 +2342,11 @@ void InitializeAutoLogin()
 	// test reading the password. if it's not correct, prompt to enter it
 	if (!login::db::ReadMasterPass())
 		LauncherImGui::OpenWindow(&ShowPasswordWindow, "Enter Master Password");
+	else if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
+	{
+		Import();
+		login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
+	}
 
 	// Initialize path to EQ
 	if (const auto eq_path = login::db::GetPathFromServerType(GetServerType()))

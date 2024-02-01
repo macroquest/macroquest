@@ -781,22 +781,17 @@ void login::db::DeleteProfileGroup(std::string_view name)
 
 // ================================================================================================================================
 // accounts
-std::vector<std::pair<std::string, std::string>> login::db::ListAccounts()
+login::db::Results<std::pair<std::string, std::string>> login::db::ListAccounts()
 {
-	return WithDb::Query<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+	return Results<std::pair<std::string, std::string>>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT account, server_type FROM accounts)",
-		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
+		[](sqlite3_stmt*, sqlite3*) {},
+		[](sqlite3_stmt* stmt, sqlite3*)
 		{
-			std::vector<std::pair<std::string, std::string>> accounts;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				accounts.emplace_back(
-					reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
-					reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))
-				);
-			}
-
-			return accounts;
+			return std::make_pair(
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		});
 }
 
@@ -929,49 +924,44 @@ void login::db::DeleteAccount(std::string_view account, std::string_view server_
 
 // ================================================================================================================================
 // characters
-std::vector<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account, std::string_view server_type)
+login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account, std::string_view server_type)
 {
-	return WithDb::Query<std::vector<std::pair<std::string, std::string>>>(SQLITE_OPEN_READONLY)(
+	return Results<std::pair<std::string, std::string>>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT server, character
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			WHERE account = ? AND server_type = ?)",
-		[account, server_type](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::pair<std::string, std::string>>
+		[account, server_type](sqlite3_stmt* stmt, sqlite3*)
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, server_type.data(), static_cast<int>(server_type.length()), SQLITE_STATIC);
-
-			std::vector<std::pair<std::string, std::string>> characters;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				characters.emplace_back(
-					reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
-					reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))
-				);
-			}
-
-			return characters;
-		});
-}
-
-std::vector<std::string> login::db::ListServers()
-{
-	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT DISTINCT server FROM characters)",
-		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::string>
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
 		{
-			std::vector<std::string> servers;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-				servers.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-
-			return servers;
+			return std::make_pair(
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		});
 }
 
-std::vector<ProfileRecord> login::db::ListCharactersOnServer(std::string_view server)
+login::db::Results<std::string> login::db::ListServers()
 {
-	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+	return Results<std::string>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(SELECT DISTINCT server FROM characters)",
+		[](sqlite3_stmt*, sqlite3*) {},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		});
+}
+
+login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_view server)
+{
+	return Results<ProfileRecord>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT character, account, server_type,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
@@ -981,35 +971,32 @@ std::vector<ProfileRecord> login::db::ListCharactersOnServer(std::string_view se
 			LEFT JOIN personas ON characters.id = character_id
 			WHERE server = ?
 			GROUP BY characters.id)",
-		[server](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<ProfileRecord>
+		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
+		},
+		[server](sqlite3_stmt* stmt, sqlite3*)
+		{
+			ProfileRecord record;
+			record.serverName = server;
+			record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+			record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+			record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
 
-			std::vector<ProfileRecord> characters;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				ProfileRecord record;
-				record.serverName = server;
-				record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-				record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-				record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+			if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+				record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
 
-				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
-					record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+			if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+				record.characterLevel = sqlite3_column_int(stmt, 4);
 
-				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
-					record.characterLevel = sqlite3_column_int(stmt, 4);
-
-				characters.emplace_back(std::move(record));
-			}
-
-			return characters;
+			return record;
 		});
 }
 
-std::vector<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
+login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
 {
-	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+	return Results<ProfileRecord>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT server, character, account, server_type,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
@@ -1022,7 +1009,7 @@ std::vector<ProfileRecord> login::db::ListCharacterMatches(std::string_view sear
 			   OR LOWER(account) LIKE '%' || ? || '%'
                OR LOWER(class) LIKE '%' || ? || '%'
 			GROUP BY characters.id)",
-		[search](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<ProfileRecord>
+		[search](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::string lower_search(search);
 			to_lower(lower_search);
@@ -1031,27 +1018,23 @@ std::vector<ProfileRecord> login::db::ListCharacterMatches(std::string_view sear
 			sqlite3_bind_text(stmt, 2, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 3, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 4, lower_search.c_str(), static_cast<int>(lower_search.length()), SQLITE_STATIC);
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			ProfileRecord record;
+			record.serverName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+			record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+			record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+			record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
 
-			std::vector<ProfileRecord> characters;
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				ProfileRecord record;
-				record.serverName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-				record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-				record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-				record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+			// these can be null because of the left join
+			if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+				record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
 
-				// these can be null because of the left join
-				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
-					record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+			if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
+				record.characterLevel = sqlite3_column_int(stmt, 5);
 
-				if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
-					record.characterLevel = sqlite3_column_int(stmt, 5);
-
-				characters.emplace_back(std::move(record));
-			}
-
-			return characters;
+			return record;
 		});
 }
 
@@ -1060,7 +1043,7 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO characters (character, server, account_id) VALUES(?, ?, (SELECT id FROM accounts WHERE account = ? AND server_type = ?))
-			ON CONFLICT(character, server) DO UPDATE SET account=excluded.account)",
+			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -1304,17 +1287,15 @@ void login::db::CreateOrUpdateServerType(std::string_view server_type, std::stri
 		});
 }
 
-std::vector<std::string> login::db::ListServerTypes()
+login::db::Results<std::string> login::db::ListServerTypes()
 {
-	return WithDb::Query<std::vector<std::string>>(SQLITE_OPEN_READONLY)(
+	return Results<std::string>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT type FROM server_types)",
-		[](sqlite3_stmt* stmt, sqlite3* db) -> std::vector<std::string>
+		[](sqlite3_stmt*, sqlite3*) {},
+		[](sqlite3_stmt* stmt, sqlite3*)
 		{
-			std::vector<std::string> types;
-			if (sqlite3_step(stmt) == SQLITE_ROW)
-				types.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-
-			return types;
+			return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 		});
 }
 
@@ -1322,7 +1303,7 @@ std::optional<std::string> login::db::GetPathFromServerType(std::string_view ser
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT eq_path FROM server_types WHERE type = ?)",
-		[server_type](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		[server_type](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, server_type.data(), static_cast<int>(server_type.length()), SQLITE_STATIC);
 
@@ -1337,7 +1318,7 @@ std::optional<std::string> login::db::GetServerTypeFromPath(std::string_view pat
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT type FROM server_types WHERE eq_path = ?)",
-		[path](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		[path](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, path.data(), static_cast<int>(path.length()), SQLITE_STATIC);
 
@@ -1365,9 +1346,10 @@ void login::db::DeleteServerType(std::string_view server_type)
 
 // ================================================================================================================================
 // profiles
-std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
+login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 {
-	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY)(
+	return Results<ProfileRecord>(
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT hotkey, character, server,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
@@ -1381,46 +1363,43 @@ std::vector<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			JOIN profile_groups ON profile_groups.id = group_id
 			LEFT JOIN personas USING (character_id)
 			WHERE profile_groups.name = ?)",
-		[group](sqlite3_stmt* stmt, sqlite3* db)
+		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::vector<ProfileRecord> records;
 			sqlite3_bind_text(stmt, 1, group.data(), static_cast<int>(group.length()), SQLITE_STATIC);
+		},
+		[group](sqlite3_stmt* stmt, sqlite3*)
+		{
+			ProfileRecord record;
+			if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+				record.hotkey = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				ProfileRecord record;
-				if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
-					record.hotkey = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+			record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+			record.serverName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
 
-				record.characterName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-				record.serverName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+			if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+				record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+			if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+				record.characterLevel = sqlite3_column_int(stmt, 4);
 
-				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
-					record.characterClass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
-					record.characterLevel = sqlite3_column_int(stmt, 4);
+			record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+			record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
 
-				record.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
-				record.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+			if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
+				record.checked = sqlite3_column_int(stmt, 7) != 0;
 
-				if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
-					record.checked = sqlite3_column_int(stmt, 7) != 0;
+			if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
+				record.eqPath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
 
-				if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
-					record.eqPath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+			if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
+				record.endAfterSelect = sqlite3_column_int(stmt, 9) != 0;
 
-				if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
-					record.endAfterSelect = sqlite3_column_int(stmt, 9) != 0;
+			if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
+				record.charSelectDelay = sqlite3_column_int(stmt, 10);
 
-				if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
-					record.charSelectDelay = sqlite3_column_int(stmt, 10);
+			record.profileName = group;
 
-				record.profileName = group;
-
-				records.push_back(std::move(record));
-			}
-
-			return records;
+			return record;
 		});
 }
 
