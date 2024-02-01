@@ -18,7 +18,6 @@
 
 #include <tinyfsm.hpp>
 #include <memory>
-#include <variant>
 
 static bool AUTOLOGIN_DBG = false;
 
@@ -70,7 +69,7 @@ inline T* GetChildWindow(const std::string& parent, const std::string& child)
 
 inline bool IsWindowActive(const std::string& name)
 {
-	CXWnd* pWnd = GetWindow(name);
+	const CXWnd* pWnd = GetWindow(name);
 	return pWnd != nullptr && pWnd->IsVisible() && pWnd->IsEnabled();
 }
 
@@ -271,10 +270,10 @@ public:
 	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
 	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
-	static const bool paused() { return m_paused; }
-	static const uint64_t delay_time() { return m_delayTime; }
-	static const LoginState last_state() { return m_lastState; }
-	static const unsigned char retries() { return m_retries; }
+	static bool paused() { return m_paused; }
+	static uint64_t delay_time() { return m_delayTime; }
+	static LoginState last_state() { return m_lastState; }
+	static unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
 
 	struct Settings
@@ -283,21 +282,8 @@ public:
 		bool EndAfterSelect;
 		int CharSelectDelay;
 		int ConnectRetries;
-
-		enum class ServerUpNotification {
-			None = 0,
-			Beeps = 1,
-			Email = 2
-		};
-		ServerUpNotification NotifyOnServerUp;
-
-		enum class Type {
-			Profile,
-			StationNames,
-			Sessions
-		};
-		Type LoginType;
 	};
+
 	static Settings m_settings;
 	static CurrentLogin m_currentLogin;
 };

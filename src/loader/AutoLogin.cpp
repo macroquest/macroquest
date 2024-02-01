@@ -1553,7 +1553,7 @@ void ShowAutoLoginWindow()
 
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable("", &profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
+						if (ImGui::Selectable("", profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 							login::db::UpdateProfile(profile);
 
 						if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -1965,7 +1965,7 @@ void ShowAutoLoginMenu()
 						if (class_size > largest_class) largest_class = class_size;
 
 						profiles.emplace_back(SizedProfileRecord{
-							std::move(profile),
+							profile,
 							std::move(level_text),
 							level_size,
 							class_size
@@ -2041,7 +2041,7 @@ void ShowAutoLoginMenu()
 						if (class_size > largest_class) largest_class = class_size;
 
 						profiles.emplace_back(SizedProfileRecord{
-							std::move(profile),
+							profile,
 							std::move(level_text),
 							level_size,
 							class_size

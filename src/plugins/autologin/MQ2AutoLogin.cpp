@@ -495,6 +495,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 
 DETOUR_TRAMPOLINE_DEF(DWORD WINAPI, GetPrivateProfileStringA_Trampoline, (LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR))
 
+// TODO: I'm not even sure this works, evaluate it
 void SetupCustomIni()
 {
 	if (!CustomIni.empty())
@@ -593,6 +594,7 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 	}
 }
 
+// TODO: move all this to import
 void ReadINI()
 {
 	std::string path = GetPrivateProfileString("Settings", "IniLocation", "", INIFileName);
@@ -603,7 +605,6 @@ void ReadINI()
 
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
 
-	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
 	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
 	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
 	Login::m_settings.CharSelectDelay = GetPrivateProfileInt("Settings", "CharSelectDelay", 3, INIFileName);
@@ -611,21 +612,11 @@ void ReadINI()
 
 	if (gbWriteAllConfig)
 	{
-		WritePrivateProfileInt("Settings", "NotifyOnServerUp", static_cast<int>(Login::m_settings.NotifyOnServerUp), INIFileName);
 		WritePrivateProfileBool("Settings", "KickActiveCharacter", Login::m_settings.KickActiveCharacter, INIFileName);
 		WritePrivateProfileBool("Settings", "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
 		WritePrivateProfileInt("Settings", "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
 		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
 	}
-
-	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
-	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
-	if (bUseMQ2Login)
-		Login::m_settings.LoginType = Login::Settings::Type::Profile;
-	else if (bUseStationNamesInsteadOfSessions)
-		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
-	else
-		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
 
 	if (auto is_paused = login::db::ReadSetting("is_paused"))
 	{
@@ -760,10 +751,7 @@ PLUGIN_API void InitializePlugin()
 		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
 
-		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-		{
-			SetupCustomIni();
-		}
+		SetupCustomIni();
 	}
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;
@@ -1063,17 +1051,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::PopFont();
 		ImGui::Separator();
 
-		ImGui::Text("Login Method:");
-		ImGui::SameLine(0, 4.0f);
-		if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-			ImGui::Text("Login Profiles");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-			ImGui::Text("Station Names");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::Sessions)
-			ImGui::Text("Sessions");
-
-		ImGui::Separator();
-
 		bool bAutoLoginEnabled = !Login::paused();
 		bool bAutoLoginRunning = Login::has_entry();
 
@@ -1089,8 +1066,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("Server: %s", Login::server());
 			ImGui::Text("Character: %s", Login::character());
 
-			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-				ImGui::Text("Profile: %s", Login::profile());
+			ImGui::Text("Profile: %s", Login::profile());
 
 			if (strlen(Login::hotkey()) > 0)
 				ImGui::Text("HotKey: %s", Login::hotkey());
@@ -1155,7 +1131,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 								if (ImGui::MenuItem(buffer))
 								{
-									Login::m_settings.LoginType = Login::Settings::Type::Profile;
 									Login::dispatch(SetLoginProfile(record));
 								}
 							}
@@ -1181,12 +1156,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
 			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
 			InputInt("Connect Retries", &Login::m_settings.ConnectRetries);
-
-			ImGui::Separator();
-			ImGui::Text("Server Up Notification:");
-			RadioButton("None", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::None); ImGui::SameLine();
-			RadioButton("Email", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Email); ImGui::SameLine();
-			RadioButton("Beeps", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Beeps);
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");

@@ -84,67 +84,6 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 	return std::nullopt;
 }
 
-static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::string_view AccountName = "")
-{
-	std::string account(AccountName);
-
-	CXStr inputText = GetEditWndText(pEditWnd);
-	if (account.empty() && !inputText.empty())
-		account = inputText;
-
-	if (!account.empty())
-	{
-		ProfileRecord record;
-		record.profileName = "";
-		record.accountName = account;
-
-
-		record.accountPassword = GetPrivateProfileString(account, "Password", "", INIFileName);
-		record.serverName = GetPrivateProfileString(account, "Server", "", INIFileName);
-		record.characterName = GetPrivateProfileString(account, "Character", "", INIFileName);
-		// Override the character select settings if specified
-		Login::m_settings.EndAfterSelect = GetPrivateProfileBool(account, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-		Login::m_settings.CharSelectDelay = GetPrivateProfileInt(account, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-
-		return record;
-	}
-
-	return std::nullopt;
-}
-
-static std::optional<ProfileRecord> UseSessions(CEditWnd* pEditWnd)
-{
-	HANDLE hnd = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	PROCESSENTRY32 proc;
-	proc.dwSize = sizeof(PROCESSENTRY32);
-	DWORD nProcs = 0;
-
-	if (Process32First(hnd, &proc))
-	{
-		do
-		{
-			if (!_stricmp(proc.szExeFile, "eqgame.exe"))
-				++nProcs;
-		} while (Process32Next(hnd, &proc));
-	}
-
-	CloseHandle(hnd);
-
-	std::string sessionName = fmt::format("Session{}", nProcs);
-	ProfileRecord record;
-	record.profileName = "";
-
-	record.accountName = GetPrivateProfileString(sessionName, "StationName", "", INIFileName);
-	record.accountPassword = GetPrivateProfileString(sessionName, "Password", "", INIFileName);
-	record.serverName = GetPrivateProfileString(sessionName, "Server", "", INIFileName);
-	record.characterName = GetPrivateProfileString(sessionName, "Character", "", INIFileName);
-	// Override the character select delay if specified
-	Login::m_settings.EndAfterSelect = GetPrivateProfileBool(sessionName, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-	Login::m_settings.CharSelectDelay = GetPrivateProfileInt(sessionName, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-
-	return record;
-}
-
 class Wait : public Login
 {
 protected:
@@ -276,29 +215,9 @@ public:
 				// only place where we can enter account/pass
 				record = m_record;
 			}
-			else
+			else if (const std::optional<ProfileRecord> tempProfile = UseMQ2Login(pUsernameEditWnd))
 			{
-				std::optional<ProfileRecord> tempProfile;
-
-				switch (m_settings.LoginType)
-				{
-				case Settings::Type::Profile:
-					tempProfile = UseMQ2Login(pUsernameEditWnd);
-					break;
-				case Settings::Type::StationNames:
-					tempProfile = UseStationNames(pUsernameEditWnd);
-					break;
-				case Settings::Type::Sessions:
-					tempProfile = UseSessions(pUsernameEditWnd);
-					break;
-				default:
-					break;
-				}
-
-				if (tempProfile.has_value())
-				{
-					record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
-				}
+				record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
 			}
 
 			if (record
@@ -566,23 +485,7 @@ public:
 			switch (e.State)
 			{
 			case LoginState::ServerSelect:
-				if (ServerSelect::CheckServerDown([]()
-					{
-						switch (m_settings.NotifyOnServerUp)
-						{
-						case Settings::ServerUpNotification::Email:
-							if (IsCommand("/gmail"))
-								DoCommand(nullptr, R"(/gmail "Server is up" "Time to login!")");
-							break;
-						case Settings::ServerUpNotification::Beeps:
-							Beep(1000, 1000);
-							Beep(500, 2000);
-							Beep(1000, 1000);
-							break;
-						default:
-							break;
-						}
-					}))
+				if (ServerSelect::CheckServerDown([](){}))
 					transit<ServerSelectDown>();
 				else
 					transit<Wait>();
