@@ -1754,14 +1754,13 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
-	ImGui::SameLine();
+
 	if (ImGui::Checkbox("Developer: Persistent Command History", &s_consolePersistentCommandHistory))
 	{
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
 	}
-
 	ImGui::SameLine();
-	mq::imgui::HelpMarker("This feature stores commands between sessions.  Use at your own risk.");
+	mq::imgui::HelpMarker("This feature stores commands between sessions. Use at your own risk.");
 
 	ImGui::NewLine();
 

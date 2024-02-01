@@ -43,6 +43,9 @@ enum class CharacterMembers
 	Book,
 	Skill,
 	Ability,
+	AbilityReady,
+	AbilityTimer,
+	AbilityTimerTotal,
 	Cash,
 	CashBank,
 	PlatinumShared,
@@ -91,7 +94,6 @@ enum class CharacterMembers
 	PctExp,
 	PctAAExp,
 	Moving,
-	AbilityReady,
 	PetBuff,
 	Platinum,
 	Gold,
@@ -339,7 +341,6 @@ enum class CharacterMembers
 	ParcelStatus,
 	CanMount,
 	SpellRankCap,
-	AbilityTimer,
 	CastTimeLeft,
 	MaxLevel,
 	AirSupply,
@@ -387,6 +388,9 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, Book);
 	ScopedTypeMember(CharacterMembers, Skill);
 	ScopedTypeMember(CharacterMembers, Ability);
+	ScopedTypeMember(CharacterMembers, AbilityReady);
+	ScopedTypeMember(CharacterMembers, AbilityTimer);
+	ScopedTypeMember(CharacterMembers, AbilityTimerTotal);
 	ScopedTypeMember(CharacterMembers, Cash);
 	ScopedTypeMember(CharacterMembers, CashBank);
 	ScopedTypeMember(CharacterMembers, PlatinumShared);
@@ -435,7 +439,6 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, PctExp);
 	ScopedTypeMember(CharacterMembers, PctAAExp);
 	ScopedTypeMember(CharacterMembers, Moving);
-	ScopedTypeMember(CharacterMembers, AbilityReady);
 	ScopedTypeMember(CharacterMembers, PetBuff);
 	ScopedTypeMember(CharacterMembers, Platinum);
 	ScopedTypeMember(CharacterMembers, Gold);
@@ -685,7 +688,6 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, ParcelStatus);
 	ScopedTypeMember(CharacterMembers, CanMount);
 	ScopedTypeMember(CharacterMembers, SpellRankCap);
-	ScopedTypeMember(CharacterMembers, AbilityTimer);
 	ScopedTypeMember(CharacterMembers, CastTimeLeft);
 	ScopedTypeMember(CharacterMembers, MaxLevel);
 	ScopedTypeMember(CharacterMembers, AirSupply);
@@ -1999,92 +2001,60 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 
 	case CharacterMembers::Ability:
-		Dest.Type = pStringType;
-		if (Index[0])
+	{
+		Dest.Type = pBoolType;
+		Dest.Set(false);
+		int nSkill = GetAbilityIDFromString(Index, -1);
+		if (nSkill != -1)
 		{
-			if (IsNumber(Index))
-			{
-				// numeric
-				if (int nSkill = GetIntFromString(Index, 0))
-				{
-					if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
-					{
-						int nToken = pSkillMgr->GetNameToken(nSkill);
-
-						if (const char* thename = pStringTable->getString(nToken))
-						{
-							strcpy_s(DataTypeTemp, thename);
-							Dest.Ptr = &DataTypeTemp[0];
-							Dest.Type = pStringType;
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-
-			// name
-			for (int i = 0; i < NUM_SKILLS; i++)
-			{
-				int nToken = pSkillMgr->GetNameToken(i);
-
-				if (const char* thename = pStringTable->getString(nToken))
-				{
-					if (!_stricmp(Index, thename))
-					{
-						if (bool bActivated = pSkillMgr->IsActivatedSkill(i))
-						{
-							Dest.DWord = i;
-							Dest.Type = pIntType;
-							return true;
-						}
-
-						break;
-					}
-				}
-			}
+			Dest.Set(HasSkillOrInnate(nSkill));
 		}
-		return false;
+		return true;
+	}
 
 	case CharacterMembers::AbilityReady:
-		Dest.Set(false);
+	{
 		Dest.Type = pBoolType;
-
-		if (!Index[0])
-			return false;
-
-		if (IsNumber(Index))
+		Dest.Set(false);
+		int nSkill = GetAbilityIDFromString(Index, -1);
+		if (nSkill != -1 && HasSkillOrInnate(nSkill))
 		{
-			// numeric
-			if (int nSkill = GetIntFromString(Index, 0))
+			Dest.Set(pSkillMgr->IsAvailable(nSkill));
+		}
+		return true;
+	}
+
+	case CharacterMembers::AbilityTimer:
+	{
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = 0;
+		int nSkill = GetAbilityIDFromString(Index, -1);
+		if (nSkill != -1)
+		{
+			if (HasSkillOrInnate(nSkill))
 			{
-				if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
-				{
-					Dest.Set(pSkillMgr->IsAvailable(nSkill));
-				}
+				int timer = pSkillMgr->GetSkillTimerDuration(nSkill) - (EQGetTime() - pSkillMgr->GetSkillLastUsed(nSkill));
+				if (timer < 0)
+					timer = 0;
+				Dest.Int64 = timer;
 			}
 			return true;
 		}
+		return false;
+	}
 
-		// name
-		for (int i = 0; i < NUM_SKILLS; i++)
+	case CharacterMembers::AbilityTimerTotal:
+	{
+		Dest.Type = pTimeStampType;
+		Dest.Int64 = 0;
+
+		int nSkill = GetAbilityIDFromString(Index, -1);
+		if (nSkill != -1)
 		{
-			int nToken = pSkillMgr->GetNameToken(i);
-
-			if (const char* thename = pStringTable->getString(nToken))
-			{
-				if (!_stricmp(Index, thename))
-				{
-					if (bool bActivated = pSkillMgr->IsActivatedSkill(i))
-					{
-						Dest.Set(pSkillMgr->IsAvailable(i));
-					}
-					break;
-				}
-			}
+			Dest.Int64 = pSkillMgr->GetSkillTimerDuration(nSkill);
 		}
-
 		return true;
+	}
 
 	case CharacterMembers::RangedReady:
 		Dest.Set(pEverQuestInfo->PrimaryAttackReady != 0);
@@ -3985,55 +3955,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				Dest.DWord = 2;
 		}
 		return true;
-
-	case CharacterMembers::AbilityTimer:
-		Dest.Type = pTimeStampType;
-		Dest.Int64 = 0;
-
-		if (Index[0])
-		{
-			if (IsNumber(Index))
-			{
-				// numeric
-				if (int nSkill = GetIntFromString(Index, 0))
-				{
-					if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
-					{
-						int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
-						if (calcedduration < 0)
-							calcedduration = 0;
-
-						Dest.Int64 = calcedduration;
-						return true;
-					}
-				}
-				return false;
-			}
-
-			// name
-			for (int nSkill = 0; nSkill < NUM_SKILLS; nSkill++)
-			{
-				int nToken = pSkillMgr->GetNameToken(nSkill);
-				const char* thename = pStringTable->getString(nToken);
-
-				if (!thename || _stricmp(Index, thename) != 0)
-					continue;
-
-				// TODO: DRY - refactor duplicated code from above.
-				if (bool bActivated = pSkillMgr->IsActivatedSkill(nSkill))
-				{
-					int calcedduration = pSkillMgr->SkillTimerDuration[nSkill] - (EQGetTime() - pSkillMgr->SkillLastUsed[nSkill]);
-					if (calcedduration < 0)
-						calcedduration = 0;
-
-					Dest.Int64 = calcedduration;
-					return true;
-				}
-
-				return false;
-			}
-		}
-		return false;
 
 	case CharacterMembers::CastTimeLeft:
 		Dest.Int64 = 0;

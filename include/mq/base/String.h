@@ -599,6 +599,30 @@ public:
 };
 
 /**
+ * @fn IsNumber
+ *
+ * @brief Checks if a string represents a valid number
+ *
+ * Takes a string view and checks if it can be successfully parsed into a
+ * double precision floating point number.  This is different from the
+ * GetXFromString functions in that the entire string must be a number.
+ *
+ * @param String The string to be evaluated
+ *
+ * @return bool True if the string represents a valid number, false otherwise
+ **/
+inline bool IsNumber(std::string_view String)
+{
+	if (String.empty())
+		return false;
+
+	double test_var;
+	const auto result = std::from_chars(String.data(), String.data() + String.size(), test_var, std::chars_format::fixed);
+
+	return result.ec != std::errc::invalid_argument && result.ptr[0] == '\0';
+}
+
+/**
  * @fn GetIntFromString
  *
  * @brief Gets the int value from a well formatted string

@@ -157,6 +157,7 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
+    <ClCompile Include="api\Abilities.cpp" />
     <ClCompile Include="api\Spawns.cpp" />
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -561,6 +562,7 @@
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\extras\wil\Constants.h" />
     <ClInclude Include="..\..\include\moveitem.h" />
+    <ClInclude Include="..\..\include\mq\api\Abilities.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\ActorAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Inventory.h" />

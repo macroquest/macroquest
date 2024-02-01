@@ -98,7 +98,10 @@ static void lua_delay(sol::object delayObj, std::optional<sol::object> condition
 
 		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
 		{
+			const bool toggled = luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_OFF) == 1;
 			co_ptr->Delay(delayObj, conditionObj, s);
+			if (toggled)
+				luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON);
 		}
 	}
 }
@@ -474,6 +477,30 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 	}
 }
 
+static sol::object lua_unpickle(sol::this_state L, std::string_view file_path)
+{
+	sol::state_view lua(L);
+	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
+
+	try
+	{
+		sol::protected_function_result result = lua.do_file(path.string());
+		if (!result.valid())
+		{
+			sol::error err = result;
+			LuaError("Failed to execute file %.*s with error: %s", file_path.size(), file_path.data(), err.what());
+			return sol::make_object(lua, sol::nil);
+		}
+
+		return sol::make_object(lua, result);
+	}
+	catch (std::exception& e)
+	{
+		LuaError("Exception occurred while unpickling file %.*s: %s", file_path.size(), file_path.data(), e.what());
+		return sol::make_object(lua, sol::nil);
+	}
+}
+
 #pragma endregion
 
 //============================================================================
@@ -490,6 +517,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	mq.set_function("gettime",                   &lua_gettime);
 	mq.set("parse",                              &lua_Parse);
 	mq.set_function("pickle",                    &lua_pickle);
+	mq.set_function("unpickle",                  &lua_unpickle);
 
 	mq.set_function("NumericLimits_Float",       [](){ return std::make_pair(FLT_MIN, FLT_MAX); });
 
