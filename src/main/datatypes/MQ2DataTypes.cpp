@@ -271,6 +271,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQIniType.cpp"
 #include "MQInventoryType.cpp"
 #include "MQCursorAttachmentType.cpp"
+#include "MQSocialType.cpp"
 
 #if HAS_ADVANCED_LOOT
 #include "MQ2AdvLootType.cpp"

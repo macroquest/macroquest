@@ -1495,6 +1495,22 @@ public:
 	static bool dataCursorAttachment(const char* szIndex, MQTypeVar& Ret);
 };
 
+//============================================================================
+// MQSocialType
+
+class MQSocialType : public MQ2Type
+{
+public:
+	MQSocialType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataSocial(const char* szIndex, MQTypeVar& Ret);
+
+private:
+	const char* getCommandLine(const int socialIdx, const int lineIdx);
+};
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
