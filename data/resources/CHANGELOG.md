@@ -1,3 +1,6 @@
+Feb 1, 2024
+- live: Updated for latest patch
+
 Jan 30, 2024:
 - Disable jit when delaying so that delays are not optimized away (#822)
 - /doability will now accept quoted or unquoted ability names
