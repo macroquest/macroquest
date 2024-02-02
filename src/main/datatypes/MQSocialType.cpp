@@ -15,7 +15,6 @@
 #include "pch.h"
 
 #include "MQ2DataTypes.h"
-#include "MQ2DataTypes.h"
 
 namespace mq::datatypes {
 
@@ -42,12 +41,19 @@ MQSocialType::MQSocialType() : MQ2Type("social")
 	ScopedTypeMember(SocialTypeMembers, Color);
 }
 
+static const char* getCommandLine(const int socialIdx, const int lineIdx)
+{
+	if (socialIdx >= 0 && socialIdx < MAX_SOCIAL && lineIdx >= 0 && lineIdx < MAX_CMD_LINES)
+	{
+		return pSocialList[socialIdx].Line[lineIdx];
+	}
+
+	return "";
+}
+
 bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPC || !pLocalPlayer)
-		return false;
-
-	if (!pCursorAttachment)
 		return false;
 
 	MQTypeMember* pMember = FindMember(Member);
@@ -68,22 +74,18 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		return true;
 
 	case SocialTypeMembers::Cmd:
-		if (Index[0])
-		{
-			if (IsNumber(Index))
-			{
-				int idx = GetIntFromString(Index, -1);
+	{
+		int idx = GetIntFromString(Index, -1);
 
-				if (idx >= 0 && idx < MAX_CMD_LINES)
-				{
-					strcpy_s(DataTypeTemp, getCommandLine(socialIndex, idx));
-					Dest.Type = mq::datatypes::pStringType;
-					Dest.Ptr = &DataTypeTemp[0];
-					return true;
-				}
-			}
+		if (idx >= 0 && idx < MAX_CMD_LINES)
+		{
+			strcpy_s(DataTypeTemp, getCommandLine(socialIndex, idx));
+			Dest.Type = mq::datatypes::pStringType;
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
 		}
 		return false;
+	}
 
 	case SocialTypeMembers::TimerBegin:
 		Dest.Type = mq::datatypes::pIntType;
@@ -107,26 +109,11 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
-const char* MQSocialType::getCommandLine(const int socialIdx, const int lineIdx)
-{
-	if (socialIdx >= 0 && socialIdx < MAX_SOCIAL && lineIdx >= 0 && lineIdx < MAX_CMD_LINES)
-	{
-		return pSocialList[socialIdx].Line[lineIdx];
-	}
-
-	return "";
-}
-
 bool MQSocialType::dataSocial(const char* szIndex, MQTypeVar& Ret)
 {
-	Ret.Ptr = nullptr;
 	Ret.Type = pSocialType;
-
-	if (IsNumber(szIndex))
-	{
-		Ret.Int = GetIntFromString(szIndex, -1);
-	}
-
+	Ret.Int = GetIntFromString(szIndex, -1);
+	
 	return true;
 }
 

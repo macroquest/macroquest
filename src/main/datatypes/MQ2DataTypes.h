@@ -1506,9 +1506,6 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 
 	static bool dataSocial(const char* szIndex, MQTypeVar& Ret);
-
-private:
-	const char* getCommandLine(const int socialIdx, const int lineIdx);
 };
 
 //----------------------------------------------------------------------------
