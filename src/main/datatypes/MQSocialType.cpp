@@ -113,7 +113,7 @@ const char* MQSocialType::getCommandLine(const int socialIdx, const int lineIdx)
 		return pSocialList[socialIdx].Line[lineIdx];
 	}
 
-	return "NULL";
+	return "";
 }
 
 bool MQSocialType::dataSocial(const char* szIndex, MQTypeVar& Ret)
