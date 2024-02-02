@@ -22,6 +22,7 @@ namespace mq::datatypes {
 //============================================================================
 
 #define MAX_SOCIAL 120
+#define MAX_CMD_LINES 5
 
 enum class SocialTypeMembers
 {
@@ -71,9 +72,9 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		{
 			if (IsNumber(Index))
 			{
-				int idx = GetIntFromString(Index, 0);
+				int idx = GetIntFromString(Index, -1);
 
-				if (idx >= 0 && idx < 5)
+				if (idx >= 0 && idx < MAX_CMD_LINES)
 				{
 					strcpy_s(DataTypeTemp, getCommandLine(socialIndex, idx));
 					Dest.Type = mq::datatypes::pStringType;
@@ -108,7 +109,7 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 const char* MQSocialType::getCommandLine(const int socialIdx, const int lineIdx)
 {
-	if (socialIdx >= 0 && socialIdx < MAX_SOCIAL && lineIdx >= 0 && lineIdx < 5)
+	if (socialIdx >= 0 && socialIdx < MAX_SOCIAL && lineIdx >= 0 && lineIdx < MAX_CMD_LINES)
 	{
 		return pSocialList[socialIdx].Line[lineIdx];
 	}
@@ -123,7 +124,7 @@ bool MQSocialType::dataSocial(const char* szIndex, MQTypeVar& Ret)
 
 	if (IsNumber(szIndex))
 	{
-		Ret.Int = GetIntFromString(szIndex, 0);
+		Ret.Int = GetIntFromString(szIndex, -1);
 	}
 
 	return true;
