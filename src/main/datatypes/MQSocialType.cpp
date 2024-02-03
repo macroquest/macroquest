@@ -20,8 +20,6 @@ namespace mq::datatypes {
 
 //============================================================================
 
-#define MAX_SOCIAL NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE
-
 enum class SocialTypeMembers
 {
 	Name,
@@ -42,7 +40,7 @@ MQSocialType::MQSocialType() : MQ2Type("social")
 
 static const char* getCommandLine(const int socialIdx, const int lineIdx)
 {
-	if (socialIdx >= 0 && socialIdx < MAX_SOCIAL && lineIdx >= 0 && lineIdx < SOCIAL_NUM_LINES)
+	if (socialIdx >= 0 && socialIdx < (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE) && lineIdx >= 0 && lineIdx < SOCIAL_NUM_LINES)
 	{
 		return pSocialList[socialIdx].Line[lineIdx];
 	}
@@ -61,7 +59,7 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	int socialIndex = VarPtr.Int;
 
-	if (socialIndex < 0 || socialIndex >= MAX_SOCIAL)
+	if (socialIndex < 0 || socialIndex >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
 		return false;
 
 	switch (static_cast<SocialTypeMembers>(pMember->ID))
