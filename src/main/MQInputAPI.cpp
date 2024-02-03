@@ -679,9 +679,43 @@ static void InstallDirectInputHooks()
 	}
 }
 
+// EQ's message loop doesn't call TranslateMessage before calling DispatchMessageA, so we never
+// receive WM_CHAR event messages, which we need to properly power the input system for imgui,
+// so we will hook these functions and force calls to them if EQ doesn't do it for us.
+
+static uintptr_t DispatchMessageA_Ptr = 0;
+static uintptr_t TranslateMessage_Ptr = 0;
+static thread_local const MSG* s_lastTranslateMessagePtr = nullptr;
+
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, TranslateMessage_Trampoline, (const MSG* lpMsg));
+static BOOL WINAPI TranslateMessage_Detour(const MSG* lpMsg)
+{
+	s_lastTranslateMessagePtr = lpMsg;
+
+	return TranslateMessage_Trampoline(lpMsg);
+}
+
+DETOUR_TRAMPOLINE_DEF(LRESULT WINAPI, DispatchMessageA_Trampoline, (const MSG* lpMsg));
+static LRESULT WINAPI DispatchMessageA_Detour(const MSG* lpMsg)
+{
+	if (s_lastTranslateMessagePtr != lpMsg)
+	{
+		TranslateMessage_Trampoline(lpMsg);
+	}
+
+	s_lastTranslateMessagePtr = nullptr;
+
+	return DispatchMessageA_Trampoline(lpMsg);
+}
+
 static void InputAPI_Initialize()
 {
 	DebugSpew("Initializing Input");
+
+	TranslateMessage_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "TranslateMessage");
+	EzDetour(TranslateMessage_Ptr, &TranslateMessage_Detour, &TranslateMessage_Trampoline);
+	DispatchMessageA_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "DispatchMessageA");
+	EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
 
 	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
 }
@@ -691,6 +725,8 @@ void InputAPI_Shutdown()
 	DebugSpew("Shutting down Input");
 
 	RemoveDetour(CDisplay__GetClickedActor);
+	RemoveDetour(TranslateMessage_Ptr);
+	RemoveDetour(DispatchMessageA_Ptr);
 
 	if (s_dinputInitialized)
 	{

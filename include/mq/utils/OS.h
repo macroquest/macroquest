@@ -57,7 +57,7 @@ inline bool IsInModuleList(const char* moduleName, int processID = GetCurrentPro
 					const std::filesystem::path mod_path = szModName;
 					if (ci_equals(mod_path.filename().string(), moduleName) || ci_equals(mod_path.stem().string(), moduleName))
 					{
-						return true;						
+						return true;
 					}
 				}
 			}
