@@ -404,6 +404,9 @@
     <ClCompile Include="api\Abilities.cpp">
       <Filter>Source Files\api</Filter>
     </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
