@@ -829,7 +829,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 		R"(
 				SELECT account, password, server_type
 				FROM accounts
-				JOIN characters USING (account_id)
+				JOIN characters ON account_id = accounts.id
 				WHERE server = ? AND character = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
@@ -1443,9 +1443,12 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT id, eq_path, hotkey, selected, end_after_select, char_select_delay FROM profiles
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
-			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
+		R"(
+			SELECT id, eq_path, hotkey, selected, end_after_select, char_select_delay
+			FROM profiles
+			JOIN characters ON character_id = characters.id
+			JOIN profile_groups ON group_id = profile_groups.id
+			WHERE server = ? AND character = ? AND name = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -1979,7 +1982,6 @@ bool MigrateVersion1Schema()
 // TODO: test this (open a bunch of clients simultaneously)
 // TODO: LOWER() account, character, server and UPPER() class
 // TODO: add a server edit window, have a server dropdown in character, and server type dropdown in account
-// TODO: the list getters need to provide iterators/generators
 // TODO: consider never reading the db in the plugin
 bool login::db::InitDatabase(const std::string& path)
 {
