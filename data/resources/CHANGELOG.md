@@ -1,3 +1,6 @@
+Feb 2, 2024:
+- Add Social TLO (#825)
+
 Feb 1, 2024
 - live: Updated for latest patch
 
