@@ -1,3 +1,6 @@
+Feb 3, 2024:
+- emu: Fix /timestamp showing seconds to the decimal
+
 Feb 2, 2024:
 - Add Social TLO (#825)
 

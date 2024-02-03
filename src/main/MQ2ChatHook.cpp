@@ -72,7 +72,7 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 			if (gbTimeStampChat)
 			{
-				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
 
 				Trampoline(timeStampedMsg.c_str(), dwColor, EqLog, dopercentsubst);
 				SkipTrampoline = true;
@@ -113,7 +113,7 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 		if (gbTimeStampChat)
 		{
-			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
 
 			TellWnd_Trampoline(timeStampedMsg.c_str(), from, windowtitle, text, color, bLogOk);
 			SkipTrampoline = true;
