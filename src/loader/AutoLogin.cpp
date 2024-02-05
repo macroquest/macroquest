@@ -537,7 +537,6 @@ struct ServerTypeInfo
 	void Fill();
 	[[nodiscard]] std::string Preview() const;
 	void Edit(const char*, Action);
-	void Window(const char*, Action);
 	void Combo(std::string&, Action);
 	void ListBox();
 
@@ -556,7 +555,6 @@ struct AccountInfo
 	void Fill();
 	[[nodiscard]] std::string Preview() const;
 	void Edit(const char*, Action);
-	void Window(const char*, Action);
 	void Combo(std::string&, Action);
 	void ListBox();
 
@@ -575,7 +573,6 @@ struct CharacterInfo
 	void Fill();
 	[[nodiscard]] std::string Preview() const;
 	void Edit(const char*, Action);
-	void Window(const char*, Action);
 	void Combo(std::string&, Action);
 	void ListBox();
 
@@ -603,7 +600,6 @@ struct ProfileGroupInfo : ProfileGroup
 	void Fill();
 	[[nodiscard]] std::string Preview() const;
 	void Edit(const char*, Action);
-	void Window(const char*, Action);
 	void Combo(std::string&, Action);
 	void ListBox();
 
@@ -651,11 +647,21 @@ void DefaultCombo(std::string& preview, Info& info, Action select_action, Action
 		ImGui::Text(JoinLabels<Info::label>::literal);
 	}
 
-	info.Window(modal_name, [&preview, &info, &edit_action]
+	if (LauncherImGui::BeginModal(modal_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-			edit_action();
-			preview = info.Preview();
-		});
+		ImGui::PushID(modal_name);
+
+		info.ListBox();
+
+		DefaultModalButtons([&preview, &info, &edit_action]
+			{
+				edit_action();
+				preview = info.Preview();
+			});
+
+		ImGui::PopID();
+		LauncherImGui::EndModal();
+	}
 }
 
 template <typename Info>
@@ -718,6 +724,7 @@ void DefaultListBox(Info& selected, Info& info, Action create_action, Action edi
 			LauncherImGui::OpenModal(remove_name);
 		}
 	}
+
 	DeleteModal(remove_name, remove_message, [&selected, &remove_action]
 	{
 			remove_action();
@@ -960,21 +967,6 @@ void ServerTypeInfo::ListBox()
 		});
 }
 
-void ServerTypeInfo::Window(const char* name, Action ok_action)
-{
-	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::PushID(name);
-
-		ListBox();
-
-		DefaultModalButtons(ok_action);
-
-		ImGui::PopID();
-		LauncherImGui::EndModal();
-	}
-}
-
 #pragma endregion
 
 #pragma region Account
@@ -1108,21 +1100,6 @@ void AccountInfo::ListBox()
 		{
 			login::db::DeleteAccount(Account, ServerType.ServerType);
 		});
-}
-
-void AccountInfo::Window(const char* name, Action ok_action)
-{
-	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::PushID(name);
-
-		ListBox();
-
-		DefaultModalButtons(ok_action);
-
-		ImGui::PopID();
-		LauncherImGui::EndModal();
-	}
 }
 
 #pragma endregion
@@ -1421,21 +1398,6 @@ void CharacterTable(const std::string_view search)
 	ImGui::PopID();
 }
 
-void CharacterInfo::Window(const char* name, Action ok_action)
-{
-	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::PushID(name);
-
-		ListBox();
-
-		DefaultModalButtons(ok_action);
-
-		ImGui::PopID();
-		LauncherImGui::EndModal();
-	}
-}
-
 #pragma endregion
 
 #pragma region Profile
@@ -1727,21 +1689,6 @@ void ProfileGroupInfo::ListBox()
 		{
 			login::db::DeleteProfileGroup(profileName);
 		});
-}
-
-void ProfileGroupInfo::Window(const char* name, Action ok_action)
-{
-	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::PushID(name);
-
-		ListBox();
-
-		DefaultModalButtons(ok_action);
-
-		ImGui::PopID();
-		LauncherImGui::EndModal();
-	}
 }
 
 #pragma endregion
