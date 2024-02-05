@@ -20,21 +20,30 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
-#include "imgui/ImGuiUtils.h"
-
 #include "spdlog/spdlog.h"
 
+namespace {
 // map of panels in the main GUI window
-static std::map<std::string, std::function<void()>> s_panels;
+std::map<std::string, std::function<void()>> s_panels;
 
 // map of viewport windows to render
-static std::map<std::string, std::function<bool()>> s_viewports;
+std::map<std::string, std::function<bool()>> s_viewports;
 
 // vector (to preserve order) of groups that the context menu should render
-static std::vector<std::pair<std::string, std::function<void()>>> s_menus;
+std::vector<std::pair<std::string, std::function<void()>>> s_menus;
 
 // we want the context menu to call OpenPopup exactly once per right click, so we need a state toggle
-static bool s_contextOpen;
+bool s_contextOpen;
+
+static ImGuiWindowClass s_contextClass = []()
+	{
+		ImGuiWindowClass cl;
+		cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_TopMost;
+		cl.ViewportFlagsOverrideClear |= ImGuiViewportFlags_NoFocusOnAppearing | ImGuiViewportFlags_NoFocusOnClick;
+		cl.ParentViewportId = 0;
+		cl.ClassId = 1;
+		return cl;
+	}();
 
 struct Modal
 {
@@ -42,10 +51,9 @@ struct Modal
 	ImGuiViewportFlags OriginalFlagsSet = ImGuiViewportFlags_None;
 	ImGuiViewportFlags OriginalFlagsClear = ImGuiViewportFlags_None;
 	ImGuiID ParentViewportID = 0;
-	std::unique_ptr<ImDrawList> Background;
 };
 
-static std::map<std::string, Modal> s_modals;
+std::map<std::string, Modal> s_modals;
 
 struct DimRatio
 {
@@ -53,19 +61,9 @@ struct DimRatio
 	bool Open = true;
 };
 
-static std::map<ImGuiID, DimRatio> s_dimRatios;
+std::map<ImGuiID, DimRatio> s_dimRatios;
 
-namespace LauncherImGui {
-
-bool SmallCheckbox(const char* label, bool* v)
-{
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, ImGui::GetStyle().FramePadding.y });
-	bool pressed = ImGui::Checkbox(label, v);
-	ImGui::PopStyleVar();
-	return pressed;
-}
-
-static bool DimParentViewport(ImGuiViewportP* viewport, DimRatio& ratio)
+bool DimParentViewport(ImGuiViewportP* viewport, DimRatio& ratio)
 {
 	if (ratio.Ratio > 0.f)
 	{
@@ -75,20 +73,70 @@ static bool DimParentViewport(ImGuiViewportP* viewport, DimRatio& ratio)
 		draw_list->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size, dim_bg_col);
 	}
 
-	ImGuiIO io = ImGui::GetIO();
+	const ImGuiIO io = ImGui::GetIO();
 	if (ratio.Open && ratio.Ratio < 1.f)
 		ratio.Ratio = std::min(ratio.Ratio + io.DeltaTime * 6.f, 1.f);
 	else if (!ratio.Open)
-		ratio.Ratio = ratio.Ratio - io.DeltaTime * 10.f, 0.f;
+		ratio.Ratio = std::max(ratio.Ratio - io.DeltaTime * 10.f, 0.f);
 
 	return ratio.Open || ratio.Ratio > 0.f;
 }
 
+}
+
+namespace LauncherImGui {
+
+bool SmallCheckbox(const char* label, bool* v)
+{
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.f, ImGui::GetStyle().FramePadding.y });
+	const bool pressed = ImGui::Checkbox(label, v);
+	ImGui::PopStyleVar();
+	return pressed;
+}
+
+bool ToggleSlider(const char* label, bool* v)
+{
+	const ImVec4* colors = ImGui::GetStyle().Colors;
+	const ImVec2 position = ImGui::GetCursorScreenPos();
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	const float height = ImGui::GetFrameHeight();
+	const float width = height * 1.55f;
+	const float radius = height * 0.5f;
+
+	const bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
+	if (ImGui::IsItemClicked()) *v = !*v;
+
+	float t = *v ? 1.f : 0.f;
+
+	if (const ImGuiContext* g = ImGui::GetCurrentContext(); g->LastActiveId == g->CurrentWindow->GetID(label))
+	{
+		constexpr float animation_speed = 8.5f;
+		const float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
+		t = *v ? t_anim : 1.f - t_anim;
+	}
+
+	const ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
+
+	ImU32 fg_color;
+	if (ImGui::IsItemClicked())
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonActive]);
+	else if (ImGui::IsItemHovered())
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonHovered]);
+	else
+		fg_color = ImGui::GetColorU32(colors[ImGuiCol_Button]);
+
+	draw_list->AddRectFilled(position, ImVec2(position.x + width, position.y + height), bg_color, height * 0.5f);
+	draw_list->AddCircleFilled(ImVec2(position.x + radius + t * (width - radius * 2.f), position.y + radius), radius - 1.5f, fg_color);
+
+	return ret;
+}
+
 void OpenModal(const std::string& name)
 {
-	auto viewport = (ImGuiViewportP*)ImGui::GetWindowViewport();
+	auto viewport = static_cast<ImGuiViewportP*>(ImGui::GetWindowViewport());
 	if (viewport == nullptr)
-		viewport = (ImGuiViewportP*)ImGui::GetMainViewport();
+		viewport = static_cast<ImGuiViewportP*>(ImGui::GetMainViewport());
 
 	if (viewport == nullptr)
 		return;
@@ -106,23 +154,23 @@ void OpenModal(const std::string& name)
 	}
 
 	s_dimRatios[viewport->ID] = DimRatio{ 0.f, true };
-	s_modals[name] = std::move(modal);
+	s_modals[name] = modal;
 }
 
 bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 {
-	auto it = s_modals.find(name);
+	const auto it = s_modals.find(name);
 	if (it == s_modals.end())
 		return false;
 
-	Modal& modal = it->second;
+	// ReSharper disable once CppUseStructuredBinding
+	const Modal& modal = it->second;
 
-	ImGuiContext& g = *ImGui::GetCurrentContext();
-	auto viewport = (ImGuiViewportP*)ImGui::FindViewportByID(modal.ParentViewportID);
-	if (viewport != nullptr)
+	const ImGuiContext& g = *ImGui::GetCurrentContext();
+	if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
+		viewport != nullptr && (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos) == 0)
 	{
-		if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos) == 0)
-				ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
 	}
 
 	if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSize) == 0)
@@ -159,25 +207,25 @@ void EndModal()
 
 void CloseModal()
 {
-    IM_ASSERT(s_modals.size() > 0);
+    IM_ASSERT(!s_modals.empty());
 
-	ImGuiContext& g = *GImGui;
-	ImGuiWindow* window = g.CurrentWindow;
+    const ImGuiContext& g = *GImGui;
+    const ImGuiWindow* window = g.CurrentWindow;
 
-	auto it = s_modals.find(window->Name);
+    const auto it = s_modals.find(window->Name);
 	if (it == s_modals.end())
 		return;
 
-	Modal& modal = it->second;
-	auto viewport = (ImGuiViewportP*)ImGui::FindViewportByID(modal.ParentViewportID);
-	if (viewport != nullptr && viewport->Window != nullptr)
+    // ReSharper disable once CppUseStructuredBinding
+    const Modal& modal = it->second;
+    if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
+		viewport != nullptr && viewport->Window != nullptr)
 	{
 		viewport->Window->WindowClass.ViewportFlagsOverrideSet = modal.OriginalFlagsSet;
 		viewport->Window->WindowClass.ViewportFlagsOverrideClear = modal.OriginalFlagsClear;
 
-		auto it = s_dimRatios.find(viewport->ID);
-		if (it != s_dimRatios.end())
-			it->second.Open = false;
+		if (const auto dim_it = s_dimRatios.find(viewport->ID); dim_it != s_dimRatios.end())
+			dim_it->second.Open = false;
 
 		// we need to focus the parent at the platform level here, just doing it in imgui
 		// with ImGui::FocusWindow will not actually set the focus
@@ -199,7 +247,7 @@ void OpenWindow(
 	s_viewports.emplace(label, draw);
 }
 
-bool AddMainPanel(const std::string& name, const std::function<void()> callback)
+bool AddMainPanel(const std::string& name, const std::function<void()>& callback)
 {
 	const auto& [_, added] = s_panels.emplace(name, callback);
 	return added;
@@ -212,14 +260,16 @@ bool RemoveMainPanel(const std::string& name)
 
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback)
 {
-	s_menus.emplace_back(std::make_pair(name, callback));
+	s_menus.emplace_back(name, callback);
 	return true;
 }
 
 bool RemoveContextGroup(const std::string& name)
 {
-	auto it = std::find_if(s_menus.begin(), s_menus.end(), [&name](const auto& pair) { return pair.first == name; });
-	if (it != s_menus.end())
+	if (const auto it = std::find_if(
+		s_menus.begin(), s_menus.end(),
+		[&name](const auto& pair) { return pair.first == name; });
+		it != s_menus.end())
 	{
 		s_menus.erase(it);
 		return true;
@@ -228,22 +278,12 @@ bool RemoveContextGroup(const std::string& name)
 	return false;
 }
 
-static ImGuiWindowClass s_contextClass = []()
-	{
-		ImGuiWindowClass cl;
-		cl.ViewportFlagsOverrideSet |= ImGuiViewportFlags_TopMost;
-		cl.ViewportFlagsOverrideClear |= ImGuiViewportFlags_NoFocusOnAppearing | ImGuiViewportFlags_NoFocusOnClick;
-		cl.ParentViewportId = 0;
-		cl.ClassId = 1;
-		return cl;
-	}();
-
 void MaybeShowContextMenu();
 void Run(const std::function<bool()>& mainLoop)
 {
 	LauncherImGui::Backend::Init(hMainWnd);
 
-	auto drawMain = []()
+	auto draw_main = []()
 	{
 		for (auto it = s_viewports.begin(); it != s_viewports.end();)
 		{
@@ -255,8 +295,8 @@ void Run(const std::function<bool()>& mainLoop)
 
 		for (auto it = s_dimRatios.begin(); it != s_dimRatios.end();)
 		{
-			auto viewport = (ImGuiViewportP*)ImGui::FindViewportByID(it->first);
-			if (viewport == nullptr)
+			if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(it->first));
+				viewport == nullptr)
 				it = s_dimRatios.erase(it);
 			else
 			{
@@ -281,7 +321,7 @@ void Run(const std::function<bool()>& mainLoop)
 
 	while (mainLoop())
 	{
-		LauncherImGui::Backend::DrawFrame(drawMain);
+		LauncherImGui::Backend::DrawFrame(draw_main);
 	}
 
 	LauncherImGui::Backend::Cleanup();
@@ -301,7 +341,7 @@ void OpenMainWindow()
 
 			bool is_open = true;
 
-			auto monitor = ImGui::GetViewportPlatformMonitor(ImGui::GetMainViewport());
+			const auto monitor = ImGui::GetViewportPlatformMonitor(ImGui::GetMainViewport());
 			ImGui::SetNextWindowSize({ 640.f, 480.f }, ImGuiCond_FirstUseEver);
 			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
 
@@ -312,7 +352,7 @@ void OpenMainWindow()
 				ImGui::BeginChild("Window Selection", ImVec2(ImGui::GetContentRegionAvail().x * 0.2f, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
 				for (const auto& [name, callback] : s_panels)
 				{
-					bool is_selected = current_callback && &callback == *current_callback;
+					const bool is_selected = current_callback && &callback == *current_callback;
 					if (ImGui::Selectable(name.c_str(), is_selected))
 						current_callback = &callback;
 
@@ -344,20 +384,20 @@ void OpenContextMenu()
 	// force a mouse position update for 2 reasons:
 	// first, mouse position is completely invalid unless it has been clicked inside an imgui window
 	// second, this makes the animation cleaner by hinting at the correct rendering position on the screen
-	POINT cursorPos = { 0 };
-	GetCursorPos(&cursorPos);
-	ImGui::GetIO().AddMousePosEvent((float)cursorPos.x, (float)cursorPos.y);
+	POINT cursor_pos = { 0, 0 };
+	GetCursorPos(&cursor_pos);
+	ImGui::GetIO().AddMousePosEvent(static_cast<float>(cursor_pos.x), static_cast<float>(cursor_pos.y));
 	s_contextOpen = true;
 }
 
 void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title)
 {
 	OpenWindow(
-		[viewport, message, title]()
+		[viewport, &message, &title]()
 		{
 			bool is_open = true;
 
-			auto monitor = ImGui::GetViewportPlatformMonitor(viewport != nullptr ? viewport : ImGui::GetMainViewport());
+			const auto monitor = ImGui::GetViewportPlatformMonitor(viewport != nullptr ? viewport : ImGui::GetMainViewport());
 			ImGui::SetNextWindowSize({ 300.f, 200.f }, ImGuiCond_Appearing);
 			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_Appearing, { 0.5f, 0.5f });
 
@@ -365,10 +405,10 @@ void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const s
 			{
 				ImGui::Spacing();
 
-				float win_width = ImGui::GetWindowSize().x;
-				float text_width = ImGui::CalcTextSize(message.c_str()).x;
+				const float win_width = ImGui::GetWindowSize().x;
+				const float text_width = ImGui::CalcTextSize(message.c_str()).x;
 
-				float indent = std::max(20.f, (win_width - text_width) * 0.5f);
+				const float indent = std::max(20.f, (win_width - text_width) * 0.5f);
 
 				ImGui::PushTextWrapPos(win_width - indent);
 				ImGui::TextWrapped(message.c_str());
@@ -376,8 +416,8 @@ void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const s
 
 				ImGui::Spacing();
 
-				auto button_size = ImGui::CalcTextSize("OK") + ImGui::GetStyle().FramePadding * 2.f;
-				auto avail = ImGui::GetContentRegionAvail();
+				const auto button_size = ImGui::CalcTextSize("OK") + ImGui::GetStyle().FramePadding * 2.f;
+				const auto avail = ImGui::GetContentRegionAvail();
 
 				if (avail.x > button_size.x)
 					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail.x - button_size.x) * 0.5f);
@@ -399,7 +439,6 @@ void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const s
 void MaybeShowContextMenu()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
-	static ImVec2 cr = ImGui::GetContentRegionMax();
 
 	ImGui::SetNextWindowClass(&s_contextClass);
 

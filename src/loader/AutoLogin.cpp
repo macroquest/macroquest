@@ -416,44 +416,6 @@ void Import()
 #pragma region ImGui
 
 namespace {
-bool ToggleSlider(const char* label, bool* v)
-{
-	const ImVec4* colors = ImGui::GetStyle().Colors;
-	const ImVec2 position = ImGui::GetCursorScreenPos();
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-	const float height = ImGui::GetFrameHeight();
-	const float width = height * 1.55f;
-	const float radius = height * 0.5f;
-
-	const bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
-	if (ImGui::IsItemClicked()) *v = !*v;
-
-	float t = *v ? 1.f : 0.f;
-
-	if (const ImGuiContext* g = ImGui::GetCurrentContext(); g->LastActiveId == g->CurrentWindow->GetID(label))
-	{
-		constexpr float animation_speed = 8.5f;
-		const float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
-		t = *v ? t_anim : 1.f - t_anim;
-	}
-
-	const ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
-
-	ImU32 fg_color;
-	if (ImGui::IsItemClicked())
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonActive]);
-	else if (ImGui::IsItemHovered())
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonHovered]);
-	else
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_Button]);
-
-	draw_list->AddRectFilled(position, ImVec2(position.x + width, position.y + height), bg_color, height * 0.5f);
-	draw_list->AddCircleFilled(ImVec2(position.x + radius + t * (width - radius * 2.f), position.y + radius), radius - 1.5f, fg_color);
-
-	return ret;
-}
-
 #pragma region Helpers
 
 using Action = const std::function<void()>&;
@@ -489,14 +451,11 @@ void DeleteModal(const std::string& name, const std::string_view message, Action
 	ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { FLT_MAX, FLT_MAX });
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_None))
 	{
-		ImGui::PushID(name.c_str());
-
 		ImGui::TextWrapped("%.*s", static_cast<int>(message.length()), message.data());
 		ImGui::Spacing();
 
 		DefaultModalButtons(yes_action, "No", "Yes");
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -649,8 +608,6 @@ void DefaultCombo(std::string& preview, Info& info, Action select_action, Action
 
 	if (LauncherImGui::BeginModal(modal_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(modal_name);
-
 		info.ListBox();
 
 		DefaultModalButtons([&preview, &info, &edit_action]
@@ -659,7 +616,6 @@ void DefaultCombo(std::string& preview, Info& info, Action select_action, Action
 				preview = info.Preview();
 			});
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -668,14 +624,12 @@ template <typename Info>
 void DefaultListBox(Info& selected, Info& info, Action create_action, Action edit_action, Action remove_action)
 {
 	static constexpr std::string_view hidden_prefix = "##";
-	ImGui::PushID(JoinLabels<Info::label>::literal);
 	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 	if (ImGui::BeginListBox(JoinLabels<hidden_prefix, Info::label>::literal))
 	{
 		selected.List([] {});
 		ImGui::EndListBox();
 	}
-	ImGui::PopID();
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 		selected = {};
@@ -736,8 +690,6 @@ void SetEQDirModal(std::optional<std::string>& eq_path, Action ok_action)
 {
 	if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID("EQ Dir");
-
 		if (eq_path)
 			ImGui::Text(eq_path->c_str());
 		else
@@ -768,7 +720,6 @@ void SetEQDirModal(std::optional<std::string>& eq_path, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -825,8 +776,6 @@ void ShowHotkeyWindow(const std::string& name, std::string& hotkey)
 {
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name.c_str());
-
 		fmt::memory_buffer buf;
 		const auto buf_ins = std::back_inserter(buf);
 
@@ -857,7 +806,6 @@ void ShowHotkeyWindow(const std::string& name, std::string& hotkey)
 
 		DefaultModalButtons([] {});
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -906,8 +854,6 @@ void ServerTypeInfo::Edit(const char* name, Action ok_action)
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name);
-
 		ImGui::InputText("Type", &ServerType);
 		ImGui::Spacing();
 
@@ -931,7 +877,6 @@ void ServerTypeInfo::Edit(const char* name, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -1027,8 +972,6 @@ void AccountInfo::Edit(const char* name, Action ok_action)
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name);
-
 		ImGui::TextWrapped("Editing Account %s", Preview().c_str());
 		ImGui::Spacing();
 
@@ -1053,7 +996,6 @@ void AccountInfo::Edit(const char* name, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -1165,8 +1107,6 @@ void CharacterInfo::Edit(const char* name, Action ok_action)
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name);
-
 		ImGui::TextWrapped("Editing Character %s", Preview().c_str());
 		ImGui::Spacing();
 
@@ -1185,7 +1125,6 @@ void CharacterInfo::Edit(const char* name, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -1245,7 +1184,6 @@ void CharacterTable(const std::string_view search)
 	static ProfileRecord selected;
 	static std::string remove_message;
 
-	ImGui::PushID("Main List");
 	if (ImGui::BeginTable("Main List", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 	{
 		ImGui::TableSetupColumn("Account");
@@ -1324,14 +1262,12 @@ void CharacterTable(const std::string_view search)
 
 			ImGui::SameLine();
 			// this needs to be here to handle the fact that hotkey isn't optional
-			ImGui::PushID("Play With Params");
 			if (ImGui::SmallButton("..."))
 			{
 				selected = match;
 
 				LauncherImGui::OpenModal("Play With Params");
 			}
-			ImGui::PopID();
 
 			ImGui::PopID();
 			ImGui::PopID();
@@ -1360,8 +1296,6 @@ void CharacterTable(const std::string_view search)
 
 	if (LauncherImGui::BeginModal("Play With Params", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID("Play With Params");
-
 		// input box for hotkey (optional)
 		if (ImGui::Button("Hotkey"))
 			LauncherImGui::OpenModal("Input Hotkey");
@@ -1391,11 +1325,8 @@ void CharacterTable(const std::string_view search)
 				LoadCharacter(instance);
 			});
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
-
-	ImGui::PopID();
 }
 
 #pragma endregion
@@ -1421,8 +1352,6 @@ void ProfileInfo::Edit(const char* name, Action ok_action)
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name);
-
 		Character.Account.Combo(account_preview, [this]
 		{
 				Character.Character.clear();
@@ -1462,7 +1391,6 @@ void ProfileInfo::Edit(const char* name, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -1472,7 +1400,6 @@ void ProfileTable(const ProfileGroupInfo& info)
 	static ProfileInfo selected;
 	static std::string remove_message;
 
-	ImGui::PushID("Main List");
 	if (ImGui::BeginTable("Main List", 7, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 	{
 		if (!info.profileName.empty())
@@ -1488,8 +1415,7 @@ void ProfileTable(const ProfileGroupInfo& info)
 
 			for (auto& profile : login::db::GetProfiles(info.profileName))
 			{
-				ImGui::PushID(profile.serverName.c_str());
-				ImGui::PushID(profile.characterName.c_str());
+				ImGui::PushID(&profile);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
@@ -1557,7 +1483,6 @@ void ProfileTable(const ProfileGroupInfo& info)
 				}
 
 				ImGui::PopID();
-				ImGui::PopID();
 			}
 		}
 
@@ -1598,8 +1523,6 @@ void ProfileTable(const ProfileGroupInfo& info)
 				selected.characterName,
 				selected.profileName);
 		});
-
-	ImGui::PopID();
 }
 
 #pragma endregion
@@ -1640,8 +1563,6 @@ void ProfileGroupInfo::Edit(const char* name, Action ok_action)
 {
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::PushID(name);
-
 		ImGui::InputText("Profile Group Name", &profileName);
 
 		ImGui::Spacing();
@@ -1655,7 +1576,6 @@ void ProfileGroupInfo::Edit(const char* name, Action ok_action)
 
 		DefaultModalButtons(ok_action);
 
-		ImGui::PopID();
 		LauncherImGui::EndModal();
 	}
 }
@@ -1698,8 +1618,6 @@ void ProfileGroupInfo::ListBox()
 // TODO: Add default path editor (per server type, in settings)
 void ShowAutoLoginWindow()
 {
-	ImGui::PushID("Main Tab Bar");
-
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 
 	if (ImGui::BeginTabBar("Main Tab Bar", ImGuiTabBarFlags_FittingPolicyResizeDown))
@@ -1712,7 +1630,6 @@ void ShowAutoLoginWindow()
 			// Code goes into this scope for selecting and modifying profiles/groups
 			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
-			ImGui::PushID("Menu Bar");
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::SmallButton("Create"))
@@ -1740,7 +1657,6 @@ void ShowAutoLoginWindow()
 
 				ImGui::EndMenuBar();
 			}
-			ImGui::PopID();
 
 			ImGui::SetNextItemWidth(ImGui::GetContentRegionMax().x -
 				ImGui::CalcTextSize("Launch Group").x -
@@ -1810,8 +1726,6 @@ void ShowAutoLoginWindow()
 	}
 
 	ImGui::PopStyleVar();
-
-	ImGui::PopID();
 }
 
 struct SizedProfileRecord
@@ -1824,8 +1738,6 @@ struct SizedProfileRecord
 
 void ShowAutoLoginMenu()
 {
-	ImGui::PushID("contextmenu");
-
 	bool is_paused = false;
 	if (const auto raw_pause = login::db::ReadSetting("is_paused"))
 		is_paused = GetBoolFromString(*raw_pause, false);
@@ -1871,8 +1783,7 @@ void ShowAutoLoginMenu()
 
 					for (auto& [profile, level_text, level_size, class_size] : profiles)
 					{
-						ImGui::PushID(profile.characterName.c_str());
-						ImGui::PushID(profile.serverName.c_str());
+						ImGui::PushID(&profile);
 
 						if (LauncherImGui::SmallCheckbox("##checked", &profile.checked))
 							login::db::UpdateProfile(profile);
@@ -1899,7 +1810,6 @@ void ShowAutoLoginMenu()
 
 						ImGui::SameLine(0, 0); ImGui::Text("] %s ", profile.characterName.c_str());
 
-						ImGui::PopID();
 						ImGui::PopID();
 					}
 
@@ -1945,8 +1855,7 @@ void ShowAutoLoginMenu()
 
 					for (auto& [profile, level_text, level_size, class_size] : profiles)
 					{
-						ImGui::PushID(profile.characterName.c_str());
-						ImGui::PushID(profile.serverName.c_str());
+						ImGui::PushID(&profile);
 
 						if (ImGui::Selectable("[", false, ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_NoSetKeyOwner | ImGuiSelectableFlags_SetNavIdOnHover | ImGuiSelectableFlags_SpanAvailWidth))
 						{
@@ -1972,7 +1881,6 @@ void ShowAutoLoginMenu()
 						ImGui::PopStyleVar();
 
 						ImGui::PopID();
-						ImGui::PopID();
 					}
 
 					ImGui::EndMenu();
@@ -1986,8 +1894,6 @@ void ShowAutoLoginMenu()
 
 		ImGui::EndMenu();
 	}
-
-	ImGui::PopID();
 }
 
 bool ShowPasswordWindow()
