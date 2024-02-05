@@ -16,10 +16,6 @@
 
 #include "Login.pb.h"
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <Windows.h>
-#include <wincrypt.h>
-
 #include <optional>
 
 #ifdef _DEBUG
@@ -29,8 +25,6 @@
 #endif
 
 #pragma comment(lib, "login")
-
-bool DecryptData(DATA_BLOB* DataIn, DATA_BLOB* DataOut);
 
 struct ProfileRecord
 {

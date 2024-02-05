@@ -18,8 +18,7 @@
 
 #include "common/Common.h"
 
-#include <commdlg.h>
-#include <shellapi.h>
+#include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
 
 #include <wil/resource.h>
@@ -1980,9 +1979,6 @@ bool MigrateVersion1Schema()
 
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 // TODO: test this (open a bunch of clients simultaneously)
-// TODO: LOWER() account, character, server and UPPER() class
-// TODO: add a server edit window, have a server dropdown in character, and server type dropdown in account
-// TODO: consider never reading the db in the plugin
 bool login::db::InitDatabase(const std::string& path)
 {
 	s_dbPath = path;

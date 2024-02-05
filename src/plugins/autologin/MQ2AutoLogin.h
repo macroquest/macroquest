@@ -29,9 +29,9 @@ struct CurrentLogin
 
 	void reset()
 	{
-		Account = {};
-		Password = {};
-		ServerName = {};
+		Account.reset();
+		Password.reset();
+		ServerName.reset();
 	}
 };
 

@@ -21,7 +21,6 @@
 // TODO:
 // - Injecting while running doesn't load the config
 // - fix /relog -- it seems to timeout just as it tries to log back in?
-// - update LoginType to only use the db (still need stationnames for isboxer?)
 
 // State Class forward declarations
 class Wait;

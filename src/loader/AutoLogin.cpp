@@ -422,9 +422,11 @@ using Action = const std::function<void()>&;
 
 void DefaultModalButtons(Action ok_action, const char* cancel = "Cancel", const char* ok = "OK")
 {
+	const auto cancel_size = ImGui::CalcTextSize(cancel);
+	const auto ok_size = ImGui::CalcTextSize(ok);
 	const auto size = ImVec2(
-		std::max(ImGui::CalcTextSize(cancel).x, ImGui::CalcTextSize(ok).x),
-		std::max(ImGui::CalcTextSize(cancel).y, ImGui::CalcTextSize(ok).y)) +
+		std::max(cancel_size.x, ok_size.x),
+		std::max(cancel_size.y, ok_size.y)) +
 		ImGui::GetStyle().FramePadding * 2;
 
 	ImGui::Separator();
