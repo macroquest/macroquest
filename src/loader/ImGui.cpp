@@ -96,40 +96,60 @@ bool SmallCheckbox(const char* label, bool* v)
 
 bool ToggleSlider(const char* label, bool* v)
 {
-	const ImVec4* colors = ImGui::GetStyle().Colors;
-	const ImVec2 position = ImGui::GetCursorScreenPos();
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	if (window->SkipItems) return false;
+
+	const ImGuiContext* g = ImGui::GetCurrentContext();
+    const ImGuiStyle& style = g->Style;
 
 	const float height = ImGui::GetFrameHeight();
 	const float width = height * 1.55f;
 	const float radius = height * 0.5f;
 
-	const bool ret = ImGui::InvisibleButton(label, ImVec2(width, height));
-	if (ImGui::IsItemClicked()) *v = !*v;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 label_size = ImGui::CalcTextSize(label, nullptr, true);
+
+	const ImVec2 pos = window->DC.CursorPos;
+    const ImRect total_bb(pos, pos + ImVec2(width + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+
+	const bool pressed = ImGui::InvisibleButton(label, ImVec2(width, height), ImGuiButtonFlags_PressedOnClick);
+    if (pressed)
+    {
+        *v = !*v;
+        ImGui::MarkItemEdited(id);
+    }
+
+    ImGui::RenderNavHighlight(total_bb, id);
 
 	float t = *v ? 1.f : 0.f;
 
-	if (const ImGuiContext* g = ImGui::GetCurrentContext(); g->LastActiveId == g->CurrentWindow->GetID(label))
+	if (g->LastActiveId == id)
 	{
 		constexpr float animation_speed = 8.5f;
 		const float t_anim = ImSaturate(g->LastActiveIdTimer * animation_speed);
 		t = *v ? t_anim : 1.f - t_anim;
 	}
 
-	const ImU32 bg_color = ImGui::GetColorU32(colors[ImGuiCol_Text]);
+	const ImU32 bg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]);
 
 	ImU32 fg_color;
 	if (ImGui::IsItemClicked())
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonActive]);
+		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_ButtonActive]);
 	else if (ImGui::IsItemHovered())
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_ButtonHovered]);
+		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_ButtonHovered]);
 	else
-		fg_color = ImGui::GetColorU32(colors[ImGuiCol_Button]);
+		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_Button]);
 
-	draw_list->AddRectFilled(position, ImVec2(position.x + width, position.y + height), bg_color, height * 0.5f);
-	draw_list->AddCircleFilled(ImVec2(position.x + radius + t * (width - radius * 2.f), position.y + radius), radius - 1.5f, fg_color);
+	window->DrawList->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + height), bg_color, height * 0.5f);
+	window->DrawList->AddCircleFilled(ImVec2(pos.x + radius + t * (width - radius * 2.f), pos.y + radius), radius - 1.5f, fg_color);
 
-	return ret;
+	const auto label_pos = ImVec2(pos.x + width + style.ItemInnerSpacing.x, pos.y + style.FramePadding.y);
+    if (g->LogEnabled)
+	    ImGui::LogRenderedText(&label_pos, *v ? "[x]" : "[ ]");
+    if (label_size.x > 0.0f)
+	    ImGui::RenderText(label_pos, label);
+
+	return pressed;
 }
 
 void OpenModal(const std::string& name)

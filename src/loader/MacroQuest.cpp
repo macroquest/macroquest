@@ -1075,15 +1075,14 @@ int WINAPI CALLBACK WinMain(
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
 	const std::string bossModeKey = GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
 
+	// Update version information shown in the system tray tooltip
+	InitializeVersionInfo();
 	InitializeNamedPipeServer();
 	InitializeWindows();
 	InitializeAutoLogin();
 
 	auto pMonitorEvents = std::make_unique<MQ2ProcessMonitorEvents>();
 	StartProcessMonitor(pMonitorEvents.get());
-
-	// Update version information shown in the system tray tooltip
-	InitializeVersionInfo();
 
 	// Handle global hotkeys
 	uint16_t modkey = 0;

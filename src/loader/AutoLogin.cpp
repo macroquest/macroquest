@@ -448,6 +448,30 @@ void DefaultModalButtons(Action ok_action, const char* cancel = "Cancel", const 
 	}
 }
 
+template <typename T>
+void DefaultOptional(std::optional<T>& opt, const char* label, const std::function<T()>& set_action, const std::function<bool(T&)>& input_action)
+{
+	bool override_toggle = opt.has_value();
+	LauncherImGui::ToggleSlider(label, &override_toggle);
+
+	if (override_toggle)
+	{
+		if (!opt)
+		{
+			opt = set_action();
+		}
+
+		auto opt_val = *opt;
+		const float indent = ImGui::GetFrameHeight() * 1.55f + ImGui::GetStyle().ItemInnerSpacing.x;
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+		ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - indent);
+		if (input_action(opt_val))
+			opt = opt_val;
+	}
+	else if (opt)
+		opt.reset();
+}
+
 void DeleteModal(const std::string& name, const std::string_view message, Action yes_action)
 {
 	ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { FLT_MAX, FLT_MAX });
@@ -588,8 +612,12 @@ void DefaultCombo(std::string& preview, Info& info, Action select_action, Action
 
 	static constexpr std::string_view modal_suffix = " Select";
 	static constexpr const char* modal_name = JoinLabels<Info::label, modal_suffix>::literal;
+
+	static constexpr std::string_view button_prefix = "...##";
+	static constexpr const char* button_label = JoinLabels<button_prefix, Info::label>::literal;
+
 	ImGui::SameLine(0.f, 0.f);
-	if (ImGui::Button("..."))
+	if (ImGui::Button(button_label))
 	{
 		LauncherImGui::OpenModal(modal_name);
 	}
@@ -702,8 +730,8 @@ void SetEQDirModal(std::optional<std::string>& eq_path, Action ok_action)
 
 		if (ImGui::Button("Choose"))
 		{
-			IGFD_OpenDialog2(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
-				nullptr, (internal_paths::s_eqRoot + "/").c_str(), 1, nullptr, ImGuiFileDialogFlags_None);
+			IGFD_OpenDialog(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
+				nullptr, internal_paths::s_eqRoot.c_str(), "", 1, nullptr, ImGuiFileDialogFlags_None);
 		}
 
 		if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
@@ -711,9 +739,48 @@ void SetEQDirModal(std::optional<std::string>& eq_path, Action ok_action)
 			if (IGFD_IsOk(s_eqDirDialog))
 			{
 				const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
-				if (std::error_code ec; selected_path && std::filesystem::exists(selected_path.get(), ec))
+				if (std::error_code ec; selected_path && fs::exists(selected_path.get(), ec))
 				{
-					eq_path = canonical(std::filesystem::path(selected_path.get()), ec).string();
+					eq_path = canonical(fs::path(selected_path.get()), ec).string();
+				}
+			}
+
+			IGFD_CloseDialog(s_eqDirDialog);
+		}
+
+		DefaultModalButtons(ok_action);
+
+		LauncherImGui::EndModal();
+	}
+}
+
+void SetEQFileModal(const char* label, std::optional<fs::path>& path, const char* default_path, Action ok_action)
+{
+	if (LauncherImGui::BeginModal(label, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (path)
+			ImGui::Text(path->string().c_str());
+		else
+			ImGui::Text(default_path);
+
+		if (!s_eqDirDialog)
+			s_eqDirDialog = IGFD_Create();
+
+		if (ImGui::Button("Choose"))
+		{
+			IGFD_OpenDialog(s_eqDirDialog, "ChoosePathKey", label,
+				".ini", internal_paths::s_eqRoot.c_str(), default_path, 1, nullptr, ImGuiFileDialogFlags_None);
+		}
+
+		if (IGFD_DisplayDialog(s_eqDirDialog, "ChoosePathKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		{
+			if (IGFD_IsOk(s_eqDirDialog))
+			{
+				const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
+				const std::shared_ptr<char> selected_file(IGFD_GetCurrentFileName(s_eqDirDialog, IGFD_ResultMode_KeepInputFile), IGFD_DestroyString);
+				if (std::error_code ec; selected_path && selected_file && exists(fs::path(selected_path.get()) / fs::path(selected_file.get()), ec))
+				{
+					path = relative(fs::path(selected_path.get()) / fs::path(selected_file.get()), internal_paths::s_eqRoot, ec);
 				}
 			}
 
@@ -1076,6 +1143,7 @@ void CharacterInfo::List(Action select_action)
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
 
+		ImGui::SameLine();
 		ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
 
 		buf.clear();
@@ -1185,6 +1253,7 @@ void CharacterTable(const std::string_view search)
 	static CharacterInfo info;
 	static ProfileRecord selected;
 	static std::string remove_message;
+	static std::optional<std::string> eq_path;
 
 	if (ImGui::BeginTable("Main List", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 	{
@@ -1309,9 +1378,12 @@ void CharacterTable(const std::string_view search)
 
 		// input for eq path override (optional)
 		if (ImGui::Button("EQ Path"))
+		{
+			eq_path = selected.eqPath;
 			LauncherImGui::OpenModal("Input EQ Path");
+		}
 
-		SetEQDirModal(selected.eqPath, [] {});
+		SetEQDirModal(eq_path, [] { selected.eqPath = eq_path; });
 
 		ImGui::SameLine();
 		ImGui::Text("%s", selected.eqPath ? selected.eqPath->c_str() : "<Default>");
@@ -1351,11 +1423,13 @@ void ProfileInfo::Edit(const char* name, Action ok_action)
 {
 	static std::string account_preview;
 	static std::string character_preview;
+	static std::optional<std::string> eq_path;
+	static std::optional<fs::path> custom_ini;
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		Character.Account.Combo(account_preview, [this]
-		{
+			{
 				Character.Character.clear();
 				Character.Server.clear();
 				character_preview.clear();
@@ -1382,12 +1456,69 @@ void ProfileInfo::Edit(const char* name, Action ok_action)
 				ImGui::Text("%s", !hotkey.empty() ? hotkey.c_str() : "<None>");
 
 				if (ImGui::Button("EQ Path"))
+				{
+					eq_path = eqPath;
 					LauncherImGui::OpenModal("Input EQ Path");
+				}
 
-				SetEQDirModal(eqPath, [] {});
+				SetEQDirModal(eq_path, [this] { eqPath = eq_path; });
 
 				ImGui::SameLine();
 				ImGui::Text("%s", eqPath ? eqPath->c_str() : "<Default>");
+
+				DefaultOptional<int>(charSelectDelay, "Override Character Select Delay",
+					[]()
+					{
+						if (const auto delay = login::db::ReadSetting("char_select_delay"))
+							return GetIntFromString(*delay, 3);
+						return 3;
+					},
+					[](int& char_select_delay)
+					{
+						return ImGui::InputScalar("##Character Select Delay", ImGuiDataType_U32, &char_select_delay);
+					});
+
+				DefaultOptional<bool>(endAfterSelect, "Override End After Character Select",
+					[]()
+					{
+						if (const auto end = login::db::ReadSetting("end_after_select"))
+							return GetBoolFromString(*end, false);
+						return false;
+					},
+					[](bool& end_after_select)
+					{
+						bool changed = false;
+						if (ImGui::BeginCombo("##End After Character Select", end_after_select ? "enabled" : "disabled"))
+						{
+							if (ImGui::Selectable("enabled", end_after_select))
+							{
+								end_after_select = true;
+								changed = true;
+							}
+
+							if (ImGui::Selectable("disabled", !end_after_select))
+							{
+								end_after_select = false;
+								changed = true;
+							}
+
+							ImGui::EndCombo();
+						}
+
+						return changed;
+					});
+
+				if (ImGui::Button("Custom Character INI"))
+				{
+					custom_ini = customClientIni;
+					LauncherImGui::OpenModal("Input Character INI File");
+				}
+
+				SetEQFileModal("Input Character INI File", custom_ini, "eqclient.ini",
+					[this] { customClientIni = custom_ini; });
+
+				ImGui::SameLine();
+				ImGui::Text("%s", customClientIni ? customClientIni->string().c_str() : "<Default>");
 			}
 		}
 
@@ -1563,15 +1694,19 @@ std::string ProfileGroupInfo::Preview() const
 
 void ProfileGroupInfo::Edit(const char* name, Action ok_action)
 {
+	static std::optional<std::string> eq_path;
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::InputText("Profile Group Name", &profileName);
 
 		ImGui::Spacing();
 		if (ImGui::Button("EQ Path"))
+		{
+			eq_path = eqPath;
 			LauncherImGui::OpenModal("Input EQ Path");
+		}
 
-		SetEQDirModal(eqPath, [] {});
+		SetEQDirModal(eq_path, [this] { eqPath = eq_path; });
 
 		ImGui::SameLine();
 		ImGui::Text("%s", eqPath ? eqPath->c_str() : "<Default>");
@@ -1618,6 +1753,7 @@ void ProfileGroupInfo::ListBox()
 // TODO: Add settings section
 // TODO: Add master password window button (in settings)
 // TODO: Add default path editor (per server type, in settings)
+// TODO: Add new fields to profile
 void ShowAutoLoginWindow()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
@@ -1721,6 +1857,16 @@ void ShowAutoLoginWindow()
 		ImGui::SetNextItemWidth(tab_size);
 		if (ImGui::BeginTabItem("Settings"))
 		{
+			// EnableCustomClientIni
+			// ConnectRetries
+			// CharSelectDelay
+			// EndAfterCharSelect
+			// KickActiveCharacter
+			// Debug
+			// IniLocation
+			// Servers
+			// ServerTypes
+			// CustomClientIni (in profile)
 			ImGui::EndTabItem();
 		}
 
@@ -2155,7 +2301,7 @@ void InitializeAutoLogin()
 
 	if (internal_paths::s_eqRoot.empty())
 	{
-		SPDLOG_ERROR("AutoLogin Error no EQ path specified, AutoLogin will not work correctly.");
+		SPDLOG_ERROR("AutoLogin Error no EQ path specified for server type {}, AutoLogin will not work correctly.", GetServerType());
 	}
 
 	LauncherImGui::AddMainPanel("AutoLogin", ShowAutoLoginWindow);

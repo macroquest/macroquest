@@ -39,7 +39,6 @@ PreSetup("MQ2AutoLogin");
 constexpr int STEP_DELAY = 1000;
 
 std::string DBPath = (fs::path(mq::gPathConfig) / "login.db").string();
-fs::path CustomIni;
 uint64_t ReenableTime = 0;
 postoffice::DropboxAPI s_autologinDropbox;
 bool s_detoursInstalled = false;
@@ -495,33 +494,15 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 
 DETOUR_TRAMPOLINE_DEF(DWORD WINAPI, GetPrivateProfileStringA_Trampoline, (LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR))
 
-// TODO: I'm not even sure this works, evaluate it
-void SetupCustomIni()
-{
-	if (!CustomIni.empty())
-		return;
-
-	if (const char* pLogin = GetLoginName())
-	{
-		char CustomPath[MAX_STRING] = { 0 };
-		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", nullptr, CustomPath, MAX_STRING, INIFileName);
-
-		// If a relative path is specified, need to prepend it with current path, which is the EQ directory
-		CustomIni = fs::path{ CustomPath };
-		if (CustomIni.is_relative())
-			CustomIni = fs::current_path() / CustomIni;
-	}
-}
-
 DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName)
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni.string().c_str());
+			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni->string().c_str());
 		}
 	}
 
@@ -533,11 +514,11 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni.string().c_str());
+			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni->string().c_str());
 		}
 	}
 
@@ -549,11 +530,11 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni.string().c_str());
+			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni->string().c_str());
 		}
 	}
 
@@ -597,18 +578,21 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 // TODO: move all this to import
 void ReadINI()
 {
-	std::string path = GetPrivateProfileString("Settings", "IniLocation", "", INIFileName);
-	if (!path.empty())
-	{
-		strcpy_s(INIFileName, path.c_str());
-	}
-
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
+	if (const auto debug = login::db::ReadSetting("debug"))
+		AUTOLOGIN_DBG = GetBoolFromString(*debug, AUTOLOGIN_DBG);
 
-	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
-	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
-	Login::m_settings.CharSelectDelay = GetPrivateProfileInt("Settings", "CharSelectDelay", 3, INIFileName);
-	Login::m_settings.ConnectRetries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, INIFileName);
+	if (const auto kick_active = login::db::ReadSetting("kick_active"))
+		Login::m_settings.KickActiveCharacter = GetBoolFromString(*kick_active, Login::m_settings.KickActiveCharacter);
+
+	if (const auto end_after_select = login::db::ReadSetting("end_after_select"))
+		Login::m_settings.EndAfterSelect = GetBoolFromString(*end_after_select, Login::m_settings.EndAfterSelect);
+
+	if (const auto char_select_delay = login::db::ReadSetting("char_select_delay"))
+		Login::m_settings.CharSelectDelay = GetIntFromString(*char_select_delay, Login::m_settings.CharSelectDelay);
+
+	if (const auto connect_retries = login::db::ReadSetting("connect_retries"))
+		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
 
 	if (gbWriteAllConfig)
 	{
@@ -618,7 +602,7 @@ void ReadINI()
 		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
 	}
 
-	if (auto is_paused = login::db::ReadSetting("is_paused"))
+	if (const auto is_paused = login::db::ReadSetting("is_paused"))
 	{
 		if (GetBoolFromString(*is_paused, false)) Login::dispatch(PauseLogin());
 	}
@@ -740,7 +724,8 @@ PLUGIN_API void InitializePlugin()
 		EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
 	}
 
-	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
+	if (const auto custom_client_ini = login::db::ReadSetting("custom_client_ini");
+		GetBoolFromString(*custom_client_ini, false))
 	{
 		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
@@ -750,8 +735,6 @@ PLUGIN_API void InitializePlugin()
 
 		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
-
-		SetupCustomIni();
 	}
 
 	ReenableTime = MQGetTickCount64() + STEP_DELAY;

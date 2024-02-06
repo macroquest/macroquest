@@ -77,6 +77,9 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (record.serverName.empty() && record.characterName.empty())
 			login::db::ReadFirstProfile(record);
 
+		if (record.customClientIni && record.customClientIni->is_relative())
+			record.customClientIni = std::filesystem::current_path() / *record.customClientIni;
+
 		return record;
 	}
 

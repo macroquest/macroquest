@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include "Login.pb.h"
 
 #include <optional>
@@ -45,6 +47,7 @@ struct ProfileRecord
 
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;
+	std::optional<std::filesystem::path> customClientIni;
 
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);

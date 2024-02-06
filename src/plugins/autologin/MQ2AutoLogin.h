@@ -265,6 +265,8 @@ public:
 	static const char* hotkey() { return m_record ? m_record->hotkey.c_str() : ""; }
 	static const char* character_class() { return m_record ? m_record->characterClass.c_str() : ""; }
 
+	static std::optional<std::filesystem::path> custom_ini() { return m_record ? m_record->customClientIni : std::nullopt; }
+
 	static int character_level() { return m_record ? m_record->characterLevel : 0; }
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
 	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
@@ -278,10 +280,10 @@ public:
 
 	struct Settings
 	{
-		bool KickActiveCharacter;
-		bool EndAfterSelect;
-		int CharSelectDelay;
-		int ConnectRetries;
+		bool KickActiveCharacter = true;
+		bool EndAfterSelect = false;
+		int CharSelectDelay = 3;
+		int ConnectRetries = 0;
 	};
 
 	static Settings m_settings;
