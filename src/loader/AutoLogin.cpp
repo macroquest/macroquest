@@ -513,6 +513,22 @@ struct HasLabelOverride : std::false_type {};
 template <typename T>
 struct HasLabelOverride<T, decltype((void)T::label_override, std::string_view())> : std::true_type {};
 
+struct ServerNameInfo
+{
+	std::string ShortName;
+	std::string LongName;
+
+	void List(Action);
+	void Fill();
+	[[nodiscard]] std::string Preview() const;
+	void Edit(const char*, Action);
+	void ListBox();
+
+	static constexpr std::string_view label = "Server Name";
+
+	explicit operator bool() const { return !ShortName.empty() && !LongName.empty(); }
+};
+
 struct ServerTypeInfo
 {
 	std::string ServerType;
@@ -881,11 +897,95 @@ void ShowHotkeyWindow(const std::string& name, std::string& hotkey)
 
 #pragma endregion
 
+#pragma region ServerName
+
+void ServerNameInfo::List(Action select_action)
+{
+	fmt::memory_buffer buf;
+	const auto buf_ins = std::back_inserter(buf);
+
+	static auto server_names = login::db::Cache<login::db::Results<std::pair<std::string, std::string>>>(login::db::ListServerNames);
+	for (const auto& [short_name, long_name] : server_names.Read())
+	{
+		ImGui::PushID(short_name.c_str());
+		ImGui::PushID(long_name.c_str());
+
+		const bool is_selected = ci_equals(short_name, ShortName) &&
+			ci_equals(long_name, LongName);
+
+		format_to(buf_ins, "[{}] {}", short_name, long_name);
+
+		if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+		{
+			ShortName = short_name;
+			LongName = long_name;
+
+			select_action();
+		}
+
+		if (is_selected)
+			ImGui::SetItemDefaultFocus();
+
+		ImGui::SameLine();
+		ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
+
+		buf.clear();
+
+		ImGui::PopID();
+		ImGui::PopID();
+	}
+}
+
+void ServerNameInfo::Fill() {}
+
+std::string ServerNameInfo::Preview() const
+{
+	return fmt::format("[{}] {}", ShortName, LongName);
+}
+
+void ServerNameInfo::Edit(const char* name, Action ok_action)
+{
+	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::InputText("Short Name", &ShortName);
+		ImGui::Spacing();
+
+		ImGui::InputText("Long Name", &LongName);
+
+		DefaultModalButtons(ok_action);
+
+		LauncherImGui::EndModal();
+	}
+}
+
+void ServerNameInfo::ListBox()
+{
+	static ServerNameInfo info;
+	DefaultListBox(*this, info,
+		[]
+		{
+			if (info)
+				login::db::CreateOrUpdateServer(info.ShortName, info.LongName);
+		},
+		[]
+		{
+			if (info)
+				login::db::CreateOrUpdateServer(info.ShortName, info.LongName);
+		},
+		[]
+		{
+			login::db::DeleteServer(info.ShortName, info.LongName);
+		});
+}
+
+#pragma endregion
+
 #pragma region ServerType
 
 void ServerTypeInfo::List(Action select_action)
 {
-	for (const auto& server_type : login::db::ListServerTypes())
+	static auto server_types = login::db::Cache<login::db::Results<std::string>>(login::db::ListServerTypes);
+	for (const auto& server_type : server_types.Read())
 	{
 		ImGui::PushID(server_type.c_str());
 
@@ -918,7 +1018,6 @@ std::string ServerTypeInfo::Preview() const
 
 void ServerTypeInfo::Edit(const char* name, Action ok_action)
 {
-	// we need an optional copy of the eqpath for the modal to get a flow that makes sense
 	static std::optional<std::string> eq_path;
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -1750,10 +1849,105 @@ void ProfileGroupInfo::ListBox()
 
 #pragma endregion
 
-// TODO: Add settings section
-// TODO: Add master password window button (in settings)
-// TODO: Add default path editor (per server type, in settings)
-// TODO: Add new fields to profile
+#pragma region Password
+
+void ShowValidatePassword(Action ok_action)
+{
+	static const char* label = "Please Enter Master Password";
+
+	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label).x / 2.f));
+	ImGui::Text(label);
+	ImGui::Spacing();
+
+	static bool show_password = false;
+	static std::string password;
+
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+	if (!show_password) flags |= ImGuiInputTextFlags_Password;
+
+	ImGui::InputText("##password", &password, flags);
+	ImGui::Separator();
+
+	ImGui::Checkbox("Show password", &show_password);
+	ImGui::SetItemTooltip("Show the password in plain text");
+	ImGui::Spacing();
+
+	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
+	if (ImGui::Button("OK", { 75.f, 0.f }))
+	{
+		if (!login::db::ReadSetting("master_pass") || login::db::ValidatePass(password))
+		{
+			login::db::MemoizeMasterPass(password);
+			label = "Please Enter Master Password";
+
+			ok_action();
+		}
+		else
+		{
+			label = "Incorrect Password, Please Enter Master Password";
+		}
+	}
+	ImGui::SetItemTooltip("Attempt to validate the entered password against the database, or set it if it does not exist.");
+}
+
+void ShowNewPassword(Action ok_action)
+{
+	static constexpr const char* label = "Please Enter New Master Password";
+
+	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label).x / 2.f));
+	ImGui::Text(label);
+	ImGui::Spacing();
+
+	static bool show_password = false;
+	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
+	static std::string password;
+
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+	if (!show_password) flags |= ImGuiInputTextFlags_Password;
+
+	ImGui::InputText("##password", &password, flags);
+	ImGui::Separator();
+
+	ImGui::Checkbox("Show password", &show_password);
+	ImGui::SetItemTooltip("Show the password in plain text");
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Never ask again", &perpetual_password.Read()))
+		login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false");
+	ImGui::SetItemTooltip("Save the password to this system so that it never has to be entered again.");
+	ImGui::Spacing();
+
+	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
+	if (ImGui::Button("OK", { 75.f, 0.f }))
+	{
+		if (const auto old_pass = login::db::GetMasterPass())
+		{
+			if (perpetual_password.Read())
+				login::db::CreateMasterPass(password, 0);
+			else
+			{
+				const auto hours_valid = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString).Read();
+				login::db::CreateMasterPass(password, hours_valid);
+			}
+
+			login::db::UpdateEncryptedData(*old_pass);
+
+			ok_action();
+		}
+		else
+			LauncherImGui::OpenModal("Enter Current Password");
+
+		bool validate_open = true;
+		if (LauncherImGui::BeginModal("Enter Current Password", &validate_open, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ShowValidatePassword([] { LauncherImGui::CloseModal(); });
+			LauncherImGui::EndModal();
+		}
+	}
+	ImGui::SetItemTooltip("Set the new master password, will require validation of the current password if there is none stored");
+}
+
+#pragma endregion
+
 void ShowAutoLoginWindow()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
@@ -1857,16 +2051,145 @@ void ShowAutoLoginWindow()
 		ImGui::SetNextItemWidth(tab_size);
 		if (ImGui::BeginTabItem("Settings"))
 		{
-			// EnableCustomClientIni
-			// ConnectRetries
-			// CharSelectDelay
-			// EndAfterCharSelect
-			// KickActiveCharacter
-			// Debug
-			// IniLocation
-			// Servers
-			// ServerTypes
-			// CustomClientIni (in profile)
+			static auto is_paused = login::db::CacheSetting<bool>("is_paused", false, GetBoolFromString);
+			static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
+			static auto kick_active = login::db::CacheSetting<bool>("kick_active", true, GetBoolFromString);
+			static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", false, GetBoolFromString);
+			static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
+			static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", 3, GetIntFromString);
+			static auto connect_retries = login::db::CacheSetting<int>("connect_retries", 0, GetIntFromString);
+
+			static auto password_timeout_hours = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString);
+			static std::string hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Read()) / 24.f);
+			static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
+
+			static ServerTypeInfo server_type_info;
+			static ServerNameInfo server_name_info;
+
+			if (ImGui::Checkbox("Pause on Start", &is_paused.Read()))
+				login::db::WriteSetting("is_paused", is_paused.Updated() ? "true" : "false", "Pause autologin when client starts");
+			ImGui::SetItemTooltip("Pause autologin when client starts");
+
+			ImGui::Spacing();
+			if (ImGui::Checkbox("Debug Output", &debug.Read()))
+				login::db::WriteSetting("debug", debug.Updated() ? "true" : "false", "Show plugin debug statements");
+			ImGui::SetItemTooltip("Show plugin debug statements");
+
+			ImGui::Spacing();
+			if (ImGui::Checkbox("Kick Active Character", &kick_active.Read()))
+				login::db::WriteSetting("kick_active", kick_active.Updated() ? "true" : "false", "Automatically kick the active character when prompted");
+			ImGui::SetItemTooltip("Automatically kick the active character when prompted");
+
+			ImGui::Spacing();
+			if (ImGui::Checkbox("End After Character Select", &end_after_select.Read()))
+				login::db::WriteSetting("end_after_select", end_after_select.Updated() ? "true" : "false", "Disable the plugin once the character has been selected");
+			ImGui::SetItemTooltip("Disable the plugin once the character has been selected");
+
+			ImGui::Spacing();
+			if (ImGui::Checkbox("Load Legacy Config Next Load", &load_ini.Read()))
+				login::db::WriteSetting("load_ini", load_ini.Updated() ? "true" : "false", "Import data from autologin ini file one time at load");
+			ImGui::SetItemTooltip("Import data from autologin ini file one time at load");
+			
+			ImGui::Spacing();
+			if (ImGui::InputScalar("Character Select Delay", ImGuiDataType_U32, &char_select_delay.Read()))
+				login::db::WriteSetting("char_select_delay", std::to_string(char_select_delay.Updated()), "Seconds to delay character selection at the character select screen");
+			ImGui::SetItemTooltip("Seconds to delay character selection at the character select screen");
+
+			ImGui::Spacing();
+			if (ImGui::InputScalar("Connect Retries", ImGuiDataType_U32, &connect_retries.Read()))
+				login::db::WriteSetting("connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
+			ImGui::SetItemTooltip("Number of times to attempt to reconnect, 0 for infinite");
+
+			ImGui::Spacing();
+			if (ImGui::Button("Load Legacy Config"))
+				Import();
+			ImGui::SetItemTooltip("Import data from autologin ini right now");
+
+			ImGui::Separator();
+			ImGui::Spacing();
+			if (ImGui::Checkbox("Save Password Forever", &perpetual_password.Read()))
+				login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false", "Save the master password to this system so that it never has to be entered again");
+			ImGui::SetItemTooltip("Save the master password to this system so that it never has to be entered again");
+
+			ImGui::Spacing();
+			ImGui::BeginDisabled(perpetual_password.Read());
+			if (ImGui::InputScalar(hours_label.c_str(), ImGuiDataType_U32, &password_timeout_hours.Read()))
+			{
+				hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Updated()) / 24.f);
+				login::db::WriteSetting("password_timeout_hours", std::to_string(password_timeout_hours.Updated()), "Number of hours to save the master password before requiring re-entry");
+			}
+			ImGui::SetItemTooltip("Number of hours to save the master password before requiring re-entry");
+			ImGui::EndDisabled();
+
+			ImGui::Spacing();
+			if (ImGui::Button("Retrieve Master Password"))
+				LauncherImGui::OpenModal("Stored Master Password");
+			ImGui::SetItemTooltip("Retrieve the stored password from the system registry if present");
+
+			if (LauncherImGui::BeginModal("Stored Master Password", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				if (auto pass = login::db::ReadStoredMasterPass())
+				{
+					ImGui::TextWrapped("The current master password saved in the registry:");
+					ImGui::InputText("##password", &*pass, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+				}
+				else
+					ImGui::Text("There is no master password saved in the registry.");
+
+				ImGui::Spacing();
+				ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("Done").x - ImGui::GetStyle().FramePadding.x * 2);
+				if (ImGui::Button("Done"))
+					LauncherImGui::CloseModal();
+
+				LauncherImGui::EndModal();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Set Master Password"))
+				LauncherImGui::OpenModal("Set Master Password");
+
+			bool set_pass_open;
+			if (LauncherImGui::BeginModal("Set Master Password", &set_pass_open, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ShowNewPassword([] { LauncherImGui::CloseModal(); });
+				LauncherImGui::EndModal();
+			}
+
+			ImGui::Separator();
+			ImGui::Spacing();
+			if (ImGui::Button("Manage Server Types"))
+				LauncherImGui::OpenModal("Manage Server Types");
+			ImGui::SetItemTooltip("Manage the server type to default path mappings and entries");
+
+			if (LauncherImGui::BeginModal("Manage Server Types", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				server_type_info.ListBox();
+
+				ImGui::Separator();
+				ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("Done").x - ImGui::GetStyle().FramePadding.x * 2);
+				if (ImGui::Button("Done"))
+					LauncherImGui::CloseModal();
+
+				LauncherImGui::EndModal();
+			}
+
+			ImGui::Spacing();
+			if (ImGui::Button("Manage Server Names"))
+				LauncherImGui::OpenModal("Manage Server Names");
+			ImGui::SetItemTooltip("Manage the server short name to long name mappings");
+
+			if (LauncherImGui::BeginModal("Manage Server Names", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				server_name_info.ListBox();
+
+				ImGui::Separator();
+				ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("Done").x - ImGui::GetStyle().FramePadding.x * 2);
+				if (ImGui::Button("Done"))
+					LauncherImGui::CloseModal();
+
+				LauncherImGui::EndModal();
+			}
+
 			ImGui::EndTabItem();
 		}
 
@@ -2051,87 +2374,17 @@ bool ShowPasswordWindow()
 
 	if (ImGui::Begin("Enter Master Password", &is_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 	{
-		static std::string label = "Please Enter Master Password";
-
-		ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label.c_str()).x / 2.f));
-		ImGui::Text(label.c_str());
-		ImGui::Spacing();
-
-		static bool show_password = false;
-		static bool perpetual_password = false;
-		static std::string password;
-
-		ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
-		if (!show_password) flags |= ImGuiInputTextFlags_Password;
-
-		ImGui::InputText("##password", &password, flags);
-		ImGui::Separator();
-
-		ImGui::BeginDisabled(perpetual_password);
-		int num_hours = 720; // 720 hours is 30 days
-		if (const auto hours = login::db::ReadSetting("password_timeout_hours"))
-			num_hours = GetIntFromString(*hours, num_hours);
-		const std::string hours_label = fmt::format("Hours to Save ({:.1f} days)", static_cast<float>(num_hours) / 24.f);
-
-		ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(hours_label.c_str()).x / 2.f));
-		ImGui::Text(hours_label.c_str());
-		if (ImGui::InputInt("##hours", &num_hours))
-		{
-			login::db::WriteSetting(
-				"password_timeout_hours",
-				std::to_string(num_hours),
-				"Number of hours before master password times out");
-		}
-		ImGui::SetItemTooltip("Number of hours to save this password before requiring re-entry.");
-		ImGui::EndDisabled();
-		ImGui::Separator();
-
-		ImGui::Checkbox("Show password", &show_password);
-		ImGui::SetItemTooltip("Show the password in plain text");
-		ImGui::SameLine();
-		ImGui::Checkbox("Never ask again", &perpetual_password);
-		ImGui::SetItemTooltip("Save the password to this system so that it never has to be entered again.");
-		ImGui::Spacing();
-
-		if (ImGui::Button("Retrieve"))
-			if (const auto pass = login::db::ReadStoredMasterPass())
-				password = *pass;
-		ImGui::SetItemTooltip("Retrieve the stored password from the system registry if present.");
-
-		ImGui::SameLine();
-
-		if (ImGui::Button("Reset Stored"))
-			login::db::DeleteSetting("master_pass");
-		ImGui::SetItemTooltip("Reset the stored master mass in the database, allowing a new master pass to be set.");
-
-		ImGui::SameLine();
-
-		ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("  OK  ").x - ImGui::GetStyle().FramePadding.x * 2);
-		if (ImGui::Button("  OK  "))
-		{
-			if (!login::db::ReadSetting("master_pass") || login::db::ValidatePass(password))
+		ShowValidatePassword([&is_open]
 			{
-				if (!perpetual_password)
-					login::db::CreateMasterPass(password, num_hours);
-				else
-					login::db::CreateMasterPass(password, 0);
-
 				is_open = false;
-				label = "Please Enter Master Password";
 
 				// do this here because doing it before will attempt to read/write passwords without the master pass
 				if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
 				{
 					Import();
-					login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
+					login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time at load");
 				}
-			}
-			else
-			{
-				label = "Incorrect Password, Please Enter Master Password";
-			}
-		}
-		ImGui::SetItemTooltip("Attempt to validate the entered password against the database, or set it if it does not exist.");
+			});
 	}
 
 	ImGui::End();

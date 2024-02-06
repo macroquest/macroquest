@@ -491,6 +491,18 @@ struct HashParams
 	uint32_t Parallelism = 1;
 };
 
+int login::db::ReadDataVersion()
+{
+	return WithDb::Query<int>(SQLITE_OPEN_READONLY)(
+		"PRAGMA data_version",
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return sqlite3_column_int(stmt, 0);
+			return 0;
+		});
+}
+
 bool login::db::ValidatePass(const std::string_view pass)
 {
 	const auto hash = ReadSetting("master_pass");
@@ -659,6 +671,24 @@ std::optional<std::string> login::db::ReadMasterPass()
 
 	SPDLOG_ERROR("AutoLogin Error master pass hash does not match.");
 	return {};
+}
+
+// this function could update more than just password if more fields are added later
+void login::db::UpdateEncryptedData(std::string_view old_pass)
+{
+	// since the hashing is done in c++, we have to update everything individually
+	for (const auto& [account, server_type] : ListAccounts())
+	{
+		// do nothing if the password couldn't be read
+		if (const auto password = ReadPassword(account, server_type, old_pass))
+		{
+			ProfileRecord record;
+			record.accountName = account;
+			record.serverType = server_type;
+			record.accountPassword = *password;
+			UpdateAccount(account, server_type, record);
+		}
+	}
 }
 
 void login::db::WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description)
@@ -890,17 +920,17 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 		});
 }
 
-std::optional<std::string> login::db::ReadPassword(std::string_view account, std::string_view server_type)
+std::optional<std::string> login::db::ReadPassword(std::string_view account, std::string_view server_type, std::optional<std::string_view> password_override /* = {} */)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(SELECT password FROM accounts WHERE account = ? AND server_type = ?)",
-		[account, server_type](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		[account, server_type, &password_override](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
 			sqlite3_bind_text(stmt, 2, server_type.data(), static_cast<int>(server_type.length()), SQLITE_STATIC);
 
-			const auto master_pass = GetMasterPass();
-			if (master_pass && sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_type(stmt, 0) == SQLITE_TEXT)
+			if (const auto master_pass = password_override ? password_override : GetMasterPass();
+				master_pass && sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_type(stmt, 0) == SQLITE_TEXT)
 			{
 				std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)), sqlite3_column_bytes(stmt, 0));
 				pass = XorEncryptDecrypt(pass, *master_pass);
@@ -1251,6 +1281,19 @@ void login::db::CreateOrUpdateServer(std::string_view short_name, std::string_vi
 			sqlite3_bind_text(stmt, 2, long_name.data(), static_cast<int>(long_name.length()), SQLITE_STATIC);
 
 			sqlite3_step(stmt);
+		});
+}
+
+login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNames()
+{
+	return Results<std::pair<std::string, std::string>>(WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(SELECT short_name, long_name FROM servers)",
+		[](sqlite3_stmt*, sqlite3*) {},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			return std::make_pair(
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)),
+				reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		});
 }
 

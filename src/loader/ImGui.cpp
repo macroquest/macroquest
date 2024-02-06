@@ -177,6 +177,38 @@ void OpenModal(const std::string& name)
 	s_modals[name] = modal;
 }
 
+void CloseModal(const std::string& modal_name)
+{
+    IM_ASSERT(!s_modals.empty());
+
+    const ImGuiContext& g = *GImGui;
+    const auto it = s_modals.find(modal_name);
+	if (it == s_modals.end())
+		return;
+
+    // ReSharper disable once CppUseStructuredBinding
+    const Modal& modal = it->second;
+    if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
+		viewport != nullptr && viewport->Window != nullptr)
+	{
+		viewport->Window->WindowClass.ViewportFlagsOverrideSet = modal.OriginalFlagsSet;
+		viewport->Window->WindowClass.ViewportFlagsOverrideClear = modal.OriginalFlagsClear;
+
+		if (const auto dim_it = s_dimRatios.find(viewport->ID); dim_it != s_dimRatios.end())
+			dim_it->second.Open = false;
+
+		// we need to focus the parent at the platform level here, just doing it in imgui
+		// with ImGui::FocusWindow will not actually set the focus
+		if (g.PlatformIO.Platform_SetWindowFocus)
+			g.PlatformIO.Platform_SetWindowFocus(viewport);
+
+		// after platform focus has been established, we can set the correct child focus
+		ImGui::FocusWindow(viewport->Window, ImGuiFocusRequestFlags_RestoreFocusedChild);
+	}
+
+	s_modals.erase(it);
+}
+
 bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 {
 	const auto it = s_modals.find(name);
@@ -202,7 +234,7 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
     {
 		EndModal();
 		if (is_open)
-			CloseModal();
+			CloseModal(name);
         return false;
     }
 
@@ -227,36 +259,10 @@ void EndModal()
 
 void CloseModal()
 {
-    IM_ASSERT(!s_modals.empty());
-
     const ImGuiContext& g = *GImGui;
     const ImGuiWindow* window = g.CurrentWindow;
 
-    const auto it = s_modals.find(window->Name);
-	if (it == s_modals.end())
-		return;
-
-    // ReSharper disable once CppUseStructuredBinding
-    const Modal& modal = it->second;
-    if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
-		viewport != nullptr && viewport->Window != nullptr)
-	{
-		viewport->Window->WindowClass.ViewportFlagsOverrideSet = modal.OriginalFlagsSet;
-		viewport->Window->WindowClass.ViewportFlagsOverrideClear = modal.OriginalFlagsClear;
-
-		if (const auto dim_it = s_dimRatios.find(viewport->ID); dim_it != s_dimRatios.end())
-			dim_it->second.Open = false;
-
-		// we need to focus the parent at the platform level here, just doing it in imgui
-		// with ImGui::FocusWindow will not actually set the focus
-		if (g.PlatformIO.Platform_SetWindowFocus)
-			g.PlatformIO.Platform_SetWindowFocus(viewport);
-
-		// after platform focus has been established, we can set the correct child focus
-		ImGui::FocusWindow(viewport->Window, ImGuiFocusRequestFlags_RestoreFocusedChild);
-	}
-
-	s_modals.erase(it);
+	CloseModal(window->Name);
 }
 
 void OpenWindow(

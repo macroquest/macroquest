@@ -69,6 +69,66 @@ struct sqlite3_stmt;
 class WithDb;
 namespace login::db {
 
+// ReadDataVersion uses the SQLITE_OPEN_READONLY connection, so any READWRITE connection results can't be cached
+// This means that the read version will be guaranteed to change each time the DB is written to
+int ReadDataVersion();
+template <typename T, typename... Args> class Cache
+{
+public:
+	using UpdateCache = std::function<T(Args&&...)>;
+
+	explicit Cache(UpdateCache update, Args&&... args)
+		: m_update(update)
+		, m_value(m_update(std::forward<Args>(args)...))
+		, m_updatedValue(m_value)
+		, m_dataVersion(ReadDataVersion())
+	{}
+
+	T& Read(Args&&... args)
+	{
+		if (HasChanges())
+		{
+			m_value = m_update(std::forward<Args>(args)...);
+			m_updatedValue = m_value;
+		}
+
+		return m_updatedValue;
+	}
+
+	T& Updated() { return m_updatedValue; }
+
+private:
+	bool HasChanges()
+	{
+		if (const int latest = ReadDataVersion(); latest != m_dataVersion)
+		{
+			m_dataVersion = latest;
+			return true;
+		}
+
+		return false;
+	}
+
+	UpdateCache m_update;
+	T m_value;
+	T m_updatedValue;
+	int m_dataVersion;
+};
+
+template <typename... Args>
+Cache<std::string, Args...> CacheString(
+	const std::function<std::optional<std::string>(Args...)>& update_func,
+	Args&&... args)
+{
+	return Cache<std::string, Args...>([update_func, &args...]
+		{
+			if (const auto value = update_func(std::forward<Args>(args)...))
+				return *value;
+
+			return {};
+		});
+}
+
 class StatementHelper
 {
 public:
@@ -160,10 +220,57 @@ public:
 	[[nodiscard]] Iterator begin() const { return Iterator(this); }
 	[[nodiscard]] typename Iterator::Sentinel end() const { return Iterator::Sentinel{}; }
 
+	[[nodiscard]] std::vector<T> vector() const
+	{
+		std::vector<T> vec; // we don't know the size, so we can't reserve
+		for (auto t : *this)
+			vec.emplace_back(std::move(t));
+		return vec;
+	}
+
 private:
 	std::shared_ptr<WithDb> m_db;
 	StatementHelper m_stmt;
 	std::function<T(sqlite3_stmt*, sqlite3*)> m_result;
+};
+
+// specialize the cache system for results because they can't generally be edited,
+// and we need to transform it into a vector anyway
+template <typename T, typename... Args> class Cache <Results<T>, Args...>
+{
+public:
+	using UpdateCache = std::function<Results<T>(Args&&...)>;
+
+	explicit Cache(UpdateCache update, Args&&... args)
+		: m_update(update)
+		, m_value(m_update(std::forward<Args>(args)...).vector())
+		, m_dataVersion(ReadDataVersion())
+	{}
+
+	// make this const -- explicitly no support for editing multiple results
+	const std::vector<T>& Read(Args&&... args)
+	{
+		if (HasChanges())
+			m_value = m_update(std::forward<Args>(args)...).vector();
+
+		return m_value;
+	}
+
+private:
+	bool HasChanges()
+	{
+		if (const int latest = ReadDataVersion(); latest != m_dataVersion)
+		{
+			m_dataVersion = latest;
+			return true;
+		}
+
+		return false;
+	}
+
+	UpdateCache m_update;
+	std::vector<T> m_value;
+	int m_dataVersion;
 };
 
 bool ValidatePass(std::string_view pass);
@@ -175,10 +282,26 @@ bool CreateMasterPass(std::string_view pass, int hours_valid);
 std::optional<std::string> ReadStoredMasterPass();
 bool ReadMasterPassExpired();
 std::optional<std::string> ReadMasterPass();
+void UpdateEncryptedData(std::string_view old_pass);
 
 void WriteSetting(std::string_view key, std::string_view value, std::optional<std::string_view> description = {});
 std::optional<std::string> ReadSetting(std::string_view key);
 void DeleteSetting(std::string_view key);
+
+template <typename T>
+Cache<T> CacheSetting(
+	const std::string_view setting,
+	const T default_value,
+	const std::function<T(const std::string_view, const T)>& parse_func)
+{
+	return Cache<T>(
+		[setting, default_value, parse_func]
+		{
+			if (const auto value = ReadSetting(setting))
+				return parse_func(*value, default_value);
+			return default_value;
+		});
+}
 
 Results<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
@@ -189,7 +312,7 @@ void DeleteProfileGroup(std::string_view name);
 Results<std::pair<std::string, std::string>> ListAccounts();
 void CreateAccount(const ProfileRecord& profile);
 std::optional<std::string> ReadAccount(ProfileRecord& profile);
-std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type);
+std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type, std::optional<std::string_view> password_override = {});
 void UpdateAccount(std::string_view account, std::string_view server_type, const ProfileRecord& record);
 void DeleteAccount(std::string_view account, std::string_view server_type);
 
@@ -208,6 +331,7 @@ void UpdatePersona(std::string_view cls, const ProfileRecord& profile);
 void DeletePersona(std::string_view server, std::string_view name, std::string_view cls);
 
 void CreateOrUpdateServer(std::string_view short_name, std::string_view long_name);
+Results<std::pair<std::string, std::string>> ListServerNames();
 std::optional<std::string> ReadLongServer(std::string_view short_name);
 std::optional<std::string> ReadShortServer(std::string_view long_name);
 void DeleteServer(std::string_view short_name, std::string_view long_name);

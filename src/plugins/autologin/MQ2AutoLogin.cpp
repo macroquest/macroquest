@@ -575,8 +575,7 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 	}
 }
 
-// TODO: move all this to import
-void ReadINI()
+void ReadSettings()
 {
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
 	if (const auto debug = login::db::ReadSetting("debug"))
@@ -594,24 +593,14 @@ void ReadINI()
 	if (const auto connect_retries = login::db::ReadSetting("connect_retries"))
 		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
 
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileBool("Settings", "KickActiveCharacter", Login::m_settings.KickActiveCharacter, INIFileName);
-		WritePrivateProfileBool("Settings", "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-		WritePrivateProfileInt("Settings", "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
-	}
-
 	if (const auto is_paused = login::db::ReadSetting("is_paused"))
-	{
 		if (GetBoolFromString(*is_paused, false)) Login::dispatch(PauseLogin());
-	}
 }
 
 void LoginReset()
 {
 	AutoLoginDebug("LoginReset()");
-	ReadINI();
+	ReadSettings();
 }
 
 class LoginServer_Hook
@@ -710,7 +699,7 @@ PLUGIN_API void InitializePlugin()
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
 	Login::set_initial_state();
-	ReadINI();
+	ReadSettings();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
