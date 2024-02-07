@@ -1563,12 +1563,15 @@ void ShowNewPassword(Action ok_action)
 	ImGui::SetItemTooltip("Save the password to this system so that it never has to be entered again.");
 	ImGui::Spacing();
 
-	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
+	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x);
 	if (ImGui::Button("OK", { 75.f, 0.f }))
 	{
-		if (const auto old_pass = login::db::GetMasterPass())
+		if (const auto old_pass = login::db::GetMasterPass();
+			old_pass || !login::db::ReadSetting("master_pass"))
 		{
-			if (perpetual_password.Read())
+			if (password.empty())
+				login::db::DeleteSetting("master_pass");
+			else if (perpetual_password.Read())
 				login::db::CreateMasterPass(password, 0);
 			else
 			{
@@ -1576,7 +1579,7 @@ void ShowNewPassword(Action ok_action)
 				login::db::CreateMasterPass(password, hours_valid);
 			}
 
-			login::db::UpdateEncryptedData(*old_pass);
+			login::db::UpdateEncryptedData(old_pass ? *old_pass : "");
 
 			ok_action();
 		}
@@ -1590,7 +1593,7 @@ void ShowNewPassword(Action ok_action)
 			LauncherImGui::EndModal();
 		}
 	}
-	ImGui::SetItemTooltip("Set the new master password, will require validation of the current password if there is none stored");
+	ImGui::SetItemTooltip("Set the new master password, will require validation of the current password if there is none stored\nAn empty password will proceed with no master password (all data will be stored in plaintext)");
 }
 
 #pragma endregion
@@ -2041,7 +2044,7 @@ bool ShowPasswordWindow()
 
 	if (ImGui::Begin("Enter Master Password", &is_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 	{
-		ShowValidatePassword([&is_open]
+		auto ok_action = [&is_open]
 			{
 				is_open = false;
 
@@ -2051,7 +2054,12 @@ bool ShowPasswordWindow()
 					Import();
 					login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time at load");
 				}
-			});
+			};
+
+		if (login::db::ReadSetting("master_pass"))
+			ShowValidatePassword(ok_action);
+		else
+			ShowNewPassword(ok_action);
 	}
 
 	ImGui::End();

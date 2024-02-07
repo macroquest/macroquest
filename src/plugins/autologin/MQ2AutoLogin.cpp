@@ -626,6 +626,8 @@ public:
 	}
 };
 
+// TODO: change this to just grab all the characters on the character select screen
+// TODO: can add the account at the server select screen, no reason to wait
 PLUGIN_API void SetGameState(int GameState)
 {
 	// this works because we will always have a gamestate change after loading or unloading eqmain

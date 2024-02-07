@@ -533,12 +533,19 @@ void InitializeAutoLogin()
 	}
 
 	// test reading the password. if it's not correct, prompt to enter it
-	if (!login::db::ReadMasterPass())
+	if (login::db::ReadSetting("master_pass") && !login::db::ReadMasterPass())
 		LauncherImGui::OpenWindow(&ShowPasswordWindow, "Enter Master Password");
 	else if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
 	{
-		Import();
-		login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
+		// load_ini implies a first load situation -- let's ensure we have a master pass or prompt for one
+		// this will specifically happen if master_pass is not set, so prompt to enter one
+		if (!login::db::ReadMasterPass())
+			LauncherImGui::OpenWindow(&ShowPasswordWindow, "Enter Master Password");
+		else
+		{
+			Import();
+			login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
+		}
 	}
 
 	// Initialize path to EQ
