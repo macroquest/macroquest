@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
     <ClCompile Include="AutoLogin.cpp" />
+    <ClCompile Include="AutoLoginImGui.cpp" />
     <ClCompile Include="Crashpad.cpp" />
     <ClCompile Include="HotKeyControl.cpp" />
     <ClCompile Include="ImGui.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\common\HotKeys.h" />
+    <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="HotKeyControl.h" />
     <ClInclude Include="ImGui.h" />

@@ -63,6 +63,9 @@
     <ClCompile Include="imgui_backend\imgui_engine.cpp">
       <Filter>Source Files\imgui_backend</Filter>
     </ClCompile>
+    <ClCompile Include="AutoLoginImGui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -103,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="imgui_backend\imgui_engine.h">
       <Filter>Header Files\imgui_backend</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoLogin.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
