@@ -72,30 +72,31 @@ namespace login::db {
 // ReadDataVersion uses the SQLITE_OPEN_READONLY connection, so any READWRITE connection results can't be cached
 // This means that the read version will be guaranteed to change each time the DB is written to
 int ReadDataVersion();
-template <typename T, typename... Args> class Cache
+template <typename T> class Cache
 {
 public:
-	using UpdateCache = std::function<T(Args&&...)>;
+	using Result = std::invoke_result_t<T>;
+	using UpdateCache = std::function<Result()>;
 
-	explicit Cache(UpdateCache update, Args&&... args)
+	explicit Cache(const T& update)
 		: m_update(update)
-		, m_value(m_update(std::forward<Args>(args)...))
+		, m_value(m_update())
 		, m_updatedValue(m_value)
 		, m_dataVersion(ReadDataVersion())
 	{}
 
-	T& Read(Args&&... args)
+	Result& Read(const bool force = false)
 	{
-		if (HasChanges())
+		if (HasChanges() || force)
 		{
-			m_value = m_update(std::forward<Args>(args)...);
+			m_value = m_update();
 			m_updatedValue = m_value;
 		}
 
 		return m_updatedValue;
 	}
 
-	T& Updated() { return m_updatedValue; }
+	Result& Updated() { return m_updatedValue; }
 
 private:
 	bool HasChanges()
@@ -110,24 +111,10 @@ private:
 	}
 
 	UpdateCache m_update;
-	T m_value;
-	T m_updatedValue;
+	Result m_value;
+	Result m_updatedValue;
 	int m_dataVersion;
 };
-
-template <typename... Args>
-Cache<std::string, Args...> CacheString(
-	const std::function<std::optional<std::string>(Args...)>& update_func,
-	Args&&... args)
-{
-	return Cache<std::string, Args...>([update_func, &args...]
-		{
-			if (const auto value = update_func(std::forward<Args>(args)...))
-				return *value;
-
-			return {};
-		});
-}
 
 class StatementHelper
 {
@@ -157,6 +144,7 @@ template <typename T>
 class Results
 {
 public:
+	using Type = T;
 
 	class Iterator
 	{
@@ -234,44 +222,21 @@ private:
 	std::function<T(sqlite3_stmt*, sqlite3*)> m_result;
 };
 
-// specialize the cache system for results because they can't generally be edited,
-// and we need to transform it into a vector anyway
-template <typename T, typename... Args> class Cache <Results<T>, Args...>
+// wrap the cache system for results because they generically need to be transformed
+// into a vector
+
+template <typename T>
+using ResultsVector = std::function<std::vector<typename std::invoke_result_t<T>::Type>()>;
+
+template <typename T>
+Cache<ResultsVector<T>>
+CacheResults(const T& update)
 {
-public:
-	using UpdateCache = std::function<Results<T>(Args&&...)>;
-
-	explicit Cache(UpdateCache update, Args&&... args)
-		: m_update(update)
-		, m_value(m_update(std::forward<Args>(args)...).vector())
-		, m_dataVersion(ReadDataVersion())
-	{}
-
-	// make this const -- explicitly no support for editing multiple results
-	const std::vector<T>& Read(Args&&... args)
-	{
-		if (HasChanges())
-			m_value = m_update(std::forward<Args>(args)...).vector();
-
-		return m_value;
-	}
-
-private:
-	bool HasChanges()
-	{
-		if (const int latest = ReadDataVersion(); latest != m_dataVersion)
+	return Cache<ResultsVector<T>>([update]
 		{
-			m_dataVersion = latest;
-			return true;
-		}
-
-		return false;
-	}
-
-	UpdateCache m_update;
-	std::vector<T> m_value;
-	int m_dataVersion;
-};
+			return update().vector();
+		});
+}
 
 bool ValidatePass(std::string_view pass);
 
@@ -289,12 +254,12 @@ std::optional<std::string> ReadSetting(std::string_view key);
 void DeleteSetting(std::string_view key);
 
 template <typename T>
-Cache<T> CacheSetting(
+Cache<std::function<T()>> CacheSetting(
 	const std::string_view setting,
 	const T default_value,
 	const std::function<T(const std::string_view, const T)>& parse_func)
 {
-	return Cache<T>(
+	return Cache<std::function<T()>>(
 		[setting, default_value, parse_func]
 		{
 			if (const auto value = ReadSetting(setting))

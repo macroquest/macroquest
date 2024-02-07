@@ -904,7 +904,7 @@ void ServerNameInfo::List(Action select_action)
 	fmt::memory_buffer buf;
 	const auto buf_ins = std::back_inserter(buf);
 
-	static auto server_names = login::db::Cache<login::db::Results<std::pair<std::string, std::string>>>(login::db::ListServerNames);
+	static auto server_names = CacheResults(login::db::ListServerNames);
 	for (const auto& [short_name, long_name] : server_names.Read())
 	{
 		ImGui::PushID(short_name.c_str());
@@ -984,7 +984,7 @@ void ServerNameInfo::ListBox()
 
 void ServerTypeInfo::List(Action select_action)
 {
-	static auto server_types = login::db::Cache<login::db::Results<std::string>>(login::db::ListServerTypes);
+	static auto server_types = CacheResults(login::db::ListServerTypes);
 	for (const auto& server_type : server_types.Read())
 	{
 		ImGui::PushID(server_type.c_str());
@@ -1089,7 +1089,8 @@ void AccountInfo::List(Action select_action)
 	fmt::memory_buffer buf;
 	const auto buf_ins = std::back_inserter(buf);
 
-	for (const auto& [account, server_type] : login::db::ListAccounts())
+	static auto accounts = CacheResults(login::db::ListAccounts);
+	for (const auto& [account, server_type] : accounts.Read())
 	{
 		ImGui::PushID(account.c_str());
 		ImGui::PushID(server_type.c_str());
@@ -1221,7 +1222,23 @@ void CharacterInfo::List(Action select_action)
 	fmt::memory_buffer buf;
 	const auto buf_ins = std::back_inserter(buf);
 
-	for (const auto& [server, character] : login::db::ListCharacters(Account.Account, Account.ServerType.ServerType))
+	static auto last_account = Account.Account;
+	static auto last_server_type = Account.ServerType.ServerType;
+	static auto characters = login::db::CacheResults([]
+		{ return login::db::ListCharacters(last_account, last_server_type); });
+
+	// this could happen a couple ways:
+	//  - the account on `this` changes
+	//  - we have a different instance of `this` with a different account (it's static)
+	const bool force_update = !ci_equals(last_account, Account.Account) ||
+		!ci_equals(last_server_type, Account.ServerType.ServerType);
+	if (force_update)
+	{
+		last_account = Account.Account;
+		last_server_type = Account.ServerType.ServerType;
+	}
+
+	for (const auto& [server, character] : characters.Read(force_update))
 	{
 		ImGui::PushID(character.c_str());
 		ImGui::PushID(server.c_str());
@@ -1364,7 +1381,17 @@ void CharacterTable(const std::string_view search)
 		ImGui::TableSetupColumn("##buttons");
 		ImGui::TableHeadersRow();
 
-		for (const auto& match : login::db::ListCharacterMatches(search))
+		static std::string last_search(search);
+		static auto characters = login::db::CacheResults([]
+			{
+				return login::db::ListCharacterMatches(last_search);
+			});
+
+		const bool force_update = !ci_equals(last_search, search);
+		if (force_update)
+			last_search = search;
+
+		for (const auto& match : characters.Read(force_update))
 		{
 			ImGui::PushID(match.serverName.c_str());
 			ImGui::PushID(match.characterName.c_str());
@@ -1763,7 +1790,8 @@ void ProfileTable(const ProfileGroupInfo& info)
 
 void ProfileGroupInfo::List(Action select_action)
 {
-	for (const auto& group : login::db::ListProfileGroups())
+	static auto profile_groups = CacheResults(login::db::ListProfileGroups);
+	for (const auto& group : profile_groups.Read())
 	{
 		ImGui::PushID(group.c_str());
 
@@ -2209,13 +2237,10 @@ struct SizedProfileRecord
 
 void ShowAutoLoginMenu()
 {
-	bool is_paused = false;
-	if (const auto raw_pause = login::db::ReadSetting("is_paused"))
-		is_paused = GetBoolFromString(*raw_pause, false);
-
+	static auto is_paused = login::db::CacheSetting<bool>("is_paused", false, GetBoolFromString);
 	ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
-	if (ImGui::MenuItem(fmt::format("AutoLogin is {}", is_paused ? "Paused" : "Running").c_str()))
-		login::db::WriteSetting("is_paused", !is_paused ? "true" : "false");
+	if (ImGui::MenuItem(fmt::format("AutoLogin is {}", is_paused.Read() ? "Paused" : "Running").c_str()))
+		login::db::WriteSetting("is_paused", !is_paused.Updated() ? "true" : "false");
 	ImGui::PopItemFlag();
 
 	if (ImGui::BeginMenu("Quick Launch"))
@@ -2225,7 +2250,8 @@ void ShowAutoLoginMenu()
 
 		if (ImGui::BeginMenu("Profiles"))
 		{
-			for (const auto& group : login::db::ListProfileGroups())
+			static auto profile_groups = CacheResults(login::db::ListProfileGroups);
+			for (const auto& group : profile_groups.Read())
 			{
 				ImGui::PushID(group.c_str());
 
@@ -2235,7 +2261,16 @@ void ShowAutoLoginMenu()
 					float largest_level = 0.f;
 					float largest_class = 0.f;
 
-					for (auto& profile : login::db::GetProfiles(group))
+					static auto last_group = group;
+					static auto group_profiles = login::db::CacheResults([]
+						{
+							return login::db::GetProfiles(last_group);
+						});
+
+					const bool force_profiles_update = !ci_equals(last_group, group);
+					if (force_profiles_update)
+						last_group = group;
+					for (auto& profile : group_profiles.Read(force_profiles_update))
 					{
 						auto level_text = fmt::format("{}", profile.characterLevel);
 						const auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
@@ -2297,7 +2332,8 @@ void ShowAutoLoginMenu()
 
 		if (ImGui::BeginMenu("Characters"))
 		{
-			for (const auto& server : login::db::ListServers())
+			static auto servers = CacheResults(login::db::ListServers);
+			for (const auto& server : servers.Read())
 			{
 				ImGui::PushID(server.c_str());
 
@@ -2307,7 +2343,17 @@ void ShowAutoLoginMenu()
 					float largest_level = 0.f;
 					float largest_class = 0.f;
 
-					for (auto& profile : login::db::ListCharactersOnServer(server))
+					static auto last_server = server;
+					static auto server_characters = login::db::CacheResults([]
+						{
+							return login::db::ListCharactersOnServer(last_server);
+						});
+
+					const bool force_characters_update = !ci_equals(last_server, server);
+					if (force_characters_update)
+						last_server = server;
+
+					for (auto& profile : server_characters.Read(force_characters_update))
 					{
 						auto level_text = fmt::format("{}", profile.characterLevel);
 						const auto level_size = ImGui::CalcTextSize(level_text.c_str()).x;
