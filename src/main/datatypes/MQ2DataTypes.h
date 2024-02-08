@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1493,6 +1493,19 @@ public:
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
 
 	static bool dataCursorAttachment(const char* szIndex, MQTypeVar& Ret);
+};
+
+//============================================================================
+// MQSocialType
+
+class MQSocialType : public MQ2Type
+{
+public:
+	MQSocialType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+
+	static bool dataSocial(const char* szIndex, MQTypeVar& Ret);
 };
 
 //----------------------------------------------------------------------------

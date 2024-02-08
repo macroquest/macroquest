@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -114,6 +114,7 @@ DATATYPE(MQBankType, pBankType, nullptr);
 DATATYPE(MQInventoryType, pInventoryType, nullptr);
 DATATYPE(MQCursorAttachmentType, pCursorAttachmentType, nullptr);
 DATATYPE(MQInvSlotWindowType, pInvSlotWindowType, nullptr);
+DATATYPE(MQSocialType, pSocialType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);
