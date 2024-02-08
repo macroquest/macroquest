@@ -271,7 +271,7 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 		}
 		else
 		{
-			SPDLOG_ERROR("No eq_path found for %s : %s (profile group %s)",
+			SPDLOG_ERROR("No eq_path found for {} : {} (profile group {})",
 				instance_template.Server, instance_template.Character,
 				instance_template.ProfileGroup ? *instance_template.ProfileGroup : "<None>");
 		}

@@ -90,7 +90,6 @@ int StrToBlob(const std::string& string_in, DATA_BLOB* blob_out)
 }
 }
 
-// TODO: make sure the profile regex defaults to an account if no profile is found
 ProfileRecord ProfileRecord::FromString(const std::string& input)
 {
 	// we can use regex here because this is not a time-critical process, and makes the
@@ -112,7 +111,7 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 	// <server>:<character>
 	static std::regex blob2_regex(R"(([^:]):(\S+))");
 	// <profile>
-	static std::regex single_regex(R"(([a-zA-Z0-9_]+)");
+	static std::regex single_regex(R"(([a-zA-Z0-9_]+))");
 
 	ProfileRecord record;
 
@@ -418,7 +417,8 @@ private:
 	public:
 		WithStatement(sqlite3* db, const std::string& query) : m_db(db), m_stmt(nullptr)
 		{
-			sqlite3_prepare_v2(m_db, query.c_str(), -1, &m_stmt, nullptr);
+			if (sqlite3_prepare_v2(m_db, query.c_str(), -1, &m_stmt, nullptr) != SQLITE_OK)
+				SPDLOG_ERROR("{}", sqlite3_errmsg(m_db));
 		}
 
 		~WithStatement()
@@ -1545,7 +1545,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(
-			SELECT id, eq_path, hotkey, selected, end_after_select, char_select_delay, custom_client_ini
+			SELECT profiles.id, eq_path, hotkey, selected, end_after_select, char_select_delay, custom_client_ini
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
@@ -1658,7 +1658,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 			FROM profiles p
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
-			LEFT JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = ?) g USING (group_id)
+			JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = ?) g USING (group_id)
 			WHERE selected <> 0
 			LIMIT 1)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>

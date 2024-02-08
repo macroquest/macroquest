@@ -626,8 +626,6 @@ public:
 	}
 };
 
-// TODO: change this to just grab all the characters on the character select screen
-// TODO: can add the account at the server select screen, no reason to wait
 PLUGIN_API void SetGameState(int GameState)
 {
 	// this works because we will always have a gamestate change after loading or unloading eqmain
@@ -649,31 +647,13 @@ PLUGIN_API void SetGameState(int GameState)
 		// at character select now, if we have a memoized long name let's update the db for the server name pairing
 		if (Login::m_currentLogin.ServerName)
 			login::db::CreateOrUpdateServer(GetServerShortName(), *Login::m_currentLogin.ServerName);
-	}
-	else if (GameState == GAMESTATE_INGAME)
-	{
+
 		if (Login::m_currentLogin.Account && Login::m_currentLogin.Password)
 		{
 			ProfileRecord profile;
 			profile.accountName = *Login::m_currentLogin.Account;
 			to_lower(profile.accountName);
 			profile.accountPassword = *Login::m_currentLogin.Password;
-			login::db::CreateAccount(profile);
-		}
-
-		if (Login::m_currentLogin.Account && Login::m_currentLogin.ServerName)
-		{
-			ProfileRecord profile;
-			profile.accountName = *Login::m_currentLogin.Account;
-			to_lower(profile.accountName);
-
-			if (GetServerIDFromServerName(GetServerShortName()) != ServerID::Invalid)
-				profile.serverName = GetServerShortName();
-			else
-				profile.serverName = *Login::m_currentLogin.ServerName;
-
-			profile.characterName = pLocalPC->Name;
-			to_lower(profile.characterName);
 
 			char path[MAX_PATH] = { 0 };
 			GetModuleFileName(nullptr, path, MAX_PATH);
@@ -686,12 +666,26 @@ PLUGIN_API void SetGameState(int GameState)
 
 			to_lower(profile.serverType);
 
-			login::db::CreateCharacter(profile);
+			login::db::CreateAccount(profile);
+
+			if (const auto pCharList = GetChildWindow<CListWnd>(pCharacterListWnd, "Character_List"))
+			{
+				const auto itemsArray = GetItemsArray(pCharList);
+				profile.serverName = GetServerShortName();
+
+				for (int i = 0; i < itemsArray->Count; ++i)
+				{
+					std::string char_name(GetListItemText(pCharList, i, 2));
+					to_lower(char_name);
+					profile.characterName = char_name;
+
+					login::db::CreateCharacter(profile);
+				}
+			}
 		}
 
 		Login::m_currentLogin.reset();
 	}
-
 }
 
 PLUGIN_API void InitializePlugin()
@@ -699,6 +693,11 @@ PLUGIN_API void InitializePlugin()
 	pAutoLoginType = new MQ2AutoLoginType;
 	pLoginProfileType = new LoginProfileType;
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
+
+	if (!login::db::InitDatabase((fs::path(gPathConfig) / "login.db").string()))
+	{
+		SPDLOG_ERROR("Could not load autologin database, Autologin functionality will be disabled");
+	}
 
 	Login::set_initial_state();
 	ReadSettings();
@@ -716,7 +715,7 @@ PLUGIN_API void InitializePlugin()
 	}
 
 	if (const auto custom_client_ini = login::db::ReadSetting("custom_client_ini");
-		GetBoolFromString(*custom_client_ini, false))
+		custom_client_ini && GetBoolFromString(*custom_client_ini, false))
 	{
 		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
