@@ -186,7 +186,6 @@ void CloseModal(const std::string& modal_name)
 	if (it == s_modals.end())
 		return;
 
-    // ReSharper disable once CppUseStructuredBinding
     const Modal& modal = it->second;
     if (const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
 		viewport != nullptr && viewport->Window != nullptr)
@@ -215,7 +214,6 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 	if (it == s_modals.end())
 		return false;
 
-	// ReSharper disable once CppUseStructuredBinding
 	const Modal& modal = it->second;
 
 	const ImGuiContext& g = *ImGui::GetCurrentContext();

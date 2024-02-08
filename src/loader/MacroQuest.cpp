@@ -901,7 +901,7 @@ void InitializeVersionInfo()
 	}
 
 	ServerType = GetBuildTargetName(
-		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));  // NOLINT(clang-diagnostic-undefined-reinterpret-cast)
+		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
 
 	strcpy_s(NID.szTip, fmt::format("{} [{} ({})]", gszWinName, szVersion, ServerType).c_str());
 	SPDLOG_INFO("Build: {0}", NID.szTip);

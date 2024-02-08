@@ -12,7 +12,6 @@
  * GNU General Public License for more details.
  */
 
-// ReSharper disable CppClangTidyClangDiagnosticFormatSecurity
 #include "MacroQuest.h"
 #include "AutoLogin.h"
 #include "HotKeyControl.h"
@@ -334,7 +333,6 @@ void LoadCharacter(const LoginInstance& instance_template)
 
 void LoadProfileGroup(std::string_view group)
 {
-	// ReSharper disable once CppUseStructuredBinding
 	for (const auto& profile : login::db::GetProfiles(group))
 	{
 		if (profile.checked)
@@ -399,7 +397,7 @@ LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive&
 {
 	LoginInstance instance;
 
-	switch (start.method_case())  // NOLINT(clang-diagnostic-switch-enum)
+	switch (start.method_case())
 	{
 	case proto::login::StartInstanceMissive::MethodCase::kDirect:
 		if (start.direct().has_target())
@@ -455,10 +453,9 @@ LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive&
 	return instance;
 }
 
-void ReceivedMessageHandler(ProtoMessagePtr&& message)  // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
+void ReceivedMessageHandler(ProtoMessagePtr&& message)
 {
-	// TODO: This needs to handle identify messages (to fill loaded instance set)
-	switch (const auto login_message = message->Parse<proto::login::LoginMessage>(); login_message.id()) // NOLINT(clang-diagnostic-switch-enum)
+	switch (const auto login_message = message->Parse<proto::login::LoginMessage>(); login_message.id())
 	{
 	case proto::login::MessageId::ProfileLoaded:
 		// this message needs to come from the client after it has injected,
@@ -527,8 +524,6 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)  // NOLINT(cppcoreguideli
 void InitializeAutoLogin()
 {
 	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
-	// TODO: build list of logged in instances from the list of registered clients in the post office
-	// TODO: figure out how to determine hotkeys from that list
 
 	// Get path to mq2autologin.ini
 	internal_paths::s_autoLoginIni = (fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini").string();
@@ -552,6 +547,9 @@ void InitializeAutoLogin()
 			Import();
 			login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
 		}
+
+		// since this is a first load situation, we also need to grab the eq root
+		internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
 	}
 
 	// Initialize path to EQ

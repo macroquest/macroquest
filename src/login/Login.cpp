@@ -164,7 +164,6 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 		record.profileName = matches[1].str();
 	}
 
-	// ReSharper disable once CppLocalVariableMightNotBeInitialized
 	return record;
 }
 
@@ -203,7 +202,6 @@ ProfileRecord ProfileRecord::FromBlob(const std::string& blob)
 		LocalFree(db.pbData);
 	}
 
-	// ReSharper disable once CppLocalVariableMightNotBeInitialized
 	return record;
 }
 
@@ -594,14 +592,12 @@ bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 		const uint32_t expiry_timestamp = hours_valid <= 0 ? 0 : static_cast<uint32_t>(
 			duration_cast<hours>(system_clock::now().time_since_epoch()).count() + hours_valid);
 
-		// ReSharper disable once CppFunctionResultShouldBeUsed
 		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp", expiry_timestamp);
 
 		// the string must be converted to a wide string for the registry
 		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
 		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
 
-		// ReSharper disable once CppFunctionResultShouldBeUsed
 		wil::reg::set_value_string_nothrow(pass_hkey.get(), L"MasterPass", wide_pass.c_str());
 	}
 
@@ -814,7 +810,7 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE profile_groups
+			UPDATE profile_groups
 			SET name    = ?,
 			    eq_path = ?
 			WHERE name  = ?)",
@@ -960,9 +956,9 @@ void login::db::UpdateAccount(std::string_view account, std::string_view server_
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE accounts
+			UPDATE accounts
 			SET account = ?,
-			    password = ?
+			    password = ?,
 			    server_type = ?
 			WHERE account = ? AND server_type = ?)",
 		[account, server_type, &record](sqlite3_stmt* stmt, sqlite3* db)
@@ -1167,7 +1163,7 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE characters
+			UPDATE characters
 			SET character = ?,
 			    server = ?,
 			    account_id = (SELECT id FROM accounts WHERE account = ? AND server_type = ?)
@@ -1250,7 +1246,7 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE personas
+			UPDATE personas
 			SET class = ?,
 			    level = ?,
 			    last_seen = datetime()
@@ -1712,7 +1708,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			UPDATE OR REPLACE profiles
+			UPDATE profiles
 			SET eq_path = ?,
 			    hotkey = ?,
 			    selected = ?,
@@ -1965,7 +1961,6 @@ bool CreateVersion0Schema()
 			  unique (short_name, long_name)
 			))", "servers");
 
-	// TODO: This should probably actually check the result of the creations
 	return true;
 }
 
@@ -2036,7 +2031,7 @@ bool MigrateVersion1Schema()
 		  unique (character_id, group_id));
 
 		INSERT INTO new_profiles
-		SELECT id, character_id, group_id, eq_path, hotkey, null, null, selected
+		SELECT id, character_id, group_id, eq_path, hotkey, null, null, selected, null
 		FROM profiles;
 
 		DROP TABLE profiles;
@@ -2048,7 +2043,7 @@ bool MigrateVersion1Schema()
 		  eq_path text not null);
 
 		INSERT INTO server_types(type, eq_path)
-		VALUES('import', '');
+		SELECT 'import', '' FROM accounts LIMIT 1;
 
 		CREATE TABLE new_accounts (
 		  id integer primary key,
@@ -2091,7 +2086,6 @@ bool MigrateVersion1Schema()
 }
 
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
-// TODO: test this (open a bunch of clients simultaneously)
 bool login::db::InitDatabase(const std::string& path)
 {
 	s_dbPath = path;
@@ -2127,8 +2121,16 @@ bool login::db::InitDatabase(const std::string& path)
 	// we can't really trust PRAGMA schema_version because that changes with user edits
 
 	unsigned int version = 0;
-	if (const auto version_setting = ReadSetting("version"))
-		version = GetUIntFromString(*version_setting, version);
+	if (WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+		"SELECT name FROM sqlite_master WHERE type='table' AND name = 'settings'",
+		[](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
+		{
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+
+			return {};
+		}))
+		version = CacheSetting<unsigned int>("version", version, GetUIntFromString).Read();
 
 	std::vector<bool(*)()> migrations;
 	switch (version)
