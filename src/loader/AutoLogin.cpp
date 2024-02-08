@@ -104,8 +104,7 @@ void AutoLoginRemoveProcess(const DWORD process_id)
 }
 
 namespace {
-// TODO: hotkey/eqpath information is lost once we start the instance because the ack will unset them
-LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool do_inject)
+LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool do_update)
 {
 	auto login_it = s_loadedInstances.find(instance_template);
 	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(instance_template.PID))
@@ -141,7 +140,7 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 			if (login_it->Hotkey) UnregisterGlobalHotkey(*login_it->Hotkey);
 			s_loadedInstances.erase(login_it);
 		}
-		else
+		else if (do_update)
 		{
 			// trying to load an already loaded instance, update hotkey and profile
 			// assume the provided hotkey is absolute truth to allow for clearing of hotkey
@@ -162,8 +161,9 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 			// specifically do not update EQ path because we launched this instance with the existing value
 
 			// reinject
-			if (do_inject) Inject(login_it->PID);
+			Inject(login_it->PID);
 		}
+		// else do nothing because we are just acknowledging a loaded instance
 	}
 	else
 	{
@@ -189,12 +189,6 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 
 		if (!eq_path.empty())
 		{
-			SHELLEXECUTEINFOA sei;
-			sei.cbSize = sizeof(SHELLEXECUTEINFOA);
-			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_WAITFORINPUTIDLE;
-			sei.lpVerb = "open";
-			sei.nShow = SW_SHOW;
-
 			std::string arg;
 			if (instance_template.ProfileGroup)
 			{
@@ -250,19 +244,19 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 				}
 			}
 
-			auto params = fmt::format("patchme /login:{}", arg);
-			sei.lpParameters = params.c_str();
-			sei.lpDirectory = eq_path.c_str();
+			std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", internal_paths::s_eqRoot, arg);
 
-			auto file = fmt::format("{}\\eqgame.exe", eq_path);
-			sei.lpFile = file.c_str();
+			STARTUPINFOA si = { sizeof(STARTUPINFOA) };
+			si.wShowWindow = SW_SHOWNORMAL;
+			si.dwFlags = STARTF_USESHOWWINDOW;
 
-			if (ShellExecuteEx(&sei) && sei.hProcess != nullptr)
+			wil::unique_process_information pi;
+			if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi) && pi.hProcess != nullptr)
 			{
 				login_it = s_loadedInstances.insert(s_loadedInstances.end(), instance_template);
-				login_it->PID = GetProcessId(sei.hProcess);
+				login_it->PID = pi.dwProcessId;
 				login_it->EQPath = eq_path;
-				if (do_inject) Inject(login_it->PID);
+				Inject(login_it->PID); // always inject when we load a new instance
 			}
 			else
 			{
@@ -293,11 +287,25 @@ void LoadCharacter(const LoginInstance& instance_template)
 		target.set_server(instance_template.Server);
 		target.set_character(instance_template.Character);
 	}
-	else if (instance_template.AccountAndPassword)
+	else
 	{
 		proto::login::DirectMethod& method = *start.mutable_direct();
-		method.set_login(instance_template.AccountAndPassword->first);
-		method.set_password(instance_template.AccountAndPassword->second);
+
+		if (instance_template.AccountAndPassword)
+		{
+			method.set_login(instance_template.AccountAndPassword->first);
+			method.set_password(instance_template.AccountAndPassword->second);
+		}
+		else
+		{
+			ProfileRecord profile;
+			profile.serverName = instance_template.Server;
+			profile.characterName = instance_template.Character;
+			login::db::ReadAccount(profile);
+
+			method.set_login(profile.accountName);
+			method.set_password(profile.accountPassword);
+		}
 
 		// server and character can technically be omitted here in this special case
 		proto::login::LoginTarget& target = *method.mutable_target();
@@ -305,20 +313,12 @@ void LoadCharacter(const LoginInstance& instance_template)
 			target.set_server(instance_template.Server);
 		if (!instance_template.Character.empty())
 			target.set_character(instance_template.Character);
-	}
-	else
-	{
-		ProfileRecord profile;
-		profile.serverName = instance_template.Server;
-		profile.characterName = instance_template.Character;
-		login::db::ReadAccount(profile);
 
-		proto::login::DirectMethod& method = *start.mutable_direct();
-		method.set_login(profile.accountName);
-		method.set_password(profile.accountPassword);
-		proto::login::LoginTarget& target = *method.mutable_target();
-		target.set_server(instance_template.Server);
-		target.set_character(instance_template.Character);
+		if (instance_template.Hotkey)
+			method.set_hotkey(*instance_template.Hotkey);
+
+		if (instance_template.EQPath)
+			method.set_eq_path(*instance_template.EQPath);
 	}
 
 	proto::login::LoginMessage message;
@@ -359,15 +359,21 @@ void LaunchCleanSession()
 	std::string username = GetPrivateProfileString("PLAYER", "Username", "<>", eqls_player_data_ini.string());
 
 	// create command line arguments
-	std::string parameters = fmt::format("{}\\eqgame.exe patchme /login:{}", internal_paths::s_eqRoot, username);
+	std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", internal_paths::s_eqRoot, username);
 
-	STARTUPINFOA si;
-	si.cb = sizeof(STARTUPINFOA);
+	STARTUPINFOA si = { sizeof(STARTUPINFOA) };
 	si.wShowWindow = SW_SHOWNORMAL;
 	si.dwFlags = STARTF_USESHOWWINDOW;
 
 	wil::unique_process_information pi;
-	CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi);
+	if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi) && pi.hProcess != nullptr)
+	{
+		Inject(pi.dwProcessId); // always inject when we load a new instance
+	}
+	else
+	{
+		SPDLOG_ERROR("Failed to create new eqgame process");
+	}
 }
 
 void Import()

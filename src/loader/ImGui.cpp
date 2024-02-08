@@ -470,6 +470,12 @@ void MaybeShowContextMenu()
 
 	if (ImGui::BeginPopup("Context Popup", ImGuiWindowFlags_NoMove))
 	{
+		// at the top we always want a way to open the GUI
+		if (ImGui::MenuItem("Open UI"))
+			OpenMainWindow();
+
+		ImGui::Separator();
+
 		for (const auto& [name, callback] : s_menus)
 		{
 			callback();

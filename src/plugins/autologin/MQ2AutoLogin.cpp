@@ -226,13 +226,25 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 	proto::login::StartInstanceMissive start;
 	start.set_pid(GetCurrentProcessId());
 
-	proto::login::ProfileMethod& profile = *start.mutable_profile();
-	profile.set_profile(Profile);
-	profile.set_account(Account);
+	if (strlen(Profile) > 0)
+	{
+		proto::login::ProfileMethod& profile = *start.mutable_profile();
+		profile.set_profile(Profile);
+		profile.set_account(Account);
 
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+		proto::login::LoginTarget& target = *profile.mutable_target();
+		target.set_server(Server);
+		target.set_character(Character);
+	}
+	else
+	{
+		proto::login::DirectMethod& direct = *start.mutable_direct();
+		direct.set_login(Account);
+
+		proto::login::LoginTarget& target = *direct.mutable_target();
+		target.set_server(Server);
+		target.set_character(Character);
+	}
 
 	Post(proto::login::ProfileLoaded, start);
 }

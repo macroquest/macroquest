@@ -899,9 +899,10 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
 		R"(
-				SELECT account, password, server_type
+				SELECT account, password, server_type, eq_path
 				FROM accounts
 				JOIN characters ON account_id = accounts.id
+				JOIN server_types ON server_type = type
 				WHERE server = ? AND character = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
@@ -912,6 +913,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 			{
 				profile.accountName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 				profile.serverType = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+				profile.eqPath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
 
 				std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
 				if (const auto master_pass = GetMasterPass())
@@ -1545,7 +1547,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
 		R"(
-			SELECT profiles.id, eq_path, hotkey, selected, end_after_select, char_select_delay, custom_client_ini
+			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, selected, end_after_select, char_select_delay, custom_client_ini
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id

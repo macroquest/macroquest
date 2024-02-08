@@ -377,20 +377,17 @@ void DefaultListBox(Info& info)
 }
 
 template <typename Info>
-void DefaultCombo(std::string& preview, Info& info, const Action& select_action)
+void DefaultCombo(Info& info, const Action& select_action)
 {
 	static Info selected;
 
 	static constexpr std::string_view hidden_prefix = "##";
 	const auto width = ImGui::CalcItemWidth() - ImGui::CalcTextSize("...").x - ImGui::GetStyle().FramePadding.x * 2;
 	ImGui::SetNextItemWidth(width);
-	if (ImGui::BeginCombo(JoinLabels<hidden_prefix, Info::label>::literal, preview.c_str(), ImGuiComboFlags_NoArrowButton))
+	if (ImGui::BeginCombo(JoinLabels<hidden_prefix, Info::label>::literal, info.Preview().c_str(), ImGuiComboFlags_NoArrowButton))
 	{
-		info.List([&preview, &info, &select_action]
-		{
-				select_action();
-				preview = info.Preview();
-			});
+		info.List(select_action);
+
 		ImGui::EndCombo();
 	}
 
@@ -425,11 +422,10 @@ void DefaultCombo(std::string& preview, Info& info, const Action& select_action)
 	{
 		DefaultListBox(selected);
 
-		DefaultModalButtons([&preview, &info]
+		DefaultModalButtons([&info]
 			{
 				selected.Update(info);
 				info = selected;
-				preview = info.Preview();
 			});
 
 		LauncherImGui::EndModal();
@@ -644,7 +640,10 @@ void ServerNameInfo::Fill() {}
 
 std::string ServerNameInfo::Preview() const
 {
-	return fmt::format("[{}] {}", ShortName, LongName);
+	if (*this)
+		return fmt::format("[{}] {}", ShortName, LongName);
+
+	return "";
 }
 
 void ServerNameInfo::Edit(const char* name, const Action& ok_action)
@@ -784,13 +783,15 @@ void AccountInfo::Fill()
 
 std::string AccountInfo::Preview() const
 {
-	return fmt::format("{} ({})", Account, ServerType.ServerType);
+	if (*this)
+		return fmt::format("{} ({})", Account, ServerType.ServerType);
+
+	return "";
 }
 
 void AccountInfo::Edit(const char* name, const Action& ok_action)
 {
 	static bool show_password = false;
-	static std::string server_type_preview;
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -800,7 +801,7 @@ void AccountInfo::Edit(const char* name, const Action& ok_action)
 		ImGui::InputText("Account Name", &Account);
 		ImGui::Spacing();
 
-		DefaultCombo(server_type_preview, ServerType, [this]
+		DefaultCombo(ServerType, [this]
 			{
 				Account.clear();
 				Password.clear();
@@ -893,19 +894,20 @@ void CharacterInfo::Fill()
 
 std::string CharacterInfo::Preview() const
 {
-	return fmt::format("{} : {}", Character, Server);
+	if (*this)
+		return fmt::format("{} : {}", Character, Server);
+
+	return "";
 }
 
 void CharacterInfo::Edit(const char* name, const Action& ok_action)
 {
-	static std::string account_preview;
-
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextWrapped("Editing Character %s", Preview().c_str());
 		ImGui::Spacing();
 
-		DefaultCombo(account_preview, Account, [this]
+		DefaultCombo(Account, [this]
 			{
 				Server.clear();
 				Character.clear();
@@ -1108,30 +1110,30 @@ void ProfileInfo::Fill()
 
 std::string ProfileInfo::Preview() const
 {
-	return fmt::format("[{}] {} : {}", profileName, Character.Character, Character.Server);
+	if (*this)
+		return fmt::format("[{}] {}", profileName, Character.Preview());
+
+	return "";
 }
 
 void ProfileInfo::Edit(const char* name, const Action& ok_action)
 {
-	static std::string account_preview;
-	static std::string character_preview;
 	static std::optional<std::string> eq_path;
 	static std::string hot_key;
 	static std::optional<fs::path> custom_ini;
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		DefaultCombo(account_preview, Character.Account, [this]
+		DefaultCombo(Character.Account, [this]
 			{
 				Character.Character.clear();
 				Character.Server.clear();
-				character_preview.clear();
 			});
 
 		// drop down for character or create new, only show this if an account has been selected
 		if (Character.Account)
 		{
-			DefaultCombo(character_preview, Character, [this]
+			DefaultCombo(Character, [this]
 				{
 					if (Character && !profileName.empty())
 						login::db::ReadProfile(*this);
@@ -1576,7 +1578,7 @@ void ShowAutoLoginWindow()
 				ImGui::GetStyle().FramePadding.x * 2 -
 				ImGui::GetStyle().ItemSpacing.x -
 				ImGui::GetStyle().WindowPadding.x);
-			DefaultCombo(info.profileName, info, [] {});
+			DefaultCombo(info, [] {});
 
 			ImGui::SameLine();
 			if (ImGui::Button("Launch Group") && info)
