@@ -607,15 +607,13 @@ void ServerNameInfo::List(const Action& select_action)
 	static auto server_names = CacheResults(login::db::ListServerNames);
 	for (const auto& [short_name, long_name] : server_names.Read())
 	{
-		ImGui::PushID(short_name.c_str());
-		ImGui::PushID(long_name.c_str());
-
 		const bool is_selected = ci_equals(short_name, ShortName) &&
 			ci_equals(long_name, LongName);
 
 		format_to(buf_ins, "[{}] {}", short_name, long_name);
+		buf.push_back(0);
 
-		if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+		if (ImGui::Selectable(buf.data(), is_selected, ImGuiSelectableFlags_SpanAvailWidth))
 		{
 			ShortName = short_name;
 			LongName = long_name;
@@ -626,13 +624,7 @@ void ServerNameInfo::List(const Action& select_action)
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
 
-		ImGui::SameLine();
-		ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
-
 		buf.clear();
-
-		ImGui::PopID();
-		ImGui::PopID();
 	}
 }
 
@@ -670,8 +662,6 @@ void ServerTypeInfo::List(const Action& select_action)
 	static auto server_types = CacheResults(login::db::ListServerTypes);
 	for (const auto& server_type : server_types.Read())
 	{
-		ImGui::PushID(server_type.c_str());
-
 		const bool is_selected = ci_equals(server_type, ServerType);
 		if (ImGui::Selectable(server_type.c_str(), is_selected))
 		{
@@ -681,8 +671,6 @@ void ServerTypeInfo::List(const Action& select_action)
 
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
-
-		ImGui::PopID();
 	}
 }
 
@@ -744,15 +732,13 @@ void AccountInfo::List(const Action& select_action)
 	static auto accounts = CacheResults(login::db::ListAccounts);
 	for (const auto& [account, server_type] : accounts.Read())
 	{
-		ImGui::PushID(account.c_str());
-		ImGui::PushID(server_type.c_str());
-
 		const bool is_selected = ci_equals(account, Account) &&
 			ci_equals(server_type, ServerType.ServerType);
 
 		format_to(buf_ins, "{} ({})", account, server_type);
+		buf.push_back(0);
 
-		if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+		if (ImGui::Selectable(buf.data(), is_selected))
 		{
 			Account = account;
 			ServerType.ServerType = server_type;
@@ -763,13 +749,7 @@ void AccountInfo::List(const Action& select_action)
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
 
-		ImGui::SameLine();
-		ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
-
 		buf.clear();
-
-		ImGui::PopID();
-		ImGui::PopID();
 	}
 }
 
@@ -850,15 +830,13 @@ void CharacterInfo::List(const Action& select_action)
 
 	for (const auto& [server, character] : characters.Read(force_update))
 	{
-		ImGui::PushID(character.c_str());
-		ImGui::PushID(server.c_str());
-
 		const bool is_selected = ci_equals(character, Character) &&
 			ci_equals(server, Server);
 
 		format_to(buf_ins, "{} : {}", character, server);
+		buf.push_back(0);
 
-		if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+		if (ImGui::Selectable(buf.data(), is_selected, ImGuiSelectableFlags_SpanAvailWidth))
 		{
 			Character = character;
 			Server = server;
@@ -869,13 +847,7 @@ void CharacterInfo::List(const Action& select_action)
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
 
-		ImGui::SameLine();
-		ImGui::Text("%.*s", static_cast<int>(buf.size()), buf.data());
-
 		buf.clear();
-
-		ImGui::PopID();
-		ImGui::PopID();
 	}
 }
 
@@ -954,15 +926,14 @@ void CharacterTable(const std::string_view search)
 
 		for (const auto& match : characters.Read(force_update))
 		{
-			ImGui::PushID(match.serverName.c_str());
-			ImGui::PushID(match.characterName.c_str());
+			ImGui::PushID(&match);
 
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 
 			// this allows right-clicking
 			bool is_selected = false;
-			ImGui::Selectable("", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+			ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 			if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 				ImGui::OpenPopup("row_popup");
 
@@ -1028,7 +999,6 @@ void CharacterTable(const std::string_view search)
 				LauncherImGui::OpenModal("Play With Params");
 			}
 
-			ImGui::PopID();
 			ImGui::PopID();
 		}
 
@@ -1251,7 +1221,7 @@ void ProfileTable(const ProfileGroupInfo& info)
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				if (ImGui::Selectable("", profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
+				if (ImGui::Selectable("##row", profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 					login::db::UpdateProfile(profile);
 
 				if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
@@ -1369,8 +1339,6 @@ void ProfileGroupInfo::List(const Action& select_action)
 	static auto profile_groups = CacheResults(login::db::ListProfileGroups);
 	for (const auto& group : profile_groups.Read())
 	{
-		ImGui::PushID(group.c_str());
-
 		const bool is_selected = ci_equals(group, profileName);
 		if (ImGui::Selectable(group.c_str(), is_selected))
 		{
@@ -1380,8 +1348,6 @@ void ProfileGroupInfo::List(const Action& select_action)
 
 		if (is_selected)
 			ImGui::SetItemDefaultFocus();
-
-		ImGui::PopID();
 	}
 }
 
@@ -1808,8 +1774,6 @@ void ShowAutoLoginMenu()
 			static auto profile_groups = CacheResults(login::db::ListProfileGroups);
 			for (const auto& group : profile_groups.Read())
 			{
-				ImGui::PushID(group.c_str());
-
 				if (ImGui::BeginMenu(group.c_str()))
 				{
 					std::vector<SizedProfileRecord> profiles;
@@ -1879,8 +1843,6 @@ void ShowAutoLoginMenu()
 
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 					LoadProfileGroup(group);
-
-				ImGui::PopID();
 			}
 			ImGui::EndMenu();
 		}
@@ -1890,8 +1852,6 @@ void ShowAutoLoginMenu()
 			static auto servers = CacheResults(login::db::ListServers);
 			for (const auto& server : servers.Read())
 			{
-				ImGui::PushID(server.c_str());
-
 				if (ImGui::BeginMenu(server.c_str()))
 				{
 					std::vector<SizedProfileRecord> profiles;
@@ -1957,8 +1917,6 @@ void ShowAutoLoginMenu()
 
 					ImGui::EndMenu();
 				}
-
-				ImGui::PopID();
 			}
 
 			ImGui::EndMenu();
