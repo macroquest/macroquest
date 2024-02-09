@@ -41,7 +41,6 @@ constexpr int STEP_DELAY = 1000;
 std::string DBPath = (fs::path(mq::gPathConfig) / "login.db").string();
 uint64_t ReenableTime = 0;
 postoffice::DropboxAPI s_autologinDropbox;
-bool s_detoursInstalled = false;
 uintptr_t s_joinServer = 0;
 
 class LoginProfileType : public MQ2Type
@@ -514,7 +513,7 @@ DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName,
 
 		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni->string().c_str());
+			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni->c_str());
 		}
 	}
 
@@ -530,7 +529,7 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 
 		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni->string().c_str());
+			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni->c_str());
 		}
 	}
 
@@ -546,7 +545,7 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 
 		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni->string().c_str());
+			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni->c_str());
 		}
 	}
 

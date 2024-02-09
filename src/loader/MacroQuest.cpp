@@ -431,14 +431,7 @@ bool IsWow64()
     //Use GetModuleHandle to get a handle to the DLL that contains the function
     //and GetProcAddress to get a pointer to the function if available.
 
-	const LPFN_ISWOW64PROCESS fnIsWow64Process = []()
-		{
-			const auto handle = GetModuleHandleA("kernel32");
-			if (handle != 0)
-				return (LPFN_ISWOW64PROCESS)GetProcAddress(handle, "IsWow64Process");
-
-			return (LPFN_ISWOW64PROCESS)nullptr;
-		}();
+	const LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
     if(nullptr != fnIsWow64Process)
     {
@@ -447,7 +440,6 @@ bool IsWow64()
             //handle error (but I'm not going to)
         }
     }
-
     return bIsWow64;
 }
 
@@ -486,11 +478,10 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 				retVal = AppCompatFlagReturn::SUCCESS;
 				for (DWORD i = 0; i < n; ++i)
 				{
-					std::string value;
-					value.reserve(wil::max_registry_value_name_length);
+					char value[wil::max_registry_value_name_length + 1] = { 0 };
 					DWORD valueSize = wil::max_registry_value_name_length;
 					// We know we're done on the first error since they're sequential
-					if (const int res = RegEnumValue(hRegKey, i, &value[0], &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
+					if (const int res = RegEnumValue(hRegKey, i, value, &valueSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
 					{
 						if (res != ERROR_NO_MORE_ITEMS)
 						{
@@ -508,10 +499,9 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 						}
 						else
 						{
-							std::string data;
-							data.reserve(wil::max_registry_value_name_length);
+							char data[wil::max_registry_value_name_length + 1] = { 0 };
 							DWORD dataSize = wil::max_registry_value_name_length;
-							if (RegGetValue(hRegKey, nullptr, &value[0], RRF_RT_REG_SZ, nullptr, &data[0], &dataSize) == ERROR_SUCCESS)
+							if (RegGetValue(hRegKey, nullptr, value, RRF_RT_REG_SZ, nullptr, data, &dataSize) == ERROR_SUCCESS)
 							{
 								if (ci_find_substr(value, searchItem) != -1)
 								{
@@ -786,7 +776,10 @@ void ShowMacroQuestMenu()
 
 	if (ImGui::MenuItem("INI File"))
 		ShellExecuteA(nullptr, "open", internal_paths::MQini.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
+}
 
+void ShowEQBCMenu()
+{
 	if (ImGui::MenuItem("Start EQBC Server"))
 	{
 		if (IsProcessRunning("eqbcs.exe"))
@@ -862,7 +855,7 @@ void InitializeWindows()
 	Shell_NotifyIcon(NIM_ADD, &NID);
 
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
-	LauncherImGui::AddContextGroup("MacroQuest Menu", ShowMacroQuestMenu);
+	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
 }
 
 class MQ2ProcessMonitorEvents : public ProcessMonitorEvents
@@ -903,7 +896,7 @@ void InitializeVersionInfo()
 	ServerType = GetBuildTargetName(
 		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
 
-	strcpy_s(NID.szTip, fmt::format("{} [{} ({})]", gszWinName, szVersion, ServerType).c_str());
+	fmt::format_to(NID.szTip, "{} [{} ({})]\0", gszWinName, szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
 	Shell_NotifyIcon(NIM_MODIFY, &NID);
 
@@ -1128,8 +1121,11 @@ int WINAPI CALLBACK WinMain(
 	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
 		CheckAppCompat();
 
+	// EQBC menu
+	LauncherImGui::AddContextGroup("EQBC", ShowEQBCMenu);
+
 	// advanced menu items
-	LauncherImGui::AddContextGroup("Advanced Menu Items", ShowAdvancedMenu);
+	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
 
@@ -1240,7 +1236,7 @@ void UnregisterGlobalHotkey(HWND hWnd)
 	}
 }
 
-std::string GetServerType()
+std::string_view GetServerType()
 {
 	return ServerType;
 }

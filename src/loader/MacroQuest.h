@@ -99,7 +99,7 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey);
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString);
 void UnregisterGlobalHotkey(std::string_view hotkeyString);
 void UnregisterGlobalHotkey(HWND hWnd);
-std::string GetServerType();
+std::string_view GetServerType();
 
 // ProcessList
 HMODULE GetEQGameModuleByPID(DWORD processId);

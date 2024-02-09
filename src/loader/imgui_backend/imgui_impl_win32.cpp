@@ -30,6 +30,8 @@
 #include <dwmapi.h>
 #include <spdlog/spdlog.h>
 
+#include "../resource.h"
+
 // Configuration flags to add in your imconfig.h file:
 //#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD              // Disable gamepad support. This was meaningful before <1.81 but we now load XInput dynamically so the option is now less relevant.
 
@@ -1287,7 +1289,7 @@ static void ImGui_ImplWin32_InitPlatformInterface(bool platform_has_own_dc)
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = ::GetModuleHandle(nullptr);
-    wcex.hIcon = nullptr;
+    wcex.hIcon = LoadIcon(::GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1));
     wcex.hCursor = nullptr;
     wcex.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);
     wcex.lpszMenuName = nullptr;

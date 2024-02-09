@@ -47,12 +47,14 @@ struct ProfileRecord
 
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;
-	std::optional<std::filesystem::path> customClientIni;
+	std::optional<std::string> customClientIni;
 
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);
 
 	void FormatTo(char* buffer, size_t length) const;
+
+	[[nodiscard]] std::string ToString() const;
 };
 
 struct ProfileGroup
@@ -152,7 +154,7 @@ public:
 		using iterator_category = std::input_iterator_tag;
 		using difference_type = std::ptrdiff_t;
 		using value_type = T const;
-		using pointer = T const*const;
+		using pointer = T const* const;
 		using reference = T const&;
 
 		explicit Iterator(Results const* results)

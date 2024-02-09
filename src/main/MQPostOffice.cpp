@@ -77,7 +77,7 @@ private:
 			case MQMessageId::MSG_ROUTE:
 			{
 				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				const auto& address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
+				auto address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
 				// was within the client. In either case, we can safely assume that we should route it to an

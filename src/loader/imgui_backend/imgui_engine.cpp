@@ -110,10 +110,7 @@ void LauncherImGui::Backend::DrawFrame(const std::function<void()>& drawFrame)
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	ImGui::UpdatePlatformWindows();
-	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		ImGui::RenderPlatformWindowsDefault();
-	}
+	ImGui::RenderPlatformWindowsDefault();
 
 	s_swapChain->Present(1, 0);
 }

@@ -36,13 +36,9 @@ namespace fs = std::filesystem;
 
 CHotKeyCtrl* s_hotKeyCtrl = nullptr;
 
-namespace {
 // set of loaded instances -- be careful to only read/write this from actors to ensure no race conditions
-std::unordered_set<LoginInstance, LoginInstance> s_loadedInstances;
-using LoginIterator = std::unordered_set<LoginInstance, LoginInstance>::const_iterator;
-
-postoffice::Dropbox s_dropbox;
-}
+static std::unordered_map<std::string, LoginInstance> s_loadedInstances;
+static postoffice::Dropbox s_dropbox;
 
 namespace internal_paths
 {
@@ -57,8 +53,7 @@ struct SClassInfo
 	const char* UCShortName;
 };
 
-namespace {
-SClassInfo s_classInfo[] =
+static SClassInfo s_classInfo[] =
 {
 	{ "",             ""    },
 	{ "Warrior",      "WAR" },
@@ -78,7 +73,6 @@ SClassInfo s_classInfo[] =
 	{ "Beastlord",    "BST" },
 	{ "Berserker",    "BER" },
 };
-}
 
 const char* GetClassShortName(const DWORD player_class)
 {
@@ -101,65 +95,47 @@ void AutoLoginRemoveProcess(const DWORD process_id)
 	s_dropbox.Post(address, message);
 }
 
-namespace {
-LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool do_update)
+static const LoginInstance* StartOrUpdateInstance(const uint32_t pid, ProfileRecord& profile, bool do_update)
 {
-	auto login_it = s_loadedInstances.find(instance_template);
-	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(instance_template.PID))
+	auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
+	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(pid))
 	{
 		// if we couldn't find by character and server, we need to check for PID
 		// if we find it by PID, then we need to update the instance in the set
 		login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-			[pid = instance_template.PID](const LoginInstance& instance)
-			{ return instance.PID == pid; });
+			[pid](const std::pair<std::string, LoginInstance>& instance)
+			{ return instance.second.PID == pid; });
 
 		if (login_it != s_loadedInstances.end())
 		{
 			// found an instance with the same PID, update the entry to match the new loaded message
-			// we need to drop this entry and add a new one, but keep the eq path from where it was launched
-			auto eq_path = login_it->EQPath;
-			login_it = s_loadedInstances.insert(s_loadedInstances.erase(login_it), instance_template);
-			login_it->EQPath = eq_path;
+			// the assumption here is that this message will necessarily come from the instance that
+			// is actually loaded at that pid (like if someone relogged without MQ and then injected)
+			login_it->second.Update(pid, profile);
 		}
 	}
 	else if (login_it != s_loadedInstances.end())
 	{
 		// already mapped into our loaded instances
-		if (IsEQGameProcessId(instance_template.PID) && instance_template.PID != login_it->PID)
+		if (IsEQGameProcessId(pid) && pid != login_it->second.PID)
 		{
 			// this is a failsafe case in case something external causes the eq instance
 			// to reload, and we aren't catching that event
-			login_it->PID = instance_template.PID;
+			login_it->second.PID = pid;
 		}
 
-		if (!IsEQGameProcessId(login_it->PID))
+		if (!IsEQGameProcessId(login_it->second.PID))
 		{
 			// somehow we have a PID in our map that isn't EQ
-			if (login_it->Hotkey) UnregisterGlobalHotkey(*login_it->Hotkey);
+			if (login_it->second.Hotkey) UnregisterGlobalHotkey(*login_it->second.Hotkey);
 			login_it = s_loadedInstances.erase(login_it);
 		}
 		else if (do_update)
 		{
-			// trying to load an already loaded instance, update hotkey and profile
-			// assume the provided hotkey is absolute truth to allow for clearing of hotkey
-			if (login_it->Hotkey != instance_template.Hotkey)
-			{
-				if (login_it->Hotkey)
-					UnregisterGlobalHotkey(*login_it->Hotkey);
-
-				login_it->Hotkey = instance_template.Hotkey;
-
-				if (login_it->Hotkey)
-					RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login_it->PID), *login_it->Hotkey);
-			}
-
-			if (login_it->ProfileGroup != instance_template.ProfileGroup)
-				login_it->ProfileGroup = instance_template.ProfileGroup;
-
-			// specifically do not update EQ path because we launched this instance with the existing value
+			login_it->second.Update(login_it->second.PID, profile);
 
 			// reinject
-			Inject(login_it->PID);
+			Inject(login_it->second.PID);
 		}
 		// else do nothing because we are just acknowledging a loaded instance
 	}
@@ -167,209 +143,145 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 	{
 		// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
 		// because we got a list at startup of the current running instances
-		ProfileRecord record;
-		record.serverName = instance_template.Server;
-		record.characterName = instance_template.Character;
+		if (!profile.eqPath)
+			if (const auto path = login::db::GetEQPath(
+				profile.profileName, profile.serverName, profile.characterName))
+				profile.eqPath = *path;
 
-		std::string eq_path;
-		if (login::db::ReadAccount(record) && record.eqPath)
-			eq_path = *record.eqPath;
-
-		if (instance_template.EQPath)
-			eq_path = *instance_template.EQPath;
-		else if (instance_template.ProfileGroup)
-			if (auto path =
-				login::db::GetEQPath(
-					*instance_template.ProfileGroup,
-					instance_template.Server,
-					instance_template.Character))
-				eq_path = *path;
-
-		if (!eq_path.empty())
+		if (!profile.eqPath)
 		{
-			std::string arg;
-			if (instance_template.ProfileGroup)
+			SPDLOG_ERROR("No eq_path found for {} : {} (profile group {})",
+				profile.serverName, profile.characterName, profile.profileName);
+		}
+		else
+		{
+			std::string arg = profile.ToString();
+			if (arg.empty())
 			{
-				arg = fmt::format("{}_{}:{}",
-					*instance_template.ProfileGroup,
-					instance_template.Server,
-					instance_template.Character);
-			}
-			else if (instance_template.AccountAndPassword)
-			{
-				if (instance_template.Server.empty())
-				{
-					arg = fmt::format("{}^{}",
-						instance_template.AccountAndPassword->first,
-						instance_template.AccountAndPassword->second);
-				}
-				else if (instance_template.Character.empty())
-				{
-					arg = fmt::format("{}^{}^{}",
-						instance_template.Server,
-						instance_template.AccountAndPassword->first,
-						instance_template.AccountAndPassword->second);
-				}
-				else
-				{
-					arg = fmt::format("{}^{}^{}^{}",
-						instance_template.Server,
-						instance_template.AccountAndPassword->first,
-						instance_template.Character,
-						instance_template.AccountAndPassword->second);
-				}
+				SPDLOG_ERROR("Failed to generate profile string.");
 			}
 			else
 			{
-				if (!record.accountPassword.empty())
+				const auto eqgame = fs::path{ *profile.eqPath } / "eqgame.exe";
+				if (std::error_code ec; !fs::exists(eqgame, ec))
 				{
-					// password was read successfully
-					if (!instance_template.Character.empty())
+					SPDLOG_ERROR("eqgame.exe does not exist at {} : {}", *profile.eqPath, ec.message());
+				}
+				else
+				{
+					std::string parameters = fmt::format(R"("{}" patchme /login:{})", eqgame.string(), arg);
+
+					STARTUPINFOA si = { sizeof(STARTUPINFOA) };
+					si.wShowWindow = SW_SHOWNORMAL;
+					si.dwFlags = STARTF_USESHOWWINDOW;
+
+					wil::unique_process_information pi;
+					if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, profile.eqPath->c_str(), &si, &pi) && pi.hProcess != nullptr)
 					{
-						arg = fmt::format("{}^{}^{}^{}",
-							record.serverName, record.accountName,
-							record.characterName, record.accountPassword);
+						auto [it, _] = s_loadedInstances.emplace(
+							LoginInstance::Key(profile),
+							LoginInstance(pi.dwProcessId, profile));
+						login_it = it;
+						Inject(login_it->second.PID); // always inject when we load a new instance
 					}
 					else
 					{
-						arg = fmt::format("{}^{}^{}",
-							record.serverName, record.accountName, record.accountPassword);
+						SPDLOG_ERROR("Failed to create new eqgame process");
 					}
 				}
-				else
-				{
-					arg = fmt::format("{}:{}", record.serverName, record.characterName);
-				}
 			}
-
-			std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", eq_path, arg);
-
-			STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-			si.wShowWindow = SW_SHOWNORMAL;
-			si.dwFlags = STARTF_USESHOWWINDOW;
-
-			wil::unique_process_information pi;
-			if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, eq_path.c_str(), &si, &pi) && pi.hProcess != nullptr)
-			{
-				login_it = s_loadedInstances.insert(s_loadedInstances.end(), instance_template);
-				login_it->PID = pi.dwProcessId;
-				login_it->EQPath = eq_path;
-				Inject(login_it->PID); // always inject when we load a new instance
-			}
-			else
-			{
-				SPDLOG_ERROR("Failed to create new eqgame process");
-			}
-		}
-		else
-		{
-			SPDLOG_ERROR("No eq_path found for {} : {} (profile group {})",
-				instance_template.Server, instance_template.Character,
-				instance_template.ProfileGroup ? *instance_template.ProfileGroup : "<None>");
 		}
 	}
 
-	return login_it;
-}
+	if (login_it != s_loadedInstances.end())
+		return &login_it->second;
+
+	return nullptr;
 }
 
-// This sends a message to self so that we ensure that all access of s_loadedInstances happens on the main thread
-void LoadCharacter(const LoginInstance& instance_template)
+std::string LoginInstance::Key(std::string_view Server, std::string_view Character)
 {
-	proto::login::StartInstanceMissive start;
-	if (instance_template.ProfileGroup)
+	return fmt::format("{}:{}", Server, Character);
+}
+
+std::string LoginInstance::Key(const ProfileRecord& profile)
+{
+	return Key(profile.serverName, profile.characterName);
+}
+
+void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
+{
+	// update hotkey and profile group, but not path
+	if (Hotkey != profile.hotkey)
 	{
-		proto::login::ProfileMethod& method = *start.mutable_profile();
-		method.set_profile(*instance_template.ProfileGroup);
-		proto::login::LoginTarget& target = *method.mutable_target();
-		target.set_server(instance_template.Server);
-		target.set_character(instance_template.Character);
-	}
-	else
-	{
-		proto::login::DirectMethod& method = *start.mutable_direct();
+		if (Hotkey) UnregisterGlobalHotkey(*Hotkey);
 
-		if (instance_template.AccountAndPassword)
+		if (!profile.hotkey.empty())
 		{
-			method.set_login(instance_template.AccountAndPassword->first);
-			method.set_password(instance_template.AccountAndPassword->second);
+			Hotkey = profile.hotkey;
+			RegisterGlobalHotkey(GetEQWindowHandleForProcessId(pid), *Hotkey);
 		}
-		else
-		{
-			ProfileRecord profile;
-			profile.serverName = instance_template.Server;
-			profile.characterName = instance_template.Character;
-			login::db::ReadAccount(profile);
-
-			method.set_login(profile.accountName);
-			method.set_password(profile.accountPassword);
-		}
-
-		// server and character can technically be omitted here in this special case
-		proto::login::LoginTarget& target = *method.mutable_target();
-		if (!instance_template.Server.empty())
-			target.set_server(instance_template.Server);
-		if (!instance_template.Character.empty())
-			target.set_character(instance_template.Character);
-
-		if (instance_template.Hotkey)
-			method.set_hotkey(*instance_template.Hotkey);
-
-		if (instance_template.EQPath)
-			method.set_eq_path(*instance_template.EQPath);
 	}
 
-	proto::login::LoginMessage message;
-	message.set_id(proto::login::StartInstance);
-	message.set_payload(start.SerializeAsString());
+	if (ProfileGroup != profile.profileName && !profile.profileName.empty())
+	{
+		ProfileGroup = profile.profileName;
+	}
+	else if (ProfileGroup && profile.profileName.empty())
+	{
+		ProfileGroup.reset();
+	}
+}
 
-	proto::routing::Address address;
-	address.set_name("launcher");
-	address.set_mailbox("autologin");
+LoginInstance::LoginInstance(uint32_t pid, const ProfileRecord& profile)
+	: PID(pid)
+	, Server(profile.serverName)
+	, Character(profile.characterName)
+	, EQPath(*profile.eqPath)
+	, ProfileGroup(profile.profileName)
+{
+	if (!profile.hotkey.empty()) Hotkey = profile.hotkey;
+}
 
-	s_dropbox.Post(address, message);
+void LoadCharacter(ProfileRecord& profile)
+{
+	StartOrUpdateInstance(0, profile, true);
 }
 
 void LoadProfileGroup(std::string_view group)
 {
-	for (const auto& profile : login::db::GetProfiles(group))
+	for (auto& profile : login::db::GetProfiles(group).vector())
 	{
 		if (profile.checked)
-		{
-			LoginInstance instance;
-			instance.ProfileGroup = group;
-			instance.Server = profile.serverName;
-			instance.Character = profile.characterName;
-			if (!profile.hotkey.empty()) instance.Hotkey = profile.hotkey;
-
-			LoadCharacter(instance);
-		}
+			LoadCharacter(profile);
 	}
 }
 
 void LaunchCleanSession()
 {
-	// Get path to the login server data file
-	const fs::path eqls_player_data_ini = fs::path{ GetEQRoot() } / "eqlsPlayerData.ini";
-
-	// Get default username from eqlsPlayerData.ini
-	std::string username = GetPrivateProfileString("PLAYER", "Username", "<>", eqls_player_data_ini.string());
-
-	// create command line arguments
-	std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", GetEQRoot(), username);
-
-	STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-	si.wShowWindow = SW_SHOWNORMAL;
-	si.dwFlags = STARTF_USESHOWWINDOW;
-
-	wil::unique_process_information pi;
-	if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
+	const auto eqgame = fs::path{ GetEQRoot() } / "eqgame.exe";
+	if (std::error_code ec; !fs::exists(eqgame, ec))
 	{
-		Inject(pi.dwProcessId); // always inject when we load a new instance
+		SPDLOG_ERROR("eqgame.exe does not exist at {} : {}", GetEQRoot(), ec.message());
 	}
 	else
 	{
-		SPDLOG_ERROR("Failed to create new eqgame process");
+		// create command line arguments
+		std::string parameters = fmt::format(R"("{}" patchme)", eqgame.string());
+
+		STARTUPINFOA si = { sizeof(STARTUPINFOA) };
+		si.wShowWindow = SW_SHOWNORMAL;
+		si.dwFlags = STARTF_USESHOWWINDOW;
+
+		wil::unique_process_information pi;
+		if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
+		{
+			Inject(pi.dwProcessId); // always inject when we load a new instance
+		}
+		else
+		{
+			SPDLOG_ERROR("Failed to create new eqgame process");
+		}
 	}
 }
 
@@ -393,58 +305,41 @@ std::string GetEQRoot()
 	return "";
 }
 
-namespace {
-
-LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive& start)
+static ProfileRecord ParseProfileFromMessage(const proto::login::StartInstanceMissive& start)
 {
-	LoginInstance instance;
+	ProfileRecord profile;
 
 	switch (start.method_case())
 	{
 	case proto::login::StartInstanceMissive::MethodCase::kDirect:
 		if (start.direct().has_target())
 		{
-			if (start.has_pid())
-				instance.PID = start.pid();
-
 			if (start.direct().target().has_server())
-				instance.Server = start.direct().target().server();
+				profile.serverName = start.direct().target().server();
 
 			if (start.direct().target().has_character())
-				instance.Character = start.direct().target().character();
+				profile.characterName = start.direct().target().character();
 
-			instance.AccountAndPassword = std::make_pair(
-				start.direct().login(),
-				start.direct().password()
-			);
+			profile.accountName = start.direct().login();
+			profile.accountPassword = start.direct().password();
 
 			if (start.direct().has_hotkey())
-				instance.Hotkey = start.direct().hotkey();
+				profile.hotkey = start.direct().hotkey();
 
 			if (start.direct().has_eq_path())
-				instance.EQPath = start.direct().eq_path();
+				profile.eqPath = start.direct().eq_path();
 		}
 		break;
 
 	case proto::login::StartInstanceMissive::MethodCase::kProfile:
 		if (start.profile().has_target() && start.profile().target().has_character() && start.profile().target().has_server())
 		{
-			if (start.has_pid())
-				instance.PID = start.pid();
-
-			instance.ProfileGroup = start.profile().profile();
-			instance.Server = start.profile().target().server();
-			instance.Character = start.profile().target().character();
+			profile.profileName = start.profile().profile();
+			profile.serverName = start.profile().target().server();
+			profile.characterName = start.profile().target().character();
 
 			// get the remaining data from the db for the profile
-			ProfileRecord profile;
-			profile.profileName = *instance.ProfileGroup;
-			profile.serverName = instance.Server;
-			profile.characterName = instance.Character;
 			login::db::ReadProfile(profile);
-
-			if (!profile.hotkey.empty()) instance.Hotkey = profile.hotkey;
-			instance.EQPath = profile.eqPath;
 		}
 		break;
 
@@ -452,12 +347,13 @@ LoginInstance ParseInstanceFromMessage(const proto::login::StartInstanceMissive&
 		break;
 	}
 
-	return instance;
+	return profile;
 }
 
-void ReceivedMessageHandler(ProtoMessagePtr&& message)
+static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 {
-	switch (const auto login_message = message->Parse<proto::login::LoginMessage>(); login_message.id())
+	const auto login_message = message->Parse<proto::login::LoginMessage>();
+	switch (login_message.id())
 	{
 	case proto::login::MessageId::ProfileLoaded:
 		// this message needs to come from the client after it has injected,
@@ -468,8 +364,12 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			start.ParseFromString(login_message.payload());
 
 			// only set the hotkey if the instance reports successfully loaded
-			if (const auto login_it = StartOrUpdateInstance(ParseInstanceFromMessage(start), false); login_it != s_loadedInstances.end() && login_it->Hotkey)
-				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login_it->PID), *login_it->Hotkey);
+			ProfileRecord profile = ParseProfileFromMessage(start);
+			const auto login = StartOrUpdateInstance(
+				start.has_pid() ? start.pid() : 0, profile, false);
+
+			if (login != nullptr && login->Hotkey)
+				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login->PID), *login->Hotkey);
 		}
 
 		break;
@@ -479,11 +379,14 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		{
 			proto::login::StopInstanceMissive stop;
 			stop.ParseFromString(login_message.payload());
-			if (const auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-			                                       [pid = stop.pid()](const LoginInstance& instance) { return instance.PID == pid; }); login_it != s_loadedInstances.end())
+			const auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
+				[pid = stop.pid()](const std::pair<std::string, LoginInstance>& instance)
+				{ return instance.second.PID == pid; });
+
+			if (login_it != s_loadedInstances.end())
 			{
-				if (login_it->Hotkey)
-					UnregisterGlobalHotkey(*login_it->Hotkey);
+				if (login_it->second.Hotkey)
+					UnregisterGlobalHotkey(*login_it->second.Hotkey);
 
 				s_loadedInstances.erase(login_it);
 			}
@@ -512,7 +415,8 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		{
 			proto::login::StartInstanceMissive start;
 			start.ParseFromString(login_message.payload());
-			StartOrUpdateInstance(ParseInstanceFromMessage(start), true);
+			ProfileRecord profile = ParseProfileFromMessage(start);
+			StartOrUpdateInstance(0, profile, true);
 		}
 
 		break;
@@ -520,7 +424,6 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 	default:
 		break;
 	}
-}
 }
 
 void InitializeAutoLogin()

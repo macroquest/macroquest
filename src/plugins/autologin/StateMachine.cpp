@@ -53,7 +53,7 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		for (auto token: args_tokens)
 		{
 			const size_t loc = token.find("/login:");
-			if (loc != std::string_view::npos)
+			if (loc != std::string_view::npos && token.length() > 7)
 			{
 				input = strip_quotes(token.substr(loc + 7), '"');
 				break;
@@ -77,8 +77,8 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (record.serverName.empty() && record.characterName.empty())
 			login::db::ReadFirstProfile(record);
 
-		if (record.customClientIni && record.customClientIni->is_relative())
-			record.customClientIni = std::filesystem::current_path() / *record.customClientIni;
+		if (record.customClientIni)
+			record.customClientIni = (std::filesystem::current_path() / *record.customClientIni).string();
 
 		return record;
 	}

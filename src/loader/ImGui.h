@@ -21,8 +21,6 @@
 
 #include <windows.h>
 
-typedef void (_cdecl * SDL_WindowsMessageHook)(void *userdata, void *hWnd, unsigned int message, uint64_t wParam, int64_t lParam);
-
 namespace LauncherImGui {
 bool SmallCheckbox(const char* label, bool* v);
 bool ToggleSlider(const char* label, bool* v);
@@ -41,8 +39,9 @@ void OpenWindow(
 	const std::string& label
 );
 
-bool AddMainPanel(const std::string& name, const std::function<void()>& callback);
-bool RemoveMainPanel(const std::string& name);
+void SelectMainPanel(const std::string& name);
+void AddMainPanel(const char* name, void(*callback)());
+void RemoveMainPanel(const char* name);
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback);
 bool RemoveContextGroup(const std::string& name);
 void Run(const std::function<bool()>& mainLoop);

@@ -265,7 +265,7 @@ public:
 	static const char* hotkey() { return m_record ? m_record->hotkey.c_str() : ""; }
 	static const char* character_class() { return m_record ? m_record->characterClass.c_str() : ""; }
 
-	static std::optional<std::filesystem::path> custom_ini() { return m_record ? m_record->customClientIni : std::nullopt; }
+	static std::optional<std::string> custom_ini() { return m_record ? m_record->customClientIni : std::nullopt; }
 
 	static int character_level() { return m_record ? m_record->characterLevel : 0; }
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }

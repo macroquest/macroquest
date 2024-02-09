@@ -14,33 +14,29 @@
 
 #pragma once
 
+struct ProfileRecord;
 struct LoginInstance
 {
-	mutable unsigned long PID = 0;
+	uint32_t PID = 0;
 
-	std::string Server;
-	std::string Character;
+	const std::string Server;
+	const std::string Character;
+	const std::string EQPath;
 
-	std::optional<std::pair<std::string, std::string>> AccountAndPassword;
+	std::optional<std::string> ProfileGroup;
+	std::optional<std::string> Hotkey;
 
-	mutable std::optional<std::string> ProfileGroup;
-	mutable std::optional<std::string> EQPath;
-	mutable std::optional<std::string> Hotkey;
+	static std::string Key(std::string_view Server, std::string_view Character);
+	static std::string Key(const ProfileRecord& profile);
+	[[nodiscard]] std::string Key() const { return Key(Server, Character); }
 
-	bool operator==(const LoginInstance& other) const
-	{
-		return ci_equals(Server, other.Server) && ci_equals(Character, other.Character);
-	}
+	void Update(uint32_t pid, const ProfileRecord& profile);
 
-	// hash function, based on server and character
-	size_t operator()(const LoginInstance& instance) const
-	{
-		return std::hash<std::string>()(instance.Server) ^ std::hash<std::string>()(instance.Character);
-	}
+	explicit LoginInstance(uint32_t pid, const ProfileRecord& profile);
 };
 
 // AutoLogin
-void LoadCharacter(const LoginInstance& instance_template);
+void LoadCharacter(ProfileRecord& profile);
 void LoadProfileGroup(std::string_view group);
 void LaunchCleanSession();
 void Import();
