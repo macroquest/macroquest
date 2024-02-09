@@ -431,7 +431,7 @@ bool IsWow64()
     //Use GetModuleHandle to get a handle to the DLL that contains the function
     //and GetProcAddress to get a pointer to the function if available.
 
-	const LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+    const LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
 
     if(nullptr != fnIsWow64Process)
     {
