@@ -320,21 +320,40 @@ public:
 class ServerSelect : public Login
 {
 public:
-	static EQLS::EQClientServerData* GetServer(ServerID serverId, std::string_view serverName)
+	static EQLS::EQClientServerData* GetServer(std::string& serverName)
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
 		if (!g_pLoginClient)
 			return nullptr;
 
+		// we want the long server name or the server ID here because that's what's available at server select
+		ServerID serverId = GetServerIDFromServerName(serverName.c_str());
+
+		// server ID is always highest priority
 		auto server_it = g_pLoginClient->ServerList.end();
 		if (serverId != ServerID::Invalid)
 			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
 				[serverId](EQLS::EQClientServerData* s) { return s->ID == serverId; });
 
+		// otherwise we need to search through our lists
 		if (server_it == g_pLoginClient->ServerList.end())
+		{
+			// get all the possible names that could show up in the server list
+			// starting with the direct argument
+			std::vector server_names = { serverName };
+			for (const auto& name : login::db::ReadLongServer(serverName))
+				server_names.emplace_back(name);
+
 			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
-				[serverName](EQLS::EQClientServerData* s) { return ci_equals(s->ServerName, serverName); });
+				[&server_names](EQLS::EQClientServerData* s)
+				{ return std::find_if(
+					server_names.begin(),
+					server_names.end(),
+					[&name = s->ServerName](const std::string& long_name)
+					{ return ci_equals(name, long_name); }) != server_names.end();
+				});
+		}
 
 		if (server_it != g_pLoginClient->ServerList.end())
 			return *server_it;
@@ -352,20 +371,7 @@ public:
 			return false;
 		}
 
-		// we want the long server name or the server ID here because that's what's available at server select
-		std::string serverName = m_record->serverName;
-		ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
-		if (serverId == ServerID::Invalid)
-		{
-			// see if there is a long name mapping for this serverName
-			// since we are allowing long name to be saved as a serverName, it's okay if this
-			// lookup fails, and we are assuming that any long name is never a short name
-			// or they are exactly equal
-			if (auto name = login::db::ReadLongServer(serverName))
-				serverName = *name;
-		}
-
-		auto server = GetServer(serverId, serverName);
+		auto server = GetServer(m_record->serverName);
 		if (!server)
 		{
 			// no server found, wait

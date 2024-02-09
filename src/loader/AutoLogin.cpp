@@ -47,7 +47,6 @@ postoffice::Dropbox s_dropbox;
 namespace internal_paths
 {
 	std::string s_autoLoginIni;
-	std::string s_eqRoot;
 }
 
 // need a map of shortname to name (TODO: Use long names in the display)

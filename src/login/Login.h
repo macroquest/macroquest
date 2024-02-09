@@ -297,7 +297,7 @@ void DeletePersona(std::string_view server, std::string_view name, std::string_v
 
 void CreateOrUpdateServer(std::string_view short_name, std::string_view long_name);
 Results<std::pair<std::string, std::string>> ListServerNames();
-std::optional<std::string> ReadLongServer(std::string_view short_name);
+Results<std::string> ReadLongServer(std::string_view short_name);
 std::optional<std::string> ReadShortServer(std::string_view long_name);
 void DeleteServer(std::string_view short_name, std::string_view long_name);
 

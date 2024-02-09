@@ -1311,20 +1311,17 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNam
 		});
 }
 
-std::optional<std::string> login::db::ReadLongServer(std::string_view short_name)
+login::db::Results<std::string> login::db::ReadLongServer(std::string_view short_name)
 {
-	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
+	return Results<std::string>(WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT long_name FROM servers WHERE short_name = ?
-			ORDER BY last_seen DESC LIMIT 1)",
-		[short_name](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+			ORDER BY last_seen DESC)",
+		[short_name](sqlite3_stmt* stmt, sqlite3*)
+		{ sqlite3_bind_text(stmt, 1, short_name.data(), static_cast<int>(short_name.length()), SQLITE_STATIC); },
+		[](sqlite3_stmt* stmt, sqlite3*)
 		{
-			sqlite3_bind_text(stmt, 1, short_name.data(), static_cast<int>(short_name.length()), SQLITE_STATIC);
-
-			if (sqlite3_step(stmt) == SQLITE_ROW)
-				return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-
-			return {};
+			return reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
 		});
 }
 
