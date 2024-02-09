@@ -534,10 +534,10 @@ bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 		hash_params.Parallelism = GetUIntFromString(*val, hash_params.Parallelism);
 
 	if (const auto val = ReadSetting("salt_len"))
-		hash_params.SaltLength = GetUInt64FromString(*val, hash_params.SaltLength);
+		hash_params.SaltLength = static_cast<size_t>(GetUInt64FromString(*val, hash_params.SaltLength));
 
 	if (const auto val = ReadSetting("hash_len"))
-		hash_params.HashLength = GetUInt64FromString(*val, hash_params.HashLength);
+		hash_params.HashLength = static_cast<size_t>(GetUInt64FromString(*val, hash_params.HashLength));
 
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(R"(
 		INSERT INTO settings (key, value, description)
@@ -769,7 +769,7 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			INSERT INTO profile_groups (name, eq_path) VALUES(?, ?)
+			INSERT INTO profile_groups (name, eq_path) VALUES(LOWER(?), ?)
 			ON CONFLICT(name) DO UPDATE SET eq_path=excluded.eq_path)",
 		[&group](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -788,7 +788,7 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT id, eq_path FROM profile_groups WHERE name = ?)",
+		R"(SELECT id, eq_path FROM profile_groups WHERE name = LOWER(?))",
 		[&group](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, group.profileName.c_str(), static_cast<int>(group.profileName.length()), SQLITE_STATIC);
@@ -811,9 +811,9 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE profile_groups
-			SET name    = ?,
+			SET name    = LOWER(?),
 			    eq_path = ?
-			WHERE name  = ?)",
+			WHERE name  = LOWER(?))",
 		[name, &group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, group.profileName.c_str(), static_cast<int>(group.profileName.length()), SQLITE_STATIC);
@@ -833,7 +833,7 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 void login::db::DeleteProfileGroup(std::string_view name)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
-		R"(DELETE FROM profile_groups WHERE name = ?)",
+		R"(DELETE FROM profile_groups WHERE name = LOWER(?))",
 		[name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
@@ -864,7 +864,7 @@ void login::db::CreateAccount(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			INSERT INTO accounts (account, password, server_type) VALUES (?, ?, ?)
+			INSERT INTO accounts (account, password, server_type) VALUES (LOWER(?), ?, LOWER(?))
 			ON CONFLICT (account, server_type) DO UPDATE SET password=excluded.password)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -899,7 +899,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 				FROM accounts
 				JOIN characters ON account_id = accounts.id
 				JOIN server_types ON server_type = type
-				WHERE server = ? AND character = ?)",
+				WHERE server = ? AND character = LOWER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -927,7 +927,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 std::optional<std::string> login::db::ReadPassword(std::string_view account, std::string_view server_type, std::optional<std::string_view> password_override /* = {} */)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT password FROM accounts WHERE account = ? AND server_type = ?)",
+		R"(SELECT password FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?))",
 		[account, server_type, &password_override](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
@@ -957,10 +957,10 @@ void login::db::UpdateAccount(std::string_view account, std::string_view server_
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE accounts
-			SET account = ?,
+			SET account = LOWER(?),
 			    password = ?,
-			    server_type = ?
-			WHERE account = ? AND server_type = ?)",
+			    server_type = LOWER(?)
+			WHERE account = LOWER(?) AND server_type = LOWER(?))",
 		[account, server_type, &record](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, record.accountName.c_str(), static_cast<int>(record.accountName.length()), SQLITE_STATIC);
@@ -991,7 +991,7 @@ void login::db::UpdateAccount(std::string_view account, std::string_view server_
 void login::db::DeleteAccount(std::string_view account, std::string_view server_type)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
-		R"(DELETE FROM accounts WHERE account = ? AND server_type = ?)",
+		R"(DELETE FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?))",
 		[account, server_type](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
@@ -1011,7 +1011,7 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacter
 			SELECT server, character
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
-			WHERE account = ? AND server_type = ?)",
+			WHERE account = LOWER(?) AND server_type = LOWER(?))",
 		[account, server_type](sqlite3_stmt* stmt, sqlite3*)
 		{
 			sqlite3_bind_text(stmt, 1, account.data(), static_cast<int>(account.length()), SQLITE_STATIC);
@@ -1084,8 +1084,8 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
 			WHERE LOWER(server) LIKE '%' || ? || '%'
-			   OR LOWER(character) LIKE '%' || ? || '%'
-			   OR LOWER(account) LIKE '%' || ? || '%'
+			   OR character LIKE '%' || ? || '%'
+			   OR account LIKE '%' || ? || '%'
                OR LOWER(class) LIKE '%' || ? || '%'
 			GROUP BY characters.id)",
 		[search](sqlite3_stmt* stmt, sqlite3*)
@@ -1121,7 +1121,7 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			INSERT INTO characters (character, server, account_id) VALUES(?, ?, (SELECT id FROM accounts WHERE account = ? AND server_type = ?))
+			INSERT INTO characters (character, server, account_id) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)))
 			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1141,7 +1141,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 			SELECT id, account, server_type
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
-			WHERE character = ? AND server = ?)",
+			WHERE character = LOWER(?) AND server = ?)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -1164,10 +1164,10 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE characters
-			SET character = ?,
+			SET character = LOWER(?),
 			    server = ?,
-			    account_id = (SELECT id FROM accounts WHERE account = ? AND server_type = ?)
-			WHERE character = ? AND server = ?)",
+			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?))
+			WHERE character = LOWER(?) AND server = ?)",
 		[server, name, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterName.c_str(), static_cast<int>(profile.characterName.length()), SQLITE_STATIC);
@@ -1185,7 +1185,7 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 void login::db::DeleteCharacter(std::string_view server, std::string_view name)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
-		R"(DELETE FROM characters WHERE character = ? AND server = ?)",
+		R"(DELETE FROM characters WHERE character = LOWER(?) AND server = ?)",
 		[server, name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, name.data(), static_cast<int>(name.length()), SQLITE_STATIC);
@@ -1203,7 +1203,7 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO personas (character_id, class, level, last_seen)
-			VALUES ((SELECT id FROM characters WHERE server = ? AND character = ?), ?, ?, datetime())
+			VALUES ((SELECT id FROM characters WHERE server = ? AND character = LOWER(?)), UPPER(?), ?, datetime())
 			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level, last_seen=excluded.last_seen)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1223,7 +1223,7 @@ std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 			SELECT p.id, level
 			FROM personas p
 			JOIN characters c ON p.character_id = c.id
-			WHERE server = ? AND character = ? AND class = ?)",
+			WHERE server = ? AND character = LOWER(?) AND class = UPPER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -1247,10 +1247,10 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			UPDATE personas
-			SET class = ?,
+			SET class = UPPER(?),
 			    level = ?,
 			    last_seen = datetime()
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?)) AND class = UPPER(?))",
 		[cls, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, profile.characterClass.c_str(), static_cast<int>(profile.characterClass.length()), SQLITE_STATIC);
@@ -1268,7 +1268,7 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			DELETE FROM personas
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?) AND class = ?)",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?)) AND class = UPPER(?))",
 		[server, name, cls](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);
@@ -1368,7 +1368,7 @@ void login::db::CreateOrUpdateServerType(std::string_view server_type, std::stri
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			INSERT INTO server_types (type, eq_path) VALUES (?, ?)
+			INSERT INTO server_types (type, eq_path) VALUES (LOWER(?), ?)
 			ON CONFLICT (type) DO UPDATE SET eq_path=excluded.eq_path)",
 		[server_type, eq_path](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1394,7 +1394,7 @@ login::db::Results<std::string> login::db::ListServerTypes()
 std::optional<std::string> login::db::GetPathFromServerType(std::string_view server_type)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT eq_path FROM server_types WHERE type = ?)",
+		R"(SELECT eq_path FROM server_types WHERE type = LOWER(?))",
 		[server_type](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, server_type.data(), static_cast<int>(server_type.length()), SQLITE_STATIC);
@@ -1409,7 +1409,7 @@ std::optional<std::string> login::db::GetPathFromServerType(std::string_view ser
 std::optional<std::string> login::db::GetServerTypeFromPath(std::string_view path)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY)(
-		R"(SELECT type FROM server_types WHERE eq_path = ?)",
+		R"(SELECT type FROM server_types WHERE LOWER(eq_path) = LOWER(?))",
 		[path](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
 		{
 			sqlite3_bind_text(stmt, 1, path.data(), static_cast<int>(path.length()), SQLITE_STATIC);
@@ -1425,7 +1425,7 @@ void login::db::DeleteServerType(std::string_view server_type)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
-			DELETE FROM server_types WHERE server_type = ?)",
+			DELETE FROM server_types WHERE server_type = LOWER(?))",
 		[server_type](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, server_type.data(), static_cast<int>(server_type.length()), SQLITE_STATIC);
@@ -1454,7 +1454,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			JOIN accounts ON accounts.id = account_id
 			JOIN profile_groups ON profile_groups.id = group_id
 			LEFT JOIN personas USING (character_id)
-			WHERE profile_groups.name = ?)",
+			WHERE profile_groups.name = LOWER(?))",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::vector<ProfileRecord> records;
@@ -1503,7 +1503,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, selected, custom_client_ini)
-			VALUES((SELECT id FROM characters WHERE server = ? AND character = ?), (SELECT id FROM profile_groups WHERE name = ?), ?, ?, ?, ?, ?, ?)
+			VALUES((SELECT id FROM characters WHERE server = ? AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?)
 			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, selected=excluded.selected)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1547,7 +1547,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
-			WHERE server = ? AND character = ? AND name = ?)",
+			WHERE server = ? AND character = LOWER(?) AND name = LOWER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -1589,10 +1589,10 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 		R"(
 			SELECT id, eq_path, hotkey, level, account, password, selected, server_type, end_after_select, char_select_delay, custom_client_ini
 			FROM profiles
-			JOIN (SELECT id AS character_id, account FROM characters WHERE server = ? AND character = ?) USING (character_id)
+			JOIN (SELECT id AS character_id, account FROM characters WHERE server = ? AND character = LOWER(?)) USING (character_id)
 			JOIN (SELECT id AS account_id, account_id, server_type FROM accounts) USING (account_id)
-			LEFT JOIN (SELECT id AS group_id FROM profile_groups WHERE name = ?) USING (group_id)
-			LEFT JOIN (SELECT character_id, class, level FROM personas WHERE class = ?) USING (character_id))",
+			LEFT JOIN (SELECT id AS group_id FROM profile_groups WHERE name = LOWER(?)) USING (group_id)
+			LEFT JOIN (SELECT character_id, class, level FROM personas WHERE class = UPPER(?)) USING (character_id))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			sqlite3_bind_text(stmt, 1, profile.serverName.c_str(), static_cast<int>(profile.serverName.length()), SQLITE_STATIC);
@@ -1656,7 +1656,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 			FROM profiles p
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
-			JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = ?) g USING (group_id)
+			JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = LOWER(?)) g USING (group_id)
 			WHERE selected <> 0
 			LIMIT 1)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
@@ -1715,8 +1715,8 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 			    end_after_select = ?,
 			    char_select_delay = ?,
 			    custom_client_ini = ?
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
-			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?))
+			  AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			if (profile.eqPath)
@@ -1755,8 +1755,8 @@ void login::db::DeleteProfile(std::string_view server, std::string_view name, st
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE)(
 		R"(
 			DELETE FROM profiles
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = ?)
-			  AND group_id IN (SELECT id FROM profile_groups WHERE name = ?))",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?))
+			  AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
 		[server, name, group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			sqlite3_bind_text(stmt, 1, server.data(), static_cast<int>(server.length()), SQLITE_STATIC);

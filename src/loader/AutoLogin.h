@@ -44,7 +44,7 @@ void LoadCharacter(const LoginInstance& instance_template);
 void LoadProfileGroup(std::string_view group);
 void LaunchCleanSession();
 void Import();
-const char* GetEQRoot();
+std::string GetEQRoot();
 
 // ImGui
 void ShowAutoLoginWindow();

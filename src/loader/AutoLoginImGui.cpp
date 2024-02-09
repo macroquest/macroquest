@@ -439,7 +439,7 @@ void SetEQDirModal(std::optional<std::string>& eq_path, const Action& ok_action)
 		if (eq_path)
 			ImGui::Text(eq_path->c_str());
 		else
-			ImGui::Text(GetEQRoot());
+			ImGui::Text(GetEQRoot().c_str());
 
 		if (!s_eqDirDialog)
 			s_eqDirDialog = IGFD_Create();
@@ -447,7 +447,7 @@ void SetEQDirModal(std::optional<std::string>& eq_path, const Action& ok_action)
 		if (ImGui::Button("Choose"))
 		{
 			IGFD_OpenDialog(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
-				nullptr, GetEQRoot(), "", 1, nullptr, ImGuiFileDialogFlags_None);
+				nullptr, GetEQRoot().c_str(), "", 1, nullptr, ImGuiFileDialogFlags_None);
 		}
 
 		if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
@@ -485,7 +485,7 @@ void SetEQFileModal(const char* label, std::optional<fs::path>& path, const char
 		if (ImGui::Button("Choose"))
 		{
 			IGFD_OpenDialog(s_eqDirDialog, "ChoosePathKey", label,
-				".ini", GetEQRoot(), default_path, 1, nullptr, ImGuiFileDialogFlags_None);
+				".ini", GetEQRoot().c_str(), default_path, 1, nullptr, ImGuiFileDialogFlags_None);
 		}
 
 		if (IGFD_DisplayDialog(s_eqDirDialog, "ChoosePathKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))

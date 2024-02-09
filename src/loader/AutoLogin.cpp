@@ -137,7 +137,7 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 		{
 			// somehow we have a PID in our map that isn't EQ
 			if (login_it->Hotkey) UnregisterGlobalHotkey(*login_it->Hotkey);
-			s_loadedInstances.erase(login_it);
+			login_it = s_loadedInstances.erase(login_it);
 		}
 		else if (do_update)
 		{
@@ -243,14 +243,14 @@ LoginIterator StartOrUpdateInstance(const LoginInstance& instance_template, bool
 				}
 			}
 
-			std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", internal_paths::s_eqRoot, arg);
+			std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", eq_path, arg);
 
 			STARTUPINFOA si = { sizeof(STARTUPINFOA) };
 			si.wShowWindow = SW_SHOWNORMAL;
 			si.dwFlags = STARTF_USESHOWWINDOW;
 
 			wil::unique_process_information pi;
-			if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi) && pi.hProcess != nullptr)
+			if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, eq_path.c_str(), &si, &pi) && pi.hProcess != nullptr)
 			{
 				login_it = s_loadedInstances.insert(s_loadedInstances.end(), instance_template);
 				login_it->PID = pi.dwProcessId;
@@ -351,20 +351,20 @@ void LoadProfileGroup(std::string_view group)
 void LaunchCleanSession()
 {
 	// Get path to the login server data file
-	const fs::path eqls_player_data_ini = fs::path{ internal_paths::s_eqRoot } / "eqlsPlayerData.ini";
+	const fs::path eqls_player_data_ini = fs::path{ GetEQRoot() } / "eqlsPlayerData.ini";
 
 	// Get default username from eqlsPlayerData.ini
 	std::string username = GetPrivateProfileString("PLAYER", "Username", "<>", eqls_player_data_ini.string());
 
 	// create command line arguments
-	std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", internal_paths::s_eqRoot, username);
+	std::string parameters = fmt::format(R"("{}\eqgame.exe" patchme /login:{})", GetEQRoot(), username);
 
 	STARTUPINFOA si = { sizeof(STARTUPINFOA) };
 	si.wShowWindow = SW_SHOWNORMAL;
 	si.dwFlags = STARTF_USESHOWWINDOW;
 
 	wil::unique_process_information pi;
-	if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, internal_paths::s_eqRoot.c_str(), &si, &pi) && pi.hProcess != nullptr)
+	if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
 	{
 		Inject(pi.dwProcessId); // always inject when we load a new instance
 	}
@@ -380,15 +380,18 @@ void Import()
 	if (!login::db::GetPathFromServerType(GetServerType()))
 		login::db::CreateOrUpdateServerType(GetServerType(), GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni));
 
-	if (const auto eq_path = login::db::GetPathFromServerType(GetServerType()))
-		internal_paths::s_eqRoot = *eq_path;
-
-	login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni, GetServerType()), internal_paths::s_eqRoot);
+	login::db::WriteProfileGroups(LoadAutoLoginProfiles(internal_paths::s_autoLoginIni, GetServerType()), GetEQRoot());
 }
 
-const char* GetEQRoot()
+std::string GetEQRoot()
 {
-	return internal_paths::s_eqRoot.c_str();
+	static auto eq_path = login::db::Cache([]
+		{ return login::db::GetPathFromServerType(GetServerType()); });
+
+	if (eq_path.Read())
+		return *eq_path.Updated();
+
+	return "";
 }
 
 namespace {
@@ -500,7 +503,7 @@ void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			profile.characterName = charinfo.character();
 			profile.characterClass = GetClassShortName(charinfo.class_());
 			profile.characterLevel = static_cast<int>(charinfo.level());
-			login::db::UpdatePersona(GetClassShortName(charinfo.class_()), profile);
+			login::db::CreatePersona(profile);
 		}
 
 		break;
@@ -547,18 +550,6 @@ void InitializeAutoLogin()
 			Import();
 			login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time");
 		}
-
-		// since this is a first load situation, we also need to grab the eq root
-		internal_paths::s_eqRoot = GetPrivateProfileString("Profiles", "DefaultEQPath", "", internal_paths::s_autoLoginIni);
-	}
-
-	// Initialize path to EQ
-	if (const auto eq_path = login::db::GetPathFromServerType(GetServerType()))
-		internal_paths::s_eqRoot = *eq_path;
-
-	if (internal_paths::s_eqRoot.empty())
-	{
-		SPDLOG_ERROR("AutoLogin Error no EQ path specified for server type {}, AutoLogin will not work correctly.", GetServerType());
 	}
 
 	InitializeAutoLoginImGui();
