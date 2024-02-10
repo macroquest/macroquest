@@ -1403,6 +1403,7 @@ static void ShowValidatePassword(const Action& ok_action)
 	if (!show_password) flags |= ImGuiInputTextFlags_Password;
 
 	ImGui::InputText("##password", &password, flags);
+	ImGui::SameLine(); imgui::HelpMarker("Attempt to validate the entered password against the database, or set it if it does not exist.");
 	ImGui::Separator();
 
 	ImGui::Checkbox("Show password", &show_password);
@@ -1424,7 +1425,6 @@ static void ShowValidatePassword(const Action& ok_action)
 			label = "Incorrect Password, Please Enter Master Password";
 		}
 	}
-	ImGui::SameLine(); imgui::HelpMarker("Attempt to validate the entered password against the database, or set it if it does not exist.");
 }
 
 static void ShowNewPassword(const Action& ok_action)
