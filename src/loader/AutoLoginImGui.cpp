@@ -1390,11 +1390,18 @@ void ProfileGroupInfo::Edit(const char* name, const Action& ok_action)
 // TODO: check at first startup when no pass is in the registry
 static void ShowValidatePassword(const Action& ok_action)
 {
-	static const char* label = "Please Enter Master Password";
+	static bool failed_pass = false;
 
-	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label).x / 2.f));
-	ImGui::Text(label);
+	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize("Please Enter Master Password").x / 2.f));
+	ImGui::Text("Please Enter Master Password");
 	ImGui::Spacing();
+
+	if (failed_pass)
+	{
+		ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize("Incorrect Password!").x / 2.f));
+		ImGui::TextColored({ 1.f, 0.f, 0.f, 1.f }, "Incorrect Password!");
+		ImGui::Spacing();
+	}
 
 	static bool show_password = false;
 	static std::string password;
@@ -1416,13 +1423,13 @@ static void ShowValidatePassword(const Action& ok_action)
 		if (!login::db::ReadSetting("master_pass") || login::db::ValidatePass(password))
 		{
 			login::db::MemoizeMasterPass(password);
-			label = "Please Enter Master Password";
+			failed_pass = false;
 
 			ok_action();
 		}
 		else
 		{
-			label = "Incorrect Password, Please Enter Master Password";
+			failed_pass = true;
 		}
 	}
 }
