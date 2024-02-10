@@ -32,7 +32,7 @@ struct LoginInstance
 
 	void Update(uint32_t pid, const ProfileRecord& profile);
 
-	explicit LoginInstance(uint32_t pid, const ProfileRecord& profile);
+	LoginInstance(uint32_t pid, const ProfileRecord& profile);
 };
 
 // AutoLogin

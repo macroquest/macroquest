@@ -1443,17 +1443,19 @@ static void ShowNewPassword(const Action& ok_action)
 	if (!show_password) flags |= ImGuiInputTextFlags_Password;
 
 	ImGui::InputText("##password", &password, flags);
+	ImGui::SameLine(); imgui::HelpMarker("Set the new master password, will require validation of the current password if there is none stored\nAn empty password will proceed with no master password (all data will be stored in plaintext)");
 	ImGui::Separator();
 
 	ImGui::Checkbox("Show password", &show_password);
 	ImGui::SameLine(); imgui::HelpMarker("Show the password in plain text");
+
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Never ask again", &perpetual_password.Read()))
 		login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false");
 	ImGui::SameLine(); imgui::HelpMarker("Save the password to this system so that it never has to be entered again.");
 	ImGui::Spacing();
 
-	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x);
+	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
 	if (ImGui::Button("OK", { 75.f, 0.f }))
 	{
 		if (const auto old_pass = login::db::GetMasterPass();
@@ -1483,7 +1485,6 @@ static void ShowNewPassword(const Action& ok_action)
 			LauncherImGui::EndModal();
 		}
 	}
-	ImGui::SameLine(); imgui::HelpMarker("Set the new master password, will require validation of the current password if there is none stored\nAn empty password will proceed with no master password (all data will be stored in plaintext)");
 }
 
 #pragma endregion
