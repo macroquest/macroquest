@@ -344,7 +344,7 @@
     <ClCompile Include="MQ2WindowInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImguiWidgets.cpp">
+    <ClCompile Include="MQImguiWidgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
