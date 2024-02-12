@@ -38,10 +38,9 @@ PreSetup("MQ2AutoLogin");
 
 constexpr int STEP_DELAY = 1000;
 
-std::string DBPath = (fs::path(mq::gPathConfig) / "login.db").string();
-uint64_t ReenableTime = 0;
-postoffice::DropboxAPI s_autologinDropbox;
-uintptr_t s_joinServer = 0;
+static uint64_t s_reenableTime = 0;
+static postoffice::DropboxAPI s_autologinDropbox;
+static uintptr_t s_joinServer = 0;
 
 class LoginProfileType : public MQ2Type
 {
@@ -424,11 +423,11 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (n)
 	{
-		ReenableTime = MQGetTickCount64() + n;
+		s_reenableTime = MQGetTickCount64() + n;
 	}
 
-	if (ReenableTime)
-		ReenableTime += 30000; // add 30 seconds for camp time
+	if (s_reenableTime)
+		s_reenableTime += 30000; // add 30 seconds for camp time
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
@@ -738,7 +737,7 @@ PLUGIN_API void InitializePlugin()
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
 	}
 
-	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+	s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 
 	// create a server type for this build if it doesn't already exist (to ensure that automatic character creation works)
 	std::string server_type = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
@@ -923,12 +922,12 @@ PLUGIN_API void OnPulse()
 		Login::dispatch(UnpauseLogin(true));
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
 		Login::dispatch(PauseLogin(true));
-	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > s_reenableTime)
 	{
 		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > s_reenableTime)
 	{
 		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pWnd != nullptr && pWnd->IsVisible() == 1)
@@ -944,9 +943,9 @@ PLUGIN_API void OnPulse()
 		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > s_reenableTime)
 	{
 		// pair of WindowNames / ButtonNames
 		static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
@@ -989,7 +988,7 @@ PLUGIN_API void OnPulse()
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
 

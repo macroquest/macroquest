@@ -52,7 +52,7 @@ void LauncherImGui::Backend::Init(HWND hWnd)
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	io.ConfigViewportsNoTaskBarIcon = false;
 	io.ConfigViewportsNoDefaultParent = true;
-	io.ConfigViewportsNoAutoMerge = true;
+	io.ConfigViewportsNoAutoMerge = false;
 	io.ConfigViewportsNoDecoration = true;
 
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;

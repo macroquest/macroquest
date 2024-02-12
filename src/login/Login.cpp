@@ -649,14 +649,9 @@ std::optional<std::string> login::db::ReadStoredMasterPass()
 	wil::unique_hkey pass_hkey;
 	std::optional<std::wstring> pass; // this must be a wstring, that's the only way to store strings in the registry
 
-	if (open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
-	{
-		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
-	}
-	else if (!((pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass"))))
-	{
-		SPDLOG_ERROR("AutoLogin Error master pass is missing from registry.");
-	}
+	open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read);
+	if (pass_hkey)
+		pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass");
 
 	if (pass)
 	{
@@ -674,22 +669,13 @@ bool login::db::ReadMasterPassExpired()
 	std::optional<DWORD> pass_timestamp;
 
 	if (open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
-	{
-		SPDLOG_ERROR("AutoLogin Error failed to open registry key.");
 		return true;
-	}
 
 	if (!((pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp"))))
-	{
-		SPDLOG_ERROR("AutoLogin Error master pass is missing date.");
 		return true;
-	}
 
 	if (*pass_timestamp > 0 && static_cast<int>(*pass_timestamp) < duration_cast<hours>(system_clock::now().time_since_epoch()).count())
-	{
-		SPDLOG_ERROR("AutoLogin Error master pass has expired.");
 		return true;
-	}
 
 	return false;
 }
@@ -948,7 +934,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 				profile.serverType = ReadText(stmt, 2);
 				profile.eqPath = ReadText(stmt, 3);
 
-				std::string pass(ReadText(stmt, 1), sqlite3_column_bytes(stmt, 1));
+				std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
 				if (const auto master_pass = GetMasterPass())
 					pass = XorEncryptDecrypt(pass, *master_pass);
 
@@ -972,7 +958,7 @@ std::optional<std::string> login::db::ReadPassword(std::string_view account, std
 
 			if (sqlite3_step(stmt) == SQLITE_ROW)
 			{
-				std::string pass(ReadText(stmt, 0), sqlite3_column_bytes(stmt, 0));
+				std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)), sqlite3_column_bytes(stmt, 0));
 				if (password_override)
 				{
 					if (!password_override->empty())
@@ -1644,7 +1630,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 					profile.characterLevel = sqlite3_column_int(stmt, 3);
 
 				profile.accountName = ReadText(stmt, 4);
-				const std::string pass(ReadText(stmt, 5), sqlite3_column_bytes(stmt, 5));
+				const std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)), sqlite3_column_bytes(stmt, 5));
 				if (const auto master_pass = GetMasterPass())
 					profile.accountPassword = XorEncryptDecrypt(pass, *master_pass);
 				else
@@ -1709,7 +1695,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 
 				profile.serverType = ReadText(stmt, 3);
 				profile.accountName = ReadText(stmt, 4);
-				const std::string pass(ReadText(stmt, 5), sqlite3_column_bytes(stmt, 5));
+				const std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)), sqlite3_column_bytes(stmt, 5));
 				if (const auto master_pass = GetMasterPass())
 					profile.accountPassword = XorEncryptDecrypt(pass, *master_pass);
 				else
@@ -1876,7 +1862,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					ProfileRecord record;
 
 					record.accountName = ReadText(stmt, 0);
-					const std::string pass(ReadText(stmt, 1), sqlite3_column_bytes(stmt, 1));
+					const std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
 					if (auto master_pass = GetMasterPass())
 						record.accountPassword = XorEncryptDecrypt(pass, *master_pass);
 					else

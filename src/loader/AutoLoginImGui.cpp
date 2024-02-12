@@ -180,7 +180,7 @@ struct ServerTypeInfo
 		login::db::DeleteServerType(ServerType);
 	}
 
-	static constexpr std::string_view label = "Server Type";
+	static constexpr std::string_view label = "EQ Install";
 
 	[[nodiscard]] bool Valid() const { return !ServerType.empty(); }
 };
@@ -410,13 +410,13 @@ static void DefaultCombo(Info& info, const Action& select_action)
 		if constexpr (!Info::label_override.empty())
 		{
 			ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
-			ImGui::Text(JoinLabels<Info::label_override>::literal);
+			ImGui::TextUnformatted(JoinLabels<Info::label_override>::literal);
 		}
 	}
 	else
 	{
 		ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
-		ImGui::Text(JoinLabels<Info::label>::literal);
+		ImGui::TextUnformatted(JoinLabels<Info::label>::literal);
 	}
 
 	if (LauncherImGui::BeginModal(modal_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -438,9 +438,9 @@ static void SetEQDirModal(std::optional<std::string>& eq_path, const Action& ok_
 	if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		if (eq_path)
-			ImGui::Text(eq_path->c_str());
+			ImGui::TextUnformatted(eq_path->c_str());
 		else
-			ImGui::Text(GetEQRoot().c_str());
+			ImGui::TextUnformatted(GetEQRoot().c_str());
 
 		if (!s_eqDirDialog)
 			s_eqDirDialog = IGFD_Create();
@@ -476,9 +476,9 @@ static void SetEQFileModal(const char* label, std::optional<std::string>& path, 
 	if (LauncherImGui::BeginModal(label, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		if (path)
-			ImGui::Text(path->c_str());
+			ImGui::TextUnformatted(path->c_str());
 		else
-			ImGui::Text(default_path);
+			ImGui::TextUnformatted(default_path);
 
 		if (!s_eqDirDialog)
 			s_eqDirDialog = IGFD_Create();
@@ -908,7 +908,7 @@ static void CharacterTable(const std::string_view search)
 	if (ImGui::BeginTable("Main List", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 	{
 		ImGui::TableSetupColumn("Account");
-		ImGui::TableSetupColumn("Server Type");
+		ImGui::TableSetupColumn("EQ Install");
 		ImGui::TableSetupColumn("Server");
 		ImGui::TableSetupColumn("Character");
 		ImGui::TableSetupColumn("Persona");
@@ -964,16 +964,16 @@ static void CharacterTable(const std::string_view search)
 			}
 
 			ImGui::SameLine();
-			ImGui::Text(match.accountName.c_str());
+			ImGui::TextUnformatted(match.accountName.c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(match.serverType.c_str());
+			ImGui::TextUnformatted(match.serverType.c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(match.serverName.c_str());
+			ImGui::TextUnformatted(match.serverName.c_str());
 
 			ImGui::TableNextColumn();
-			ImGui::Text(match.characterName.c_str());
+			ImGui::TextUnformatted(match.characterName.c_str());
 
 			ImGui::TableNextColumn();
 			if (match.characterClass.empty())
@@ -1198,7 +1198,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 		if (!info.profileName.empty())
 		{
 			ImGui::TableSetupColumn("Account");
-			ImGui::TableSetupColumn("Server Type");
+			ImGui::TableSetupColumn("EQ Install");
 			ImGui::TableSetupColumn("Server");
 			ImGui::TableSetupColumn("Character");
 			ImGui::TableSetupColumn("Persona");
@@ -1254,16 +1254,16 @@ static void ProfileTable(const ProfileGroupInfo& info)
 				}
 
 				ImGui::SameLine();
-				ImGui::Text(profile.accountName.c_str());
+				ImGui::TextUnformatted(profile.accountName.c_str());
 
 				ImGui::TableNextColumn();
-				ImGui::Text(profile.serverType.c_str());
+				ImGui::TextUnformatted(profile.serverType.c_str());
 
 				ImGui::TableNextColumn();
-				ImGui::Text(profile.serverName.c_str());
+				ImGui::TextUnformatted(profile.serverName.c_str());
 
 				ImGui::TableNextColumn();
-				ImGui::Text(profile.characterName.c_str());
+				ImGui::TextUnformatted(profile.characterName.c_str());
 
 				ImGui::TableNextColumn();
 				if (profile.characterClass.empty())
@@ -1272,7 +1272,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 					ImGui::Text("%s %d", profile.characterClass.c_str(), profile.characterLevel);
 
 				ImGui::TableNextColumn();
-				ImGui::Text(profile.hotkey.c_str());
+				ImGui::TextUnformatted(profile.hotkey.c_str());
 
 				ImGui::TableNextColumn();
 				if (ImGui::SmallButton("Play"))
@@ -1386,8 +1386,6 @@ void ProfileGroupInfo::Edit(const char* name, const Action& ok_action)
 
 #pragma region Password
 
-// TODO: add better tooltip
-// TODO: check at first startup when no pass is in the registry
 static void ShowValidatePassword(const Action& ok_action)
 {
 	static bool failed_pass = false;
@@ -1439,7 +1437,7 @@ static void ShowNewPassword(const Action& ok_action)
 	static constexpr const char* label = "Please Enter New Master Password";
 
 	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label).x / 2.f));
-	ImGui::Text(label);
+	ImGui::TextUnformatted(label);
 	ImGui::Spacing();
 
 	static bool show_password = false;
@@ -1502,11 +1500,12 @@ void ShowAutoLoginWindow()
 
 	if (ImGui::BeginTabBar("Main Tab Bar", ImGuiTabBarFlags_FittingPolicyResizeDown))
 	{
-		const auto tab_size = ImGui::GetContentRegionMax().x * 0.33f;
+		const auto tab_size = ImGui::GetContentRegionMax().x * 0.25f;
 		ImGui::SetNextItemWidth(tab_size);
 		if (ImGui::BeginTabItem("Profiles"))
 		{
 			static ProfileGroupInfo info;
+			static ProfileGroupInfo selected;
 			// Code goes into this scope for selecting and modifying profiles/groups
 			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
@@ -1514,14 +1513,29 @@ void ShowAutoLoginWindow()
 			{
 				if (ImGui::SmallButton("Create"))
 				{
-					info = {};
+					selected = {};
 					LauncherImGui::OpenModal("Create Profile Group");
 				}
 
-				info.Edit("Create Profile Group", []
+				selected.Edit("Create Profile Group", []
 					{
+						info = selected;
 						if (info.Valid())
 							login::db::CreateProfileGroup(info);
+					});
+
+				if (ImGui::SmallButton("Edit") && info.Valid())
+				{
+					selected = info;
+					LauncherImGui::OpenModal("Edit Profile Group");
+				}
+
+				selected.Edit("Edit Profile Group", []
+					{
+						if (selected.Valid())
+							login::db::UpdateProfileGroup(info.profileName, selected);
+
+						info = selected;
 					});
 
 				static std::string remove_message;
@@ -1548,7 +1562,13 @@ void ShowAutoLoginWindow()
 				ImGui::GetStyle().FramePadding.x * 2 -
 				ImGui::GetStyle().ItemSpacing.x -
 				ImGui::GetStyle().WindowPadding.x);
-			DefaultCombo(info, [] {});
+
+			if (ImGui::BeginCombo("##Profile Group", info.Preview().c_str()))
+			{
+				info.List([] {});
+
+				ImGui::EndCombo();
+			}
 
 			ImGui::SameLine();
 			if (ImGui::Button("Launch Group") && info.Valid())
@@ -1596,6 +1616,18 @@ void ShowAutoLoginWindow()
 				});
 
 			CharacterTable(search);
+
+			ImGui::EndChild();
+			ImGui::EndTabItem();
+		}
+
+		ImGui::SetNextItemWidth(tab_size);
+		if (ImGui::BeginTabItem("Accounts"))
+		{
+			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
+
+			static AccountInfo info;
+			DefaultListBox(info);
 
 			ImGui::EndChild();
 			ImGui::EndTabItem();
@@ -1714,11 +1746,11 @@ void ShowAutoLoginWindow()
 
 			ImGui::Separator();
 			ImGui::Spacing();
-			if (ImGui::Button("Manage Server Types"))
-				LauncherImGui::OpenModal("Manage Server Types");
-			ImGui::SameLine(); imgui::HelpMarker("Manage the server type to default path mappings and entries");
+			if (ImGui::Button("Manage EQ Installs"))
+				LauncherImGui::OpenModal("Manage EQ Installs");
+			ImGui::SameLine(); imgui::HelpMarker("Manage the the mapping of EQ build to EQ install location");
 
-			if (LauncherImGui::BeginModal("Manage Server Types", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			if (LauncherImGui::BeginModal("Manage EQ Installs", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				DefaultListBox(server_type_info);
 

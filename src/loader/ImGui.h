@@ -29,11 +29,6 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags);
 void EndModal();
 void CloseModal();
 
-struct Viewport
-{
-	std::function<bool()> DrawFrame;
-};
-
 void OpenWindow(
 	const std::function<bool()>& draw,
 	const std::string& label

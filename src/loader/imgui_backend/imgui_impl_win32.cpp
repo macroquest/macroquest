@@ -1271,9 +1271,15 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
 				::SetForegroundWindow(hWnd);
 			break;
 		case WM_KILLFOCUS:
-			ImGui::ClearActiveID();
-			ImGui::FocusWindow(nullptr);
+		{
+			const auto focus = ImGui::FindViewportByPlatformHandle((void*)wParam);
+			if (focus == nullptr || viewport->ID != focus->ParentViewportId || viewport->ParentViewportId != focus->ID)
+			{
+				ImGui::ClearActiveID();
+				ImGui::FocusWindow(nullptr);
+			}
 			break;
+		}
         }
     }
 
