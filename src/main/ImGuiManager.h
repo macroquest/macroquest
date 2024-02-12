@@ -23,11 +23,13 @@ void ImGuiManager_Shutdown();
 void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
-void ImGuiManager_DrawCursorAttachment();
+void ImGuiManager_DrawCursorAttachment(bool show);
 
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);
+ImFont* ImGuiManager_GetEQImFont(int fontID);
+
 
 void ImGuiManager_ReloadContext();
 void ImGuiManager_CreateContext();
@@ -45,6 +47,9 @@ extern bool gbManualResetRequired;
 
 // global imgui toggle
 extern bool gbRenderImGui;
+
+// When true, hides the cursor attachment
+extern bool gbHideCursorAttachment;
 
 
 } // namespace mq

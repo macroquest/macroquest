@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
+#include "ImGuiManager.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -88,7 +89,7 @@ static bool HandleFraming(ImDrawList* drawList, CXPoint& pos, CXSize& size, cons
 
 static CXSize GetEffectiveSize(const CXSize& size, const CTextureAnimation* textureAnimation)
 {
-	return size.cx != 0 && size.cy != 0 ? size : (textureAnimation->bGrid ? textureAnimation->CellRect.GetSize() : textureAnimation->Size);
+	return size.cx != 0 && size.cy != 0 ? size : (textureAnimation->IsGrid() ? textureAnimation->CellRect.GetSize() : textureAnimation->GetSize());
 }
 
 static CXSize GetEffectiveSize(const CXSize& size, const CUITextureInfo& textureInfo)
@@ -152,7 +153,7 @@ bool DrawUITexture(
 	return DrawUITextureInternal(window->DrawList, textureInfo, CXPoint(), size, sourceRect, tintColor);
 }
 
-bool AddUITexture(
+bool DrawUITexture(
 	ImDrawList* drawList,
 	const CUITextureInfo& textureInfo,
 	const CXPoint& screenPos,
@@ -204,7 +205,7 @@ bool DrawTexturePiece(
 	return DrawTexturePiece(texturePiece, imageSize, texturePiece.GetRect(), tintColor, borderColor);
 }
 
-bool AddTexturePiece(
+bool DrawTexturePiece(
 	ImDrawList* drawList,
 	const CUITexturePiece& texturePiece,
 	const CXPoint& pos,
@@ -222,7 +223,7 @@ bool AddTexturePiece(
 	return DrawUITextureInternal(drawList, texturePiece.GetTextureInfo(), thePos, theSize, sourceRect, tintColor);
 }
 
-bool AddTexturePiece(
+bool DrawTexturePiece(
 	ImDrawList* drawList,
 	const CUITexturePiece& texturePiece,
 	const CXPoint& pos,
@@ -230,7 +231,7 @@ bool AddTexturePiece(
 	const MQColor& tintColor,
 	const MQColor& borderColor)
 {
-	return AddTexturePiece(drawList, texturePiece, pos, size, texturePiece.GetRect(), tintColor);
+	return DrawTexturePiece(drawList, texturePiece, pos, size, texturePiece.GetRect(), tintColor);
 }
 
 //
@@ -261,11 +262,11 @@ bool DrawTextureAnimation(
 		return true;
 	const STextureAnimationFrame& frame = textureAnimation->Frames[frameNum];
 
-	if (textureAnimation->bGrid)
+	if (textureAnimation->IsGrid())
 	{
-		if (textureAnimation->CurCell != -1)
+		if (textureAnimation->GetCurCell() != -1)
 		{
-			DrawUITextureInternal(window->DrawList, frame.Piece.GetTextureInfo(), thePos, theSize, textureAnimation->CellRect, tintColor);
+			DrawUITextureInternal(window->DrawList, frame.Piece.GetTextureInfo(), thePos, theSize, textureAnimation->GetCurCellRect(), tintColor);
 		}
 	}
 	else
@@ -276,7 +277,7 @@ bool DrawTextureAnimation(
 	return true;
 }
 
-bool AddTextureAnimation(
+bool DrawTextureAnimation(
 	ImDrawList* drawList,
 	const CTextureAnimation* textureAnimation,
 	const CXPoint& pos,
@@ -299,9 +300,9 @@ bool AddTextureAnimation(
 
 	const STextureAnimationFrame& frame = textureAnimation->Frames[frameNum];
 
-	if (textureAnimation->bGrid)
+	if (textureAnimation->IsGrid())
 	{
-		if (textureAnimation->CurCell != -1)
+		if (textureAnimation->GetCurCell() != -1)
 		{
 			return DrawUITextureInternal(drawList, frame.Piece.GetTextureInfo(), thePos, theSize, textureAnimation->CellRect, tintColor);
 		}
@@ -317,6 +318,123 @@ bool AddTextureAnimation(
 //
 // EQ UI Draw Routines
 //
+
+static CXRect GetSidlPieceRect(const CScreenPieceTemplate* pTemplate, const CXRect& rect)
+{
+	CXRect outRect = pTemplate->rect;
+
+	if (pTemplate->bAutoStretchVertical)
+	{
+		if (pTemplate->bTopAnchorToTop)
+		{
+			outRect.top = pTemplate->nTopOffset;
+		}
+		else
+		{
+			outRect.top = rect.GetHeight() - pTemplate->nTopOffset;
+		}
+
+		if (pTemplate->bBottomAnchorToTop)
+		{
+			outRect.bottom = pTemplate->nBottomOffset;
+		}
+		else
+		{
+			outRect.bottom = rect.GetHeight() - pTemplate->nBottomOffset;
+		}
+	}
+	
+	if (pTemplate->bAutoStretchHorizontal)
+	{
+		if (pTemplate->bLeftAnchorToLeft)
+		{
+			outRect.left = pTemplate->nLeftOffset;
+		}
+		else
+		{
+			outRect.left = rect.GetWidth() - pTemplate->nLeftOffset;
+		}
+
+		if (pTemplate->bRightAnchorToLeft)
+		{
+			outRect.right = pTemplate->nRightOffset;
+		}
+		else
+		{
+			outRect.right = rect.GetWidth() - pTemplate->nRightOffset;
+		}
+	}
+
+	if (pTemplate->bRelativePosition)
+	{
+		outRect += rect.TopLeft();
+	}
+
+	return outRect;
+}
+
+static void Draw(ImDrawList* drawList, const CStaticTintedBlendAnimationTemplate* pTemplate, const CXRect& rect)
+{
+	if (!pTemplate) return;
+
+	if (pTemplate->ptaLayerOneTexture && !pTemplate->ptaLayerTwoTexture)
+	{
+		DrawTextureAnimation(drawList, pTemplate->ptaLayerOneTexture, rect);
+		return;
+	}
+
+	if (pTemplate->ptaLayerTwoTexture && !pTemplate->ptaLayerOneTexture)
+	{
+		DrawTextureAnimation(drawList, pTemplate->ptaLayerTwoTexture, rect);
+		return;
+	}
+
+	if (!pTemplate->ptaLayerOneTexture && !pTemplate->ptaLayerTwoTexture)
+	{
+		return;
+	}
+
+	DrawTextureAnimation(drawList, pTemplate->ptaLayerOneTexture, rect, pTemplate->colorLayerOneTint);
+	DrawTextureAnimation(drawList, pTemplate->ptaLayerTwoTexture, rect, pTemplate->colorLayerTwoTint);
+}
+
+void DrawScreenPiece(ImDrawList* drawList, const eqlib::CScreenPieceTemplate* pTemplate, const CXRect& rect)
+{
+	if (!pTemplate)
+		return;
+
+	EStaticScreenPieceClasses ssp = pSidlMgr->GetScreenPieceEnum(pTemplate);
+	switch (ssp)
+	{
+	case StaticScreenPieceUnknown:
+	case StaticScreenPieceHeader:
+	case StaticScreenPieceFrame:
+	case StaticScreenPieceMax:
+	default:
+		break;
+
+	case StaticScreenPieceText:
+		// TODO: Support drawing text.
+		break;
+
+	case StaticScreenPieceAnimation: {
+		auto* pAnim = static_cast<const CStaticAnimationTemplate*>(pTemplate);
+		if (pAnim->bAutoDraw && pAnim->ptaTextureAnimation)
+		{
+			DrawTextureAnimation(drawList, pAnim->ptaTextureAnimation, GetSidlPieceRect(pTemplate, rect));
+		}
+		break;
+	}
+
+	case StaticScreenPieceTintedBlendAnimation:
+		auto* pAnim = static_cast<const CStaticTintedBlendAnimationTemplate*>(pTemplate);
+		if (pAnim->bAutoDraw)
+		{
+			Draw(drawList, pAnim, rect);
+		}
+		break;
+	}
+}
 
 bool SpellGem(const char* strId, eqlib::CSpellGemWnd* pSpellGem, ImGuiSpellGemFlags flags)
 {
@@ -339,7 +457,7 @@ bool SpellGem(const char* strId, eqlib::CSpellGemWnd* pSpellGem, ImGuiSpellGemFl
 	bool hovered, held;
 	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
-	AddSpellGem(drawList, pSpellGem, thePos, hovered);
+	DrawSpellGem(drawList, pSpellGem, thePos, hovered);
 
 	if (pressed)
 	{
@@ -362,7 +480,7 @@ bool SpellGem(const char* strId, eqlib::CSpellGemWnd* pSpellGem, ImGuiSpellGemFl
 	return pressed;
 }
 
-void AddSpellGem(ImDrawList* drawList,
+void DrawSpellGem(ImDrawList* drawList,
 	const eqlib::CSpellGemWnd* pSpellGem,
 	const eqlib::CXPoint& position,
 	bool hovered)
@@ -380,7 +498,7 @@ void AddSpellGem(ImDrawList* drawList,
 		// No gem, just the background.
 		if (pSpellGem->DrawTemplate.ptaHolder)
 		{
-			AddTextureAnimation(drawList, pSpellGem->DrawTemplate.ptaHolder, position, theSize);
+			DrawTextureAnimation(drawList, pSpellGem->DrawTemplate.ptaHolder, position, theSize);
 		}
 	}
 	else
@@ -393,21 +511,20 @@ void AddSpellGem(ImDrawList* drawList,
 		{
 			if (pSpellGem->bChecked)
 			{
-				AddTextureAnimation(drawList, pTA, position, theSize, MQColor(255, 255, 255, 255));
+				DrawTextureAnimation(drawList, pTA, position, theSize, MQColor(255, 255, 255, 255));
 			}
 			else if (hovered)
 			{
-				AddTextureAnimation(drawList, pTA, position, theSize, gemTint + MQColor(32, 32, 32, 0));
+				DrawTextureAnimation(drawList, pTA, position, theSize, gemTint + MQColor(32, 32, 32, 0));
 			}
 			else
 			{
-				AddTextureAnimation(drawList, pTA, position, theSize, gemTint);
+				DrawTextureAnimation(drawList, pTA, position, theSize, gemTint);
 			}
 		}
 
 		// Draw gem icon
-		CTextureAnimation* pTAIcon = pSpellGem->CustomIconTexture ? pSpellGem->CustomIconTexture : pSpellGem->SpellIconTexture;
-		if (pTAIcon)
+		if (CTextureAnimation* pTAIcon = pSpellGem->CustomIconTexture ? pSpellGem->CustomIconTexture : pSpellGem->SpellIconTexture)
 		{
 			CXPoint iconPos = {
 				position.x + static_cast<int>(pSpellGem->SpellIconOffsetX * scale),
@@ -420,29 +537,68 @@ void AddSpellGem(ImDrawList* drawList,
 
 			if (pSpellGem->TintIndex == 0)
 			{
-				AddTextureAnimation(drawList, pTAIcon, iconPos, iconSize);
+				DrawTextureAnimation(drawList, pTAIcon, iconPos, iconSize);
 			}
 			else
 			{
-				AddTextureAnimation(drawList, pTAIcon, iconPos, iconSize, MQColor(255, 255, 255, pSpellGem->SpellGemAlphaArray[pSpellGem->TintIndex]));
+				DrawTextureAnimation(drawList, pTAIcon, iconPos, iconSize, MQColor(255, 255, 255,
+					static_cast<uint8_t>(pSpellGem->SpellGemAlphaArray[pSpellGem->TintIndex])));
 			}
 		}
 
 		// Draw highlight
-		CTextureAnimation* pTAHighlight = pSpellGem->DrawTemplate.ptaHighlight;
-		if (pTAHighlight)
+		if (CTextureAnimation* pTAHighlight = pSpellGem->DrawTemplate.ptaHighlight)
 		{
-			AddTextureAnimation(drawList, pTAHighlight, position, theSize);
+			DrawTextureAnimation(drawList, pTAHighlight, position, theSize);
 		}
 	}
 
 	drawList->PopClipRect();
 }
 
-
 //----------------------------------------------------------------------------
 
-MQColor DefaultLinkHoverColor = MQColor(0, 0, 255);
+void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXRect& rect,
+	MQColor color, uint16_t flags)
+{
+	ImFont* eqFont = ImGuiManager_GetEQImFont(fontStyle);
+	CCachedFont* font = CCachedFont::Get(fontStyle);
+
+	if (!eqFont || !font) return;
+
+	FONT_D3DTLVERTEX unusedVertex;
+	flags |= DrawText_CalcOnly;
+
+	int lines = font->DrawWrappedText(nullptr, text, rect, rect, 0, &unusedVertex, flags, 0);
+
+	auto& textLines = font->textLines;
+
+	if (!textLines.empty())
+	{
+		drawList->PushClipRect(rect.TopLeft(), rect.BottomRight());
+
+		int yOffset = 0;
+
+		if (flags & DrawText_VCenter)
+		{
+			int totalLineHeight = font->nHeight * lines;
+			yOffset += std::max<int>(0, (rect.GetHeight() - totalLineHeight) / 2) + 1;
+		}
+
+		for (auto& textLine : textLines)
+		{
+			for (auto& charPos : textLine.arCharPos)
+			{
+				eqFont->RenderChar(drawList, eqFont->FontSize, ImVec2(textLine.nXOffset + charPos.x, textLine.y + yOffset),
+					color.ToImU32(), charPos.c);
+			}
+		}
+
+		drawList->PopClipRect();
+	}
+}
+
+//----------------------------------------------------------------------------
 
 bool ItemLinkTextV_Internal(ImGuiID id, MQColor color, const char* fmt, va_list args)
 {

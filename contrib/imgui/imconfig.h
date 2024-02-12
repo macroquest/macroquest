@@ -24,6 +24,7 @@
 #if HAS_DIRECTX_11
 #include <d3d11.h>
 #endif
+#include <type_traits>
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
@@ -125,6 +126,11 @@ public:
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
 
+#define IM_VEC2_CLASS_EXTRA \
+    template <typename T, typename U, typename = std::enable_if_t<std::conjunction_v<      \
+        std::is_arithmetic_v<T>, std::is_arithmetic_v<U>>>> \
+    constexpr ImVec2(T x_, U y_) : x(static_cast<float>(x_)), y(static_cast<float>(y_)) {}
+
 #define IM_VEC4_CLASS_EXTRA \
     static ImVec4 FromImU32(ImU32 u32); \
     ImU32 ToImU32() const;
@@ -167,6 +173,17 @@ namespace eqlib
 
 #if HAS_DIRECTX_11
 
+namespace eqlib
+{
+    inline namespace DX9Wrapper {
+        namespace DX11 {
+            class TextureImpl;
+        }
+    }
+
+    using Direct3DTexture9 = DX9Wrapper::DX11::TextureImpl;
+}
+
 class ImGuiTextureObject
 {
 public:
@@ -187,6 +204,11 @@ public:
     ImGuiTextureObject(const eqlib::CEQGBitmap* bitmap)
     {
         SetBitmap(bitmap);
+    }
+
+    ImGuiTextureObject(const eqlib::Direct3DTexture9* texture)
+    {
+        SetTexture(texture);
     }
 
     ImGuiTextureObject(const ImGuiTextureObject& other)
@@ -226,6 +248,13 @@ public:
         return *this;
     }
 
+    ImGuiTextureObject& operator=(const eqlib::Direct3DTexture9* texture)
+    {
+        SetTexture(texture);
+
+        return *this;
+    }
+
     ImGuiTextureObject& operator=(ID3D11ShaderResourceView* shaderResourceView)
     {
         SetPointer(shaderResourceView);
@@ -240,7 +269,9 @@ public:
         return *this;
     }
 
-    bool IsBitmap() const { return (value & 0x8000000000000000) != 0; }
+    bool IsBitmap() const { return (value & 0xC000000000000000) == 0x8000000000000000; }
+    bool IsTexture() const { return (value & 0xC000000000000000) == 0xC000000000000000; }
+    bool IsSRV() const { return (value & 0xC000000000000000) == 0x0000000000000000; }
 
     const eqlib::CEQGBitmap* GetBitmap() const
     {
@@ -248,7 +279,11 @@ public:
     }
     ID3D11ShaderResourceView* GetShaderResourceView() const
     {
-        return IsBitmap() ? nullptr : static_cast<ID3D11ShaderResourceView*>(GetPointer());
+        return IsSRV() ? static_cast<ID3D11ShaderResourceView*>(GetPointer()) : nullptr;
+    }
+    eqlib::Direct3DTexture9* GetTexture() const
+    {
+        return IsTexture() ? static_cast<eqlib::Direct3DTexture9*>(GetPointer()) : nullptr;
     }
 
     operator intptr_t() const { return reinterpret_cast<intptr_t>(GetPointer()); }
@@ -259,13 +294,18 @@ public:
 
     void* GetPointer() const
     {
-        return reinterpret_cast<void*>(value & ~0x8000000000000000);
+        return reinterpret_cast<void*>(value & ~0xC000000000000000);
     }
 
 private:
     void SetBitmap(const eqlib::CEQGBitmap* bitmap)
     {
         value = reinterpret_cast<uintptr_t>(bitmap) | 0x8000000000000000;
+    }
+
+    void SetTexture(const eqlib::Direct3DTexture9* texture)
+    {
+        value = reinterpret_cast<uintptr_t>(texture) | 0xC000000000000000;
     }
 
     void SetPointer(void* pointer)

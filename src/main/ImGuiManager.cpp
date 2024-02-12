@@ -32,6 +32,7 @@
 #include <mq/utils/Benchmarks.h>
 
 #include "imgui/implot/implot_internal.h"
+#include "mq/imgui/Widgets.h"
 
 namespace ImGui
 {
@@ -349,6 +350,8 @@ uint32_t bmPluginsUpdateImGui = 0;
 // global imgui toggle
 bool gbRenderImGui = true;
 
+bool gbHideCursorAttachment = false;
+
 enum class DebugTab {
 	MouseInput = 0,
 	Graphics = 1,
@@ -357,7 +360,8 @@ enum class DebugTab {
 	None = -1,
 };
 static DebugTab s_selectDebugTab = DebugTab::None;
-static bool s_bOverlayDebug = false;
+static bool s_overlayDebug = false;
+static bool s_enableCursorAttachment = true;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
@@ -464,11 +468,160 @@ void LoadFonts()
 	ReleaseDC(0, hdc);
 }
 
+//----------------------------------------------------------------------------
+//============================================================================
+
+struct EQFontData
+{
+	std::string      fontName;
+	int              fontSize = 0;
+	int              fontID = 0;
+	bool             valid = false;
+
+	HFONT            hFont;
+	HDC              hDC;
+
+	ImFont*          pImFont = nullptr;
+	ImFontConfig     fontConfig;
+	CCachedFont*     pCachedFont = nullptr;
+};
+
+static std::vector<EQFontData> s_eqFontData;
+static bool s_eqFontsLoaded = false;
+
+ImFont* ImGuiManager_GetEQImFont(int fontID)
+{
+	if (fontID >= 0 && fontID < static_cast<int>(s_eqFontData.size()))
+		return s_eqFontData[fontID].pImFont;
+
+	return nullptr;
+}
+
+std::unique_ptr<uint8_t[]> GetRawFontData(HFONT hFont, HDC hdc, uint32_t& dataSize)
+{
+	std::unique_ptr<uint8_t[]> fontData;
+	HFONT oldFont = static_cast<HFONT>(SelectObject(hdc, hFont));
+
+	// Get the size of the font data
+	dataSize = GetFontData(hdc, 0, 0, nullptr, 0);
+	if (dataSize != GDI_ERROR)
+	{
+		fontData = std::make_unique<uint8_t[]>(dataSize);
+
+		// Actually get the font data
+		if (GetFontData(hdc, 0, 0, fontData.get(), dataSize) == GDI_ERROR)
+		{
+			fontData.reset();
+		}
+	}
+
+	SelectObject(hdc, oldFont);
+	return fontData;
+}
+
+static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData)
+{
+	// Load font data from HFONT
+	uint32_t fontDataSize = 0;
+	auto fontDataBuffer = GetRawFontData(fontData.hFont, fontData.hDC, fontDataSize);
+	if (!fontDataBuffer)
+		return false;
+
+	fontData.fontConfig = ImFontConfig();
+	fontData.fontConfig.FontData = fontDataBuffer.get();
+	fontData.fontConfig.FontDataSize = fontDataSize;
+	fontData.fontConfig.FontDataOwnedByAtlas = false;
+	fontData.fontConfig.OversampleH = 2;
+	fontData.fontConfig.OversampleV = 2;
+	fontData.fontConfig.PixelSnapH = true;
+	strcpy_s(fontData.fontConfig.Name, fontData.fontName.c_str());
+
+	// FreeType renders the fonts slightly bigger than the renderer that EQ uses. To compensate, we
+	// adjust the font size slightly. It isn't perfect, however. Unless we use the same font rasterizer,
+	// the appearance will be slightly different if you look close enough.
+	switch (fontData.fontSize)
+	{
+	case 10:
+		fontData.fontConfig.SizePixels = 9;
+		break;
+
+	default:
+		fontData.fontConfig.SizePixels = static_cast<float>(fontData.fontSize) - 2;
+		break;
+	}
+
+	ImFont* newFont = fontAtlas->AddFont(&fontData.fontConfig);
+
+	// Preserve existing pointer so that we don't invalidate any client code using the font.
+	if (fontData.pImFont)
+	{
+		*fontData.pImFont = *newFont;
+	}
+	else
+	{
+		fontData.pImFont = newFont;
+	}
+
+	fontData.valid = true;
+	return true;
+}
+
+static std::string CreateFontDisplayName(SLogFontEntry& fontEntry, int num)
+{
+	std::string name = fmt::format("EQ Font {} - {} {}", num, fontEntry.lf.lfFaceName, fontEntry.lf.lfHeight);
+	if (fontEntry.lf.lfWeight == FW_THIN)
+		name += " Thin";
+	if (fontEntry.lf.lfWeight == FW_BOLD)
+		name += " Bold";
+
+	return name;
+}
+
+static bool LoadEQFonts(ImFontAtlas* fontAtlas)
+{
+	s_eqFontData.resize(NumFontStyles);
+
+	for (int i = 0; i < NumFontStyles; ++i)
+	{
+		CCachedFont* font = CCachedFont::Get(i);
+		if (!font) break;
+		CFontManager* pFontMgr = font->pFontManager;
+
+		SLogFontEntry& fontEntry = pFontMgr->arLogFonts[i];
+
+		if (font->hDC == INVALID_HANDLE_VALUE || font->hFont == INVALID_HANDLE_VALUE)
+			continue;
+
+		EQFontData& fontData = s_eqFontData[i];
+
+		fontData.pCachedFont = font;
+		fontData.fontID = i;
+		fontData.fontName = CreateFontDisplayName(fontEntry, i);
+		fontData.fontSize = font->nHeight;
+		fontData.hDC = font->hDC;
+		fontData.hFont = font->hFont;
+		fontData.valid = false;
+
+		LoadFontData(fontAtlas, fontData);
+	}
+
+	return true;
+}
+
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas)
 {
 	LoadFonts();
 
 	mq::imgui::ConfigureFonts(fontAtlas);
+	s_eqFontsLoaded = LoadEQFonts(fontAtlas);
+}
+
+void ImGuiManager_CleanupFonts()
+{
+	delete s_fontAtlas;
+	s_fontAtlas = nullptr;
+
+	s_eqFontsLoaded = false;
 }
 
 void FontPicker()
@@ -486,7 +639,7 @@ void PulseFonts()
 void UpdateImGuiDebugInfo()
 {
 	ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("ImGui Debug", &s_bOverlayDebug))
+	if (ImGui::Begin("ImGui Debug", &s_overlayDebug))
 	{
 		if (ImGui::BeginTabBar("#DebugTabs"))
 		{
@@ -534,7 +687,7 @@ void UpdateImGuiDebugInfo()
 			ImGui::EndTabBar();
 		}
 	}
-	if (!s_bOverlayDebug)
+	if (!s_overlayDebug)
 	{
 		WritePrivateProfileBool("MacroQuest", "OverlayDebug", false, mq::internal_paths::MQini);
 	}
@@ -553,9 +706,92 @@ static void ResumeOverlay()
 	gbManualResetRequired = false;
 }
 
+static int s_showForFrames = 0;
+
+static bool ImGuiManager_DetectCursorAttachment()
+{
+	auto& io = ImGui::GetIO();
+	auto* context = ImGui::GetCurrentContext();
+	bool show = false;
+	ImGuiWindow* overlappedWindow = nullptr;
+
+	if (context->HoveredWindow)
+	{
+		show = true;
+		overlappedWindow = context->HoveredWindow;
+	}
+	else
+	{
+		// Check to see if the cursor would overlap a window
+		ImVec2 attachmentSize(32, 32);
+
+		ImGuiWindow* window = ImGui::FindWindowByName("##CursorAttachment");
+		if (window)
+		{
+			attachmentSize = window->Size;
+		}
+
+		// Create rect
+		ImRect attachmentRect(io.MousePos + ImVec2(1, 1), io.MousePos + ImVec2(1, 1) + attachmentSize);
+
+		for (int i = context->Windows.Size - 1; i >= 0; --i)
+		{
+			ImGuiWindow* window = context->Windows[i];
+
+			if (!window->Active || window->Hidden)
+				continue;
+			if (window->Flags & ImGuiWindowFlags_NoMouseInputs)
+				continue;
+			if (window->Viewport != context->MouseViewport)
+				continue;
+
+			// Using the clipped AABB, a child window will typically be clipped by its parent (not always)
+			if (!window->OuterRectClipped.Overlaps(attachmentRect))
+				continue;
+
+			// Support for one rectangular hole in any given window
+			// FIXME: Consider generalizing hit-testing override (with more generic data, callback, etc.) (#1512)
+			if (window->HitTestHoleSize.x != 0)
+			{
+				ImVec2 hole_pos(window->Pos.x + (float)window->HitTestHoleOffset.x, window->Pos.y + (float)window->HitTestHoleOffset.y);
+				ImVec2 hole_size((float)window->HitTestHoleSize.x, (float)window->HitTestHoleSize.y);
+				if (ImRect(hole_pos, hole_pos + hole_size).Contains(io.MousePos))
+					continue;
+			}
+
+			show = true;
+			overlappedWindow = window;
+			break;
+		}
+	}
+
+	ImGui::Begin("CursorAttachment Debug");
+	if (overlappedWindow)
+	{
+		ImGui::Text("%s", overlappedWindow->Name);
+		ImGui::Text("Show: %s", show ? "true" : "false");
+	}
+	ImGui::End();
+
+	if (show)
+	{
+		s_showForFrames = 3;
+	}
+	else if (s_showForFrames > 0)
+	{
+		--s_showForFrames;
+	}
+
+	gbHideCursorAttachment = s_showForFrames > 0;
+	return s_showForFrames > 0;
+}
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
+
+	bool showCursorAttachment = ImGuiManager_DetectCursorAttachment();
+
 	DoImGuiUpdateInternal();
 
 	// Plugins will get disabled if an error occurs.
@@ -605,23 +841,132 @@ void ImGuiManager_DrawFrame()
 		ImGui::End();
 	}
 
-	if (s_bOverlayDebug)
+	if (s_overlayDebug)
 	{
 		UpdateImGuiDebugInfo();
 	}
 
-	ImGuiManager_DrawCursorAttachment();
+	ImGuiManager_DrawCursorAttachment(showCursorAttachment);
 }
 
-void ImGuiManager_DrawCursorAttachment()
+void ImGuiManager_DrawCursorAttachment(bool show)
 {
-	if (!pCursorAttachment || !pCursorAttachment->IsVisible())
+	if (!pCursorAttachment || !pCursorAttachment->IsActive())
 		return;
 
-	if (pCursorAttachment->pSpellGem && pCursorAttachment->pSpellGem->IsVisible())
+	if (show)
 	{
-		// Draw the spell gem
-		
+		ImVec2 pos = ImGui::GetMousePos() + ImVec2(1, 1);
+		ImVec2 size = pCursorAttachment->GetClientRect().GetSize();
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+
+		show = ImGui::Begin("##CursorAttachment", nullptr,
+			ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing
+			| ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking);
+
+		if (show)
+		{
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			CXRect rect = CXRect(CXPoint(pos), CXSize(size));
+
+			if (pCursorAttachment->pBGStaticAnim)
+			{
+				mq::imgui::DrawScreenPiece(window->DrawList, pCursorAttachment->pBGStaticAnim, rect);
+			}
+
+			if (pCursorAttachment->pOverlayStaticAnim)
+			{
+				mq::imgui::DrawScreenPiece(window->DrawList, pCursorAttachment->pOverlayStaticAnim, rect);
+			}
+
+			ECursorAttachmentType type = static_cast<ECursorAttachmentType>(pCursorAttachment->Type);
+
+			if (type == eCursorAttachment_SpellGem)
+			{
+				if (pCursorAttachment->pSpellGem && pCursorAttachment->pSpellGem->IsVisible())
+				{
+					// Draw the spell gem using the widget API because we want it to also reserve space in the window.
+					ImGui::SetCursorPos(pCursorAttachment->pSpellGem->Location.TopLeft());
+					mq::imgui::SpellGem("##SpellGem", pCursorAttachment->pSpellGem, ImGuiSpellGemFlags_None);
+				}
+			}
+
+			// Draw button text
+			if (!pCursorAttachment->ButtonText.empty())
+			{
+				CXRect textRect;
+				if (pCursorAttachment->pBGStaticAnim)
+				{
+					textRect = pCursorAttachment->pBGStaticAnim->rect;
+					textRect += pos;
+				}
+				else
+				{
+					textRect = rect;
+				}
+
+				mq::imgui::DrawEQText(window->DrawList, FontStyle_14, pCursorAttachment->ButtonText.c_str(),
+					textRect, MQColor(255, 255, 255), DrawText_VCenter | DrawText_HCenter);
+			}
+
+			// Draw currency/stack size
+			if (pCursorAttachment->Quantity > 0)
+			{
+				window->DrawList->PushClipRectFullScreen();
+
+				CCachedFont* eqFont = CCachedFont::Get(pCursorAttachment->TextFontStyle);
+				ImFont* font = ImGuiManager_GetEQImFont(pCursorAttachment->TextFontStyle);
+
+				if (font && eqFont)
+				{
+					fmt::memory_buffer buf;
+					fmt::format_to(fmt::appender(buf), "{:d}", pCursorAttachment->Quantity);
+					buf.push_back(0);
+
+					if (type == eCursorAttachment_Item
+						|| type == eCursorAttachment_InvSlot
+						|| type == eCursorAttachment_ItemLink
+						|| type == eCursorAttachment_KronoSlot)
+					{
+						int textWidth = static_cast<int>(font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, buf.data(), nullptr).x);
+						if (textWidth < 10) textWidth = 10;
+
+						CXRect textRect = rect;
+						textRect.bottom -= 6;
+						textRect.right -= 6;
+						textRect.top = textRect.bottom - 10;
+						textRect.left = textRect.right - textWidth;
+
+						window->DrawList->AddRectFilled(textRect.TopLeft(), textRect.BottomRight(),
+							MQColor(64, 64, 64).ToImU32());
+
+						mq::imgui::DrawEQText(window->DrawList, pCursorAttachment->TextFontStyle, buf.data(),
+							textRect);
+					}
+					else
+					{
+						CXRect textRect = rect;
+						textRect.top = rect.bottom - 4;
+						textRect.bottom = textRect.top + eqFont->nHeight;
+
+						window->DrawList->AddRectFilled(textRect.TopLeft(), textRect.BottomRight(),
+							MQColor(64, 64, 64).ToImU32());
+
+						mq::imgui::DrawEQText(window->DrawList, pCursorAttachment->TextFontStyle, buf.data(),
+							textRect, MQColor(255, 255, 255), DrawText_NoWrap | DrawText_HCenter);
+					}
+				}
+
+				window->DrawList->PopClipRect();
+			}
+
+			// Ensure that this window is last in the viewport
+			ImGui::BringWindowToDisplayFront(window);
+		}
+
+		ImGui::End();
 	}
 }
 
@@ -749,8 +1094,7 @@ void ImGuiManager_DestroyContext()
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 
-	delete s_fontAtlas;
-	s_fontAtlas = nullptr;
+	ImGuiManager_CleanupFonts();
 }
 
 void ImGuiManager_OverlaySettings()
@@ -792,6 +1136,14 @@ void ImGuiManager_OverlaySettings()
 	ImGui::Unindent();
 	ImGui::EndDisabled();
 
+	if (ImGui::Checkbox("Emulate EverQuest Cursor", &s_enableCursorAttachment))
+	{
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, MacroQuest will take over drawing the EQ Cursor when\n"
+		"it is near to or hovering over an ImGui window.");
+
 	ImGui::NewLine();
 
 	if (ImGui::Button("Clear Saved ImGui Window Settings"))
@@ -820,7 +1172,13 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 
-	if (ci_equals(szArg, "reload"))
+	bool showUsage = false;
+
+	if (ci_equals(szArg, "help"))
+	{
+		showUsage = true;
+	}
+	else if (ci_equals(szArg, "reload"))
 	{
 		ResetOverlay();
 	}
@@ -845,7 +1203,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		char szParam[MAX_STRING] = { 0 };
 		GetArg(szParam, szLine, 2);
 
-		bool newOverlayDebug = s_bOverlayDebug;
+		bool newOverlayDebug = s_overlayDebug;
 
 		if (szParam[0] == 0)
 		{
@@ -854,28 +1212,67 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		else if (ci_equals(szParam, "mouse"))
 		{
 			s_selectDebugTab = DebugTab::MouseInput;
-			s_bOverlayDebug = true;
+			s_overlayDebug = true;
 		}
 		else if (ci_equals(szParam, "graphics"))
 		{
 			s_selectDebugTab = DebugTab::Graphics;
-			s_bOverlayDebug = true;
+			s_overlayDebug = true;
 		}
 
-		if (newOverlayDebug != s_bOverlayDebug)
+		if (newOverlayDebug != s_overlayDebug)
 		{
-			s_bOverlayDebug = newOverlayDebug;
-			WriteChatf("Overlay debug info is now: %s", s_bOverlayDebug ? "\agOn" : "\arOff");
-			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+			s_overlayDebug = newOverlayDebug;
+			WriteChatf("Overlay debug info is now: %s", s_overlayDebug ? "\agOn" : "\arOff");
+			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
 		}
 	}
 	else if (ci_equals(szLine, "start"))
 	{
 		StartupOverlayComponents();
 	}
+	else if (ci_equals(szArg, "cursor"))
+	{
+		char szParam[MAX_STRING] = { 0 };
+		GetArg(szParam, szLine, 2);
+
+		if (ci_equals(szParam, "on"))
+		{
+			s_enableCursorAttachment = true;
+		}
+		else if (ci_equals(szParam, "off"))
+		{
+			s_enableCursorAttachment = false;
+		}
+		else if (szParam[0])
+		{
+			showUsage = true;
+		}
+		else
+		{
+			s_enableCursorAttachment = !s_enableCursorAttachment;
+		}
+
+		WriteChatf("Overlay cursor attachment emulation is now: %s",
+			s_enableCursorAttachment ? "\agOn" : "\arOff");
+
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	}
 	else
 	{
-		WriteChatf("Usage: /mqoverlay [reload | resume | debug | stop | start]");
+		showUsage = true;
+	}
+
+	if (showUsage)
+	{
+		WriteChatf("\ayUsage: /mqoverlay <options>");
+		WriteChatf("\ayOverlay Control Options:");
+		//WriteChatf("\ay  [reload | resume | debug | stop | start]")
+		WriteChatf("\ay  reload\ax    - Reload the overlay by shutting it down and starting it back up again.");
+		WriteChatf("\ay  resume\ax    - Resumes the overlay in the event that an error has occurred.");
+		WriteChatf("\ay  stop\ax      - Turns off the overlay. This state does not persist between MQ sessions.");
+		WriteChatf("\ay  start\ax     - Turns on the overlay.");
+		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no parma will toggle).");
 	}
 }
 
@@ -885,16 +1282,19 @@ void ImGuiManager_Initialize()
 	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-	s_bOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+	s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
+
 	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
 	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
@@ -922,7 +1322,7 @@ void ImGuiManager_Initialize()
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
 	}
 
 	AddCommand("/mqoverlay", MQOverlayCommand);
