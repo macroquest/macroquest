@@ -24,6 +24,19 @@ namespace eqlib {
 	class CSpellGemWnd;
 }
 
+using ImGuiSpellGemFlags = int;  // -> enum ImGuiSpellGemFlags_     // Flags: for mq::imgui::SpellGem
+
+// Flags for SpellGem()
+enum ImGuiSpellGemFlags_
+{
+	ImGuiSpellGemFlags_None = 0,
+	ImGuiSpellGemFlags_AllowSpellCast    = 1 << 0,   // Allow casting spell with left click
+	ImGuiSpellGemFlags_AllowUnmemorize   = 1 << 1,   // Allow unmemorizing spell with right click
+	ImGuiSpellGemFlags_AllowSpellDrag    = 1 << 2,   // Allow dragging spell with left click and hold
+
+	ImGuiSpellGemFlags_AllowAll          = ImGuiSpellGemFlags_AllowSpellCast | ImGuiSpellGemFlags_AllowUnmemorize | ImGuiSpellGemFlags_AllowSpellDrag,
+};
+
 namespace mq::imgui {
 
 constexpr MQColor NoBorderColor = MQColor(0, 0, 0, 0); // No border
@@ -146,7 +159,7 @@ MQLIB_OBJECT bool AddTexturePiece(
 //
 
 // Draw a SpellGem
-MQLIB_OBJECT bool SpellGem(const char* strId, const eqlib::CSpellGemWnd* pSpellGem);
+MQLIB_OBJECT bool SpellGem(const char* strId, eqlib::CSpellGemWnd* pSpellGem, ImGuiSpellGemFlags flags = ImGuiSpellGemFlags_None);
 
 // Draw a SpellGem to a draw list
 MQLIB_OBJECT void AddSpellGem(ImDrawList* drawList,

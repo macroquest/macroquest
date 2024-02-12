@@ -318,7 +318,7 @@ bool AddTextureAnimation(
 // EQ UI Draw Routines
 //
 
-bool SpellGem(const char* strId, const eqlib::CSpellGemWnd* pSpellGem)
+bool SpellGem(const char* strId, eqlib::CSpellGemWnd* pSpellGem, ImGuiSpellGemFlags flags)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
@@ -337,9 +337,27 @@ bool SpellGem(const char* strId, const eqlib::CSpellGemWnd* pSpellGem)
 	ImDrawList* drawList = window->DrawList;
 
 	bool hovered, held;
-	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
 	AddSpellGem(drawList, pSpellGem, thePos, hovered);
+
+	if (pressed)
+	{
+		if ((flags & ImGuiSpellGemFlags_AllowSpellCast) && ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+		{
+			pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICK, nullptr);
+
+		}
+		else if ((flags & ImGuiSpellGemFlags_AllowUnmemorize) && pSpellGem->SpellIconIndex >= 0 && ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+		{
+			pSpellGem->ParentWndNotification(pSpellGem, XWM_RCLICK, nullptr);
+		}
+	}
+	else if ((flags & ImGuiSpellGemFlags_AllowSpellDrag) && ImGui::IsItemHovered() && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left] > 0.750f)
+	{
+		pSpellGem->ParentWndNotification(pSpellGem, XWM_LCLICKHOLD, nullptr);
+		pSpellGem->ParentWndNotification(pSpellGem, XWM_LBUTTONUPAFTERHELD, nullptr);
+	}
 
 	return pressed;
 }

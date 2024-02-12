@@ -2456,12 +2456,11 @@ public:
 				ImGui::TreePop();
 			}
 
+			pWnd->bChecked = static_cast<CButtonWnd*>(pWnd)->bChecked;
+
 			// Draw the spell gem
 			TreeAdvanceToLabelPos(); ImGui::TextUnformatted("Spell Gem"); ImGui::TableNextColumn();
-			if (mq::imgui::SpellGem("##InspectorSpellGem", pWnd))
-			{
-				pWnd->ParentWndNotification(pWnd, XWM_LCLICK, nullptr);
-			}
+			mq::imgui::SpellGem("##InspectorSpellGem", pWnd, ImGuiSpellGemFlags_AllowAll);
 
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
