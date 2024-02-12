@@ -609,6 +609,20 @@ void ImGuiManager_DrawFrame()
 	{
 		UpdateImGuiDebugInfo();
 	}
+
+	ImGuiManager_DrawCursorAttachment();
+}
+
+void ImGuiManager_DrawCursorAttachment()
+{
+	if (!pCursorAttachment || !pCursorAttachment->IsVisible())
+		return;
+
+	if (pCursorAttachment->pSpellGem && pCursorAttachment->pSpellGem->IsVisible())
+	{
+		// Draw the spell gem
+		
+	}
 }
 
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)

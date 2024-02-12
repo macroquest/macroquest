@@ -21,23 +21,81 @@ namespace eqlib {
 	class CTextureAnimation;
 	struct CUITextureInfo;
 	class CUITexturePiece;
+	class CSpellGemWnd;
 }
 
 namespace mq::imgui {
 
+constexpr MQColor NoBorderColor = MQColor(0, 0, 0, 0); // No border
+constexpr MQColor DefaultBorderColor = MQColor(255, 255, 255, 127); // Light white border
+constexpr MQColor DefaultTintColor = MQColor(255, 255, 255, 255); // White/clear
+
 // Draws a CTextureAnimation. This is the preferred method for drawing a UI texture to imgui.
 // This function uses the provided size, if available. Otherwise, it uses the internally
 // specified size of the texture.
-MQLIB_OBJECT bool DrawTextureAnimation(const eqlib::CTextureAnimation* textureAnimation, const eqlib::CXSize& size = eqlib::CXSize(),
-	bool drawBorder = false);
+MQLIB_OBJECT bool DrawTextureAnimation(
+	const eqlib::CTextureAnimation* textureAnimation,
+	const eqlib::CXSize& size = eqlib::CXSize(),
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
 
-// Draws a CUITextureInfo. This is the lowest level of the UI texture hierarchy, and represents a full individual texture.
-MQLIB_OBJECT bool DrawUITexture(const eqlib::CUITextureInfo& textureInfo, const eqlib::CXRect& rect = eqlib::CXRect(0, 0, -1, -1),
-	const eqlib::CXSize& size = eqlib::CXSize(), bool drawBorder = false);
+inline bool DrawTextureAnimation(
+	const eqlib::CTextureAnimation* textureAnimation,
+	const eqlib::CXSize& size,
+	bool drawBorder)
+{
+	return DrawTextureAnimation(textureAnimation, size, DefaultTintColor, drawBorder ? DefaultBorderColor : NoBorderColor);
+}
 
-// Draws a TexturePiece. srcRect can be used to draw only a sub-section of the full texture.
-MQLIB_OBJECT bool DrawTexturePiece(const eqlib::CUITexturePiece& texturePiece, const eqlib::CXRect& srcRect, const eqlib::CXSize& imageSize, bool drawBorder = false);
-MQLIB_OBJECT bool DrawTexturePiece(const eqlib::CUITexturePiece& texturePiece, const eqlib::CXSize& imageSize, bool drawBorder = false);
+// Draws a CUITextureInfo at the current cursor location. This is the lowest level of the UI texture hierarchy, and represents a full individual texture.
+MQLIB_OBJECT bool DrawUITexture(
+	const eqlib::CUITextureInfo& textureInfo,
+	const eqlib::CXSize& size = eqlib::CXSize(),
+	const eqlib::CXRect& sourceRect = eqlib::CXRect(0, 0, -1, -1),
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
+
+inline bool DrawUITexture(
+	const eqlib::CUITextureInfo& textureInfo,
+	const eqlib::CXSize& size,
+	const eqlib::CXRect& sourceRect,
+	bool drawBorder)
+{
+	return DrawUITexture(textureInfo, size, sourceRect, DefaultTintColor, drawBorder ? DefaultBorderColor : NoBorderColor);
+}
+
+// Draws a TexturePiece. srcRect can be used to draw only a subsection of the full texture.
+MQLIB_OBJECT bool DrawTexturePiece(
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXSize& size,
+	const eqlib::CXRect& sourceRect,
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
+
+inline bool DrawTexturePiece(
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXSize& imageSize,
+	const eqlib::CXRect& sourceRect,
+	bool drawBorder)
+{
+	return DrawTexturePiece(texturePiece, imageSize, sourceRect, DefaultTintColor, drawBorder ? DefaultBorderColor : NoBorderColor);
+}
+
+// Draw a TexturePiece
+MQLIB_OBJECT bool DrawTexturePiece(
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXSize& imageSize,
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
+
+inline bool DrawTexturePiece(
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXSize& imageSize,
+	bool drawBorder)
+{
+	return DrawTexturePiece(texturePiece, imageSize, DefaultTintColor, drawBorder ? DefaultBorderColor : NoBorderColor);
+}
+
 
 //
 // Same as above drawing APIs, but allow drawing to a drawlist instead of the current window.
@@ -46,16 +104,56 @@ MQLIB_OBJECT bool DrawTexturePiece(const eqlib::CUITexturePiece& texturePiece, c
 // Adds a TextureAnimation to the specified draw list. This is the preferred method for drawing a UI texture to imgui.
 // This function uses the provided size, if available. Otherwise, it uses the internally
 // specified size of the texture.
-MQLIB_OBJECT bool AddTextureAnimation(ImDrawList* drawList, const eqlib::CTextureAnimation* textureAnimation, const eqlib::CXPoint& pos,
-	const eqlib::CXSize& size = eqlib::CXSize());
+MQLIB_OBJECT bool AddTextureAnimation(
+	ImDrawList* drawList,
+	const eqlib::CTextureAnimation* textureAnimation,
+	const eqlib::CXPoint& pos,
+	const eqlib::CXSize& size = eqlib::CXSize(),
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
 
-// Adds a CUITextureInfo to the specified draw list. This is the lowest level of the UI texture hierarchy, and represents a full individual texture.
-MQLIB_OBJECT bool AddUITexture(ImDrawList* drawList, const eqlib::CUITextureInfo& textureInfo, const eqlib::CXPoint& pos, const eqlib::CXRect& rect = eqlib::CXRect(0, 0, -1, -1),
-	const eqlib::CXSize& size = eqlib::CXSize());
+// Adds a CUITextureInfo to the specified draw list. This is thbe lowest level of the UI texture hierarchy, and represents a full individual texture.
+MQLIB_OBJECT bool AddUITexture(
+	ImDrawList* drawList,
+	const eqlib::CUITextureInfo& textureInfo,
+	const eqlib::CXPoint& pos,
+	const eqlib::CXSize& size = eqlib::CXSize(),
+	const eqlib::CXRect& sourceRect = eqlib::CXRect(0, 0, -1, -1),
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
 
-// Draws a TexturePiece. srcRect can be used to draw only a sub-section of the full texture.
-MQLIB_OBJECT bool AddTexturePiece(ImDrawList* drawList, const eqlib::CUITexturePiece& texturePiece, const eqlib::CXPoint& pos, const eqlib::CXRect& srcRect, const eqlib::CXSize& imageSize);
-MQLIB_OBJECT bool AddTexturePiece(ImDrawList* drawList, const eqlib::CUITexturePiece& texturePiece, const eqlib::CXPoint& pos, const eqlib::CXSize& imageSize);
+// Draws a TexturePiece. srcRect can be used to draw only a subsection of the full texture.
+MQLIB_OBJECT bool AddTexturePiece(
+	ImDrawList* drawList,
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXPoint& pos,
+	const eqlib::CXSize& size,
+	const eqlib::CXRect& sourceRect,
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
+
+MQLIB_OBJECT bool AddTexturePiece(
+	ImDrawList* drawList,
+	const eqlib::CUITexturePiece& texturePiece,
+	const eqlib::CXPoint& pos,
+	const eqlib::CXSize& size,
+	const MQColor& tintColor = DefaultTintColor,
+	const MQColor& borderColor = NoBorderColor);
+
+
+//
+// Draw EQ UI Components with ImGui
+//
+
+// Draw a SpellGem
+MQLIB_OBJECT bool SpellGem(const char* strId, const eqlib::CSpellGemWnd* pSpellGem);
+
+// Draw a SpellGem to a draw list
+MQLIB_OBJECT void AddSpellGem(ImDrawList* drawList,
+	const eqlib::CSpellGemWnd* pSpellGem,
+	const eqlib::CXPoint& position,
+	bool hovered = false);
+
 
 //
 // Misc
@@ -72,5 +170,7 @@ MQLIB_OBJECT bool ItemLinkText(std::string_view str, mq::MQColor color, mq::MQCo
 
 MQLIB_OBJECT bool ItemLinkTextV(const char* str_id, mq::MQColor color, const char* fmt, va_list args);
 MQLIB_OBJECT bool ItemLinkText(const char* str_id, mq::MQColor color, const char* fmt, ...);
+
+
 
 } // namespace mq::imgui

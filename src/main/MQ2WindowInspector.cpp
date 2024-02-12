@@ -194,7 +194,7 @@ static void ColumnValue(const char* fmt, va_list args)
 		const char* str = va_arg(args, const char*);
 
 		if (IsEmptyValue(str))
-			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "%s", str);
 		else
 			ImGui::Text("%s", str);
 	}
@@ -231,7 +231,7 @@ static bool ColumnLinkValue(const char* str_id, MQColor color, const char* fmt, 
 
 static void ColumnNumber(const char* Label, int* number)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
 	ImGui::SetNextItemWidth(-1);
@@ -244,7 +244,7 @@ static void ColumnNumber(const char* Label, int* number)
 
 static void ColumnText(const char* Label, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -257,7 +257,7 @@ static void ColumnText(const char* Label, const char* fmt, ...)
 
 static void ColumnTextType(const char* Label, const char* Type, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -272,7 +272,7 @@ static void ColumnTextType(const char* Label, const char* Type, const char* fmt,
 
 static bool ColumnLinkTextType(const char* Label, const char* str_id, const char* Type, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -290,7 +290,7 @@ static bool ColumnLinkTextType(const char* Label, const char* str_id, const char
 static bool ColumnCheckBox(const char* Label, bool* value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::Checkbox("", value); ImGui::PopID();
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
@@ -300,7 +300,7 @@ static bool ColumnCheckBox(const char* Label, bool* value)
 static bool ColumnCheckBox(const char* Label, bool value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value2 = value;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value2); ImGui::PopID();
@@ -314,7 +314,7 @@ template <typename T>
 static bool ColummCheckBox(const char* Label, T* ptr, bool (T::* getter)(), void (T::* setter)(bool))
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value = ptr->getter();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
@@ -328,7 +328,7 @@ static bool ColummCheckBox(const char* Label, T* ptr, bool (T::* getter)(), void
 static bool ColummCheckBox(const char* Label, bool (* getter)(), void (* setter)(bool))
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value = getter();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
@@ -342,7 +342,7 @@ static bool ColummCheckBox(const char* Label, bool (* getter)(), void (* setter)
 static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned int flags_value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::CheckboxFlags("", flags, flags_value); ImGui::PopID();
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
@@ -353,7 +353,7 @@ template <typename Rep, typename Period>
 static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds ms, std::chrono::duration<Rep, Period> epoch)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label);
 	if (ms.count() > 0)
 	{
@@ -362,7 +362,7 @@ static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds 
 		char szTemp[32] = { 0 };
 		fmt::format_to(szTemp, "{:%H:%M:%S}", ms);
 
-		ImGui::Text(szTemp);
+		ImGui::TextUnformatted(szTemp);
 	}
 	else
 	{
@@ -377,7 +377,7 @@ static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds 
 static bool ColumnElapsedTimestamp(const char* Label, int32_t ms)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label);
 	if (ms != 0)
 	{
@@ -391,7 +391,7 @@ static bool ColumnElapsedTimestamp(const char* Label, int32_t ms)
 			strcat_s(szTemp, " ago");
 		}
 
-		ImGui::Text(szTemp);
+		ImGui::TextUnformatted(szTemp);
 	}
 	else
 	{
@@ -435,7 +435,7 @@ static bool ColumnTreeNodeType(const char* Label, const char* Type, const char* 
 
 static bool ColumnTreeNodeType2(const void* Id, const char* Label, const char* Type, const char* fmt, ...)
 {
-	bool result = ImGui::TreeNode(Id, Label); ImGui::TableNextColumn();
+	bool result = ImGui::TreeNode(Id, "%s", Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -537,7 +537,7 @@ inline bool InputColorRef(const char* label, COLORREF& color)
 
 inline void ColumnCXStr(const char* Label, CXStr* str)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
 	//ImGui::SetNextItemWidth(22);
@@ -563,7 +563,7 @@ inline void ColumnCXStr(const char* Label, CXStr* str)
 
 inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = true)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (expandable)
 	{
@@ -592,7 +592,7 @@ inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = t
 
 inline void ColumnCXSize(const char* Label, const CXSize& size)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ w=%d, h=%d }", size.cx, size.cy); ImGui::TableNextColumn();
 
@@ -603,7 +603,7 @@ inline void ColumnCXSize(const char* Label, const CXSize& size)
 
 inline void ColumnCXRect(const char* Label, const CXRect& rect)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%d, y=%d, w=%d, h=%d }", rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); ImGui::TableNextColumn();
 
@@ -683,7 +683,7 @@ inline bool ColumnCXRect(const char* Label, CXRect* rect)
 
 inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%d, y=%d }", point.x, point.y); ImGui::TableNextColumn();
 
@@ -694,7 +694,7 @@ inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 
 inline void ColumnCVector3(const char* Label, const CVector3& point)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%.2f, y=%.2f, z=%.2f }", point.X, point.Y, point.Z); ImGui::TableNextColumn();
 
@@ -706,7 +706,7 @@ inline void ColumnCVector3(const char* Label, const CVector3& point)
 
 inline void ColumnColor(const char* Label, MQColor color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -724,7 +724,7 @@ inline void ColumnColor(const char* Label, MQColor color)
 
 inline void ColumnColor(const char* Label, const COLORREF& color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -742,7 +742,7 @@ inline void ColumnColor(const char* Label, const COLORREF& color)
 
 inline void ColumnColor(const char* Label, COLORREF* color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -763,7 +763,7 @@ inline void ColumnColor(const char* Label, COLORREF* color)
 template <typename T>
 static bool ColumnColor(const char* Label, T* ptr, COLORREF(T::* getter)() const, void (T::* setter)(COLORREF))
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
 	ImColor colors = MQColor{ MQColor::format_argb, (ptr->*getter)()}.ToImColor();
@@ -797,7 +797,7 @@ inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
 {
 	bool changed = false;
 	// Label
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	// Font ComboBox
 	if (pWndMgr)
@@ -837,7 +837,7 @@ inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
 
 void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (!pAnim)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -855,9 +855,9 @@ void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* p
 
 bool ColumnTextureInfoPreview(const char* Label, const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
-	bool result = imgui::DrawUITexture(textureInfo, rect, CXSize(), true);
+	bool result = imgui::DrawUITexture(textureInfo, CXSize(), rect, true);
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 	return result;
@@ -1373,7 +1373,7 @@ void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInter
 
 void ColumnWindow(const char* Label, CXWnd* window)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (!window)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -1461,7 +1461,7 @@ bool ColumnEQZoneIndex(const char* Label, EQZoneIndex zoneId, bool treeNode = fa
 	}
 	else
 	{
-		TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+		TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	}
 
 	EQZoneInfo* pZoneInfo = pWorldData->GetZone(zoneId);
@@ -2432,7 +2432,7 @@ public:
 
 	void DisplayCSpellGemWndProperties(CSpellGemWnd* pWnd, bool open = true)
 	{
-		DisplayCXWndProperties(pWnd, false);
+		DisplayCButtonWndProperties(static_cast<CButtonWnd*>(m_window), false);
 
 		if (BeginColorSection("CSpellGemWnd Properties", open))
 		{
@@ -2440,6 +2440,32 @@ public:
 
 			DisplayTextureAnimation("Spell icon texture", pWnd->SpellIconTexture);
 			DisplayTextureAnimation("Custom icon texture", pWnd->CustomIconTexture);
+			ColumnCheckBox("Checked", &pWnd->bChecked);
+
+			size_t numTints = lengthof(pWnd->SpellGemTintArray);
+			if (ColumnTreeNodeType("SpellGemTintArray", "MQColor[]", "%d", numTints))
+			{
+				char label[16] = { 0 };
+
+				for (size_t i = 0; i < numTints; ++i)
+				{
+					sprintf_s(label, "%zd", i);
+					ColumnColor(label, MQColor(pWnd->SpellGemTintArray[i]));
+				}
+
+				ImGui::TreePop();
+			}
+
+			// Draw the spell gem
+			TreeAdvanceToLabelPos(); ImGui::TextUnformatted("Spell Gem"); ImGui::TableNextColumn();
+			if (mq::imgui::SpellGem("##InspectorSpellGem", pWnd))
+			{
+				pWnd->ParentWndNotification(pWnd, XWM_LCLICK, nullptr);
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
 		}
 	}
 
