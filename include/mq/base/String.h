@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -312,6 +312,36 @@ inline std::string replace(std::string_view str, std::string_view search, std::s
 	return s;
 }
 
+/**
+ * @fn remove_chars
+ *
+ * @brief Removes specified characters from a string
+ *
+ * Iterates over each character of the input string and constructs a new string by
+ * excluding characters that are found in `chars_to_remove`. This function does not modify the 
+ * original string but returns a new string with the specified characters removed.
+ *
+ * @param str The input string from which characters are to be removed
+ * @param chars_to_remove A string containing characters that should be removed from `str`
+ *
+ * @return std::string A new string with the specified characters removed
+ *
+ **/
+inline std::string remove_chars(std::string_view str, std::string_view chars_to_remove) {
+	std::string result;
+	result.reserve(str.size());
+
+	for (const char ch : str)
+	{
+		if (chars_to_remove.find(ch) == std::string_view::npos)
+		{
+			result += ch;
+		}
+	}
+
+	return result;
+}
+
 // helper function that calls replace with the normal command line argument
 // escape sequences
 inline std::string unescape_args(std::string_view str) {
@@ -487,8 +517,8 @@ private:
 	{
 		using is_transparent = void;
 
-		template <typename T>
-		bool operator()(const T& a, const T& b) const
+		template <typename T, typename U>
+		bool operator()(const T& a, const U& b) const
 		{
 			return ci_equals(a, b);
 		}
@@ -511,12 +541,18 @@ private:
 		{
 			// this is a re-implementation of the fnv1a hash that MSVC uses, but with tolower
 			size_t hash = FNV_offset_basis;
-			for (unsigned char c : a)
+			for (char c : a)
 			{
-				hash ^= static_cast<size_t>(::tolower(c));
+				hash ^= static_cast<size_t>(::tolower(static_cast<unsigned char>(c)));
 				hash *= FNV_prime;
 			}
 			return hash;
+		}
+
+		size_t operator()(const char* a) const
+		{
+			std::string_view sv{ a };
+			return operator()(sv);
 		}
 	};
 
@@ -563,6 +599,30 @@ public:
 };
 
 /**
+ * @fn IsNumber
+ *
+ * @brief Checks if a string represents a valid number
+ *
+ * Takes a string view and checks if it can be successfully parsed into a
+ * double precision floating point number.  This is different from the
+ * GetXFromString functions in that the entire string must be a number.
+ *
+ * @param String The string to be evaluated
+ *
+ * @return bool True if the string represents a valid number, false otherwise
+ **/
+inline bool IsNumber(std::string_view String)
+{
+	if (String.empty())
+		return false;
+
+	double test_var;
+	const auto result = std::from_chars(String.data(), String.data() + String.size(), test_var, std::chars_format::fixed);
+
+	return result.ec != std::errc::invalid_argument && result.ptr[0] == '\0';
+}
+
+/**
  * @fn GetIntFromString
  *
  * @brief Gets the int value from a well formatted string
@@ -573,7 +633,9 @@ public:
  *
  * Suitable replacement for atoi (removing the undefined behavior) and faster than strtol.
  *
+ * @see GetUIntFromString
  * @see GetInt64FromString
+ * @see GetUInt64FromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -583,6 +645,36 @@ public:
  * @return int The converted integer or the "failure" value
  **/
 inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
+{
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), iReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return iReturnOnFail;
+}
+
+/**
+ * @fn GetUIntFromString
+ *
+ * @brief Gets the unsigned int value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to an int and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoul (removing the undefined behavior) and faster than strtoul.
+ *
+ * @see GetIntFromString
+ * @see GetInt64FromString
+ * @see GetUInt64FromString
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to an integer
+ * @param iReturnOnFail The unsigned integer that should be returned if conversion fails
+ *
+ * @return unsigned int The converted integer or the "failure" value
+ **/
+inline unsigned int GetUIntFromString(const std::string_view svString, unsigned int iReturnOnFail)
 {
 	auto trimmed = trim(svString);
 	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), iReturnOnFail);
@@ -602,6 +694,8 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  * Suitable replacement for atol (removing the undefined behavior) and faster than strtol.
  *
  * @see GetIntFromString
+ * @see GetUIntFromString
+ * @see GetUInt64FromString
  * @see GetDoubleFromString
  * @see GetFloatFromString
  *
@@ -611,6 +705,36 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
  * @return int64_t The converted int64 or the "failure" value
  **/
 inline int64_t GetInt64FromString(const std::string_view svString, int64_t lReturnOnFail)
+{
+	auto trimmed = trim(svString);
+	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), lReturnOnFail);
+	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
+	return lReturnOnFail;
+}
+
+/**
+ * @fn GetUInt64FromString
+ *
+ * @brief Gets the uint64 value from a well formatted string
+ *
+ * Takes the input of a string and a value that should be returned if conversion fails.
+ * Attempts to convert the string to a int64 and returns the converted value on success
+ * or the failure value on fail.
+ *
+ * Suitable replacement for atoul (removing the undefined behavior) and faster than strtoull.
+ *
+ * @see GetIntFromString
+ * @see GetUIntFromString
+ * @see GetInt64FromString
+ * @see GetDoubleFromString
+ * @see GetFloatFromString
+ *
+ * @param svString The string to convert to an int64
+ * @param iReturnOnFail The uint64 that should be returned if conversion fails
+ *
+ * @return uint64_t The converted int64 or the "failure" value
+ **/
+inline uint64_t GetUInt64FromString(const std::string_view svString, uint64_t lReturnOnFail)
 {
 	auto trimmed = trim(svString);
 	auto result = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), lReturnOnFail);

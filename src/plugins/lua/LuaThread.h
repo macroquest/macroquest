@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -34,6 +34,7 @@ namespace mq::lua {
 
 class LuaEventProcessor;
 class LuaImGuiProcessor;
+class LuaActors;
 class LuaThread;
 struct LuaCoroutine;
 
@@ -145,10 +146,8 @@ public:
 
 	LuaThreadStatus Pause();
 
-	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default)
-	{
-		m_allowYield = allowYield; m_yieldDisabledReason = reason;
-	}
+	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default);
+
 	bool GetAllowYield() const { return m_allowYield; }
 	YieldDisabledReason GetYieldDisabledReason() const { return m_yieldDisabledReason; }
 
@@ -194,7 +193,7 @@ public:
 private:
 	RunResult RunOnce();
 
-	void RegisterMQNamespace(sol::state_view sv);
+	sol::table RegisterMQNamespace(sol::this_state L);
 	void Initialize();
 
 	void YieldAt(int count) const;
@@ -211,7 +210,6 @@ private:
 	sol::state m_globalState;
 	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
-	std::optional<sol::table> m_mqTable;
 	sol::table m_threadTable;
 	uint32_t m_threadIndex = 0;
 

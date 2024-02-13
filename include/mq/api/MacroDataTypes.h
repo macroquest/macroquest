@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -42,6 +42,8 @@ namespace datatypes {
 using datatypes::MQ2Type;
 struct MQTypeVar;
 
+template <typename T>
+static constexpr auto type_name() noexcept;
 
 namespace detail {
 
@@ -57,6 +59,8 @@ namespace detail {
 	template <typename T>
 	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
 
+	MQLIB_OBJECT void PrintMacroDataConversionError(const char* fromType, const char* toType);
+
 	template <typename From, typename To>
 	static void ConvertData(const From& input, std::optional<To>& output)
 	{
@@ -64,18 +68,7 @@ namespace detail {
 			output = static_cast<To>(input);
 		else
 		{
-			WriteChatf("Tried to convert unlike types %s and %s", type_name<From>().c_str(), type_name<To>().c_str());
-
-			if (gMacroBlock != nullptr && gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
-			{
-				WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
-			}
-
-			if (gMacroStack != nullptr)
-			{
-				char buf[MAX_STRING];
-				WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
-			}
+			PrintMacroDataConversionError(type_name<From>().c_str(), type_name<To>().c_str());
 		}
 	}
 }

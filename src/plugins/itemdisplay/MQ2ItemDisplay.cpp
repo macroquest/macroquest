@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -224,7 +224,7 @@ void Settings::SetItemColor(MQColor color)
 	m_itemColor = color;
 
 	WritePrivateProfileString("Settings", "CustomColor_Item",
-		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+		fmt::format("#{:06X}", color.ToRGB()), INIFileName);
 
 	s_refreshItemDisplay = true;
 }

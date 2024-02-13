@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -72,14 +72,14 @@ mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
 //============================================================================
 //============================================================================
 
-void mq::postoffice::DropboxAPI::Post(const mq::postoffice::Address& address, uint16_t messageId, const std::string& data, const ResponseCallbackAPI& callback) const
+void mq::postoffice::DropboxAPI::Post(const mq::postoffice::Address& address, const std::string& data, const ResponseCallbackAPI& callback) const
 {
-	mqplugin::MainInterface->SendToActor(Dropbox, address, messageId, data, callback, mqplugin::ThisPlugin);
+	mqplugin::MainInterface->SendToActor(Dropbox, address, data, callback, mqplugin::ThisPlugin);
 }
 
-void mq::postoffice::DropboxAPI::PostReply(const std::shared_ptr<mq::postoffice::Message>& message, uint16_t messageId, const std::string& data, uint8_t status) const
+void mq::postoffice::DropboxAPI::PostReply(const std::shared_ptr<mq::postoffice::Message>& message, const std::string& data, uint8_t status) const
 {
-	mqplugin::MainInterface->ReplyToActor(Dropbox, message, messageId, data, status, mqplugin::ThisPlugin);
+	mqplugin::MainInterface->ReplyToActor(Dropbox, message, data, status, mqplugin::ThisPlugin);
 }
 
 void mq::postoffice::DropboxAPI::Remove()
@@ -108,6 +108,11 @@ mq::postoffice::DropboxAPI mq::postoffice::AddActor(const char* localAddress, Re
 	return mq::postoffice::DropboxAPI{
 		mqplugin::MainInterface->AddActor(address.c_str(), std::move(receive), mqplugin::ThisPlugin)
 	};
+}
+
+void mq::postoffice::SendToActor(const Address& address, const std::string& data, const ResponseCallbackAPI& callback)
+{
+	mqplugin::MainInterface->SendToActor(nullptr, address, data, callback, mqplugin::ThisPlugin);
 }
 
 //============================================================================

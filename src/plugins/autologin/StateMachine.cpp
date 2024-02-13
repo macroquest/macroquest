@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -19,7 +19,6 @@
 #include <TlHelp32.h>
 
 // TODO:
-// - Re-do the UI (can I pull alynel's work?, if not maybe ImGui? -- but that means I'll have to pull it into tools)
 // - Injecting while running doesn't load the config
 // - fix /relog -- it seems to timeout just as it tries to log back in?
 
@@ -54,7 +53,7 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		for (auto token: args_tokens)
 		{
 			const size_t loc = token.find("/login:");
-			if (loc != std::string_view::npos)
+			if (loc != std::string_view::npos && token.length() > 7)
 			{
 				input = strip_quotes(token.substr(loc + 7), '"');
 				break;
@@ -70,76 +69,21 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 
 		auto record = ProfileRecord::FromString(input);
 		if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
-		{
-			record = ProfileRecord::FromINI(
-				record.profileName,
-				fmt::format("{}:{}_Blob", record.serverName, record.characterName),
-				INIFileName);
-		}
+			login::db::ReadProfile(record);
+
+		if (!record.serverName.empty() && !record.characterName.empty())
+			login::db::ReadAccount(record);
+
+		if (record.serverName.empty() && record.characterName.empty())
+			login::db::ReadFirstProfile(record);
+
+		if (record.customClientIni)
+			record.customClientIni = (std::filesystem::current_path() / *record.customClientIni).string();
 
 		return record;
 	}
 
 	return std::nullopt;
-}
-
-static std::optional<ProfileRecord> UseStationNames(CEditWnd* pEditWnd, std::string_view AccountName = "")
-{
-	std::string account(AccountName);
-
-	CXStr inputText = GetEditWndText(pEditWnd);
-	if (account.empty() && !inputText.empty())
-		account = inputText;
-
-	if (!account.empty())
-	{
-		ProfileRecord record;
-		record.profileName = "";
-		record.accountName = account;
-		record.accountPassword = GetPrivateProfileString(account, "Password", "", INIFileName);
-		record.serverName = GetPrivateProfileString(account, "Server", "", INIFileName);
-		record.characterName = GetPrivateProfileString(account, "Character", "", INIFileName);
-		// Override the character select settings if specified
-		Login::m_settings.EndAfterSelect = GetPrivateProfileBool(account, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-		Login::m_settings.CharSelectDelay = GetPrivateProfileInt(account, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-
-		return record;
-	}
-
-	return std::nullopt;
-}
-
-static std::optional<ProfileRecord> UseSessions(CEditWnd* pEditWnd)
-{
-	HANDLE hnd = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	PROCESSENTRY32 proc;
-	proc.dwSize = sizeof(PROCESSENTRY32);
-	DWORD nProcs = 0;
-
-	if (Process32First(hnd, &proc))
-	{
-		do
-		{
-			if (!_stricmp(proc.szExeFile, "eqgame.exe"))
-				++nProcs;
-		} while (Process32Next(hnd, &proc));
-	}
-
-	CloseHandle(hnd);
-
-	std::string sessionName = fmt::format("Session{}", nProcs);
-	ProfileRecord record;
-	record.profileName = "";
-
-	record.accountName = GetPrivateProfileString(sessionName, "StationName", "", INIFileName);
-	record.accountPassword = GetPrivateProfileString(sessionName, "Password", "", INIFileName);
-	record.serverName = GetPrivateProfileString(sessionName, "Server", "", INIFileName);
-	record.characterName = GetPrivateProfileString(sessionName, "Character", "", INIFileName);
-	// Override the character select delay if specified
-	Login::m_settings.EndAfterSelect = GetPrivateProfileBool(sessionName, "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-	Login::m_settings.CharSelectDelay = GetPrivateProfileInt(sessionName, "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-
-	return record;
 }
 
 class Wait : public Login
@@ -273,29 +217,9 @@ public:
 				// only place where we can enter account/pass
 				record = m_record;
 			}
-			else
+			else if (const std::optional<ProfileRecord> tempProfile = UseMQ2Login(pUsernameEditWnd))
 			{
-				std::optional<ProfileRecord> tempProfile;
-
-				switch (m_settings.LoginType)
-				{
-				case Settings::Type::Profile:
-					tempProfile = UseMQ2Login(pUsernameEditWnd);
-					break;
-				case Settings::Type::StationNames:
-					tempProfile = UseStationNames(pUsernameEditWnd);
-					break;
-				case Settings::Type::Sessions:
-					tempProfile = UseSessions(pUsernameEditWnd);
-					break;
-				default:
-					break;
-				}
-
-				if (tempProfile.has_value())
-				{
-					record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
-				}
+				record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
 			}
 
 			if (record
@@ -396,26 +320,43 @@ public:
 class ServerSelect : public Login
 {
 public:
-	template <typename Predicate>
-	static EQLS::EQClientServerData* GetServer(Predicate predicate)
+	static EQLS::EQClientServerData* GetServer(std::string& serverName)
 	{
 		if (GetGameState() != GAMESTATE_PRECHARSELECT)
 			return nullptr;
 		if (!g_pLoginClient)
 			return nullptr;
 
-		if (auto server_list = GetChildWindow<CListWnd>("serverselect", "SERVERSELECT_ServerList"))
+		// we want the long server name or the server ID here because that's what's available at server select
+		ServerID serverId = GetServerIDFromServerName(serverName.c_str());
+
+		// server ID is always highest priority
+		auto server_it = g_pLoginClient->ServerList.end();
+		if (serverId != ServerID::Invalid)
+			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
+				[serverId](EQLS::EQClientServerData* s) { return s->ID == serverId; });
+
+		// otherwise we need to search through our lists
+		if (server_it == g_pLoginClient->ServerList.end())
 		{
-			ArrayClass<SListWndLine>* server_items = GetItemsArray(server_list);
-			if (server_items && !server_items->IsEmpty())
-			{
-				for (EQLS::EQClientServerData* pServer : g_pLoginClient->ServerList)
-				{
-					if (predicate(pServer))
-						return pServer;
-				}
-			}
+			// get all the possible names that could show up in the server list
+			// starting with the direct argument
+			std::vector server_names = { serverName };
+			for (const auto& name : login::db::ReadLongServer(serverName))
+				server_names.emplace_back(name);
+
+			server_it = std::find_if(g_pLoginClient->ServerList.begin(), g_pLoginClient->ServerList.end(),
+				[&server_names](EQLS::EQClientServerData* s)
+				{ return std::find_if(
+					server_names.begin(),
+					server_names.end(),
+					[&name = s->ServerName](const std::string& long_name)
+					{ return ci_equals(name, long_name); }) != server_names.end();
+				});
 		}
+
+		if (server_it != g_pLoginClient->ServerList.end())
+			return *server_it;
 
 		return nullptr;
 	}
@@ -430,24 +371,11 @@ public:
 			return false;
 		}
 
-		// get server
-		std::string serverName = m_record->serverName;
-		ServerID serverId = GetServerIDFromServerName(m_record->serverName.c_str());
-		if (serverId == ServerID::Invalid)
-		{
-			// Try looking up a name from the custom server list.
-			serverName = GetServerLongName(m_record->serverName);
-		}
-
-		auto server = GetServer([&serverName, &serverId](EQLS::EQClientServerData* s)
-			{
-				return (serverId != ServerID::Invalid && s->ID == serverId) || ci_equals(s->ServerName, serverName);
-			});
-
+		auto server = GetServer(m_record->serverName);
 		if (!server)
 		{
 			// no server found, wait
-			AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record ? m_record->serverName : ""));
+			AutoLoginDebug(fmt::format("ServerSelect: Could not find server {}", m_record->serverName));
 			return false;
 		}
 
@@ -565,23 +493,7 @@ public:
 			switch (e.State)
 			{
 			case LoginState::ServerSelect:
-				if (ServerSelect::CheckServerDown([]()
-					{
-						switch (m_settings.NotifyOnServerUp)
-						{
-						case Settings::ServerUpNotification::Email:
-							if (IsCommand("/gmail"))
-								DoCommand(nullptr, R"(/gmail "Server is up" "Time to login!")");
-							break;
-						case Settings::ServerUpNotification::Beeps:
-							Beep(1000, 1000);
-							Beep(500, 2000);
-							Beep(1000, 1000);
-							break;
-						default:
-							break;
-						}
-					}))
+				if (ServerSelect::CheckServerDown([](){}))
 					transit<ServerSelectDown>();
 				else
 					transit<Wait>();
@@ -601,8 +513,26 @@ public:
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (GetServerShortName()[0] == 0 || !m_record
-				|| (!m_record->serverName.empty() && !ci_equals(GetServerShortName(), m_record->serverName)))
+			auto is_invalid_server = []()
+				{
+					// trivial cases: if the server shortname is empty or there is no record
+					if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
+						return true;
+
+					// valid if server short name is what is in the record
+					if (ci_equals(GetServerShortName(), m_record->serverName))
+						return false;
+
+					// valid if server long name is what is in the record
+					if (auto shortname = login::db::ReadShortServer(m_record->serverName))
+						if (ci_equals(GetServerShortName(), *shortname))
+							return false;
+
+					// no matches, not a valid server
+					return true;
+				}();
+
+			if (is_invalid_server)
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -691,6 +621,7 @@ public:
 				}
 
 				transit<Wait>();
+				[[fallthrough]];
 			default:
 				Wait::react(e);
 				break;
@@ -720,6 +651,7 @@ bool Login::m_paused = false;
 uint64_t Login::m_delayTime = 0;
 LoginState Login::m_lastState = LoginState::InGame;
 unsigned char Login::m_retries = 0;
-struct Login::Settings Login::m_settings;
+Login::Settings Login::m_settings;
+CurrentLogin Login::m_currentLogin;
 
 FSM_INITIAL_STATE(Login, Wait)

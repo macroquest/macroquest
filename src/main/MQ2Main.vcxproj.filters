@@ -63,8 +63,14 @@
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\mq\libutils">
-      <UniqueIdentifier>{8d2cbb0c-fca3-43c8-80cb-8aa3122e460e}</UniqueIdentifier>
+    <Filter Include="Header Files\extras">
+      <UniqueIdentifier>{2748c6c5-410e-4f9f-b316-0971358525a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\extras\wil">
+      <UniqueIdentifier>{398f05d1-d412-4d4d-8554-14f8255af25d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\eqdata">
+      <UniqueIdentifier>{2b7d5e30-e807-4d3b-ac81-56092830cb6a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -86,7 +92,7 @@
     <ClCompile Include="MQ2Commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DInput.cpp">
+    <ClCompile Include="MQInputAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Data.cpp">
@@ -111,9 +117,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2Mouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2PluginHandler.cpp">
@@ -380,7 +383,7 @@
     <ClCompile Include="GraphicsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2PostOffice.cpp">
+    <ClCompile Include="MQPostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQInventory.cpp">
@@ -394,6 +397,15 @@
     </ClCompile>
     <ClCompile Include="GraphicsResources.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="api\Abilities.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
+      <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -592,7 +604,7 @@
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2PostOffice.h">
+    <ClInclude Include="MQPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Inventory.h">
@@ -609,6 +621,33 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\extras\wil\Constants.h">
+      <Filter>Header Files\extras\wil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\actordef.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\combines.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\dikeys.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\itemclasses.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\skills.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\spelleffects.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Abilities.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Markov.h">
+      <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

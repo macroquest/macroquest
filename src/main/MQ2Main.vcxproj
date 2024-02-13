@@ -157,6 +157,7 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
+    <ClCompile Include="api\Abilities.cpp" />
     <ClCompile Include="api\Spawns.cpp" />
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -483,6 +484,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -494,6 +501,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="GraphicsEngineDX11.cpp" />
@@ -512,7 +527,7 @@
     <ClCompile Include="MQ2CommandAPI.cpp" />
     <ClCompile Include="MQ2Commands.cpp" />
     <ClCompile Include="MQ2DeveloperTools.cpp" />
-    <ClCompile Include="MQ2DInput.cpp" />
+    <ClCompile Include="MQInputAPI.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQActorAPI.cpp" />
     <ClCompile Include="MQDataAPI.cpp" />
@@ -529,8 +544,7 @@
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
-    <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="MQ2PostOffice.cpp" />
+    <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQ2PluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
@@ -554,7 +568,9 @@
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
+    <ClInclude Include="..\..\include\extras\wil\Constants.h" />
     <ClInclude Include="..\..\include\moveitem.h" />
+    <ClInclude Include="..\..\include\mq\api\Abilities.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\ActorAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Inventory.h" />
@@ -582,11 +598,11 @@
     <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
-    <ClInclude Include="..\..\include\mq\libutils\wilUtils.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
+    <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\..\include\mq\utils\OS.h" />
     <ClInclude Include="..\common\Common.h" />
@@ -594,6 +610,12 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
+    <ClInclude Include="..\eqdata\actordef.h" />
+    <ClInclude Include="..\eqdata\combines.h" />
+    <ClInclude Include="..\eqdata\dikeys.h" />
+    <ClInclude Include="..\eqdata\itemclasses.h" />
+    <ClInclude Include="..\eqdata\skills.h" />
+    <ClInclude Include="..\eqdata\spelleffects.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
@@ -621,7 +643,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="MQ2PostOffice.h" />
+    <ClInclude Include="MQPostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,3 +1,102 @@
+Feb 13, 2024:
+- Completely revamped the autologin interface and storage
+- MQ's context menu is now driven by imgui
+- Added an extendable window gui to MQ
+- login profiles and character management is now driven through the main gui
+- removed sessions and replaced station names with single-entry profiles
+- passing the profile name to /login will load the first character in the profile
+- removed the autologin ini, replaced with sqlite db that can be copied across computers
+- a master pass has been added to provide encryption for account passwords _only_
+- the user will be prompted for a master password at first startup on a computer
+- the master password will be stored locally outside of the db (in the registry)
+- if the autologin plugin is running, logging in a new account will store the account name and associated characters in the database
+- manually editing the server list mapping is no longer needed (it is auto detected the first time you see that server in your list)
+
+Feb 3, 2024:
+- emu: Fix /timestamp showing seconds to the decimal
+
+Feb 2, 2024:
+- Add Social TLO (#825)
+
+Feb 1, 2024
+- live: Updated for latest patch
+
+Jan 30, 2024:
+- Disable jit when delaying so that delays are not optimized away (#822)
+- /doability will now accept quoted or unquoted ability names
+- /doability will now work for innate skills like slam (#371)
+- mq.TLO.Me.Ability is now a boolean. It returns true or false based on whether you have the ability.
+- mq.TLO.Me.AbilityReady will no longer say an ability is ready if you don't have that ability.
+- Added mq.TLO.Me.AbilityTimerTotal which will return the total amount of time an ability takes to refresh. This is only available while the ability is in cooldown, otherwise it returns 0. Useful for converting mq.TLO.Me.AbilityTimer into a percentage. (#823)
+- mq.TLO.Me.AltCurrency now works with the singular or plural name of the currency
+- plugins: GetZoneExpansionName(0) would previously return "Original EQ" but now returns "EverQuest"
+
+Jan 20, 2024:
+- Fix Mercenary.State reporting unknown when mercenary is active (#811)
+- Fix Heading.Name/Heading.ShortName potentially going out of bounds (#813)
+- Change Me.BoundLocation.Heading to return heading type instead of a 512 unit float
+
+Jan 19, 2024:
+- Fix mq.pickle not properly escaping backslashes and not properly serializing numbers. (#815, #771).
+
+Jan 18, 2024:
+- Fix issue where textures would not draw if they had not already been preloaded.
+- Fix FPS plot in benchmark window to use its own axis.
+
+Jan 17, 2024:
+- live: Updated for latest patch
+- live: DirectX 11 is now on the live client, some visual features may be
+  missing or not working correctly.
+
+Jan 15, 2024:
+- Update CrashDetected popup with reminder that text can be copied and also add PID (#765).
+- Update faction names by using dbstr_us.txt (#806)
+- Fix Me.Origin (#807)
+- Fix several window properties that had been swapped (Click Through, Show Border, Escapable)
+
+Jan 11, 2024:
+- Prospective fix for map crash (#798)
+- PackageMan now accepts the debug parameter (see docs)
+- luarocks cache has been moved to the modules folder
+
+Jan 8, 2024:
+- Fix clipping of ImGuiConsole, add opacity. (#805)
+- Fix Window.SetText correctly sending change event.
+
+Dec 18, 2023:
+- Update ImGui to 1.90
+- Update ImPlot to 0.17
+- lua: ImGui and ImPlot lua bindings fully refreshed with 100% coverage of definitions.
+- lua: mq-definitions VSCode extension available at https://marketplace.visualstudio.com/items?itemName=ZenithCodeForge.mq-defs
+- datatypes: add TradeskillDepot.DepositItem
+- datatypes: add Type.InheritedType
+- datatypes: add Me.LaurionInnVoucher, Me.ShalowainsPrivateReserve
+
+Dec 12, 2023:
+- live: Updated for latest patch
+- live: Updated for latest patch (again)
+
+Dec 9, 2023:
+- Fix formatting of links in console when line contains multiple links
+
+Dec 8, 2023:
+- live: Fix spawn manager crash
+
+Dec 5, 2023:
+- live: Updated for latest expansion
+
+Dec 4, 2023:
+- test: Fix ZoneGuide
+- Add Me.PersonaLevel - takes class shortname as param, returns level of that class persona.
+  e.g. ${Me.PersonaLevel[DRU]} returns level of druid class persona.
+
+Dec 2, 2023:
+- test: Updated for latest patch
+
+Nov 28, 2023:
+- Actors are now live for use in plugins, see https://docs.macroquest.org/plugins/developing/actors/
+- Actors are also now live for use in lua scripts, see examples/buffbeg.lua for example usage.
+
 Nov 22, 2023:
 - Update vcpkg dependencies
 

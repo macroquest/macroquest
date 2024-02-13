@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -238,15 +238,11 @@ MQLIB_VAR MQFilter* gpFilters;
 // TODO: Change to use case insensitive comparison
 MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
-MQLIB_VAR MOUSESPOOF* gMouseData;
-
 MQLIB_VAR DWORD gGameState;
 MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;
 
-
 MQLIB_VAR bool gMouseClickInProgress[8];
-MQLIB_VAR bool bDetMouse;
 
 // ***************************************************************************
 // String arrays

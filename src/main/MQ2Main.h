@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -46,6 +46,7 @@ using namespace eqlib;
 
 #define MAX_VARNAME           64
 
+#include "mq/base/Traits.h"
 #include "../common/Common.h"
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
@@ -54,7 +55,6 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
-#include "MQ2PostOffice.h"
 #include "MQDataAPI.h"
 #include "datatypes/MQ2DataTypes.h"
 
@@ -79,12 +79,21 @@ using namespace eqlib;
 
 namespace mq {
 
-/* DETOURS */
-MQLIB_OBJECT void SetAssist(BYTE* address);
-
-/* BENCHMARKING */
+// Initialize/shutdown subsystems
 void ShutdownMQ2Benchmarks();
 void InitializeMQ2Benchmarks();
+
+void InitializeDisplayHook();
+void ShutdownDisplayHook();
+
+void InitializeMQ2Commands();
+void ShutdownMQ2Commands();
+
+void InitializeMQ2Pulse();
+void ShutdownMQ2Pulse();
+
+void InitializeChatHook();
+void ShutdownChatHook();
 
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
@@ -129,8 +138,6 @@ MQLIB_API void CreateMQ2NewsWindow();
 MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
-MQLIB_API void InitializeChatHook();
-MQLIB_API void ShutdownChatHook();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
@@ -169,19 +176,10 @@ void ModulesUpdateImGui();
 void PluginsMacroStart(const char* Name);
 void PluginsMacroStop(const char* Name);
 
-
-/* DIRECT INPUT */
-MQLIB_API void InitializeMQ2DInput();
-MQLIB_API void ShutdownMQ2DInput();
-
 /* CLEAN UI */
-MQLIB_API void InitializeDisplayHook();
-MQLIB_API void ShutdownDisplayHook();
 MQLIB_API void DrawHUD();
 
 /* COMMAND HANDLING */
-MQLIB_API void InitializeMQ2Commands();
-MQLIB_API void ShutdownMQ2Commands();
 MQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
 MQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
 MQLIB_API bool RemoveAlias(const char* ShortCommand);
@@ -205,16 +203,11 @@ MQLIB_API void EchoClean(SPAWNINFO*, char*);
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
-void InitializeMouseHooks();
-void ShutdownMouseHooks();
-MQLIB_API bool MoveMouse(int x, int y, bool bClick = false);
+MQLIB_API bool MoveMouse(int x, int y);
+MQLIB_API bool ClickMouseButton(int mouseButton); // Uses DirectInput to simulate a mouse click at the current mouse position.
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
    inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
-
-/* PULSING */
-MQLIB_API void InitializeMQ2Pulse();
-MQLIB_API void ShutdownMQ2Pulse();
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
@@ -270,7 +263,7 @@ MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
 
 MQLIB_API int GetLanguageIDByName(const char* szName);
-MQLIB_API int GetCurrencyIDByName(char* szName);
+MQLIB_API int GetCurrencyIDByName(const char* szName);
 MQLIB_API const char* GetSpellNameByID(int dwSpellID);
 MQLIB_API EQ_Spell* GetSpellByName(std::string_view name);
 MQLIB_API EQ_Spell* GetSpellByAAName(const char* szName);
@@ -420,8 +413,8 @@ enum class MQGroundSpawnType
 	Placed
 };
 
-inline DWORD EQObjectID(EQGroundItem* Object) { return Object->DropID; }
-inline int EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
+inline auto EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline auto EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
 struct MQGroundSpawn
 {
@@ -446,7 +439,7 @@ struct MQGroundSpawn
 	MQLIB_OBJECT MQGameObject ToGameObject() const;
 	MQLIB_OBJECT void Reset();
 
-	template <typename T> T* Get() const { static_assert(false, "Unsupported GroundSpawn Type."); }
+	template <typename T> T* Get() const { static_assert(mq::always_false<T>::value, "Unsupported GroundSpawn Type."); }
 	template <> MQLIB_OBJECT EQGroundItem* Get<EQGroundItem>() const;
 	template <> MQLIB_OBJECT EQPlacedItem* Get<EQPlacedItem>() const;
 
@@ -504,8 +497,8 @@ MQLIB_OBJECT CXStr GetFriendlyNameForGroundItem(const EQGroundItem* pItem);
 MQLIB_OBJECT CXStr GetFriendlyNameForPlacedItem(const EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t BufferSize);
 
-inline int EQObjectID(SPAWNINFO* pSpawn) { return pSpawn->SpawnID; }
-using ObservedSpawnPtr = MQEQObjectPtr<SPAWNINFO>;
+inline auto EQObjectID(PlayerClient* pSpawn) { return pSpawn->SpawnID; }
+using ObservedSpawnPtr = MQEQObjectPtr<PlayerClient>;
 
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
 MQLIB_API void InvalidateObservedEQObject(void* Object);

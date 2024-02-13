@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -37,7 +37,9 @@ struct LuaCoroutine
 	void ClearDelay();
 
 	bool ShouldRun();
-	CoroutineResult RunCoroutine(const std::vector<std::string>& args = {});
+	CoroutineResult RunCoroutine();
+	CoroutineResult RunCoroutine(const std::vector<std::string>& args);
+	CoroutineResult RunCoroutine(const std::vector<sol::object>& args);
 	static std::shared_ptr<LuaCoroutine> Create(sol::thread& thread, LuaThread* luaThread);
 
 	LuaCoroutine(sol::thread& thread, LuaThread* luaThread);

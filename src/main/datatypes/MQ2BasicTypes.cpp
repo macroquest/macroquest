@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1493,14 +1493,16 @@ bool MQ2RangeType::dataRange(const char* szIndex, MQTypeVar& Ret)
 
 enum class TypeMembers
 {
-	Name = 1,
-	Member = 2,
+	Name,
+	Member,
+	InheritedType,
 };
 
 MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 {
 	ScopedTypeMember(TypeMembers, Name);
 	ScopedTypeMember(TypeMembers, Member);
+	ScopedTypeMember(TypeMembers, InheritedType);
 }
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1512,7 +1514,6 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	MQTypeMember* pMember = MQ2TypeType::FindMember(Member);
 	if (!pMember)
 		return false;
-
 
 	switch (static_cast<TypeMembers>(pMember->ID))
 	{
@@ -1547,6 +1548,15 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			}
 		}
 
+		return false;
+
+	case TypeMembers::InheritedType:
+		if (pType->GetParent())
+		{
+			Dest.Type = pTypeType;
+			Dest.Ptr = pType->GetParent();
+			return true;
+		}
 		return false;
 
 	default: break;
@@ -1890,7 +1900,9 @@ bool MQ2HeadingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	if (!pMember)
 		return false;
 
-	float Heading = 360.0f - VarPtr.Float;
+	float Heading = 360.0f - fmod(VarPtr.Float, 360.0f);
+	if (Heading < 0) Heading += 360.0f;
+
 	switch (static_cast<HeadingMembers>(pMember->ID))
 	{
 	case HeadingMembers::Clock:

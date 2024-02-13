@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1366,19 +1366,15 @@ static char* GetStatShortName(int StatType, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
-template <unsigned int Size>
+template <size_t Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
-	if ((size_t)FactionID < MAX_FACTIONNAMES)
-	{
-		strcat_s(szBuffer, Size, szFactionNames[FactionID]);
-	}
-	else
-	{
-		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
-		strcat_s(szBuffer, Size, szTemp);
-	}
+	char szTemp[MAX_STRING] = { 0 };
+	eqlib::GetFactionName(FactionID, szTemp, MAX_STRING);
+
+	strcat_s(szBuffer, "(");
+	strcat_s(szBuffer, szTemp);
+	strcat_s(szBuffer, ")");
 
 	return szBuffer;
 }

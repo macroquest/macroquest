@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -299,9 +299,9 @@ void RenderText(const ImVec2& pos, const ImVec4& color, const char* fmt, ...)
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(pos, color, ImGuiAlign_Left, g.TempBuffer, text_end);
+	RenderTextOverlay(pos, color, ImGuiAlign_Left, g.TempBuffer.Data, text_end);
 }
 
 void RenderText(int x, int y, const ImVec4& color, const char* fmt, ...)
@@ -310,9 +310,9 @@ void RenderText(int x, int y, const ImVec4& color, const char* fmt, ...)
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Left, g.TempBuffer, text_end);
+	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Left, g.TempBuffer.Data, text_end);
 }
 
 void RenderTextCentered(const ImVec2& pos, const ImVec4& color, const char* fmt, ...)
@@ -321,9 +321,9 @@ void RenderTextCentered(const ImVec2& pos, const ImVec4& color, const char* fmt,
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(pos, color, ImGuiAlign_Center, g.TempBuffer, text_end);
+	RenderTextOverlay(pos, color, ImGuiAlign_Center, g.TempBuffer.Data, text_end);
 }
 
 void RenderTextCentered(int x, int y, const ImVec4& color, const char* fmt, ...)
@@ -332,9 +332,9 @@ void RenderTextCentered(int x, int y, const ImVec4& color, const char* fmt, ...)
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Center, g.TempBuffer, text_end);
+	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Center, g.TempBuffer.Data, text_end);
 }
 
 void RenderTextRight(const ImVec2& pos, const ImVec4& color, const char* fmt, ...)
@@ -343,9 +343,9 @@ void RenderTextRight(const ImVec2& pos, const ImVec4& color, const char* fmt, ..
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(pos, color, ImGuiAlign_Right, g.TempBuffer, text_end);
+	RenderTextOverlay(pos, color, ImGuiAlign_Right, g.TempBuffer.Data, text_end);
 }
 
 void RenderTextRight(int x, int y, const ImVec4& color, const char* fmt, ...)
@@ -354,9 +354,9 @@ void RenderTextRight(int x, int y, const ImVec4& color, const char* fmt, ...)
 	va_start(args, fmt);
 
 	auto& g = *ImGui::GetCurrentContext();
-	const char* text_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+	const char* text_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Right, g.TempBuffer, text_end);
+	RenderTextOverlay(ImVec2((float)x, (float)y), color, ImGuiAlign_Right, g.TempBuffer.Data, text_end);
 }
 
 bool CollapsingSubHeader(const char* label, bool* p_open, ImGuiTreeNodeFlags flags)

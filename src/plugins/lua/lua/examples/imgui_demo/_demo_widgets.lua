@@ -1,14 +1,337 @@
----@type Mq
+---@diagnostic disable: empty-block
+
 local mq = require('mq')
----@type ImGui
-local imgui = require 'ImGui'
+local imgui = require('ImGui')
+
+
+local FLT_MIN, FLT_MAX = mq.NumericLimits_Float()
+
+
+-- Helper to replace ImColor:HSV
+---@param h number
+---@param s number
+---@param v number
+---@return ImVec4
+function HSV(h, s, v)
+    local r, g, b
+    r, g, b = imgui.ColorConvertHSVtoRGB(h, s, v)
+    return ImVec4(r, g, b, 1.0)
+end
+
 
 --
--- Widgest Demo - Images
+-- Widgets Demo - Basic
+--
+
+local WidgetsDemo_Basic = {
+    clicked = 0,
+    check = true,
+    e = 1,
+    counter = 0,
+    str0 = 'Hello, world!',
+    str1 = '',
+    i0 = 123,
+    f0 = 0.001,
+    d0 = 999999.00000001,
+    f1 = 1.e10,
+    vec4a = { 0.10, 0.20, 0.30, 0.44 },
+    i1 = 50,
+    i2 = 42,
+    drags_f1 = 1.00,
+    drags_f2 = 0.0067,
+    sliders_i1 = 0,
+    sliders_f1 = 0.123,
+    sliders_f2 = 0.0,
+    angle = 0,
+    elem = 1,
+    elem_count = 4,
+    elem_names = {
+        "Fire", "Earth", "Air", "Water"
+    },
+    col1 = { 1.0, 0.0, 0.2 },
+    col2 = { 0.4, 0.7, 0.0, 0.5 },
+    combo_items = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIIIIII", "JJJJ", "KKKKKKK" },
+    combo_item_current = 1,
+    list_items =  { "Apple", "Banana", "Cherry", "Kiwi", "Mango", "Orange", "Pineapple", "Strawberry", "Watermelon" },
+    list_item_current = 2,
+}
+
+function WidgetsDemo_Basic:Draw()
+    imgui.SeparatorText('General')
+
+    if imgui.Button('Button') then
+        self.clicked = self.clicked + 1
+    end
+    if bit32.band(self.clicked, 1) ~= 0 then
+        imgui.SameLine()
+        imgui.Text('Thanks for clicking me!')
+    end
+
+    self.check = imgui.Checkbox('checkbox', self.check)
+
+    self.e = imgui.RadioButton('radio a', self.e, 1); imgui.SameLine()
+    self.e = imgui.RadioButton('radio b', self.e, 2); imgui.SameLine()
+    self.e = imgui.RadioButton('radio c', self.e, 3)
+
+    -- Color buttons, demonstrate using PushID() to add unique identifier to the ID stack, and changing style
+    for i = 0, 6 do
+        if i > 0 then imgui.SameLine() end
+        imgui.PushID(i)
+        imgui.PushStyleColor(ImGuiCol.Button, HSV(i / 7.0, 0.6, 0.6))
+        imgui.PushStyleColor(ImGuiCol.ButtonHovered, HSV(i / 7.0, 0.7, 0.7))
+        imgui.PushStyleColor(ImGuiCol.ButtonActive, HSV(i /  7.0, 0.8, 0.8))
+        imgui.Button('Click')
+        imgui.PopStyleColor(3)
+        imgui.PopID()
+    end
+
+    -- Use AlignTextToFramePadding() to align text baseline to the baseline of framed widgets elements
+    -- (otherwise a Text+SameLine+Button sequence will have the text a little too high by default!)
+    -- See 'Demo->Layout->Text Baseline Alignment' for details.
+    imgui.AlignTextToFramePadding()
+    imgui.Text('Hold to repeat:')
+    imgui.SameLine()
+
+    -- Arrow buttons with Repeater
+    local spacing = imgui.GetStyle().ItemInnerSpacing.x
+    imgui.PushButtonRepeat(true)
+    if imgui.ArrowButton('##left', ImGuiDir.Left) then
+        self.counter = self.counter - 1
+    end
+    imgui.SameLine(0.0, spacing)
+    if imgui.ArrowButton('##right', ImGuiDir.Right) then
+        self.counter = self.counter + 1
+    end
+    imgui.PopButtonRepeat()
+    imgui.SameLine()
+    imgui.Text("%d", self.counter)
+
+    imgui.Button('Tooltip')
+    imgui.SetItemTooltip('I am a tooltip')
+
+    imgui.LabelText('label', 'Value')
+
+    --
+    -- Inputs
+    --
+    imgui.SeparatorText('Inputs')
+
+    self.str0 = imgui.InputText('input text', self.str0)
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "Hold SHIFT or use mouse to select text.\n" ..
+        "CTRL+Left/Right to word jump.\n" ..
+        "CTRL+A or Double-Click to select all.\n" ..
+        "CTRL+X,CTRL+C,CTRL+V clipboard.\n" ..
+        "CTRL+Z,CTRL+Y undo/redo.\n" ..
+        "ESCAPE to revert."
+    )
+
+    self.str1 = imgui.InputTextWithHint('input text (w/ hint)', 'enter text here', self.str1)
+    self.i0 = imgui.InputInt('input int', self.i0)
+    self.f0 = imgui.InputFloat('input float', self.f0, 0.01, 1.0, "%.3f")
+    self.d0 = imgui.InputDouble('input double', self.d0, 0.01, 1.0, "%.8f")
+
+    self.f1 = imgui.InputFloat('input scientific', self.f1, 0.0, 0.0, "%e")
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "You can input value using the scientific notation,\n" ..
+        "  e.g. \"1e+8\" becomes \"100000000\"."
+    )
+
+    self.vec4a = imgui.InputFloat3('input float3', self.vec4a)
+
+    --
+    -- Drags
+    --
+    imgui.SeparatorText('Drags')
+
+    self.i1 = imgui.DragInt('drag int', self.i1, 1)
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "Click and drag to edit value.\n" ..
+        "Hold SHIFT/ALT for faster/slower edit.\n" ..
+        "Double-click or CTRL+click to input value."
+    )
+
+    self.i2 = imgui.DragInt('drag int 0..100', self.i2, 1, 0, 100, '%d%%', ImGuiSliderFlags.AlwaysClamp)
+
+    self.drags_f1 = imgui.DragFloat('drag float', self.drags_f1, 0.005)
+    self.drags_f2 = imgui.DragFloat('drag small float', self.drags_f2, 0.0001, 0.0, 0.0, '%.06f ns')
+
+    --
+    -- Sliders
+    --
+    imgui.SeparatorText('Sliders')
+
+
+    self.sliders_i1 = imgui.SliderInt('slider int', self.sliders_i1, -1, 3)
+    imgui.SameLine()
+    imgui.HelpMarker("CTRL+click to input value.")
+
+    self.sliders_f1 = imgui.SliderFloat('slider float', self.sliders_f1, 0.0, 1.0, 'ratio = %.3f')
+    self.sliders_f2 = imgui.SliderFloat('slider float (log)', self.sliders_f2, -10.0, 10.0, '%.4f', ImGuiSliderFlags.Logarithmic)
+
+    self.angle = imgui.SliderAngle('slider angle', self.angle)
+
+    -- Using the format string to display a name instead of an integer.
+    -- Here we completely omit '%d' from the format string, so it'll only display a name.
+    -- This technique can also be used with DragInt().
+    local elem = self.elem
+    local elem_name = (elem >= 1 and elem <= self.elem_count) and self.elem_names[elem] or 'Unknown'
+    self.elem = imgui.SliderInt('slider enum', elem, 1, self.elem_count, elem_name) -- UseImGuiSlidersNoInput flag to disable CTRL+Click here
+    imgui.SameLine()
+    imgui.HelpMarker("Using the format string parameter to display a name instead of the underlying integer")
+
+    --
+    -- Selectors/Pickers
+    --
+    imgui.SeparatorText('Selectors/Pickers')
+
+    self.col1 = imgui.ColorEdit3('color 1', self.col1)
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "Click on the color square to open a color picker.\n" ..
+        "Click and hold to use drag and drop.\n" ..
+        "Right-click on the color square to show options.\n" ..
+        "CTRL+click on individual component to input value."
+    )
+
+    self.col2 = imgui.ColorEdit4('color 2', self.col2)
+
+    -- Using the _simplified_ one-liner Combo() api here
+    -- See "Combo" section for examples of how to use the more flexible BeginCombo()/EndCombo() api.
+    self.combo_item_current = imgui.Combo('combo', self.combo_item_current, self.combo_items)
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "Using the simplified one-liner Combo API here.\nRefer to the \"Combo\" section below for an explanation of how to use the more flexible and general BeginCombo/EndCombo API."
+    )
+
+    -- Using the _simplified_ one-liner ListBox() api here
+    -- See "List boxes" section for examples of how to use the more flexible BeginListBox()/EndListBox() api.
+    self.list_item_current = imgui.ListBox('listbox', self.list_item_current, self.list_items, #self.list_items, 4)
+    imgui.SameLine()
+    imgui.HelpMarker(
+        "Using the simplified one-liner ListBox API here.\nRefer to the \"List boxes\" section below for an explanation of how to use the more flexible and general BeginListBox/EndListBox API."
+    )
+end
+
+
+--
+-- Widgets Demo - Tooltips
+--
+
+local WidgetsDemo_Tooltips = {
+    arr = { 0.6, 0.1, 1.0, 0.5, 0.92, 0.1, 0.2 },
+    always_on = 1,
+}
+
+function WidgetsDemo_Tooltips:Draw()
+    -- Tooltips are windows following the mouse. They do not take focus away.
+    imgui.SeparatorText('General')
+
+    -- Typical use cases:
+    -- - Short-form (text only):      SetItemTooltip("Hello")
+    -- - Short-form (any contents):   if BeginItemTooltip() then Text("Hello"); EndTooltip() end
+
+    -- - Full-form (text only):       if IsItemHovered(...) then SetTooltip("Hello") end
+    -- - Full-form (any contents):    if IsItemHovered(...) and BeginTooltip() then Text("Hello"); EndTooltip() end
+
+    imgui.HelpMarker(
+        "Tooltip are typically created by using a IsItemHovered() + SetTooltip() sequence.\n\n" ..
+        "We provide a helper SetItemTooltip() function to perform the two with standards flags."
+    )
+
+    local sz = ImVec2(-FLT_MIN, 0.0)
+
+    imgui.Button('Basic', sz)
+    imgui.SetItemTooltip('I am a tooltip')
+
+    imgui.Button('Fancy', sz)
+    if imgui.BeginItemTooltip() then
+        imgui.Text('I am a fancy tooltip')
+        imgui.PlotLines('Curve', self.arr)
+        imgui.Text('Sin(time) = %f', math.sin(imgui.GetTime()))
+
+        imgui.EndTooltip()
+    end
+
+    --
+    -- Always On
+    --
+    imgui.SeparatorText('Always On')
+
+    self.always_on = imgui.RadioButton('Off', self.always_on, 1)
+    imgui.SameLine()
+    self.always_on = imgui.RadioButton('Always On (Simple)', self.always_on, 2)
+    imgui.SameLine()
+    self.always_on = imgui.RadioButton('Always On (Advanced)', self.always_on, 3)
+
+    if self.always_on == 2 then
+        imgui.SetTooltip('I am following you around.')
+    elseif self.always_on == 3 and imgui.BeginTooltip() then
+        imgui.ProgressBar(math.sin(imgui.GetTime()) * 0.5 + 0.5, ImVec2(imgui.GetFontSize() * 25, 0))
+        imgui.EndTooltip()
+    end
+
+    --
+    -- Custom
+    --
+    imgui.SeparatorText('Custom')
+
+    imgui.HelpMarker(
+        "Passing ImGuiHoveredFlags_ForTooltip to IsItemHovered() is the preferred way to standardize" ..
+        "tooltip activation details across your application. You may however decide to use custom" ..
+        "flags for a specific tooltip instance."
+    )
+
+    -- The following examples are passed for documentation purpose but may not be useful to most users.
+    -- Passing ImGuiHoveredFlags_ForTooltip to IsItemHovered() will pull ImGuiHoveredFlags flags values from
+    -- 'style.HoverFlagsForTooltipMouse' or 'style.HoverFlagsForTooltipNav' depending on whether mouse or gamepad/keyboard is being used.
+    -- With default settings, ImGuiHoveredFlags.ForTooltip is equivalent to ImGuiHoveredFlags.DelayShort + ImGuiHoveredFlags.Stationary.
+    imgui.Button('Manual', sz)
+    if imgui.IsItemHovered(ImGuiHoveredFlags.ForTooltip) then
+        imgui.SetTooltip('I am a manually emitted tooltip.')
+    end
+
+    imgui.Button('DelayNone', sz)
+    if imgui.IsItemHovered(ImGuiHoveredFlags.DelayNone) then
+        imgui.SetTooltip('I am a tooltip with no delay.')
+    end
+
+    imgui.Button('DelayShort', sz)
+    if imgui.IsItemHovered(bit32.bor(ImGuiHoveredFlags.DelayShort, ImGuiHoveredFlags.NoSharedDelay)) then
+        imgui.SetTooltip('I am a tooltip with a short delay (%.02f sec).', imgui.GetStyle().HoverDelayShort)
+    end
+
+    imgui.Button('DelayLong', sz)
+    if imgui.IsItemHovered(bit32.bor(ImGuiHoveredFlags.DelayNormal, ImGuiHoveredFlags.NoSharedDelay)) then
+        imgui.SetTooltip('I am a tooltip with a long delay (%.02f sec).', imgui.GetStyle().HoverDelayNormal)
+    end
+
+    imgui.Button('Stationary', sz)
+    if imgui.IsItemHovered(ImGuiHoveredFlags.Stationary) then
+        imgui.SetTooltip('I am a tooltip requiring mouse to be stationary before activating.')
+    end
+
+    -- Using ImGuiHoveredFlags.ForTooltip will pull flags from 'style.HoverFlagsForTooltipMouse' or 'style.HoverFlagsForTooltipNav',
+    -- which default value include the ImGuiHoveredFlags.AllowWhenDisabled flag.
+    -- As a result, Set
+    imgui.BeginDisabled()
+    imgui.Button('Disabled item', sz)
+    imgui.EndDisabled()
+    if imgui.IsItemHovered(ImGuiHoveredFlags.ForTooltip) then
+        imgui.SetTooltip('I am a tooltip for a disabled item')
+    end
+end
+
+--
+-- Widgets Demo - Images
 --
 
 local WidgetsDemo_Images = {
-    pressed_count = 0
+    pressed_count = 0,
+    use_text_color_for_tint = false,
 }
 
 function WidgetsDemo_Images:Draw()
@@ -25,11 +348,12 @@ function WidgetsDemo_Images:Draw()
     local my_tex_w = io.Fonts.TexWidth
     local my_tex_h = io.Fonts.TexHeight
 
+    self.use_text_color_for_tint = imgui.Checkbox('Use Text Color for Tint', self.use_text_color_for_tint)
     imgui.Text(string.format("%.0fx%.0f", my_tex_w, my_tex_h))
     local pos = imgui.GetCursorScreenPosVec()
     local uv_min = ImVec2(0, 0)
     local uv_max = ImVec2(1, 1)
-    local tint_col = ImVec4(1, 1, 1, 1)
+    local tint_col = self.use_text_color_for_tint and imgui.GetStyleColorVec4(ImGuiCol.Text) or ImVec4(1, 1, 1, 1)
     local border_col = ImVec4(1, 1, 1, 0.5)
 
     imgui.Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col)
@@ -374,6 +698,8 @@ end
 
 local disable_all = false
 
+
+
 function ShowDemoWindowWidgets()
     if not imgui.CollapsingHeader("Widgets") then
         return
@@ -381,6 +707,16 @@ function ShowDemoWindowWidgets()
 
     if disable_all then
          imgui.BeginDisabled()
+    end
+
+    if imgui.TreeNode('Basic') then
+        WidgetsDemo_Basic:Draw()
+        imgui.TreePop()
+    end
+
+    if imgui.TreeNode('Tooltips') then
+        WidgetsDemo_Tooltips:Draw()
+        imgui.TreePop()
     end
 
     if imgui.TreeNode('Text') then

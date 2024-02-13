@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,7 @@
 #include "LuaCoroutine.h"
 #include "LuaEvent.h"
 #include "LuaImGui.h"
+#include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
 
 #include <mq/Plugin.h>
@@ -160,9 +161,7 @@ void LuaThread::EnableEvents()
 
 void LuaThread::InjectMQNamespace()
 {
-	RegisterMQNamespace(m_globalState);
-
-	m_globalState["mq"] = *m_mqTable;
+	m_globalState["mq"] = RegisterMQNamespace(m_globalState.lua_state());
 }
 
 void LuaThread::Exit(LuaThreadExitReason reason)
@@ -189,16 +188,15 @@ void LuaThread::RemoveThread(uint32_t index)
 	m_threadTable[index] = sol::lua_nil;
 }
 
-void LuaThread::RegisterMQNamespace(sol::state_view sv)
+sol::table LuaThread::RegisterMQNamespace(sol::this_state L)
 {
-	if (!m_mqTable.has_value())
-	{
-		auto mq = sv.create_table();
-		bindings::RegisterBindings_MQ(this, mq);
-		bindings::RegisterBindings_MQMacroData(mq);
+	sol::state_view sv{ L };
 
-		m_mqTable = mq;
-	}
+	auto mq = sv.create_table();
+	bindings::RegisterBindings_MQ(this, mq);
+	bindings::RegisterBindings_MQMacroData(mq);
+
+	return mq;
 }
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
@@ -207,20 +205,25 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 	if (pkg == "mq")
 	{
-		RegisterMQNamespace(sv);
-		m_globalState.set("_mq_internal_table", *m_mqTable);
+		sol::stack::push(L, std::function([this](sol::this_state L) { return RegisterMQNamespace(L); }));
+		return 1;
+	}
 
-		std::string_view script("return _mq_internal_table");
-		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+	if (pkg == "actors")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return LuaActors::RegisterLua(L); }));
 		return 1;
 	}
 
 	if (pkg == "ImGui")
 	{
-		bindings::RegisterBindings_ImGui(sv);
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImGui(L); }));
+		return 1;
+	}
 
-		std::string_view script("return ImGui");
-		luaL_loadbuffer(sv, script.data(), script.size(), pkg.c_str());
+	if (pkg == "ImPlot")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImPlot(L); }));
 		return 1;
 	}
 
@@ -523,6 +526,12 @@ LuaThreadStatus LuaThread::Pause()
 	m_paused = true;
 
 	return LuaThreadStatus::Paused;
+}
+
+void LuaThread::SetAllowYield(bool allowYield, YieldDisabledReason reason)
+{
+	m_allowYield = allowYield;
+	m_yieldDisabledReason = reason;
 }
 
 // this is the special sauce that lets us execute everything on the main thread without blocking

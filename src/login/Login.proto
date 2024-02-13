@@ -2,6 +2,18 @@ syntax = "proto3";
 
 package mq.proto.login;
 
+enum MessageId {
+	ProfileLoaded = 0;
+	ProfileUnloaded = 1;
+	ProfileCharInfo = 2;
+	StartInstance = 3;
+}
+
+message LoginMessage {
+	MessageId id = 1;
+	optional bytes payload = 2;
+}
+
 // submessage for the login target state, both targets are optional
 message LoginTarget {
 	optional string server = 1;
@@ -20,6 +32,8 @@ message DirectMethod {
 	string login = 1;
 	string password = 2;
 	LoginTarget target = 3;
+	optional string hotkey = 4;
+	optional string eq_path = 5;
 }
 
 // can add more login methods here... (like token)
@@ -29,10 +43,18 @@ message StartInstanceMissive {
 		ProfileMethod profile = 1;
 		DirectMethod direct = 2;
 	}
+
+	optional uint32 pid = 10;
+}
+
+message StopInstanceMissive {
+	uint32 pid = 1;
 }
 
 // character info for updating the UI
 message CharacterInfoMissive {
 	uint32 class = 1;
 	uint32 level = 2;
+	string server = 3;
+	string character = 4;
 }

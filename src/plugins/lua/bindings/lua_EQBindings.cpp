@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -139,6 +139,21 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	);
 
 	mq.set_function("FindTextureAnimation", &FindTextureAnimation);
+
+	mq.set_function("AttachSpellToCursor", [](int SpellID)
+		{
+			if (pCursorAttachment) return pCursorAttachment->AttachSpellToCursor(SpellID);
+			return false;
+		});
+	mq.set_function("RemoveCursorAttachment", []()
+		{
+			if (pCursorAttachment && pCursorAttachment->IsOkToActivate(-1))
+			{
+				pCursorAttachment->RemoveAttachment();
+				return true;
+			}
+			return false;
+		});
 
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings

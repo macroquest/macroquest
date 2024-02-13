@@ -13,8 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Proto Files">
-      <UniqueIdentifier>{6e6bc75e-4af1-408c-a5a0-a795d9466dfd}</UniqueIdentifier>
+    <Filter Include="Header Files\imgui_backend">
+      <UniqueIdentifier>{3eb371d6-cfc7-48f8-9709-ae011cf16c6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui_backend">
+      <UniqueIdentifier>{620f3dbe-47a9-49ad-b823-24532ee7f450}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,10 +51,19 @@
     <ClCompile Include="PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
+    <ClCompile Include="ImGui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.pb.cc">
+    <ClCompile Include="imgui_backend\imgui_impl_dx11.cpp">
+      <Filter>Source Files\imgui_backend</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_backend\imgui_impl_win32.cpp">
+      <Filter>Source Files\imgui_backend</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_backend\imgui_engine.cpp">
+      <Filter>Source Files\imgui_backend</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoLoginImGui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,7 +95,22 @@
     <ClInclude Include="PostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
+    <ClInclude Include="ImGui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_backend\imgui_impl_dx11.h">
+      <Filter>Header Files\imgui_backend</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_backend\imgui_impl_win32.h">
+      <Filter>Header Files\imgui_backend</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_backend\imgui_engine.h">
+      <Filter>Header Files\imgui_backend</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoLogin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Markov.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -43,7 +43,7 @@
 
 #define CLIENT_OVERRIDE 0
 
-#if defined(LIVE)
+#if IS_LIVE_CLIENT
 
 #if !defined(_M_AMD64)
 #error Live build is only for x64
@@ -52,7 +52,7 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
 
-#elif defined(TEST)
+#elif IS_TEST_CLIENT
 
 #if !defined(_M_AMD64)
 #error Test build is only for x64
@@ -61,7 +61,16 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
 
-#elif defined(EMULATOR)
+#elif IS_BETA_CLIENT
+
+#if !defined(_M_AMD64)
+#error Beta build is only for x64
+#endif
+#pragma message("Building MacroQuest for BETA (x64)")
+#define MacroQuestWinClassName "__MacroQuestTray(Beta)"
+#define MacroQuestWinName "MacroQuest(Beta)"
+
+#elif IS_EMU_CLIENT
 
 #if defined(_M_AMD64)
 #error Emulator Build is only for x86
@@ -578,10 +587,8 @@ void DoMainThreadInitialization()
 {
 	gpMainAPI = new MainImpl();
 
-	InitializePipeClient();
 	InitializeMQ2Commands();
 	InitializeDisplayHook();
-	InitializeMouseHooks();
 	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
@@ -793,12 +800,10 @@ void MQ2Shutdown()
 	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
-	ShutdownMQ2DInput();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMouseHooks();
 	ShutdownMQ2CrashHandler();
 	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
@@ -809,7 +814,6 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
-	ShutdownPipeClient();
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();
@@ -908,8 +912,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 		Sleep(500);
 	}
-
-	InitializeMQ2DInput();
 
 	DebugSpewAlways("%s", LoadedString);
 
@@ -1173,23 +1175,21 @@ MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
 void MainImpl::SendToActor(
 	postoffice::Dropbox* dropbox,
 	const postoffice::Address& address,
-	uint16_t messageId,
 	const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback,
 	MQPlugin* owner)
 {
-	pActorAPI->SendToActor(dropbox, address, messageId, data, callback, owner);
+	pActorAPI->SendToActor(dropbox, address, data, callback, owner);
 }
 
 void MainImpl::ReplyToActor(
 	postoffice::Dropbox* dropbox,
 	const std::shared_ptr<postoffice::Message>& message,
-	uint16_t messageId,
 	const std::string& data,
 	uint8_t status,
 	MQPlugin* owner)
 {
-	pActorAPI->ReplyToActor(dropbox, message, messageId, data, status, owner);
+	pActorAPI->ReplyToActor(dropbox, message, data, status, owner);
 }
 
 postoffice::Dropbox* MainImpl::AddActor(

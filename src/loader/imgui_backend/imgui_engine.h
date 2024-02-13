@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-2024 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,18 +14,15 @@
 
 #pragma once
 
-#include "MQ2MainBase.h"
+#include <functional>
+#include <windows.h>
 
-namespace mq {
-
-namespace pipeclient {
-
-void NotifyIsForegroundWindow(bool isForeground);
-void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
-
-} // namespace pipeclient
-
-void InitializePipeClient();
-void ShutdownPipeClient();
-
-} // namespace mq
+//============================================================================
+namespace LauncherImGui {
+namespace Backend {
+void Init(HWND hWnd);
+void DrawFrame(const std::function<void()>& drawFrame);
+void Cleanup();
+bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
+} // namespace Backend
+} // namespace LauncherImGui

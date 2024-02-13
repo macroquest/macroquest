@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -25,7 +25,6 @@ public:
 	void SendToActor(
 		postoffice::Dropbox* dropbox,
 		const postoffice::Address& address,
-		uint16_t messageId,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
 		MQPlugin* owner = nullptr);
@@ -33,7 +32,6 @@ public:
 	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
-		uint16_t messageId,
 		const std::string& data,
 		uint8_t status,
 		MQPlugin* owner = nullptr);

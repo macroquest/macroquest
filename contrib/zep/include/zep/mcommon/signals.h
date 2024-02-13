@@ -293,7 +293,7 @@ class signal_accumulator
 {
 public:
     /// Result type when calling the accumulating function operator.
-    using result_type = typename std::result_of<F(T, typename S::slot_type::result_type)>::type;
+    using result_type = std::invoke_result_t<F, T, typename S::slot_type::result_type>;
 
     /// Construct a signal_accumulator as a proxy to a given signal
     //

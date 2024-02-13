@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -171,22 +171,23 @@ void RemoveDetours()
 	}
 }
 
-void SetAssist(BYTE* address)
-{
-	gbAssistComplete = AS_AssistReceived;
-
-	if (!address) return;
-	int Assistee = *(int*)address;
-
-	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
-	{
-		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
-		gbAssistComplete = AS_AssistSent;
-	}
-}
+// TODO: Maybe someday revisit detection of assist completion...
+//void SetAssist(BYTE* address)
+//{
+//	gbAssistComplete = AS_AssistReceived;
+//
+//	if (!address) return;
+//	int Assistee = *(int*)address;
+//
+//	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+//	{
+//		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
+//		gbAssistComplete = AS_AssistSent;
+//	}
+//}
 
 // Defined in AssemblyFunctions.asm, need the forward declare
-void GetAssistParam();
+//void GetAssistParam();
 
 //============================================================================
 

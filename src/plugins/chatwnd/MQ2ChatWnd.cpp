@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -76,7 +76,7 @@ public:
 		OutputBox->SetParentWindow(this);
 		InputBox->SetParentWindow(this);
 		OutputBox->MaxLines = MAX_LINES_OUTBOX;
-		OutputBox->SetClickable(true);
+		OutputBox->SetClickThrough(true);
 		OutputBox->AddStyle(CWS_CLIENTMOVABLE);
 		iCurrentCmd = -1;
 		SetZLayer(1); // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
@@ -175,8 +175,8 @@ public:
 		}
 		else if (pWnd == OutputBox)
 		{
-			if (Message == XWM_LINK || Message == XWM_SPELL_LINK
-				|| Message == XWM_ACHIEVEMENTLINK || Message == XWM_DIALOGRESPONSELINK)
+			if (pChatManager && (Message == XWM_LINK || Message == XWM_SPELL_LINK
+				|| Message == XWM_ACHIEVEMENTLINK || Message == XWM_DIALOGRESPONSELINK))
 			{
 				for (auto wnd : pChatManager->ChannelMap)
 				{
@@ -875,6 +875,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/mqmin");
 	RemoveCommand("/mqclear");
 	RemoveMQ2KeyBind("MQ2CHAT");
+	RemoveMQ2KeyBind("MQ2CSCHAT");
 	RemoveMQ2Data("ChatWnd");
 	delete pChatWndType;
 	DestroyChatWnd();

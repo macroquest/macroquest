@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -281,6 +281,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 {
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE hProcess = GetCurrentProcess();
+	DWORD processID = GetCurrentProcessId();
 
 	SymInitialize(hProcess, nullptr, true);
 
@@ -315,30 +316,33 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
 			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
+				"MacroQuest caught a crash:\n\n"
+				"Process ID: %d\n"
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				processID, pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 		else
 		{
 			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
+				"MacroQuest caught a crash:\n\n"
+				"Process ID: %d\n"
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				processID, pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 	}
 	else
 	{
 		sprintf_s(szTemp,
-			"MacroQuest caught a crash:\n"
+			"MacroQuest caught a crash:\n\n"
+			"Process ID: %d\n"
 			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n"
 			"\nCrashID: %s\n",
-			szSymSearchPath, (void*)(dwAddress - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+			processID, szSymSearchPath, (void*)(dwAddress - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 	}
 
 	SymCleanup(hProcess);
@@ -357,7 +361,9 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		"\n"
 		"You can either:\n"
 		" * [RETRY] Continue execution and hope for the best.\n"
-		" * [CANCEL] Write a crash dump and terminate EverQuest.\n",
+		" * [CANCEL] Write a crash dump and terminate EverQuest.\n"
+		"\n"
+		"Copy the contents of this dialog to your clipboard by pressing Ctrl+C\n",
 		szTemp);
 
 	const int mbRet = ::MessageBoxA(nullptr, szMessage, "EverQuest Crash Detected", MB_RETRYCANCEL | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);

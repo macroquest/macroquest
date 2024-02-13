@@ -71,11 +71,11 @@ local function ShowTableDemoBackgroundColor(open_action)
 
                 -- Demonstrate setting a row background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBgX, ...)'
                 -- We use a transparent color so we can see the one behind in case our target is RowBg1 and RowBg0 was already targeted by the ImGuiTableFlags_RowBg flag.
-                if row_bg_type ~= 0 then
-                    if row_bg_type == 1 then
-                        imgui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.7, 0.3, 0.3, 0.65)
+                if row_bg_type ~= 1 then
+                    if row_bg_type == 2 then
+                        imgui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target - 1, 0.7, 0.3, 0.3, 0.65)
                     else
-                        imgui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.2 + row * .1, 0.2, 0.2, 0.65)
+                        imgui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target - 1, 0.2 + row * .1, 0.2, 0.2, 0.65)
                     end
                 end
 
@@ -88,7 +88,7 @@ local function ShowTableDemoBackgroundColor(open_action)
                     -- Demonstrate setting a cell background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ...)'
                     -- (the CellBg color will be blended over the RowBg and ColumnBg colors)
                     -- We can also pass a column number as a third parameter to TableSetBgColor() and do this outside the column loop.
-                    if row >= 1 and row <= 2 and column >= 1 and column <= 2 and cell_bg_type == 1 then
+                    if row >= 1 and row <= 2 and column >= 1 and column <= 2 and cell_bg_type == 2 then
                         imgui.TableSetBgColor(ImGuiTableBgTarget.CellBg, 0.3, 0.3, 0.7, 0.65)
                     end
                 end

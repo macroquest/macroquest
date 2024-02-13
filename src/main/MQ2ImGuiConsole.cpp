@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -253,24 +253,30 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 // UserColor values of the ThemeColor enum.
 class ZepConsoleTheme : public Zep::ZepTheme
 {
-	static inline constexpr int UserColorStart = (int)Zep::ThemeColor::UniqueColorLast + 1;
+	static inline constexpr int UserColorStart = static_cast<int>(Zep::ThemeColor::UniqueColorLast) + 1;
 
 public:
 	ZepConsoleTheme()
 	{
 	}
 
-	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const
+	virtual Zep::ZepColor GetColor(Zep::ThemeColor themeColor) const override
 	{
-		if ((int)themeColor >= UserColorStart)
-			return m_userColors[(size_t)themeColor - UserColorStart];
+		Zep::ZepColor finalColor;
+		
+		if (static_cast<int>(themeColor) >= UserColorStart)
+			finalColor = m_userColors[static_cast<size_t>(themeColor) - UserColorStart];
+		else if (themeColor == Zep::ThemeColor::Background)
+			finalColor = Zep::ZepColor(0, 0, 0, 0);
+		else if (themeColor == Zep::ThemeColor::VisualSelectBackground)
+			finalColor = Zep::ZepColor(66, 150, 249, 89);
+		else
+			finalColor = Zep::ZepTheme::GetColor(themeColor);
+		
+		// apply user alpha
+		finalColor.a = static_cast<uint8_t>(finalColor.a * m_opacity);
 
-		if (themeColor == Zep::ThemeColor::Background)
-			return Zep::ZepColor(0, 0, 0, 0);
-		if (themeColor == Zep::ThemeColor::VisualSelectBackground)
-			return Zep::ZepColor(66, 150, 249, 89);
-
-		return Zep::ZepTheme::GetColor(themeColor);
+		return finalColor;
 	}
 
 	// This overrides GetUniqueColor to treat any value over UniqueColorLast as a color value.
@@ -278,22 +284,26 @@ public:
 	Zep::ThemeColor GetUserColor(Zep::ZepColor color)
 	{
 		uint32_t id = color.ABGR;
-		if (id < (int)Zep::ThemeColor::UniqueColorLast - (int)Zep::ThemeColor::UniqueColor0)
+		if (id < static_cast<int>(Zep::ThemeColor::UniqueColorLast) - static_cast<int>(Zep::ThemeColor::UniqueColor0))
 			return Zep::ZepTheme::GetUniqueColor(id);
 
 		auto iter = std::find(std::begin(m_userColors), std::end(m_userColors), color);
 		if (iter == std::end(m_userColors))
 		{
 			m_userColors.emplace_back(id);
-			return (Zep::ThemeColor)(m_userColors.size() - 1 + UserColorStart);
+			return static_cast<Zep::ThemeColor>(m_userColors.size() - 1 + UserColorStart);
 		}
 
 		int index = static_cast<int>(std::distance(std::begin(m_userColors), iter));
-		return (Zep::ThemeColor)(index + UserColorStart);
+		return static_cast<Zep::ThemeColor>(index + UserColorStart);
 	}
+
+	float GetOpacity() { return m_opacity; }
+	void SetOpacity(const float opacity) { m_opacity = opacity; }
 
 private:
 	std::vector<Zep::ZepColor> m_userColors;
+	float m_opacity = 1.0f;
 };
 
 //----------------------------------------------------------------------------
@@ -671,7 +681,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 				TextTagInfo& tagInfo = textTagInfo[curTag];
 
 				// Get text before.
-				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data());
+				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data() - segPos);
 				if (!curSeg.empty())
 				{
 					position = InsertText(position, curSeg, color);
@@ -891,6 +901,13 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	void SetMaxBufferLines(int maxBufferLines) override
 	{
 		m_maxBufferLines = maxBufferLines;
+	}
+
+	float GetOpacity() const override { return m_theme->GetOpacity(); }
+
+	void SetOpacity(float opacity) override
+	{
+		m_theme->SetOpacity(opacity);
 	}
 };
 
@@ -1229,7 +1246,7 @@ public:
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 6);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 4);
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
 		ImGui::PushFont(mq::imgui::ConsoleFont);
 
@@ -1737,14 +1754,13 @@ static void ConsoleSettings()
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("This feature allows you to automatically show the MacroQuest Console upon load.");
 
-	ImGui::SameLine();
+
 	if (ImGui::Checkbox("Developer: Persistent Command History", &s_consolePersistentCommandHistory))
 	{
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
 	}
-
 	ImGui::SameLine();
-	mq::imgui::HelpMarker("This feature stores commands between sessions.  Use at your own risk.");
+	mq::imgui::HelpMarker("This feature stores commands between sessions. Use at your own risk.");
 
 	ImGui::NewLine();
 

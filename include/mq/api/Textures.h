@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -38,7 +38,7 @@ public:
 	bool IsValid() const { return m_bmi != nullptr; }
 	const std::string& GetFilename() const { return m_name; }
 
-	MQLIB_OBJECT void* GetTextureID() const;
+	MQLIB_OBJECT ImTextureID GetTextureID() const;
 	MQLIB_OBJECT eqlib::CXSize GetTextureSize() const;
 
 	void ReleaseTexture();

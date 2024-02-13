@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -59,7 +59,11 @@ static bool DrawUITextureInternal(ImDrawList* drawList,
 	if (!pEQGBitmap)
 		return false;
 
+#if HAS_DIRECTX_11
+	ImTextureID TexID = pEQGBitmap;
+#else
 	ImTextureID TexID = (ImTextureID)pEQGBitmap->GetTexture();
+#endif
 	if (TexID == nullptr)
 		return false;
 

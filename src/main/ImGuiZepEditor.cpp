@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -171,7 +171,7 @@ void ZepEditor_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
 		drawList->PopClipRect();
 	}
@@ -188,7 +188,7 @@ void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor 
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
 		drawList->PopClipRect();
 	}
@@ -205,7 +205,7 @@ void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
 	}
 	else
 	{
-		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos));
+		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
 		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
 		drawList->PopClipRect();
 	}
@@ -414,7 +414,7 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 	{
 		for (int ch = 'A'; ch <= 'Z'; ch++)
 		{
-			if (ImGui::IsKeyPressed(ch))
+			if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
 			{
 				buffer.GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
 				handled = true;

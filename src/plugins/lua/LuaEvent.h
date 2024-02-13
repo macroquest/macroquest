@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -22,8 +22,6 @@ class Blech;
 struct BLECHVALUE;
 
 namespace mq::lua {
-
-void MQ_RegisterLua_Events(sol::table& lua);
 
 class LuaThread;
 class LuaEventProcessor;

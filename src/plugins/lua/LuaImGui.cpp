@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,7 @@
 #include "LuaThread.h"
 
 #include "bindings/lua_Bindings.h"
+#include "imgui/implot/implot.h"
 #include <mq/Plugin.h>
 
 namespace mq::lua {
@@ -25,6 +26,7 @@ namespace mq::lua {
 
 LuaImGuiProcessor::LuaImGuiProcessor(const LuaThread* thread)
 	: m_thread(thread)
+	, m_imPlotContext(std::shared_ptr<ImPlotContext>(ImPlot::CreateContext(), &ImPlot::DestroyContext))
 {
 }
 
@@ -54,6 +56,10 @@ void LuaImGuiProcessor::Pulse()
 {
 	if (m_thread->IsPaused()) return;
 
+	// Backup context and set our own
+	ImPlotContext* context = ImPlot::GetCurrentContext();
+	ImPlot::SetCurrentContext(m_imPlotContext.get());
+
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
 	lua_sethook(m_thread->GetLuaThread().lua_state(), nullptr, 0, 0);
@@ -63,6 +69,9 @@ void LuaImGuiProcessor::Pulse()
 		if (!im->Pulse())
 			RemoveCallback(im->GetName());
 	}
+
+	// Restore context
+	ImPlot::SetCurrentContext(context);
 }
 
 //============================================================================

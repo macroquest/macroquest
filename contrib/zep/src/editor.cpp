@@ -8,6 +8,8 @@
 #include "zep/syntax.h"
 #include "zep/syntax_providers.h"
 #include "zep/tab_window.h"
+#include "zep/mcommon/file/cpptoml.h"
+
 
 #include <unordered_set>
 

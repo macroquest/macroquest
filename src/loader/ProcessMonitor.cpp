@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -375,7 +375,7 @@ void ToolHelpProcessMonitor::ThreadProc()
 		{
 			if (waitList.size() >= MAXIMUM_WAIT_OBJECTS)
 			{
-				// SPDLOG_ERROR("Encountered more than the maximum number of proesses while waiting on ToolhelpThread: {}! "
+				// SPDLOG_ERROR("Encountered more than the maximum number of processes while waiting on ToolhelpThread: {}! "
 				// 	"Switching to WMI process monitor.", waitList.size());
 				// switchToWMI = true;
 				// m_running = false;
