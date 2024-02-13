@@ -18,11 +18,24 @@
 
 #include <tinyfsm.hpp>
 #include <memory>
-#include <variant>
 
 static bool AUTOLOGIN_DBG = false;
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 
+struct CurrentLogin
+{
+	std::optional<std::string> Account;
+	std::optional<std::string> Password;
+	std::optional<std::string> ServerName;
+
+	void reset()
+	{
+		Account.reset();
+		Password.reset();
+		ServerName.reset();
+	}
+};
+
+void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
 CXStr GetWindowText(CXWnd* pWnd);
 CXStr GetEditWndText(CEditWnd* pWnd);
@@ -56,7 +69,7 @@ inline T* GetChildWindow(const std::string& parent, const std::string& child)
 
 inline bool IsWindowActive(const std::string& name)
 {
-	CXWnd* pWnd = GetWindow(name);
+	const CXWnd* pWnd = GetWindow(name);
 	return pWnd != nullptr && pWnd->IsVisible() && pWnd->IsEnabled();
 }
 
@@ -227,7 +240,7 @@ public:
 		if (m_record)
 		{
 			if (!m_paused && ev.ShowMessage)
-				WriteChatf("\ag[AutoLogin]\ax \ayEND\ax key pressed. Login of \ag%s\ax paused.", m_record ? m_record->characterName.c_str() : "characters");
+				WriteChatf("\ag[AutoLogin]\ax \ayEND\ax key pressed. Login of \ag%s\ax paused.", m_record->characterName.c_str());
 			m_paused = true;
 		}
 	}
@@ -252,46 +265,30 @@ public:
 	static const char* hotkey() { return m_record ? m_record->hotkey.c_str() : ""; }
 	static const char* character_class() { return m_record ? m_record->characterClass.c_str() : ""; }
 
+	static std::optional<std::string> custom_ini() { return m_record ? m_record->customClientIni : std::nullopt; }
+
 	static int character_level() { return m_record ? m_record->characterLevel : 0; }
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
 	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
 	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
-	static const bool paused() { return m_paused; }
-	static const uint64_t delay_time() { return m_delayTime; }
-	static const LoginState last_state() { return m_lastState; }
-	static const unsigned char retries() { return m_retries; }
+	static bool paused() { return m_paused; }
+	static uint64_t delay_time() { return m_delayTime; }
+	static LoginState last_state() { return m_lastState; }
+	static unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
 
 	struct Settings
 	{
-		bool KickActiveCharacter;
-		bool EndAfterSelect;
-		int CharSelectDelay;
-		int ConnectRetries;
-
-		enum class ServerUpNotification {
-			None = 0,
-			Beeps = 1,
-			Email = 2
-		};
-		ServerUpNotification NotifyOnServerUp;
-
-		enum class Type {
-			Profile,
-			StationNames,
-			Sessions
-		};
-		Type LoginType;
+		bool KickActiveCharacter = true;
+		bool EndAfterSelect = false;
+		int CharSelectDelay = 3;
+		int ConnectRetries = 0;
 	};
+
 	static Settings m_settings;
+	static CurrentLogin m_currentLogin;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
-
-// Look up the long name for a server name stored in the configuration
-inline std::string GetServerLongName(const std::string& serverName)
-{
-	return GetPrivateProfileString("Servers", serverName, "", INIFileName);
-}
 

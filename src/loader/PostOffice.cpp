@@ -65,10 +65,38 @@ private:
 			}
 
 			case mq::MQMessageId::MSG_ROUTE:
-				// all we have to do here is route, this is the same as if an internal mailbox is
-				// attempting to route a message
-				m_postOffice->RouteMessage(std::move(message));
+			{
+				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+				const auto& address = envelope.address();
+				if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
+				{
+					auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
+						{
+							RoutingFailed(envelope, status, std::move(message), nullptr);
+						};
+
+					if (address.has_mailbox())
+					{
+						// this is a local message
+						m_postOffice->DeliverTo(address.mailbox(), std::move(message), routing_failed);
+					}
+					else
+					{
+						// This is a failsafe action, we shouldn't expect to be here often. For this code to
+						// be reached, we would have to have a client that packages a message in an envelope
+						// that is intended to be parsed directly by the server and not routed anywhere (so
+						// no mailbox routing information is included), rather than just send the message
+						m_postOffice->DeliverTo("pipe_server", std::move(message), routing_failed);
+					}
+				}
+				else
+				{
+					// all we have to do here is route, this is the same as if an internal mailbox is
+					// attempting to route a message
+					m_postOffice->RouteMessage(std::move(message));
+				}
 				break;
+			}
 
 			case mq::MQMessageId::MSG_IDENTIFICATION:
 				if (message->GetHeader()->messageLength > 0)
@@ -247,7 +275,9 @@ private:
 
 public:
 	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
-	{}
+	{
+		m_names.emplace("launcher", GetCurrentProcessId());
+	}
 
 	static void RoutingFailed(
 		const proto::routing::Envelope& envelope,
@@ -290,20 +320,47 @@ public:
 		else // routing will fail here if there are too many recipients
 		{
 			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-			auto identity = FindIdentity(envelope.address(), m_identities.begin());
+			const auto& address = envelope.address();
 
-			if (identity == m_identities.end())
-				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
-			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
-				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+			auto routing_failed = [&envelope, callback](int status, PipeMessagePtr&& message)
+				{
+					RoutingFailed(envelope, status, std::move(message), callback);
+				};
+
+			auto single_send = [callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+				{
+					connection->SendMessageWithResponse(std::move(message), callback);
+				};
+
+			if (address.has_pid())
+			{
+				SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
+			}
+			else if (address.has_name())
+			{
+				auto pid_it = m_names.find(address.name());
+				if (pid_it == m_names.end())
+				{
+					routing_failed(MsgError_RoutingFailed, std::move(message));
+				}
+				else
+				{
+					SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
+				}
+			}
 			else
 			{
-				message->SetRequestMode(MQRequestMode::CallAndResponse);
-				SendMessageToPID(identity->first, std::move(message),
-					[callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
-					{ connection->SendMessageWithResponse(std::move(message), callback); },
-					[&envelope, callback](int status, PipeMessagePtr&& message)
-					{ RoutingFailed(envelope, status, std::move(message), callback); });
+				auto identity = FindIdentity(envelope.address(), m_identities.begin());
+
+				if (identity == m_identities.end())
+					RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+				else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
+					RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+				else
+				{
+					message->SetRequestMode(MQRequestMode::CallAndResponse);
+					SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
+				}
 			}
 		}
 	}
@@ -313,7 +370,7 @@ public:
 	{
 		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
-		auto routing_failed = [&envelope, this](int status, PipeMessagePtr&& message)
+		auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
 			{
 				RoutingFailed(envelope, status, std::move(message), nullptr);
 			};
@@ -323,12 +380,12 @@ public:
 				connection->SendMessage(std::move(message));
 			};
 
-		if (address.has_pid() && address.pid() != GetCurrentProcessId())
+		if (address.has_pid())
 		{
 			// a PID is necessarily a singular identifier, avoid the loop
 			SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
 		}
-		else if (address.has_name() && !ci_equals(address.name(), "launcher"))
+		else if (address.has_name())
 		{
 			// a name is also a singular identifier, avoid the loop here too
 			// route the message to a registered (named) client
@@ -342,24 +399,9 @@ public:
 				SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
 			}
 		}
-		else if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
-		{
-			if (address.has_mailbox())
-			{
-				// this is a local message
-				DeliverTo(address.mailbox(), std::move(message), routing_failed);
-			}
-			else
-			{
-				// This is a failsafe action, we shouldn't expect to be here often. For this code to
-				// be reached, we would have to have a client that packages a message in an envelope
-				// that is intended to be parsed directly by the server and not routed anywhere (so
-				// no mailbox routing information is included), rather than just send the message
-				DeliverTo("pipe_server", std::move(message), routing_failed);
-			}
-		}
 		else if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
 		{
+			// ensure that we have a singular target for an RPC message
 			auto identity = FindIdentity(envelope.address(), m_identities.begin());
 
 			if (identity == m_identities.end())
@@ -478,18 +520,22 @@ private:
 		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr&&)> send,
 		const std::function<void(int, PipeMessagePtr&&)>& failed)
 	{
-		auto connection = m_pipeServer.GetConnectionForProcessId(pid);
-		if (connection != nullptr)
+		if (pid == GetCurrentProcessId())
 		{
-			send(connection, std::move(message));
+			// send to self, dispatch directly to the handler
+			m_pipeServer.DispatchMessage(std::move(message));
+			return true;
 		}
-		else
+		else if (auto connection = m_pipeServer.GetConnectionForProcessId(pid))
 		{
-			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
-			failed(MsgError_NoConnection, std::move(message));
+			// found a connection to send it over
+			send(connection, std::move(message));
+			return true;
 		}
 
-		return connection != nullptr;
+		SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+		failed(MsgError_NoConnection, std::move(message));
+		return false;
 	}
 };
 
