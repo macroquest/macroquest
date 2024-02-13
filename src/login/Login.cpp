@@ -21,6 +21,9 @@
 #include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
 
+#include <rpc.h>
+#pragma comment(lib, "rpcrt4.lib")
+
 #include <wil/resource.h>
 #include <wil/registry.h>
 #include <filesystem>
@@ -201,6 +204,20 @@ ProfileRecord ProfileRecord::FromBlob(const std::string& blob)
 	}
 
 	return record;
+}
+
+std::string CreateUuid()
+{
+	GUID guid;
+	CoCreateGuid(&guid);
+
+	BYTE* guid_str;
+	UuidToStringA(&guid, &guid_str);
+
+	std::string guid_return(reinterpret_cast<LPTSTR>(guid_str));
+	RpcStringFreeA(&guid_str);
+
+	return guid_return;
 }
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, const std::string_view server_type)
@@ -557,6 +574,20 @@ std::optional<std::string> login::db::GetMasterPass()
 	return s_masterPass;
 }
 
+static std::wstring GetRegistryKey()
+{
+	auto guid = login::db::ReadSetting("reg_guid");
+	if (!guid)
+	{
+		guid = CreateUuid();
+		login::db::WriteSetting("reg_guid", *guid, "GUID for caching the password in the registry");
+	}
+
+	guid = fmt::format("Software\\{}", *guid);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+	return cvt.from_bytes(guid->data(), guid->data() + guid->length());
+}
+
 bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 {
 	// first update the db with the new pass
@@ -620,7 +651,7 @@ bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 
 	// then update the registry
 	wil::unique_hkey pass_hkey;
-	if (create_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
+	if (create_unique_key_nothrow(HKEY_CURRENT_USER, GetRegistryKey().c_str(), pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
 	{
 		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
 		// the timestamp is in hours since epoch
@@ -629,13 +660,13 @@ bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 		const uint32_t expiry_timestamp = hours_valid <= 0 ? 0 : static_cast<uint32_t>(
 			duration_cast<hours>(system_clock::now().time_since_epoch()).count() + hours_valid);
 
-		wil::reg::set_value_dword_nothrow(pass_hkey.get(), L"MasterPassTimestamp", expiry_timestamp);
+		WriteSetting("master_pass_expiry", std::to_string(expiry_timestamp), "Epoch time (in hours) when the master pass expires");
 
 		// the string must be converted to a wide string for the registry
-		std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
 		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
 
-		wil::reg::set_value_string_nothrow(pass_hkey.get(), L"MasterPass", wide_pass.c_str());
+		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
 	}
 
 	// and update the memoized value
@@ -649,9 +680,10 @@ std::optional<std::string> login::db::ReadStoredMasterPass()
 	wil::unique_hkey pass_hkey;
 	std::optional<std::wstring> pass; // this must be a wstring, that's the only way to store strings in the registry
 
-	open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read);
+	//pass_hkey = wil::reg::open_unique_key(HKEY_CURRENT_USER, GetRegistryKey().c_str());
+	open_unique_key_nothrow(HKEY_CURRENT_USER, GetRegistryKey().c_str(), pass_hkey, wil::reg::key_access::read);
 	if (pass_hkey)
-		pass = wil::reg::try_get_value_string(pass_hkey.get(), L"MasterPass");
+		pass = wil::reg::try_get_value_string(pass_hkey.get(), nullptr);
 
 	if (pass)
 	{
@@ -665,16 +697,13 @@ std::optional<std::string> login::db::ReadStoredMasterPass()
 bool login::db::ReadMasterPassExpired()
 {
 	using namespace std::chrono;
-	wil::unique_hkey pass_hkey;
-	std::optional<DWORD> pass_timestamp;
-
-	if (open_unique_key_nothrow(HKEY_CURRENT_USER, L"Software\\MacroQuest\\AutoLogin", pass_hkey, wil::reg::key_access::read) != S_OK || !pass_hkey)
+	uint32_t pass_timestamp;
+	if (const auto timestamp = ReadSetting("master_pass_expiry"))
+		pass_timestamp = GetUIntFromString(*timestamp, 0);
+	else
 		return true;
 
-	if (!((pass_timestamp = wil::reg::try_get_value_dword(pass_hkey.get(), L"MasterPassTimestamp"))))
-		return true;
-
-	if (*pass_timestamp > 0 && static_cast<int>(*pass_timestamp) < duration_cast<hours>(system_clock::now().time_since_epoch()).count())
+	if (pass_timestamp > 0 && static_cast<int>(pass_timestamp) < duration_cast<hours>(system_clock::now().time_since_epoch()).count())
 		return true;
 
 	return false;
