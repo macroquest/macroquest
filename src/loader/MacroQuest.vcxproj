@@ -142,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
+    <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="AutoLogin.h" />

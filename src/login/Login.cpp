@@ -17,12 +17,10 @@
 #include "Login.h"
 
 #include "common/Common.h"
+#include "mq/utils/Markov.h"
 
 #include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
-
-#include <rpc.h>
-#pragma comment(lib, "rpcrt4.lib")
 
 #include <wil/resource.h>
 #include <wil/registry.h>
@@ -204,20 +202,6 @@ ProfileRecord ProfileRecord::FromBlob(const std::string& blob)
 	}
 
 	return record;
-}
-
-std::string CreateUuid()
-{
-	GUID guid;
-	CoCreateGuid(&guid);
-
-	BYTE* guid_str;
-	UuidToStringA(&guid, &guid_str);
-
-	std::string guid_return(reinterpret_cast<LPTSTR>(guid_str));
-	RpcStringFreeA(&guid_str);
-
-	return guid_return;
 }
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, const std::string_view server_type)
@@ -556,6 +540,15 @@ int login::db::ReadDataVersion()
 		});
 }
 
+static std::string CreateCompany()
+{
+	static markov::Chain chain({
+#include "Companies.h"
+	});
+
+	return chain.Generate();
+}
+
 bool login::db::ValidatePass(const std::string_view pass)
 {
 	const auto hash = ReadSetting("master_pass");
@@ -576,19 +569,46 @@ std::optional<std::string> login::db::GetMasterPass()
 
 static std::wstring GetRegistryKey()
 {
-	auto guid = login::db::ReadSetting("reg_guid");
-	if (!guid)
+	auto company = login::db::ReadSetting("reg_company");
+	if (!company)
 	{
-		guid = CreateUuid();
-		login::db::WriteSetting("reg_guid", *guid, "GUID for caching the password in the registry");
+		company = CreateCompany();
+		login::db::WriteSetting("reg_company", *company, "Company for caching the password in the registry");
 	}
 
-	guid = fmt::format("Software\\{}", *guid);
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cvt;
-	return cvt.from_bytes(guid->data(), guid->data() + guid->length());
+	company = fmt::format("Software\\{}", *company);
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
+	return cvt.from_bytes(company->data(), company->data() + company->length());
 }
 
-bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
+void login::db::CacheMasterPass(std::string_view pass)
+{
+	wil::unique_hkey pass_hkey;
+	if (create_unique_key_nothrow(HKEY_CURRENT_USER, GetRegistryKey().c_str(), pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
+	{
+		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
+		// the timestamp is in hours since epoch
+
+		using namespace std::chrono;
+		static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
+		static auto hours_valid = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString);
+		const uint32_t expiry_timestamp = perpetual_password.Read() ? 0 : static_cast<uint32_t>(
+			duration_cast<hours>(system_clock::now().time_since_epoch()).count() + hours_valid.Read());
+
+		WriteSetting("master_pass_expiry", std::to_string(expiry_timestamp), "Epoch time (in hours) when the master pass expires");
+
+		// the string must be converted to a wide string for the registry
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
+		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
+
+		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
+	}
+
+	// and update the memoized value
+	MemoizeMasterPass(pass);
+}
+
+bool login::db::CreateMasterPass(std::string_view pass)
 {
 	// first update the db with the new pass
 	HashParams hash_params;
@@ -649,29 +669,7 @@ bool login::db::CreateMasterPass(std::string_view pass, int hours_valid)
 			}
 		});
 
-	// then update the registry
-	wil::unique_hkey pass_hkey;
-	if (create_unique_key_nothrow(HKEY_CURRENT_USER, GetRegistryKey().c_str(), pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
-	{
-		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
-		// the timestamp is in hours since epoch
-
-		using namespace std::chrono;
-		const uint32_t expiry_timestamp = hours_valid <= 0 ? 0 : static_cast<uint32_t>(
-			duration_cast<hours>(system_clock::now().time_since_epoch()).count() + hours_valid);
-
-		WriteSetting("master_pass_expiry", std::to_string(expiry_timestamp), "Epoch time (in hours) when the master pass expires");
-
-		// the string must be converted to a wide string for the registry
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
-
-		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
-	}
-
-	// and update the memoized value
-	s_masterPass = pass;
-
+	CacheMasterPass(pass);
 	return true;
 }
 

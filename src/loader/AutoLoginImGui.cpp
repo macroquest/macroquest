@@ -1420,7 +1420,7 @@ static void ShowValidatePassword(const Action& ok_action)
 	{
 		if (!login::db::ReadSetting("master_pass") || login::db::ValidatePass(password))
 		{
-			login::db::MemoizeMasterPass(password);
+			login::db::CacheMasterPass(password);
 			failed_pass = false;
 
 			ok_action();
@@ -1468,13 +1468,8 @@ static void ShowNewPassword(const Action& ok_action)
 		{
 			if (password.empty())
 				login::db::DeleteSetting("master_pass");
-			else if (perpetual_password.Read())
-				login::db::CreateMasterPass(password, 0);
 			else
-			{
-				const auto hours_valid = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString).Read();
-				login::db::CreateMasterPass(password, hours_valid);
-			}
+				login::db::CreateMasterPass(password);
 
 			login::db::UpdateEncryptedData(old_pass ? *old_pass : "");
 
@@ -1648,6 +1643,9 @@ void ShowAutoLoginWindow()
 			static std::string hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Read()) / 24.f);
 			static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
 
+			static auto company = login::db::CacheSetting<std::string>("reg_company", "",
+				[](const std::string_view result, const std::string& _) { return std::string(result); });
+
 			static ServerTypeInfo server_type_info;
 			static ServerNameInfo server_name_info;
 
@@ -1743,6 +1741,17 @@ void ShowAutoLoginWindow()
 				LauncherImGui::EndModal();
 			}
 			ImGui::SameLine(); imgui::HelpMarker("Set a new master password (will update all saved encrypted values)");
+
+			ImGui::Spacing();
+			ImGui::SetNextItemWidth(200.f);
+			if (ImGui::InputText("Registry Company Name", &company.Read(), ImGuiInputTextFlags_EnterReturnsTrue))
+			{
+				const auto pass = login::db::ReadMasterPass();
+				login::db::WriteSetting("reg_company", company.Updated());
+				if (pass)
+					login::db::CacheMasterPass(*pass);
+			}
+			ImGui::SameLine(); imgui::HelpMarker("Set the company where the master pass is cached in the registry");
 
 			ImGui::Separator();
 			ImGui::Spacing();

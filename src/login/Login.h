@@ -245,7 +245,8 @@ bool ValidatePass(std::string_view pass);
 void MemoizeMasterPass(std::string_view pass);
 std::optional<std::string> GetMasterPass();
 
-bool CreateMasterPass(std::string_view pass, int hours_valid);
+void CacheMasterPass(std::string_view pass);
+bool CreateMasterPass(std::string_view pass);
 std::optional<std::string> ReadStoredMasterPass();
 bool ReadMasterPassExpired();
 std::optional<std::string> ReadMasterPass();
