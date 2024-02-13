@@ -1,3 +1,17 @@
+Feb 13, 2024:
+- Completely revamped the autologin interface and storage
+- MQ's context menu is now driven by imgui
+- Added an extendable window gui to MQ
+- login profiles and character management is now driven through the main gui
+- removed sessions and replaced station names with single-entry profiles
+- passing the profile name to /login will load the first character in the profile
+- removed the autologin ini, replaced with sqlite db that can be copied across computers
+- a master pass has been added to provide encryption for account passwords _only_
+- the user will be prompted for a master password at first startup on a computer
+- the master password will be stored locally outside of the db (in the registry)
+- if the autologin plugin is running, logging in a new account will store the account name and associated characters in the database
+- manually editing the server list mapping is no longer needed (it is auto detected the first time you see that server in your list)
+
 Feb 3, 2024:
 - emu: Fix /timestamp showing seconds to the decimal
 
