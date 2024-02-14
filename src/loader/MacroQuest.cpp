@@ -43,6 +43,8 @@
 #include <mq/utils/OS.h>
 #include <mq/base/BuildInfo.h>
 
+#include "AutoLogin.h"
+
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
@@ -1133,6 +1135,7 @@ int WINAPI CALLBACK WinMain(
 		[&msg]()
 		{
 			ProcessPipeServer();
+			ProcessPendingLogins();
 			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
 				switch (msg.message)

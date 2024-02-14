@@ -1778,18 +1778,18 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 				sqlite3_bind_null(stmt, 4);
 
 			if (profile.charSelectDelay)
-				sqlite3_bind_int(stmt, 4, *profile.charSelectDelay);
-			else
-				sqlite3_bind_null(stmt, 4);
-
-			if (profile.customClientIni)
-				BindText(stmt, 5, *profile.customClientIni);
+				sqlite3_bind_int(stmt, 5, *profile.charSelectDelay);
 			else
 				sqlite3_bind_null(stmt, 5);
 
-			BindText(stmt, 6, profile.serverName);
-			BindText(stmt, 7, profile.characterName);
-			BindText(stmt, 8, profile.profileName);
+			if (profile.customClientIni)
+				BindText(stmt, 6, *profile.customClientIni);
+			else
+				sqlite3_bind_null(stmt, 6);
+
+			BindText(stmt, 7, profile.serverName);
+			BindText(stmt, 8, profile.characterName);
+			BindText(stmt, 9, profile.profileName);
 
 			sqlite3_step(stmt);
 		});
