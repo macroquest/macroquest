@@ -1290,6 +1290,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 	if (ImGui::Button("Add Profile"))
 	{
 		selected = {};
+		selected.profileName = info.profileName;
 		LauncherImGui::OpenModal("Add Profile");
 	}
 

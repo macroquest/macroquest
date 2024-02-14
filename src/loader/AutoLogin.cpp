@@ -169,7 +169,7 @@ static const LoginInstance* StartOrUpdateInstance(const uint32_t pid, ProfileRec
 				}
 				else
 				{
-					std::string parameters = fmt::format(R"("{}" patchme /login:{})", eqgame.string(), arg);
+					std::string parameters = fmt::format(R"("{}" patchme "/login:{}")", eqgame.string(), arg);
 
 					STARTUPINFOA si = { sizeof(STARTUPINFOA) };
 					si.wShowWindow = SW_SHOWNORMAL;
