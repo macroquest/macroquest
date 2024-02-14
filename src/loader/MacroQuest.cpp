@@ -898,7 +898,6 @@ void InitializeVersionInfo()
 
 	fmt::format_to(NID.szTip, "{} [{} ({})]\0", gszWinName, szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
-	Shell_NotifyIcon(NIM_MODIFY, &NID);
 
 	to_lower(ServerType);
 }
