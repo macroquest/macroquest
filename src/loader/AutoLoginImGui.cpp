@@ -1441,6 +1441,13 @@ static void ShowNewPassword(const Action& ok_action)
 	ImGui::TextUnformatted(label);
 	ImGui::Spacing();
 
+	ImGui::TextUnformatted(R"(MacroQuest's AutoLogin feature lets you set a master password
+that will be used to encrypt autologin account information.
+
+Please enter a master password, or leave the field blank and
+no encryption will be used.)");
+	ImGui::Spacing();
+
 	static bool show_password = false;
 	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
 	static std::string password;
