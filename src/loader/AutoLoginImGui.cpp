@@ -1871,6 +1871,9 @@ void ShowAutoLoginMenu()
 		static auto servers = CacheResults(login::db::ListServers);
 		for (const auto& server : servers.Read())
 		{
+			if (server.empty())
+				continue;
+
 			if (ImGui::BeginMenu(server.c_str()))
 			{
 				static auto last_server = server;
