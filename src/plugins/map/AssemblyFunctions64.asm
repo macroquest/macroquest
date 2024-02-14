@@ -14,6 +14,12 @@ extern VTABLE
 
 %endmacro
 
+%ifdef TEST
+%define test_adj 0x10
+%else
+%define test_adj 0
+%endif
+
 make_override 0x0, ?IsValid@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBA_NXZ
 ; intentionally skipped destructor because we can't make this one ourselves.
 make_override 0x10, ?GetWndClassName@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEBDXZ
@@ -97,33 +103,37 @@ make_override 0x278, ?Minimize@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqli
 make_override 0x280, ?SetWindowText@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXAEBVCXStr@3@@Z
 make_override 0x288, ?SetTooltip@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXAEBVCXStr@3@@Z
 make_override 0x290, ?Center@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
-make_override 0x298, ?Top@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
-make_override 0x2a0, ?Bottom@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
-make_override 0x2a8, ?Right@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
-make_override 0x2b0, ?Left@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
-make_override 0x2b8, ?MoveToCursor@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
-make_override 0x2c0, ?GetChildWndAt@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCXWnd@3@AEBVCXPoint@3@_N1@Z
-make_override 0x2c8, ?GetSidlPiece@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCScreenPieceTemplate@3@AEBVCXStr@3@_N@Z
-make_override 0x2d0, ?GetWindowName@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEBVCXStr@3@XZ
-make_override 0x2d8, ?SetVScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHH@Z
-make_override 0x2e0, ?SetHScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHH@Z
-make_override 0x2e8, ?AutoSetVScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHVCXRect@3@@Z
-make_override 0x2f0, ?AutoSetHScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHVCXRect@3@@Z
-make_override 0x2f8, ?SetAttributesFromSidl@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXPEAVCParamScreenPiece@3@@Z
-make_override 0x300, ?OnReloadSidl@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
-make_override 0x308, ?HasActivatedFirstTimeAlert@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBA_NXZ
-make_override 0x310, ?SetHasActivatedFirstTimeAlert@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
-make_override 0x318, ?GetMinClientSize@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAAEBVCXSize@3@XZ
-make_override 0x320, ?GetMaxClientSize@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAAEBVCXSize@3@XZ
-make_override 0x328, ?GetActiveEditWnd@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCEditWnd@3@XZ
-make_override 0x330, ?UpdateLayout@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+%ifdef TEST
+make_override 0x298, ?CenterVertically@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x2a0, ?CenterHorizontally@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+%endif
+make_override 0x298 + test_adj, ?Top@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+make_override 0x2a0 + test_adj, ?Bottom@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+make_override 0x2a8 + test_adj, ?Right@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+make_override 0x2b0 + test_adj, ?Left@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+make_override 0x2b8 + test_adj, ?MoveToCursor@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
+make_override 0x2c0 + test_adj, ?GetChildWndAt@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCXWnd@3@AEBVCXPoint@3@_N1@Z
+make_override 0x2c8 + test_adj, ?GetSidlPiece@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCScreenPieceTemplate@3@AEBVCXStr@3@_N@Z
+make_override 0x2d0 + test_adj, ?GetWindowName@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEBVCXStr@3@XZ
+make_override 0x2d8 + test_adj, ?SetVScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHH@Z
+make_override 0x2e0 + test_adj, ?SetHScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHH@Z
+make_override 0x2e8 + test_adj, ?AutoSetVScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHVCXRect@3@@Z
+make_override 0x2f0 + test_adj, ?AutoSetHScrollPos@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHVCXRect@3@@Z
+make_override 0x2f8 + test_adj, ?SetAttributesFromSidl@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXPEAVCParamScreenPiece@3@@Z
+make_override 0x300 + test_adj, ?OnReloadSidl@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x308 + test_adj, ?HasActivatedFirstTimeAlert@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBA_NXZ
+make_override 0x310 + test_adj, ?SetHasActivatedFirstTimeAlert@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
+make_override 0x318 + test_adj, ?GetMinClientSize@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAAEBVCXSize@3@XZ
+make_override 0x320 + test_adj, ?GetMaxClientSize@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAAEBVCXSize@3@XZ
+make_override 0x328 + test_adj, ?GetActiveEditWnd@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEBAPEAVCEditWnd@3@XZ
+make_override 0x330 + test_adj, ?UpdateLayout@?$CXWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAX_N@Z
 
 
 ; CSidlScreenWnd virtual functions
-make_override 0x338, ?Unknown0x330@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXPEBD_N@Z
-make_override 0x340, ?OnZone@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
-make_override 0x348, ?OnPreZone@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
-make_override 0x350, ?LoadIniInfo@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
-make_override 0x358, ?StoreIniInfo@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
-make_override 0x360, ?AsSidlScreenWnd@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAPEAVCSidlScreenWnd@3@XZ
-make_override 0x368, ?GetScreenWndType@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAA_NXZ
+make_override 0x338 + test_adj, ?Unknown0x330@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXPEBD_N@Z
+make_override 0x340 + test_adj, ?OnZone@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
+make_override 0x348 + test_adj, ?OnPreZone@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAHXZ
+make_override 0x350 + test_adj, ?LoadIniInfo@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x358 + test_adj, ?StoreIniInfo@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAXXZ
+make_override 0x360 + test_adj, ?AsSidlScreenWnd@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAAPEAVCSidlScreenWnd@3@XZ
+make_override 0x368 + test_adj, ?GetScreenWndType@?$CSidlScreenWndTrampoline@VMapViewMap@eqlib@@@detail@eqlib@@UEAA_NXZ

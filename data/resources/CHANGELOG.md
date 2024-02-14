@@ -1,4 +1,5 @@
 Feb 13, 2024:
+- test: Updated for latest patch
 - Completely revamped the autologin interface and storage
 - MQ's context menu is now driven by imgui
 - Added an extendable window gui to MQ
