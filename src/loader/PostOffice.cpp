@@ -411,17 +411,6 @@ public:
 			else
 				SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
 		}
-		else if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
-		{
-			auto identity = FindIdentity(envelope.address(), m_identities.begin());
-
-			if (identity == m_identities.end())
-				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
-			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
-				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
-			else
-				SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
-		}
 		else
 		{
 			// we don't have a PID or a name and this is not an RPC, so we will send this message to 

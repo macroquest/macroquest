@@ -180,6 +180,9 @@
       <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProtocolBuffer Include="Network.proto" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
