@@ -279,7 +279,7 @@ void LaunchCleanSession()
 		wil::unique_process_information pi;
 		if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
 		{
-			Inject(pi.dwProcessId); // always inject when we load a new instance
+			Inject(pi.dwProcessId, 1s); // always inject when we load a new instance
 		}
 		else
 		{
@@ -478,4 +478,6 @@ void ShutdownAutoLogin()
 	s_dropbox.Remove();
 
 	ShutdownAutoLoginImGui();
+
+	login::db::ShutdownDatabase();
 }

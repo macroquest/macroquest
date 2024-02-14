@@ -789,6 +789,8 @@ PLUGIN_API void ShutdownPlugin()
 	delete pLoginProfileType;
 
 	s_autologinDropbox.Remove();
+
+	login::db::ShutdownDatabase();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

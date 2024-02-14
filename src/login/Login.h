@@ -323,4 +323,5 @@ std::optional<std::string> GetEQPath(std::string_view group, std::string_view se
 std::vector<ProfileGroup> GetProfileGroups();
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
+void ShutdownDatabase();
 } // namespace login::db

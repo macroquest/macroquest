@@ -440,8 +440,10 @@ public:
 
 	static const std::shared_ptr<WithDb>& Get(int flags)
 	{
+		auto connection = s_connections.find(flags);
+		if (connection == s_connections.end())
+			connection = s_connections.emplace_hint(connection, flags, std::make_shared<WithDb>(flags));
 
-		auto [connection, _] = s_connections.try_emplace(flags, std::make_shared<WithDb>(flags));
 		return connection->second;
 	}
 
@@ -2218,5 +2220,10 @@ bool login::db::InitDatabase(const std::string& path)
 		}
 
 		return true;
+}
+
+void login::db::ShutdownDatabase()
+{
+	s_connections.clear();
 }
 
