@@ -56,7 +56,7 @@ HWND hMainWnd;
 
 PROCESS_INFORMATION pInfo = { 0 };
 STARTUPINFO sInfo = { 0 };
-NOTIFYICONDATA NID;
+NOTIFYICONDATA NID = { 0 };
 PAINTSTRUCT PS;
 
 std::string ServerType;
