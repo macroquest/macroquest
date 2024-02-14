@@ -1875,7 +1875,10 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	{
 		WithDb::Query<void>(SQLITE_OPEN_READONLY,
 			R"(
-					SELECT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path, l.class, l.level, a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
+					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path,
+					    FIRST_VALUE(l.class) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS class,
+					    FIRST_VALUE(l.level) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS level,
+					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
 					FROM profiles p
 					JOIN characters c ON p.character_id = c.id
 					JOIN accounts a ON c.account_id = a.id
