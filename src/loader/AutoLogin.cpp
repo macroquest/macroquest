@@ -185,7 +185,6 @@ static const LoginInstance* StartOrUpdateInstance(const uint32_t pid, ProfileRec
 							LoginInstance::Key(profile),
 							LoginInstance(pi.dwProcessId, profile));
 						login_it = it;
-						Inject(login_it->second.PID, 1s); // always inject when we load a new instance
 					}
 					else
 					{
@@ -277,11 +276,7 @@ void LaunchCleanSession()
 		si.dwFlags = STARTF_USESHOWWINDOW;
 
 		wil::unique_process_information pi;
-		if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
-		{
-			Inject(pi.dwProcessId, 1s); // always inject when we load a new instance
-		}
-		else
+		if (!CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) || pi.hProcess == nullptr)
 		{
 			SPDLOG_ERROR("Failed to create new eqgame process");
 		}
