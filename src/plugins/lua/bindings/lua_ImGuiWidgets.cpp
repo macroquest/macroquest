@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -707,12 +707,12 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::Text("%s", text.c_str()); }
 	));
 	ImGui.set_function("TextColored", sol::overload(
-		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
-		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored({ r, g, b, a }, text.c_str()); },
-		[](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
-		[](int col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(ImColor(col), text.c_str()); },
-		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); },
-		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(col, text.c_str()); }
+		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, "%s", text); },
+		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored({ r, g, b, a }, "%s", text.c_str()); },
+		[](int col, const char* text) { ImGui::TextColored(ImColor(col), "%s", text); },
+		[](int col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(ImColor(col), "%s", text.c_str()); },
+		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, "%s", text); },
+		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(col, "%s", text.c_str()); }
 	));
 	ImGui.set_function("TextDisabled", sol::overload(
 		[](const char* text) { ImGui::TextDisabled("%s", text); },

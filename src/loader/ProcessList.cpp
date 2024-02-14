@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -708,21 +708,24 @@ static uint32_t s_nextRequestId = 0;
 
 void Inject(uint32_t PID, std::chrono::milliseconds delay)
 {
-	if (delay > 0ms)
-		SPDLOG_INFO("Requesting injection into process id {0} with delay {1}", PID, delay);
-	else
-		SPDLOG_INFO("Requesting injection into process id {0}", PID);
+	if (!IsInjected(PID))
+	{
+		if (delay > 0ms)
+			SPDLOG_INFO("Requesting injection into process id {0} with delay {1}", PID, delay);
+		else
+			SPDLOG_INFO("Requesting injection into process id {0}", PID);
 
-	std::unique_lock lock(s_mutex);
-	// Add PID to the injection queue
-	InjectRequest request;
-	request.id = ++s_nextRequestId;
-	request.injectTime = std::chrono::steady_clock::now() + delay;
-	request.retries = 10;
-	request.processId = PID;
+		std::unique_lock lock(s_mutex);
+		// Add PID to the injection queue
+		InjectRequest request;
+		request.id = ++s_nextRequestId;
+		request.injectTime = std::chrono::steady_clock::now() + delay;
+		request.retries = 10;
+		request.processId = PID;
 
-	s_injectRequests.emplace_back(request);
-	s_cv.notify_one();
+		s_injectRequests.emplace_back(request);
+		s_cv.notify_one();
+	}
 }
 
 static void InjectAllRunningProcesses()

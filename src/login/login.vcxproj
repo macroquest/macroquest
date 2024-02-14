@@ -31,6 +31,7 @@
     <ProtocolBuffer Include="Login.proto" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Companies.h" />
     <ClInclude Include="Login.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

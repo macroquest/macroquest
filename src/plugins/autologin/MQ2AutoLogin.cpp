@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -38,9 +38,9 @@ PreSetup("MQ2AutoLogin");
 
 constexpr int STEP_DELAY = 1000;
 
-fs::path CustomIni;
-uint64_t ReenableTime = 0;
-postoffice::DropboxAPI s_autologinDropbox;
+static uint64_t s_reenableTime = 0;
+static postoffice::DropboxAPI s_autologinDropbox;
+static uintptr_t s_joinServer = 0;
 
 class LoginProfileType : public MQ2Type
 {
@@ -221,35 +221,59 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 // This can be revisited later when we think a little bit about autologin
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	proto::login::ProfileMethod profile;
-	profile.set_profile(Profile);
-	profile.set_account(Account);
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+	proto::login::StartInstanceMissive start;
+	start.set_pid(GetCurrentProcessId());
 
-	Post(proto::login::ProfileLoaded, profile);
+	if (strlen(Profile) > 0)
+	{
+		proto::login::ProfileMethod& profile = *start.mutable_profile();
+		profile.set_profile(Profile);
+		profile.set_account(Account);
+
+		proto::login::LoginTarget& target = *profile.mutable_target();
+		target.set_server(Server);
+		target.set_character(Character);
+	}
+	else
+	{
+		proto::login::DirectMethod& direct = *start.mutable_direct();
+		direct.set_login(Account);
+
+		proto::login::LoginTarget& target = *direct.mutable_target();
+		target.set_server(Server);
+		target.set_character(Character);
+	}
+
+	Post(proto::login::ProfileLoaded, start);
 }
 
-void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
+void NotifyCharacterUnload()
 {
-	proto::login::ProfileMethod profile;
-	profile.set_profile(Profile);
-	profile.set_account(Account);
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+	proto::login::StopInstanceMissive stop;
+	stop.set_pid(GetCurrentProcessId());
 
-	Post(proto::login::ProfileUnloaded, profile);
+	Post(proto::login::ProfileUnloaded, stop);
 }
 
-void NotifyCharacterUpdate(int Class, int Level)
+void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character)
 {
 	proto::login::CharacterInfoMissive info;
 	info.set_class_(Class);
 	info.set_level(Level);
+	info.set_server(Server);
+	info.set_character(Character);
 
 	Post(proto::login::ProfileCharInfo, info);
+}
+
+void LoginServerSelect(const char* Login, const char* Pass)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
+	method.set_login(Login);
+	method.set_password(Pass);
+
+	Post(proto::login::StartInstance, start);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
@@ -291,7 +315,7 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 
 void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload();
 
 	if (GetGameState() == GAMESTATE_INGAME)
 	{
@@ -399,11 +423,11 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (n)
 	{
-		ReenableTime = MQGetTickCount64() + n;
+		s_reenableTime = MQGetTickCount64() + n;
 	}
 
-	if (ReenableTime)
-		ReenableTime += 30000; // add 30 seconds for camp time
+	if (s_reenableTime)
+		s_reenableTime += 30000; // add 30 seconds for camp time
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
@@ -429,19 +453,18 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	auto record = ProfileRecord::FromString(szLine);
 	if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
 	{
-		record = ProfileRecord::FromINI(
-			record.profileName,
-			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
-			INIFileName);
-
 		LoginProfile(
 			record.profileName.c_str(),
 			record.serverName.c_str(),
 			record.characterName.c_str());
 	}
-	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
+	else if (!record.accountName.empty() && !record.accountPassword.empty())
 	{
-		if (record.characterName.empty())
+		if (record.serverName.empty())
+			LoginServerSelect(
+				record.accountName.c_str(),
+				record.accountPassword.c_str());
+		else if (record.characterName.empty())
 			LoginServer(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
@@ -455,24 +478,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!record.serverName.empty() && !record.characterName.empty())
 	{
-		// we have a server and a character, we need to find the first entry in the ini where these match (regardless of profile)
-		char buff[MAX_STRING] = { 0 };
-		int buff_size = GetPrivateProfileSectionNames(buff, MAX_STRING, INIFileName);
-		std::string buff_str = std::string(buff, buff_size);
-
-		auto sections = split(buff_str, '\0');
-
-		for (const auto& section : sections)
-		{
-			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
-			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
-
-			if (!blob.empty())
-			{
-				record = ProfileRecord::FromINI(section.c_str(), blobKey, INIFileName);
-				break;
-			}
-		}
+		login::db::ReadFullProfile(record);
 
 		if (!record.profileName.empty())
 			LoginProfile(
@@ -480,42 +486,33 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 				record.serverName.c_str(),
 				record.characterName.c_str());
 		else
-			WriteChatf("Could not find %s:%s in your autologin ini", record.serverName.c_str(), record.characterName.c_str());
+			WriteChatf("Could not find %s:%s in your autologin db", record.serverName.c_str(), record.characterName.c_str());
+	}
+	else if (!record.profileName.empty())
+	{
+		login::db::ReadFirstProfile(record);
+		LoginProfile(
+			record.profileName.c_str(),
+			record.serverName.c_str(),
+			record.characterName.c_str());
 	}
 	else
 	{
-		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+		WriteChatf("\ayUsage:\ax /loginchar [profile|profile_server:character|server:character|server^login^character^password|server^login^password]");
 	}
 }
 
 DETOUR_TRAMPOLINE_DEF(DWORD WINAPI, GetPrivateProfileStringA_Trampoline, (LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR))
 
-void SetupCustomIni()
-{
-	if (!CustomIni.empty())
-		return;
-
-	if (const char* pLogin = GetLoginName())
-	{
-		char CustomPath[MAX_STRING] = { 0 };
-		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", nullptr, CustomPath, MAX_STRING, INIFileName);
-
-		// If a relative path is specified, need to prepend it with current path, which is the EQ directory
-		CustomIni = fs::path{ CustomPath };
-		if (CustomIni.is_relative())
-			CustomIni = fs::current_path() / CustomIni;
-	}
-}
-
 DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName)
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni.string().c_str());
+			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni->c_str());
 		}
 	}
 
@@ -527,11 +524,11 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni.string().c_str());
+			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni->c_str());
 		}
 	}
 
@@ -543,11 +540,11 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni.string().c_str());
+			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni->c_str());
 		}
 	}
 
@@ -588,45 +585,117 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 	}
 }
 
-void ReadINI()
+void ReadSettings()
 {
-	std::string path = GetPrivateProfileString("Settings", "IniLocation", "", INIFileName);
-	if (!path.empty())
-	{
-		strcpy_s(INIFileName, path.c_str());
-	}
-
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
+	if (const auto debug = login::db::ReadSetting("debug"))
+		AUTOLOGIN_DBG = GetBoolFromString(*debug, AUTOLOGIN_DBG);
 
-	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
-	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
-	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
-	Login::m_settings.CharSelectDelay = GetPrivateProfileInt("Settings", "CharSelectDelay", 3, INIFileName);
-	Login::m_settings.ConnectRetries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, INIFileName);
+	if (const auto kick_active = login::db::ReadSetting("kick_active"))
+		Login::m_settings.KickActiveCharacter = GetBoolFromString(*kick_active, Login::m_settings.KickActiveCharacter);
 
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileInt("Settings", "NotifyOnServerUp", static_cast<int>(Login::m_settings.NotifyOnServerUp), INIFileName);
-		WritePrivateProfileBool("Settings", "KickActiveCharacter", Login::m_settings.KickActiveCharacter, INIFileName);
-		WritePrivateProfileBool("Settings", "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-		WritePrivateProfileInt("Settings", "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
-	}
+	if (const auto end_after_select = login::db::ReadSetting("end_after_select"))
+		Login::m_settings.EndAfterSelect = GetBoolFromString(*end_after_select, Login::m_settings.EndAfterSelect);
 
-	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
-	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
-	if (bUseMQ2Login)
-		Login::m_settings.LoginType = Login::Settings::Type::Profile;
-	else if (bUseStationNamesInsteadOfSessions)
-		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
-	else
-		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
+	if (const auto char_select_delay = login::db::ReadSetting("char_select_delay"))
+		Login::m_settings.CharSelectDelay = GetIntFromString(*char_select_delay, Login::m_settings.CharSelectDelay);
+
+	if (const auto connect_retries = login::db::ReadSetting("connect_retries"))
+		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
+
+	if (const auto is_paused = login::db::ReadSetting("is_paused"))
+		if (GetBoolFromString(*is_paused, false)) Login::dispatch(PauseLogin());
 }
 
 void LoginReset()
 {
 	AutoLoginDebug("LoginReset()");
-	ReadINI();
+	ReadSettings();
+}
+
+class LoginServer_Hook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(unsigned int, JoinServer_Trampoline, (int, void*, int))
+	unsigned int JoinServer_Detour(int serverID, void* userdata, int timeoutseconds)
+	{
+		Login::m_currentLogin.Account = g_pLoginClient->LoginName;
+		Login::m_currentLogin.Password = g_pLoginClient->Password;
+
+		Login::m_currentLogin.ServerName =
+			[serverID = static_cast<ServerID>(serverID)]() -> std::optional<std::string>
+			{
+				for (auto server : g_pLoginClient->ServerList)
+					if (server->ID == serverID)
+						return server->ServerName.c_str();
+
+				return std::nullopt;
+			}();
+
+		return JoinServer_Trampoline(serverID, userdata, timeoutseconds);
+	}
+};
+
+PLUGIN_API void SetGameState(int GameState)
+{
+	// this works because we will always have a gamestate change after loading or unloading eqmain
+	// GAMESTATE_PRECHARSELECT when transitioning from character select to server select, and
+	// GAMESTATE_CHARSELECT when transitioning to character select from server select
+	if (s_joinServer != EQMain__LoginServerAPI__JoinServer)
+	{
+		if (s_joinServer != 0)
+			RemoveDetour(s_joinServer);
+
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+
+		if (s_joinServer != 0)
+			EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
+	}
+
+	if (GameState == GAMESTATE_CHARSELECT)
+	{
+		// at character select now, if we have a memoized long name let's update the db for the server name pairing
+		if (Login::m_currentLogin.ServerName)
+			login::db::CreateOrUpdateServer(GetServerShortName(), *Login::m_currentLogin.ServerName);
+
+		if (Login::m_currentLogin.Account && Login::m_currentLogin.Password)
+		{
+			ProfileRecord profile;
+			profile.accountName = *Login::m_currentLogin.Account;
+			to_lower(profile.accountName);
+			profile.accountPassword = *Login::m_currentLogin.Password;
+
+			char path[MAX_PATH] = { 0 };
+			GetModuleFileName(nullptr, path, MAX_PATH);
+			const std::filesystem::path fs_path(path);
+
+			if (const auto server_type = login::db::GetServerTypeFromPath(fs_path.parent_path().string()))
+				profile.serverType = *server_type;
+			else
+				profile.serverType = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+
+			to_lower(profile.serverType);
+
+			login::db::CreateAccount(profile);
+
+			if (const auto pCharList = GetChildWindow<CListWnd>(pCharacterListWnd, "Character_List"))
+			{
+				const auto itemsArray = GetItemsArray(pCharList);
+				profile.serverName = GetServerShortName();
+
+				for (int i = 0; i < itemsArray->Count; ++i)
+				{
+					std::string char_name(GetListItemText(pCharList, i, 2));
+					to_lower(char_name);
+					profile.characterName = char_name;
+
+					login::db::CreateCharacter(profile);
+				}
+			}
+		}
+
+		Login::m_currentLogin.reset();
+	}
 }
 
 PLUGIN_API void InitializePlugin()
@@ -635,15 +704,28 @@ PLUGIN_API void InitializePlugin()
 	pLoginProfileType = new LoginProfileType;
 	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
 
+	if (!login::db::InitDatabase((fs::path(gPathConfig) / "login.db").string()))
+	{
+		SPDLOG_ERROR("Could not load autologin database, Autologin functionality will be disabled");
+	}
+
 	Login::set_initial_state();
-	ReadINI();
+	ReadSettings();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
 	AddCommand("/relog", Cmd_Relog, false, true, true);
 	AddCommand("/loginchar", Cmd_Loginchar);
 
-	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
+	if (EQMain__LoginServerAPI__JoinServer != 0)
+	{
+		// we have eqmain offset, save the offset because it gets cleared before we can unset the detour
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+		EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
+	}
+
+	if (const auto custom_client_ini = login::db::ReadSetting("custom_client_ini");
+		custom_client_ini && GetBoolFromString(*custom_client_ini, false))
 	{
 		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
@@ -653,14 +735,21 @@ PLUGIN_API void InitializePlugin()
 
 		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
-
-		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-		{
-			SetupCustomIni();
-		}
 	}
 
-	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+	s_reenableTime = MQGetTickCount64() + STEP_DELAY;
+
+	// create a server type for this build if it doesn't already exist (to ensure that automatic character creation works)
+	std::string server_type = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+	to_lower(server_type);
+	if (!login::db::GetPathFromServerType(server_type))
+	{
+		char path[MAX_PATH] = { 0 };
+		GetModuleFileName(nullptr, path, MAX_PATH);
+		const std::filesystem::path fs_path(path);
+
+		login::db::CreateOrUpdateServerType(server_type, fs_path.parent_path().string());
+	}
 
 	s_autologinDropbox = postoffice::AddActor("autologin",
 		[](const std::shared_ptr<postoffice::Message>& message)
@@ -671,12 +760,19 @@ PLUGIN_API void InitializePlugin()
 
 PLUGIN_API void ShutdownPlugin()
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload();
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
 	RemoveCommand("/loginchar");
+
+	if (s_joinServer != 0)
+	{
+		// if this is set, then we have the detour set
+		RemoveDetour(s_joinServer);
+		s_joinServer = 0;
+	}
 
 	uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);
@@ -819,19 +915,19 @@ PLUGIN_API void OnPulse()
 	{
 		s_lastCharacterClass = pLocalPlayer->GetClass();
 		s_lastCharacterLevel = pLocalPlayer->Level;
-		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
+		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel, GetServerShortName(), pLocalPlayer->DisplayedName);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
 		Login::dispatch(UnpauseLogin(true));
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
 		Login::dispatch(PauseLogin(true));
-	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > s_reenableTime)
 	{
 		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > s_reenableTime)
 	{
 		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pWnd != nullptr && pWnd->IsVisible() == 1)
@@ -847,9 +943,9 @@ PLUGIN_API void OnPulse()
 		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
 			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > s_reenableTime)
 	{
 		// pair of WindowNames / ButtonNames
 		static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
@@ -892,7 +988,7 @@ PLUGIN_API void OnPulse()
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
 
@@ -938,17 +1034,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::PopFont();
 		ImGui::Separator();
 
-		ImGui::Text("Login Method:");
-		ImGui::SameLine(0, 4.0f);
-		if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-			ImGui::Text("Login Profiles");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-			ImGui::Text("Station Names");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::Sessions)
-			ImGui::Text("Sessions");
-
-		ImGui::Separator();
-
 		bool bAutoLoginEnabled = !Login::paused();
 		bool bAutoLoginRunning = Login::has_entry();
 
@@ -964,8 +1049,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("Server: %s", Login::server());
 			ImGui::Text("Character: %s", Login::character());
 
-			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-				ImGui::Text("Profile: %s", Login::profile());
+			ImGui::Text("Profile: %s", Login::profile());
 
 			if (strlen(Login::hotkey()) > 0)
 				ImGui::Text("HotKey: %s", Login::hotkey());
@@ -993,7 +1077,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			if (ImGui::Button("Select Profile"))
 			{
-				Login::profiles() = LoadAutoLoginProfiles(INIFileName);
+				Login::profiles() = login::db::GetProfileGroups();
 				ImGui::OpenPopup("ProfileSelector");
 			}
 
@@ -1030,7 +1114,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 								if (ImGui::MenuItem(buffer))
 								{
-									Login::m_settings.LoginType = Login::Settings::Type::Profile;
 									Login::dispatch(SetLoginProfile(record));
 								}
 							}
@@ -1056,12 +1139,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
 			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
 			InputInt("Connect Retries", &Login::m_settings.ConnectRetries);
-
-			ImGui::Separator();
-			ImGui::Text("Server Up Notification:");
-			RadioButton("None", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::None); ImGui::SameLine();
-			RadioButton("Email", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Email); ImGui::SameLine();
-			RadioButton("Beeps", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Beeps);
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");
