@@ -1098,8 +1098,7 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE server = ?
-			GROUP BY characters.id)",
+			WHERE server = ?)",
 		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, server);
@@ -1136,8 +1135,7 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			WHERE LOWER(server) LIKE '%' || ? || '%'
 			   OR character LIKE '%' || ? || '%'
 			   OR account LIKE '%' || ? || '%'
-               OR LOWER(class) LIKE '%' || ? || '%'
-			GROUP BY characters.id)",
+               OR LOWER(class) LIKE '%' || ? || '%')",
 		[search](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::string lower_search(search);
