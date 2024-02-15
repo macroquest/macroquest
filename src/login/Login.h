@@ -98,6 +98,18 @@ public:
 		return m_updatedValue;
 	}
 
+	bool ReadHasChanged(const bool force = false)
+	{
+		if (HasChanges() || force)
+		{
+			m_value = m_update();
+			m_updatedValue = m_value;
+			return true;
+		}
+
+		return false;
+	}
+
 	Result& Updated() { return m_updatedValue; }
 
 private:

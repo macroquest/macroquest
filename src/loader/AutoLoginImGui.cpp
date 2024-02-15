@@ -258,7 +258,108 @@ struct CharacterInfo
 	static constexpr std::string_view label = "Character";
 
 	[[nodiscard]] bool Valid() const { return !Server.empty() && !Character.empty(); }
+
+	// character sort is universal (so that settings persist to the context menu)
+	enum class SortID : unsigned int
+	{
+		Account,
+		EQ_Install,
+		Server,
+		Character,
+		Class,
+		Level,
+	};
+
+	// TODO: persist the sort specs to share with the context menu
+	// persist the sort specs to sync sorting with the character context
+	static ImGuiID GetID()
+	{
+		static ImGuiID CharacterTableID = ImGui::GetIDWithSeed("Character Table", nullptr, ImGui::GetMainViewport()->ID);
+		return CharacterTableID;
+	}
+
+	static void SetupColumns()
+	{
+		ImGui::TableSetupColumn("Character", ImGuiTableColumnFlags_DefaultSort, 0.f, static_cast<ImGuiID>(SortID::Character));
+		ImGui::TableSetupColumn("Server", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Server));
+		ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Class));
+		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Level));
+		ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Account));
+		ImGui::TableSetupColumn("EQ Install", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::EQ_Install));
+		ImGui::TableSetupColumn("##buttons", ImGuiTableColumnFlags_NoSort);
+	}
+
+	static std::vector<ImGuiTableColumnSortSpecs> s_sortSpecs;
+	static bool s_contextMenuDirty;
+
+	static void PersistSpecs(const ImGuiTableSortSpecs* specs)
+	{
+		s_sortSpecs.clear();
+		for (int n = 0; n < specs->SpecsCount; ++n)
+			s_sortSpecs.push_back(specs->Specs[n]);
+
+		s_contextMenuDirty = true;
+	}
+
+	static bool Compare(const ProfileRecord& l, const ProfileRecord& r)
+	{
+		for (const auto& spec : s_sortSpecs)
+		{
+			const auto str_cmp = [&spec](std::string_view a, std::string_view b)
+				{
+					static ci_less less;
+					if (spec.SortDirection == ImGuiSortDirection_Ascending) return less(a, b);
+
+					return !less(a, b);
+				};
+
+			switch (static_cast<SortID>(spec.ColumnUserID))
+			{
+			case SortID::Account:
+				if (!ci_equals(l.accountName, r.accountName))
+					return str_cmp(l.accountName, r.accountName);
+			case SortID::EQ_Install:
+				if (!ci_equals(l.serverType, r.serverType))
+					return str_cmp(l.serverType, r.serverType);
+			case SortID::Server:
+				if (!ci_equals(l.serverName, r.serverName))
+					return str_cmp(l.serverName, r.serverName);
+			case SortID::Character:
+				if (!ci_equals(l.characterName, r.characterName))
+					return str_cmp(l.characterName, r.characterName);
+			case SortID::Class:
+				if (!ci_equals(l.characterClass, r.characterClass))
+					return str_cmp(l.characterClass, r.characterClass);
+			case SortID::Level:
+				if (l.characterLevel != r.characterLevel)
+				{
+					if (spec.SortDirection == ImGuiSortDirection_Ascending)
+						return l.characterLevel < r.characterLevel;
+
+					return l.characterLevel > r.characterLevel;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	static void Sort(const ImGuiTableSortSpecs* sort_specs, std::vector<ProfileRecord>& items)
+	{
+		PersistSpecs(sort_specs);
+
+		Sort(items);
+	}
+
+	static void Sort(std::vector<ProfileRecord>& items)
+	{
+		if (items.size() > 1)
+			std::sort(items.begin(), items.end(), Compare);
+	}
 };
+
+std::vector<ImGuiTableColumnSortSpecs> CharacterInfo::s_sortSpecs;
+bool CharacterInfo::s_contextMenuDirty = false;
 
 struct ProfileInfo : ProfileRecord
 {
@@ -923,14 +1024,18 @@ static void CharacterTable(const std::string_view search)
 	static ProfileInfo selected_profile;
 	static std::string remove_message;
 
-	if (ImGui::BeginTable("Main List", 6, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+	constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp
+		| ImGuiTableFlags_Borders
+		| ImGuiTableFlags_NoBordersInBody
+		| ImGuiTableFlags_ScrollY
+		| ImGuiTableFlags_Sortable
+		| ImGuiTableFlags_SortMulti;
+
+	ImGui::PushOverrideID(CharacterInfo::GetID());
+	if (ImGui::BeginTable("Main List", 7, flags, { 0.f, 0.f }))
 	{
-		ImGui::TableSetupColumn("Account");
-		ImGui::TableSetupColumn("EQ Install");
-		ImGui::TableSetupColumn("Server");
-		ImGui::TableSetupColumn("Character");
-		ImGui::TableSetupColumn("Persona");
-		ImGui::TableSetupColumn("##buttons");
+		CharacterInfo::SetupColumns();
+		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableHeadersRow();
 
 		static std::string last_search(search);
@@ -943,82 +1048,97 @@ static void CharacterTable(const std::string_view search)
 		if (force_update)
 			last_search = search;
 
-		for (auto& match : characters.Read(force_update))
+		if (const auto sort_specs = ImGui::TableGetSortSpecs(); sort_specs->SpecsDirty || force_update)
 		{
-			ImGui::PushID(&match);
+			CharacterInfo::Sort(sort_specs, characters.Read(force_update));
+			sort_specs->SpecsDirty = false;
+		}
+		else
+			characters.Read(force_update);
 
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
-
-			// this allows right-clicking
-			bool is_selected = false;
-			ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
-			if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
-				ImGui::OpenPopup("row_popup");
-
-			if (ImGui::BeginPopup("row_popup"))
+		ImGuiListClipper clipper;
+		clipper.Begin(static_cast<int>(characters.Updated().size()));
+		while (clipper.Step())
+		{
+			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
-				if (ImGui::Selectable("Edit"))
+				auto& match = characters.Updated().at(row);
+				ImGui::PushID(&match);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				// this allows right-clicking
+				bool is_selected = false;
+				ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+				if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
+					ImGui::OpenPopup("row_popup");
+
+				if (ImGui::BeginPopup("row_popup"))
 				{
-					selected_character.Server = match.serverName;
-					selected_character.Character = match.characterName;
-					selected_character.Account.Account = match.accountName;
-					selected_character.Account.ServerType.ServerType = match.serverType;
+					if (ImGui::Selectable("Edit"))
+					{
+						selected_character.Server = match.serverName;
+						selected_character.Character = match.characterName;
+						selected_character.Account.Account = match.accountName;
+						selected_character.Account.ServerType.ServerType = match.serverType;
 
-					selected_profile = match;
-					selected_profile.Character = selected_character;
+						selected_profile = match;
+						selected_profile.Character = selected_character;
 
-					LauncherImGui::OpenModal("Edit Character");
+						LauncherImGui::OpenModal("Edit Character");
+					}
+
+					if (ImGui::Selectable("Remove"))
+					{
+						remove_message = fmt::format("Are you certain you want to remove character '{} : {}'? All associated profiles will also be removed.", match.characterName, match.serverName);
+						selected_profile = match;
+						LauncherImGui::OpenModal("Remove Character");
+					}
+
+					ImGui::EndPopup();
 				}
 
-				if (ImGui::Selectable("Remove"))
+				ImGui::SameLine();
+				ImGui::TextUnformatted(match.characterName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(match.serverName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", !match.characterClass.empty() ? match.characterClass.c_str() : "<None>");
+
+				ImGui::TableNextColumn();
+				if (match.characterLevel > 0) ImGui::Text("%d", match.characterLevel);
+
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(match.accountName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(match.serverType.c_str());
+
+				ImGui::TableNextColumn();
+				if (ImGui::SmallButton("Play"))
 				{
-					remove_message = fmt::format("Are you certain you want to remove character '{} : {}'? All associated profiles will also be removed.", match.characterName, match.serverName);
-					selected_profile = match;
-					LauncherImGui::OpenModal("Remove Character");
+					LoadCharacter(match);
 				}
 
-				ImGui::EndPopup();
+				ImGui::SameLine();
+				// this needs to be here to handle the fact that hotkey isn't optional
+				if (ImGui::SmallButton("..."))
+				{
+					selected_profile = match;
+
+					LauncherImGui::OpenModal("Play With Params");
+				}
+
+				ImGui::PopID();
 			}
-
-			ImGui::SameLine();
-			ImGui::TextUnformatted(match.accountName.c_str());
-
-			ImGui::TableNextColumn();
-			ImGui::TextUnformatted(match.serverType.c_str());
-
-			ImGui::TableNextColumn();
-			ImGui::TextUnformatted(match.serverName.c_str());
-
-			ImGui::TableNextColumn();
-			ImGui::TextUnformatted(match.characterName.c_str());
-
-			ImGui::TableNextColumn();
-			if (match.characterClass.empty())
-				ImGui::Text("<None>");
-			else
-				ImGui::Text("%s %d", match.characterClass.c_str(), match.characterLevel);
-
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton("Play"))
-			{
-				LoadCharacter(match);
-			}
-
-			ImGui::SameLine();
-			// this needs to be here to handle the fact that hotkey isn't optional
-			if (ImGui::SmallButton("..."))
-			{
-				selected_profile = match;
-
-				LauncherImGui::OpenModal("Play With Params");
-			}
-
-			ImGui::PopID();
 		}
 
 		ImGui::EndTable();
 	}
+	ImGui::PopID();
 
 	selected_character.Edit("Edit Character", []
 		{
@@ -1907,36 +2027,67 @@ void ShowAutoLoginMenu()
 						return login::db::ListCharactersOnServer(last_server);
 					});
 
+				static std::vector<ProfileRecord>& characters = *[]
+					{
+						// this is to force the initial settings read if the main table hasn't been opened
+						// and then also do an initial sort based on these settings
+						const auto window = ImGui::GetCurrentWindow();
+						const auto win_flags = window->RootWindow->Flags;
+						window->RootWindow->Flags &= ~ImGuiWindowFlags_NoSavedSettings;
+
+						ImGui::PushOverrideID(CharacterInfo::GetID());
+						if (ImGui::BeginTable("Main List", 7, ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti))
+						{
+							CharacterInfo::SetupColumns();
+							CharacterInfo::Sort(ImGui::TableGetSortSpecs(), server_characters.Updated());
+							ImGui::EndTable();
+						}
+						ImGui::PopID();
+
+						window->RootWindow->Flags = win_flags;
+
+						return &server_characters.Updated();
+					}();
+
 				const bool force_characters_update = !ci_equals(last_server, server);
 				if (force_characters_update)
 					last_server = server;
 
-				if (server_characters.Read(force_characters_update).empty())
+				if (server_characters.ReadHasChanged(force_characters_update) || CharacterInfo::s_contextMenuDirty)
+				{
+					CharacterInfo::Sort(characters);
+					CharacterInfo::s_contextMenuDirty = false;
+				}
+
+				if (characters.empty())
 				{
 					ImGui::Text("No available characters");
 				}
-				else if (ImGui::BeginTable("##Characters", 3, ImGuiTableFlags_None))
+				else if (ImGui::BeginTable("##Characters", 4, ImGuiTableFlags_None))
 				{
 					fmt::memory_buffer buf;
 					const auto buf_ins = std::back_inserter(buf);
 
-					ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
-					ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+					ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Class));
+					ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Level));
+					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Character));
+					ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthAlwaysAutoResize, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Account));
 
-					for (auto& profile : server_characters.Updated())
+					for (auto& profile : characters)
 					{
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
 
-						fmt::format_to(buf_ins, "[{} {}]", profile.characterLevel, profile.characterClass);
+						ImGui::TableNextColumn();
+						fmt::format_to(buf_ins, "[{} ", profile.characterLevel);
 						buf.push_back(0);
+						if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
+							LoadCharacter(profile);
+						buf.clear();
 
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
-						{
-							LoadCharacter(profile);
-						}
-
+						fmt::format_to(buf_ins, "{}]", profile.characterClass);
+						buf.push_back(0);
+						ImGui::Selectable(buf.data(), false);
 						buf.clear();
 
 						ImGui::TableNextColumn();
