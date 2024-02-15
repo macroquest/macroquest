@@ -33,12 +33,15 @@
 #include "imgui_internal.h"
 
 namespace fs = std::filesystem;
+using namespace std::chrono_literals;
 
 CHotKeyCtrl* s_hotKeyCtrl = nullptr;
 
 // set of loaded instances -- be careful to only read/write this from actors to ensure no race conditions
 static std::unordered_map<std::string, LoginInstance> s_loadedInstances;
 static postoffice::Dropbox s_dropbox;
+static std::queue<ProfileRecord> s_pendingLogins;
+static auto s_lastLoginTime = std::chrono::steady_clock::now();
 
 namespace internal_paths
 {
@@ -182,7 +185,6 @@ static const LoginInstance* StartOrUpdateInstance(const uint32_t pid, ProfileRec
 							LoginInstance::Key(profile),
 							LoginInstance(pi.dwProcessId, profile));
 						login_it = it;
-						Inject(login_it->second.PID); // always inject when we load a new instance
 					}
 					else
 					{
@@ -243,9 +245,9 @@ LoginInstance::LoginInstance(uint32_t pid, const ProfileRecord& profile)
 	if (!profile.hotkey.empty()) Hotkey = profile.hotkey;
 }
 
-void LoadCharacter(ProfileRecord& profile)
+void LoadCharacter(const ProfileRecord& profile)
 {
-	StartOrUpdateInstance(0, profile, true);
+	s_pendingLogins.push(profile);
 }
 
 void LoadProfileGroup(std::string_view group)
@@ -274,14 +276,23 @@ void LaunchCleanSession()
 		si.dwFlags = STARTF_USESHOWWINDOW;
 
 		wil::unique_process_information pi;
-		if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) && pi.hProcess != nullptr)
-		{
-			Inject(pi.dwProcessId); // always inject when we load a new instance
-		}
-		else
+		if (!CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) || pi.hProcess == nullptr)
 		{
 			SPDLOG_ERROR("Failed to create new eqgame process");
 		}
+	}
+}
+
+void ProcessPendingLogins()
+{
+	const auto now = std::chrono::steady_clock::now();
+	if (!s_pendingLogins.empty() && now >= s_lastLoginTime)
+	{
+		auto profile = s_pendingLogins.front();
+		StartOrUpdateInstance(0, profile, true);
+
+		s_pendingLogins.pop();
+		s_lastLoginTime = now + 1s;
 	}
 }
 
@@ -416,7 +427,7 @@ static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			proto::login::StartInstanceMissive start;
 			start.ParseFromString(login_message.payload());
 			ProfileRecord profile = ParseProfileFromMessage(start);
-			StartOrUpdateInstance(0, profile, true);
+			LoadCharacter(profile);
 		}
 
 		break;
@@ -462,4 +473,6 @@ void ShutdownAutoLogin()
 	s_dropbox.Remove();
 
 	ShutdownAutoLoginImGui();
+
+	login::db::ShutdownDatabase();
 }

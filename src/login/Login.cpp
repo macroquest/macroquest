@@ -440,8 +440,10 @@ public:
 
 	static const std::shared_ptr<WithDb>& Get(int flags)
 	{
+		auto connection = s_connections.find(flags);
+		if (connection == s_connections.end())
+			connection = s_connections.emplace_hint(connection, flags, std::make_shared<WithDb>(flags));
 
-		auto [connection, _] = s_connections.try_emplace(flags, std::make_shared<WithDb>(flags));
 		return connection->second;
 	}
 
@@ -1098,8 +1100,7 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE server = ?
-			GROUP BY characters.id)",
+			WHERE server = ?)",
 		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, server);
@@ -1136,8 +1137,7 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			WHERE LOWER(server) LIKE '%' || ? || '%'
 			   OR character LIKE '%' || ? || '%'
 			   OR account LIKE '%' || ? || '%'
-               OR LOWER(class) LIKE '%' || ? || '%'
-			GROUP BY characters.id)",
+               OR LOWER(class) LIKE '%' || ? || '%')",
 		[search](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::string lower_search(search);
@@ -1780,18 +1780,18 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 				sqlite3_bind_null(stmt, 4);
 
 			if (profile.charSelectDelay)
-				sqlite3_bind_int(stmt, 4, *profile.charSelectDelay);
-			else
-				sqlite3_bind_null(stmt, 4);
-
-			if (profile.customClientIni)
-				BindText(stmt, 5, *profile.customClientIni);
+				sqlite3_bind_int(stmt, 5, *profile.charSelectDelay);
 			else
 				sqlite3_bind_null(stmt, 5);
 
-			BindText(stmt, 6, profile.serverName);
-			BindText(stmt, 7, profile.characterName);
-			BindText(stmt, 8, profile.profileName);
+			if (profile.customClientIni)
+				BindText(stmt, 6, *profile.customClientIni);
+			else
+				sqlite3_bind_null(stmt, 6);
+
+			BindText(stmt, 7, profile.serverName);
+			BindText(stmt, 8, profile.characterName);
+			BindText(stmt, 9, profile.profileName);
 
 			sqlite3_step(stmt);
 		});
@@ -1875,7 +1875,10 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	{
 		WithDb::Query<void>(SQLITE_OPEN_READONLY,
 			R"(
-					SELECT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path, l.class, l.level, a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
+					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path,
+					    FIRST_VALUE(l.class) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS class,
+					    FIRST_VALUE(l.level) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS level,
+					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
 					FROM profiles p
 					JOIN characters c ON p.character_id = c.id
 					JOIN accounts a ON c.account_id = a.id
@@ -2217,5 +2220,10 @@ bool login::db::InitDatabase(const std::string& path)
 		}
 
 		return true;
+}
+
+void login::db::ShutdownDatabase()
+{
+	s_connections.clear();
 }
 

@@ -447,22 +447,31 @@ static void SetEQDirModal(std::optional<std::string>& eq_path, const Action& ok_
 
 		if (ImGui::Button("Choose"))
 		{
-			IGFD_OpenDialog(s_eqDirDialog, "ChooseEQDirKey", "Choose Default EverQuest Directory",
-				nullptr, GetEQRoot().c_str(), "", 1, nullptr, ImGuiFileDialogFlags_None);
+			LauncherImGui::OpenModal("Choose EverQuest Directory");
+			IGFD_OpenDialog(s_eqDirDialog, "ChooseEQDirKey", "Choose EverQuest Directory",
+				nullptr, GetEQRoot().c_str(), "", 1, nullptr, ImGuiFileDialogFlags_NoDialog);
 		}
 
-		if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		ImGui::SetNextWindowSizeConstraints({ 350.f, 350.f }, { FLT_MAX, FLT_MAX });
+		if (LauncherImGui::BeginModal("Choose EverQuest Directory", nullptr, ImGuiWindowFlags_NoScrollbar))
 		{
-			if (IGFD_IsOk(s_eqDirDialog))
+			if (IGFD_DisplayDialog(s_eqDirDialog, "ChooseEQDirKey", ImGuiWindowFlags_None, { 0.f, 0.f }, { 0.f, 0.f }))
 			{
-				const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
-				if (std::error_code ec; selected_path && fs::exists(selected_path.get(), ec))
+				if (IGFD_IsOk(s_eqDirDialog))
 				{
-					eq_path = canonical(fs::path(selected_path.get()), ec).string();
+					const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
+					if (std::error_code ec; selected_path && fs::exists(selected_path.get(), ec))
+					{
+						eq_path = canonical(fs::path(selected_path.get()), ec).string();
+					}
 				}
+
+				IGFD_CloseDialog(s_eqDirDialog);
+
+				LauncherImGui::CloseModal();
 			}
 
-			IGFD_CloseDialog(s_eqDirDialog);
+			LauncherImGui::EndModal();
 		}
 
 		DefaultModalButtons(ok_action);
@@ -485,23 +494,32 @@ static void SetEQFileModal(const char* label, std::optional<std::string>& path, 
 
 		if (ImGui::Button("Choose"))
 		{
+			LauncherImGui::OpenModal("Choose Path");
 			IGFD_OpenDialog(s_eqDirDialog, "ChoosePathKey", label,
-				".ini", GetEQRoot().c_str(), default_path, 1, nullptr, ImGuiFileDialogFlags_None);
+				".ini", GetEQRoot().c_str(), default_path, 1, nullptr, ImGuiFileDialogFlags_NoDialog);
 		}
 
-		if (IGFD_DisplayDialog(s_eqDirDialog, "ChoosePathKey", ImGuiFileDialogFlags_None, ImVec2(350, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		ImGui::SetNextWindowSizeConstraints({ 350.f, 350.f }, { FLT_MAX, FLT_MAX });
+		if (LauncherImGui::BeginModal("Choose Path", nullptr, ImGuiWindowFlags_NoScrollbar))
 		{
-			if (IGFD_IsOk(s_eqDirDialog))
+			if (IGFD_DisplayDialog(s_eqDirDialog, "ChoosePathKey", ImGuiWindowFlags_None, { 0.f, 0.f }, { 0.f, 0.f }))
 			{
-				const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
-				const std::shared_ptr<char> selected_file(IGFD_GetCurrentFileName(s_eqDirDialog, IGFD_ResultMode_KeepInputFile), IGFD_DestroyString);
-				if (std::error_code ec; selected_path && selected_file && exists(fs::path(selected_path.get()) / fs::path(selected_file.get()), ec))
+				if (IGFD_IsOk(s_eqDirDialog))
 				{
-					path = relative(fs::path(selected_path.get()) / fs::path(selected_file.get()), GetEQRoot(), ec).string();
+					const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
+					const std::shared_ptr<char> selected_file(IGFD_GetCurrentFileName(s_eqDirDialog, IGFD_ResultMode_KeepInputFile), IGFD_DestroyString);
+					if (std::error_code ec; selected_path && selected_file && exists(fs::path(selected_path.get()) / fs::path(selected_file.get()), ec))
+					{
+						path = relative(fs::path(selected_path.get()) / fs::path(selected_file.get()), GetEQRoot(), ec).string();
+					}
 				}
+
+				IGFD_CloseDialog(s_eqDirDialog);
+
+				LauncherImGui::CloseModal();
 			}
 
-			IGFD_CloseDialog(s_eqDirDialog);
+			LauncherImGui::EndModal();
 		}
 
 		DefaultModalButtons(ok_action);
@@ -1439,6 +1457,13 @@ static void ShowNewPassword(const Action& ok_action)
 
 	ImGui::SetCursorPosX(std::max(0.f, ImGui::GetContentRegionAvail().x / 2.f - ImGui::CalcTextSize(label).x / 2.f));
 	ImGui::TextUnformatted(label);
+	ImGui::Spacing();
+
+	ImGui::TextUnformatted(R"(MacroQuest's AutoLogin feature lets you set a master password
+that will be used to encrypt autologin account information.
+
+Please enter a master password, or leave the field blank and
+no encryption will be used.)");
 	ImGui::Spacing();
 
 	static bool show_password = false;
