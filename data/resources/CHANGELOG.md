@@ -1,3 +1,6 @@
+Feb 14, 2024:
+- test: Fix Me.Platinum etc always returning 0.
+
 Feb 13, 2024:
 - test: Updated for latest patch
 - Completely revamped the autologin interface and storage
