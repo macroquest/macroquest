@@ -37,6 +37,10 @@ static std::vector<std::pair<std::string, std::function<void()>>> s_menus;
 // we want the context menu to call OpenPopup exactly once per right click, so we need a state toggle
 static bool s_contextOpen;
 
+// storage for filename strings for the backend
+static std::string s_iniFilename;
+static std::string s_logFilename;
+
 static ImGuiWindowClass s_viewportClass = []
 	{
 		ImGuiWindowClass cl;
@@ -338,7 +342,9 @@ void Run(const std::function<bool()>& mainLoop)
 
 	s_pendingPanels.clear();
 
-	LauncherImGui::Backend::Init(hMainWnd);
+	s_iniFilename = (std::filesystem::path{ internal_paths::Config } / "MacroQuest_LauncherUI.ini").string();
+	s_logFilename = (std::filesystem::path{ internal_paths::Logs } / "MacroQuest_LauncherUI_Logs.txt").string();
+	Backend::Init(hMainWnd, s_iniFilename.c_str(), s_logFilename.c_str());
 
 	auto draw_main = []()
 		{
