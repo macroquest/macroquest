@@ -343,7 +343,7 @@ void Run(const std::function<bool()>& mainLoop)
 	s_pendingPanels.clear();
 
 	s_iniFilename = (std::filesystem::path{ internal_paths::Config } / "MacroQuest_LauncherUI.ini").string();
-	s_logFilename = (std::filesystem::path{ internal_paths::Logs } / "MacroQuest_LauncherUI_Logs.txt").string();
+	s_logFilename = (std::filesystem::path{ internal_paths::Logs } / "MacroQuest_LauncherUI.log").string();
 	Backend::Init(hMainWnd, s_iniFilename.c_str(), s_logFilename.c_str());
 
 	auto draw_main = []()

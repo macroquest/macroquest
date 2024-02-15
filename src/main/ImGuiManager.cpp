@@ -369,6 +369,7 @@ bool gbManualResetRequired = false;
 static ImFontAtlas* s_fontAtlas = nullptr;
 
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
+static char ImGuiLogFile[MAX_PATH] = { 0 };
 
 static bool s_deferredClearSettings = false;
 extern bool gbToggleConsoleRequested;
@@ -721,6 +722,9 @@ void ImGuiManager_CreateContext()
 			std::filesystem::remove(ImGuiSettingsFile, ec);
 	}
 	io.IniFilename = &ImGuiSettingsFile[0];
+
+	fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
+	io.LogFilename = &ImGuiLogFile[0];
 
 	ImGui::StyleColorsDark();
 	mq::imgui::ConfigureStyle();
