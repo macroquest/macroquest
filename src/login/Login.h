@@ -197,7 +197,7 @@ public:
 		Results const* m_results;
 	};
 
-	explicit Results(
+	Results(
 		const std::shared_ptr<WithDb>& db,
 		const std::string& query,
 		const std::function<void(sqlite3_stmt*, sqlite3*)>& bind,
