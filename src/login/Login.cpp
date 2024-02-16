@@ -603,7 +603,7 @@ void login::db::CacheMasterPass(std::string_view pass)
 
 		// the string must be converted to a wide string for the registry
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
+		const std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
 
 		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
 	}
@@ -809,7 +809,7 @@ void login::db::DeleteSetting(std::string_view key)
 // ================================================================================================================================
 login::db::Results<std::string> login::db::ListProfileGroups()
 {
-	return login::db::Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT name FROM profile_groups)",
 		[](sqlite3_stmt* stmt, sqlite3*)
@@ -817,7 +817,8 @@ login::db::Results<std::string> login::db::ListProfileGroups()
 		[](sqlite3_stmt* stmt, sqlite3*) -> std::string
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
@@ -902,7 +903,7 @@ void login::db::DeleteProfileGroup(std::string_view name)
 // accounts
 login::db::Results<std::pair<std::string, std::string>> login::db::ListAccounts()
 {
-	return Results<std::pair<std::string, std::string>>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT account, server_type FROM accounts)",
 		[](sqlite3_stmt*, sqlite3*) {},
@@ -911,7 +912,33 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListAccounts(
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
+}
+
+login::db::Results<ProfileRecord> login::db::ListAccountMatches(std::string_view search)
+{
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(
+			SELECT DISTINCT account, server_type
+			FROM accounts
+			WHERE LOWER(server_type) LIKE '%' || LOWER(?) || '%'
+			   OR account LIKE '%' || LOWER(?) || '%')",
+		[search](sqlite3_stmt* stmt, sqlite3*)
+		{
+			BindText(stmt, 1, search);
+			BindText(stmt, 2, search);
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			ProfileRecord record;
+			record.accountName = ReadText(stmt, 0);
+			record.serverType = ReadText(stmt, 1);
+
+			return record;
+		}
+	};
 }
 
 void login::db::CreateAccount(const ProfileRecord& profile)
@@ -1059,7 +1086,7 @@ void login::db::DeleteAccount(std::string_view account, std::string_view server_
 // characters
 login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account, std::string_view server_type)
 {
-	return Results<std::pair<std::string, std::string>>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT server, character
@@ -1076,24 +1103,26 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacter
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
 }
 
 login::db::Results<std::string> login::db::ListServers()
 {
-	return Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT DISTINCT server FROM characters)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_view server)
 {
-	return Results<ProfileRecord>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT character, account, server_type,
@@ -1122,12 +1151,13 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 				record.characterLevel = sqlite3_column_int(stmt, 4);
 
 			return record;
-		});
+		}
+	};
 }
 
 login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
 {
-	return Results<ProfileRecord>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT server, character, account, server_type,
@@ -1166,7 +1196,8 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			record.visible = sqlite3_column_int(stmt, 6) != 0;
 
 			return record;
-		});
+		}
+	};
 }
 
 void login::db::CreateCharacter(const ProfileRecord& profile)
@@ -1358,7 +1389,8 @@ void login::db::CreateOrUpdateServer(std::string_view short_name, std::string_vi
 
 login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNames()
 {
-	return Results<std::pair<std::string, std::string>>(WithDb::Get(SQLITE_OPEN_READONLY),
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT short_name, long_name FROM servers)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
@@ -1366,12 +1398,14 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNam
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
 }
 
 login::db::Results<std::string> login::db::ReadLongServer(std::string_view short_name)
 {
-	return Results<std::string>(WithDb::Get(SQLITE_OPEN_READONLY),
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT long_name FROM servers WHERE short_name = ?
 			ORDER BY last_seen DESC)",
@@ -1380,7 +1414,8 @@ login::db::Results<std::string> login::db::ReadLongServer(std::string_view short
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 std::optional<std::string> login::db::ReadShortServer(std::string_view long_name)
@@ -1436,14 +1471,15 @@ void login::db::CreateOrUpdateServerType(std::string_view server_type, std::stri
 
 login::db::Results<std::string> login::db::ListServerTypes()
 {
-	return Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT type FROM server_types)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 std::optional<std::string> login::db::GetPathFromServerType(std::string_view server_type)

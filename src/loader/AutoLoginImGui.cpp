@@ -220,6 +220,49 @@ struct AccountInfo
 	static constexpr std::string_view label = "Account";
 
 	[[nodiscard]] bool Valid() const { return !Account.empty() && ServerType.Valid(); }
+
+	enum class SortID : unsigned int
+	{
+		Account,
+		EQ_Install,
+	};
+
+	static bool Compare(const ImGuiTableSortSpecs* specs, const ProfileRecord& l, const ProfileRecord& r)
+	{
+		for (int n = 0; n < specs->SpecsCount; ++n)
+		{
+			const auto& spec = specs->Specs[n];
+			const auto str_cmp = [&spec](std::string_view a, std::string_view b)
+				{
+					static ci_less less;
+					if (spec.SortDirection == ImGuiSortDirection_Ascending) return less(a, b);
+
+					return !less(a, b);
+				};
+
+			switch (static_cast<SortID>(spec.ColumnUserID))
+			{
+			case SortID::Account:
+				if (!ci_equals(l.accountName, r.accountName))
+					return str_cmp(l.accountName, r.accountName);
+				break;
+			case SortID::EQ_Install:
+				if (!ci_equals(l.serverType, r.serverType))
+					return str_cmp(l.serverType, r.serverType);
+				break;
+			}
+		}
+
+		return false;
+	}
+
+	static void Sort(const ImGuiTableSortSpecs* sort_specs, std::vector<ProfileRecord>& items)
+	{
+		if (items.size() > 1)
+			std::sort(items.begin(), items.end(),
+				[sort_specs](const ProfileRecord& a, const ProfileRecord& b)
+				{ return Compare(sort_specs, a, b); });
+	}
 };
 
 struct CharacterInfo
@@ -944,6 +987,116 @@ void AccountInfo::Edit(const char* name, const Action& ok_action)
 	}
 }
 
+static void AccountTable(const std::string_view search)
+{
+	static AccountInfo selected_account;
+	static ProfileRecord selected_profile;
+	static std::string remove_message;
+
+	constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp
+		| ImGuiTableFlags_Borders
+		| ImGuiTableFlags_NoBordersInBody
+		| ImGuiTableFlags_ScrollY
+		| ImGuiTableFlags_Sortable
+		| ImGuiTableFlags_SortMulti;
+
+	if (ImGui::BeginTable("Main List", 2, flags, { 0.f, 0.f }))
+	{
+		ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthStretch, 0.f, static_cast<ImGuiID>(AccountInfo::SortID::Account));
+		ImGui::TableSetupColumn("EQ Install", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(AccountInfo::SortID::EQ_Install));
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableHeadersRow();
+
+		static std::string last_search(search);
+		static auto accounts = login::db::CacheResults([]
+			{
+				return login::db::ListAccountMatches(last_search);
+			});
+
+		const bool force_update = !ci_equals(last_search, search);
+		if (force_update)
+			last_search = search;
+
+		const bool did_update = accounts.ReadHasChanged(force_update);
+		if (const auto sort_specs = ImGui::TableGetSortSpecs(); sort_specs->SpecsDirty || did_update)
+		{
+			AccountInfo::Sort(sort_specs, accounts.Updated());
+			sort_specs->SpecsDirty = false;
+		}
+
+		ImGuiListClipper clipper;
+		clipper.Begin(static_cast<int>(accounts.Updated().size()));
+		while (clipper.Step())
+		{
+			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+			{
+				auto& match = accounts.Updated().at(row);
+				ImGui::PushID(&match);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+
+				// this allows right-clicking
+				bool is_selected = false;
+				ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+
+				if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
+					ImGui::OpenPopup("row_popup");
+
+				if (ImGui::BeginPopup("row_popup"))
+				{
+					if (ImGui::Selectable("Edit"))
+					{
+						selected_account.Account = match.accountName;
+						selected_account.ServerType.ServerType = match.serverType;
+						selected_account.Fill();
+
+						selected_profile = match;
+
+						LauncherImGui::OpenModal("Edit Account");
+					}
+
+					if (ImGui::Selectable("Remove"))
+					{
+						remove_message = fmt::format("Are you certain you want to remove account '{} ({})'? All associated characters will also be removed.", match.accountName, match.serverType);
+						selected_profile = match;
+						LauncherImGui::OpenModal("Remove Account");
+					}
+
+					ImGui::EndPopup();
+				}
+
+				ImGui::SameLine(0.f, 0.f);
+				ImGui::TextUnformatted(match.accountName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::TextUnformatted(match.serverType.c_str());
+
+				ImGui::PopID();
+			}
+		}
+
+		ImGui::EndTable();
+	}
+
+	selected_account.Edit("Edit Account", []
+		{
+			if (selected_account.Valid())
+			{
+				ProfileRecord profile;
+				profile.accountName = selected_account.Account;
+				profile.accountPassword = selected_account.Password;
+				profile.serverType = selected_account.ServerType.ServerType;
+				login::db::UpdateAccount(selected_profile.accountName, selected_profile.serverType, profile);
+			}
+		});
+
+	DeleteModal("Remove Account", remove_message, []
+		{
+			login::db::DeleteAccount(selected_profile.accountName, selected_profile.serverType);
+		});
+}
+
 #pragma endregion
 
 #pragma region Character
@@ -1421,98 +1574,105 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 			static bool do_write = false;
 			static ProfileRecord* held_ptr = nullptr;
-			for (auto& profile : profiles.Read(force_profiles_update))
+
+			ImGuiListClipper clipper;
+			clipper.Begin(static_cast<int>(profiles.Read(force_profiles_update).size()));
+			while (clipper.Step())
 			{
-				ImGui::PushID(&profile);
-
-				ImGui::TableNextRow();
-				ImGui::TableNextColumn();
-				if (profile.selected > 0)
-					LauncherImGui::RenderTableCheckmark();
-				ImGui::SameLine(0.f, 0.f);
-				ImGui::Selectable("##row", profile.selected > 0, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
-
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
+				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 				{
-					if (held_ptr != nullptr && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-					{
-						held_ptr->selected = 1;
-						held_ptr = nullptr;
-						do_write = true;
-					}
-					else if (held_ptr != nullptr && held_ptr != &profile && ImGui::IsMouseDown(ImGuiMouseButton_Left))
-					{
-						std::swap(*held_ptr, profile);
-						held_ptr = &profile;
-					}
-					else if (held_ptr == nullptr && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-					{
-						held_ptr = &profile;
-						held_ptr->selected = 0;
-					}
-					else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-					{
-						if (profile.selected > 0)
-							profile.selected = 0;
-						else
-							profile.selected = 1;
+					auto& profile = profiles.Updated().at(row);
+					ImGui::PushID(&profile);
 
-						do_write = true;
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (profile.selected > 0)
+						LauncherImGui::RenderTableCheckmark();
+					ImGui::SameLine(0.f, 0.f);
+					ImGui::Selectable("##row", profile.selected > 0, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
+					{
+						if (held_ptr != nullptr && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+						{
+							held_ptr->selected = 1;
+							held_ptr = nullptr;
+							do_write = true;
+						}
+						else if (held_ptr != nullptr && held_ptr != &profile && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+						{
+							std::swap(*held_ptr, profile);
+							held_ptr = &profile;
+						}
+						else if (held_ptr == nullptr && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+						{
+							held_ptr = &profile;
+							held_ptr->selected = 0;
+						}
+						else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+						{
+							if (profile.selected > 0)
+								profile.selected = 0;
+							else
+								profile.selected = 1;
+
+							do_write = true;
+						}
 					}
+
+					if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+						ImGui::OpenPopup("row_popup");
+
+					if (ImGui::BeginPopup("row_popup"))
+					{
+						if (ImGui::Selectable("Edit"))
+						{
+							selected = profile;
+							selected.Character.Character = profile.characterName;
+							selected.Character.Server = profile.serverName;
+							selected.Character.Account.Account = profile.accountName;
+							selected.Character.Account.ServerType.ServerType = profile.serverType;
+							LauncherImGui::OpenModal("Edit Profile");
+						}
+
+						if (ImGui::Selectable("Remove"))
+						{
+							selected = profile;
+							selected.Character.Character = profile.characterName;
+							selected.Character.Server = profile.serverName;
+							remove_message = fmt::format("Are you sure you want to remove profile '{}'?", info.Preview());
+							LauncherImGui::OpenModal("Remove Profile");
+						}
+
+						ImGui::EndPopup();
+					}
+
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(profile.characterName.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(profile.serverName.c_str());
+
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(profile.accountName.c_str());
+
+					ImGui::TableNextColumn();
+					if (profile.characterClass.empty())
+						ImGui::Text("<None>");
+					else
+						ImGui::Text("%s %d", profile.characterClass.c_str(), profile.characterLevel);
+
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(profile.hotkey.c_str());
+
+					ImGui::TableNextColumn();
+					if (ImGui::SmallButton("Play"))
+					{
+						LoadCharacter(profile);
+					}
+
+					ImGui::PopID();
 				}
-
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-					ImGui::OpenPopup("row_popup");
-
-				if (ImGui::BeginPopup("row_popup"))
-				{
-					if (ImGui::Selectable("Edit"))
-					{
-						selected = profile;
-						selected.Character.Character = profile.characterName;
-						selected.Character.Server = profile.serverName;
-						selected.Character.Account.Account = profile.accountName;
-						selected.Character.Account.ServerType.ServerType = profile.serverType;
-						LauncherImGui::OpenModal("Edit Profile");
-					}
-
-					if (ImGui::Selectable("Remove"))
-					{
-						selected = profile;
-						selected.Character.Character = profile.characterName;
-						selected.Character.Server = profile.serverName;
-						remove_message = fmt::format("Are you sure you want to remove profile '{}'?", info.Preview());
-						LauncherImGui::OpenModal("Remove Profile");
-					}
-
-					ImGui::EndPopup();
-				}
-
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.characterName.c_str());
-
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.serverName.c_str());
-
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.accountName.c_str());
-
-				ImGui::TableNextColumn();
-				if (profile.characterClass.empty())
-					ImGui::Text("<None>");
-				else
-					ImGui::Text("%s %d", profile.characterClass.c_str(), profile.characterLevel);
-
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.hotkey.c_str());
-
-				ImGui::TableNextColumn();
-				if (ImGui::SmallButton("Play"))
-				{
-					LoadCharacter(profile);
-				}
-
-				ImGui::PopID();
 			}
 
 			if (do_write)
@@ -1876,8 +2036,34 @@ void ShowAutoLoginWindow()
 		{
 			ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_MenuBar);
 
+			static std::string search;
 			static AccountInfo info;
-			DefaultListBox(info);
+
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionMax().x -
+				ImGui::CalcTextSize("Add Account").x -
+				ImGui::GetStyle().FramePadding.x * 2 -
+				ImGui::GetStyle().ItemSpacing.x -
+				ImGui::GetStyle().WindowPadding.x);
+			ImGui::InputText("##Search Bar", &search, ImGuiInputTextFlags_EscapeClearsAll);
+
+			ImGui::SameLine();
+			if (ImGui::Button("Add Account"))
+			{
+				// reset to defaults
+				info = {};
+				LauncherImGui::OpenModal("Add Account");
+			}
+
+			info.Edit("Add Account", []
+				{
+					ProfileRecord profile;
+					profile.accountName = info.Account;
+					profile.accountPassword = info.Password;
+					profile.serverType = info.ServerType.ServerType;
+					login::db::CreateAccount(profile);
+				});
+
+			AccountTable(search);
 
 			ImGui::EndChild();
 			ImGui::EndTabItem();
