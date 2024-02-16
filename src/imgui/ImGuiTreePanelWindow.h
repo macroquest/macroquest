@@ -244,7 +244,7 @@ private:
 
 	void DrawTreeNode(PanelTreeNode* node)
 	{
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth;
 		bool isLeaf = node->children.empty();
 
 		if (node->def != nullptr && (m_selectedPanel == nullptr || node->def->selectRequested))
