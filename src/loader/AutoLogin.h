@@ -44,8 +44,6 @@ void Import();
 std::string GetEQRoot();
 
 // ImGui
-void ShowAutoLoginWindow();
-void ShowAutoLoginMenu();
 bool ShowPasswordWindow();
 void InitializeAutoLoginImGui();
 void ShutdownAutoLoginImGui();
