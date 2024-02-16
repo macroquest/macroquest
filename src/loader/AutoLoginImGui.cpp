@@ -499,7 +499,7 @@ static void DefaultListBox(Info& info)
 	}
 	selected.Edit(add_name, [&info]
 		{
-			selected.Update(info);
+			selected.Update({});
 			info = selected;
 		});
 
@@ -965,11 +965,7 @@ void AccountInfo::Edit(const char* name, const Action& ok_action)
 		ImGui::InputText("Account Name", &Account);
 		ImGui::Spacing();
 
-		DefaultCombo(ServerType, [this]
-			{
-				Account.clear();
-				Password.clear();
-			});
+		DefaultCombo(ServerType, [] {});
 
 		ImGui::Spacing();
 
@@ -1964,6 +1960,13 @@ void ShowProfilesWindow()
 		ImGui::GetStyle().FramePadding.x * 2 -
 		ImGui::GetStyle().ItemSpacing.x -
 		ImGui::GetStyle().WindowPadding.x);
+
+	if (info.profileName.empty())
+	{
+		const auto& groups = login::db::ListProfileGroups().vector();
+		if (!groups.empty())
+			info.profileName = groups.front();
+	}
 
 	if (ImGui::BeginCombo("##Profile Group", info.Preview().c_str()))
 	{
