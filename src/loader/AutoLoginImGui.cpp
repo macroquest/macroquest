@@ -1223,34 +1223,40 @@ static void CharacterTable(const std::string_view search)
 				return login::db::ListCharacterMatches(last_search);
 			});
 
-		static bool last_show_hidden = show_hidden;
-		const bool force_update = !ci_equals(last_search, search) || last_show_hidden != show_hidden;
+		const bool force_update = !ci_equals(last_search, search);
 		if (force_update)
 			last_search = search;
 
 		const bool did_update = characters.ReadHasChanged(force_update);
+		static std::vector<size_t> filtered_characters;
 		if (const auto sort_specs = ImGui::TableGetSortSpecs(); sort_specs->SpecsDirty || did_update)
 		{
-			last_show_hidden = show_hidden;
-			if (!show_hidden)
+			CharacterInfo::Sort(sort_specs, characters.Updated());
+
+			filtered_characters.clear();
+			for (auto it = characters.Updated().begin(); it != characters.Updated().end(); ++it)
 			{
-				characters.Updated().erase(std::remove_if(
-					characters.Updated().begin(), characters.Updated().end(),
-					[](const ProfileRecord& profile)
-					{ return !profile.visible; }), characters.Updated().end());
+				if (it->visible)
+					filtered_characters.push_back(std::distance(characters.Updated().begin(), it));
 			}
 
-			CharacterInfo::Sort(sort_specs, characters.Updated());
 			sort_specs->SpecsDirty = false;
 		}
 
 		ImGuiListClipper clipper;
-		clipper.Begin(static_cast<int>(characters.Updated().size()));
+		if (show_hidden)
+			clipper.Begin(static_cast<int>(characters.Updated().size()));
+		else
+			clipper.Begin(static_cast<int>(filtered_characters.size()));
+
 		while (clipper.Step())
 		{
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
-				auto& match = characters.Updated().at(row);
+				int idx = row;
+				if (!show_hidden)
+					idx = static_cast<int>(filtered_characters.at(row));
+				auto& match = characters.Updated().at(idx);
 				ImGui::PushID(&match);
 
 				ImGui::TableNextRow();
@@ -2226,7 +2232,7 @@ void ShowSettingsWindow()
 void ShowAutoLoginMenu()
 {
 	if (ImGui::MenuItem("Open Config"))
-		LauncherImGui::SelectMainPanel("AutoLogin");
+		LauncherImGui::SelectMainPanel("AutoLogin/Profiles");
 
 	if (ImGui::MenuItem("Launch Without Login"))
 		LaunchCleanSession();
