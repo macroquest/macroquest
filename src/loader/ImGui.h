@@ -23,6 +23,7 @@
 
 namespace LauncherImGui {
 bool SmallCheckbox(const char* label, bool* v);
+void RenderTableCheckmark();
 bool ToggleSlider(const char* label, bool* v);
 void OpenModal(const std::string& name);
 bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags);

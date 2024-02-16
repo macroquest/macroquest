@@ -36,15 +36,14 @@ struct LoginInstance
 };
 
 // AutoLogin
-void LoadCharacter(ProfileRecord& profile);
+void LoadCharacter(const ProfileRecord& profile);
 void LoadProfileGroup(std::string_view group);
 void LaunchCleanSession();
+void ProcessPendingLogins();
 void Import();
 std::string GetEQRoot();
 
 // ImGui
-void ShowAutoLoginWindow();
-void ShowAutoLoginMenu();
 bool ShowPasswordWindow();
 void InitializeAutoLoginImGui();
 void ShutdownAutoLoginImGui();

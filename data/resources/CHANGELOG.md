@@ -1,3 +1,11 @@
+Feb 16, 2024:
+- Changes to AutoLogin:
+- added sorting for characters that persists to context menu
+- added filter to hide characters from context menu
+- added ordering to profiles for login order and display
+- added sorting and searching to accounts
+- added some tooltips 
+
 Feb 13, 2024:
 - Completely revamped the autologin interface and storage
 - MQ's context menu is now driven by imgui

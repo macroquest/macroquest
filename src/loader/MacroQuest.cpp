@@ -43,6 +43,7 @@
 #include <mq/utils/OS.h>
 #include <mq/base/BuildInfo.h>
 
+#include "AutoLogin.h"
 #include "Network.h"
 
 #pragma comment(lib, "Psapi.lib")
@@ -58,7 +59,7 @@ HWND hMainWnd;
 
 PROCESS_INFORMATION pInfo = { 0 };
 STARTUPINFO sInfo = { 0 };
-NOTIFYICONDATA NID;
+NOTIFYICONDATA NID = { 0 };
 PAINTSTRUCT PS;
 
 std::string ServerType;
@@ -900,7 +901,6 @@ void InitializeVersionInfo()
 
 	fmt::format_to(NID.szTip, "{} [{} ({})]\0", gszWinName, szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
-	Shell_NotifyIcon(NIM_MODIFY, &NID);
 
 	to_lower(ServerType);
 }
@@ -1137,6 +1137,7 @@ int WINAPI CALLBACK WinMain(
 		[&msg]()
 		{
 			ProcessPipeServer();
+			ProcessPendingLogins();
 			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
 				switch (msg.message)

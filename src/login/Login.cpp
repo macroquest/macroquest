@@ -221,6 +221,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 	std::vector<ProfileGroup> profiles;
 
 	// first import blobs
+	unsigned int selected = 0;
 	for (const auto& profile_key : GetPrivateProfileKeys("Profiles", ini_location))
 	{
 		if (!ci_starts_with(profile_key, "Profile"))
@@ -257,7 +258,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 
 			ProfileRecord record = ProfileRecord::FromBlob(blob);
 			record.profileName = section;
-			record.checked = checked;
+			if (checked) record.selected = ++selected;
 			record.serverType = server_type;
 
 			// the key name is split into server:character_Blob
@@ -274,6 +275,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 	}
 
 	// next import station names and sessions
+	selected = 0;
 	for (const auto& section : GetPrivateProfileSections(ini_location))
 	{
 		const auto password = GetPrivateProfileString(section, "Password", "", ini_location);
@@ -290,7 +292,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 		record.profileName = section;
 		record.accountName = account;
 		record.serverType = server_type;
-		record.checked = true;
+		record.selected = ++selected;
 
 		record.serverName = GetPrivateProfileString(section, "Server", "", ini_location);
 		record.characterName = GetPrivateProfileString(section, "Character", "", ini_location);
@@ -440,8 +442,10 @@ public:
 
 	static const std::shared_ptr<WithDb>& Get(int flags)
 	{
+		auto connection = s_connections.find(flags);
+		if (connection == s_connections.end())
+			connection = s_connections.emplace_hint(connection, flags, std::make_shared<WithDb>(flags));
 
-		auto [connection, _] = s_connections.try_emplace(flags, std::make_shared<WithDb>(flags));
 		return connection->second;
 	}
 
@@ -599,7 +603,7 @@ void login::db::CacheMasterPass(std::string_view pass)
 
 		// the string must be converted to a wide string for the registry
 		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-		std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
+		const std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
 
 		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
 	}
@@ -805,7 +809,7 @@ void login::db::DeleteSetting(std::string_view key)
 // ================================================================================================================================
 login::db::Results<std::string> login::db::ListProfileGroups()
 {
-	return login::db::Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT name FROM profile_groups)",
 		[](sqlite3_stmt* stmt, sqlite3*)
@@ -813,7 +817,8 @@ login::db::Results<std::string> login::db::ListProfileGroups()
 		[](sqlite3_stmt* stmt, sqlite3*) -> std::string
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
@@ -898,7 +903,7 @@ void login::db::DeleteProfileGroup(std::string_view name)
 // accounts
 login::db::Results<std::pair<std::string, std::string>> login::db::ListAccounts()
 {
-	return Results<std::pair<std::string, std::string>>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT account, server_type FROM accounts)",
 		[](sqlite3_stmt*, sqlite3*) {},
@@ -907,7 +912,33 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListAccounts(
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
+}
+
+login::db::Results<ProfileRecord> login::db::ListAccountMatches(std::string_view search)
+{
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(
+			SELECT DISTINCT account, server_type
+			FROM accounts
+			WHERE LOWER(server_type) LIKE '%' || LOWER(?) || '%'
+			   OR account LIKE '%' || LOWER(?) || '%')",
+		[search](sqlite3_stmt* stmt, sqlite3*)
+		{
+			BindText(stmt, 1, search);
+			BindText(stmt, 2, search);
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			ProfileRecord record;
+			record.accountName = ReadText(stmt, 0);
+			record.serverType = ReadText(stmt, 1);
+
+			return record;
+		}
+	};
 }
 
 void login::db::CreateAccount(const ProfileRecord& profile)
@@ -1055,7 +1086,7 @@ void login::db::DeleteAccount(std::string_view account, std::string_view server_
 // characters
 login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacters(std::string_view account, std::string_view server_type)
 {
-	return Results<std::pair<std::string, std::string>>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT server, character
@@ -1072,24 +1103,26 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListCharacter
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
 }
 
 login::db::Results<std::string> login::db::ListServers()
 {
-	return Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT DISTINCT server FROM characters)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_view server)
 {
-	return Results<ProfileRecord>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT character, account, server_type,
@@ -1098,8 +1131,7 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE server = ?
-			GROUP BY characters.id)",
+			WHERE server = ? AND visible <> 0)",
 		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, server);
@@ -1119,34 +1151,32 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 				record.characterLevel = sqlite3_column_int(stmt, 4);
 
 			return record;
-		});
+		}
+	};
 }
 
 login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_view search)
 {
-	return Results<ProfileRecord>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT server, character, account, server_type,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
-				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level
+				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
+			    visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE LOWER(server) LIKE '%' || ? || '%'
-			   OR character LIKE '%' || ? || '%'
-			   OR account LIKE '%' || ? || '%'
-               OR LOWER(class) LIKE '%' || ? || '%'
-			GROUP BY characters.id)",
+			WHERE LOWER(server) LIKE '%' || LOWER(?) || '%'
+			   OR character LIKE '%' || LOWER(?) || '%'
+			   OR account LIKE '%' || LOWER(?) || '%'
+               OR LOWER(class) LIKE '%' || LOWER(?) || '%')",
 		[search](sqlite3_stmt* stmt, sqlite3*)
 		{
-			std::string lower_search(search);
-			to_lower(lower_search);
-
-			BindText(stmt, 1, lower_search);
-			BindText(stmt, 2, lower_search);
-			BindText(stmt, 3, lower_search);
-			BindText(stmt, 4, lower_search);
+			BindText(stmt, 1, search);
+			BindText(stmt, 2, search);
+			BindText(stmt, 3, search);
+			BindText(stmt, 4, search);
 		},
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
@@ -1163,22 +1193,27 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
 				record.characterLevel = sqlite3_column_int(stmt, 5);
 
+			record.visible = sqlite3_column_int(stmt, 6) != 0;
+
 			return record;
-		});
+		}
+	};
 }
 
 void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO characters (character, server, account_id) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)))
-			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id)",
+			INSERT INTO characters (character, server, account_id, visible) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)), ?)
+			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id, visible=excluded.visible)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.characterName);
 			BindText(stmt, 2, profile.serverName);
 			BindText(stmt, 3, profile.accountName);
 			BindText(stmt, 4, profile.serverType);
+
+			sqlite3_bind_int(stmt, 5, profile.visible ? 1 : 0);
 
 			sqlite3_step(stmt);
 		});
@@ -1188,7 +1223,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT id, account, server_type
+			SELECT id, account, server_type, visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			WHERE character = LOWER(?) AND server = ?)",
@@ -1201,6 +1236,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 			{
 				profile.accountName = ReadText(stmt, 1);
 				profile.serverType = ReadText(stmt, 2);
+				profile.visible = sqlite3_column_int(stmt, 3) != 0;
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
@@ -1216,7 +1252,8 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 			UPDATE characters
 			SET character = LOWER(?),
 			    server = ?,
-			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?))
+			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)),
+			    visible = ?
 			WHERE character = LOWER(?) AND server = ?)",
 		[server, name, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1225,8 +1262,10 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 			BindText(stmt, 3, profile.accountName);
 			BindText(stmt, 4, profile.serverType);
 
-			BindText(stmt, 4, name);
-			BindText(stmt, 5, server);
+			sqlite3_bind_int(stmt, 5, profile.visible ? 1 : 0);
+
+			BindText(stmt, 6, name);
+			BindText(stmt, 7, server);
 
 			sqlite3_step(stmt);
 		});
@@ -1350,7 +1389,8 @@ void login::db::CreateOrUpdateServer(std::string_view short_name, std::string_vi
 
 login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNames()
 {
-	return Results<std::pair<std::string, std::string>>(WithDb::Get(SQLITE_OPEN_READONLY),
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT short_name, long_name FROM servers)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
@@ -1358,12 +1398,14 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNam
 			return std::make_pair(
 				ReadText(stmt, 0),
 				ReadText(stmt, 1));
-		});
+		}
+	};
 }
 
 login::db::Results<std::string> login::db::ReadLongServer(std::string_view short_name)
 {
-	return Results<std::string>(WithDb::Get(SQLITE_OPEN_READONLY),
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT long_name FROM servers WHERE short_name = ?
 			ORDER BY last_seen DESC)",
@@ -1372,7 +1414,8 @@ login::db::Results<std::string> login::db::ReadLongServer(std::string_view short
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 std::optional<std::string> login::db::ReadShortServer(std::string_view long_name)
@@ -1428,14 +1471,15 @@ void login::db::CreateOrUpdateServerType(std::string_view server_type, std::stri
 
 login::db::Results<std::string> login::db::ListServerTypes()
 {
-	return Results<std::string>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(SELECT type FROM server_types)",
 		[](sqlite3_stmt*, sqlite3*) {},
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{
 			return ReadText(stmt, 0);
-		});
+		}
+	};
 }
 
 std::optional<std::string> login::db::GetPathFromServerType(std::string_view server_type)
@@ -1487,7 +1531,7 @@ void login::db::DeleteServerType(std::string_view server_type)
 // profiles
 login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 {
-	return Results<ProfileRecord>(
+	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT hotkey, character, server,
@@ -1501,10 +1545,10 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			JOIN accounts ON accounts.id = account_id
 			JOIN profile_groups ON profile_groups.id = group_id
 			LEFT JOIN personas USING (character_id)
-			WHERE profile_groups.name = LOWER(?))",
+			WHERE profile_groups.name = LOWER(?)
+			ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
-			std::vector<ProfileRecord> records;
 			BindText(stmt, 1, group);
 		},
 		[group](sqlite3_stmt* stmt, sqlite3*)
@@ -1525,7 +1569,9 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			record.serverType = ReadText(stmt, 6);
 
 			if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
-				record.checked = sqlite3_column_int(stmt, 7) != 0;
+				record.selected = sqlite3_column_int(stmt, 7);
+			else
+				record.selected = 0;
 
 			if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
 				record.eqPath = ReadText(stmt, 8);
@@ -1542,6 +1588,45 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			record.profileName = group;
 
 			return record;
+		}
+	};
+}
+
+std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
+{
+	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY,
+		R"(
+			SELECT hotkey, character, server, 
+				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path
+			FROM profiles
+			JOIN characters ON characters.id = character_id
+			JOIN profile_groups ON profile_groups.id = group_id
+			WHERE profile_groups.name = LOWER(?)
+			  AND selected NOT NULL AND selected > 0
+			ORDER BY selected ASC)",
+		[group](sqlite3_stmt* stmt, sqlite3*)
+		{
+			std::vector<ProfileRecord> profiles;
+			BindText(stmt, 1, group);
+
+			while (sqlite3_step(stmt) == SQLITE_ROW)
+			{
+				ProfileRecord profile;
+				if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+					profile.hotkey = ReadText(stmt, 0);
+
+				profile.characterName = ReadText(stmt, 1);
+				profile.serverName = ReadText(stmt, 2);
+
+				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
+					profile.eqPath = ReadText(stmt, 3);
+
+				profile.profileName = group;
+
+				profiles.push_back(std::move(profile));
+			}
+
+			return profiles;
 		});
 }
 
@@ -1575,7 +1660,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 			else
 				sqlite3_bind_null(stmt, 7);
 
-			sqlite3_bind_int(stmt, 8, profile.checked ? 1 : 0);
+			sqlite3_bind_int(stmt, 8, static_cast<int>(profile.selected));
 
 			if (profile.customClientIni)
 				BindText(stmt, 9, *profile.customClientIni);
@@ -1610,7 +1695,9 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 					profile.hotkey = ReadText(stmt, 2);
 
 				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
-					profile.checked = sqlite3_column_int(stmt, 3) != 0;
+					profile.selected = sqlite3_column_int(stmt, 3);
+				else
+					profile.selected = 0;
 
 				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
 					profile.endAfterSelect = sqlite3_column_int(stmt, 4) != 0;
@@ -1664,7 +1751,9 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 					profile.accountPassword = pass;
 
 				if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
-					profile.checked = sqlite3_column_int(stmt, 6) != 0;
+					profile.selected = sqlite3_column_int(stmt, 6);
+				else
+					profile.selected = 0;
 
 				profile.serverType = ReadText(stmt, 7);
 
@@ -1704,7 +1793,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
 			JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = LOWER(?)) g USING (group_id)
-			WHERE selected <> 0
+			ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC
 			LIMIT 1)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
@@ -1732,7 +1821,9 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 				profile.characterName = ReadText(stmt, 7);
 
 				if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
-					profile.checked = sqlite3_column_int(stmt, 8) != 0;
+					profile.selected = sqlite3_column_int(stmt, 8);
+				else
+					profile.selected = 0;
 
 				if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
 					profile.endAfterSelect = sqlite3_column_int(stmt, 9) != 0;
@@ -1772,7 +1863,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 				sqlite3_bind_null(stmt, 1);
 
 			BindText(stmt, 2, profile.hotkey);
-			sqlite3_bind_int(stmt, 3, profile.checked ? 1 : 0);
+			sqlite3_bind_int(stmt, 3, static_cast<int>(profile.selected));
 
 			if (profile.endAfterSelect)
 				sqlite3_bind_int(stmt, 4, *profile.endAfterSelect ? 1 : 0);
@@ -1780,18 +1871,18 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 				sqlite3_bind_null(stmt, 4);
 
 			if (profile.charSelectDelay)
-				sqlite3_bind_int(stmt, 4, *profile.charSelectDelay);
-			else
-				sqlite3_bind_null(stmt, 4);
-
-			if (profile.customClientIni)
-				BindText(stmt, 5, *profile.customClientIni);
+				sqlite3_bind_int(stmt, 5, *profile.charSelectDelay);
 			else
 				sqlite3_bind_null(stmt, 5);
 
-			BindText(stmt, 6, profile.serverName);
-			BindText(stmt, 7, profile.characterName);
-			BindText(stmt, 8, profile.profileName);
+			if (profile.customClientIni)
+				BindText(stmt, 6, *profile.customClientIni);
+			else
+				sqlite3_bind_null(stmt, 6);
+
+			BindText(stmt, 7, profile.serverName);
+			BindText(stmt, 8, profile.characterName);
+			BindText(stmt, 9, profile.profileName);
 
 			sqlite3_step(stmt);
 		});
@@ -1875,13 +1966,17 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	{
 		WithDb::Query<void>(SQLITE_OPEN_READONLY,
 			R"(
-					SELECT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path, l.class, l.level, a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
+					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path,
+					    FIRST_VALUE(l.class) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS class,
+					    FIRST_VALUE(l.level) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS level,
+					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini
 					FROM profiles p
 					JOIN characters c ON p.character_id = c.id
 					JOIN accounts a ON c.account_id = a.id
 					LEFT JOIN personas l ON l.character_id = c.id
-					WHERE p.group_id = ?)",
-			[&id = group.first, &group = group.second](sqlite3_stmt* stmt, sqlite3* db)
+					WHERE p.group_id = ?
+					ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC)",
+			[&id = group.first, &group = group.second](sqlite3_stmt* stmt, sqlite3*)
 			{
 				sqlite3_bind_int(stmt, 1, static_cast<int>(id));
 				while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -1901,7 +1996,9 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					record.hotkey = ReadText(stmt, 4);
 
 					if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
-						record.checked = sqlite3_column_int(stmt, 5) != 0;
+						record.selected = sqlite3_column_int(stmt, 5);
+					else
+						record.selected = 0;
 
 					if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
 						record.eqPath = ReadText(stmt, 6);
@@ -2145,6 +2242,25 @@ static bool MigrateVersion1Schema()
 	)");
 }
 
+// changes the selected column to mean order selected for loading
+static bool MigrateVersion2Schema()
+{
+	return MigrateTableSchema(R"(
+		UPDATE profiles
+		SET selected = row_number() OVER (PARTITION BY group_id ORDER BY character, server ASC)
+		FROM characters c
+		WHERE c.id = profiles.character_id AND selected <> 0;
+	)");
+}
+
+// add a visible column to characters to persist showing in the quick launch
+static bool MigrateVersion3Schema()
+{
+	return MigrateTableSchema(R"(
+		ALTER TABLE characters ADD visible INTEGER NOT NULL DEFAULT 1;
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2201,6 +2317,12 @@ bool login::db::InitDatabase(const std::string& path)
 		case 1:
 			migrations.push_back(&MigrateVersion1Schema);
 			[[fallthrough]];
+		case 2:
+			migrations.push_back(&MigrateVersion2Schema);
+			[[fallthrough]];
+		case 3:
+			migrations.push_back(&MigrateVersion3Schema);
+			[[fallthrough]];
 		default:
 			break;
 		}
@@ -2217,5 +2339,10 @@ bool login::db::InitDatabase(const std::string& path)
 		}
 
 		return true;
+}
+
+void login::db::ShutdownDatabase()
+{
+	s_connections.clear();
 }
 

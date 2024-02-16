@@ -678,19 +678,17 @@ PLUGIN_API void SetGameState(int GameState)
 
 			login::db::CreateAccount(profile);
 
-			if (const auto pCharList = GetChildWindow<CListWnd>(pCharacterListWnd, "Character_List"))
+			profile.serverName = GetServerShortName();
+			for (const auto& char_info : pEverQuest->charSelectPlayerArray)
 			{
-				const auto itemsArray = GetItemsArray(pCharList);
-				profile.serverName = GetServerShortName();
+				profile.characterName = char_info.Name;
+				to_lower(profile.characterName);
+				login::db::CreateCharacter(profile);
 
-				for (int i = 0; i < itemsArray->Count; ++i)
-				{
-					std::string char_name(GetListItemText(pCharList, i, 2));
-					to_lower(char_name);
-					profile.characterName = char_name;
-
-					login::db::CreateCharacter(profile);
-				}
+				profile.characterClass = ClassInfo[char_info.Class].UCShortName;
+				to_upper(profile.characterClass);
+				profile.characterLevel = static_cast<int>(char_info.Level);
+				login::db::CreatePersona(profile);
 			}
 		}
 
@@ -789,6 +787,8 @@ PLUGIN_API void ShutdownPlugin()
 	delete pLoginProfileType;
 
 	s_autologinDropbox.Remove();
+
+	login::db::ShutdownDatabase();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)

@@ -43,7 +43,8 @@ struct ProfileRecord
 	int characterLevel = 0;
 
 	std::optional<std::string> eqPath;
-	bool checked = false;
+	unsigned int selected = 0;
+	bool visible = true;
 
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;
@@ -96,6 +97,18 @@ public:
 		}
 
 		return m_updatedValue;
+	}
+
+	bool ReadHasChanged(const bool force = false)
+	{
+		if (HasChanges() || force)
+		{
+			m_value = m_update();
+			m_updatedValue = m_value;
+			return true;
+		}
+
+		return false;
 	}
 
 	Result& Updated() { return m_updatedValue; }
@@ -197,7 +210,7 @@ public:
 		Results const* m_results;
 	};
 
-	explicit Results(
+	Results(
 		const std::shared_ptr<WithDb>& db,
 		const std::string& query,
 		const std::function<void(sqlite3_stmt*, sqlite3*)>& bind,
@@ -278,6 +291,7 @@ void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
 void DeleteProfileGroup(std::string_view name);
 
 Results<std::pair<std::string, std::string>> ListAccounts();
+login::db::Results<ProfileRecord> ListAccountMatches(std::string_view search);
 void CreateAccount(const ProfileRecord& profile);
 std::optional<std::string> ReadAccount(ProfileRecord& profile);
 std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type, std::optional<std::string_view> password_override = {});
@@ -311,6 +325,7 @@ std::optional<std::string> GetServerTypeFromPath(std::string_view path);
 void DeleteServerType(std::string_view server_type);
 
 Results<ProfileRecord> GetProfiles(std::string_view group);
+std::vector<ProfileRecord> GetActiveProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(ProfileRecord& profile);
@@ -323,4 +338,5 @@ std::optional<std::string> GetEQPath(std::string_view group, std::string_view se
 std::vector<ProfileGroup> GetProfileGroups();
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
+void ShutdownDatabase();
 } // namespace login::db
