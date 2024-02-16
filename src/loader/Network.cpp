@@ -59,18 +59,18 @@ public:
 	{}
 
 	// empty message, just a header
-	NetworkMessage(const peernetwork::Header& header)
-		: m_length(0)
-		, m_parsedHeader(header)
+	explicit NetworkMessage(peernetwork::Header header)
+		: m_parsedHeader(std::move(header))
+		, m_length(0)
 	{
 		InitHeader();
 	}
 
 	// full message
 	template <typename T>
-	NetworkMessage(const peernetwork::Header& header, const T& data)
-		: m_length(data.ByteSizeLong())
-		, m_parsedHeader(header)
+	NetworkMessage(peernetwork::Header header, const T& data)
+		: m_parsedHeader(std::move(header))
+		, m_length(data.ByteSizeLong())
 	{
 		InitHeader();
 
@@ -81,8 +81,12 @@ public:
 		}
 	}
 
-	~NetworkMessage()
-	{}
+	NetworkMessage(const NetworkMessage&) = delete;
+	NetworkMessage(NetworkMessage&&) = delete;
+	NetworkMessage& operator=(const NetworkMessage&) = delete;
+	NetworkMessage& operator=(NetworkMessage&&) = delete;
+
+	~NetworkMessage() = default;
 
 	void InitHeader()
 	{
@@ -116,7 +120,7 @@ public:
 		};
 
 		if (m_payload && m_length > 0)
-			buffers.push_back(asio::buffer(m_payload.get(), m_length));
+			buffers.emplace_back(asio::buffer(m_payload.get(), m_length));
 
 		return buffers;
 	}
@@ -132,11 +136,11 @@ public:
 	}
 
 	size_t& HeaderLength() { return m_headerLength; }
-	uint8_t* Header() { return m_header.get(); }
-	const peernetwork::Header ParsedHeader() { return m_parsedHeader; }
+	uint8_t* Header() const { return m_header.get(); }
+	peernetwork::Header ParsedHeader() { return m_parsedHeader; }
 
-	size_t Length() { return m_length; }
-	uint8_t* Payload() { return m_payload.get(); }
+	size_t Length() const { return m_length; }
+	uint8_t* Payload() const { return m_payload.get(); }
 
 private:
 	size_t m_headerLength;
@@ -152,12 +156,17 @@ class NetworkSession
 {
 public:
 	NetworkSession(tcp::socket socket, NetworkPeer& peer, const std::function<void(const peernetwork::Header&, uint8_t*)>& receiveHandler)
-		: m_socket(std::move(socket))
-		, m_peer(peer)
+		: m_peer(peer)
+		, m_socket(std::move(socket))
 		, m_active(true)
 		, m_uuid(NetworkPeer::CreateUUID())
 		, m_receiveHandler(receiveHandler)
 	{}
+
+	NetworkSession(const NetworkSession&) = delete;
+	NetworkSession(NetworkSession&&) = delete;
+	NetworkSession& operator=(const NetworkSession&) = delete;
+	NetworkSession& operator=(NetworkSession&&) = delete;
 
 	~NetworkSession()
 	{
@@ -171,7 +180,7 @@ public:
 		{
 			SPDLOG_DEBUG("Shutting down connection ({})", m_uuid);
 			std::error_code ec;
-			m_socket.shutdown(asio::socket_base::shutdown_both, ec);
+			(void)m_socket.shutdown(asio::socket_base::shutdown_both, ec);
 			if (ec)
 				SPDLOG_ERROR("Received error while shutting down socket {}: {}", ec.value(), ec.message());
 			m_active = false;
@@ -223,9 +232,9 @@ public:
 		}
 	}
 
-	bool IsActive() { return m_active; }
-	bool IsOpen() { return m_socket.is_open(); }
-	tcp::endpoint Endpoint() { return m_socket.remote_endpoint(); }
+	bool IsActive() const { return m_active; }
+	bool IsOpen() const { return m_socket.is_open(); }
+	tcp::endpoint Endpoint() const { return m_socket.remote_endpoint(); }
 	const std::string& UUID() { return m_uuid; }
 
 	void SetPeerID(const peernetwork::Identification& id) { m_peerId = id; }
@@ -321,13 +330,13 @@ private:
 			else
 			{
 				m_writing = true;
-				std::unique_ptr<NetworkMessage> message(std::move(m_outgoing.Pop()));
+				const std::unique_ptr message(m_outgoing.Pop());
 
 				// explicitly unlock before we start the next async_write
 				lock.unlock();
 				asio::async_write(
 					m_socket,
-					std::move(message->Buffers()),
+					message->Buffers(),
 					[this](const std::error_code& ec, size_t) { InternalWrite(ec); });
 			}
 		}
@@ -350,10 +359,10 @@ private:
 };
 
 NetworkPeer::NetworkPeer(const std::string& address, uint16_t port, const std::function<void(const peernetwork::Header&, uint8_t*)>& handler)
-	: m_address(address)
+	: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
+	, m_address(address)
 	, m_port(port)
 	, m_uuid(CreateUUID())
-	, m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
 	, m_receiveHandler(handler)
 {
 	SPDLOG_INFO("Initializing peer at {}:{} with UUID {}", address, port, m_uuid);
@@ -416,7 +425,7 @@ void NetworkPeer::Connect(const std::string& address, uint16_t port)
 	//       and then call Connect
 	auto socket = std::make_shared<tcp::socket>(m_acceptor.get_executor());
 	auto timer = std::make_shared<asio::steady_timer>(m_ioContext);
-	tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
+	const tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
 
 	socket->async_connect(
 		endpoint,
@@ -457,7 +466,7 @@ bool NetworkPeer::StageSession(const std::error_code& ec, tcp::socket&& socket)
 		session_it->second->Receive();
 		SendUUID(session_it->second);
 
-		auto endpoint = session_it->second->Endpoint();
+		const auto endpoint = session_it->second->Endpoint();
 		SPDLOG_INFO("Staging connection to endpoint {}:{} (total staged {}) {}",
 			endpoint.address().to_string(), endpoint.port(),
 			m_pendingSessions.size(), uuid);
@@ -475,7 +484,7 @@ bool NetworkPeer::StageSession(const std::error_code& ec, tcp::socket&& socket)
 
 void NetworkPeer::PruneSessions()
 {
-	m_closingSessions.remove_if([](const std::unique_ptr<NetworkSession>& sess) { return !sess->IsOpen(); });
+	m_closingSessions.remove_if([](const std::unique_ptr<NetworkSession>& session) { return !session->IsOpen(); });
 
 	// clear out any sessions that are no longer active
 	for (auto it = m_pendingSessions.begin(); it != m_pendingSessions.end();)
@@ -520,14 +529,14 @@ void NetworkPeer::SendUUID(const std::unique_ptr<NetworkSession>& session)
 
 void NetworkPeer::ReceiveUUID(const std::string& pending_id, uint16_t local_port, const peernetwork::Identification& id)
 {
-	// if we are no longer pending, don't worry about it (not sure this should happen though)
-	auto pending_it = m_pendingSessions.find(pending_id);
+	// if we are no longer pending, don't worry about it (not sure whether this should happen though)
+	const auto pending_it = m_pendingSessions.find(pending_id);
 	if (pending_it != m_pendingSessions.end())
 	{
 		pending_it->second->SetPeerID(id);
 
 		// we can use port to differentiate here. If we connected, we would have opened a new port
-		auto existing_it = m_sessions.find(id.uuid());
+		const auto existing_it = m_sessions.find(id.uuid());
 		if ((id.uuid() < m_uuid && local_port == m_port) ||
 			(id.uuid() > m_uuid && local_port != m_port))
 		{
@@ -575,7 +584,8 @@ void Test()
 		{
 			auto hosts_enabled = GetPrivateProfileKeyValues("NetworkHosts", internal_paths::MQini);
 			hosts_enabled.erase(std::remove_if(hosts_enabled.begin(), hosts_enabled.end(),
-				[](const std::pair<std::string, std::string>& pair) { return !ci_equals("1", pair.second); }));
+				[](const std::pair<std::string, std::string>& pair) { return !ci_equals("1", pair.second); }),
+				hosts_enabled.end());
 
 			std::vector<std::string> hosts(hosts_enabled.size());
 			std::transform(hosts_enabled.begin(), hosts_enabled.end(), std::back_inserter(hosts),
@@ -584,17 +594,17 @@ void Test()
 			return hosts;
 		}();
 
-	NetworkPeer peer1("127.0.0.1", 7781, [](const peernetwork::Header& header, uint8_t* message)
+	NetworkPeer peer1("127.0.0.1", 7781, [](const peernetwork::Header& header, const uint8_t* message)
 		{
 			peernetwork::RoutedMessage data;
-			data.ParseFromArray(message, header.length());
+			data.ParseFromArray(message, static_cast<int>(header.length()));
 			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", header.length(), data.payload());
 		});
 
-	NetworkPeer peer2("127.0.0.1", 8177, [](const peernetwork::Header& header, uint8_t* message)
+	NetworkPeer peer2("127.0.0.1", 8177, [](const peernetwork::Header& header, const uint8_t* message)
 		{
 			peernetwork::RoutedMessage data;
-			data.ParseFromArray(message, header.length());
+			data.ParseFromArray(message, static_cast<int>(header.length()));
 			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", header.length(), data.payload());
 		});
 
