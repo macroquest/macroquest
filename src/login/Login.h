@@ -44,6 +44,7 @@ struct ProfileRecord
 
 	std::optional<std::string> eqPath;
 	unsigned int selected = 0;
+	bool visible = true;
 
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;

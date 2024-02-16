@@ -1102,7 +1102,7 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE server = ?)",
+			WHERE server = ? AND visible <> 0)",
 		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, server);
@@ -1132,7 +1132,8 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 		R"(
 			SELECT DISTINCT server, character, account, server_type,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
-				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level
+				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
+			    visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
@@ -1162,6 +1163,8 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
 				record.characterLevel = sqlite3_column_int(stmt, 5);
 
+			record.visible = sqlite3_column_int(stmt, 6) != 0;
+
 			return record;
 		});
 }
@@ -1170,14 +1173,16 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO characters (character, server, account_id) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)))
-			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id)",
+			INSERT INTO characters (character, server, account_id, visible) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)), ?)
+			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id, visible=excluded.visible)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.characterName);
 			BindText(stmt, 2, profile.serverName);
 			BindText(stmt, 3, profile.accountName);
 			BindText(stmt, 4, profile.serverType);
+
+			sqlite3_bind_int(stmt, 5, profile.visible ? 1 : 0);
 
 			sqlite3_step(stmt);
 		});
@@ -1187,7 +1192,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT id, account, server_type
+			SELECT id, account, server_type, visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			WHERE character = LOWER(?) AND server = ?)",
@@ -1200,6 +1205,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 			{
 				profile.accountName = ReadText(stmt, 1);
 				profile.serverType = ReadText(stmt, 2);
+				profile.visible = sqlite3_column_int(stmt, 3) != 0;
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
@@ -1215,7 +1221,8 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 			UPDATE characters
 			SET character = LOWER(?),
 			    server = ?,
-			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?))
+			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)),
+			    visible = ?
 			WHERE character = LOWER(?) AND server = ?)",
 		[server, name, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1224,8 +1231,10 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 			BindText(stmt, 3, profile.accountName);
 			BindText(stmt, 4, profile.serverType);
 
-			BindText(stmt, 4, name);
-			BindText(stmt, 5, server);
+			sqlite3_bind_int(stmt, 5, profile.visible ? 1 : 0);
+
+			BindText(stmt, 6, name);
+			BindText(stmt, 7, server);
 
 			sqlite3_step(stmt);
 		});
@@ -2208,6 +2217,14 @@ static bool MigrateVersion2Schema()
 	)");
 }
 
+// add a visible column to characters to persist showing in the quick launch
+static bool MigrateVersion3Schema()
+{
+	return MigrateTableSchema(R"(
+		ALTER TABLE characters ADD visible INTEGER NOT NULL DEFAULT 1;
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2266,6 +2283,9 @@ bool login::db::InitDatabase(const std::string& path)
 			[[fallthrough]];
 		case 2:
 			migrations.push_back(&MigrateVersion2Schema);
+			[[fallthrough]];
+		case 3:
+			migrations.push_back(&MigrateVersion3Schema);
 			[[fallthrough]];
 		default:
 			break;

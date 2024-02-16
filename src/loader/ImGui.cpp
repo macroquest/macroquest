@@ -104,6 +104,17 @@ bool SmallCheckbox(const char* label, bool* v)
 	return pressed;
 }
 
+void RenderTableCheckmark()
+{
+	const auto square_sz = ImGui::GetFrameHeight();
+	const auto pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
+	ImGui::RenderCheckMark(
+		ImGui::GetCurrentWindow()->DrawList,
+		ImGui::GetCursorScreenPos() + ImVec2(pad, 0.f),
+		ImGui::GetColorU32(ImGuiCol_Text),
+		square_sz - pad * 2.0f);
+}
+
 bool ToggleSlider(const char* label, bool* v)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
