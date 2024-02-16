@@ -43,7 +43,7 @@ struct ProfileRecord
 	int characterLevel = 0;
 
 	std::optional<std::string> eqPath;
-	bool checked = false;
+	unsigned int selected = 0;
 
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;
@@ -323,6 +323,7 @@ std::optional<std::string> GetServerTypeFromPath(std::string_view path);
 void DeleteServerType(std::string_view server_type);
 
 Results<ProfileRecord> GetProfiles(std::string_view group);
+std::vector<ProfileRecord> GetActiveProfiles(std::string_view group);
 void CreateProfile(const ProfileRecord& profile);
 std::optional<unsigned int> ReadProfile(ProfileRecord& profile);
 std::optional<unsigned int> ReadFullProfile(ProfileRecord& profile);

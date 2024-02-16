@@ -252,10 +252,9 @@ void LoadCharacter(const ProfileRecord& profile)
 
 void LoadProfileGroup(std::string_view group)
 {
-	for (auto& profile : login::db::GetProfiles(group).vector())
+	for (auto& profile : login::db::GetActiveProfiles(group))
 	{
-		if (profile.checked)
-			LoadCharacter(profile);
+		LoadCharacter(profile);
 	}
 }
 

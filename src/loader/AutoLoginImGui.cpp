@@ -379,6 +379,20 @@ struct ProfileInfo : ProfileRecord
 		Character = {};
 		return *this;
 	}
+
+	static bool Compare(const ProfileRecord& a, const ProfileRecord& b)
+	{
+		if (a.selected == 0 && b.selected == 0)
+			return a.characterName.compare(b.characterName) < 0;
+
+		if (a.selected == 0)
+			return false;
+
+		if (b.selected == 0)
+			return true;
+
+		return a.selected < b.selected;
+	}
 };
 
 struct ProfileGroupInfo : ProfileGroup
@@ -1331,19 +1345,28 @@ static void ProfileTable(const ProfileGroupInfo& info)
 	static ProfileInfo selected;
 	static std::string remove_message;
 
-	if (ImGui::BeginTable("Main List", 7, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+	constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp
+		| ImGuiTableFlags_Borders
+		| ImGuiTableFlags_NoBordersInBody
+		| ImGuiTableFlags_ScrollY;
+
+	float height = ImGui::GetContentRegionAvail().y -
+		ImGui::CalcTextSize("Add Profile").y -
+		ImGui::GetStyle().FramePadding.y * 2 -
+		ImGui::GetStyle().WindowPadding.y;
+	if (ImGui::BeginTable("Main List", 7, flags, { 0.f, height }))
 	{
 		if (!info.profileName.empty())
 		{
-			ImGui::TableSetupColumn("Account");
-			ImGui::TableSetupColumn("EQ Install");
-			ImGui::TableSetupColumn("Server");
+			ImGui::TableSetupColumn("##Selected");
 			ImGui::TableSetupColumn("Character");
+			ImGui::TableSetupColumn("Server");
+			ImGui::TableSetupColumn("Account");
 			ImGui::TableSetupColumn("Persona");
 			ImGui::TableSetupColumn("Hotkey");
 			ImGui::TableSetupColumn("##play");
+			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
-
 
 			static auto last_group = info.profileName;
 			static auto profiles = login::db::CacheResults([]
@@ -1355,16 +1378,50 @@ static void ProfileTable(const ProfileGroupInfo& info)
 			if (force_profiles_update)
 				last_group = info.profileName;
 
+			static bool do_write = false;
+			static ProfileRecord* held_ptr = nullptr;
 			for (auto& profile : profiles.Read(force_profiles_update))
 			{
 				ImGui::PushID(&profile);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				if (ImGui::Selectable("##row", &profile.checked, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
-					login::db::UpdateProfile(profile);
+				ImGui::SetNextItemWidth(0.f);
+				ImGui::MenuItem("##order", nullptr, profile.selected > 0, false);
+				ImGui::SetItemTooltip("Checkmark indicates that a character will or won't load when group is launched");
+				ImGui::SameLine(0.f, 0.f);
+				ImGui::Selectable("##row", profile.selected > 0, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
-				if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
+				{
+					if (held_ptr != nullptr && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+					{
+						held_ptr->selected = 1;
+						held_ptr = nullptr;
+						do_write = true;
+					}
+					else if (held_ptr != nullptr && held_ptr != &profile && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+					{
+						std::swap(*held_ptr, profile);
+						held_ptr = &profile;
+					}
+					else if (held_ptr == nullptr && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+					{
+						held_ptr = &profile;
+						held_ptr->selected = 0;
+					}
+					else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+					{
+						if (profile.selected > 0)
+							profile.selected = 0;
+						else
+							profile.selected = 1;
+
+						do_write = true;
+					}
+				}
+
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
 					ImGui::OpenPopup("row_popup");
 
 				if (ImGui::BeginPopup("row_popup"))
@@ -1391,17 +1448,14 @@ static void ProfileTable(const ProfileGroupInfo& info)
 					ImGui::EndPopup();
 				}
 
-				ImGui::SameLine();
-				ImGui::TextUnformatted(profile.accountName.c_str());
-
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.serverType.c_str());
+				ImGui::TextUnformatted(profile.characterName.c_str());
 
 				ImGui::TableNextColumn();
 				ImGui::TextUnformatted(profile.serverName.c_str());
 
 				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(profile.characterName.c_str());
+				ImGui::TextUnformatted(profile.accountName.c_str());
 
 				ImGui::TableNextColumn();
 				if (profile.characterClass.empty())
@@ -1419,6 +1473,21 @@ static void ProfileTable(const ProfileGroupInfo& info)
 				}
 
 				ImGui::PopID();
+			}
+
+			if (do_write)
+			{
+				unsigned int order = 0;
+				for (auto& profile : profiles.Updated())
+				{
+					if (profile.selected > 0)
+						profile.selected = ++order;
+
+					login::db::UpdateProfile(profile);
+				}
+
+				do_write = false;
+				last_group.clear();
 			}
 		}
 
@@ -1996,7 +2065,7 @@ void ShowAutoLoginMenu()
 						buf.clear();
 
 						ImGui::TableNextColumn();
-						ImGui::MenuItem(profile.characterName.c_str(), nullptr, profile.checked);
+						ImGui::MenuItem(profile.characterName.c_str(), nullptr, profile.selected > 0);
 					}
 
 					ImGui::EndTable();
