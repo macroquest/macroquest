@@ -1,3 +1,6 @@
+Feb 18, 2024:
+- test: Updated for latest patch
+
 Feb 16, 2024:
 - Changes to AutoLogin:
 - added sorting for characters that persists to context menu
