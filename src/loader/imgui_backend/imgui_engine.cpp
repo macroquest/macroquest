@@ -36,7 +36,7 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-void LauncherImGui::Backend::Init(HWND hWnd)
+void LauncherImGui::Backend::Init(HWND hWnd, const char* iniFilename, const char* logFilename)
 {
 	// Initialize D3D
 	if (!CreateDeviceD3D(hWnd))
@@ -54,6 +54,8 @@ void LauncherImGui::Backend::Init(HWND hWnd)
 	io.ConfigViewportsNoDefaultParent = true;
 	io.ConfigViewportsNoAutoMerge = false;
 	io.ConfigViewportsNoDecoration = true;
+	io.IniFilename = iniFilename;
+	io.LogFilename = logFilename;
 
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
 
