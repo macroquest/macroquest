@@ -980,7 +980,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 				FROM accounts
 				JOIN characters ON account_id = accounts.id
 				JOIN server_types ON server_type = type
-				WHERE server = ? AND character = LOWER(?))",
+				WHERE server = LOWER(?) AND character = LOWER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			BindText(stmt, 1, profile.serverName);
@@ -1131,7 +1131,7 @@ login::db::Results<ProfileRecord> login::db::ListCharactersOnServer(std::string_
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE server = ? AND visible <> 0)",
+			WHERE server = LOWER(?) AND visible <> 0)",
 		[server](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, server);
@@ -1167,7 +1167,7 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			LEFT JOIN personas ON characters.id = character_id
-			WHERE LOWER(server) LIKE '%' || LOWER(?) || '%'
+			WHERE server LIKE '%' || LOWER(?) || '%'
 			   OR character LIKE '%' || LOWER(?) || '%'
 			   OR account LIKE '%' || LOWER(?) || '%'
                OR LOWER(class) LIKE '%' || LOWER(?) || '%')",
@@ -1204,7 +1204,7 @@ void login::db::CreateCharacter(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO characters (character, server, account_id, visible) VALUES(LOWER(?), ?, (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)), ?)
+			INSERT INTO characters (character, server, account_id, visible) VALUES(LOWER(?), LOWER(?), (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)), ?)
 			ON CONFLICT(character, server) DO UPDATE SET account_id=excluded.account_id, visible=excluded.visible)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1226,7 +1226,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 			SELECT id, account, server_type, visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
-			WHERE character = LOWER(?) AND server = ?)",
+			WHERE character = LOWER(?) AND server = LOWER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			BindText(stmt, 1, profile.characterName);
@@ -1251,10 +1251,10 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 		R"(
 			UPDATE characters
 			SET character = LOWER(?),
-			    server = ?,
+			    server = LOWER(?),
 			    account_id = (SELECT id FROM accounts WHERE account = LOWER(?) AND server_type = LOWER(?)),
 			    visible = ?
-			WHERE character = LOWER(?) AND server = ?)",
+			WHERE character = LOWER(?) AND server = LOWER(?))",
 		[server, name, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.characterName);
@@ -1274,7 +1274,7 @@ void login::db::UpdateCharacter(std::string_view server, std::string_view name, 
 void login::db::DeleteCharacter(std::string_view server, std::string_view name)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
-		R"(DELETE FROM characters WHERE character = LOWER(?) AND server = ?)",
+		R"(DELETE FROM characters WHERE character = LOWER(?) AND server = LOWER(?))",
 		[server, name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, name);
@@ -1292,7 +1292,7 @@ void login::db::CreatePersona(const ProfileRecord& profile)
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
 			INSERT INTO personas (character_id, class, level, last_seen)
-			VALUES ((SELECT id FROM characters WHERE server = ? AND character = LOWER(?)), UPPER(?), ?, datetime())
+			VALUES ((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), UPPER(?), ?, datetime())
 			ON CONFLICT (character_id, class) DO UPDATE SET level=excluded.level, last_seen=excluded.last_seen)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1312,7 +1312,7 @@ std::optional<unsigned int> login::db::ReadPersona(ProfileRecord& profile)
 			SELECT p.id, level
 			FROM personas p
 			JOIN characters c ON p.character_id = c.id
-			WHERE server = ? AND character = LOWER(?) AND class = UPPER(?))",
+			WHERE server = LOWER(?) AND character = LOWER(?) AND class = UPPER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			BindText(stmt, 1, profile.serverName);
@@ -1339,7 +1339,7 @@ void login::db::UpdatePersona(std::string_view cls, const ProfileRecord& profile
 			SET class = UPPER(?),
 			    level = ?,
 			    last_seen = datetime()
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?)) AND class = UPPER(?))",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) AND class = UPPER(?))",
 		[cls, &profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.characterClass);
@@ -1357,7 +1357,7 @@ void login::db::DeletePersona(std::string_view server, std::string_view name, st
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
 			DELETE FROM personas
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?)) AND class = UPPER(?))",
+			WHERE character_id IN (SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) AND class = UPPER(?))",
 		[server, name, cls](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, server);
@@ -1635,7 +1635,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
 			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, selected, custom_client_ini)
-			VALUES((SELECT id FROM characters WHERE server = ? AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?)
+			VALUES((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?)
 			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, selected=excluded.selected)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1679,7 +1679,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
-			WHERE server = ? AND character = LOWER(?) AND name = LOWER(?))",
+			WHERE server = LOWER(?) AND character = LOWER(?) AND name = LOWER(?))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			BindText(stmt, 1, profile.serverName);
@@ -1723,7 +1723,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 		R"(
 			SELECT id, eq_path, hotkey, level, account, password, selected, server_type, end_after_select, char_select_delay, custom_client_ini
 			FROM profiles
-			JOIN (SELECT id AS character_id, account FROM characters WHERE server = ? AND character = LOWER(?)) USING (character_id)
+			JOIN (SELECT id AS character_id, account FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) USING (character_id)
 			JOIN (SELECT id AS account_id, account_id, server_type FROM accounts) USING (account_id)
 			LEFT JOIN (SELECT id AS group_id FROM profile_groups WHERE name = LOWER(?)) USING (group_id)
 			LEFT JOIN (SELECT character_id, class, level FROM personas WHERE class = UPPER(?)) USING (character_id))",
@@ -1797,10 +1797,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 			LIMIT 1)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
-			BindText(stmt, 1, profile.serverName);
-			BindText(stmt, 2, profile.characterName);
-			BindText(stmt, 3, profile.profileName);
-			BindText(stmt, 4, profile.characterClass);
+			BindText(stmt, 1, profile.profileName);
 
 			if (sqlite3_step(stmt) == SQLITE_ROW)
 			{
@@ -1853,7 +1850,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 			    end_after_select = ?,
 			    char_select_delay = ?,
 			    custom_client_ini = ?
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?))
+			WHERE character_id IN (SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?))
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1893,7 +1890,7 @@ void login::db::DeleteProfile(std::string_view server, std::string_view name, st
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
 			DELETE FROM profiles
-			WHERE character_id IN (SELECT id FROM characters WHERE server = ? AND character = LOWER(?))
+			WHERE character_id IN (SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?))
 			  AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
 		[server, name, group](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -2261,6 +2258,26 @@ static bool MigrateVersion3Schema()
 	)");
 }
 
+// set servers to lower
+static bool MigrateVersion4Schema()
+{
+	return MigrateTableSchema(R"(
+		DELETE FROM characters AS c1
+		WHERE EXISTS (
+			SELECT 1
+			FROM characters AS c2
+			WHERE LOWER(c1.server) = LOWER(c2.server)
+			  AND c1.character = c2.character
+			  AND c1.id <> c2.id
+			  AND c1.server <> LOWER(c1.server)
+		);
+		
+		UPDATE characters
+		SET server = LOWER(server)
+		WHERE server <> LOWER(server);
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2308,37 +2325,40 @@ bool login::db::InitDatabase(const std::string& path)
 		}))
 		version = CacheSetting<unsigned int>("version", version, GetUIntFromString).Read();
 
-		std::vector<bool(*)()> migrations;
-		switch (version)
-		{
-		case 0:
-			migrations.push_back(&CreateVersion0Schema);
-			[[fallthrough]];
-		case 1:
-			migrations.push_back(&MigrateVersion1Schema);
-			[[fallthrough]];
-		case 2:
-			migrations.push_back(&MigrateVersion2Schema);
-			[[fallthrough]];
-		case 3:
-			migrations.push_back(&MigrateVersion3Schema);
-			[[fallthrough]];
-		default:
-			break;
-		}
+	std::vector<bool(*)()> migrations;
+	switch (version)
+	{
+	case 0:
+		migrations.push_back(&CreateVersion0Schema);
+		[[fallthrough]];
+	case 1:
+		migrations.push_back(&MigrateVersion1Schema);
+		[[fallthrough]];
+	case 2:
+		migrations.push_back(&MigrateVersion2Schema);
+		[[fallthrough]];
+	case 3:
+		migrations.push_back(&MigrateVersion3Schema);
+		[[fallthrough]];
+	case 4:
+		migrations.push_back(&MigrateVersion4Schema);
+		[[fallthrough]];
+	default:
+		break;
+	}
 
-		for (const auto& f : migrations)
-		{
-			// we need to stop processing migrations if any of them fail
-			if (!f()) return false;
+	for (const auto& f : migrations)
+	{
+		// we need to stop processing migrations if any of them fail
+		if (!f()) return false;
 
-			// set version here for 2 reasons:
-			//  1) if the migration fails, this correctly sets the last migration that succeeded
-			//  2) if there are no migrations, nothing is written
-			WriteSetting("version", std::to_string(++version), "The current schema version");
-		}
+		// set version here for 2 reasons:
+		//  1) if the migration fails, this correctly sets the last migration that succeeded
+		//  2) if there are no migrations, nothing is written
+		WriteSetting("version", std::to_string(++version), "The current schema version");
+	}
 
-		return true;
+	return true;
 }
 
 void login::db::ShutdownDatabase()
