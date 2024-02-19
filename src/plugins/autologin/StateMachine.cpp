@@ -371,6 +371,13 @@ public:
 			return false;
 		}
 
+		if (g_pLoginClient != nullptr && !ci_equals(g_pLoginClient->LoginName, m_record->accountName))
+		{
+			AutoLoginDebug("ServerSelect: incorrect account");
+			dispatch(StopLogin());
+			return false;
+		}
+
 		auto server = GetServer(m_record->serverName);
 		if (!server)
 		{
@@ -509,30 +516,31 @@ public:
 class CharacterSelect : public Login
 {
 public:
+	static bool is_invalid_server()
+	{
+		// trivial cases: if the server shortname is empty or there is no record
+		if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
+			return true;
+
+		// valid if server short name is what is in the record
+		if (ci_equals(GetServerShortName(), m_record->serverName))
+			return false;
+
+		// valid if server long name is what is in the record
+		if (auto shortname = login::db::ReadShortServer(m_record->serverName))
+			if (ci_equals(GetServerShortName(), *shortname))
+				return false;
+
+		// no matches, not a valid server
+		return true;
+	}
+
 	void entry() override
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			auto is_invalid_server = []()
-				{
-					// trivial cases: if the server shortname is empty or there is no record
-					if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
-						return true;
 
-					// valid if server short name is what is in the record
-					if (ci_equals(GetServerShortName(), m_record->serverName))
-						return false;
-
-					// valid if server long name is what is in the record
-					if (auto shortname = login::db::ReadShortServer(m_record->serverName))
-						if (ci_equals(GetServerShortName(), *shortname))
-							return false;
-
-					// no matches, not a valid server
-					return true;
-				}();
-
-			if (is_invalid_server)
+			if (is_invalid_server())
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -627,6 +635,19 @@ public:
 				break;
 			}
 		}
+	}
+
+	void react(const SetLoginProfile& e) override
+	{
+		if (pCharacterListWnd != nullptr && (
+			m_record == nullptr ||
+			!ci_equals(e.Record.accountName, m_record->accountName) ||
+			!ci_equals(e.Record.serverName, m_record->serverName)))
+			pCharacterListWnd->Quit();
+
+		Login::react(e);
+
+		transit<Wait>(); // wait to allow server select to come back and the login client to be valid
 	}
 };
 
