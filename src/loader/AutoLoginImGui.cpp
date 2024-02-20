@@ -2361,6 +2361,8 @@ void ShowAutoLoginMenu()
 
 					for (auto& profile : characters)
 					{
+						ImGui::PushID(&profile);
+
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
 
 						ImGui::TableNextColumn();
@@ -2383,6 +2385,8 @@ void ShowAutoLoginMenu()
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
 						ImGui::Selectable(profile.accountName.c_str(), false);
 						ImGui::PopStyleVar();
+
+						ImGui::PopID();
 					}
 
 					ImGui::EndTable();
