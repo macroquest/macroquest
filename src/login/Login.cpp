@@ -1376,7 +1376,7 @@ void login::db::CreateOrUpdateServer(std::string_view short_name, std::string_vi
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO servers (short_name, long_name, last_seen) VALUES (?, ?, datetime())
+			INSERT INTO servers (short_name, long_name, last_seen) VALUES (LOWER(?), LOWER(?), datetime())
 			ON CONFLICT (short_name, long_name) DO UPDATE SET last_seen=excluded.last_seen)",
 		[short_name, long_name](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -1407,7 +1407,7 @@ login::db::Results<std::string> login::db::ReadLongServer(std::string_view short
 	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
-			SELECT long_name FROM servers WHERE short_name = ?
+			SELECT long_name FROM servers WHERE short_name = LOWER(?)
 			ORDER BY last_seen DESC)",
 		[short_name](sqlite3_stmt* stmt, sqlite3*)
 		{ BindText(stmt, 1, short_name); },
@@ -1422,7 +1422,7 @@ std::optional<std::string> login::db::ReadShortServer(std::string_view long_name
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT short_name FROM servers WHERE long_name = ?
+			SELECT short_name FROM servers WHERE long_name = LOWER(?)
 			ORDER BY last_seen DESC LIMIT 1)",
 		[long_name](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
@@ -1439,7 +1439,7 @@ void login::db::DeleteServer(std::string_view short_name, std::string_view long_
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			DELETE FROM servers WHERE short_name = ? AND long_name = ?)",
+			DELETE FROM servers WHERE short_name = LOWER(?) AND long_name = LOWER(?))",
 		[short_name, long_name](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, short_name);
@@ -2278,6 +2278,27 @@ static bool MigrateVersion4Schema()
 	)");
 }
 
+// set server mapping to lower
+static bool MigrateVersion5Schema()
+{
+	return MigrateTableSchema(R"(
+		DELETE FROM servers AS s1
+		WHERE EXISTS (
+			SELECT 1
+			FROM servers AS s2
+			WHERE LOWER(s1.short_name) = LOWER(s2.short_name)
+			  AND LOWER(s1.long_name) = LOWER(s2.long_name)
+			  AND s1.id <> s2.id
+			  AND s1.short_name <> LOWER(s1.short_name)
+			  AND s1.long_name <> LOWER(s1.long_name)
+		);
+
+		UPDATE servers
+		SET short_name = LOWER(short_name), long_name = LOWER(long_name)
+		WHERE short_name <> LOWER(short_name) OR long_name <> LOWER(long_name)
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2342,6 +2363,9 @@ bool login::db::InitDatabase(const std::string& path)
 		[[fallthrough]];
 	case 4:
 		migrations.push_back(&MigrateVersion4Schema);
+		[[fallthrough]];
+	case 5:
+		migrations.push_back(&MigrateVersion5Schema);
 		[[fallthrough]];
 	default:
 		break;
