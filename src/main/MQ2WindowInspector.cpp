@@ -3779,8 +3779,8 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 	{
 		DisplayDynamicTemplateExpand("Background", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
 		DisplayDynamicTemplateExpand("Overlay", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
-		DisplayTextObject("Text Object", pCursorAttachment->pTextObjectInterface);
-		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObjectInterface);
+		DisplayTextObject("Text Object", pCursorAttachment->pTextObject);
+		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObject);
 		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
 	}
 
