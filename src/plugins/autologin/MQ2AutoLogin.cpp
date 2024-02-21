@@ -685,10 +685,14 @@ PLUGIN_API void SetGameState(int GameState)
 				to_lower(profile.characterName);
 				login::db::CreateCharacter(profile);
 
-				profile.characterClass = ClassInfo[char_info.Class].UCShortName;
-				to_upper(profile.characterClass);
-				profile.characterLevel = static_cast<int>(char_info.Level);
-				login::db::CreatePersona(profile);
+				// ClassInfo[0] is empty, don't persist that, and ClassInfo[18] is mercenary
+				if (char_info.Class > 0 && char_info.Class < 17)
+				{
+					profile.characterClass = ClassInfo[char_info.Class].UCShortName;
+					to_upper(profile.characterClass);
+					profile.characterLevel = static_cast<int>(char_info.Level);
+					login::db::CreatePersona(profile);
+				}
 			}
 		}
 
