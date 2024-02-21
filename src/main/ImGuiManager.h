@@ -23,7 +23,7 @@ void ImGuiManager_Shutdown();
 void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
-void ImGuiManager_DrawCursorAttachment(bool show);
+void ImGuiManager_DrawCursorAttachment();
 
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
