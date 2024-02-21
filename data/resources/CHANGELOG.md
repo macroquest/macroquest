@@ -1,3 +1,8 @@
+Feb 21, 2024:
+- live: Updated for latest patch
+- Add EQ cursor emulation for ImGui windows. This can be toggled in overlay settings (on by default).
+  When this feature is enabled, the EQ cursor and its attachments will appear over imgui windows.
+
 Feb 18, 2024:
 - test: Updated for latest patch
 
