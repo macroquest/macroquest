@@ -126,11 +126,6 @@ public:
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
 
-#define IM_VEC2_CLASS_EXTRA \
-    template <typename T, typename U, typename = std::enable_if_t<std::conjunction_v<      \
-        std::is_arithmetic_v<T>, std::is_arithmetic_v<U>>>> \
-    constexpr ImVec2(T x_, U y_) : x(static_cast<float>(x_)), y(static_cast<float>(y_)) {}
-
 #define IM_VEC4_CLASS_EXTRA \
     static ImVec4 FromImU32(ImU32 u32); \
     ImU32 ToImU32() const;
