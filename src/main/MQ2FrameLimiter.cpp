@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 
 #include "ImGuiBackend.h"
+#include "ImGuiManager.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2DeveloperTools.h"
 
@@ -215,6 +216,32 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, DrawWindows_Trampoline, ())
 	void DrawWindows_Detour()
 	{
+		static bool lastHide = false;
+
+		if (pCursorAttachment)
+		{
+			if (gbHideCursorAttachment)
+			{
+				CXPoint pos = pCursorAttachment->Location.TopLeft();
+
+				if (pos.x < 90000)
+				{
+					pCursorAttachment->Move(CXPoint(pos.x + 90000, pos.y + 90000));
+				}
+			}
+			else if (lastHide && !gbHideCursorAttachment)
+			{
+				if (pCursorAttachment->Location.left > 80000)
+				{
+					CXPoint pos = pCursorAttachment->Location.TopLeft();
+
+					pCursorAttachment->Move(CXPoint(pos.x - 90000, pos.y - 90000));
+				}
+			}
+
+			lastHide = gbHideCursorAttachment;
+		}
+
 		if (!IsLimiterEnabled())
 		{
 			// this is a pass through if we have the frame limiter off
