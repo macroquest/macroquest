@@ -2266,14 +2266,12 @@ void ShowAutoLoginMenu()
 
 					ImGui::Separator();
 
-					if (ImGui::BeginTable("##Profiles", 5, ImGuiTableFlags_None))
+					if (ImGui::BeginTable("##Profiles", 6, ImGuiTableFlags_None))
 					{
-						fmt::memory_buffer buf;
-						const auto buf_ins = std::back_inserter(buf);
-
 						ImGui::TableSetupColumn("##Loadable", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
-						ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
 						ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("0000").x);
+						ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_WidthFixed);
 						ImGui::TableSetupColumn("Hotkey", ImGuiTableColumnFlags_WidthStretch);
 						ImGui::TableSetupColumn("##Loaded", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 
@@ -2284,32 +2282,35 @@ void ShowAutoLoginMenu()
 						{
 							ImGui::TableNextRow(ImGuiTableRowFlags_None);
 							ImGui::TableNextColumn();
-							if (profile.selected != 0) LauncherImGui::RenderTableCheckmark();
-
-							fmt::format_to(buf_ins, "[{} {}]", profile.characterLevel, profile.characterClass);
-							buf.push_back(0);
-
-							ImGui::TableNextColumn();
-							if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
+							if (profile.selected != 0)
 							{
-								LoadCharacter(profile);
+								ImGui::PushStyleColor(ImGuiCol_Text, { .75f, .75f, 0.f, 1.f });
+								ImGui::TextUnformatted(ICON_MD_STAR);
+								ImGui::PopStyleColor();
 							}
 
-							buf.clear();
+							ImGui::TableNextColumn();
+							if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
+								LoadCharacter(profile);
 
 							ImGui::TableNextColumn();
-							ImGui::TextUnformatted(profile.characterName.c_str());
+							std::string level = fmt::format("{}", profile.characterLevel);
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(level.c_str()).x);
+							ImGui::TextUnformatted(level.c_str());
+
+							ImGui::TableNextColumn();
+							ImGui::TextUnformatted(profile.characterClass.c_str());
 
 							ImGui::TableNextColumn();
 							ImGui::TextUnformatted(profile.hotkey.c_str());
 
 							ImGui::TableNextColumn();
-							if (loaded.find(LoginInstance::Key(profile)) == loaded.end())
-								ImGui::PushStyleColor(ImGuiCol_Text, { 0.75f, 0.75f, 0.75f, 1.f });
-							else
+							if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
+							{
 								ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-							ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-							ImGui::PopStyleColor();
+								ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+								ImGui::PopStyleColor();
+							}
 						}
 
 						ImGui::EndTable();
@@ -2382,10 +2383,10 @@ void ShowAutoLoginMenu()
 					fmt::memory_buffer buf;
 					const auto buf_ins = std::back_inserter(buf);
 
-					ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Class));
-					ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Level));
 					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Character));
-					ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthAlwaysAutoResize, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Account));
+					ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("0000").x, static_cast<ImGuiID>(CharacterInfo::SortID::Level));
+					ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Class));
+					ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Account));
 					ImGui::TableSetupColumn("Loaded", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 
 					for (auto& profile : characters)
@@ -2395,22 +2396,16 @@ void ShowAutoLoginMenu()
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
 
 						ImGui::TableNextColumn();
-						fmt::format_to(buf_ins, "[{} ", profile.characterLevel);
-						buf.push_back(0);
-						if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
-						{
+						if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
 							LoadCharacter(profile);
-						}
-						buf.clear();
 
 						ImGui::TableNextColumn();
-						fmt::format_to(buf_ins, "{}]", profile.characterClass);
-						buf.push_back(0);
-						ImGui::Selectable(buf.data(), false);
-						buf.clear();
+						std::string level = fmt::format("{}", profile.characterLevel);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(level.c_str()).x);
+						ImGui::TextUnformatted(level.c_str());
 
 						ImGui::TableNextColumn();
-						ImGui::Selectable(profile.characterName.c_str(), false);
+						ImGui::Selectable(profile.characterClass.c_str(), false);
 
 						ImGui::TableNextColumn();
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
@@ -2418,12 +2413,12 @@ void ShowAutoLoginMenu()
 						ImGui::PopStyleVar();
 
 						ImGui::TableNextColumn();
-						if (loaded.find(LoginInstance::Key(profile)) == loaded.end())
-							ImGui::PushStyleColor(ImGuiCol_Text, { 0.75f, 0.75f, 0.75f, 1.f });
-						else
+						if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
+						{
 							ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-						ImGui::PopStyleColor();
+							ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+							ImGui::PopStyleColor();
+						}	
 
 						ImGui::PopID();
 					}
