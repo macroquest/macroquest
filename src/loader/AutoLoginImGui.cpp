@@ -2258,41 +2258,47 @@ void ShowAutoLoginMenu()
 				{
 					ImGui::Text("No available profiles");
 				}
-				else if (ImGui::BeginTable("##Profiles", 2, ImGuiTableFlags_None))
+				else
 				{
-					fmt::memory_buffer buf;
-					const auto buf_ins = std::back_inserter(buf);
-
-					ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
-					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
-
-					ImGui::TableNextRow(ImGuiTableRowFlags_None);
-					ImGui::TableNextColumn();
-					if (ImGui::Selectable("Load All", false, ImGuiSelectableFlags_SpanAllColumns))
+					if (ImGui::Selectable("Launch All", false, ImGuiSelectableFlags_SpanAllColumns))
 					{
 						LoadProfileGroup(group);
 					}
 
-					for (auto& profile : profiles.Updated())
+					ImGui::Separator();
+
+					if (ImGui::BeginTable("##Profiles", 2, ImGuiTableFlags_None))
 					{
+						fmt::memory_buffer buf;
+						const auto buf_ins = std::back_inserter(buf);
+
+						ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
+						ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
+
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
-
-						fmt::format_to(buf_ins, "[{} {}]", profile.characterLevel, profile.characterClass);
-						buf.push_back(0);
-
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
+
+						for (auto& profile : profiles.Updated())
 						{
-							LoadCharacter(profile);
+							ImGui::TableNextRow(ImGuiTableRowFlags_None);
+
+							fmt::format_to(buf_ins, "[{} {}]", profile.characterLevel, profile.characterClass);
+							buf.push_back(0);
+
+							ImGui::TableNextColumn();
+							if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
+							{
+								LoadCharacter(profile);
+							}
+
+							buf.clear();
+
+							ImGui::TableNextColumn();
+							ImGui::MenuItem(profile.characterName.c_str(), nullptr, profile.selected > 0);
 						}
 
-						buf.clear();
-
-						ImGui::TableNextColumn();
-						ImGui::MenuItem(profile.characterName.c_str(), nullptr, profile.selected > 0);
+						ImGui::EndTable();
 					}
-
-					ImGui::EndTable();
 				}
 
 				ImGui::EndMenu();
