@@ -2266,6 +2266,13 @@ void ShowAutoLoginMenu()
 					ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
 					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
 
+					ImGui::TableNextRow(ImGuiTableRowFlags_None);
+					ImGui::TableNextColumn();
+					if (ImGui::Selectable("Load All", false, ImGuiSelectableFlags_SpanAllColumns))
+					{
+						LoadProfileGroup(group);
+					}
+
 					for (auto& profile : profiles.Updated())
 					{
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
@@ -2290,9 +2297,6 @@ void ShowAutoLoginMenu()
 
 				ImGui::EndMenu();
 			}
-
-			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-				LoadProfileGroup(group);
 		}
 		ImGui::EndMenu();
 	}
