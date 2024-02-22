@@ -1642,7 +1642,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 							selected = profile;
 							selected.Character.Character = profile.characterName;
 							selected.Character.Server = profile.serverName;
-							remove_message = fmt::format("Are you sure you want to remove profile '{}'?", info.Preview());
+							remove_message = fmt::format("Are you sure you want to remove profile '{}'?", profile.characterName);
 							LauncherImGui::OpenModal("Remove Profile");
 						}
 
