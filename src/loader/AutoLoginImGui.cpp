@@ -2069,7 +2069,6 @@ void ShowSettingsWindow()
 {
 	ImGui::BeginChild("Main Child", ImVec2(0, 0), ImGuiChildFlags_Border, ImGuiWindowFlags_None);
 
-	static auto is_paused = login::db::CacheSetting<bool>("is_paused", false, GetBoolFromString);
 	static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
 	static auto kick_active = login::db::CacheSetting<bool>("kick_active", true, GetBoolFromString);
 	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", false, GetBoolFromString);
@@ -2087,11 +2086,6 @@ void ShowSettingsWindow()
 	static ServerTypeInfo server_type_info;
 	static ServerNameInfo server_name_info;
 
-	if (ImGui::Checkbox("Pause on Start", &is_paused.Read()))
-		login::db::WriteSetting("is_paused", is_paused.Updated() ? "true" : "false", "Pause autologin when client starts");
-	ImGui::SameLine(); imgui::HelpMarker("Pause autologin when client starts");
-
-	ImGui::Spacing();
 	if (ImGui::Checkbox("Debug Output", &debug.Read()))
 		login::db::WriteSetting("debug", debug.Updated() ? "true" : "false", "Show plugin debug statements");
 	ImGui::SameLine(); imgui::HelpMarker("Show plugin debug statements");

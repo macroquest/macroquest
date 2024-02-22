@@ -602,9 +602,6 @@ void ReadSettings()
 
 	if (const auto connect_retries = login::db::ReadSetting("connect_retries"))
 		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
-
-	if (const auto is_paused = login::db::ReadSetting("is_paused"))
-		if (GetBoolFromString(*is_paused, false)) Login::dispatch(PauseLogin());
 }
 
 void LoginReset()
