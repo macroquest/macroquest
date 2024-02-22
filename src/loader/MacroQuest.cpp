@@ -711,7 +711,7 @@ void ShowMacroQuestInfo()
 
 	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
 	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
-	ImGui::Bullet(); link("MacroQuest on Github", "https://github.com/macroquest/macroquest");
+	ImGui::Bullet(); link("MacroQuest on GitHub", "https://github.com/macroquest/macroquest");
 }
 
 void ShowMacroQuestMenu()
