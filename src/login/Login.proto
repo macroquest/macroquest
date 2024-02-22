@@ -43,8 +43,15 @@ message StartInstanceMissive {
 		ProfileMethod profile = 1;
 		DirectMethod direct = 2;
 	}
+}
 
-	optional uint32 pid = 10;
+message NotifyLoadedMissive {
+	oneof method {
+		ProfileMethod profile = 1;
+		DirectMethod direct = 2;
+	}
+
+	uint32 pid = 10;
 }
 
 message StopInstanceMissive {

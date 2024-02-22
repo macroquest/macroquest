@@ -221,12 +221,12 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 // This can be revisited later when we think a little bit about autologin
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
 {
-	proto::login::StartInstanceMissive start;
-	start.set_pid(GetCurrentProcessId());
+	proto::login::NotifyLoadedMissive loaded;
+	loaded.set_pid(GetCurrentProcessId());
 
 	if (strlen(Profile) > 0)
 	{
-		proto::login::ProfileMethod& profile = *start.mutable_profile();
+		proto::login::ProfileMethod& profile = *loaded.mutable_profile();
 		profile.set_profile(Profile);
 		profile.set_account(Account);
 
@@ -236,7 +236,7 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 	}
 	else
 	{
-		proto::login::DirectMethod& direct = *start.mutable_direct();
+		proto::login::DirectMethod& direct = *loaded.mutable_direct();
 		direct.set_login(Account);
 
 		proto::login::LoginTarget& target = *direct.mutable_target();
@@ -244,7 +244,7 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 		target.set_character(Character);
 	}
 
-	Post(proto::login::ProfileLoaded, start);
+	Post(proto::login::ProfileLoaded, loaded);
 }
 
 void NotifyCharacterUnload()
