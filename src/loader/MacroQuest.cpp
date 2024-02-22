@@ -86,6 +86,8 @@ bool gCrashPadInitialized = false;
 std::map<std::tuple<uint16_t, uint16_t>, HWND> hotkeyMap;
 uint32_t gFocusProcessID = 0;
 
+static uint32_t s_taskbarRestart = 0;
+
 //----------------------------------------------------------------------------
 
 #pragma region Console & Logging
@@ -660,6 +662,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+		if (MSG == s_taskbarRestart)
+		{
+			Shell_NotifyIcon(NIM_ADD, &NID);
+		}
 	}
 
 	return DefWindowProc(hWnd, MSG, wParam, lParam);
@@ -855,6 +861,8 @@ void InitializeWindows()
 	NID.uID = WM_USER_SYSTRAY;
 	NID.uFlags = NIF_TIP | NIF_ICON | NIF_MESSAGE;
 	Shell_NotifyIcon(NIM_ADD, &NID);
+
+	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
 
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
 	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
