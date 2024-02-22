@@ -313,7 +313,8 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 	Post(proto::login::StartInstance, start);
 }
 
-void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
+template <typename EventType>
+void PerformSwitch(const EventType& event)
 {
 	NotifyCharacterUnload();
 
@@ -328,7 +329,7 @@ void PerformSwitch(const std::string& ServerName, const std::string& CharacterNa
 		EzCommand("/camp fast");
 	}
 
-	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
+	Login::dispatch(event);
 
 	NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
 }
@@ -368,7 +369,7 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		PerformSwitch(szServer, szCharacter);
+		PerformSwitch(SetLoginInformation(szServer, szCharacter));
 		WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
 	}
 }
@@ -390,8 +391,27 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		PerformSwitch(GetServerShortName(), szArg1);
-		WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
+		// Check if a profile exists matching this character name on the same server and profile.
+		const char* serverName = GetServerShortName();
+		if (std::shared_ptr<ProfileRecord> record = Login::get_last_record())
+		{
+			auto profiles = login::db::GetProfiles(record->profileName);
+
+			for (auto& profile : profiles)
+			{
+				if (ci_equals(profile.characterName, szArg1)
+					&& ci_equals(profile.serverName, serverName)
+					&& ci_equals(profile.accountName, record->accountName))
+				{
+					PerformSwitch(SetLoginProfile(profile));
+					WriteChatf("Camping to character select and switching to character \ag%s\ax with profile \ay%s\ax.", szArg1, record->profileName.c_str());
+					return;
+				}
+			}
+		}
+
+		PerformSwitch(SetLoginInformation(serverName, szArg1));
+		WriteChatf("Camping to character select and switching to character \ag%s\ax.", szArg1);
 	}
 }
 
@@ -431,7 +451,7 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
-		PerformSwitch(GetServerShortName(), pLocalPlayer->DisplayedName);
+		PerformSwitch(SetLoginInformation(GetServerShortName(), pLocalPlayer->DisplayedName));
 		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
 		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
 			pLocalPlayer->DisplayedName, GetServerShortName(), szLine);
