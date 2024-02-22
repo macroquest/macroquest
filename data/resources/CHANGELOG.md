@@ -1,3 +1,13 @@
+Feb 22, 2024:
+- autologin: Fix crash that could occur when the MQ launcher starts up
+- autologin: Fix remove profile showing group
+- autologin: Fix tray icon disappearing if explorer crashes or restarts
+- autologin: Fix an issue that might cause an extra instance of EQ to start unintentionally.
+- autologin: Add "Launch All" item to profile menu
+- autologin: Add first pass at online indicator to context menus. More to come in the future.
+- autologin: Changed check marks in autologin ui to check boxes. Single click on the check box will toggle, and tooltip will describe its behavior.
+- autologin: Add text to indicate that profile rows can be reordered via drag & drop.
+
 Feb 21, 2024:
 - live: Updated for latest patch
 - Add EQ cursor emulation for ImGui windows. This can be toggled in overlay settings (on by default).
