@@ -294,8 +294,9 @@ void ProcessPendingLogins()
 		auto profile = s_pendingLogins.front();
 		StartInstance(profile);
 
+		static auto delay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
 		s_pendingLogins.pop();
-		s_lastLoginTime = now + 1s;
+		s_lastLoginTime = now + std::chrono::seconds(delay.Read());
 	}
 }
 

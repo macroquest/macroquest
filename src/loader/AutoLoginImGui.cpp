@@ -2075,6 +2075,7 @@ void ShowSettingsWindow()
 	static auto kick_active = login::db::CacheSetting<bool>("kick_active", true, GetBoolFromString);
 	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", false, GetBoolFromString);
 	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
+	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
 	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", 3, GetIntFromString);
 	static auto connect_retries = login::db::CacheSetting<int>("connect_retries", 0, GetIntFromString);
 
@@ -2106,6 +2107,12 @@ void ShowSettingsWindow()
 	if (ImGui::Checkbox("Load Legacy Config Next Load", &load_ini.Read()))
 		login::db::WriteSetting("load_ini", load_ini.Updated() ? "true" : "false", "Import data from autologin ini file one time at load");
 	ImGui::SameLine(); imgui::HelpMarker("Import data from autologin ini file one time at load");
+
+	ImGui::Spacing();
+	ImGui::SetNextItemWidth(50.f);
+	if (ImGui::InputScalar("Client Launch Delay", ImGuiDataType_U32, &client_launch_delay.Read()))
+		login::db::WriteSetting("client_launch_delay", std::to_string(client_launch_delay.Updated()), "Seconds in between client launches");
+	ImGui::SameLine(); imgui::HelpMarker("Seconds in between client launches");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
