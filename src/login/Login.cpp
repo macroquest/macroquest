@@ -17,6 +17,7 @@
 #include "Login.h"
 
 #include "common/Common.h"
+#include "mq/base/WString.h"
 #include "mq/utils/Markov.h"
 
 #include <wincrypt.h>
@@ -26,7 +27,6 @@
 #include <wil/registry.h>
 #include <filesystem>
 #include <regex>
-#include <codecvt>
 #include <random>
 
 #include <fmt/format.h>
@@ -574,20 +574,19 @@ std::optional<std::string> login::db::GetMasterPass()
 static std::wstring GetRegistryKey()
 {
 	auto company = login::db::ReadSetting("reg_company");
-	if (!company)
+	if (company.value_or("").empty())
 	{
 		company = CreateCompany();
 		login::db::WriteSetting("reg_company", *company, "Company for caching the password in the registry");
 	}
 
-	company = fmt::format("Software\\{}", *company);
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-	return cvt.from_bytes(company->data(), company->data() + company->length());
+	return utf8_to_wstring(fmt::format("Software\\{}", *company));
 }
 
 void login::db::CacheMasterPass(std::string_view pass)
 {
 	wil::unique_hkey pass_hkey;
+
 	if (create_unique_key_nothrow(HKEY_CURRENT_USER, GetRegistryKey().c_str(), pass_hkey, wil::reg::key_access::readwrite) == S_OK && pass_hkey)
 	{
 		// if we can't create or open the key, then we can't really do anything, but we can always just ask for the pass again
@@ -602,8 +601,7 @@ void login::db::CacheMasterPass(std::string_view pass)
 		WriteSetting("master_pass_expiry", std::to_string(expiry_timestamp), "Epoch time (in hours) when the master pass expires");
 
 		// the string must be converted to a wide string for the registry
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-		const std::wstring wide_pass(cvt.from_bytes(pass.data(), pass.data() + pass.length()));
+		const std::wstring wide_pass = utf8_to_wstring(pass);
 
 		wil::reg::set_value_string_nothrow(pass_hkey.get(), nullptr, wide_pass.c_str());
 	}
@@ -689,8 +687,7 @@ std::optional<std::string> login::db::ReadStoredMasterPass()
 
 	if (pass)
 	{
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> cvt;
-		return std::string(cvt.to_bytes(pass->c_str()));
+		return wstring_to_utf8(*pass);
 	}
 
 	return {};
