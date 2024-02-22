@@ -115,6 +115,18 @@ void RenderTableCheckmark()
 		square_sz - pad * 2.0f);
 }
 
+void RenderTableCircle(ImU32 color, bool filled)
+{
+	auto radius = ImGui::GetFrameHeight() * 0.5f;
+	const auto center = ImGui::GetCursorScreenPos() + ImVec2{ radius, radius * 0.75f };
+
+	radius *= 0.85f;
+	if (filled)
+		ImGui::GetCurrentWindow()->DrawList->AddCircleFilled(center, radius, color);
+	else
+		ImGui::GetCurrentWindow()->DrawList->AddCircle(center, radius, color);
+}
+
 bool ToggleSlider(const char* label, bool* v)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();

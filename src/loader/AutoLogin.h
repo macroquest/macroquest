@@ -42,6 +42,7 @@ void LaunchCleanSession();
 void ProcessPendingLogins();
 void Import();
 std::string GetEQRoot();
+const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances();
 
 // ImGui
 bool ShowPasswordWindow();

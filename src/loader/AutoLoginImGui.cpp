@@ -2240,6 +2240,7 @@ void ShowAutoLoginMenu()
 	if (ImGui::BeginMenu("Profiles"))
 	{
 		static auto profile_groups = CacheResults(login::db::ListProfileGroups);
+		const auto& loaded = GetLoadedInstances();
 		for (const auto& group : profile_groups.Read())
 		{
 			if (ImGui::BeginMenu(group.c_str()))
@@ -2267,13 +2268,16 @@ void ShowAutoLoginMenu()
 
 					ImGui::Separator();
 
-					if (ImGui::BeginTable("##Profiles", 2, ImGuiTableFlags_None))
+					if (ImGui::BeginTable("##Profiles", 5, ImGuiTableFlags_None))
 					{
 						fmt::memory_buffer buf;
 						const auto buf_ins = std::back_inserter(buf);
 
+						ImGui::TableSetupColumn("##Loadable", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 						ImGui::TableSetupColumn("Persona", ImGuiTableColumnFlags_WidthAlwaysAutoResize);
 						ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableSetupColumn("Hotkey", ImGuiTableColumnFlags_WidthStretch);
+						ImGui::TableSetupColumn("##Loaded", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
 						ImGui::TableNextColumn();
@@ -2281,6 +2285,8 @@ void ShowAutoLoginMenu()
 						for (auto& profile : profiles.Updated())
 						{
 							ImGui::TableNextRow(ImGuiTableRowFlags_None);
+							ImGui::TableNextColumn();
+							if (profile.selected != 0) LauncherImGui::RenderTableCheckmark();
 
 							fmt::format_to(buf_ins, "[{} {}]", profile.characterLevel, profile.characterClass);
 							buf.push_back(0);
@@ -2294,7 +2300,18 @@ void ShowAutoLoginMenu()
 							buf.clear();
 
 							ImGui::TableNextColumn();
-							ImGui::MenuItem(profile.characterName.c_str(), nullptr, profile.selected > 0);
+							ImGui::TextUnformatted(profile.characterName.c_str());
+
+							ImGui::TableNextColumn();
+							ImGui::TextUnformatted(profile.hotkey.empty() ? "<None>" : profile.hotkey.c_str());
+
+							ImGui::TableNextColumn();
+							if (loaded.find(LoginInstance::Key(profile)) == loaded.end())
+								ImGui::PushStyleColor(ImGuiCol_Text, { 0.75f, 0.75f, 0.75f, 1.f });
+							else
+								ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+							ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+							ImGui::PopStyleColor();
 						}
 
 						ImGui::EndTable();
@@ -2310,6 +2327,7 @@ void ShowAutoLoginMenu()
 	if (ImGui::BeginMenu("Characters"))
 	{
 		static auto servers = CacheResults(login::db::ListServers);
+		const auto& loaded = GetLoadedInstances();
 		for (const auto& server : servers.Read())
 		{
 			if (server.empty())
@@ -2359,7 +2377,7 @@ void ShowAutoLoginMenu()
 				{
 					ImGui::Text("No available characters");
 				}
-				else if (ImGui::BeginTable("##Characters", 4, ImGuiTableFlags_None))
+				else if (ImGui::BeginTable("##Characters", 5, ImGuiTableFlags_None))
 				{
 					fmt::memory_buffer buf;
 					const auto buf_ins = std::back_inserter(buf);
@@ -2368,6 +2386,7 @@ void ShowAutoLoginMenu()
 					ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Level));
 					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Character));
 					ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_WidthAlwaysAutoResize, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Account));
+					ImGui::TableSetupColumn("Loaded", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 
 					for (auto& profile : characters)
 					{
@@ -2395,6 +2414,14 @@ void ShowAutoLoginMenu()
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
 						ImGui::Selectable(profile.accountName.c_str(), false);
 						ImGui::PopStyleVar();
+
+						ImGui::TableNextColumn();
+						if (loaded.find(LoginInstance::Key(profile)) == loaded.end())
+							ImGui::PushStyleColor(ImGuiCol_Text, { 0.75f, 0.75f, 0.75f, 1.f });
+						else
+							ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+						ImGui::PopStyleColor();
 
 						ImGui::PopID();
 					}

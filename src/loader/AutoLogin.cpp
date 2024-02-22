@@ -319,6 +319,11 @@ std::string GetEQRoot()
 	return "";
 }
 
+const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances()
+{
+	return s_loadedInstances;
+}
+
 static ProfileRecord ParseProfileFromMessage(const proto::login::DirectMethod& direct)
 {
 	ProfileRecord profile;
