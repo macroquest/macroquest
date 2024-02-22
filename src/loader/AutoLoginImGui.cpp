@@ -323,7 +323,7 @@ struct CharacterInfo
 
 	static void SetupColumns()
 	{
-		ImGui::TableSetupColumn("##Visible", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+		ImGui::TableSetupColumn(ICON_MD_VISIBILITY, ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 		ImGui::TableSetupColumn("Character", ImGuiTableColumnFlags_DefaultSort, 0.f, static_cast<ImGuiID>(SortID::Character));
 		ImGui::TableSetupColumn("Server", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Server));
 		ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Class));
@@ -1202,18 +1202,16 @@ static void CharacterTable(const std::string_view search)
 		| ImGuiTableFlags_SortMulti;
 
 	static bool show_hidden = true;
-	float height = ImGui::GetContentRegionAvail().y -
-		ImGui::CalcTextSize("Show Hidden Characters").y -
-		ImGui::GetStyle().FramePadding.y * 2 -
-		ImGui::GetStyle().WindowPadding.y;
+	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+
 	ImGui::PushOverrideID(CharacterInfo::GetID());
 	if (ImGui::BeginTable("Main List", 8, flags, { 0.f, height }))
 	{
 		CharacterInfo::SetupColumns();
 		ImGui::TableSetupScrollFreeze(0, 1);
 
-			if (ImGui::TableGetColumnFlags(0) & ImGuiTableColumnFlags_IsHovered)
-				ImGui::SetTooltip("Checkmark indicates that a character will or won't be visible in quick launch\nDouble click to toggle this state");
+		if (ImGui::TableGetColumnFlags(0) & ImGuiTableColumnFlags_IsHovered)
+			ImGui::SetTooltip("Show character in quick launch menu.");
 
 		ImGui::TableHeadersRow();
 
@@ -1264,16 +1262,14 @@ static void CharacterTable(const std::string_view search)
 
 				// this allows right-clicking
 				bool is_selected = false;
-				if (match.visible)
-					LauncherImGui::RenderTableCheckmark();
-				ImGui::SameLine(0.f, 0.f);
-				ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+				if (LauncherImGui::SmallCheckbox("##Visible", &match.visible))
 				{
-					match.visible = !match.visible;
 					login::db::UpdateCharacter(match.serverName, match.characterName, match);
 				}
+
+				ImGui::SameLine(0.f, 0.f);
+				ImGui::Selectable("##row", &is_selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
 				if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 					ImGui::OpenPopup("row_popup");
@@ -1542,15 +1538,13 @@ static void ProfileTable(const ProfileGroupInfo& info)
 		| ImGuiTableFlags_NoBordersInBody
 		| ImGuiTableFlags_ScrollY;
 
-	float height = ImGui::GetContentRegionAvail().y -
-		ImGui::CalcTextSize("Add Profile").y -
-		ImGui::GetStyle().FramePadding.y * 2 -
-		ImGui::GetStyle().WindowPadding.y;
+	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+
 	if (ImGui::BeginTable("Main List", 7, flags, { 0.f, height }))
 	{
 		if (!info.profileName.empty())
 		{
-			ImGui::TableSetupColumn("##Selected", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+			ImGui::TableSetupColumn(ICON_MD_POWER_SETTINGS_NEW "##Selected", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 			ImGui::TableSetupColumn("Character");
 			ImGui::TableSetupColumn("Server");
 			ImGui::TableSetupColumn("Account");
@@ -1558,11 +1552,10 @@ static void ProfileTable(const ProfileGroupInfo& info)
 			ImGui::TableSetupColumn("Hotkey");
 			ImGui::TableSetupColumn("##play");
 			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
 
 			if (ImGui::TableGetColumnFlags(0) & ImGuiTableColumnFlags_IsHovered)
-				ImGui::SetTooltip("Checkmark indicates that a character will or won't load when group is launched\nDouble click to toggle this state");
-
-			ImGui::TableHeadersRow();
+				ImGui::SetTooltip("Indicates whether that character will load when the group is launched.");
 
 			static auto last_group = info.profileName;
 			static auto profiles = login::db::CacheResults([]
@@ -1588,10 +1581,16 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (profile.selected > 0)
-						LauncherImGui::RenderTableCheckmark();
+
+					bool checked = profile.selected > 0;
+					if (LauncherImGui::SmallCheckbox("##Selected", &checked))
+					{
+						profile.selected = checked ? 1 : 0;
+						do_write = true;
+					}
+
 					ImGui::SameLine(0.f, 0.f);
-					ImGui::Selectable("##row", profile.selected > 0, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+					ImGui::Selectable("##row", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
 					if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
 					{
@@ -1702,6 +1701,9 @@ static void ProfileTable(const ProfileGroupInfo& info)
 		selected.profileName = info.profileName;
 		LauncherImGui::OpenModal("Add Profile");
 	}
+
+	ImGui::SameLine();
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
 
 	selected.Edit("Add Profile", []
 		{
@@ -2231,12 +2233,14 @@ void ShowAutoLoginMenu()
 	if (ImGui::MenuItem("Launch Without Login"))
 		LaunchCleanSession();
 
+	ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
 	if (ImGui::BeginMenu("Profiles"))
 	{
 		static auto profile_groups = CacheResults(login::db::ListProfileGroups);
 		const auto& loaded = GetLoadedInstances();
 		for (const auto& group : profile_groups.Read())
 		{
+			ImGui::SetNextWindowSizeConstraints(ImVec2(300, 0), ImVec2(FLT_MAX, FLT_MAX));
 			if (ImGui::BeginMenu(group.c_str()))
 			{
 				static auto last_group = group;
@@ -2297,7 +2301,7 @@ void ShowAutoLoginMenu()
 							ImGui::TextUnformatted(profile.characterName.c_str());
 
 							ImGui::TableNextColumn();
-							ImGui::TextUnformatted(profile.hotkey.empty() ? "<None>" : profile.hotkey.c_str());
+							ImGui::TextUnformatted(profile.hotkey.c_str());
 
 							ImGui::TableNextColumn();
 							if (loaded.find(LoginInstance::Key(profile)) == loaded.end())
@@ -2318,6 +2322,7 @@ void ShowAutoLoginMenu()
 		ImGui::EndMenu();
 	}
 
+	ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
 	if (ImGui::BeginMenu("Characters"))
 	{
 		static auto servers = CacheResults(login::db::ListServers);
@@ -2327,6 +2332,7 @@ void ShowAutoLoginMenu()
 			if (server.empty())
 				continue;
 
+			ImGui::SetNextWindowSizeConstraints(ImVec2(300, 0), ImVec2(FLT_MAX, FLT_MAX));
 			if (ImGui::BeginMenu(server.c_str()))
 			{
 				static auto last_server = server;
@@ -2392,7 +2398,9 @@ void ShowAutoLoginMenu()
 						fmt::format_to(buf_ins, "[{} ", profile.characterLevel);
 						buf.push_back(0);
 						if (ImGui::Selectable(buf.data(), false, ImGuiSelectableFlags_SpanAllColumns))
+						{
 							LoadCharacter(profile);
+						}
 						buf.clear();
 
 						ImGui::TableNextColumn();
