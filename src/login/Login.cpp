@@ -1399,6 +1399,28 @@ login::db::Results<std::pair<std::string, std::string>> login::db::ListServerNam
 	};
 }
 
+login::db::Results<std::pair<std::string, std::string>> login::db::ListServerMatches(std::string_view search)
+{
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(
+			SELECT short_name, long_name FROM servers
+			WHERE LOWER(short_name) LIKE '%' || LOWER(?) || '%'
+			   OR LOWER(long name) LIKE '%' || LOWER(?) || '%')",
+		[search](sqlite3_stmt* stmt, sqlite3*)
+		{
+			BindText(stmt, 1, search);
+			BindText(stmt, 2, search);
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			return std::make_pair(
+				ReadText(stmt, 0),
+				ReadText(stmt, 1));
+		}
+	};
+}
+
 login::db::Results<std::string> login::db::ReadLongServer(std::string_view short_name)
 {
 	return {
@@ -2024,6 +2046,24 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	}
 
 	return profile_groups;
+}
+
+login::db::Results<std::string> login::db::ListProfileGroupMatches(std::string_view search)
+{
+	return {
+		WithDb::Get(SQLITE_OPEN_READONLY),
+		R"(
+			SELECT name FROM profile_groups
+			WHERE LOWER(name) LIKE '%' || LOWER(?) || '%')",
+		[search](sqlite3_stmt* stmt, sqlite3*)
+		{
+			BindText(stmt, 1, search);
+		},
+		[](sqlite3_stmt* stmt, sqlite3*)
+		{
+			return ReadText(stmt, 0);
+		}
+	};
 }
 
 void login::db::WriteProfileGroups(const std::vector<ProfileGroup>& groups, const std::string_view eq_path)

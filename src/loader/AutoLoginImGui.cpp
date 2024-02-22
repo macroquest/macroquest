@@ -28,6 +28,7 @@
 #include "imgui_internal.h"
 
 #include <filesystem>
+#include <winsock2.h>
 
 #include "imgui/ImGuiUtils.h"
 
@@ -548,7 +549,10 @@ static void DefaultCombo(Info& info, const Action& select_action)
 	static Info selected;
 
 	static constexpr std::string_view hidden_prefix = "##";
-	const auto width = ImGui::CalcItemWidth() - ImGui::CalcTextSize("...").x - ImGui::GetStyle().FramePadding.x * 2;
+	const auto width = ImGui::CalcItemWidth()
+		- ImGui::CalcTextSize(ICON_MD_ADD_BOX).x
+		- ImGui::CalcTextSize(ICON_MD_EDIT).x
+		- ImGui::GetStyle().FramePadding.x * 4;
 	ImGui::SetNextItemWidth(width);
 	if (ImGui::BeginCombo(JoinLabels<hidden_prefix, Info::label>::literal, info.Preview().c_str(), ImGuiComboFlags_NoArrowButton))
 	{
@@ -557,18 +561,40 @@ static void DefaultCombo(Info& info, const Action& select_action)
 		ImGui::EndCombo();
 	}
 
-	static constexpr std::string_view modal_suffix = " Select";
-	static constexpr const char* modal_name = JoinLabels<Info::label, modal_suffix>::literal;
+	ImGui::SameLine(0.f, 0.f);
+	static constexpr std::string_view edit_prefix = "Edit ";
+	static constexpr const char* edit_name = JoinLabels<edit_prefix, Info::label>::literal;
+	if (ImGui::Button(ICON_MD_EDIT) || ImGui::IsKeyPressed(ImGuiKey_Enter))
+	{
+		if (info.Valid())
+		{
+			selected = info;
+			selected.Fill();
 
-	static constexpr std::string_view button_prefix = "...##";
-	static constexpr const char* button_label = JoinLabels<button_prefix, Info::label>::literal;
+			LauncherImGui::OpenModal(edit_name);
+		}
+	}
+	ImGui::SetItemTooltip("Edit selected entry");
+	selected.Edit(edit_name, [&info]
+		{
+			selected.Update(info);
+			info = selected;
+		});
 
 	ImGui::SameLine(0.f, 0.f);
-	if (ImGui::Button(button_label))
+	static constexpr std::string_view add_prefix = "Add ";
+	static constexpr const char* add_name = JoinLabels<add_prefix, Info::label>::literal;
+	if (ImGui::Button(ICON_MD_ADD_BOX))
 	{
-		selected = info;
-		LauncherImGui::OpenModal(modal_name);
+		selected = {};
+		LauncherImGui::OpenModal(add_name);
 	}
+	ImGui::SetItemTooltip("Create new entry");
+	selected.Edit(add_name, [&info]
+		{
+			selected.Update({});
+			info = selected;
+		});
 
 	if constexpr (HasLabelOverride<Info>::value)
 	{
@@ -583,18 +609,57 @@ static void DefaultCombo(Info& info, const Action& select_action)
 		ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::TextUnformatted(JoinLabels<Info::label>::literal);
 	}
+}
 
-	if (LauncherImGui::BeginModal(modal_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+template <typename Result>
+void DefaultComboList(
+	const std::function<void(const Result&)>& select_action,
+	const std::function<login::db::Results<Result>(std::string_view)>& results_action,
+	const std::function<bool(const Result&)>& is_selected,
+	const std::function<void(fmt::memory_buffer&, const Result&)>& preview)
+{
+	fmt::memory_buffer buf;
+
+	static std::string search;
+	static bool force_update = false;
+	static auto accounts = login::db::CacheResults([&results_action]
+		{ return results_action(search); });
+
+	auto do_select = [&select_action](const Result& match)
+		{
+			select_action(match);
+			search.clear();
+			force_update = true;
+
+			ImGui::CloseCurrentPopup();
+		};
+
+	accounts.ReadHasChanged(force_update);
+	if (force_update) force_update = false;
+
+	if (!ImGui::IsAnyItemActive()) ImGui::SetKeyboardFocusHere();
+	if (ImGui::InputText("##search", &search, ImGuiInputTextFlags_EscapeClearsAll))
+		force_update = true;
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Enter) && !accounts.Updated().empty())
+		do_select(accounts.Updated().front());
+
+	ImGuiListClipper clipper;
+	clipper.Begin(static_cast<int>(accounts.Updated().size()));
+	while (clipper.Step())
 	{
-		DefaultListBox(selected);
+		for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+		{
+			auto& match = accounts.Updated().at(row);
 
-		DefaultModalButtons([&info]
-			{
-				selected.Update(info);
-				info = selected;
-			});
+			preview(buf, match);
+			buf.push_back(0);
 
-		LauncherImGui::EndModal();
+			if (ImGui::Selectable(buf.data(), is_selected(match)))
+				do_select(match);
+
+			buf.clear();
+		}
 	}
 }
 
@@ -910,31 +975,19 @@ void ServerTypeInfo::Edit(const char* name, const Action& ok_action)
 
 void AccountInfo::List(const Action& select_action)
 {
-	fmt::memory_buffer buf;
-	const auto buf_ins = std::back_inserter(buf);
-
-	static auto accounts = CacheResults(login::db::ListAccounts);
-	for (const auto& [account, server_type] : accounts.Read())
-	{
-		const bool is_selected = ci_equals(account, Account) &&
-			ci_equals(server_type, ServerType.ServerType);
-
-		format_to(buf_ins, "{} ({})", account, server_type);
-		buf.push_back(0);
-
-		if (ImGui::Selectable(buf.data(), is_selected))
+	DefaultComboList<ProfileRecord>(
+		[this, &select_action](const ProfileRecord& match)
 		{
-			Account = account;
-			ServerType.ServerType = server_type;
-
+			Account = match.accountName;
+			ServerType.ServerType = match.serverType;
 			select_action();
-		}
-
-		if (is_selected)
-			ImGui::SetItemDefaultFocus();
-
-		buf.clear();
-	}
+		},
+		login::db::ListAccountMatches,
+		[this](const ProfileRecord& match)
+		{ return ci_equals(match.accountName, Account) && ci_equals(match.serverType, ServerType.ServerType); },
+		[](fmt::memory_buffer& buf, const ProfileRecord& match)
+		{ fmt::format_to(std::back_inserter(buf), "{} ({})", match.accountName, match.serverType); }
+	);
 }
 
 void AccountInfo::Fill()
@@ -1099,46 +1152,19 @@ static void AccountTable(const std::string_view search)
 
 void CharacterInfo::List(const Action& select_action)
 {
-	fmt::memory_buffer buf;
-	const auto buf_ins = std::back_inserter(buf);
-
-	static auto last_account = Account.Account;
-	static auto last_server_type = Account.ServerType.ServerType;
-	static auto characters = login::db::CacheResults([]
-		{ return login::db::ListCharacters(last_account, last_server_type); });
-
-	// this could happen a couple ways:
-	//  - the account on `this` changes
-	//  - we have a different instance of `this` with a different account (it's static)
-	const bool force_update = !ci_equals(last_account, Account.Account) ||
-		!ci_equals(last_server_type, Account.ServerType.ServerType);
-	if (force_update)
-	{
-		last_account = Account.Account;
-		last_server_type = Account.ServerType.ServerType;
-	}
-
-	for (const auto& [server, character] : characters.Read(force_update))
-	{
-		const bool is_selected = ci_equals(character, Character) &&
-			ci_equals(server, Server);
-
-		format_to(buf_ins, "{} : {}", character, server);
-		buf.push_back(0);
-
-		if (ImGui::Selectable(buf.data(), is_selected, ImGuiSelectableFlags_SpanAvailWidth))
+	DefaultComboList<ProfileRecord>(
+		[this, &select_action](const ProfileRecord& match)
 		{
-			Character = character;
-			Server = server;
-
+			Character = match.characterName;
+			Server = match.serverName;
 			select_action();
-		}
-
-		if (is_selected)
-			ImGui::SetItemDefaultFocus();
-
-		buf.clear();
-	}
+		},
+		login::db::ListCharacterMatches,
+		[this](const ProfileRecord& match)
+		{ return ci_equals(match.characterName, Character) && ci_equals(match.serverName, Server); },
+		[](fmt::memory_buffer& buf, const ProfileRecord& match)
+		{ fmt::format_to(std::back_inserter(buf), "{} ({})", match.characterName, match.serverName); }
+	);
 }
 
 void CharacterInfo::Fill()
@@ -1419,108 +1445,111 @@ std::string ProfileInfo::Preview() const
 
 void ProfileInfo::Edit(const char* name, const Action& ok_action)
 {
+	static ProfileGroupInfo group;
 	static std::optional<std::string> eq_path;
 	static std::string hot_key;
 	static std::optional<std::string> custom_ini;
 
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		DefaultCombo(Character.Account, [this]
+		DefaultCombo(Character, [this]
 			{
-				Character.Character.clear();
-				Character.Server.clear();
+				if (Character.Valid())
+				{
+					characterName = Character.Character;
+					serverName = Character.Server;
+					login::db::ReadAccount(*this);
+				}
 			});
 
-		// drop down for character or create new, only show this if an account has been selected
-		if (Character.Account.Valid())
-		{
-			DefaultCombo(Character, [this]
-				{
-					if (Character.Valid() && !profileName.empty())
-						login::db::ReadProfile(*this);
-				});
+		if (!ci_equals(profileName, group.profileName))
+			group.profileName = profileName;
 
-			// display options to complete the profile only if the profile has a character
-			if (Character.Valid())
+		DefaultCombo(group, [this]
 			{
-				if (ImGui::Button("Hotkey"))
+				if (group.Valid())
 				{
-					hot_key = hotkey;
-					LauncherImGui::OpenModal("Input Hotkey");
+					profileName = group.profileName;
 				}
+			});
+		ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x); ImGui::TextUnformatted("Profile Group");
 
-				ShowHotkeyWindow("Input Hotkey", hot_key,
-					[this] { hotkey = hot_key; });
-
-				ImGui::SameLine();
-				ImGui::Text("%s", !hotkey.empty() ? hotkey.c_str() : "<None>");
-
-				if (ImGui::Button("EQ Path"))
-				{
-					eq_path = eqPath;
-					LauncherImGui::OpenModal("Input EQ Path");
-				}
-
-				SetEQDirModal(eq_path, [this] { eqPath = eq_path; });
-
-				ImGui::SameLine();
-				ImGui::Text("%s", eqPath ? eqPath->c_str() : "<Default>");
-
-				DefaultOptional<int>(charSelectDelay, "Override Character Select Delay",
-					[]()
-					{
-						if (const auto delay = login::db::ReadSetting("char_select_delay"))
-							return GetIntFromString(*delay, 3);
-						return 3;
-					},
-					[](int& char_select_delay)
-					{
-						return ImGui::InputScalar("##Character Select Delay", ImGuiDataType_U32, &char_select_delay);
-					});
-
-				DefaultOptional<bool>(endAfterSelect, "Override End After Character Select",
-					[]()
-					{
-						if (const auto end = login::db::ReadSetting("end_after_select"))
-							return GetBoolFromString(*end, false);
-						return false;
-					},
-					[](bool& end_after_select)
-					{
-						bool changed = false;
-						if (ImGui::BeginCombo("##End After Character Select", end_after_select ? "enabled" : "disabled"))
-						{
-							if (ImGui::Selectable("enabled", end_after_select))
-							{
-								end_after_select = true;
-								changed = true;
-							}
-
-							if (ImGui::Selectable("disabled", !end_after_select))
-							{
-								end_after_select = false;
-								changed = true;
-							}
-
-							ImGui::EndCombo();
-						}
-
-						return changed;
-					});
-
-				if (ImGui::Button("Custom Character INI"))
-				{
-					custom_ini = customClientIni;
-					LauncherImGui::OpenModal("Input Character INI File");
-				}
-
-				SetEQFileModal("Input Character INI File", custom_ini, "eqclient.ini",
-					[this] { customClientIni = custom_ini; });
-
-				ImGui::SameLine();
-				ImGui::Text("%s", customClientIni ? customClientIni->c_str() : "<Default>");
-			}
+		if (ImGui::Button("Hotkey"))
+		{
+			hot_key = hotkey;
+			LauncherImGui::OpenModal("Input Hotkey");
 		}
+
+		ShowHotkeyWindow("Input Hotkey", hot_key,
+			[this] { hotkey = hot_key; });
+
+		ImGui::SameLine();
+		ImGui::Text("%s", !hotkey.empty() ? hotkey.c_str() : "<None>");
+
+		if (ImGui::Button("EQ Path"))
+		{
+			eq_path = eqPath;
+			LauncherImGui::OpenModal("Input EQ Path");
+		}
+
+		SetEQDirModal(eq_path, [this] { eqPath = eq_path; });
+
+		ImGui::SameLine();
+		ImGui::Text("%s", eqPath ? eqPath->c_str() : "<Default>");
+
+		DefaultOptional<int>(charSelectDelay, "Override Character Select Delay",
+			[]()
+			{
+				if (const auto delay = login::db::ReadSetting("char_select_delay"))
+					return GetIntFromString(*delay, 3);
+				return 3;
+			},
+			[](int& char_select_delay)
+			{
+				return ImGui::InputScalar("##Character Select Delay", ImGuiDataType_U32, &char_select_delay);
+			});
+
+		DefaultOptional<bool>(endAfterSelect, "Override End After Character Select",
+			[]()
+			{
+				if (const auto end = login::db::ReadSetting("end_after_select"))
+					return GetBoolFromString(*end, false);
+				return false;
+			},
+			[](bool& end_after_select)
+			{
+				bool changed = false;
+				if (ImGui::BeginCombo("##End After Character Select", end_after_select ? "enabled" : "disabled"))
+				{
+					if (ImGui::Selectable("enabled", end_after_select))
+					{
+						end_after_select = true;
+						changed = true;
+					}
+
+					if (ImGui::Selectable("disabled", !end_after_select))
+					{
+						end_after_select = false;
+						changed = true;
+					}
+
+					ImGui::EndCombo();
+				}
+
+				return changed;
+			});
+
+		if (ImGui::Button("Custom Character INI"))
+		{
+			custom_ini = customClientIni;
+			LauncherImGui::OpenModal("Input Character INI File");
+		}
+
+		SetEQFileModal("Input Character INI File", custom_ini, "eqclient.ini",
+			[this] { customClientIni = custom_ini; });
+
+		ImGui::SameLine();
+		ImGui::Text("%s", customClientIni ? customClientIni->c_str() : "<Default>");
 
 		DefaultModalButtons(ok_action);
 
@@ -1744,19 +1773,17 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 void ProfileGroupInfo::List(const Action& select_action)
 {
-	static auto profile_groups = CacheResults(login::db::ListProfileGroups);
-	for (const auto& group : profile_groups.Read())
-	{
-		const bool is_selected = ci_equals(group, profileName);
-		if (ImGui::Selectable(group.c_str(), is_selected))
+	DefaultComboList<std::string>(
+		[this, &select_action](const std::string& match)
 		{
-			profileName = group;
+			profileName = match;
 			select_action();
-		}
-
-		if (is_selected)
-			ImGui::SetItemDefaultFocus();
-	}
+		},
+		login::db::ListProfileGroupMatches,
+		[this](const std::string& match) { return ci_equals(match, profileName); },
+		[](fmt::memory_buffer& buf, const std::string& match)
+		{ fmt::format_to(std::back_inserter(buf), match); }
+	);
 }
 
 void ProfileGroupInfo::Fill()

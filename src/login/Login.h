@@ -314,6 +314,7 @@ void DeletePersona(std::string_view server, std::string_view name, std::string_v
 
 void CreateOrUpdateServer(std::string_view short_name, std::string_view long_name);
 Results<std::pair<std::string, std::string>> ListServerNames();
+Results<std::pair<std::string, std::string>> ListServerMatches(std::string_view search);
 Results<std::string> ReadLongServer(std::string_view short_name);
 std::optional<std::string> ReadShortServer(std::string_view long_name);
 void DeleteServer(std::string_view short_name, std::string_view long_name);
@@ -336,6 +337,7 @@ void DeleteProfile(std::string_view server, std::string_view name, std::string_v
 
 std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
 std::vector<ProfileGroup> GetProfileGroups();
+Results<std::string> ListProfileGroupMatches(std::string_view search);
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
 void ShutdownDatabase();
