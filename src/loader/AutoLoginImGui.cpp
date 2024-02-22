@@ -2227,6 +2227,9 @@ void ShowSettingsWindow()
 
 void ShowAutoLoginMenu()
 {
+	fmt::memory_buffer buf;
+	const auto buf_ins = std::back_inserter(buf);
+
 	if (ImGui::MenuItem("Open Config"))
 		LauncherImGui::SelectMainPanel("AutoLogin/Profiles");
 
@@ -2294,9 +2297,11 @@ void ShowAutoLoginMenu()
 								LoadCharacter(profile);
 
 							ImGui::TableNextColumn();
-							std::string level = fmt::format("{}", profile.characterLevel);
-							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(level.c_str()).x);
-							ImGui::TextUnformatted(level.c_str());
+							fmt::format_to(buf_ins, "{}", profile.characterLevel);
+							buf.push_back(0);
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(buf.data()).x);
+							ImGui::TextUnformatted(buf.data());
+							buf.clear();
 
 							ImGui::TableNextColumn();
 							ImGui::TextUnformatted(profile.characterClass.c_str());
@@ -2380,9 +2385,6 @@ void ShowAutoLoginMenu()
 				}
 				else if (ImGui::BeginTable("##Characters", 5, ImGuiTableFlags_None))
 				{
-					fmt::memory_buffer buf;
-					const auto buf_ins = std::back_inserter(buf);
-
 					ImGui::TableSetupColumn("Character Name", ImGuiTableColumnFlags_WidthStretch, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Character));
 					ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("0000").x, static_cast<ImGuiID>(CharacterInfo::SortID::Level));
 					ImGui::TableSetupColumn("Class", ImGuiTableColumnFlags_WidthFixed, 0.f, static_cast<ImGuiID>(CharacterInfo::SortID::Class));
@@ -2400,9 +2402,11 @@ void ShowAutoLoginMenu()
 							LoadCharacter(profile);
 
 						ImGui::TableNextColumn();
-						std::string level = fmt::format("{}", profile.characterLevel);
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(level.c_str()).x);
-						ImGui::TextUnformatted(level.c_str());
+						fmt::format_to(buf_ins, "{}", profile.characterLevel);
+						buf.push_back(0);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(buf.data()).x);
+						ImGui::TextUnformatted(buf.data());
+						buf.clear();
 
 						ImGui::TableNextColumn();
 						ImGui::Selectable(profile.characterClass.c_str(), false);
