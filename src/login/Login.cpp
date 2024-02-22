@@ -1158,8 +1158,8 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 		WithDb::Get(SQLITE_OPEN_READONLY),
 		R"(
 			SELECT DISTINCT server, character, account, server_type,
-				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
-				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
+			    FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
+			    FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
 			    visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
@@ -1167,7 +1167,7 @@ login::db::Results<ProfileRecord> login::db::ListCharacterMatches(std::string_vi
 			WHERE server LIKE '%' || LOWER(?) || '%'
 			   OR character LIKE '%' || LOWER(?) || '%'
 			   OR account LIKE '%' || LOWER(?) || '%'
-               OR LOWER(class) LIKE '%' || LOWER(?) || '%')",
+			   OR LOWER(class) LIKE '%' || LOWER(?) || '%')",
 		[search](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, search);
@@ -1976,6 +1976,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 				while (sqlite3_step(stmt) == SQLITE_ROW)
 				{
 					ProfileRecord record;
+					record.profileName = group.profileName;
 
 					record.accountName = ReadText(stmt, 0);
 					const std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
