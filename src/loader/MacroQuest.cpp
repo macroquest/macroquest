@@ -972,6 +972,7 @@ int WINAPI CALLBACK WinMain(
 		// Only need this if we're not already the spawned process
 		else if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
+			SPDLOG_INFO("I am a spawned process");
 			spawnedProcess = true;
 		}
 	}
@@ -1035,6 +1036,8 @@ int WINAPI CALLBACK WinMain(
 			STARTUPINFO si = {};
 			wil::unique_process_information pi;
 
+			SPDLOG_INFO("Relaunching as spawned process");
+
 			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
 					&fullCommandLine[0], // Command line to run
 					nullptr,             // Process Attributes - handle not inheritable
@@ -1071,7 +1074,10 @@ int WINAPI CALLBACK WinMain(
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
 	HWND hWndRunning = FindWindow(gszWinClassName, gszWinName);
 	if (hWndRunning != nullptr)
+	{
+		SPDLOG_INFO("Closing because another window of class \"{}\" is open", gszWinClassName);
 		return 0;
+	}
 
 	const std::string cycleNextWindowKey = GetPrivateProfileString("MacroQuest", "CycleNextWindow", "", internal_paths::MQini);
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
