@@ -868,7 +868,7 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 std::optional<std::string> login::db::GetLatestProfileGroup()
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY,
-		R"(SELECT name FROM profile_groups ORDER BY last_selected LIMIT 1)",
+		R"(SELECT name FROM profile_groups ORDER BY last_selected DESC LIMIT 1)",
 		[](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
 		{
 			if (sqlite3_step(stmt) == SQLITE_ROW)
