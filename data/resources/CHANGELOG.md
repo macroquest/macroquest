@@ -1,6 +1,8 @@
 Feb 23, 2024:
-- autologin: Fix ini import creating blank passwords when stationnames entries exist
-- autologin: Add right click option to Characters UI to add a character to a profile group
+- autologin: Fix ini import creating blank passwords when stationnames entries exist.
+- autologin: Add right click option to Characters UI to add a character to a profile group.
+- autologin: Fix process tracking for loaded profiles.
+- loader: Add process list to show processes currently being tracked.
 
 Feb 22, 2024:
 - live: updated for live patch
