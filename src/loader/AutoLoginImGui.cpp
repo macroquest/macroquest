@@ -615,7 +615,7 @@ static void DefaultCombo(Info& info, const Action& select_action)
 template <typename Result>
 void DefaultComboList(
 	const std::function<void(const Result&)>& select_action,
-	const std::function<login::db::Results<Result>(std::string_view)>& results_action,
+	std::function<login::db::Results<Result>(std::string_view)> results_action,
 	const std::function<bool(const Result&)>& is_selected,
 	const std::function<void(fmt::memory_buffer&, const Result&)>& preview)
 {
@@ -623,7 +623,7 @@ void DefaultComboList(
 
 	static std::string search;
 	static bool force_update = false;
-	static auto accounts = login::db::CacheResults([&results_action]
+	static auto accounts = login::db::CacheResults([results_action = std::move(results_action)]
 		{ return results_action(search); });
 
 	auto do_select = [&select_action](const Result& match)
@@ -758,6 +758,10 @@ static void SetEQFileModal(const char* label, std::optional<std::string>& path, 
 		LauncherImGui::EndModal();
 	}
 }
+
+static ProfileInfo s_modalProfile;
+static std::string s_removeMessage;
+static void HandleProfilesModals();
 
 #pragma endregion
 
@@ -1095,7 +1099,7 @@ static void AccountTable(const std::string_view search)
 
 				if (ImGui::BeginPopup("row_popup"))
 				{
-					if (ImGui::Selectable("Edit"))
+					if (ImGui::Selectable("Edit Account"))
 					{
 						selected_account.Account = match.accountName;
 						selected_account.ServerType.ServerType = match.serverType;
@@ -1106,11 +1110,18 @@ static void AccountTable(const std::string_view search)
 						LauncherImGui::OpenModal("Edit Account");
 					}
 
-					if (ImGui::Selectable("Remove"))
+					if (ImGui::Selectable("Remove Account"))
 					{
 						remove_message = fmt::format("Are you certain you want to remove account '{} ({})'? All associated characters will also be removed.", match.accountName, match.serverType);
 						selected_profile = match;
 						LauncherImGui::OpenModal("Remove Account");
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::Selectable("Launch Client"))
+					{
+						LoadCharacter(match);
 					}
 
 					ImGui::EndPopup();
@@ -1184,7 +1195,7 @@ void CharacterInfo::Fill()
 std::string CharacterInfo::Preview() const
 {
 	if (Valid())
-		return fmt::format("{} : {}", Character, Server);
+		return fmt::format("{} ({})", Character, Server);
 
 	return "";
 }
@@ -1304,7 +1315,7 @@ static void CharacterTable(const std::string_view search)
 
 				if (ImGui::BeginPopup("row_popup"))
 				{
-					if (ImGui::Selectable("Edit"))
+					if (ImGui::Selectable("Edit Character"))
 					{
 						selected_character.Server = match.serverName;
 						selected_character.Character = match.characterName;
@@ -1317,11 +1328,24 @@ static void CharacterTable(const std::string_view search)
 						LauncherImGui::OpenModal("Edit Character");
 					}
 
-					if (ImGui::Selectable("Remove"))
+					if (ImGui::Selectable("Remove Character"))
 					{
-						remove_message = fmt::format("Are you certain you want to remove character '{} : {}'? All associated profiles will also be removed.", match.characterName, match.serverName);
+						remove_message = fmt::format("Are you certain you want to remove character '{} ({})'? All associated profiles will also be removed.", match.characterName, match.serverName);
 						selected_profile = match;
 						LauncherImGui::OpenModal("Remove Character");
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::Selectable("Add To Profile Group"))
+					{
+						s_modalProfile = match;
+						s_modalProfile.Character.Server = match.serverName;
+						s_modalProfile.Character.Character = match.characterName;
+						s_modalProfile.Character.Account.Account = match.accountName;
+						s_modalProfile.Character.Account.ServerType.ServerType = match.serverType;
+
+						LauncherImGui::OpenModal("Add Profile");
 					}
 
 					ImGui::EndPopup();
@@ -1432,6 +1456,8 @@ static void CharacterTable(const std::string_view search)
 
 		LauncherImGui::EndModal();
 	}
+
+	HandleProfilesModals();
 }
 
 #pragma endregion
@@ -1569,9 +1595,6 @@ void ProfileInfo::Edit(const char* name, const Action& ok_action)
 
 static void ProfileTable(const ProfileGroupInfo& info)
 {
-	static ProfileInfo selected;
-	static std::string remove_message;
-
 	constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchProp
 		| ImGuiTableFlags_Borders
 		| ImGuiTableFlags_NoBordersInBody
@@ -1659,22 +1682,22 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 					if (ImGui::BeginPopup("row_popup"))
 					{
-						if (ImGui::Selectable("Edit"))
+						if (ImGui::Selectable("Edit Profile"))
 						{
-							selected = profile;
-							selected.Character.Character = profile.characterName;
-							selected.Character.Server = profile.serverName;
-							selected.Character.Account.Account = profile.accountName;
-							selected.Character.Account.ServerType.ServerType = profile.serverType;
+							s_modalProfile = profile;
+							s_modalProfile.Character.Character = profile.characterName;
+							s_modalProfile.Character.Server = profile.serverName;
+							s_modalProfile.Character.Account.Account = profile.accountName;
+							s_modalProfile.Character.Account.ServerType.ServerType = profile.serverType;
 							LauncherImGui::OpenModal("Edit Profile");
 						}
 
-						if (ImGui::Selectable("Remove"))
+						if (ImGui::Selectable("Remove Profile"))
 						{
-							selected = profile;
-							selected.Character.Character = profile.characterName;
-							selected.Character.Server = profile.serverName;
-							remove_message = fmt::format("Are you sure you want to remove profile '{}'?", profile.characterName);
+							s_modalProfile = profile;
+							s_modalProfile.Character.Character = profile.characterName;
+							s_modalProfile.Character.Server = profile.serverName;
+							s_removeMessage = fmt::format("Are you sure you want to remove profile '{}'?", profile.characterName);
 							LauncherImGui::OpenModal("Remove Profile");
 						}
 
@@ -1736,45 +1759,15 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 	if (ImGui::Button("Add Profile"))
 	{
-		selected = {};
-		selected.profileName = info.profileName;
+		s_modalProfile = {};
+		s_modalProfile.profileName = info.profileName;
 		LauncherImGui::OpenModal("Add Profile");
 	}
 
 	ImGui::SameLine();
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
 
-	selected.Edit("Add Profile", []
-		{
-			if (selected.Valid())
-			{
-				selected.characterName = selected.Character.Character;
-				selected.serverName = selected.Character.Server;
-				selected.accountName = selected.Character.Account.Account;
-				selected.serverType = selected.Character.Account.ServerType.ServerType;
-				login::db::CreateProfile(selected);
-			}
-		});
-
-	selected.Edit("Edit Profile", []
-		{
-			if (selected.Valid())
-			{
-				selected.characterName = selected.Character.Character;
-				selected.serverName = selected.Character.Server;
-				selected.accountName = selected.Character.Account.Account;
-				selected.serverType = selected.Character.Account.ServerType.ServerType;
-				login::db::UpdateProfile(selected);
-			}
-		});
-
-	DeleteModal("Remove Profile", remove_message, []
-		{
-			login::db::DeleteProfile(
-				selected.serverName,
-				selected.characterName,
-				selected.profileName);
-		});
+	HandleProfilesModals();
 }
 
 #pragma endregion
@@ -1945,6 +1938,41 @@ no encryption will be used.)");
 
 #pragma endregion
 
+static void HandleProfilesModals()
+{
+	s_modalProfile.Edit("Add Profile", []
+		{
+			if (s_modalProfile.Valid())
+			{
+				s_modalProfile.characterName = s_modalProfile.Character.Character;
+				s_modalProfile.serverName = s_modalProfile.Character.Server;
+				s_modalProfile.accountName = s_modalProfile.Character.Account.Account;
+				s_modalProfile.serverType = s_modalProfile.Character.Account.ServerType.ServerType;
+				login::db::CreateProfile(s_modalProfile);
+			}
+		});
+
+	s_modalProfile.Edit("Edit Profile", []
+		{
+			if (s_modalProfile.Valid())
+			{
+				s_modalProfile.characterName = s_modalProfile.Character.Character;
+				s_modalProfile.serverName = s_modalProfile.Character.Server;
+				s_modalProfile.accountName = s_modalProfile.Character.Account.Account;
+				s_modalProfile.serverType = s_modalProfile.Character.Account.ServerType.ServerType;
+				login::db::UpdateProfile(s_modalProfile);
+			}
+		});
+
+	DeleteModal("Remove Profile", s_removeMessage, []
+		{
+			login::db::DeleteProfile(
+				s_modalProfile.serverName,
+				s_modalProfile.characterName,
+				s_modalProfile.profileName);
+		});
+}
+
 void ShowProfilesWindow()
 {
 	static ProfileGroupInfo info;
@@ -1981,14 +2009,13 @@ void ShowProfilesWindow()
 				info = selected;
 			});
 
-		static std::string remove_message;
 		if (ImGui::SmallButton("Remove") && info.Valid())
 		{
-			remove_message = fmt::format("Are you sure you want to remove profile group '{}'? All associated profiles will also be removed.", info.profileName.c_str());
+			s_removeMessage = fmt::format("Are you sure you want to remove profile group '{}'? All associated profiles will also be removed.", info.profileName.c_str());
 			LauncherImGui::OpenModal("Remove Profile Group");
 		}
 
-		DeleteModal("Remove Profile Group", remove_message, []
+		DeleteModal("Remove Profile Group", s_removeMessage, []
 			{
 				if (info.Valid())
 				{
