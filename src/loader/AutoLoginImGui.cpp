@@ -1119,9 +1119,12 @@ static void AccountTable(const std::string_view search)
 
 					ImGui::Separator();
 
-					if (ImGui::Selectable("Launch Client"))
+					if (ImGui::Selectable("Launch Client & Log In"))
 					{
-						LoadCharacter(match);
+						selected_profile = match;
+						selected_profile.accountPassword = login::db::ReadPassword(match.accountName, match.serverType).value_or("");
+
+						LoadCharacter(selected_profile);
 					}
 
 					ImGui::EndPopup();

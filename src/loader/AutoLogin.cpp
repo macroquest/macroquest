@@ -156,9 +156,15 @@ static const LoginInstance* StartInstance(ProfileRecord& profile)
 	// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
 	// because we got a list at startup of the current running instances
 	if (!profile.eqPath)
-		if (const auto path = login::db::GetEQPath(
-			profile.profileName, profile.serverName, profile.characterName))
+	{
+		if (const auto path = login::db::GetEQPath(profile.profileName, profile.serverName, profile.characterName))
 			profile.eqPath = *path;
+	}
+
+	if (!profile.eqPath && !profile.serverType.empty())
+	{
+		profile.eqPath = login::db::GetPathFromServerType(profile.serverType);
+	}
 
 	if (!profile.eqPath)
 	{
