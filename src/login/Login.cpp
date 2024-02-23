@@ -1563,7 +1563,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			SELECT DISTINCT hotkey, character, server,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
 				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
-				account, server_type, selected,
+				account, server_type, profiles.selected,
 				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
 			    end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
@@ -1572,7 +1572,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			JOIN profile_groups ON profile_groups.id = group_id
 			LEFT JOIN personas USING (character_id)
 			WHERE profile_groups.name = LOWER(?)
-			ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC)",
+			ORDER BY profiles.selected IS NULL, profiles.selected = 0, profiles.selected ASC, character ASC, server ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, group);
@@ -1631,7 +1631,7 @@ std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
 			JOIN profile_groups ON profile_groups.id = group_id
 			WHERE profile_groups.name = LOWER(?)
 			  AND will_load <> 0
-			ORDER BY selected ASC)",
+			ORDER BY profiles.selected ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::vector<ProfileRecord> profiles;
@@ -1705,7 +1705,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, selected, end_after_select, char_select_delay, custom_client_ini, will_load
+			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, profiles.selected, end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
@@ -2010,7 +2010,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					JOIN accounts a ON c.account_id = a.id
 					LEFT JOIN personas l ON l.character_id = c.id
 					WHERE p.group_id = ?
-					ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC)",
+					ORDER BY p.selected IS NULL, p.selected = 0, p.selected ASC, character ASC, server ASC)",
 			[&id = group.first, &group = group.second](sqlite3_stmt* stmt, sqlite3*)
 			{
 				sqlite3_bind_int(stmt, 1, static_cast<int>(id));
