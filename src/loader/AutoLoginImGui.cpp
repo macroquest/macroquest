@@ -1611,10 +1611,8 @@ static void ProfileTable(const ProfileGroupInfo& info)
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					bool checked = profile.selected > 0;
-					if (LauncherImGui::SmallCheckbox("##Selected", &checked))
+					if (LauncherImGui::SmallCheckbox("##Selected", &profile.willLoad))
 					{
-						profile.selected = checked ? 1 : 0;
 						do_write = true;
 					}
 
@@ -1641,11 +1639,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 						}
 						else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 						{
-							if (profile.selected > 0)
-								profile.selected = 0;
-							else
-								profile.selected = 1;
-
+							profile.willLoad = !profile.willLoad;
 							do_write = true;
 						}
 					}
@@ -1710,9 +1704,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 				unsigned int order = 0;
 				for (auto& profile : profiles.Updated())
 				{
-					if (profile.selected > 0)
-						profile.selected = ++order;
-
+					profile.selected = ++order;
 					login::db::UpdateProfile(profile);
 				}
 
@@ -2319,7 +2311,7 @@ void ShowAutoLoginMenu()
 						{
 							ImGui::TableNextRow(ImGuiTableRowFlags_None);
 							ImGui::TableNextColumn();
-							if (profile.selected != 0)
+							if (profile.willLoad)
 							{
 								ImGui::PushStyleColor(ImGuiCol_Text, { .75f, .75f, 0.f, 1.f });
 								ImGui::TextUnformatted(ICON_MD_STAR);
