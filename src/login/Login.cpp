@@ -221,7 +221,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 	std::vector<ProfileGroup> profiles;
 
 	// first import blobs
-	unsigned int selected = 0;
+	unsigned int sortOrder = 0;
 	for (const auto& profile_key : GetPrivateProfileKeys("Profiles", ini_location))
 	{
 		if (!ci_starts_with(profile_key, "Profile"))
@@ -258,7 +258,8 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 
 			ProfileRecord record = ProfileRecord::FromBlob(blob);
 			record.profileName = section;
-			if (checked) record.selected = ++selected;
+			record.willLoad = checked;
+			record.sortOrder = ++sortOrder;
 			record.serverType = server_type;
 
 			// the key name is split into server:character_Blob
@@ -275,7 +276,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 	}
 
 	// next import station names and sessions
-	selected = 0;
+	sortOrder = 0;
 	for (const auto& section : GetPrivateProfileSections(ini_location))
 	{
 		const auto password = GetPrivateProfileString(section, "Password", "", ini_location);
@@ -292,7 +293,7 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 		record.profileName = section;
 		record.accountName = account;
 		record.serverType = server_type;
-		record.selected = ++selected;
+		record.sortOrder = ++sortOrder;
 
 		record.serverName = GetPrivateProfileString(section, "Server", "", ini_location);
 		record.characterName = GetPrivateProfileString(section, "Character", "", ini_location);
@@ -1565,7 +1566,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
 				account, server_type, profiles.selected,
 				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
-			    end_after_select, char_select_delay, custom_client_ini, will_load
+				end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
 			JOIN characters ON characters.id = character_id
 			JOIN accounts ON accounts.id = account_id
@@ -1595,9 +1596,9 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			record.serverType = ReadText(stmt, 6);
 
 			if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
-				record.selected = sqlite3_column_int(stmt, 7);
+				record.sortOrder = sqlite3_column_int(stmt, 7);
 			else
-				record.selected = 0;
+				record.sortOrder = 0;
 
 			if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
 				record.eqPath = ReadText(stmt, 8);
@@ -1688,7 +1689,7 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 			else
 				sqlite3_bind_null(stmt, 7);
 
-			sqlite3_bind_int(stmt, 8, static_cast<int>(profile.selected));
+			sqlite3_bind_int(stmt, 8, static_cast<int>(profile.sortOrder));
 
 			if (profile.customClientIni)
 				BindText(stmt, 9, *profile.customClientIni);
@@ -1725,9 +1726,9 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 					profile.hotkey = ReadText(stmt, 2);
 
 				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
-					profile.selected = sqlite3_column_int(stmt, 3);
+					profile.sortOrder = sqlite3_column_int(stmt, 3);
 				else
-					profile.selected = 0;
+					profile.sortOrder = 0;
 
 				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
 					profile.endAfterSelect = sqlite3_column_int(stmt, 4) != 0;
@@ -1783,9 +1784,9 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 					profile.accountPassword = pass;
 
 				if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
-					profile.selected = sqlite3_column_int(stmt, 6);
+					profile.sortOrder = sqlite3_column_int(stmt, 6);
 				else
-					profile.selected = 0;
+					profile.sortOrder = 0;
 
 				profile.serverType = ReadText(stmt, 7);
 
@@ -1853,9 +1854,9 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 				profile.characterName = ReadText(stmt, 7);
 
 				if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
-					profile.selected = sqlite3_column_int(stmt, 8);
+					profile.sortOrder = sqlite3_column_int(stmt, 8);
 				else
-					profile.selected = 0;
+					profile.sortOrder = 0;
 
 				if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
 					profile.endAfterSelect = sqlite3_column_int(stmt, 9) != 0;
@@ -1896,7 +1897,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 				sqlite3_bind_null(stmt, 1);
 
 			BindText(stmt, 2, profile.hotkey);
-			sqlite3_bind_int(stmt, 3, static_cast<int>(profile.selected));
+			sqlite3_bind_int(stmt, 3, static_cast<int>(profile.sortOrder));
 
 			if (profile.endAfterSelect)
 				sqlite3_bind_int(stmt, 4, *profile.endAfterSelect ? 1 : 0);
@@ -2032,9 +2033,9 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					record.hotkey = ReadText(stmt, 4);
 
 					if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
-						record.selected = sqlite3_column_int(stmt, 5);
+						record.sortOrder = sqlite3_column_int(stmt, 5);
 					else
-						record.selected = 0;
+						record.sortOrder = 0;
 
 					if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
 						record.eqPath = ReadText(stmt, 6);

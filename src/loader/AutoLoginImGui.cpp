@@ -433,16 +433,16 @@ struct ProfileInfo : ProfileRecord
 
 	static bool Compare(const ProfileRecord& a, const ProfileRecord& b)
 	{
-		if (a.selected == 0 && b.selected == 0)
+		if (a.sortOrder == 0 && b.sortOrder == 0)
 			return a.characterName.compare(b.characterName) < 0;
 
-		if (a.selected == 0)
+		if (a.sortOrder == 0)
 			return false;
 
-		if (b.selected == 0)
+		if (b.sortOrder == 0)
 			return true;
 
-		return a.selected < b.selected;
+		return a.sortOrder < b.sortOrder;
 	}
 };
 
@@ -1573,7 +1573,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 	{
 		if (!info.profileName.empty())
 		{
-			ImGui::TableSetupColumn(ICON_MD_POWER_SETTINGS_NEW "##Selected", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+			ImGui::TableSetupColumn(ICON_MD_STAR "##Selected", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 			ImGui::TableSetupColumn("Character");
 			ImGui::TableSetupColumn("Server");
 			ImGui::TableSetupColumn("Account");
@@ -1623,7 +1623,6 @@ static void ProfileTable(const ProfileGroupInfo& info)
 					{
 						if (held_ptr != nullptr && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 						{
-							held_ptr->selected = 1;
 							held_ptr = nullptr;
 							do_write = true;
 						}
@@ -1635,7 +1634,6 @@ static void ProfileTable(const ProfileGroupInfo& info)
 						else if (held_ptr == nullptr && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 						{
 							held_ptr = &profile;
-							held_ptr->selected = 0;
 						}
 						else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 						{
@@ -1704,7 +1702,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 				unsigned int order = 0;
 				for (auto& profile : profiles.Updated())
 				{
-					profile.selected = ++order;
+					profile.sortOrder = ++order;
 					login::db::UpdateProfile(profile);
 				}
 
@@ -2288,7 +2286,7 @@ void ShowAutoLoginMenu()
 				}
 				else
 				{
-					if (ImGui::Selectable("Launch All", false, ImGuiSelectableFlags_SpanAllColumns))
+					if (ImGui::Selectable("Launch All Starred", false, ImGuiSelectableFlags_SpanAllColumns))
 					{
 						LoadProfileGroup(group);
 					}
@@ -2307,6 +2305,8 @@ void ShowAutoLoginMenu()
 						ImGui::TableNextRow(ImGuiTableRowFlags_None);
 						ImGui::TableNextColumn();
 
+						ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+
 						for (auto& profile : profiles.Updated())
 						{
 							ImGui::TableNextRow(ImGuiTableRowFlags_None);
@@ -2319,8 +2319,20 @@ void ShowAutoLoginMenu()
 							}
 
 							ImGui::TableNextColumn();
-							if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns))
-								LoadCharacter(profile);
+							if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_DontClosePopups))
+							{
+								if (!ImGui::IsKeyDown(ImGuiMod_Ctrl))
+								{
+									LoadCharacter(profile);
+									ImGui::CloseCurrentPopup();
+								}
+							}
+
+							if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsKeyDown(ImGuiMod_Ctrl))
+							{
+								profile.willLoad = !profile.willLoad;
+								login::db::UpdateProfile(profile);
+							}
 
 							ImGui::TableNextColumn();
 							fmt::format_to(buf_ins, "{}", profile.characterLevel);
@@ -2344,6 +2356,7 @@ void ShowAutoLoginMenu()
 							}
 						}
 
+						ImGui::PopItemFlag();
 						ImGui::EndTable();
 					}
 				}

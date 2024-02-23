@@ -43,7 +43,7 @@ struct ProfileRecord
 	int characterLevel = 0;
 
 	std::optional<std::string> eqPath;
-	unsigned int selected = 0;
+	unsigned int sortOrder = 0;
 	bool willLoad = true;
 	bool visible = true;
 
