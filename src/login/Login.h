@@ -44,6 +44,7 @@ struct ProfileRecord
 
 	std::optional<std::string> eqPath;
 	unsigned int selected = 0;
+	bool willLoad = true;
 	bool visible = true;
 
 	std::optional<bool> endAfterSelect;
@@ -63,6 +64,8 @@ struct ProfileGroup
 	std::string profileName;
 	std::optional<std::string> eqPath;
 	std::vector<ProfileRecord> records;
+
+	unsigned int selected = 0;
 };
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, std::string_view server_type);
