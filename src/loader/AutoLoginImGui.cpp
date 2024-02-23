@@ -1705,9 +1705,9 @@ static void ProfileTable(const ProfileGroupInfo& info)
 						LoadCharacter(profile);
 					}
 
+					ImGui::TableNextColumn();
 					if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
 					{
-						ImGui::SameLine();
 						ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
 						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
 						ImGui::PopStyleColor();
