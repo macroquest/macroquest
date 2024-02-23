@@ -813,7 +813,7 @@ login::db::Results<std::string> login::db::ListProfileGroups()
 {
 	return {
 		WithDb::Get(SQLITE_OPEN_READONLY),
-		R"(SELECT name FROM profile_groups ORDER BY selected=0, selected ASC, name ASC)",
+		R"(SELECT name FROM profile_groups ORDER BY sort_order ASC)",
 		[](sqlite3_stmt* stmt, sqlite3*)
 		{},
 		[](sqlite3_stmt* stmt, sqlite3*) -> std::string
@@ -826,8 +826,8 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO profile_groups (name, eq_path, selected) VALUES(LOWER(?), ?, ?)
-			ON CONFLICT(name) DO UPDATE SET eq_path=excluded.eq_path, selected=excluded.selected)",
+			INSERT INTO profile_groups (name, eq_path) VALUES(LOWER(?), ?)
+			ON CONFLICT(name) DO UPDATE SET eq_path=excluded.eq_path)",
 		[&group](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, group.profileName);
@@ -837,8 +837,6 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 			else
 				sqlite3_bind_null(stmt, 2);
 
-			sqlite3_bind_int(stmt, 3, group.selected);
-
 			sqlite3_step(stmt);
 		}
 	);
@@ -847,7 +845,7 @@ void login::db::CreateProfileGroup(const ProfileGroup& group)
 std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
-		R"(SELECT id, eq_path, selected FROM profile_groups WHERE name = LOWER(?))",
+		R"(SELECT id, eq_path, sort_order FROM profile_groups WHERE name = LOWER(?))",
 		[&group](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
 			BindText(stmt, 1, group.profileName);
@@ -857,7 +855,7 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 				if (sqlite3_column_type(stmt, 1) == SQLITE_TEXT)
 					group.eqPath = ReadText(stmt, 1);
 
-				group.selected = sqlite3_column_int(stmt, 2) != 0;
+				group.sortOrder = sqlite3_column_int(stmt, 2) != 0;
 
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
@@ -867,14 +865,28 @@ std::optional<unsigned int> login::db::ReadProfileGroup(ProfileGroup& group)
 		});
 }
 
+std::optional<std::string> login::db::GetLatestProfileGroup()
+{
+	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY,
+		R"(SELECT name FROM profile_groups ORDER BY last_selected LIMIT 1)",
+		[](sqlite3_stmt* stmt, sqlite3*) -> std::optional<std::string>
+		{
+			if (sqlite3_step(stmt) == SQLITE_ROW)
+				return ReadText(stmt, 0);
+
+			return {};
+		});
+}
+
 void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& group)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
 			UPDATE profile_groups
-			SET name    = LOWER(?),
+			SET name = LOWER(?),
 			    eq_path = ?,
-			    selected = ?
+			    sort_order = ?,
+			    last_selected = strftime('%s', 'now')
 			WHERE name  = LOWER(?))",
 		[name, &group](sqlite3_stmt* stmt, sqlite3* db)
 		{
@@ -885,10 +897,25 @@ void login::db::UpdateProfileGroup(std::string_view name, const ProfileGroup& gr
 			else
 				sqlite3_bind_null(stmt, 2);
 
-			sqlite3_bind_int(stmt, 3, group.selected);
+			sqlite3_bind_int(stmt, 3, static_cast<int>(group.sortOrder));
 
 			BindText(stmt, 4, name);
 
+			sqlite3_step(stmt);
+		}
+	);
+}
+
+void login::db::TouchProfileGroup(std::string_view name)
+{
+	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
+		R"(
+			UPDATE profile_groups
+			SET last_selected = strftime('%s', 'now')
+			WHERE name  = LOWER(?))",
+		[name](sqlite3_stmt* stmt, sqlite3* db)
+		{
+			BindText(stmt, 1, name);
 			sqlite3_step(stmt);
 		}
 	);
@@ -1232,7 +1259,7 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT id, account, server_type, visible
+			SELECT characters.id, account, server_type, visible
 			FROM characters
 			JOIN accounts ON accounts.id = account_id
 			WHERE character = LOWER(?) AND server = LOWER(?))",
@@ -1568,7 +1595,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			SELECT DISTINCT hotkey, character, server,
 				FIRST_VALUE(class) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS class,
 				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
-				account, server_type, profiles.selected,
+				account, server_type, profiles.sort_order,
 				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
 				end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
@@ -1577,7 +1604,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 			JOIN profile_groups ON profile_groups.id = group_id
 			LEFT JOIN personas USING (character_id)
 			WHERE profile_groups.name = LOWER(?)
-			ORDER BY profiles.selected IS NULL, profiles.selected = 0, profiles.selected ASC, character ASC, server ASC)",
+			ORDER BY profiles.sort_order ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			BindText(stmt, 1, group);
@@ -1636,7 +1663,7 @@ std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
 			JOIN profile_groups ON profile_groups.id = group_id
 			WHERE profile_groups.name = LOWER(?)
 			  AND will_load <> 0
-			ORDER BY profiles.selected ASC)",
+			ORDER BY profiles.sort_order ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
 			std::vector<ProfileRecord> profiles;
@@ -1667,9 +1694,9 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, selected, custom_client_ini, will_load)
-			VALUES((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, selected=excluded.selected, will_load=excluded.will_load)",
+			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, custom_client_ini, will_load)
+			VALUES((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?)
+			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, sort_order=excluded.sort_order, will_load=excluded.will_load)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.serverName);
@@ -1693,14 +1720,12 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 			else
 				sqlite3_bind_null(stmt, 7);
 
-			sqlite3_bind_int(stmt, 8, static_cast<int>(profile.sortOrder));
-
 			if (profile.customClientIni)
-				BindText(stmt, 9, *profile.customClientIni);
+				BindText(stmt, 8, *profile.customClientIni);
 			else
-				sqlite3_bind_null(stmt, 9);
+				sqlite3_bind_null(stmt, 8);
 
-			sqlite3_bind_int(stmt, 10, profile.willLoad ? 1 : 0);
+			sqlite3_bind_int(stmt, 9, profile.willLoad ? 1 : 0);
 
 			sqlite3_step(stmt);
 		});
@@ -1710,7 +1735,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, profiles.selected, end_after_select, char_select_delay, custom_client_ini, will_load
+			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, profiles.sort_order, end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
@@ -1758,7 +1783,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 	// left join group here to allow for empty group (in the case where you want character/server, and it doesn't matter)
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT id, eq_path, hotkey, level, account, password, selected, server_type, end_after_select, char_select_delay, custom_client_ini, will_load
+			SELECT id, eq_path, hotkey, level, account, password, sort_order, server_type, end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
 			JOIN (SELECT id AS character_id, account FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) USING (character_id)
 			JOIN (SELECT id AS account_id, account_id, server_type FROM accounts) USING (account_id)
@@ -1827,13 +1852,13 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 	// left join group here to allow for empty group (in the case where you want character/server, and it doesn't matter)
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT p.id, COALESCE(p.eq_path, g.eq_path), hotkey, server_type, account, password, server, character, selected, end_after_select, char_select_delay, custom_client_ini
+			SELECT p.id, COALESCE(p.eq_path, g.eq_path), hotkey, server_type, account, password, server, character, sort_order, end_after_select, char_select_delay, custom_client_ini
 			FROM profiles p
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
 			JOIN (SELECT id AS group_id, eq_path FROM profile_groups WHERE name = LOWER(?)) g USING (group_id)
 			WHERE will_load <> 0
-			ORDER BY selected IS NULL, selected = 0, selected ASC, character ASC, server ASC
+			ORDER BY sort_order ASC
 			LIMIT 1)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
 		{
@@ -1886,7 +1911,7 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 			UPDATE profiles
 			SET eq_path = ?,
 			    hotkey = ?,
-			    selected = ?,
+			    sort_order = ?,
 			    end_after_select = ?,
 			    char_select_delay = ?,
 			    custom_client_ini = ?,
@@ -1983,7 +2008,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	std::vector<ProfileGroup> profile_groups;
 
 	auto groups = WithDb::Query<std::map<unsigned int, ProfileGroup>>(SQLITE_OPEN_READONLY,
-		R"(SELECT id, name, eq_path FROM profile_groups ORDER BY selected=0, selected ASC, name ASC)",
+		R"(SELECT id, name, eq_path FROM profile_groups ORDER BY sort_order ASC)",
 		[](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			std::map<unsigned int, ProfileGroup> groups;
@@ -2006,7 +2031,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 	{
 		WithDb::Query<void>(SQLITE_OPEN_READONLY,
 			R"(
-					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.selected, p.eq_path,
+					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.sort_order, p.eq_path,
 					    FIRST_VALUE(l.class) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS class,
 					    FIRST_VALUE(l.level) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS level,
 					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini, p.will_load
@@ -2015,7 +2040,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					JOIN accounts a ON c.account_id = a.id
 					LEFT JOIN personas l ON l.character_id = c.id
 					WHERE p.group_id = ?
-					ORDER BY p.selected IS NULL, p.selected = 0, p.selected ASC, character ASC, server ASC)",
+					ORDER BY p.sort_order ASC)",
 			[&id = group.first, &group = group.second](sqlite3_stmt* stmt, sqlite3*)
 			{
 				sqlite3_bind_int(stmt, 1, static_cast<int>(id));
@@ -2380,6 +2405,106 @@ static bool MigrateVersion6Schema()
 	)");
 }
 
+// fix up ordering
+static bool MigrateVersion7Schema()
+{
+	return MigrateTableSchema(R"(
+		DROP TABLE IF EXISTS profile_groups_new;
+		CREATE TABLE profile_groups_new (
+		  id integer primary key,
+		  name text not null,
+		  eq_path text,
+		  sort_order integer,
+		  last_selected integer not null default (strftime('%s', 'now')),
+		  unique (name));
+
+		INSERT INTO profile_groups_new (id, name, eq_path, sort_order)
+		SELECT id, name, eq_path, selected AS sort_order
+		FROM profile_groups;
+
+		UPDATE profile_groups_new
+		SET last_selected = strftime('%s', 'now') + 1
+		WHERE id = 1;
+
+		DROP TABLE profile_groups;
+		ALTER TABLE profile_groups_new RENAME TO profile_groups;
+
+		CREATE TRIGGER profile_groups_order AFTER INSERT ON profile_groups
+		BEGIN
+		  UPDATE profile_groups
+		  SET sort_order = CASE WHEN s.sort_order IS NULL THEN 1 ELSE s.sort_order + 1 END
+		  FROM (SELECT max(sort_order) AS sort_order FROM profile_groups) s
+		  WHERE id = new.id AND new.sort_order IS NULL;
+		END;
+
+		WITH o AS (
+		  SELECT group_id, MAX(selected) AS selected
+		  FROM profiles
+		  GROUP BY group_id
+		)
+		UPDATE profiles
+		SET selected = row_number() OVER (PARTITION BY p.group_id ORDER BY p.character ASC, p.server ASC) + p.selected
+		FROM (
+		  SELECT p.id, p.group_id, c.character, c.server, o.selected
+		  FROM o
+		  JOIN profiles p USING (group_id)
+		  JOIN (SELECT id as character_id, character, server FROM characters) c USING (character_id)
+		) p
+		WHERE profiles.id = p.id AND (profiles.selected IS NULL OR profiles.selected <= 0);
+
+		DROP TABLE IF EXISTS profiles_new;
+		CREATE TABLE profiles_new (
+		  id integer primary key,
+		  character_id integer not null,
+		  group_id integer not null,
+		  eq_path text,
+		  hotkey text,
+		  end_after_select integer,
+		  char_select_delay integer,
+		  custom_client_ini text,
+		  sort_order integer,
+		  will_load integer not null default 1,
+		  foreign key (character_id) references characters(id) on delete cascade,
+		  foreign key (group_id) references profile_groups(id) on delete cascade,
+		  unique (character_id, group_id));
+
+		INSERT INTO profiles_new (
+		  id,
+		  character_id,
+		  group_id,
+		  eq_path,
+		  hotkey,
+		  end_after_select,
+		  char_select_delay,
+		  custom_client_ini,
+		  sort_order,
+		  will_load)
+		SELECT
+		  id,
+		  character_id,
+		  group_id,
+		  eq_path,
+		  hotkey,
+		  end_after_select,
+		  char_select_delay,
+		  custom_client_ini,
+		  selected AS sort_order,
+		  will_load
+		FROM profiles;
+
+		DROP TABLE profiles;
+		ALTER TABLE profiles_new RENAME TO profiles;
+
+		CREATE TRIGGER profiles_order AFTER INSERT ON profiles
+		BEGIN
+		  UPDATE profiles
+		  SET sort_order = CASE WHEN s.sort_order IS NULL THEN 1 ELSE s.sort_order + 1 END
+		  FROM (SELECT MAX(sort_order) AS sort_order FROM profiles WHERE group_id = new.group_id) s
+		  WHERE id = new.id AND new.sort_order IS NULL;
+		END;
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2450,6 +2575,9 @@ bool login::db::InitDatabase(const std::string& path)
 		[[fallthrough]];
 	case 6:
 		migrations.push_back(&MigrateVersion6Schema);
+		[[fallthrough]];
+	case 7:
+		migrations.push_back(&MigrateVersion7Schema);
 		[[fallthrough]];
 	default:
 		break;

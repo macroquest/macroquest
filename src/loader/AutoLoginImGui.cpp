@@ -492,7 +492,7 @@ static void DefaultListBox(Info& info)
 	static constexpr std::string_view edit_prefix = "Edit ";
 	static constexpr const char* edit_name = JoinLabels<edit_prefix, Info::label>::literal;
 	ImGui::SameLine();
-	if (ImGui::Button(edit_name) || ImGui::IsKeyPressed(ImGuiKey_Enter))
+	if (ImGui::Button(edit_name))
 	{
 		if (info.Valid())
 		{
@@ -549,7 +549,7 @@ static void DefaultCombo(Info& info, const Action& select_action)
 	ImGui::SameLine(0.f, 0.f);
 	static constexpr std::string_view edit_prefix = "Edit ";
 	static constexpr const char* edit_name = JoinLabels<edit_prefix, Info::label>::literal;
-	if (ImGui::Button(ICON_MD_EDIT) || ImGui::IsKeyPressed(ImGuiKey_Enter))
+	if (ImGui::Button(ICON_MD_EDIT))
 	{
 		if (info.Valid())
 		{
@@ -598,19 +598,16 @@ static void DefaultCombo(Info& info, const Action& select_action)
 
 template <typename Result>
 void DefaultComboList(
+	std::string& search,
 	const std::function<void(const Result&)>& select_action,
-	std::function<login::db::Results<Result>(std::string_view)> results_action,
+	login::db::Cache<std::function<std::vector<Result>()>>& cache,
 	const std::function<bool(const Result&)>& is_selected,
 	const std::function<void(fmt::memory_buffer&, const Result&)>& preview)
 {
 	fmt::memory_buffer buf;
 
-	static std::string search;
 	static bool force_update = false;
-	static auto accounts = login::db::CacheResults([results_action = std::move(results_action)]
-		{ return results_action(search); });
-
-	auto do_select = [&select_action](const Result& match)
+	auto do_select = [&search, &select_action](const Result& match)
 		{
 			select_action(match);
 			search.clear();
@@ -619,23 +616,23 @@ void DefaultComboList(
 			ImGui::CloseCurrentPopup();
 		};
 
-	accounts.ReadHasChanged(force_update);
+	cache.ReadHasChanged(force_update);
 	if (force_update) force_update = false;
 
 	if (!ImGui::IsAnyItemActive()) ImGui::SetKeyboardFocusHere();
 	if (ImGui::InputText("##search", &search, ImGuiInputTextFlags_EscapeClearsAll))
 		force_update = true;
 
-	if (ImGui::IsKeyPressed(ImGuiKey_Enter) && !accounts.Updated().empty())
-		do_select(accounts.Updated().front());
+	if (ImGui::IsKeyPressed(ImGuiKey_Enter) && !cache.Updated().empty())
+		do_select(cache.Updated().front());
 
 	ImGuiListClipper clipper;
-	clipper.Begin(static_cast<int>(accounts.Updated().size()));
+	clipper.Begin(static_cast<int>(cache.Updated().size()));
 	while (clipper.Step())
 	{
 		for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 		{
-			auto& match = accounts.Updated().at(row);
+			auto& match = cache.Updated().at(row);
 
 			preview(buf, match);
 			buf.push_back(0);
@@ -964,14 +961,19 @@ void ServerTypeInfo::Edit(const char* name, const Action& ok_action)
 
 void AccountInfo::List(const Action& select_action)
 {
+	static std::string search;
+	static auto accounts = login::db::CacheResults([]
+		{ return login::db::ListAccountMatches(search); });
+
 	DefaultComboList<ProfileRecord>(
+		search,
 		[this, &select_action](const ProfileRecord& match)
 		{
 			Account = match.accountName;
 			ServerType.ServerType = match.serverType;
 			select_action();
 		},
-		login::db::ListAccountMatches,
+		accounts,
 		[this](const ProfileRecord& match)
 		{ return ci_equals(match.accountName, Account) && ci_equals(match.serverType, ServerType.ServerType); },
 		[](fmt::memory_buffer& buf, const ProfileRecord& match)
@@ -1151,14 +1153,19 @@ static void AccountTable(const std::string_view search)
 
 void CharacterInfo::List(const Action& select_action)
 {
+	static std::string search;
+	static auto characters = login::db::CacheResults([]
+		{ return login::db::ListCharacterMatches(search); });
+
 	DefaultComboList<ProfileRecord>(
+		search,
 		[this, &select_action](const ProfileRecord& match)
 		{
 			Character = match.characterName;
 			Server = match.serverName;
 			select_action();
 		},
-		login::db::ListCharacterMatches,
+		characters,
 		[this](const ProfileRecord& match)
 		{ return ci_equals(match.characterName, Character) && ci_equals(match.serverName, Server); },
 		[](fmt::memory_buffer& buf, const ProfileRecord& match)
@@ -1763,13 +1770,19 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 void ProfileGroupInfo::List(const Action& select_action)
 {
+	static std::string search;
+	static auto profile_groups = login::db::CacheResults([]
+		{ return login::db::ListProfileGroupMatches(search); });
+
 	DefaultComboList<std::string>(
+		search,
 		[this, &select_action](const std::string& match)
 		{
 			profileName = match;
+			login::db::TouchProfileGroup(match);
 			select_action();
 		},
-		login::db::ListProfileGroupMatches,
+		profile_groups,
 		[this](const std::string& match) { return ci_equals(match, profileName); },
 		[](fmt::memory_buffer& buf, const std::string& match)
 		{ fmt::format_to(std::back_inserter(buf), match); }
@@ -2022,9 +2035,14 @@ void ShowProfilesWindow()
 
 	if (info.profileName.empty())
 	{
-		const auto& groups = login::db::ListProfileGroups().vector();
-		if (!groups.empty())
-			info.profileName = groups.front();
+		if (const auto& group = login::db::GetLatestProfileGroup())
+			info.profileName = *group;
+		else
+		{
+			const auto& groups = login::db::ListProfileGroups().vector();
+			if (!groups.empty())
+				info.profileName = groups.front();
+		}
 	}
 
 	if (ImGui::BeginCombo("##Profile Group", info.Preview().c_str()))

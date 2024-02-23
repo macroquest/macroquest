@@ -79,7 +79,7 @@ struct ProfileGroup
 	std::optional<std::string> eqPath;
 	std::vector<ProfileRecord> records;
 
-	unsigned int selected = 0;
+	unsigned int sortOrder = 0;
 };
 
 std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name, std::string_view server_type);
@@ -304,7 +304,9 @@ Cache<std::function<T()>> CacheSetting(
 Results<std::string> ListProfileGroups();
 void CreateProfileGroup(const ProfileGroup& group);
 std::optional<unsigned int> ReadProfileGroup(ProfileGroup& group);
+std::optional<std::string> GetLatestProfileGroup();
 void UpdateProfileGroup(std::string_view name, const ProfileGroup& group);
+void TouchProfileGroup(std::string_view name);
 void DeleteProfileGroup(std::string_view name);
 
 Results<std::pair<std::string, std::string>> ListAccounts();
