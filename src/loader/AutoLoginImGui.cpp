@@ -331,7 +331,8 @@ struct CharacterInfo
 		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Level));
 		ImGui::TableSetupColumn("Account", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::Account));
 		ImGui::TableSetupColumn("EQ Install", ImGuiTableColumnFlags_None, 0.f, static_cast<ImGuiID>(SortID::EQ_Install));
-		ImGui::TableSetupColumn("##buttons", ImGuiTableColumnFlags_NoSort);
+		ImGui::TableSetupColumn("Launch", ImGuiTableColumnFlags_NoSort);
+		ImGui::TableSetupColumn(ICON_MD_POWER_SETTINGS_NEW, ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed);
 	}
 
 	static std::vector<ImGuiTableColumnSortSpecs> s_sortSpecs;
@@ -1231,7 +1232,7 @@ static void CharacterTable(const std::string_view search)
 	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
 
 	ImGui::PushOverrideID(CharacterInfo::GetID());
-	if (ImGui::BeginTable("Main List", 8, flags, { 0.f, height }))
+	if (ImGui::BeginTable("Main List", 9, flags, { 0.f, height }))
 	{
 		CharacterInfo::SetupColumns();
 		ImGui::TableSetupScrollFreeze(0, 1);
@@ -1273,6 +1274,7 @@ static void CharacterTable(const std::string_view search)
 		else
 			clipper.Begin(static_cast<int>(filtered_characters.size()));
 
+		const auto& loaded = GetLoadedInstances();
 		while (clipper.Step())
 		{
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
@@ -1356,6 +1358,14 @@ static void CharacterTable(const std::string_view search)
 					selected_profile = match;
 
 					LauncherImGui::OpenModal("Play With Params");
+				}
+
+				ImGui::TableNextColumn();
+				if (loaded.find(LoginInstance::Key(match)) != loaded.end())
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+					ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+					ImGui::PopStyleColor();
 				}
 
 				ImGui::PopID();
@@ -1569,7 +1579,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
 
-	if (ImGui::BeginTable("Main List", 7, flags, { 0.f, height }))
+	if (ImGui::BeginTable("Main List", 8, flags, { 0.f, height }))
 	{
 		if (!info.profileName.empty())
 		{
@@ -1579,7 +1589,8 @@ static void ProfileTable(const ProfileGroupInfo& info)
 			ImGui::TableSetupColumn("Account");
 			ImGui::TableSetupColumn("Persona");
 			ImGui::TableSetupColumn("Hotkey");
-			ImGui::TableSetupColumn("##play");
+			ImGui::TableSetupColumn("Launch");
+			ImGui::TableSetupColumn(ICON_MD_POWER_SETTINGS_NEW, ImGuiTableColumnFlags_WidthFixed);
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableHeadersRow();
 
@@ -1601,6 +1612,7 @@ static void ProfileTable(const ProfileGroupInfo& info)
 
 			ImGuiListClipper clipper;
 			clipper.Begin(static_cast<int>(profiles.Read(force_profiles_update).size()));
+			const auto& loaded = GetLoadedInstances();
 			while (clipper.Step())
 			{
 				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
@@ -1691,6 +1703,14 @@ static void ProfileTable(const ProfileGroupInfo& info)
 					if (ImGui::SmallButton("Play"))
 					{
 						LoadCharacter(profile);
+					}
+
+					if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
+					{
+						ImGui::SameLine();
+						ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
+						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
+						ImGui::PopStyleColor();
 					}
 
 					ImGui::PopID();
@@ -2395,7 +2415,7 @@ void ShowAutoLoginMenu()
 						window->RootWindow->Flags &= ~ImGuiWindowFlags_NoSavedSettings;
 
 						ImGui::PushOverrideID(CharacterInfo::GetID());
-						if (ImGui::BeginTable("Main List", 8, ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti))
+						if (ImGui::BeginTable("Main List", 9, ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti))
 						{
 							CharacterInfo::SetupColumns();
 							CharacterInfo::Sort(ImGui::TableGetSortSpecs(), server_characters.Updated());
