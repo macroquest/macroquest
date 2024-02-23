@@ -404,28 +404,6 @@ bool IsInjected(DWORD processId)
 	return bInjected;
 }
 
-bool IsEQGameProcessId(DWORD processId)
-{
-	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId));
-	if (!hSnapshot.is_valid())
-		return false;
-
-	MODULEENTRY32 me32 = { 0 };
-	me32.dwSize = sizeof(MODULEENTRY32);
-
-	bool success = false;
-
-	if (Module32First(hSnapshot.get(), &me32))
-	{
-		if (!_stricmp(me32.szModule, "eqgame.exe"))
-		{
-			success = true;
-		}
-	}
-
-	return success;
-}
-
 uintptr_t GetEQGameBaseAddressByPID(DWORD processId)
 {
 	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId));

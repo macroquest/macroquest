@@ -98,6 +98,39 @@ void AutoLoginRemoveProcess(const DWORD process_id)
 	s_dropbox.Post(address, message);
 }
 
+static bool IsEQGameProcessId(DWORD processId)
+{
+	wil::unique_process_handle hProcess{
+		OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId)
+	};
+
+	if (hProcess)
+	{
+		char szProcessName[MAX_PATH];
+		DWORD nameSize = MAX_PATH;
+
+		if (::QueryFullProcessImageNameA(hProcess.get(), 0, szProcessName, &nameSize))
+		{
+			std::string fileName = szProcessName;
+
+			// Extract the filename from the full path
+			size_t pos = fileName.find_last_of("\\/");
+			if (pos != std::string::npos)
+			{
+				fileName = fileName.substr(pos + 1);
+			}
+
+			if (ci_equals(fileName, "eqgame.exe"))
+				return true;
+
+			SPDLOG_DEBUG("Process id is not eq: {} name={}", processId, fileName);
+		}
+	}
+
+	SPDLOG_DEBUG("Process id not found: {}", processId);
+	return false;
+}
+
 static const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile)
 {
 	auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
@@ -127,8 +160,11 @@ static const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileReco
 			login_it->second.PID = pid;
 		}
 
+		// If process no longer exists we can remove it.
 		if (!IsEQGameProcessId(login_it->second.PID))
 		{
+			SPDLOG_INFO("Found invalid process, removing from instances. pid={}", login_it->second.PID);
+
 			// somehow we have a PID in our map that isn't EQ
 			if (login_it->second.Hotkey) UnregisterGlobalHotkey(*login_it->second.Hotkey);
 			login_it = s_loadedInstances.erase(login_it);
@@ -136,7 +172,6 @@ static const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileReco
 
 		// else do nothing because we are just acknowledging a loaded instance
 	}
-	// else login_it == s_loadedInstances.end() && !IsEQGameProcessId(pid) -- do nothing
 
 	if (login_it != s_loadedInstances.end())
 		return &login_it->second;
