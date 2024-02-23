@@ -57,6 +57,20 @@ struct ProfileRecord
 	void FormatTo(char* buffer, size_t length) const;
 
 	[[nodiscard]] std::string ToString() const;
+
+	static bool Compare(const ProfileRecord& a, const ProfileRecord& b)
+	{
+		if (a.sortOrder == 0 && b.sortOrder == 0)
+			return a.characterName.compare(b.characterName) < 0;
+
+		if (a.sortOrder == 0)
+			return false;
+
+		if (b.sortOrder == 0)
+			return true;
+
+		return a.sortOrder < b.sortOrder;
+	}
 };
 
 struct ProfileGroup

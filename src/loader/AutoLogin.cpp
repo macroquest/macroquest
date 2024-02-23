@@ -446,7 +446,11 @@ static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			const auto login = UpdateInstance(loaded.pid(), profile);
 
 			if (login != nullptr && login->Hotkey)
+			{
+				SPDLOG_DEBUG("Register Global Hotkey: {}", login->PID, *login->Hotkey);
+
 				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login->PID), *login->Hotkey);
+			}
 		}
 
 		break;
@@ -463,7 +467,11 @@ static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 			if (login_it != s_loadedInstances.end())
 			{
 				if (login_it->second.Hotkey)
+				{
+					SPDLOG_DEBUG("Unregister Global Hotkey: {}", login_it->second.PID, *login_it->second.Hotkey);
+
 					UnregisterGlobalHotkey(*login_it->second.Hotkey);
+				}
 
 				s_loadedInstances.erase(login_it);
 			}

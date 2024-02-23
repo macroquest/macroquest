@@ -235,10 +235,9 @@ struct AccountInfo
 			const auto& spec = specs->Specs[n];
 			const auto str_cmp = [&spec](std::string_view a, std::string_view b)
 				{
-					static ci_less less;
-					if (spec.SortDirection == ImGuiSortDirection_Ascending) return less(a, b);
+					if (spec.SortDirection == ImGuiSortDirection_Ascending) return ci_less()(a, b);
 
-					return !less(a, b);
+					return !ci_less()(a, b);
 				};
 
 			switch (static_cast<SortID>(spec.ColumnUserID))
@@ -353,10 +352,9 @@ struct CharacterInfo
 		{
 			const auto str_cmp = [&spec](std::string_view a, std::string_view b)
 				{
-					static ci_less less;
-					if (spec.SortDirection == ImGuiSortDirection_Ascending) return less(a, b);
+					if (spec.SortDirection == ImGuiSortDirection_Ascending) return ci_less()(a, b);
 
-					return !less(a, b);
+					return !ci_less()(a, b);
 				};
 
 			switch (static_cast<SortID>(spec.ColumnUserID))
@@ -430,20 +428,6 @@ struct ProfileInfo : ProfileRecord
 		ProfileRecord::operator=(record);
 		Character = {};
 		return *this;
-	}
-
-	static bool Compare(const ProfileRecord& a, const ProfileRecord& b)
-	{
-		if (a.sortOrder == 0 && b.sortOrder == 0)
-			return a.characterName.compare(b.characterName) < 0;
-
-		if (a.sortOrder == 0)
-			return false;
-
-		if (b.sortOrder == 0)
-			return true;
-
-		return a.sortOrder < b.sortOrder;
 	}
 };
 
