@@ -168,8 +168,8 @@ static const LoginInstance* StartInstance(ProfileRecord& profile)
 
 	if (!profile.eqPath)
 	{
-		SPDLOG_ERROR("No eq_path found for {} : {} (profile group {})",
-		             profile.serverName, profile.characterName, profile.profileName);
+		SPDLOG_ERROR("No eq_path found for {} ({}) (profile group {})",
+			profile.characterName, profile.serverName, profile.profileName);
 	}
 	else
 	{
@@ -183,7 +183,7 @@ static const LoginInstance* StartInstance(ProfileRecord& profile)
 			const auto eqgame = fs::path{ *profile.eqPath } / "eqgame.exe";
 			if (std::error_code ec; !fs::exists(eqgame, ec))
 			{
-				SPDLOG_ERROR("eqgame.exe does not exist at {} : {}", *profile.eqPath, ec.message());
+				SPDLOG_ERROR("eqgame.exe does not exist at {}: {}", *profile.eqPath, ec.message());
 			}
 			else
 			{
@@ -273,7 +273,7 @@ void LaunchCleanSession()
 	const auto eqgame = fs::path{ GetEQRoot() } / "eqgame.exe";
 	if (std::error_code ec; !fs::exists(eqgame, ec))
 	{
-		SPDLOG_ERROR("eqgame.exe does not exist at {} : {}", GetEQRoot(), ec.message());
+		SPDLOG_ERROR("eqgame.exe does not exist at {}: {}", GetEQRoot(), ec.message());
 	}
 	else
 	{

@@ -98,7 +98,7 @@ static void DeleteModal(const std::string& name, const std::string_view message,
 	ImGui::SetNextWindowSizeConstraints({ 200.f, 0.f }, { FLT_MAX, FLT_MAX });
 	if (LauncherImGui::BeginModal(name, nullptr, ImGuiWindowFlags_None))
 	{
-		ImGui::TextWrapped("%.*s", static_cast<int>(message.length()), message.data());
+		ImGui::Text("%.*s", static_cast<int>(message.length()), message.data());
 		ImGui::Spacing();
 
 		DefaultModalButtons(yes_action, "No", "Yes");
@@ -532,7 +532,7 @@ static void DefaultListBox(Info& info)
 	{
 		if (info.Valid())
 		{
-			remove_message = fmt::format("Are you sure you want to remove {} '{}'? All dependent data will also be removed.", Info::label, info.Preview());
+			remove_message = fmt::format("Are you sure you want to remove {} '{}'?\n\nAll dependent data will also be removed.", Info::label, info.Preview());
 			LauncherImGui::OpenModal(remove_name);
 		}
 	}
@@ -1112,7 +1112,7 @@ static void AccountTable(const std::string_view search)
 
 					if (ImGui::Selectable("Remove Account"))
 					{
-						remove_message = fmt::format("Are you certain you want to remove account '{} ({})'? All associated characters will also be removed.", match.accountName, match.serverType);
+						remove_message = fmt::format("Are you certain you want to remove account '{} ({})'?\n\nAll associated characters will also be removed.", match.accountName, match.serverType);
 						selected_profile = match;
 						LauncherImGui::OpenModal("Remove Account");
 					}
@@ -1333,7 +1333,7 @@ static void CharacterTable(const std::string_view search)
 
 					if (ImGui::Selectable("Remove Character"))
 					{
-						remove_message = fmt::format("Are you certain you want to remove character '{} ({})'? All associated profiles will also be removed.", match.characterName, match.serverName);
+						remove_message = fmt::format("Are you certain you want to remove character '{} ({})'?\n\nAll associated profiles will also be removed.", match.characterName, match.serverName);
 						selected_profile = match;
 						LauncherImGui::OpenModal("Remove Character");
 					}
@@ -2014,7 +2014,7 @@ void ShowProfilesWindow()
 
 		if (ImGui::SmallButton("Remove") && info.Valid())
 		{
-			s_removeMessage = fmt::format("Are you sure you want to remove profile group '{}'? All associated profiles will also be removed.", info.profileName.c_str());
+			s_removeMessage = fmt::format("Are you sure you want to remove profile group '{}'?\n\nAll associated profiles will also be removed.", info.profileName.c_str());
 			LauncherImGui::OpenModal("Remove Profile Group");
 		}
 
