@@ -685,37 +685,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, MSG, wParam, lParam);
 }
 
+static void AddUnderline(ImColor color)
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
+}
+
+static void DrawTextLink(const std::string& label, const std::string& url)
+{
+	ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+	ImGui::Text(label.c_str());
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
+		}
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
+	}
+	else
+	{
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+	}
+}
+
 void ShowMacroQuestInfo()
 {
-	auto link = [](const std::string& label, const std::string& url)
-		{
-			auto add_underline = [](ImColor color)
-				{
-					ImVec2 min = ImGui::GetItemRectMin();
-					ImVec2 max = ImGui::GetItemRectMax();
-					min.y = max.y;
-					ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
-				};
-
-			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-			ImGui::Text(label.c_str());
-			ImGui::PopStyleColor();
-
-			if (ImGui::IsItemHovered())
-			{
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-				{
-					ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
-				}
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-				ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
-			}
-			else
-			{
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
-			}
-		};
-
 	ImGui::Spacing();
 	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
 	ImGui::Text("MacroQuest Useful Links");
@@ -723,9 +723,10 @@ void ShowMacroQuestInfo()
 	ImGui::Separator();
 	ImGui::Spacing();
 
-	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
-	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
-	ImGui::Bullet(); link("MacroQuest on GitHub", "https://github.com/macroquest/macroquest");
+	ImGui::Bullet(); DrawTextLink("MacroQuest Website", "https://macroquest.org");
+	ImGui::Bullet(); DrawTextLink("MacroQuest Documentation", "https://docs.macroquest.org/");
+	ImGui::Bullet(); DrawTextLink("MacroQuest on GitHub", "https://github.com/macroquest/macroquest");
+}
 
 struct PidInfo
 {
