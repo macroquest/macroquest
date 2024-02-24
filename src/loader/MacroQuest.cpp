@@ -311,7 +311,7 @@ void SetForegroundWindowInternal(HWND hWnd)
 void OnProcessAdded(uint32_t processId)
 {
 	s_processIds.insert(processId);
-	Inject(processId, 1s);
+	Inject(processId);
 }
 
 void OnProcessRemoved(uint32_t processId)
