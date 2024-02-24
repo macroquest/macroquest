@@ -189,6 +189,7 @@ static ProfileRecord ParseProfileFromMessage(const proto::login::ProfileMethod& 
 {
 	ProfileRecord record;
 	record.profileName = profile.profile();
+	record.accountName = profile.account();
 
 	if (profile.has_target() && profile.target().has_character() && profile.target().has_server())
 	{
@@ -223,7 +224,7 @@ static ProfileRecord ParseProfileFromMessage(const Missive& missive)
 	}
 }
 
-static void ReceivedMessageHandler(ProtoMessagePtr&& message)
+static void ReceivedMessageHandler(const ProtoMessagePtr& message)
 {
 	const auto login_message = message->Parse<proto::login::LoginMessage>();
 	switch (login_message.id())
@@ -238,11 +239,11 @@ static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 
 			// only set the hotkey if the instance reports successfully loaded
 			ProfileRecord profile = ParseProfileFromMessage(loaded);
-			const auto login = UpdateInstance(loaded.pid(), profile);
+			const LoginInstance* login = UpdateInstance(loaded.pid(), profile, true);
 
 			if (login != nullptr && login->Hotkey)
 			{
-				SPDLOG_DEBUG("Register Global Hotkey: {}", login->PID, *login->Hotkey);
+				SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}", login->PID, *login->Hotkey);
 
 				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login->PID), *login->Hotkey);
 			}

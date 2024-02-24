@@ -70,6 +70,14 @@ struct ProfileRecord
 
 		return a.sortOrder < b.sortOrder;
 	}
+
+	bool IsEquivalent(const ProfileRecord& other)
+	{
+		return profileName == other.profileName
+			&& serverName == other.serverName
+			&& accountName == other.accountName
+			&& characterName == other.characterName;
+	}
 };
 
 struct ProfileGroup

@@ -228,13 +228,6 @@ public:
 			{
 				SetProfileRecord(record);
 
-				NotifyCharacterLoad(
-					record->profileName.c_str(),
-					record->accountName.c_str(),
-					record->serverName.c_str(),
-					record->characterName.c_str()
-				);
-
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 				SetEditWndText(pUsernameEditWnd, m_record->accountName);
 
@@ -528,19 +521,43 @@ public:
 
 		// valid if server long name is what is in the record
 		if (auto shortname = login::db::ReadShortServer(m_record->serverName))
+		{
 			if (ci_equals(GetServerShortName(), *shortname))
 				return false;
+		}
 
 		// no matches, not a valid server
 		return true;
+	}
+
+	static bool is_wrong_account()
+	{
+		// This happens if we switch profiles. Check against the account stored on the profile
+		// to determine if we need to back out.
+
+		// If we don't have login name, we can't tell.
+		const char* loginName = GetLoginName();
+		if (loginName == nullptr || loginName[0] == 0)
+			return false;
+
+		if (m_record)
+		{
+			// If the account isn't provided we assume it is a character on the current account.
+			if (m_record->accountName.empty())
+				return false;
+
+			if (!ci_equals(loginName, m_record->accountName))
+				return true;
+		}
+
+		return false;
 	}
 
 	void entry() override
 	{
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-
-			if (is_invalid_server())
+			if (is_invalid_server() || is_wrong_account())
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -566,7 +583,7 @@ public:
 
 				if (index < 0)
 				{
-					WriteChatf("\ag[AutoLogin\ax] No character named \"%s\" found! Stopping...", m_record->characterName.c_str());
+					WriteChatf("\ag[AutoLogin]\ax No character named \"%s\" found! Stopping...", m_record->characterName.c_str());
 
 					dispatch(StopLogin());
 					transit<Wait>();
@@ -664,8 +681,8 @@ public:
 	}
 };
 
-std::shared_ptr<ProfileRecord> Login::m_record;
-std::shared_ptr<ProfileRecord> Login::m_lastRecord;
+std::shared_ptr<ProfileRecord> Login::m_record;              // This is the autologin record - only set during active autologin
+std::shared_ptr<ProfileRecord> Login::m_currentRecord;       // This is what we logged in as.
 std::vector<ProfileGroup> Login::m_profiles;
 CXWnd* Login::m_currentWindow = nullptr;
 bool Login::m_paused = false;

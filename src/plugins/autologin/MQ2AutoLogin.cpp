@@ -73,7 +73,7 @@ public:
 		if (!pMember)
 			return false;
 
-		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		std::shared_ptr<ProfileRecord> record = Login::get_current_record();
 		if (!record)
 			return false;
 
@@ -129,7 +129,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		std::shared_ptr<ProfileRecord> record = Login::get_current_record();
 		if (!record)
 			return false;
 
@@ -247,12 +247,36 @@ void NotifyCharacterLoad(const char* Profile, const char* Account, const char* S
 	Post(proto::login::ProfileLoaded, loaded);
 }
 
+void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
+{
+	NotifyCharacterLoad(
+		ptr->profileName.c_str(),
+		ptr->accountName.c_str(),
+		ptr->serverName.c_str(),
+		ptr->characterName.c_str()
+	);
+}
+
 void NotifyCharacterUnload()
 {
 	proto::login::StopInstanceMissive stop;
 	stop.set_pid(GetCurrentProcessId());
 
 	Post(proto::login::ProfileUnloaded, stop);
+}
+
+void Login::SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
+{
+	if (m_record == ptr)
+		return;
+
+	m_record = ptr;
+
+	// We don't remove the character info if this is cleared
+	if (m_record)
+	{
+		set_current_record(m_record);
+	}
 }
 
 void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character)
@@ -314,11 +338,11 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 }
 
 template <typename EventType>
-void PerformSwitch(const EventType& event)
+void PerformSwitch(const EventType& event, bool logout)
 {
-	NotifyCharacterUnload();
-
-	if (GetGameState() == GAMESTATE_INGAME)
+	// TODO: We need a state for camping out, we don't want to dispatch the login info change
+	// until it actually happens.
+	if (logout && GetGameState() == GAMESTATE_INGAME)
 	{
 		if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
 		{
@@ -329,9 +353,42 @@ void PerformSwitch(const EventType& event)
 		EzCommand("/camp fast");
 	}
 
-	Login::dispatch(event);
 
-	NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
+	Login::dispatch(event);
+}
+
+ProfileRecord GetCharacterProfile(const char* serverName, const char* szCharacter)
+{
+	// Check if a profile exists matching this character name on the same server and profile.
+	if (std::shared_ptr<ProfileRecord> record = Login::get_current_record())
+	{
+		auto profiles = login::db::GetProfiles(record->profileName);
+
+		for (auto& profile : profiles)
+		{
+			if (ci_equals(profile.characterName, szCharacter)
+				&& ci_equals(profile.serverName, serverName)
+				&& ci_equals(profile.accountName, record->accountName))
+			{
+				return profile;
+			}
+		}
+	}
+
+	ProfileRecord record;
+	record.serverName = to_lower_copy(serverName);
+	record.characterName = to_lower_copy(szCharacter);
+
+	return record;
+}
+
+// Returns the profile name if we found one.
+std::string SwitchCharacterProfile(const char* serverName, const char* szCharacter, bool logout)
+{
+	ProfileRecord rec = GetCharacterProfile(serverName, szCharacter);
+	PerformSwitch(SetLoginProfile(rec), logout);
+
+	return rec.profileName;
 }
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
@@ -369,8 +426,15 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 	}
 	else
 	{
-		PerformSwitch(SetLoginInformation(szServer, szCharacter));
-		WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter, true); !profileName.empty())
+		{
+			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax with profile \ay%s\ax.",
+				szCharacter, szServer, profileName.c_str());
+		}
+		else
+		{
+			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
+		}
 	}
 }
 
@@ -382,36 +446,25 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
+	char szCharacter[MAX_STRING] = { 0 };
+	GetArg(szCharacter, szLine, 1);
 
-	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szArg1))
+	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
+		WriteChatf("\ayYou're already logged onto '%s'\ax", szCharacter);
 	}
 	else
 	{
-		// Check if a profile exists matching this character name on the same server and profile.
-		const char* serverName = GetServerShortName();
-		if (std::shared_ptr<ProfileRecord> record = Login::get_last_record())
+		const char* szServer = GetServerShortName();
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter, true); !profileName.empty())
 		{
-			auto profiles = login::db::GetProfiles(record->profileName);
-
-			for (auto& profile : profiles)
-			{
-				if (ci_equals(profile.characterName, szArg1)
-					&& ci_equals(profile.serverName, serverName)
-					&& ci_equals(profile.accountName, record->accountName))
-				{
-					PerformSwitch(SetLoginProfile(profile));
-					WriteChatf("Camping to character select and switching to character \ag%s\ax with profile \ay%s\ax.", szArg1, record->profileName.c_str());
-					return;
-				}
-			}
+			WriteChatf("Switching to \ag%s\ax with profile \ay%s\ax.",
+				szCharacter, profileName.c_str());
 		}
-
-		PerformSwitch(SetLoginInformation(serverName, szArg1));
-		WriteChatf("Camping to character select and switching to character \ag%s\ax.", szArg1);
+		else
+		{
+			WriteChatf("Switching to \ag%s\ax.", szCharacter);
+		}
 	}
 }
 
@@ -451,7 +504,8 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
-		PerformSwitch(SetLoginInformation(GetServerShortName(), pLocalPlayer->DisplayedName));
+		SwitchCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName, true);
+
 		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
 		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
 			pLocalPlayer->DisplayedName, GetServerShortName(), szLine);
@@ -601,6 +655,8 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 			DebugSpewAlways(strLogMessage.c_str());
 			fprintf(fLog, "%s\n", strLogMessage.c_str());
 			fclose(fLog);
+
+			WriteChatf("\ay[AutoLogin]\ax %.*s", svLogMessage.size(), svLogMessage.data());
 		}
 	}
 }
@@ -715,6 +771,30 @@ PLUGIN_API void SetGameState(int GameState)
 
 		Login::m_currentLogin.reset();
 	}
+
+	if (GameState == GAMESTATE_INGAME)
+	{
+		if (const std::shared_ptr<ProfileRecord>& currentRecord = Login::get_current_record())
+		{
+			// If we manage to get into the game on a different character than what we had started our profile
+			// with, switch profiles.
+			if (!ci_equals(currentRecord->characterName, pLocalPlayer->DisplayedName)
+				|| !ci_equals(currentRecord->serverName, GetServerShortName()))
+			{
+				Login::set_current_record(
+					std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
+			}
+			else
+			{
+				NotifyCharacterLoad(currentRecord);
+			}
+		}
+		else
+		{
+			Login::set_current_record(
+				std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
+		}
+	}
 }
 
 PLUGIN_API void InitializePlugin()
@@ -725,7 +805,7 @@ PLUGIN_API void InitializePlugin()
 
 	if (!login::db::InitDatabase((fs::path(gPathConfig) / "login.db").string()))
 	{
-		SPDLOG_ERROR("Could not load autologin database, Autologin functionality will be disabled");
+		WriteChatf("\ar[AutoLogin]\ax Could not load autologin database, Autologin functionality will be disabled");
 	}
 
 	Login::set_initial_state();
@@ -1038,6 +1118,75 @@ static bool InputInt(const char* label, int* v, int step = 1, int step_fast = 10
     return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
 }
 
+static void DisplayProfileInfo(const std::shared_ptr<ProfileRecord>& profile, bool allowClear)
+{
+	if (profile)
+	{
+		bool hovered = false;
+		if (!profile->profileName.empty())
+		{
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s:", profile->profileName.c_str());
+			hovered |= ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), " %s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
+			hovered |= ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+		}
+		else
+		{
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(),
+				profile->serverName.c_str());
+			hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+		}
+
+		if (hovered)
+		{
+			if (ImGui::BeginTooltip())
+			{
+				if (!profile->profileName.empty())
+				{
+					ImGui::TextUnformatted("Profile:");
+					ImGui::SameLine();
+					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->profileName.c_str());
+				}
+
+				ImGui::TextUnformatted("Character:");
+				ImGui::SameLine();
+				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->characterName.c_str());
+
+				ImGui::TextUnformatted("Server:");
+				ImGui::SameLine();
+				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+
+
+				ImGui::EndTooltip();
+			}
+		}
+
+		if (allowClear)
+		{
+			ImGui::SameLine();
+
+			if (ImGui::SmallButton(ICON_MD_CLEAR))
+			{
+				Login::clear_current_record();
+			}
+		}
+
+		ImGui::SetItemTooltip(
+			"Clear the currently loaded profile. This will\n"
+			"also detach the session from the current hotkey (if any)."
+		);
+
+		if (!profile->hotkey.empty())
+		{
+			ImGui::TextUnformatted("HotKey:");
+			ImGui::SameLine();
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->hotkey.c_str());
+		}
+
+		ImGui::Spacing();
+	}
+}
 
 static void ShowAutoLoginOverlay(bool* p_open)
 {
@@ -1055,6 +1204,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 		ImGui::SetNextWindowViewport(viewport->ID);
 	}
+
+	ImGui::SetNextWindowSizeConstraints(ImVec2(250, 0), ImVec2(FLT_MAX, FLT_MAX));
 	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT ? .85f : .35f); // Transparent background
 	if (ImGui::Begin("AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
@@ -1075,16 +1226,9 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			else
 				ImGui::TextColored(ImColor(255, 255, 0), "paused");
 
-			ImGui::Text("Server: %s", Login::server());
-			ImGui::Text("Character: %s", Login::character());
+			DisplayProfileInfo(Login::get_record(), false);
 
-			if (strlen(Login::profile()) > 0)
-				ImGui::Text("Profile: %s", Login::profile());
-
-			if (strlen(Login::hotkey()) > 0)
-				ImGui::Text("HotKey: %s", Login::hotkey());
-
-			if (!Login::get_record() || Login::get_record()->accountPassword.empty())
+			if (!Login::get_record() || Login::get_record()->accountPassword.empty() && Login::last_state() == LoginState::Connect)
 			{
 				float green = (50 - abs(50 - (ImGui::GetFrameCount() % 100))) / 100.0f;
 
@@ -1119,10 +1263,14 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::SameLine(0, 4.0f);
 			ImGui::TextColored(ImColor(255, 0, 0), "inactive");
 
+			DisplayProfileInfo(Login::get_current_record(), true);
+
 			if (ImGui::Button("Select Profile"))
 			{
 				ImGui::OpenPopup("ProfileSelector");
 			}
+
+			ImGui::SameLine();
 
 			if (ImGui::Button("Select Character"))
 			{
@@ -1179,7 +1327,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			}
 			if (Login::current_window() != nullptr && Login::current_window()->GetXMLData() != nullptr)
 			{
-				ImGui::Text("Current Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
+				ImGui::Text("Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
 			}
 
 			ImGui::Separator();

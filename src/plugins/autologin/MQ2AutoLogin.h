@@ -38,6 +38,9 @@ struct CurrentLogin
 };
 
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
+void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr);
+void NotifyCharacterUnload();
+void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character);
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
 CXStr GetWindowText(CXWnd* pWnd);
 CXStr GetEditWndText(CEditWnd* pWnd);
@@ -146,6 +149,7 @@ struct SetLoginInformation : tinyfsm::Event
 	SetLoginInformation& operator=(const SetLoginInformation&) = delete;
 };
 
+// this event will notify state to change to the provided profile.
 struct SetLoginProfile : tinyfsm::Event
 {
 	ProfileRecord Record;
@@ -184,7 +188,7 @@ class Login : public tinyfsm::Fsm<Login>
 {
 protected:
 	static std::shared_ptr<ProfileRecord> m_record;
-	static std::shared_ptr<ProfileRecord> m_lastRecord;
+	static std::shared_ptr<ProfileRecord> m_currentRecord;
 	static std::vector<ProfileGroup> m_profiles;
 	static CXWnd* m_currentWindow; // the current in focus window
 	static bool m_paused;
@@ -192,12 +196,7 @@ protected:
 	static LoginState m_lastState;
 	static unsigned char m_retries;
 
-	void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
-	{
-		m_record = ptr;
-		if (ptr != nullptr)
-			m_lastRecord = ptr;
-	}
+	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr);
 
 public:
 	// This must be defined in the implementation where the state classes are defined
@@ -205,18 +204,10 @@ public:
 
 	virtual void react(const SetLoginInformation& e)
 	{
-		if (m_record)
-		{
-			m_record->characterName = e.Character;
-			if (!e.Server.empty()) m_record->serverName = e.Server;
-		}
-		else
-		{
-			ProfileRecord record;
-			record.serverName = e.Server;
-			record.characterName = e.Character;
-			dispatch(SetLoginProfile(record));
-		}
+		ProfileRecord record;
+		record.serverName = e.Server;
+		record.characterName = e.Character;
+		dispatch(SetLoginProfile(record));
 	}
 
 	virtual void react(const SetLoginProfile& ev)
@@ -251,6 +242,7 @@ public:
 	{
 		m_paused = true;
 		m_record.reset();
+
 		// Once Autologin has performed or failed, this is no longer relevant and will only break future commands.
 		m_settings.EndAfterSelect = false;
 	}
@@ -271,7 +263,6 @@ public:
 
 	static int character_level() { return m_record ? m_record->characterLevel : 0; }
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
-	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
 	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
 	static bool paused() { return m_paused; }
@@ -279,6 +270,23 @@ public:
 	static LoginState last_state() { return m_lastState; }
 	static unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
+
+	static std::shared_ptr<ProfileRecord> get_current_record() { return m_currentRecord; }
+	static void clear_current_record()
+	{
+		m_currentRecord.reset();
+		NotifyCharacterUnload();
+	}
+
+	static void set_current_record(const std::shared_ptr<ProfileRecord>& ptr)
+	{
+		if (!m_currentRecord || !m_currentRecord->IsEquivalent(*ptr))
+		{
+			NotifyCharacterLoad(ptr);
+		}
+
+		m_currentRecord = ptr;
+	}
 
 	struct Settings
 	{

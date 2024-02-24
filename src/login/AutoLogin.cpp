@@ -41,6 +41,35 @@ const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances()
 	return s_loadedInstances;
 }
 
+static std::string GetEQGameProcessPath(uint32_t processId)
+{
+	wil::unique_process_handle hProcess{
+		OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId)
+	};
+
+	if (hProcess)
+	{
+		char szProcessName[MAX_PATH];
+		DWORD nameSize = MAX_PATH;
+
+		if (::QueryFullProcessImageNameA(hProcess.get(), 0, szProcessName, &nameSize))
+		{
+			std::string fileName = szProcessName;
+
+			// Extract the filename from the full path
+			size_t pos = fileName.find_last_of("\\/");
+			if (pos != std::string::npos)
+			{
+				fileName = fileName.substr(0, pos);
+			}
+
+			return fileName;
+		}
+	}
+
+	return {};
+}
+
 static bool IsEQGameProcessId(DWORD processId)
 {
 	wil::unique_process_handle hProcess{
@@ -76,7 +105,7 @@ static bool IsEQGameProcessId(DWORD processId)
 
 #pragma region LoginInstance
 
-const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile)
+const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile, bool add /* = false */)
 {
 	auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
 	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(pid))
@@ -87,12 +116,33 @@ const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& pro
 			[pid](const std::pair<std::string, LoginInstance>& instance)
 			{ return instance.second.PID == pid; });
 
+		std::string newKey = LoginInstance::Key(profile);
+
 		if (login_it != s_loadedInstances.end())
 		{
-			// found an instance with the same PID, update the entry to match the new loaded message
-			// the assumption here is that this message will necessarily come from the instance that
-			// is actually loaded at that pid (like if someone relogged without MQ and then injected)
-			login_it->second.Update(pid, profile);
+			if (newKey == login_it->first)
+			{
+				// found an instance with the same PID, update the entry to match the new loaded message
+				// the assumption here is that this message will necessarily come from the instance that
+				// is actually loaded at that pid (like if someone relogged without MQ and then injected)
+				login_it->second.Update(pid, profile);
+				return &login_it->second;
+			}
+
+			// This profile has switched characters. We need to change to the new profile by removing
+			// and re-adding with the new key. Remove here, and we'll add below.
+			if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
+				UnregisterGlobalHotkeyCallback(login_it->second.PID, *login_it->second.Hotkey);
+
+			s_loadedInstances.erase(login_it);
+			add = true;
+		}
+
+		if (add)
+		{
+			auto [it, _] = s_loadedInstances.emplace(newKey, LoginInstance(pid, profile));
+			it->second.Update(pid, profile);
+			return &it->second;
 		}
 	}
 	else if (login_it != s_loadedInstances.end())
@@ -114,7 +164,7 @@ const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& pro
 			if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
 				UnregisterGlobalHotkeyCallback(login_it->second.PID, *login_it->second.Hotkey);
 
-			login_it = s_loadedInstances.erase(login_it);
+			s_loadedInstances.erase(login_it);
 		}
 
 		// else do nothing because we are just acknowledging a loaded instance
@@ -134,11 +184,8 @@ void RemoveInstance(uint32_t pid)
 
 	if (login_it != s_loadedInstances.end())
 	{
-		if (login_it->second.Hotkey)
-		{
-			if (UnregisterGlobalHotkeyCallback)
-				UnregisterGlobalHotkeyCallback(pid, *login_it->second.Hotkey);
-		}
+		if (login_it->second.Hotkey && UnregisterGlobalHotkeyCallback)
+			UnregisterGlobalHotkeyCallback(pid, *login_it->second.Hotkey);
 
 		s_loadedInstances.erase(login_it);
 	}
@@ -148,7 +195,7 @@ LoginInstance::LoginInstance(uint32_t pid, const ProfileRecord& profile)
 	: PID(pid)
 	, Server(profile.serverName)
 	, Character(profile.characterName)
-	, EQPath(*profile.eqPath)
+	, EQPath(profile.eqPath.has_value() ? *profile.eqPath : GetEQGameProcessPath(pid))
 	, ProfileGroup(profile.profileName)
 {
 	if (!profile.hotkey.empty()) Hotkey = profile.hotkey;
@@ -181,11 +228,15 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 		}
 	}
 
-	if (ProfileGroup != profile.profileName && !profile.profileName.empty())
+	// Update the profile name.
+	if (!profile.profileName.empty())
 	{
-		ProfileGroup = profile.profileName;
+		if (ProfileGroup != profile.profileName)
+		{
+			ProfileGroup = profile.profileName;
+		}
 	}
-	else if (ProfileGroup && profile.profileName.empty())
+	else if (ProfileGroup.has_value())
 	{
 		ProfileGroup.reset();
 	}
@@ -193,9 +244,13 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 
 const LoginInstance* StartInstance(ProfileRecord& profile)
 {
-	const auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
+	std::string instanceKey = LoginInstance::Key(profile);
+	const auto login_it = s_loadedInstances.find(instanceKey);
 	if (login_it != s_loadedInstances.end())
 	{
+		SPDLOG_WARN("Login instance for {} already exists as pid {}, not starting new instance",
+			instanceKey, login_it->second.PID);
+
 		login_it->second.Update(login_it->second.PID, profile);
 		return UpdateInstance(login_it->second.PID, profile);
 	}

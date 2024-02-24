@@ -181,7 +181,7 @@ struct ProfileGroupInfo : ProfileGroup
 };
 
 const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances();
-const LoginInstance* UpdateInstance(uint32_t pid, const ProfileRecord& profile);
+const LoginInstance* UpdateInstance(uint32_t pid, const ProfileRecord& profile, bool add = false);
 void RemoveInstance(uint32_t pid);
 const LoginInstance* StartInstance(ProfileRecord& profile);
 

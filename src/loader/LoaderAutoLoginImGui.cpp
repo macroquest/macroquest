@@ -1870,7 +1870,7 @@ void InitializeAutoLoginImGui()
 
 	RegisterGlobalHotkeyCallback = [](uint32_t processId, const std::string& hotkey)
 	{
-		SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}");
+		SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}", processId, hotkey);
 
 		RegisterGlobalHotkey(GetEQWindowHandleForProcessId(processId), hotkey);
 	};
