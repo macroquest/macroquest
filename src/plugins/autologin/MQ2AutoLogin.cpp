@@ -1124,8 +1124,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 				ImGui::OpenPopup("ProfileSelector");
 			}
 
-			ImGui::SameLine();
-
 			if (ImGui::Button("Select Character"))
 			{
 				ImGui::OpenPopup("CharacterSelector");
