@@ -98,7 +98,7 @@ ProfileRecord ProfileRecord::FromString(const std::string& input)
 
 	// the first method of username format is underscores
 	// we expect here a format of `<profile>_<server>:<character>`
-	static std::regex blob_regex(R"((.+)_([^_:]+):(\S+))");
+	static std::regex blob_regex(R"((.+)_([^:]+):(\S+))");
 	// <server>^<account>^<character>^<password>
 	static std::regex plain_regex(R"(([^\^]+)\^(\S+)\^(\S+)\^(\S+))");
 	// <server>^<account>^<password>
