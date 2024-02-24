@@ -16,6 +16,8 @@
 
 #include <mq/Plugin.h>
 
+#include "login/AutoLogin.h"
+
 #include <tinyfsm.hpp>
 #include <memory>
 

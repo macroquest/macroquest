@@ -14,26 +14,8 @@
 
 #pragma once
 
-struct ProfileRecord;
-struct LoginInstance
-{
-	uint32_t PID = 0;
+#include "login/AutoLogin.h"
 
-	const std::string Server;
-	const std::string Character;
-	const std::string EQPath;
-
-	std::optional<std::string> ProfileGroup;
-	std::optional<std::string> Hotkey;
-
-	static std::string Key(std::string_view Server, std::string_view Character);
-	static std::string Key(const ProfileRecord& profile);
-	[[nodiscard]] std::string Key() const { return Key(Server, Character); }
-
-	void Update(uint32_t pid, const ProfileRecord& profile);
-
-	LoginInstance(uint32_t pid, const ProfileRecord& profile);
-};
 
 // AutoLogin
 void LoadCharacter(const ProfileRecord& profile);
@@ -42,7 +24,6 @@ void LaunchCleanSession();
 void ProcessPendingLogins();
 void Import();
 std::string GetEQRoot();
-const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances();
 
 // ImGui
 bool ShowPasswordWindow();

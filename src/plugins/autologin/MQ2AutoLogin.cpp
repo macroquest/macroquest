@@ -16,12 +16,12 @@
 
 #include <mq/Plugin.h>
 
-#include "login/Login.h"
 #include "MQ2AutoLogin.h"
+#include "login/Login.h"
+#include "login/AutoLogin.h"
 
-#include <imgui.h>
-#include <imgui_stdlib.h>
-#include <imgui_internal.h>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui/ImGuiUtils.h"
 
 #include <map>
@@ -746,13 +746,13 @@ PLUGIN_API void InitializePlugin()
 	if (const auto custom_client_ini = login::db::ReadSetting("custom_client_ini");
 		custom_client_ini && GetBoolFromString(*custom_client_ini, false))
 	{
-		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
+		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t)&::GetPrivateProfileIntA;
 		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
 
-		uintptr_t pfnGetPrivateProfileStringA = (uintptr_t) & ::GetPrivateProfileStringA;
+		uintptr_t pfnGetPrivateProfileStringA = (uintptr_t)&::GetPrivateProfileStringA;
 		EzDetour(pfnGetPrivateProfileStringA, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Trampoline);
 
-		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
+		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t)&::WritePrivateProfileStringA;
 		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
 	}
 
@@ -775,6 +775,14 @@ PLUGIN_API void InitializePlugin()
 		{
 			// autologin doesn't actually take message inputs yet...
 		});
+
+	LoadCharacterCallback = [](const ProfileRecord& record)
+		{
+			ProfileRecord copy(record);
+			copy.accountPassword = login::db::ReadPassword(record.accountName, record.serverType).value_or("");
+
+			Login::dispatch(SetLoginProfile(copy));
+		};
 }
 
 PLUGIN_API void ShutdownPlugin()
@@ -1070,25 +1078,40 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("Server: %s", Login::server());
 			ImGui::Text("Character: %s", Login::character());
 
-			ImGui::Text("Profile: %s", Login::profile());
+			if (strlen(Login::profile()) > 0)
+				ImGui::Text("Profile: %s", Login::profile());
 
 			if (strlen(Login::hotkey()) > 0)
 				ImGui::Text("HotKey: %s", Login::hotkey());
 
+			if (!Login::get_record() || Login::get_record()->accountPassword.empty())
+			{
+				float green = (50 - abs(50 - (ImGui::GetFrameCount() % 100))) / 100.0f;
+
+				ImGui::TextColored(ImVec4(1.0f, green, 0.0f, 1.0f), "Missing Password");
+			}
+
 			if (bAutoLoginEnabled)
 			{
-				if (ImGui::Button("Pause"))
+				if (ImGui::Button(ICON_MD_PAUSE " Pause", ImVec2(85.0f, 0.0f)))
 					Login::dispatch(PauseLogin());
 			}
 			else
 			{
-				if (ImGui::Button("Resume"))
+				if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume", ImVec2(85.0f, 0.0f)))
 					Login::dispatch(UnpauseLogin());
 			}
 
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
+
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.f, 0.8f, 0.8f));
+
+			if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(85.0f, 0.0f)))
 				Login::dispatch(StopLogin());
+
+			ImGui::PopStyleColor(3);
 		}
 		else
 		{
@@ -1098,52 +1121,28 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 			if (ImGui::Button("Select Profile"))
 			{
-				Login::profiles() = login::db::GetProfileGroups();
 				ImGui::OpenPopup("ProfileSelector");
 			}
 
+			ImGui::SameLine();
+
+			if (ImGui::Button("Select Character"))
+			{
+				ImGui::OpenPopup("CharacterSelector");
+			}
+
+			ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
 			if (ImGui::BeginPopup("ProfileSelector"))
 			{
-#if 0
-				if (ImGui::MenuItem("Manual Login..."))
-				{
-					// TODO: Display a prompt to enter the info directly.
-				}
+				ShowProfilesMenu(false);
 
-				if (ImGui::MenuItem("Create New Profile..."))
-				{
-					// TODO: Display a prompt to create a new profile
-				}
+				ImGui::EndPopup();
+			}
 
-				ImGui::Separator();
-#endif
-
-				if (Login::profiles().empty())
-				{
-					ImGui::MenuItem("No Profiles (go create one!)", nullptr, false, false);
-				}
-				else
-				{
-					for (const ProfileGroup& pg : Login::profiles())
-					{
-						if (ImGui::BeginMenu(pg.profileName.c_str()))
-						{
-							for (const ProfileRecord& record : pg.records)
-							{
-								char buffer[256] = { 0 };
-								record.FormatTo(buffer, 256);
-
-								if (ImGui::MenuItem(buffer))
-								{
-									Login::dispatch(SetLoginProfile(record));
-								}
-							}
-
-							ImGui::EndMenu();
-						}
-					}
-				}
-
+			ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
+			if (ImGui::BeginPopup("CharacterSelector"))
+			{
+				ShowCharactersMenu();
 
 				ImGui::EndPopup();
 			}
@@ -1159,6 +1158,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
 			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
+
+			ImGui::SetNextItemWidth(100.f);
 			InputInt("Connect Retries", &Login::m_settings.ConnectRetries);
 
 			ImGui::Separator();

@@ -12,14 +12,17 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "ProcessMonitor.h"
-#include "Crashpad.h"
-#include "PostOffice.h"
-#include "ImGui.h"
-
+#include "loader/MacroQuest.h"
+#include "loader/ProcessMonitor.h"
+#include "loader/Crashpad.h"
+#include "loader/PostOffice.h"
+#include "loader/ImGui.h"
+#include "loader/LoaderAutoLogin.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/ImGuiUtils.h"
+#include "mq/utils/Naming.h"
+#include "mq/utils/OS.h"
+#include "mq/base/BuildInfo.h"
 
 #include "resource.h"
 
@@ -32,18 +35,10 @@
 #include <extras/wil/Constants.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
-
 #include <filesystem>
 #include <tuple>
-
 #include <shellapi.h>
 #include <fcntl.h>
-
-#include <mq/utils/Naming.h>
-#include <mq/utils/OS.h>
-#include <mq/base/BuildInfo.h>
-
-#include "AutoLogin.h"
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")

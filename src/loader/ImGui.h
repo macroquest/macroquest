@@ -14,12 +14,10 @@
 
 #pragma once
 
-#include <functional>
-#include <string>
-
 #include "imgui/imgui.h"
 
-#include <windows.h>
+#include <functional>
+#include <string>
 
 namespace LauncherImGui {
 bool SmallCheckbox(const char* label, bool* v);

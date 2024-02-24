@@ -14,10 +14,9 @@
 
 #pragma once
 
-#include <filesystem>
-
 #include "Login.pb.h"
 
+#include <filesystem>
 #include <optional>
 
 #ifdef _DEBUG
@@ -360,4 +359,5 @@ Results<std::string> ListProfileGroupMatches(std::string_view search);
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);
 bool InitDatabase(const std::string& path);
 void ShutdownDatabase();
+
 } // namespace login::db

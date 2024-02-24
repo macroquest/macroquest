@@ -12,33 +12,25 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "AutoLogin.h"
-#include "HotKeyControl.h"
-
+#include "loader/LoaderAutoLogin.h"
+#include "loader/MacroQuest.h"
+#include "loader/ImGui.h"
+#include "imgui/ImGuiFileDialog.h"
+#include "imgui/imgui_internal.h"
 #include "login/Login.h"
+#include "login/AutoLogin.h"
 #include "routing/PostOffice.h"
 
-#include "ImGui.h"
-
-#include <shellapi.h>
-
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <wil/resource.h>
 #include <filesystem>
-#include <spdlog/spdlog.h>
-
-#include <fmt/format.h>
-
-#include "imgui/ImGuiFileDialog.h"
-#include "imgui_internal.h"
+#include <shellapi.h>
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
-CHotKeyCtrl* s_hotKeyCtrl = nullptr;
-
 // set of loaded instances -- be careful to only read/write this from actors to ensure no race conditions
-static std::unordered_map<std::string, LoginInstance> s_loadedInstances;
 static postoffice::Dropbox s_dropbox;
 static std::queue<ProfileRecord> s_pendingLogins;
 static auto s_lastLoginTime = std::chrono::steady_clock::now();
@@ -96,198 +88,6 @@ void AutoLoginRemoveProcess(const DWORD process_id)
 	address.set_mailbox("autologin");
 
 	s_dropbox.Post(address, message);
-}
-
-static bool IsEQGameProcessId(DWORD processId)
-{
-	wil::unique_process_handle hProcess{
-		OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId)
-	};
-
-	if (hProcess)
-	{
-		char szProcessName[MAX_PATH];
-		DWORD nameSize = MAX_PATH;
-
-		if (::QueryFullProcessImageNameA(hProcess.get(), 0, szProcessName, &nameSize))
-		{
-			std::string fileName = szProcessName;
-
-			// Extract the filename from the full path
-			size_t pos = fileName.find_last_of("\\/");
-			if (pos != std::string::npos)
-			{
-				fileName = fileName.substr(pos + 1);
-			}
-
-			if (ci_equals(fileName, "eqgame.exe"))
-				return true;
-
-			SPDLOG_DEBUG("Process id is not eq: {} name={}", processId, fileName);
-		}
-	}
-
-	SPDLOG_DEBUG("Process id not found: {}", processId);
-	return false;
-}
-
-static const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& profile)
-{
-	auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
-	if (login_it == s_loadedInstances.end() && IsEQGameProcessId(pid))
-	{
-		// if we couldn't find by character and server, we need to check for PID
-		// if we find it by PID, then we need to update the instance in the set
-		login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-			[pid](const std::pair<std::string, LoginInstance>& instance)
-			{ return instance.second.PID == pid; });
-
-		if (login_it != s_loadedInstances.end())
-		{
-			// found an instance with the same PID, update the entry to match the new loaded message
-			// the assumption here is that this message will necessarily come from the instance that
-			// is actually loaded at that pid (like if someone relogged without MQ and then injected)
-			login_it->second.Update(pid, profile);
-		}
-	}
-	else if (login_it != s_loadedInstances.end())
-	{
-		// already mapped into our loaded instances
-		if (IsEQGameProcessId(pid) && pid != login_it->second.PID)
-		{
-			// this is a failsafe case in case something external causes the eq instance
-			// to reload, and we aren't catching that event
-			login_it->second.PID = pid;
-		}
-
-		// If process no longer exists we can remove it.
-		if (!IsEQGameProcessId(login_it->second.PID))
-		{
-			SPDLOG_INFO("Found invalid process, removing from instances. pid={}", login_it->second.PID);
-
-			// somehow we have a PID in our map that isn't EQ
-			if (login_it->second.Hotkey) UnregisterGlobalHotkey(*login_it->second.Hotkey);
-			login_it = s_loadedInstances.erase(login_it);
-		}
-
-		// else do nothing because we are just acknowledging a loaded instance
-	}
-
-	if (login_it != s_loadedInstances.end())
-		return &login_it->second;
-
-	return nullptr;
-}
-
-static const LoginInstance* StartInstance(ProfileRecord& profile)
-{
-	const auto login_it = s_loadedInstances.find(LoginInstance::Key(profile));
-	if (login_it != s_loadedInstances.end())
-	{
-		login_it->second.Update(login_it->second.PID, profile);
-		return UpdateInstance(login_it->second.PID, profile);
-	}
-
-	// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
-	// because we got a list at startup of the current running instances
-	if (!profile.eqPath)
-	{
-		if (const auto path = login::db::GetEQPath(profile.profileName, profile.serverName, profile.characterName))
-			profile.eqPath = *path;
-	}
-
-	if (!profile.eqPath && !profile.serverType.empty())
-	{
-		profile.eqPath = login::db::GetPathFromServerType(profile.serverType);
-	}
-
-	if (!profile.eqPath)
-	{
-		SPDLOG_ERROR("No eq_path found for {} ({}) (profile group {})",
-			profile.characterName, profile.serverName, profile.profileName);
-	}
-	else
-	{
-		std::string arg = profile.ToString();
-		if (arg.empty())
-		{
-			SPDLOG_ERROR("Failed to generate profile string.");
-		}
-		else
-		{
-			const auto eqgame = fs::path{ *profile.eqPath } / "eqgame.exe";
-			if (std::error_code ec; !fs::exists(eqgame, ec))
-			{
-				SPDLOG_ERROR("eqgame.exe does not exist at {}: {}", *profile.eqPath, ec.message());
-			}
-			else
-			{
-				std::string parameters = fmt::format(R"("{}" patchme "/login:{}")", eqgame.string(), arg);
-
-				STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-				si.wShowWindow = SW_SHOWNORMAL;
-				si.dwFlags = STARTF_USESHOWWINDOW;
-
-				wil::unique_process_information pi;
-				if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, profile.eqPath->c_str(), &si, &pi) && pi.hProcess != nullptr)
-				{
-					auto [it, _] = s_loadedInstances.emplace(
-						LoginInstance::Key(profile),
-						LoginInstance(pi.dwProcessId, profile));
-
-					return &it->second;
-				}
-
-				SPDLOG_ERROR("Failed to create new eqgame process");
-			}
-		}
-	}
-
-	return nullptr;
-}
-
-std::string LoginInstance::Key(std::string_view Server, std::string_view Character)
-{
-	return fmt::format("{}:{}", Server, Character);
-}
-
-std::string LoginInstance::Key(const ProfileRecord& profile)
-{
-	return Key(profile.serverName, profile.characterName);
-}
-
-void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
-{
-	// update hotkey and profile group, but not path
-	if (Hotkey != profile.hotkey)
-	{
-		if (Hotkey) UnregisterGlobalHotkey(*Hotkey);
-
-		if (!profile.hotkey.empty())
-		{
-			Hotkey = profile.hotkey;
-			RegisterGlobalHotkey(GetEQWindowHandleForProcessId(pid), *Hotkey);
-		}
-	}
-
-	if (ProfileGroup != profile.profileName && !profile.profileName.empty())
-	{
-		ProfileGroup = profile.profileName;
-	}
-	else if (ProfileGroup && profile.profileName.empty())
-	{
-		ProfileGroup.reset();
-	}
-}
-
-LoginInstance::LoginInstance(uint32_t pid, const ProfileRecord& profile)
-	: PID(pid)
-	, Server(profile.serverName)
-	, Character(profile.characterName)
-	, EQPath(*profile.eqPath)
-	, ProfileGroup(profile.profileName)
-{
-	if (!profile.hotkey.empty()) Hotkey = profile.hotkey;
 }
 
 void LoadCharacter(const ProfileRecord& profile)
@@ -359,11 +159,6 @@ std::string GetEQRoot()
 		return *eq_path.Updated();
 
 	return "";
-}
-
-const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances()
-{
-	return s_loadedInstances;
 }
 
 static ProfileRecord ParseProfileFromMessage(const proto::login::DirectMethod& direct)
@@ -460,21 +255,8 @@ static void ReceivedMessageHandler(ProtoMessagePtr&& message)
 		{
 			proto::login::StopInstanceMissive stop;
 			stop.ParseFromString(login_message.payload());
-			const auto login_it = std::find_if(s_loadedInstances.begin(), s_loadedInstances.end(),
-				[pid = stop.pid()](const std::pair<std::string, LoginInstance>& instance)
-				{ return instance.second.PID == pid; });
 
-			if (login_it != s_loadedInstances.end())
-			{
-				if (login_it->second.Hotkey)
-				{
-					SPDLOG_DEBUG("Unregister Global Hotkey: {}", login_it->second.PID, *login_it->second.Hotkey);
-
-					UnregisterGlobalHotkey(*login_it->second.Hotkey);
-				}
-
-				s_loadedInstances.erase(login_it);
-			}
+			RemoveInstance(stop.pid());
 		}
 
 		break;
