@@ -1140,65 +1140,131 @@ static void DisplayProfileInfo(const std::shared_ptr<ProfileRecord>& profile, bo
 {
 	if (profile)
 	{
+		float width = ImGui::GetContentRegionAvail().x - (ImGui::GetStyle().FramePadding.x * 2);
+
+		auto show_buttons = [allowClear, &profile]()
+			{
+				bool hovered = false;
+				if (allowClear)
+				{
+					ImGui::SameLine();
+
+					if (ImGui::SmallButton(ICON_MD_CLEAR))
+					{
+						Login::clear_current_record();
+					}
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+					{
+						ImGui::SetTooltip(
+							"Clear the currently loaded profile. This will\n"
+							"also detach the session from the current hotkey (if any)."
+						);
+						hovered = true;
+					}
+
+					ImGui::SameLine();
+
+					if (ImGui::SmallButton(ICON_MD_REDO))
+					{
+						Login::dispatch(SetLoginProfile(*profile));
+					}
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_DelayNone))
+					{
+						ImGui::SetTooltip(
+							"Re-run autologin on this profile"
+						);
+						hovered = true;
+					}
+				}
+
+				return hovered;
+			};
+
 		bool hovered = false;
+
+		ImVec2 posMin = ImGui::GetCursorScreenPos();
+
 		if (!profile->profileName.empty())
 		{
-			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s:", profile->profileName.c_str());
-			hovered |= ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+			ImGui::TextUnformatted("Profile: ");
 			ImGui::SameLine(0, 0);
-			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), " %s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
-			hovered |= ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->profileName.c_str());
+			hovered = show_buttons();
+
+			ImGui::TextUnformatted("Character: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
 		}
-		else
+		else if (!profile->characterName.empty())
 		{
-			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(),
-				profile->serverName.c_str());
-			hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip);
+			ImGui::TextUnformatted("Character: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
+			hovered = show_buttons();
+		}
+		else if (!profile->serverName.empty() || !profile->accountName.empty())
+		{
+			if (!profile->serverName.empty())
+			{
+				ImGui::TextUnformatted("Server: ");
+				ImGui::SameLine(0, 0);
+				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+				hovered = show_buttons();
+			}
+
+			ImGui::TextUnformatted("Account: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->accountName.c_str());
+
+			if (profile->serverName.empty())
+				hovered = show_buttons();
 		}
 
-		if (hovered)
+		ImVec2 posMax = ImGui::GetCursorScreenPos();
+		posMax.x = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x;
+
+		if (!hovered && ImGui::IsMouseHoveringRect(posMin, posMax))
 		{
 			if (ImGui::BeginTooltip())
 			{
 				if (!profile->profileName.empty())
 				{
-					ImGui::TextUnformatted("Profile:");
-					ImGui::SameLine();
+					ImGui::TextUnformatted("Profile: ");
+					ImGui::SameLine(0, 0);
 					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->profileName.c_str());
 				}
 
-				ImGui::TextUnformatted("Character:");
-				ImGui::SameLine();
-				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->characterName.c_str());
+				if (!profile->characterName.empty())
+				{
+					ImGui::TextUnformatted("Character: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->characterName.c_str());
+				}
 
-				ImGui::TextUnformatted("Server:");
-				ImGui::SameLine();
-				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+				if (!profile->serverName.empty())
+				{
+					ImGui::TextUnformatted("Server: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+				}
 
+				if (!profile->accountName.empty())
+				{
+					ImGui::TextUnformatted("Account: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->accountName.c_str());
+				}
 
 				ImGui::EndTooltip();
 			}
 		}
 
-		if (allowClear)
-		{
-			ImGui::SameLine();
-
-			if (ImGui::SmallButton(ICON_MD_CLEAR))
-			{
-				Login::clear_current_record();
-			}
-		}
-
-		ImGui::SetItemTooltip(
-			"Clear the currently loaded profile. This will\n"
-			"also detach the session from the current hotkey (if any)."
-		);
-
 		if (!profile->hotkey.empty())
 		{
-			ImGui::TextUnformatted("HotKey:");
-			ImGui::SameLine();
+			ImGui::TextUnformatted("HotKey: ");
+			ImGui::SameLine(0, 0);
 			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->hotkey.c_str());
 		}
 
