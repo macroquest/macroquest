@@ -1408,6 +1408,43 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	ImGui::TableNextColumn();
 }
 
+void ColumnWindow(const char* Label, eqlib::eqmain::CXWnd* window)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	if (!window)
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
+	else
+	{
+		ImGui::PushID(window);
+		//ImGui::SetNextItemWidth(21);
+		bool view = ImGui::Button(ICON_FA_EXTERNAL_LINK_SQUARE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_Show(reinterpret_cast<CXWnd*>(window));
+		}
+
+		ImGui::SameLine();
+
+		CXStr name = window->GetXMLName();
+		if (name.empty())
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .75f), "(Unnamed)");
+		else
+			ImGui::Text("%s", name.c_str());
+
+		if (ImGui::IsItemHovered())
+		{
+			DeveloperTools_windowInspector_SetHoveredWindow(reinterpret_cast<CXWnd*>(window));
+		}
+	}
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
 void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
 {
 	ColumnTextType(Label, "ItemContainerInstance", GetNameForContainerInstance(instance));
@@ -1866,6 +1903,14 @@ public:
 		if (!m_table.Begin())
 			return;
 
+		if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		{
+			// Trying to support all of this just for login is nuts.
+			DisplayCXWndProperties(reinterpret_cast<eqlib::eqmain::CXWnd*>(m_window));
+			m_table.End();
+			return;
+		}
+
 		switch (m_window->GetType())
 		{
 		case UI_Screen:
@@ -2010,6 +2055,38 @@ public:
 	}
 
 	void DisplayCXMLDataProperties(CXWnd* pWnd, bool open = true)
+	{
+		CXMLData* pXMLData = pWnd->GetXMLData();
+		if (!pXMLData) return;
+
+		if (BeginColorSection("XML Properties", open))
+		{
+			// Type
+			ColumnText("Type", "%s (%d)", pXMLData->TypeName.c_str(), pXMLData->Type);
+
+			if (!pXMLData->ScreenID.empty())
+			{
+				// ScreenID
+				ColumnText("Screen ID", "%s", pXMLData->ScreenID.c_str());
+			}
+
+			if (!pXMLData->Name.empty() && pXMLData->Name != pXMLData->ScreenID)
+			{
+				// Name
+				ColumnText("Name", "%s", pXMLData->Name.c_str());
+			}
+
+			if (pSidlMgr)
+			{
+				if (CScreenPieceTemplate* pTemplate = pSidlMgr->FindScreenPieceTemplate(pWnd->GetXMLIndex()))
+				{
+					DisplayDynamicTemplateExpand("Template", pTemplate);
+				}
+			}
+		}
+	}
+
+	void DisplayCXMLDataProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
 	{
 		CXMLData* pXMLData = pWnd->GetXMLData();
 		if (!pXMLData) return;
@@ -2266,6 +2343,157 @@ public:
 				// LayoutStrategy
 				// TitlePiece
 				//ColumnCXRect("Clip client rect", pWnd->ClipRectClient);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	void DisplayCXWndProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
+	{
+		DisplayCXMLDataProperties(pWnd, open);
+
+		// Add CXWnd specific details here
+		if (BeginColorSection("CXWnd Properties", open))
+		{
+			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
+
+			std::vector<int> runtimeTypeInts;
+			for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				runtimeTypeInts.push_back(pWnd->RuntimeTypes[i]);
+			std::string runtimeTypes = fmt::format("[{}]", fmt::join(runtimeTypeInts, ", "));
+
+			if (ColumnTreeNodeType2(&pWnd->RuntimeTypes, "Runtime Types", "ArrayClass2<int>", "%s", runtimeTypes.c_str()))
+			{
+				for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				{
+					char szLabel[10] = { 0 };
+					fmt::format_to(szLabel, "#{}", i + 1);
+					ColumnText(szLabel, "%s (%d)",
+						EWndRuntimeTypeToString(static_cast<EWndRuntimeType>(pWnd->RuntimeTypes[i])),
+						pWnd->RuntimeTypes[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			CXRect positionRect = pWnd->Location;
+			if (ColumnCXRect("Position", &positionRect))
+			{
+				if (positionRect != pWnd->Location)
+					pWnd->Move(positionRect);
+			}
+
+			ColumnCXRect("Client rect", pWnd->ClientRect);
+			ColumnCXStr("Text", &pWnd->WindowText);
+			ColumnCXStr("Tooltip", &pWnd->Tooltip);
+			ColumnWindow("Parent", pWnd->ParentWindow);
+
+			// Style
+			if (ColumnTreeNode("Style", "0x%08x", pWnd->WindowStyle))
+			{
+				ColumnCheckBoxFlags("Vertical Scroll", &pWnd->WindowStyle, CWS_VSCROLL);
+				ColumnCheckBoxFlags("Horizontal Scroll", &pWnd->WindowStyle, CWS_HSCROLL);
+				ColumnCheckBoxFlags("Title Bar", &pWnd->WindowStyle, CWS_TITLE);
+				ColumnCheckBoxFlags("Close Box", &pWnd->WindowStyle, CWS_CLOSE);
+				ColumnCheckBoxFlags("Tile Box", &pWnd->WindowStyle, CWS_TILEBOX);
+				ColumnCheckBoxFlags("Minimize Box", &pWnd->WindowStyle, CWS_MINIMIZE);
+				ColumnCheckBoxFlags("Border", &pWnd->WindowStyle, CWS_BORDER);
+				ColumnCheckBoxFlags("Relative Rect", &pWnd->WindowStyle, CWS_RELATIVERECT);
+				ColumnCheckBoxFlags("Vertical Auto Stretch", &pWnd->WindowStyle, CWS_AUTOSTRETCHV);
+				ColumnCheckBoxFlags("Horizontal Auto Stretch", &pWnd->WindowStyle, CWS_AUTOSTRETCH);
+				ColumnCheckBoxFlags("Resizable", &pWnd->WindowStyle, CWS_RESIZEALL);
+				ColumnCheckBoxFlags("Transparent", &pWnd->WindowStyle, CWS_TRANSPARENT);
+				ColumnCheckBoxFlags("Use My Alpha", &pWnd->WindowStyle, CWS_USEMYALPHA);
+				ColumnCheckBoxFlags("Docking Enabled", &pWnd->WindowStyle, CWS_DOCKING);
+				ColumnCheckBoxFlags("Immediate Tooltip", &pWnd->WindowStyle, CWS_TOOLTIP_NODELAY);
+				ColumnCheckBoxFlags("Frame", &pWnd->WindowStyle, CWS_FRAMEWND);
+				ColumnCheckBoxFlags("No Hit Test", &pWnd->WindowStyle, CWS_NOHITTEST);
+				ColumnCheckBoxFlags("QMark Box", &pWnd->WindowStyle, CWS_QMARK);
+				ColumnCheckBoxFlags("Disable Move", &pWnd->WindowStyle, CWS_NOMOVABLE);
+				ColumnCheckBoxFlags("Maximize Box", &pWnd->WindowStyle, CWS_MAXIMIZE);
+				ColumnCheckBoxFlags("Vertical Auto Scroll", &pWnd->WindowStyle, CWS_AUTOVSCROLL);
+				ColumnCheckBoxFlags("Horizontal Auto Scroll", &pWnd->WindowStyle, CWS_AUTOHSCROLL);
+				ColumnCheckBoxFlags("Client Movable", &pWnd->WindowStyle, CWS_CLIENTMOVABLE);
+				ColumnCheckBoxFlags("Transparent Control", &pWnd->WindowStyle, CWS_TRANSPARENTCONTROL);
+
+				ImGui::TreePop();
+			}
+
+			bool show = pWnd->dShow;
+			if (ColumnCheckBox("Visible", &show))
+			{
+				if (show)
+					pWnd->Activate();
+				else
+					pWnd->Deactivate();
+			}
+			ColumnCheckBox("Enabled", &pWnd->Enabled);
+
+			CTextureFont* pFont = pWnd->pFont;
+			ColumnFont("Font", &pFont);
+
+			if (ColumnTreeNode("Details", ""))
+			{
+				DisplayDynamicTemplateExpand("TitlePiece 1", pWnd->TitlePiece);
+				DisplayDynamicTemplateExpand("TitlePiece 2", pWnd->TitlePiece2);
+				DisplayTextObject("Text object", pWnd->pTextObject);
+				DisplayTextObject("Tooltip text object", pWnd->pTipTextObject);
+				ColumnText("Z layer", "%d", pWnd->ZLayer);
+
+				DisplayTextureAnimation("Icon", pWnd->IconTextureAnim);
+				ColumnCXRect("Icon rect", pWnd->IconRect);
+
+				ColumnCheckBox("Minimized", &pWnd->Minimized);
+				ColumnCheckBox("Maximized", &pWnd->bMaximized);
+				ColumnCheckBox("Maximizable", &pWnd->bMaximizable);
+				ColumnCheckBox("Tiled", &pWnd->bTiled);
+				ColumnCheckBox("Action", &pWnd->bAction);
+				ColumnCheckBox("Bring to top when clicked", &pWnd->bBringToTopWhenClicked);
+				ColumnCheckBox("Mouse over", &pWnd->MouseOver);
+
+				// Background
+				ColumnText("Background type", XWndBackgroundTypeToString(static_cast<XWndBackgroundType>(pWnd->BGType)));
+				ColumnText("Background draw type", XWndBackgroundDrawTypeToString(static_cast<XWndBackgroundDrawType>(pWnd->BackgroundDrawType)));
+				ColumnColor("Normal color", &pWnd->CRNormal);
+				ColumnColor("Background color", &pWnd->BGColor);
+				ColumnColor<eqlib::eqmain::CXWnd>("Disabled background color", pWnd,
+					&eqlib::eqmain::CXWnd::GetDisabledBackground, &eqlib::eqmain::CXWnd::SetDisabledBackground);
+
+				ColumnCXStr("XML Tooltip", pWnd->XMLToolTip);
+
+				// size
+				ColumnCXSize("Min size", pWnd->MinClientSize);
+				ColumnCXSize("Max size", pWnd->MaxClientSize);
+
+				ColumnText("Horizontal scroll", "{ pos=%d, max=%d }", pWnd->HScrollPos, pWnd->HScrollMax);
+				ColumnText("Vertical scroll", "{ pos=%d, max=%d }", pWnd->VScrollPos, pWnd->VScrollMax);
+
+				ColumnCheckBox("Use in horizontal layout", &pWnd->bUseInLayoutHorizontal);
+				ColumnCheckBox("Use in vertical layout", &pWnd->bUseInLayoutVertical);
+				ColumnText("Anchors", "{ top=%d, right=%d, bottom=%d, left=%d }", pWnd->bTopAnchoredToTop, pWnd->bRightAnchoredToLeft, pWnd->bBottomAnchoredToTop, pWnd->bLeftAnchoredToLeft);
+				ColumnText("Offsets", "{ top=%d, right=%d, bottom=%d, left=%d", pWnd->TopOffset, pWnd->RightOffset, pWnd->BottomOffset, pWnd->LeftOffset);
+
+				// Alpha
+				ColumnCheckBox("Fade enabled", &pWnd->Fades);
+				ColumnText("Current fade alpha", "%d", pWnd->FadeAlpha);
+				ColumnText("Current max alpha", "%d", pWnd->Alpha);
+
+				// Mouse over / fading stuff
+				ColumnCheckBox("Faded", &pWnd->Faded);
+				ColumnText("Last time mouse over", "%d", pWnd->LastTimeMouseOver);
+				ColumnText("Fade delay", "%d", pWnd->FadeDelay);
+				ColumnText("Fade duration", "%d", pWnd->FadeDuration);
+				ColumnText("Fade to alpha", "%d", pWnd->FadeToAlpha);
+
+				ColumnText("Valid", pWnd->ValidCXWnd ? "true" : "false");
+
+				ColumnCheckBox("Unlockable", &pWnd->Unlockable);
+				ColumnCheckBox("Locked", &pWnd->Locked);
+
+				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
+				ColumnCheckBox("Clip to parent", &pWnd->bClipToParent);
+				ColumnCheckBox("Active", &pWnd->bActive);
 
 				ImGui::TreePop();
 			}
@@ -3674,6 +3902,7 @@ static void RegisterWindowPropertyViewer(const char* windowName, const WindowPro
 static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWindowPropertyViewer* viewer)
 {
 	if (!pWindow) return;
+	if (!pWindow->SidlPiece) return;
 
 	std::string_view windowName = pWindow->SidlPiece->strName;
 
