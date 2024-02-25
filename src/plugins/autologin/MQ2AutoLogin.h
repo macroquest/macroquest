@@ -187,14 +187,17 @@ struct StopLogin : tinyfsm::Event {};
 class Login : public tinyfsm::Fsm<Login>
 {
 protected:
-	static std::shared_ptr<ProfileRecord> m_record;
-	static std::shared_ptr<ProfileRecord> m_currentRecord;
-	static std::vector<ProfileGroup> m_profiles;
-	static CXWnd* m_currentWindow; // the current in focus window
-	static bool m_paused;
-	static uint64_t m_delayTime;
-	static LoginState m_lastState;
-	static unsigned char m_retries;
+	// This what autologin is currently transitioning towards
+	static inline std::shared_ptr<ProfileRecord> m_record;
+	// This is what we're logged in as.
+	static inline std::shared_ptr<ProfileRecord> m_currentRecord;
+	static inline std::vector<ProfileGroup> m_profiles;
+	static inline CXWnd* m_currentWindow = nullptr; // the current in focus window
+	static inline bool m_paused = false;
+	static inline uint64_t m_delayTime = 0;
+	static inline LoginState m_lastState = LoginState::InGame;
+	static inline uint8_t m_retries = 0;
+	static inline std::string m_lastAccount;
 
 	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr);
 
@@ -268,11 +271,13 @@ public:
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
 	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
+	static void clear_current_window() { m_currentWindow = nullptr; }
 	static bool paused() { return m_paused; }
 	static uint64_t delay_time() { return m_delayTime; }
 	static LoginState last_state() { return m_lastState; }
 	static unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
+	static const std::string& last_account() { return m_lastAccount; }
 
 	static std::shared_ptr<ProfileRecord> get_current_record() { return m_currentRecord; }
 	static void clear_current_record()
@@ -293,8 +298,9 @@ public:
 
 	using Settings = AutoLoginSettings;
 
-	static Settings m_settings;
-	static CurrentLogin m_currentLogin;
+	static inline Settings m_settings;
+	static inline CurrentLogin m_currentLogin;
+	static inline bool m_skipNextDelay = false;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);

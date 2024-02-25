@@ -727,6 +727,8 @@ PLUGIN_API void SetGameState(int GameState)
 
 	if (GameState == GAMESTATE_CHARSELECT)
 	{
+		Login::clear_current_window();
+
 		// at character select now, if we have a memoized long name let's update the db for the server name pairing
 		if (Login::m_currentLogin.ServerName)
 			login::db::CreateOrUpdateServer(GetServerShortName(), *Login::m_currentLogin.ServerName);
@@ -1072,8 +1074,9 @@ PLUGIN_API void OnPulse()
 
 		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > s_reenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && (MQGetTickCount64() > s_reenableTime || Login::m_skipNextDelay))
 	{
+		Login::m_skipNextDelay = false;
 		// pair of WindowNames / ButtonNames
 		static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
 			{ "OrderWindow",          "Order_DeclineButton" },
@@ -1407,6 +1410,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Separator();
 			ImGui::Text("State Variables:");
 			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
+			ImGui::Text("Last Account: %s", Login::last_account().c_str());
 			ImGui::Text("Last State:"); ImGui::SameLine();
 			switch (Login::last_state())
 			{
@@ -1421,6 +1425,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 				case LoginState::InGame: ImGui::Text("InGame"); break;
 				default: ImGui::Text(""); break;
 			}
+
 			if (Login::current_window() != nullptr && Login::current_window()->GetXMLData() != nullptr)
 			{
 				ImGui::Text("Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
@@ -1450,4 +1455,9 @@ PLUGIN_API void OnUpdateImGui()
 	{
 		ShowAutoLoginOverlay(&bShowAutoLoginOverlay);
 	}
+}
+
+PLUGIN_API void OnCleanUI()
+{
+	Login::clear_current_window();
 }

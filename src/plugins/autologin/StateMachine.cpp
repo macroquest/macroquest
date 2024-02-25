@@ -35,10 +35,8 @@ class CharacterSelect;
 class CharacterSelectWait;
 class InGame;
 
-static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
+static std::shared_ptr<ProfileRecord> GetInitialLoginProfile(CEditWnd* pEditWnd)
 {
-	AutoLoginDebug("UseMQ2Login(): Using MQ2Login Method");
-
 	if (Login::is_in_state<Connect>() || Login::is_in_state<ConnectConfirm>())
 	{
 		// initialize input to empty, we will try to populate it from the command line first
@@ -65,7 +63,7 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (input.empty() && !inputText.empty())
 			input = inputText;
 
-		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
+		AutoLoginDebug(fmt::format("GetInitialLoginProfile() input({})", input));
 
 		auto record = ProfileRecord::FromString(input);
 		if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
@@ -80,10 +78,33 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (record.customClientIni)
 			record.customClientIni = (std::filesystem::current_path() / *record.customClientIni).string();
 
-		return record;
+		return std::make_shared<ProfileRecord>(record);
 	}
 
-	return std::nullopt;
+	return nullptr;
+}
+
+static bool IsWrongAccount(const std::string& lastAccount, const std::shared_ptr<ProfileRecord>& record)
+{
+	// This happens if we switch profiles. Check against the account stored on the profile
+	// to determine if we need to back out.
+
+	// If we don't have login name, we can't tell.
+
+	if (lastAccount.empty())
+		return false;
+
+	if (record)
+	{
+		// If the account isn't provided we assume it is a character on the current account.
+		if (record->accountName.empty())
+			return false;
+
+		if (!ci_equals(lastAccount, record->accountName))
+			return true;
+	}
+
+	return false;
 }
 
 class Wait : public Login
@@ -109,8 +130,11 @@ protected:
 public:
 	void entry() override
 	{
-		auto new_delay = MQGetTickCount64() + 2000; // TODO: configure short delay
-		m_delayTime = new_delay > m_delayTime ? new_delay : m_delayTime; // this allows us to specify longer waits if we need them
+		// TODO: configure short delay
+		uint64_t new_delay = MQGetTickCount64() + 2000;
+
+		// this allows us to specify longer waits if we need them
+		m_delayTime = new_delay > m_delayTime ? new_delay : m_delayTime;
 	}
 
 	void react(const LoginStateSensor& e) override
@@ -219,9 +243,9 @@ public:
 				// only place where we can enter account/pass
 				record = m_record;
 			}
-			else if (const std::optional<ProfileRecord> tempProfile = UseMQ2Login(pUsernameEditWnd))
+			else if (std::shared_ptr<ProfileRecord> tempProfile = GetInitialLoginProfile(pUsernameEditWnd))
 			{
-				record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
+				record = tempProfile;
 			}
 
 			if (record
@@ -232,6 +256,9 @@ public:
 
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 				SetEditWndText(pUsernameEditWnd, m_record->accountName);
+
+				// Update the last account. This won't be updated by the client until we reach character select.
+				m_lastAccount = m_record->accountName;
 
 				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
@@ -382,8 +409,7 @@ public:
 		return nullptr;
 	}
 
-	template <typename Action>
-	static bool CheckServerDown(Action action)
+	static bool CheckServerDown()
 	{
 		if (!m_record || m_record->serverName.empty())
 		{
@@ -412,7 +438,6 @@ public:
 			return true;
 		}
 
-		action();
 		// join server (both server and Info are already guaranteed to be non-null)
 		g_pLoginServerAPI->JoinServer((int)server->ID);
 		return false;
@@ -420,7 +445,20 @@ public:
 
 	void entry() override
 	{
-		if (CheckServerDown([]() {}))
+		if (m_lastAccount.empty())
+		{
+			if (const char* loginName = GetLoginName())
+				m_lastAccount = loginName;
+		}
+
+		if (IsWrongAccount(m_lastAccount, m_record))
+		{
+			g_pLoginClient->OnBoot("Leaving Server Select");
+			m_skipNextDelay = true;
+
+			transit<Connect>();
+		}
+		else if (CheckServerDown())
 			transit<ServerSelectDown>();
 		else
 			transit<Wait>();
@@ -520,7 +558,7 @@ public:
 			switch (e.State)
 			{
 			case LoginState::ServerSelect:
-				if (ServerSelect::CheckServerDown([](){}))
+				if (ServerSelect::CheckServerDown())
 					transit<ServerSelectDown>();
 				else
 					transit<Wait>();
@@ -536,7 +574,7 @@ public:
 class CharacterSelect : public Login
 {
 public:
-	static bool is_invalid_server()
+	static bool IsInvalidServer()
 	{
 		// trivial cases: if the server shortname is empty or there is no record
 		if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
@@ -557,34 +595,14 @@ public:
 		return true;
 	}
 
-	static bool is_wrong_account()
-	{
-		// This happens if we switch profiles. Check against the account stored on the profile
-		// to determine if we need to back out.
-
-		// If we don't have login name, we can't tell.
-		const char* loginName = GetLoginName();
-		if (loginName == nullptr || loginName[0] == 0)
-			return false;
-
-		if (m_record)
-		{
-			// If the account isn't provided we assume it is a character on the current account.
-			if (m_record->accountName.empty())
-				return false;
-
-			if (!ci_equals(loginName, m_record->accountName))
-				return true;
-		}
-
-		return false;
-	}
-
 	void entry() override
 	{
+		if (const char* loginName = GetLoginName())
+			m_lastAccount = GetLoginName();
+
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			if (is_invalid_server() || is_wrong_account())
+			if (IsInvalidServer() || IsWrongAccount(m_lastAccount, m_record))
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -707,16 +725,5 @@ public:
 		}
 	}
 };
-
-std::shared_ptr<ProfileRecord> Login::m_record;              // This is the autologin record - only set during active autologin
-std::shared_ptr<ProfileRecord> Login::m_currentRecord;       // This is what we logged in as.
-std::vector<ProfileGroup> Login::m_profiles;
-CXWnd* Login::m_currentWindow = nullptr;
-bool Login::m_paused = false;
-uint64_t Login::m_delayTime = 0;
-LoginState Login::m_lastState = LoginState::InGame;
-unsigned char Login::m_retries = 0;
-Login::Settings Login::m_settings;
-CurrentLogin Login::m_currentLogin;
 
 FSM_INITIAL_STATE(Login, Wait)
