@@ -1635,13 +1635,14 @@ void ShowAccountsWindow()
 
 void ShowSettingsWindow()
 {
+	static const AutoLoginSettings defaultSettings;
 	static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
-	static auto kick_active = login::db::CacheSetting<bool>("kick_active", true, GetBoolFromString);
-	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", false, GetBoolFromString);
+	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, GetBoolFromString);
+	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, GetBoolFromString);
 	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
-	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
-	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", 3, GetIntFromString);
-	static auto connect_retries = login::db::CacheSetting<int>("connect_retries", 0, GetIntFromString);
+	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", defaultSettings.ClientLaunchDelay, GetIntFromString);
+	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", defaultSettings.CharSelectDelay, GetIntFromString);
+	static auto connect_retries = login::db::CacheSetting<int>("login_connect_retries", defaultSettings.ConnectRetries, GetIntFromString);
 
 	static auto password_timeout_hours = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString);
 	static std::string hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Read()) / 24.f);
@@ -1687,7 +1688,7 @@ void ShowSettingsWindow()
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
 	if (ImGui::InputScalar("Connect Retries", ImGuiDataType_U32, &connect_retries.Read()))
-		login::db::WriteSetting("connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
+		login::db::WriteSetting("login_connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
 	ImGui::SameLine(); imgui::HelpMarker("Number of times to attempt to reconnect, 0 for infinite");
 
 	ImGui::Spacing();

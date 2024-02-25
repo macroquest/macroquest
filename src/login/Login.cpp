@@ -337,9 +337,12 @@ std::vector<ProfileGroup> LoadAutoLoginProfiles(const std::string& ini_file_name
 		GetPrivateProfileString("Settings", "CharSelectDelay", "3", ini_location),
 		"Number of seconds to delay at the character selection screen");
 
-	login::db::WriteSetting("connect_retries",
-		GetPrivateProfileString("Settings", "ConnectRetries", "0", ini_location),
-		"Number of times to attempt to connect in case of failure (0 for infinite)");
+	int connect_retries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, ini_location);
+	if (connect_retries != 0)
+	{
+		login::db::WriteSetting("login_connect_retries", std::to_string(connect_retries),
+			"Number of times to attempt to connect in case of failure (0 for infinite)");
+	}
 
 	login::db::WriteSetting("custom_client_ini",
 		GetPrivateProfileString("Settings", "EnableCustomClientIni", "false", ini_location),

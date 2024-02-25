@@ -676,7 +676,7 @@ void ReadSettings()
 	if (const auto char_select_delay = login::db::ReadSetting("char_select_delay"))
 		Login::m_settings.CharSelectDelay = GetIntFromString(*char_select_delay, Login::m_settings.CharSelectDelay);
 
-	if (const auto connect_retries = login::db::ReadSetting("connect_retries"))
+	if (const auto connect_retries = login::db::ReadSetting("login_connect_retries"))
 		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
 }
 
@@ -1312,19 +1312,31 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			}
 		}
 
-		if (Login::m_settings.ConnectRetries > 0)
+		switch (Login::last_state())
 		{
-			ImGui::Text("Retries: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
+		case LoginState::Connect:
+		case LoginState::ConnectConfirm:
+			if (Login::m_settings.ConnectRetries > 0 && Login::retries() > 0)
+			{
+				ImGui::Text("Attempts: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
+			}
+			break;
+
+		default: break;
 		}
+		
 
 		ImGui::Spacing();
 		if (ImGui::CollapsingHeader("Settings"))
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
-			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
+			ImGui::Checkbox("End After Character Select", &Login::m_settings.EndAfterSelect);
 
 			ImGui::SetNextItemWidth(100.f);
-			InputInt("Connect Retries", &Login::m_settings.ConnectRetries);
+			if (InputInt("Connect Retries", &Login::m_settings.ConnectRetries))
+			{
+				login::db::WriteSetting("login_connect_retries", std::to_string(Login::m_settings.ConnectRetries), "Number of times to attempt to reconnect, 0 for infinite");
+			}
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");

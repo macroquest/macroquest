@@ -263,26 +263,52 @@ public:
 		{
 			CXStr str = GetWindowText(pWnd);
 
-			if (str.find("Logging in to the server.  Please wait....") != CXStr::npos)
+			enum MessageAction
+			{
+				Action_Success,
+				Action_Stop,
+				Action_ClickYes,
+				Action_None,
+			};
+
+			static std::vector<std::pair<MessageAction, const char*>> Messages = {
+				{ Action_Success,  "Logging in to the server.  Please wait...." },
+				{ Action_Stop,     "password were not valid" },
+				{ Action_Stop,     "This login requires that the account be activated.  Please make sure your account is active in order to login." },
+				{ Action_Stop,     "You need to enter a username and password to login." },
+				{ Action_Stop,     "Invalid Password" },
+				{ Action_ClickYes, "You have a character logged into a world server as an OFFLINE TRADER from this account" },
+			};
+
+			MessageAction msgAction = Action_None;
+
+			for (auto [action, message] : Messages)
+			{
+				if (ci_find_substr(str, message) != -1)
+				{
+					msgAction = action;
+					break;
+				}
+			}
+
+			if (msgAction == Action_Success)
 			{
 				// successful log in, transit
 			}
-			else if (str.find("password were not valid") != CXStr::npos
-				|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos
-				|| str.find("You need to enter a username and password to login.") != CXStr::npos)
+			else if (msgAction == Action_Stop)
 			{
-				AutoLoginDebug(fmt::format("ConnectConfirm: {}", str));
-				dispatch(StopLogin()); // we can't recover from these, so stop autologin
+				// we can't recover from these, so stop autologin
+				WriteChatf("\ar[AutoLogin]\ax Stopping login because the following message was encountered: %s", str.c_str());
+				dispatch(StopLogin());
 			}
-			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account") != CXStr::npos)
+			else if (msgAction == Action_ClickYes)
 			{
-				// kick off our offline trader
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "YESNO_YesButton"))
 					SendWndNotification(pButton, pWnd, XWM_LCLICK);
 			}
-			else if (m_settings.ConnectRetries > 0 && m_retries > m_settings.ConnectRetries)
+			else if (m_settings.ConnectRetries > 0 && m_retries >= m_settings.ConnectRetries)
 			{
-				AutoLoginDebug(fmt::format("Retried {} times, stopping.", m_retries - 1));
+				WriteChatf("\ar[AutoLogin]\ax Failed to connect %d times, giving up.", m_retries);
 				dispatch(StopLogin());
 			}
 			else
@@ -304,7 +330,7 @@ public:
 					SendWndNotification(pButton, pButton, XWM_LCLICK);
 
 				++m_retries;
-
+				m_delayTime = MQGetTickCount64() + 2000; // TODO: configure reconnect delay
 			}
 		}
 

@@ -243,6 +243,7 @@ public:
 	virtual void react(const StopLogin&)
 	{
 		m_paused = true;
+		m_retries = 0;
 		m_record.reset();
 
 		// Once Autologin has performed or failed, this is no longer relevant and will only break future commands.
@@ -290,13 +291,7 @@ public:
 		m_currentRecord = ptr;
 	}
 
-	struct Settings
-	{
-		bool KickActiveCharacter = true;
-		bool EndAfterSelect = false;
-		int CharSelectDelay = 3;
-		int ConnectRetries = 0;
-	};
+	using Settings = AutoLoginSettings;
 
 	static Settings m_settings;
 	static CurrentLogin m_currentLogin;

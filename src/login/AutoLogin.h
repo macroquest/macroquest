@@ -28,6 +28,15 @@ struct ProfileRecord;
 
 using Action = std::function<void()>;
 
+struct AutoLoginSettings
+{
+	bool KickActiveCharacter = true;
+	bool EndAfterSelect = false;
+	int CharSelectDelay = 3;
+	int ConnectRetries = 5;
+	int ClientLaunchDelay = 3;
+};
+
 struct LoginInstance
 {
 	LoginInstance(uint32_t pid, const ProfileRecord& profile);
