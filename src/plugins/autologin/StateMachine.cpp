@@ -195,7 +195,9 @@ class SplashScreen : public Login
 public:
 	void entry() override
 	{
-		g_pLoginViewManager->HandleLButtonUp(CXPoint(1, 1));
+		CXPoint point(1, 1);
+		g_pLoginViewManager->HandleLButtonUp(point);
+
 		transit<Wait>();
 	}
 };
@@ -418,25 +420,24 @@ public:
 			{
 				WriteChatf("\ag[AutoLogin]\ax Stopping at server select due to message: %s", str.c_str());
 				dispatch(StopLogin());
-				return;
 			}
 			else
 			{
 				// slow things down a little bit
 				m_delayTime = MQGetTickCount64() + 1000;
+
+				// some potential error messages -- (no need to check for the text, we are just going to click)
+				//std::vector<const char*> ErrorMessages = {
+				//	"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
+				//	"That server is currently unavailable",
+				//	"An unknown error occurred while trying to join the server.",
+				//	"The connection has been terminated by the server.  Most likely you have been inactive",
+				//	"A timeout occurred"
+				//};
+
+				if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 			}
-
-			// some potential error messages -- (no need to check for the text, we are just going to click)
-			//std::vector<const char*> ErrorMessages = {
-			//	"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
-			//	"That server is currently unavailable",
-			//	"An unknown error occurred while trying to join the server.",
-			//	"The connection has been terminated by the server.  Most likely you have been inactive",
-			//	"A timeout occurred"
-			//};
-
-			if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
-				SendWndNotification(pButton, pButton, XWM_LCLICK);
 		}
 
 		transit<Wait>();

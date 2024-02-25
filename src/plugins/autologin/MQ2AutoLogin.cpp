@@ -1038,19 +1038,37 @@ PLUGIN_API void OnPulse()
 	}
 	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > s_reenableTime)
 	{
-		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
-		if (pWnd != nullptr && pWnd->IsVisible() == 1)
+		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
+		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
 		{
-			auto pStmlWnd = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-
-			if (pStmlWnd && GetSTMLText(pStmlWnd).find("Do you accept these rules?") != CXStr::npos)
+			if (CStmlWnd* pStmlWnd = GetChildWindow<CStmlWnd>(pConfirmationWnd, "CD_TextOutput"))
 			{
-				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
-					SendWndNotification(pYes, pYes, XWM_LCLICK);
+				static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
+					// Greetings Norrathian, by creating a new character and playing on Rizlona you agree to
+					// abide by the server specific rules and regulations in addition to the previously
+					// agreed upon terms of service and EULA. (everquest.com/TLP2020) Do you accept these rules?
+					{ "Do you accept these rules?",
+					  "CD_Yes_Button", },
+
+					// It took %1 seconds to load your characters, it is possible one or more failed to load.
+					// Please contact Customer Service if one of your characters is missing.
+					{ "Please contact Customer Service if one of your characters is missing.",
+					  "CD_OK_Button", },
+				};
+
+				CXStr messageText = GetSTMLText(pStmlWnd);
+
+				for (auto [message, buttonName] : PromptWindows)
+				{
+					if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, buttonName))
+					{
+						SendWndNotification(pButton, pButton, XWM_LCLICK);
+					}
+				}
 			}
 		}
-		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
-			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
+		else if (CXWnd* pCharsWnd = GetWindow("CLW_CharactersScreen"))
+			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pCharsWnd));
 
 		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}

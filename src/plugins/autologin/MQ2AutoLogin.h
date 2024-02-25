@@ -199,6 +199,8 @@ protected:
 	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr);
 
 public:
+	virtual ~Login() {}
+
 	// This must be defined in the implementation where the state classes are defined
 	virtual void react(const LoginStateSensor&) {}
 
