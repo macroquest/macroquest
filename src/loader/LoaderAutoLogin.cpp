@@ -96,7 +96,7 @@ void Post(const std::string& name, const proto::login::MessageId& messageId, con
 
 	proto::routing::Address address;
 	address.set_name(name);
-	address.set_mailbox("autologin:autologin");
+	address.set_mailbox("autologin");
 
 	s_dropbox.Post(address, message);
 }

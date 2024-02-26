@@ -178,6 +178,7 @@ const LoginInstance* UpdateInstance(const uint32_t pid, const ProfileRecord& pro
 				UnregisterGlobalHotkeyCallback(login_it->second.PID, *login_it->second.Hotkey);
 
 			s_loadedInstances.erase(login_it);
+			return nullptr;
 		}
 		else
 		{
