@@ -35,6 +35,7 @@ struct AutoLoginSettings
 	int CharSelectDelay = 3;
 	int ConnectRetries = 5;
 	int ClientLaunchDelay = 3;
+	bool ShowHiddenCharacters = true;
 };
 
 struct LoginInstance

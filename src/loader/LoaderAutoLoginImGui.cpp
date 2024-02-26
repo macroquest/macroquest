@@ -32,6 +32,7 @@ namespace fs = std::filesystem;
 using namespace mq;
 
 static ImGuiFileDialog* s_eqDirDialog = nullptr;
+static constexpr AutoLoginSettings defaultSettings;
 
 #pragma region Helpers
 
@@ -691,8 +692,10 @@ static void CharacterTable(const std::string_view search)
 		| ImGuiTableFlags_Sortable
 		| ImGuiTableFlags_SortMulti;
 
-	static bool show_hidden = true;
+	static auto show_hidden = login::db::CacheSetting<bool>("show_hidden_characters", defaultSettings.ShowHiddenCharacters, GetBoolFromString);
 	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+
+	bool should_show_hidden = show_hidden.Read();
 
 	ImGui::PushOverrideID(CharacterInfo::GetID());
 	if (ImGui::BeginTable("Main List", 9, flags, { 0.f, height }))
@@ -732,7 +735,7 @@ static void CharacterTable(const std::string_view search)
 		}
 
 		ImGuiListClipper clipper;
-		if (show_hidden)
+		if (should_show_hidden)
 			clipper.Begin(static_cast<int>(characters.Updated().size()));
 		else
 			clipper.Begin(static_cast<int>(filtered_characters.size()));
@@ -743,7 +746,7 @@ static void CharacterTable(const std::string_view search)
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
 				int idx = row;
-				if (!show_hidden)
+				if (!should_show_hidden)
 					idx = static_cast<int>(filtered_characters.at(row));
 				auto& match = characters.Updated().at(idx);
 				ImGui::PushID(&match);
@@ -852,7 +855,10 @@ static void CharacterTable(const std::string_view search)
 	}
 	ImGui::PopID();
 
-	LauncherImGui::ToggleSlider("Show Hidden Characters", &show_hidden);
+	if (LauncherImGui::ToggleSlider("Show Hidden Characters", &should_show_hidden))
+	{
+		login::db::WriteSetting("show_hidden_characters", should_show_hidden ? "1" : "0", "Show hidden characters in the characters list");
+	}
 
 	EditBehavior(selected_character, "Edit Character", []
 		{
@@ -1641,7 +1647,6 @@ void ShowAccountsWindow()
 
 void ShowSettingsWindow()
 {
-	static const AutoLoginSettings defaultSettings;
 	static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
 	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, GetBoolFromString);
 	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, GetBoolFromString);
