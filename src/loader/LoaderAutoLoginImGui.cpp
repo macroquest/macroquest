@@ -1033,9 +1033,9 @@ static void ProfileTable(const std::string& group)
 		| ImGuiTableFlags_NoBordersInBody
 		| ImGuiTableFlags_ScrollY;
 
-	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
+	ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(1, ImGui::GetFrameHeightWithSpacing());
 
-	if (ImGui::BeginTable("Main List", 8, flags, { 0.f, height }))
+	if (ImGui::BeginTable("Main List", 8, flags, size))
 	{
 		if (!group.empty())
 		{
@@ -1199,8 +1199,6 @@ static void ProfileTable(const std::string& group)
 
 	ImGui::SameLine();
 	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
-	ImGui::SetItemTooltip("Drag & drop a row to reorder");
-
 	HandleProfilesModals();
 }
 
@@ -1376,10 +1374,6 @@ static void ProfileGroupTable(std::string& group)
 		LauncherImGui::OpenModal("Create Profile Group");
 	}
 
-	ImGui::SameLine();
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 0.5f), "Drag & drop a row to reorder");
-	ImGui::SetItemTooltip("Drag & drop a row to reorder");
-
 	HandleProfileGroupsModals(group);
 }
 
@@ -1546,15 +1540,27 @@ void ShowProfilesWindow()
 		}
 	}
 
-	if (ImGui::BeginChild("Profile Groups", { ImGui::GetContentRegionAvail().x * 0.25f, 0.f }, ImGuiChildFlags_None, ImGuiWindowFlags_None))
+	static float rightPaneSize = 0.0f;
+	static float leftPaneSize = 150.0f;
+
+	imgui::DrawSplitter(false, 9.0f, &leftPaneSize, &rightPaneSize, 50, 250);
+
+	ImVec2 availSize = ImGui::GetContentRegionAvail();
+	if (rightPaneSize == 0.0f)
+		rightPaneSize = availSize.x - leftPaneSize - 1;
+
+	// Left Pane
+	if (ImGui::BeginChild("Profile Groups", { leftPaneSize, 0 }))
 	{
 		ProfileGroupTable(group);
 	}
-
 	ImGui::EndChild();
 
 	ImGui::SameLine();
-	if (ImGui::BeginChild("Profiles", { 0.f, 0.f }, ImGuiChildFlags_None, ImGuiWindowFlags_None))
+
+	// Right Pane
+	ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+	if (ImGui::BeginChild("Profiles", { rightPaneContentSize.x, 0 }))
 	{
 		if (ImGui::Button("Launch Selected Group"))
 			LoadProfileGroup(group);
