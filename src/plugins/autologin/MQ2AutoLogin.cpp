@@ -258,7 +258,7 @@ void NotifyCharacterUnload()
 	Post(proto::login::ProfileUnloaded, stop);
 }
 
-void Login::SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
+void Login::SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr, bool setCurrent)
 {
 	if (m_record == ptr)
 		return;
@@ -268,7 +268,11 @@ void Login::SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
 	// We don't remove the character info if this is cleared
 	if (m_record)
 	{
-		set_current_record(m_record);
+		// Don't set current record while we're camping, because it can be canceled.
+		if (Login::last_state() != LoginState::InGame && Login::last_state() != LoginState::InGameCamping)
+		{
+			set_current_record(m_record);
+		}
 	}
 }
 
@@ -330,26 +334,6 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 	Post(proto::login::StartInstance, start);
 }
 
-template <typename EventType>
-void PerformSwitch(const EventType& event, bool logout)
-{
-	// TODO: We need a state for camping out, we don't want to dispatch the login info change
-	// until it actually happens.
-	if (logout && GetGameState() == GAMESTATE_INGAME)
-	{
-		if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
-		{
-			// using DoMappable here doesn't create enough of a delay for camp to work
-			EzCommand("/stand");
-		}
-
-		EzCommand("/camp fast");
-	}
-
-
-	Login::dispatch(event);
-}
-
 ProfileRecord GetCharacterProfile(const char* serverName, const char* szCharacter)
 {
 	// Check if a profile exists matching this character name on the same server and profile.
@@ -376,11 +360,11 @@ ProfileRecord GetCharacterProfile(const char* serverName, const char* szCharacte
 }
 
 // Returns the profile name if we found one.
-std::string SwitchCharacterProfile(const char* serverName, const char* szCharacter, bool logout)
+std::string SwitchCharacterProfile(const char* serverName, const char* szCharacter)
 {
 	ProfileRecord rec = GetCharacterProfile(serverName, szCharacter);
-	PerformSwitch(SetLoginProfile(rec), logout);
 
+	Login::dispatch(SetLoginProfile(rec));
 	return rec.profileName;
 }
 
@@ -398,35 +382,44 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+#if IS_EMU_CLIENT
+	auto server_names = login::db::ListServers().vector();
+
 	// this is just a validity check, that's the only reason we have that set of server names
-	if (GetServerIDFromServerName(szServer) == ServerID::Invalid && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
+	if (std::find_if(begin(server_names), end(server_names), [&szServer](std::string_view s) { return ci_equals(s, szServer); }) == server_names.end())
 	{
-		WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
+		WriteChatf("\ar[AutoLogin]\ax Invalid server name \ag%s\ax. Valid server names are:", szServer);
+		WriteChatColor(join(server_names, ", ").c_str());
+	}
+#else
+	// this is just a validity check, that's the only reason we have that set of server names
+	if (GetServerIDFromServerName(szServer) == ServerID::Invalid)
+	{
+		WriteChatf("\ar[AutoLogin]\ax Invalid server name \ag%s\ax. Valid server names are:", szServer);
 
 		std::vector<std::string_view> server_names;
 		std::transform(std::begin(eqlib::ServerIDArray), std::end(eqlib::ServerIDArray),
 			std::back_inserter(server_names), [](const ServerID id) { return GetServerNameFromServerID(id); });
-		std::vector<std::string> custom_server_names = GetPrivateProfileKeys("Servers", INIFileName);
 
-		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());
 		WriteChatColor(join(server_names, ", ").c_str());
 	}
+#endif
 	else if (GetGameState() == GAMESTATE_INGAME && pChar
 		&& ci_equals(GetServerShortName(), szServer)
 		&& ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
+		WriteChatf("\ay[AutoLogin]\ax You're already logged into '%s' on '%s'\ax", szCharacter, szServer);
 	}
 	else
 	{
-		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter, true); !profileName.empty())
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter); !profileName.empty())
 		{
-			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax with profile \ay%s\ax.",
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax on server \ag%s\ax with profile \ay%s\ax.",
 				szCharacter, szServer, profileName.c_str());
 		}
 		else
 		{
-			WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
 		}
 	}
 }
@@ -444,19 +437,19 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		WriteChatf("\ayYou're already logged onto '%s'\ax", szCharacter);
+		WriteChatf("\ay[AutoLogin]\ax You're already logged onto '%s'\ax", szCharacter);
 	}
 	else
 	{
 		const char* szServer = GetServerShortName();
-		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter, true); !profileName.empty())
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter); !profileName.empty())
 		{
-			WriteChatf("Switching to \ag%s\ax with profile \ay%s\ax.",
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax with profile \ay%s\ax.",
 				szCharacter, profileName.c_str());
 		}
 		else
 		{
-			WriteChatf("Switching to \ag%s\ax.", szCharacter);
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax.", szCharacter);
 		}
 	}
 }
@@ -497,15 +490,11 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
-		SwitchCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName, true);
+		SwitchCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName);
 
 		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
-		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
+		WriteChatf("\ag[AutoLogin]\ax Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
 			pLocalPlayer->DisplayedName, GetServerShortName(), szLine);
-	}
-	else
-	{
-		WriteChatf("\arError:\ax /relog could not get your server or character name.");
 	}
 }
 
@@ -796,6 +785,8 @@ PLUGIN_API void SetGameState(int GameState)
 				std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
 		}
 	}
+
+	Login::dispatch(ChangeGameState(GameState));
 }
 
 static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
@@ -1092,10 +1083,12 @@ PLUGIN_API void OnPulse()
 		Login::dispatch(UnpauseLogin(true));
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
 		Login::dispatch(PauseLogin(true));
-	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > s_reenableTime)
+	else if (GetGameState() == GAMESTATE_INGAME)
 	{
-		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
-		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
+		if (pEverQuestInfo->ExitCounter != Login::m_campTimer)
+		{
+			Login::dispatch(SetCampTimer(pEverQuestInfo->ExitCounter));
+		}
 	}
 	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > s_reenableTime)
 	{
@@ -1121,9 +1114,12 @@ PLUGIN_API void OnPulse()
 
 				for (auto [message, buttonName] : PromptWindows)
 				{
-					if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, buttonName))
+					if (ci_find_substr(messageText, message) != -1)
 					{
-						SendWndNotification(pButton, pButton, XWM_LCLICK);
+						if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, buttonName))
+						{
+							SendWndNotification(pButton, pButton, XWM_LCLICK);
+						}
 					}
 				}
 			}
@@ -1184,18 +1180,9 @@ PLUGIN_API void OnPulse()
 static bool bShowAutoLoginOverlay = true;
 static bool bShowOverlayDebugInfo = false;
 
-template <typename T>
-static bool RadioButton(const char* label, T* v, T v_button)
-{
-	const bool pressed = ImGui::RadioButton(label, *v == v_button);
-	if (pressed)
-		*v = v_button;
-	return pressed;
-}
-
 static bool InputInt(const char* label, int* v, int step = 1, int step_fast = 10, ImGuiInputTextFlags flags = 0)
 {
-    return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
+	return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
 }
 
 static void DisplayProfileInfo(const std::shared_ptr<ProfileRecord>& profile, bool allowClear)
@@ -1340,6 +1327,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 	int gameState = GetGameState();
 	int corner = (gameState == GAMESTATE_CHARSELECT ? 1 : 0); // 0 = top left, 1 = top right, 2 = bottom left, 3 = bottom right
+	if (gameState == GAMESTATE_INGAME)
+		corner = -1;
 	ImGuiIO& io = ImGui::GetIO();
 
 	if (corner != -1)
@@ -1352,7 +1341,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 	}
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(250, 0), ImVec2(FLT_MAX, FLT_MAX));
-	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT ? .85f : .35f); // Transparent background
+	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_INGAME ? .85f : .35f); // Transparent background
 	if (ImGui::Begin("AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
 		ImGui::PushFont(imgui::LargeTextFont);
@@ -1450,10 +1439,24 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			}
 			break;
 
+		case LoginState::InGameCamping:
+			if (pEverQuestInfo->ExitCounter != 0 && Login::get_record())
+			{
+				int counter = static_cast<int>(pEverQuestInfo->ExitCounter - EQGetTime());
+				if (counter > 0)
+				{
+					std::chrono::milliseconds ms{ counter };
+
+					ImGui::Text("Waiting to camp in %d seconds...", std::chrono::duration_cast<std::chrono::seconds>(ms).count());
+				}
+			}
+			break;
+
 		default: break;
 		}
-		
+	
 		ImGui::Spacing();
+	
 		if (ImGui::CollapsingHeader("Settings"))
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
@@ -1481,6 +1484,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 				case LoginState::ServerSelectDown: ImGui::Text("ServerSelectDown"); break;
 				case LoginState::CharacterSelect: ImGui::Text("CharacterSelect"); break;
 				case LoginState::InGame: ImGui::Text("InGame"); break;
+				case LoginState::InGameCamping: ImGui::Text("InGameCamping"); break;
 				default: ImGui::Text(""); break;
 			}
 
@@ -1509,7 +1513,8 @@ PLUGIN_API void OnUpdateImGui()
 	int gameState = GetGameState();
 
 	// Only show autologin overlay during character select or login
-	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT)
+	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT
+		|| (gameState == GAMESTATE_INGAME && Login::get_record() != nullptr))
 	{
 		ShowAutoLoginOverlay(&bShowAutoLoginOverlay);
 	}

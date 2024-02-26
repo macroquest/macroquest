@@ -34,6 +34,7 @@ class ServerSelectDown;
 class CharacterSelect;
 class CharacterSelectWait;
 class InGame;
+class InGameCamping;
 
 static std::shared_ptr<ProfileRecord> GetInitialLoginProfile(CEditWnd* pEditWnd)
 {
@@ -200,16 +201,23 @@ public:
 
 				break;
 			}
-			case LoginState::InGame:
-				// check this here because InGame will be the longest waiting state, don't do transits into self because they aren't useful
-				if (m_lastState != LoginState::InGame)
-					transit<InGame>();
-				break;
-			default:
-				break;
+
+			default: break;
 			}
 
 			m_lastState = e.State;
+		}
+	}
+
+	virtual void react(const ChangeGameState& event)
+	{
+		if (event.GameState == GAMESTATE_INGAME)
+		{
+			transit<InGame>();
+		}
+		else
+		{
+			transit<Wait>();
 		}
 	}
 };
@@ -701,11 +709,11 @@ public:
 
 	void react(const SetLoginProfile& e) override
 	{
-		if (pCharacterListWnd != nullptr && (
-			m_record == nullptr ||
-			!ci_equals(e.Record.accountName, m_record->accountName) ||
-			!ci_equals(e.Record.serverName, m_record->serverName)))
+		if (pCharacterListWnd != nullptr && (m_record == nullptr
+				|| !ci_equals(e.Record.accountName, m_record->accountName) || !ci_equals(e.Record.serverName, m_record->serverName)))
+		{
 			pCharacterListWnd->Quit();
+		}
 
 		Login::react(e);
 
@@ -723,6 +731,121 @@ public:
 		{
 			dispatch(StopLogin());
 		}
+
+		m_lastState = LoginState::InGame;
+		m_campTimer = 0;
+	}
+
+	void react(const LoginStateSensor& e) override
+	{
+		// We only want to transition out of InGame/InGameCamping.
+		if (transit_condition(e))
+		{
+			switch (e.State)
+			{
+			case LoginState::InGame:
+			case LoginState::InGameCamping:
+				break;
+
+			default:
+				Wait::react(e);
+				break;
+			}
+		}
+	}
+
+	void react(const SetLoginProfile& e) override
+	{
+		Login::react(e);
+
+		if (m_campTimer == 0)
+		{
+			// Stand up so we can initiate a camp.
+			if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
+			{
+				EzCommand("/stand");
+			}
+
+			// Perform the camp.
+			EzCommand("/camp");
+		}
+		else
+		{
+			CheckForFastCamp();
+		}
+	}
+
+	void react(const SetCampTimer& e) override
+	{
+		m_campTimer = e.CampTimer;
+
+		if (m_campTimer)
+			Login::transit<InGameCamping>();
+	}
+
+	static void CheckForFastCamp()
+	{
+		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
+		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
+		{
+			if (CStmlWnd* pStmlWnd = GetChildWindow<CStmlWnd>(pEverQuest->CampDialog, "CD_TextOutput"))
+			{
+				CXStr messageText = GetSTMLText(pStmlWnd);
+
+				if (ci_find_substr(messageText, "Fast camp now?") != -1)
+				{
+					if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, "CD_Yes_Button"))
+					{
+						SendWndNotification(pButton, pButton, XWM_LCLICK);
+					}
+				}
+			}
+		}
+	}
+};
+
+class InGameCamping : public InGame
+{
+public:
+	void entry() override
+	{
+		m_lastState = LoginState::InGameCamping;
+
+		if (m_record)
+			CheckForFastCamp();
+	}
+
+	void exit() override
+	{
+		if (m_record)
+		{
+			// If we left the state and still have a record, set the current record.
+			set_current_record(m_record);
+		}
+	}
+
+	void react(const SetCampTimer& e) override
+	{
+		m_campTimer = e.CampTimer;
+
+		if (m_campTimer == 0)
+		{
+			if (m_record)
+			{
+				WriteChatf("\ag[AutoLogin]\ax Attempt to camp out has been canceled.");
+				dispatch(StopLogin{});
+			}
+			else
+			{
+				Login::transit<InGame>();
+			}
+		}
+	}
+
+	void react(const StopLogin& e) override
+	{
+		Login::react(e);
+		Login::transit<InGame>();
 	}
 };
 

@@ -186,6 +186,26 @@ struct PauseLogin : tinyfsm::Event
 struct StopLogin : tinyfsm::Event {};
 struct CampCanceled : tinyfsm::Event {};
 
+struct ChangeGameState : tinyfsm::Event
+{
+	int GameState;
+
+	ChangeGameState(int gameState) : GameState(gameState) {}
+
+	ChangeGameState(const ChangeGameState&) = delete;
+	ChangeGameState& operator=(const ChangeGameState&) = delete;
+};
+
+struct SetCampTimer : tinyfsm::Event
+{
+	int CampTimer;
+
+	SetCampTimer(int campTimer) : CampTimer(campTimer) {}
+
+	SetCampTimer(const SetCampTimer&) = delete;
+	SetCampTimer& operator=(const SetCampTimer&) = delete;
+};
+
 class Login : public tinyfsm::Fsm<Login>
 {
 protected:
@@ -201,7 +221,7 @@ protected:
 	static inline uint8_t m_retries = 0;
 	static inline std::string m_lastAccount;
 
-	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr);
+	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr, bool setCurrent = true);
 
 public:
 	virtual ~Login() {}
@@ -256,6 +276,8 @@ public:
 	}
 
 	virtual void react(const CampCanceled&) {}
+	virtual void react(const ChangeGameState&) {}
+	virtual void react(const SetCampTimer&) {}
 
 	virtual void entry() {}
 	virtual void exit() {}
@@ -305,6 +327,7 @@ public:
 	static inline Settings m_settings;
 	static inline CurrentLogin m_currentLogin;
 	static inline bool m_skipNextDelay = false;
+	static inline int m_campTimer = 0;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
