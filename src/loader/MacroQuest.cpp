@@ -18,6 +18,7 @@
 #include "loader/PostOffice.h"
 #include "loader/ImGui.h"
 #include "loader/LoaderAutoLogin.h"
+#include "login/AutoLogin.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/ImGuiUtils.h"
 #include "mq/utils/Naming.h"

@@ -32,7 +32,7 @@ using namespace std::chrono_literals;
 
 // set of loaded instances -- be careful to only read/write this from actors to ensure no race conditions
 static postoffice::Dropbox s_dropbox;
-static std::queue<ProfileRecord> s_pendingLogins;
+static std::queue<std::pair<ProfileRecord, bool>> s_pendingLogins;
 static auto s_lastLoginTime = std::chrono::steady_clock::now();
 
 namespace internal_paths
@@ -74,32 +74,51 @@ const char* GetClassShortName(const DWORD player_class)
 	return s_classInfo[player_class].UCShortName;
 }
 
-void AutoLoginRemoveProcess(const DWORD process_id)
+void Post(uint32_t pid, const proto::login::MessageId& messageId, const std::string& data)
 {
-	proto::login::StopInstanceMissive stop;
-	stop.set_pid(process_id);
-
 	proto::login::LoginMessage message;
-	message.set_id(proto::login::ProfileUnloaded);
-	message.set_payload(stop.SerializeAsString());
+	message.set_id(messageId);
+	message.set_payload(data);
 
 	proto::routing::Address address;
-	address.set_name("launcher");
-	address.set_mailbox("autologin");
+	if (pid != 0)
+		address.set_pid(pid);
+	address.set_mailbox("autologin:autologin");
 
 	s_dropbox.Post(address, message);
 }
 
-void LoadCharacter(const ProfileRecord& profile)
+void Post(const std::string& name, const proto::login::MessageId& messageId, const std::string& data)
 {
-	s_pendingLogins.push(profile);
+	proto::login::LoginMessage message;
+	message.set_id(messageId);
+	message.set_payload(data);
+
+	proto::routing::Address address;
+	address.set_name(name);
+	address.set_mailbox("autologin:autologin");
+
+	s_dropbox.Post(address, message);
 }
 
-void LoadProfileGroup(std::string_view group)
+void AutoLoginRemoveProcess(uint32_t process_id)
+{
+	proto::login::StopInstanceMissive stop;
+	stop.set_pid(process_id);
+
+	Post("launcher", proto::login::ProfileUnloaded, stop);
+}
+
+void LoadCharacter(const ProfileRecord& profile, bool force)
+{
+	s_pendingLogins.emplace(profile, force);
+}
+
+void LoadProfileGroup(std::string_view group, bool force)
 {
 	for (auto& profile : login::db::GetActiveProfiles(group))
 	{
-		LoadCharacter(profile);
+		LoadCharacter(profile, force);
 	}
 }
 
@@ -132,12 +151,56 @@ void ProcessPendingLogins()
 	const auto now = std::chrono::steady_clock::now();
 	if (!s_pendingLogins.empty() && now >= s_lastLoginTime)
 	{
-		auto profile = s_pendingLogins.front();
-		StartInstance(profile);
+		auto& [record, force] = s_pendingLogins.front();
+		int applyProfilePID = 0;
 
-		static auto delay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
+		if (!force)
+		{
+			// Check for duplicate session
+			const auto& loadedInstances = GetLoadedInstances();
+
+			auto iter = loadedInstances.find(LoginInstance::Key(record));
+			if (iter != loadedInstances.end())
+			{
+				const LoginInstance& instance = iter->second;
+
+				if (!record.profileName.empty() && instance.ProfileGroup != record.profileName)
+				{
+					applyProfilePID = instance.PID;
+				}
+			}
+		}
+
+		int delay = 0;
+
+		if (applyProfilePID != 0)
+		{
+			proto::login::ApplyProfileMissive missive;
+			missive.set_do_login(false);
+
+			if (!record.profileName.empty())
+			{
+				proto::login::ProfileMethod& profile = *missive.mutable_profile();
+				SerializeProfile(record, profile);
+			}
+			else
+			{
+				proto::login::DirectMethod& direct = *missive.mutable_direct();
+				SerializeProfile(record, direct);
+			}
+
+			Post(applyProfilePID, mq::proto::login::ApplyProfile, missive);
+		}
+		else
+		{
+			StartInstance(record);
+
+			static auto launchDelay = login::db::CacheSetting<int>("client_launch_delay", 3, GetIntFromString);
+			delay = launchDelay.Read();
+		}
+
+		s_lastLoginTime = now + std::chrono::seconds(delay);
 		s_pendingLogins.pop();
-		s_lastLoginTime = now + std::chrono::seconds(delay.Read());
 	}
 }
 
@@ -159,69 +222,6 @@ std::string GetEQRoot()
 		return *eq_path.Updated();
 
 	return "";
-}
-
-static ProfileRecord ParseProfileFromMessage(const proto::login::DirectMethod& direct)
-{
-	ProfileRecord profile;
-	if (direct.has_target())
-	{
-		if (direct.target().has_server())
-			profile.serverName = direct.target().server();
-
-		if (direct.target().has_character())
-			profile.characterName = direct.target().character();
-	}
-
-	profile.accountName = direct.login();
-	profile.accountPassword = direct.password();
-
-	if (direct.has_hotkey())
-		profile.hotkey = direct.hotkey();
-
-	if (direct.has_eq_path())
-		profile.eqPath = direct.eq_path();
-
-	return profile;
-}
-
-static ProfileRecord ParseProfileFromMessage(const proto::login::ProfileMethod& profile)
-{
-	ProfileRecord record;
-	record.profileName = profile.profile();
-	record.accountName = profile.account();
-
-	if (profile.has_target() && profile.target().has_character() && profile.target().has_server())
-	{
-		record.serverName = profile.target().server();
-		record.characterName = profile.target().character();
-
-		// get the remaining data from the db for the profile
-		login::db::ReadProfile(record);
-	}
-	else
-	{
-		// only profile -- get the first record
-		login::db::ReadFirstProfile(record);
-	}
-
-	return record;
-}
-
-template <typename Missive>
-static ProfileRecord ParseProfileFromMessage(const Missive& missive)
-{
-	switch (missive.method_case())
-	{
-	case proto::login::StartInstanceMissive::MethodCase::kDirect:
-		return ParseProfileFromMessage(missive.direct());
-
-	case proto::login::StartInstanceMissive::MethodCase::kProfile:
-		return ParseProfileFromMessage(missive.profile());
-
-	default:
-		return {};
-	}
 }
 
 static void ReceivedMessageHandler(const ProtoMessagePtr& message)
@@ -284,13 +284,12 @@ static void ReceivedMessageHandler(const ProtoMessagePtr& message)
 			proto::login::StartInstanceMissive start;
 			start.ParseFromString(login_message.payload());
 			ProfileRecord profile = ParseProfileFromMessage(start);
-			LoadCharacter(profile);
+			LoadCharacter(profile, true);
 		}
 
 		break;
 
-	default:
-		break;
+	default: break;
 	}
 }
 

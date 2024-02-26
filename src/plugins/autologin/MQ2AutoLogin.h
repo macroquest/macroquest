@@ -121,7 +121,8 @@ enum class LoginState
 	ServerSelectKick,
 	ServerSelectDown,
 	CharacterSelect,
-	InGame
+	InGame,
+	InGameCamping,
 };
 
 // this event will notify a change in game state
@@ -183,6 +184,7 @@ struct PauseLogin : tinyfsm::Event
 };
 
 struct StopLogin : tinyfsm::Event {};
+struct CampCanceled : tinyfsm::Event {};
 
 class Login : public tinyfsm::Fsm<Login>
 {
@@ -252,6 +254,8 @@ public:
 		// Once Autologin has performed or failed, this is no longer relevant and will only break future commands.
 		m_settings.EndAfterSelect = false;
 	}
+
+	virtual void react(const CampCanceled&) {}
 
 	virtual void entry() {}
 	virtual void exit() {}

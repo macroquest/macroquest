@@ -616,7 +616,7 @@ static void AccountTable(const std::string_view search)
 						selected_profile = match;
 						selected_profile.accountPassword = login::db::ReadPassword(match.accountName, match.serverType).value_or("");
 
-						LoadCharacter(selected_profile);
+						LoadCharacter(selected_profile, true);
 					}
 
 					ImGui::EndPopup();
@@ -827,7 +827,7 @@ static void CharacterTable(const std::string_view search)
 				ImGui::TableNextColumn();
 				if (ImGui::SmallButton("Play"))
 				{
-					LoadCharacter(match);
+					LoadCharacter(match, true);
 				}
 
 				ImGui::SameLine();
@@ -840,12 +840,7 @@ static void CharacterTable(const std::string_view search)
 				}
 
 				ImGui::TableNextColumn();
-				if (loaded.find(LoginInstance::Key(match)) != loaded.end())
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-					ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-					ImGui::PopStyleColor();
-				}
+				DrawStatusIcon(match);
 
 				ImGui::PopID();
 			}
@@ -909,7 +904,7 @@ static void CharacterTable(const std::string_view search)
 
 		DefaultModalButtons([]
 			{
-				LoadCharacter(selected_profile);
+				LoadCharacter(selected_profile, true);
 			});
 
 		LauncherImGui::EndModal();
@@ -1075,6 +1070,7 @@ static void ProfileTable(const std::string& group)
 			ImGuiListClipper clipper;
 			clipper.Begin(static_cast<int>(profiles.Read(force_profiles_update).size()));
 			const auto& loaded = GetLoadedInstances();
+
 			while (clipper.Step())
 			{
 				for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
@@ -1164,16 +1160,11 @@ static void ProfileTable(const std::string& group)
 					ImGui::TableNextColumn();
 					if (ImGui::SmallButton("Play"))
 					{
-						LoadCharacter(profile);
+						LoadCharacter(profile, ImGui::IsKeyPressed(ImGuiMod_Shift));
 					}
 
 					ImGui::TableNextColumn();
-					if (loaded.find(LoginInstance::Key(profile)) != loaded.end())
-					{
-						ImGui::PushStyleColor(ImGuiCol_Text, { 0.f, 1.f, 0.f, 1.f });
-						ImGui::TextUnformatted(ICON_MD_POWER_SETTINGS_NEW);
-						ImGui::PopStyleColor();
-					}
+					DrawStatusIcon(profile);
 
 					ImGui::PopID();
 				}
@@ -1569,7 +1560,7 @@ void ShowProfilesWindow()
 	if (ImGui::BeginChild("Profiles", { rightPaneContentSize.x, 0 }))
 	{
 		if (ImGui::Button("Launch Selected Group"))
-			LoadProfileGroup(group);
+			LoadProfileGroup(group, ImGui::IsKeyPressed(ImGuiMod_Shift));
 
 		ImGui::SameLine();
 		ImGui::TextColored({ 1.0f, 1.0f, 1.0f, 0.5f }, "Right click list items to edit or remove");

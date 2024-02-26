@@ -217,44 +217,37 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 	s_autologinDropbox.Post(address, message);
 }
 
-// Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
-// This can be revisited later when we think a little bit about autologin
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
+void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
 {
+	auto& record = *ptr;
+	
+	// Fill in the profile first.
+	if (!record.profileName.empty())
+	{
+		login::db::ReadProfile(record);
+	}
+	else if (!record.serverName.empty() && !record.characterName.empty())
+	{
+		login::db::ReadCharacter(record);
+	}
+
 	proto::login::NotifyLoadedMissive loaded;
 	loaded.set_pid(GetCurrentProcessId());
 
-	if (strlen(Profile) > 0)
+	if (!record.profileName.empty())
 	{
 		proto::login::ProfileMethod& profile = *loaded.mutable_profile();
-		profile.set_profile(Profile);
-		profile.set_account(Account);
 
-		proto::login::LoginTarget& target = *profile.mutable_target();
-		target.set_server(Server);
-		target.set_character(Character);
+		SerializeProfile(record, profile);
 	}
 	else
 	{
 		proto::login::DirectMethod& direct = *loaded.mutable_direct();
-		direct.set_login(Account);
 
-		proto::login::LoginTarget& target = *direct.mutable_target();
-		target.set_server(Server);
-		target.set_character(Character);
+		SerializeProfile(record, direct);
 	}
 
 	Post(proto::login::ProfileLoaded, loaded);
-}
-
-void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
-{
-	NotifyCharacterLoad(
-		ptr->profileName.c_str(),
-		ptr->accountName.c_str(),
-		ptr->serverName.c_str(),
-		ptr->characterName.c_str()
-	);
 }
 
 void NotifyCharacterUnload()
@@ -709,6 +702,13 @@ public:
 	}
 };
 
+static bool DoesProfileMatchCurrentSession(const ProfileRecord& record)
+{
+	return ci_equals(record.characterName, pLocalPlayer->DisplayedName)
+		&& ci_equals(record.serverName, GetServerShortName())
+		&& (record.accountName.empty() || ci_equals(record.accountName, GetLoginName()));
+}
+
 PLUGIN_API void SetGameState(int GameState)
 {
 	// this works because we will always have a gamestate change after loading or unloading eqmain
@@ -780,8 +780,7 @@ PLUGIN_API void SetGameState(int GameState)
 		{
 			// If we manage to get into the game on a different character than what we had started our profile
 			// with, switch profiles.
-			if (!ci_equals(currentRecord->characterName, pLocalPlayer->DisplayedName)
-				|| !ci_equals(currentRecord->serverName, GetServerShortName()))
+			if (!DoesProfileMatchCurrentSession(*currentRecord))
 			{
 				Login::set_current_record(
 					std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
@@ -795,6 +794,70 @@ PLUGIN_API void SetGameState(int GameState)
 		{
 			Login::set_current_record(
 				std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
+		}
+	}
+}
+
+static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
+{
+	if (message->Payload)
+	{
+		proto::login::LoginMessage loginMessage;
+		loginMessage.ParseFromString(*message->Payload);
+
+		switch (loginMessage.id())
+		{
+		case proto::login::Identify:
+			// We don't actually care about the payload here, we just want to send our data.
+			if (auto profile = Login::get_current_record())
+				NotifyCharacterLoad(profile);
+			break;
+
+		case proto::login::ApplyProfile:
+			if (loginMessage.has_payload())
+			{
+				proto::login::ApplyProfileMissive payload;
+				payload.ParseFromString(loginMessage.payload());
+
+				ProfileRecord record = ParseProfileFromMessage(payload);
+
+				char profileStr[256] = { 0 };
+				if (!record.profileName.empty())
+					sprintf_s(profileStr, "%s: %s (%s)", record.profileName.c_str(), record.characterName.c_str(), record.serverName.c_str());
+				else
+					sprintf_s(profileStr, "%s (%s)", record.characterName.c_str(), record.serverName.c_str());
+
+				if (!record.hotkey.empty())
+				{
+					strcat_s(profileStr, " hotkey: ");
+					strcat_s(profileStr, record.hotkey.c_str());
+				}
+
+				if (payload.do_login())
+				{
+					WriteChatf("\ag[AutoLogin]\ax Received command to begin loading character: %s", profileStr);
+
+					Login::dispatch(SetLoginProfile(record));
+				}
+				else
+				{
+					// Not performing a login, so just check that the character/server match and
+					// apply the rest.
+					if (DoesProfileMatchCurrentSession(record))
+					{
+						WriteChatf("\ag[AutoLogin]\ax Received new profile assignment: %s", profileStr);
+
+						Login::set_current_record(std::make_shared<ProfileRecord>(record));
+					}
+					else
+					{
+						WriteChatf("\ar[AutoLogin]\ax Received new profile assignment that doesn't match current character: %s", profileStr);
+					}
+				}
+			}
+			break;
+
+		default: break;
 		}
 	}
 }
@@ -852,13 +915,9 @@ PLUGIN_API void InitializePlugin()
 		login::db::CreateOrUpdateServerType(server_type, fs_path.parent_path().string());
 	}
 
-	s_autologinDropbox = postoffice::AddActor("autologin",
-		[](const std::shared_ptr<postoffice::Message>& message)
-		{
-			// autologin doesn't actually take message inputs yet...
-		});
+	s_autologinDropbox = postoffice::AddActor("autologin", HandleMessage);
 
-	LoadCharacterCallback = [](const ProfileRecord& record)
+	LoadCharacterCallback = [](const ProfileRecord& record, bool)
 		{
 			ProfileRecord copy(record);
 			copy.accountPassword = login::db::ReadPassword(record.accountName, record.serverType).value_or("");
@@ -1394,7 +1453,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		default: break;
 		}
 		
-
 		ImGui::Spacing();
 		if (ImGui::CollapsingHeader("Settings"))
 		{

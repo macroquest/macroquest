@@ -51,7 +51,9 @@ struct LoginInstance
 	uint32_t PID = 0;
 
 	const std::string Server;
+	const std::string ServerType;
 	const std::string Character;
+	const std::string Account;
 	const std::string EQPath;
 
 	std::optional<std::string> ProfileGroup;
@@ -191,15 +193,17 @@ struct ProfileGroupInfo : ProfileGroup
 };
 
 const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances();
+const LoginInstance* GetAccountInstance(std::string_view accountName, std::string_view serverType);
 const LoginInstance* UpdateInstance(uint32_t pid, const ProfileRecord& profile, bool add = false);
 void RemoveInstance(uint32_t pid);
 const LoginInstance* StartInstance(ProfileRecord& profile);
 
+void DrawStatusIcon(const ProfileRecord& record);
 void ShowProfilesMenu(bool showLoadAll);
 void ShowCharactersMenu();
 
-extern std::function<void(const std::string&)> LoadAllStarredCallback;
-extern std::function<void(const ProfileRecord&)> LoadCharacterCallback;
+extern std::function<void(const std::string&, bool)> LoadAllStarredCallback;
+extern std::function<void(const ProfileRecord&, bool)> LoadCharacterCallback;
 extern std::function<void(uint32_t, const std::string&)> UnregisterGlobalHotkeyCallback;
 extern std::function<void(uint32_t, const std::string&)> RegisterGlobalHotkeyCallback;
 
@@ -250,5 +254,27 @@ void DefaultComboList(
 
 			buf.clear();
 		}
+	}
+}
+
+void SerializeProfile(const ProfileRecord& record, mq::proto::login::ProfileMethod& profile);
+void SerializeProfile(const ProfileRecord& record, mq::proto::login::DirectMethod& direct);
+
+ProfileRecord ParseProfileFromMessage(const mq::proto::login::DirectMethod& direct);
+ProfileRecord ParseProfileFromMessage(const mq::proto::login::ProfileMethod& profile);
+
+template <typename Missive>
+ProfileRecord ParseProfileFromMessage(const Missive& missive)
+{
+	switch (missive.method_case())
+	{
+	case mq::proto::login::StartInstanceMissive::MethodCase::kDirect:
+		return ParseProfileFromMessage(missive.direct());
+
+	case mq::proto::login::StartInstanceMissive::MethodCase::kProfile:
+		return ParseProfileFromMessage(missive.profile());
+
+	default:
+		return {};
 	}
 }

@@ -14,12 +14,13 @@
 
 #pragma once
 
-#include "login/AutoLogin.h"
+#include "login/Login.h"
 
 
 // AutoLogin
-void LoadCharacter(const ProfileRecord& profile);
-void LoadProfileGroup(std::string_view group);
+void LoadCharacter(const ProfileRecord& profile, bool force);
+void LoadProfileGroup(std::string_view group, bool force);
+
 void LaunchCleanSession();
 void ProcessPendingLogins();
 void Import();
@@ -29,3 +30,20 @@ std::string GetEQRoot();
 bool ShowPasswordWindow();
 void InitializeAutoLoginImGui();
 void ShutdownAutoLoginImGui();
+
+// Actors
+
+void Post(uint32_t pid, const mq::proto::login::MessageId& messageId, const std::string& data);
+void Post(const std::string& name, const mq::proto::login::MessageId& messageId, const std::string& data);
+
+template <typename T>
+void Post(uint32_t pid, const mq::proto::login::MessageId& messageId, const T& data)
+{
+	Post(pid, messageId, data.SerializeAsString());
+}
+
+template <typename T>
+void Post(const std::string& name, const mq::proto::login::MessageId& messageId, const T& data)
+{
+	Post(name, messageId, data.SerializeAsString());
+}
