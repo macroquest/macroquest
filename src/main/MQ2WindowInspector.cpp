@@ -1408,6 +1408,7 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	ImGui::TableNextColumn();
 }
 
+#if HAS_GAMEFACE_UI
 void ColumnWindow(const char* Label, eqlib::eqmain::CXWnd* window)
 {
 	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
@@ -1444,6 +1445,7 @@ void ColumnWindow(const char* Label, eqlib::eqmain::CXWnd* window)
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 }
+#endif // HAS_GAMEFACE_UI
 
 void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
 {
@@ -1903,6 +1905,7 @@ public:
 		if (!m_table.Begin())
 			return;
 
+#if HAS_GAMEFACE_UI
 		if (GetGameState() == GAMESTATE_PRECHARSELECT)
 		{
 			// Trying to support all of this just for login is nuts.
@@ -1910,6 +1913,7 @@ public:
 			m_table.End();
 			return;
 		}
+#endif
 
 		switch (m_window->GetType())
 		{
@@ -2086,6 +2090,7 @@ public:
 		}
 	}
 
+#if HAS_GAMEFACE_UI
 	void DisplayCXMLDataProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
 	{
 		CXMLData* pXMLData = pWnd->GetXMLData();
@@ -2117,6 +2122,7 @@ public:
 			}
 		}
 	}
+#endif // HAS_GAMEFACE_UI
 
 	void DisplayCXWndProperties(CXWnd* pWnd, bool open = true)
 	{
@@ -2349,6 +2355,7 @@ public:
 		}
 	}
 
+#if HAS_GAMEFACE_UI
 	void DisplayCXWndProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
 	{
 		DisplayCXMLDataProperties(pWnd, open);
@@ -2500,7 +2507,6 @@ public:
 		}
 	}
 
-#if HAS_GAMEFACE_UI
 	void DisplayUIComponent(const char* label, UIComponent* component)
 	{
 		if (ColumnTreeNodeType(label, component->GetTypeName().c_str(), ""))
