@@ -24,12 +24,6 @@
     <ClCompile Include="RemoteOps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AutoLogin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HotKeyControl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ProcessMonitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,15 +57,15 @@
     <ClCompile Include="imgui_backend\imgui_engine.cpp">
       <Filter>Source Files\imgui_backend</Filter>
     </ClCompile>
-    <ClCompile Include="AutoLoginImGui.cpp">
+    <ClCompile Include="LoaderAutoLoginImGui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LoaderAutoLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HotKeyControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ProcessMonitor.h">
@@ -107,7 +101,7 @@
     <ClInclude Include="imgui_backend\imgui_engine.h">
       <Filter>Header Files\imgui_backend</Filter>
     </ClInclude>
-    <ClInclude Include="AutoLogin.h">
+    <ClInclude Include="LoaderAutoLogin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Markov.h">

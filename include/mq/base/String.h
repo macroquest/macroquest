@@ -33,9 +33,9 @@ inline void to_lower(std::string& str)
 	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-inline std::string to_lower_copy(const std::string& str)
+inline std::string to_lower_copy(std::string_view str)
 {
-	std::string tmp = str;
+	std::string tmp(str);
 	to_lower(tmp);
 	return tmp;
 }

@@ -34,11 +34,10 @@ class ServerSelectDown;
 class CharacterSelect;
 class CharacterSelectWait;
 class InGame;
+class InGameCamping;
 
-static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
+static std::shared_ptr<ProfileRecord> GetInitialLoginProfile(CEditWnd* pEditWnd)
 {
-	AutoLoginDebug("UseMQ2Login(): Using MQ2Login Method");
-
 	if (Login::is_in_state<Connect>() || Login::is_in_state<ConnectConfirm>())
 	{
 		// initialize input to empty, we will try to populate it from the command line first
@@ -65,7 +64,7 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (input.empty() && !inputText.empty())
 			input = inputText;
 
-		AutoLoginDebug(fmt::format("UseMQ2Login() input({})", input));
+		AutoLoginDebug(fmt::format("GetInitialLoginProfile() input({})", input));
 
 		auto record = ProfileRecord::FromString(input);
 		if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
@@ -80,10 +79,33 @@ static std::optional<ProfileRecord> UseMQ2Login(CEditWnd* pEditWnd)
 		if (record.customClientIni)
 			record.customClientIni = (std::filesystem::current_path() / *record.customClientIni).string();
 
-		return record;
+		return std::make_shared<ProfileRecord>(record);
 	}
 
-	return std::nullopt;
+	return nullptr;
+}
+
+static bool IsWrongAccount(const std::string& lastAccount, const std::shared_ptr<ProfileRecord>& record)
+{
+	// This happens if we switch profiles. Check against the account stored on the profile
+	// to determine if we need to back out.
+
+	// If we don't have login name, we can't tell.
+
+	if (lastAccount.empty())
+		return false;
+
+	if (record)
+	{
+		// If the account isn't provided we assume it is a character on the current account.
+		if (record->accountName.empty())
+			return false;
+
+		if (!ci_equals(lastAccount, record->accountName))
+			return true;
+	}
+
+	return false;
 }
 
 class Wait : public Login
@@ -109,8 +131,11 @@ protected:
 public:
 	void entry() override
 	{
-		auto new_delay = MQGetTickCount64() + 2000; // TODO: configure short delay
-		m_delayTime = new_delay > m_delayTime ? new_delay : m_delayTime; // this allows us to specify longer waits if we need them
+		// TODO: configure short delay
+		uint64_t new_delay = MQGetTickCount64() + 2000;
+
+		// this allows us to specify longer waits if we need them
+		m_delayTime = new_delay > m_delayTime ? new_delay : m_delayTime;
 	}
 
 	void react(const LoginStateSensor& e) override
@@ -176,16 +201,23 @@ public:
 
 				break;
 			}
-			case LoginState::InGame:
-				// check this here because InGame will be the longest waiting state, don't do transits into self because they aren't useful
-				if (m_lastState != LoginState::InGame)
-					transit<InGame>();
-				break;
-			default:
-				break;
+
+			default: break;
 			}
 
 			m_lastState = e.State;
+		}
+	}
+
+	virtual void react(const ChangeGameState& event)
+	{
+		if (event.GameState == GAMESTATE_INGAME)
+		{
+			transit<InGame>();
+		}
+		else
+		{
+			transit<Wait>();
 		}
 	}
 };
@@ -195,7 +227,9 @@ class SplashScreen : public Login
 public:
 	void entry() override
 	{
-		g_pLoginViewManager->HandleLButtonUp(CXPoint(1, 1));
+		CXPoint point(1, 1);
+		g_pLoginViewManager->HandleLButtonUp(point);
+
 		transit<Wait>();
 	}
 };
@@ -217,9 +251,9 @@ public:
 				// only place where we can enter account/pass
 				record = m_record;
 			}
-			else if (const std::optional<ProfileRecord> tempProfile = UseMQ2Login(pUsernameEditWnd))
+			else if (std::shared_ptr<ProfileRecord> tempProfile = GetInitialLoginProfile(pUsernameEditWnd))
 			{
-				record = std::make_unique<ProfileRecord>(std::move(*tempProfile));
+				record = tempProfile;
 			}
 
 			if (record
@@ -228,15 +262,11 @@ public:
 			{
 				SetProfileRecord(record);
 
-				NotifyCharacterLoad(
-					record->profileName.c_str(),
-					record->accountName.c_str(),
-					record->serverName.c_str(),
-					record->characterName.c_str()
-				);
-
 				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 				SetEditWndText(pUsernameEditWnd, m_record->accountName);
+
+				// Update the last account. This won't be updated by the client until we reach character select.
+				m_lastAccount = m_record->accountName;
 
 				if (CEditWnd* pPasswordEditWnd = GetChildWindow<CEditWnd>(m_currentWindow, "LOGIN_PasswordEdit"))
 				{
@@ -268,26 +298,52 @@ public:
 		{
 			CXStr str = GetWindowText(pWnd);
 
-			if (str.find("Logging in to the server.  Please wait....") != CXStr::npos)
+			enum MessageAction
+			{
+				Action_Success,
+				Action_Stop,
+				Action_ClickYes,
+				Action_None,
+			};
+
+			static std::vector<std::pair<MessageAction, const char*>> Messages = {
+				{ Action_Success,  "Logging in to the server.  Please wait...." },
+				{ Action_Stop,     "password were not valid" },
+				{ Action_Stop,     "This login requires that the account be activated.  Please make sure your account is active in order to login." },
+				{ Action_Stop,     "You need to enter a username and password to login." },
+				{ Action_Stop,     "Invalid Password" },
+				{ Action_ClickYes, "You have a character logged into a world server as an OFFLINE TRADER from this account" },
+			};
+
+			MessageAction msgAction = Action_None;
+
+			for (auto [action, message] : Messages)
+			{
+				if (ci_find_substr(str, message) != -1)
+				{
+					msgAction = action;
+					break;
+				}
+			}
+
+			if (msgAction == Action_Success)
 			{
 				// successful log in, transit
 			}
-			else if (str.find("password were not valid") != CXStr::npos
-				|| str.find("This login requires that the account be activated.  Please make sure your account is active in order to login.") != CXStr::npos
-				|| str.find("You need to enter a username and password to login.") != CXStr::npos)
+			else if (msgAction == Action_Stop)
 			{
-				AutoLoginDebug(fmt::format("ConnectConfirm: {}", str));
-				dispatch(StopLogin()); // we can't recover from these, so stop autologin
+				// we can't recover from these, so stop autologin
+				WriteChatf("\ar[AutoLogin]\ax Stopping login because the following message was encountered: %s", str.c_str());
+				dispatch(StopLogin());
 			}
-			else if (str.find("You have a character logged into a world server as an OFFLINE TRADER from this account") != CXStr::npos)
+			else if (msgAction == Action_ClickYes)
 			{
-				// kick off our offline trader
 				if (CXWnd* pButton = GetChildWindow(m_currentWindow, "YESNO_YesButton"))
 					SendWndNotification(pButton, pWnd, XWM_LCLICK);
 			}
-			else if (m_settings.ConnectRetries > 0 && m_retries > m_settings.ConnectRetries)
+			else if (m_settings.ConnectRetries > 0 && m_retries >= m_settings.ConnectRetries)
 			{
-				AutoLoginDebug(fmt::format("Retried {} times, stopping.", m_retries - 1));
+				WriteChatf("\ar[AutoLogin]\ax Failed to connect %d times, giving up.", m_retries);
 				dispatch(StopLogin());
 			}
 			else
@@ -309,7 +365,7 @@ public:
 					SendWndNotification(pButton, pButton, XWM_LCLICK);
 
 				++m_retries;
-
+				m_delayTime = MQGetTickCount64() + 2000; // TODO: configure reconnect delay
 			}
 		}
 
@@ -361,13 +417,19 @@ public:
 		return nullptr;
 	}
 
-	template <typename Action>
-	static bool CheckServerDown(Action action)
+	static bool CheckServerDown()
 	{
 		if (!m_record || m_record->serverName.empty())
 		{
 			AutoLoginDebug("ServerSelect: server name is empty");
 			dispatch(StopLogin()); // no server to select, stop
+			return false;
+		}
+
+		if (g_pLoginClient != nullptr && !ci_equals(g_pLoginClient->LoginName, m_record->accountName))
+		{
+			AutoLoginDebug("ServerSelect: incorrect account");
+			dispatch(StopLogin());
 			return false;
 		}
 
@@ -384,7 +446,6 @@ public:
 			return true;
 		}
 
-		action();
 		// join server (both server and Info are already guaranteed to be non-null)
 		g_pLoginServerAPI->JoinServer((int)server->ID);
 		return false;
@@ -392,7 +453,20 @@ public:
 
 	void entry() override
 	{
-		if (CheckServerDown([]() {}))
+		if (m_lastAccount.empty())
+		{
+			if (const char* loginName = GetLoginName())
+				m_lastAccount = loginName;
+		}
+
+		if (IsWrongAccount(m_lastAccount, m_record))
+		{
+			g_pLoginClient->OnBoot("Leaving Server Select");
+			m_skipNextDelay = true;
+
+			transit<Connect>();
+		}
+		else if (CheckServerDown())
 			transit<ServerSelectDown>();
 		else
 			transit<Wait>();
@@ -418,25 +492,24 @@ public:
 			{
 				WriteChatf("\ag[AutoLogin]\ax Stopping at server select due to message: %s", str.c_str());
 				dispatch(StopLogin());
-				return;
 			}
 			else
 			{
 				// slow things down a little bit
 				m_delayTime = MQGetTickCount64() + 1000;
+
+				// some potential error messages -- (no need to check for the text, we are just going to click)
+				//std::vector<const char*> ErrorMessages = {
+				//	"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
+				//	"That server is currently unavailable",
+				//	"An unknown error occurred while trying to join the server.",
+				//	"The connection has been terminated by the server.  Most likely you have been inactive",
+				//	"A timeout occurred"
+				//};
+
+				if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
+					SendWndNotification(pButton, pButton, XWM_LCLICK);
 			}
-
-			// some potential error messages -- (no need to check for the text, we are just going to click)
-			//std::vector<const char*> ErrorMessages = {
-			//	"The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later.",
-			//	"That server is currently unavailable",
-			//	"An unknown error occurred while trying to join the server.",
-			//	"The connection has been terminated by the server.  Most likely you have been inactive",
-			//	"A timeout occurred"
-			//};
-
-			if (auto pButton = GetActiveChildWindow<CButtonWnd>(m_currentWindow, "OK_OKButton"))
-				SendWndNotification(pButton, pButton, XWM_LCLICK);
 		}
 
 		transit<Wait>();
@@ -493,7 +566,7 @@ public:
 			switch (e.State)
 			{
 			case LoginState::ServerSelect:
-				if (ServerSelect::CheckServerDown([](){}))
+				if (ServerSelect::CheckServerDown())
 					transit<ServerSelectDown>();
 				else
 					transit<Wait>();
@@ -509,30 +582,35 @@ public:
 class CharacterSelect : public Login
 {
 public:
+	static bool IsInvalidServer()
+	{
+		// trivial cases: if the server shortname is empty or there is no record
+		if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
+			return true;
+
+		// valid if server short name is what is in the record
+		if (ci_equals(GetServerShortName(), m_record->serverName))
+			return false;
+
+		// valid if server long name is what is in the record
+		if (auto shortname = login::db::ReadShortServer(m_record->serverName))
+		{
+			if (ci_equals(GetServerShortName(), *shortname))
+				return false;
+		}
+
+		// no matches, not a valid server
+		return true;
+	}
+
 	void entry() override
 	{
+		if (const char* loginName = GetLoginName())
+			m_lastAccount = GetLoginName();
+
 		if (auto pCharList = GetChildWindow<CListWnd>(m_currentWindow, "Character_List"))
 		{
-			auto is_invalid_server = []()
-				{
-					// trivial cases: if the server shortname is empty or there is no record
-					if (GetServerShortName()[0] == 0 || !m_record || m_record->serverName.empty())
-						return true;
-
-					// valid if server short name is what is in the record
-					if (ci_equals(GetServerShortName(), m_record->serverName))
-						return false;
-
-					// valid if server long name is what is in the record
-					if (auto shortname = login::db::ReadShortServer(m_record->serverName))
-						if (ci_equals(GetServerShortName(), *shortname))
-							return false;
-
-					// no matches, not a valid server
-					return true;
-				}();
-
-			if (is_invalid_server)
+			if (IsInvalidServer() || IsWrongAccount(m_lastAccount, m_record))
 			{
 				// wrong server, need to quit character select to get to the server select window
 				if (pCharacterListWnd)
@@ -558,7 +636,7 @@ public:
 
 				if (index < 0)
 				{
-					WriteChatf("\ag[AutoLogin\ax] No character named \"%s\" found! Stopping...", m_record->characterName.c_str());
+					WriteChatf("\ag[AutoLogin]\ax No character named \"%s\" found! Stopping...", m_record->characterName.c_str());
 
 					dispatch(StopLogin());
 					transit<Wait>();
@@ -628,6 +706,19 @@ public:
 			}
 		}
 	}
+
+	void react(const SetLoginProfile& e) override
+	{
+		if (pCharacterListWnd != nullptr && (m_record == nullptr
+				|| !ci_equals(e.Record.accountName, m_record->accountName) || !ci_equals(e.Record.serverName, m_record->serverName)))
+		{
+			pCharacterListWnd->Quit();
+		}
+
+		Login::react(e);
+
+		transit<Wait>(); // wait to allow server select to come back and the login client to be valid
+	}
 };
 
 class InGame : public Wait
@@ -640,18 +731,122 @@ public:
 		{
 			dispatch(StopLogin());
 		}
+
+		m_lastState = LoginState::InGame;
+		m_campTimer = 0;
+	}
+
+	void react(const LoginStateSensor& e) override
+	{
+		// We only want to transition out of InGame/InGameCamping.
+		if (transit_condition(e))
+		{
+			switch (e.State)
+			{
+			case LoginState::InGame:
+			case LoginState::InGameCamping:
+				break;
+
+			default:
+				Wait::react(e);
+				break;
+			}
+		}
+	}
+
+	void react(const SetLoginProfile& e) override
+	{
+		Login::react(e);
+
+		if (m_campTimer == 0)
+		{
+			// Stand up so we can initiate a camp.
+			if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
+			{
+				EzCommand("/stand");
+			}
+
+			// Perform the camp.
+			EzCommand("/camp");
+		}
+		else
+		{
+			CheckForFastCamp();
+		}
+	}
+
+	void react(const SetCampTimer& e) override
+	{
+		m_campTimer = e.CampTimer;
+
+		if (m_campTimer)
+			Login::transit<InGameCamping>();
+	}
+
+	static void CheckForFastCamp()
+	{
+		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
+		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
+		{
+			if (CStmlWnd* pStmlWnd = GetChildWindow<CStmlWnd>(pEverQuest->CampDialog, "CD_TextOutput"))
+			{
+				CXStr messageText = GetSTMLText(pStmlWnd);
+
+				if (ci_find_substr(messageText, "Fast camp now?") != -1)
+				{
+					if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, "CD_Yes_Button"))
+					{
+						SendWndNotification(pButton, pButton, XWM_LCLICK);
+					}
+				}
+			}
+		}
 	}
 };
 
-std::shared_ptr<ProfileRecord> Login::m_record;
-std::shared_ptr<ProfileRecord> Login::m_lastRecord;
-std::vector<ProfileGroup> Login::m_profiles;
-CXWnd* Login::m_currentWindow = nullptr;
-bool Login::m_paused = false;
-uint64_t Login::m_delayTime = 0;
-LoginState Login::m_lastState = LoginState::InGame;
-unsigned char Login::m_retries = 0;
-Login::Settings Login::m_settings;
-CurrentLogin Login::m_currentLogin;
+class InGameCamping : public InGame
+{
+public:
+	void entry() override
+	{
+		m_lastState = LoginState::InGameCamping;
+
+		if (m_record)
+			CheckForFastCamp();
+	}
+
+	void exit() override
+	{
+		if (m_record)
+		{
+			// If we left the state and still have a record, set the current record.
+			set_current_record(m_record);
+		}
+	}
+
+	void react(const SetCampTimer& e) override
+	{
+		m_campTimer = e.CampTimer;
+
+		if (m_campTimer == 0)
+		{
+			if (m_record)
+			{
+				WriteChatf("\ag[AutoLogin]\ax Attempt to camp out has been canceled.");
+				dispatch(StopLogin{});
+			}
+			else
+			{
+				Login::transit<InGame>();
+			}
+		}
+	}
+
+	void react(const StopLogin& e) override
+	{
+		Login::react(e);
+		Login::transit<InGame>();
+	}
+};
 
 FSM_INITIAL_STATE(Login, Wait)

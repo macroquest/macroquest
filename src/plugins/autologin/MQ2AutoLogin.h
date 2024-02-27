@@ -16,6 +16,8 @@
 
 #include <mq/Plugin.h>
 
+#include "login/AutoLogin.h"
+
 #include <tinyfsm.hpp>
 #include <memory>
 
@@ -36,6 +38,9 @@ struct CurrentLogin
 };
 
 void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character);
+void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr);
+void NotifyCharacterUnload();
+void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character);
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data = nullptr);
 CXStr GetWindowText(CXWnd* pWnd);
 CXStr GetEditWndText(CEditWnd* pWnd);
@@ -116,7 +121,8 @@ enum class LoginState
 	ServerSelectKick,
 	ServerSelectDown,
 	CharacterSelect,
-	InGame
+	InGame,
+	InGameCamping,
 };
 
 // this event will notify a change in game state
@@ -144,6 +150,7 @@ struct SetLoginInformation : tinyfsm::Event
 	SetLoginInformation& operator=(const SetLoginInformation&) = delete;
 };
 
+// this event will notify state to change to the provided profile.
 struct SetLoginProfile : tinyfsm::Event
 {
 	ProfileRecord Record;
@@ -177,44 +184,57 @@ struct PauseLogin : tinyfsm::Event
 };
 
 struct StopLogin : tinyfsm::Event {};
+struct CampCanceled : tinyfsm::Event {};
+
+struct ChangeGameState : tinyfsm::Event
+{
+	int GameState;
+
+	ChangeGameState(int gameState) : GameState(gameState) {}
+
+	ChangeGameState(const ChangeGameState&) = delete;
+	ChangeGameState& operator=(const ChangeGameState&) = delete;
+};
+
+struct SetCampTimer : tinyfsm::Event
+{
+	int CampTimer;
+
+	SetCampTimer(int campTimer) : CampTimer(campTimer) {}
+
+	SetCampTimer(const SetCampTimer&) = delete;
+	SetCampTimer& operator=(const SetCampTimer&) = delete;
+};
 
 class Login : public tinyfsm::Fsm<Login>
 {
 protected:
-	static std::shared_ptr<ProfileRecord> m_record;
-	static std::shared_ptr<ProfileRecord> m_lastRecord;
-	static std::vector<ProfileGroup> m_profiles;
-	static CXWnd* m_currentWindow; // the current in focus window
-	static bool m_paused;
-	static uint64_t m_delayTime;
-	static LoginState m_lastState;
-	static unsigned char m_retries;
+	// This what autologin is currently transitioning towards
+	static inline std::shared_ptr<ProfileRecord> m_record;
+	// This is what we're logged in as.
+	static inline std::shared_ptr<ProfileRecord> m_currentRecord;
+	static inline std::vector<ProfileGroup> m_profiles;
+	static inline CXWnd* m_currentWindow = nullptr; // the current in focus window
+	static inline bool m_paused = false;
+	static inline uint64_t m_delayTime = 0;
+	static inline LoginState m_lastState = LoginState::InGame;
+	static inline uint8_t m_retries = 0;
+	static inline std::string m_lastAccount;
 
-	void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr)
-	{
-		m_record = ptr;
-		if (ptr != nullptr)
-			m_lastRecord = ptr;
-	}
+	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr, bool setCurrent = true);
 
 public:
+	virtual ~Login() {}
+
 	// This must be defined in the implementation where the state classes are defined
 	virtual void react(const LoginStateSensor&) {}
 
 	virtual void react(const SetLoginInformation& e)
 	{
-		if (m_record)
-		{
-			m_record->characterName = e.Character;
-			if (!e.Server.empty()) m_record->serverName = e.Server;
-		}
-		else
-		{
-			ProfileRecord record;
-			record.serverName = e.Server;
-			record.characterName = e.Character;
-			dispatch(SetLoginProfile(record));
-		}
+		ProfileRecord record;
+		record.serverName = e.Server;
+		record.characterName = e.Character;
+		dispatch(SetLoginProfile(record));
 	}
 
 	virtual void react(const SetLoginProfile& ev)
@@ -248,10 +268,16 @@ public:
 	virtual void react(const StopLogin&)
 	{
 		m_paused = true;
+		m_retries = 0;
 		m_record.reset();
+
 		// Once Autologin has performed or failed, this is no longer relevant and will only break future commands.
 		m_settings.EndAfterSelect = false;
 	}
+
+	virtual void react(const CampCanceled&) {}
+	virtual void react(const ChangeGameState&) {}
+	virtual void react(const SetCampTimer&) {}
 
 	virtual void entry() {}
 	virtual void exit() {}
@@ -269,25 +295,39 @@ public:
 
 	static int character_level() { return m_record ? m_record->characterLevel : 0; }
 	static std::shared_ptr<ProfileRecord> get_record() { return m_record; }
-	static std::shared_ptr<ProfileRecord> get_last_record() { return m_lastRecord; }
 	static bool has_entry() { return m_record != nullptr; }
 	static const CXWnd* current_window() { return m_currentWindow; }
+	static void clear_current_window() { m_currentWindow = nullptr; }
 	static bool paused() { return m_paused; }
 	static uint64_t delay_time() { return m_delayTime; }
 	static LoginState last_state() { return m_lastState; }
 	static unsigned char retries() { return m_retries; }
 	static std::vector<ProfileGroup>& profiles() { return m_profiles; }
+	static const std::string& last_account() { return m_lastAccount; }
 
-	struct Settings
+	static std::shared_ptr<ProfileRecord> get_current_record() { return m_currentRecord; }
+	static void clear_current_record()
 	{
-		bool KickActiveCharacter = true;
-		bool EndAfterSelect = false;
-		int CharSelectDelay = 3;
-		int ConnectRetries = 0;
-	};
+		m_currentRecord.reset();
+		NotifyCharacterUnload();
+	}
 
-	static Settings m_settings;
-	static CurrentLogin m_currentLogin;
+	static void set_current_record(const std::shared_ptr<ProfileRecord>& ptr)
+	{
+		if (!m_currentRecord || !m_currentRecord->IsEquivalent(*ptr))
+		{
+			NotifyCharacterLoad(ptr);
+		}
+
+		m_currentRecord = ptr;
+	}
+
+	using Settings = AutoLoginSettings;
+
+	static inline Settings m_settings;
+	static inline CurrentLogin m_currentLogin;
+	static inline bool m_skipNextDelay = false;
+	static inline int m_campTimer = 0;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);

@@ -357,6 +357,7 @@ enum class CharacterMembers
 	RaidLeaderPoints,
 	PctRaidLeaderExp,
 	PersonaLevel,
+	MembershipLevel,
 };
 
 enum class CharacterMethods
@@ -704,6 +705,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, RaidLeaderPoints);
 	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
 	ScopedTypeMember(CharacterMembers, PersonaLevel);
+	ScopedTypeMember(CharacterMembers, MembershipLevel);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -3398,6 +3400,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case CharacterMembers::MembershipLevel:
 	case CharacterMembers::Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 

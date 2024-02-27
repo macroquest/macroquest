@@ -14,30 +14,13 @@
 
 #pragma once
 
-struct ProfileRecord;
-struct LoginInstance
-{
-	uint32_t PID = 0;
+#include "login/Login.h"
 
-	const std::string Server;
-	const std::string Character;
-	const std::string EQPath;
-
-	std::optional<std::string> ProfileGroup;
-	std::optional<std::string> Hotkey;
-
-	static std::string Key(std::string_view Server, std::string_view Character);
-	static std::string Key(const ProfileRecord& profile);
-	[[nodiscard]] std::string Key() const { return Key(Server, Character); }
-
-	void Update(uint32_t pid, const ProfileRecord& profile);
-
-	LoginInstance(uint32_t pid, const ProfileRecord& profile);
-};
 
 // AutoLogin
-void LoadCharacter(const ProfileRecord& profile);
-void LoadProfileGroup(std::string_view group);
+void LoadCharacter(const ProfileRecord& profile, bool force);
+void LoadProfileGroup(std::string_view group, bool force);
+
 void LaunchCleanSession();
 void ProcessPendingLogins();
 void Import();
@@ -47,3 +30,20 @@ std::string GetEQRoot();
 bool ShowPasswordWindow();
 void InitializeAutoLoginImGui();
 void ShutdownAutoLoginImGui();
+
+// Actors
+
+void Post(uint32_t pid, const mq::proto::login::MessageId& messageId, const std::string& data);
+void Post(const std::string& name, const mq::proto::login::MessageId& messageId, const std::string& data);
+
+template <typename T>
+void Post(uint32_t pid, const mq::proto::login::MessageId& messageId, const T& data)
+{
+	Post(pid, messageId, data.SerializeAsString());
+}
+
+template <typename T>
+void Post(const std::string& name, const mq::proto::login::MessageId& messageId, const T& data)
+{
+	Post(name, messageId, data.SerializeAsString());
+}

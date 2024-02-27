@@ -1,3 +1,46 @@
+Feb 26, 2024:
+- autologin: Fix loader losing track of logged in sessions when it is restarted
+- autologin: Fix several issues related to tracking the logged in state of characters
+- autologin: Fix in-game commands to now use state machine to properly handle character changes.
+- autologin: Menus will now indicate when a character is logged in, but on a different profile.
+  Selecting that profile will apply the profile to the currently logged in character.
+- autologin: Menus will now indicate when an account is already logged in, but on a different
+  character.
+- autologin: The "Show hidden characters" option is now persisted
+- autologin: Profile groups panel is now a resizable side bar instead of a drop down menu
+- autologin: Added ability to double click to expand in tree view panel
+- autologin: It is now possible to switch to any character on any account on any server, from anywhere.
+- autologin: Fix infinite loop that could occur during login.
+
+Feb 23, 2024:
+- autologin: Fix ini import creating blank passwords when stationnames entries exist.
+- autologin: Add right click option to Characters UI to add a character to a profile group.
+- autologin: Fix process tracking for loaded profiles.
+- loader: Add process list to show processes currently being tracked.
+
+Feb 22, 2024:
+- live: updated for live patch
+- autologin: Profile context menus can now toggle their state with ctrl+click
+- autologin: Profile context menus now use a star instead of check mark. Functionality is the same.
+- autologin: Profiles can now be freely re-ordered independent of star state.
+- autologin: Increase default delay when launching multiple instances.
+- autologin: Various improvements to context menus (still have issues with loaded state...)
+- autologin: Add logged in indicators to UI
+
+- autologin: Fix crash that could occur when the MQ launcher starts up
+- autologin: Fix remove profile showing group
+- autologin: Fix tray icon disappearing if explorer crashes or restarts
+- autologin: Fix an issue that might cause an extra instance of EQ to start unintentionally.
+- autologin: Add "Launch All" item to profile menu
+- autologin: Add first pass at online indicator to context menus. More to come in the future.
+- autologin: Changed check marks in autologin ui to check boxes. Single click on the check box will toggle, and tooltip will describe its behavior.
+- autologin: Add text to indicate that profile rows can be reordered via drag & drop.
+
+Feb 21, 2024:
+- live: Updated for latest patch
+- Add EQ cursor emulation for ImGui windows. This can be toggled in overlay settings (on by default).
+  When this feature is enabled, the EQ cursor and its attachments will appear over imgui windows.
+
 Feb 18, 2024:
 - test: Updated for latest patch
 

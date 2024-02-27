@@ -43,7 +43,12 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 	ImGui.set_function("Unregister", lua_removeimgui);
 
 	ImGui.set_function("DrawTextureAnimation", sol::overload(
-		[](CTextureAnimation* anim, const ImVec2& size, std::optional<bool> drawBorder) { return mq::imgui::DrawTextureAnimation(anim, size, drawBorder.value_or(false)); },
+		[](CTextureAnimation* anim, const ImVec2& size, std::optional<int> tintColor, std::optional<int> borderColor) {
+			return mq::imgui::DrawTextureAnimation(anim, size,
+			MQColor(MQColor::format_abgr, tintColor.value_or(mq::imgui::DefaultTintColor.ToImU32())),
+			MQColor(MQColor::format_abgr, borderColor.value_or(mq::imgui::NoBorderColor.ToImU32())));
+		},
+		[](CTextureAnimation* anim, const ImVec2& size, bool drawBorder) { return mq::imgui::DrawTextureAnimation(anim, size, drawBorder); },
 		[](CTextureAnimation* anim, int x, int y, std::optional<bool> drawBorder) { return mq::imgui::DrawTextureAnimation(anim, CXSize(x, y), drawBorder.value_or(false)); },
 		[](CTextureAnimation* anim) { return mq::imgui::DrawTextureAnimation(anim); }
 	));
@@ -73,12 +78,12 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 
 				pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, true);
 			},
-			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_bgra, col), true); },
+			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_abgr, col), true); },
 			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view format, sol::variadic_args va, sol::this_state s) {
 				sol::function string_format = sol::state_view(s)["string"]["format"];
 				std::string text = string_format(format, va);
 
-				pThis->AppendText(text, MQColor(MQColor::format_bgra, col), true);
+				pThis->AppendText(text, MQColor(MQColor::format_abgr, col), true);
 			},
 			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view text) { pThis->AppendText(text, MQColor(col), true); },
 			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view format, sol::variadic_args va, sol::this_state s) {
@@ -90,7 +95,7 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		),
 		"AppendTextUnformatted", sol::overload(
 			[](mq::imgui::ConsoleWidget* pThis, std::string_view text) { pThis->AppendText(text, mq::imgui::ConsoleWidget::DEFAULT_COLOR, false); },
-			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_bgra, col), false); },
+			[](mq::imgui::ConsoleWidget* pThis, int col, std::string_view text) { pThis->AppendText(text, MQColor(MQColor::format_abgr, col), false); },
 			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view text) { pThis->AppendText(text, MQColor(col), false); }
 		)
 	);

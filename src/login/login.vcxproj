@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Login.cpp" />
     <ClCompile Include="Login.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
@@ -31,6 +32,7 @@
     <ProtocolBuffer Include="Login.proto" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Companies.h" />
     <ClInclude Include="Login.h" />
   </ItemGroup>

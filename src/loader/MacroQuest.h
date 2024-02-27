@@ -105,7 +105,6 @@ std::string_view GetServerType();
 HMODULE GetEQGameModuleByPID(DWORD processId);
 uint8_t* GetMQ2MainBaseAddress(DWORD processId);
 std::vector<HWND> GetEQWindowHandles();
-bool IsEQGameProcessId(DWORD processId);
 bool IsInjected(DWORD processId);
 void Inject(uint32_t PID, std::chrono::milliseconds delay = std::chrono::milliseconds(0));
 std::vector<DWORD> GetAllEqGameSessions();
@@ -136,4 +135,4 @@ std::string GetLocalPlayer(DWORD pid);
 // AutoLogin
 void InitializeAutoLogin();
 void ShutdownAutoLogin();
-void AutoLoginRemoveProcess(DWORD process_id);
+void AutoLoginRemoveProcess(uint32_t process_id);
