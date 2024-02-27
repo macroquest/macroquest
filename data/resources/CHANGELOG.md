@@ -1,3 +1,17 @@
+Feb 26, 2024:
+- autologin: Fix loader losing track of logged in sessions when it is restarted
+- autologin: Fix several issues related to tracking the logged in state of characters
+- autologin: Fix in-game commands to now use state machine to properly handle character changes.
+- autologin: Menus will now indicate when a character is logged in, but on a different profile.
+  Selecting that profile will apply the profile to the currently logged in character.
+- autologin: Menus will now indicate when an account is already logged in, but on a different
+  character.
+- autologin: The "Show hidden characters" option is now persisted
+- autologin: Profile groups panel is now a resizable side bar instead of a drop down menu
+- autologin: Added ability to double click to expand in tree view panel
+- autologin: It is now possible to switch to any character on any account on any server, from anywhere.
+- autologin: Fix infinite loop that could occur during login.
+
 Feb 23, 2024:
 - autologin: Fix ini import creating blank passwords when stationnames entries exist.
 - autologin: Add right click option to Characters UI to add a character to a profile group.
