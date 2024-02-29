@@ -265,14 +265,39 @@ static void DefaultCombo(Info& info, const Action& select_action)
 	}
 }
 
+static bool IsEQGameInFolder(const std::string& path)
+{
+	static std::string lastPath = "/";
+	static bool result = false;
+
+	if (lastPath != path)
+	{
+		lastPath = path;
+		std::error_code ec;
+		result = fs::exists(fs::path(path) / "eqgame.exe", ec);
+	}
+	return result;
+}
+
 static void SetEQDirModal(std::optional<std::string>& eq_path, const Action& ok_action)
 {
 	if (LauncherImGui::BeginModal("Input EQ Path", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
+		auto showPath = [](const std::string& path) {
+			if (!IsEQGameInFolder(path))
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+				ImGui::Text("Invalid EverQuest path, eqgame.exe does not exist:");
+				ImGui::PopStyleColor();
+			}
+
+			ImGui::TextUnformatted(path.c_str());
+		};
+
 		if (eq_path)
-			ImGui::TextUnformatted(eq_path->c_str());
+			showPath(*eq_path);
 		else
-			ImGui::TextUnformatted(GetEQRoot().c_str());
+			showPath(GetEQRoot());
 
 		if (!s_eqDirDialog)
 			s_eqDirDialog = IGFD_Create();
