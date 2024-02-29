@@ -1,3 +1,6 @@
+Feb 28, 2024:
+- test: Updated for latest patch
+
 Feb 26, 2024:
 - autologin: Fix loader losing track of logged in sessions when it is restarted
 - autologin: Fix several issues related to tracking the logged in state of characters
