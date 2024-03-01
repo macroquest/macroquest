@@ -1478,8 +1478,6 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("State Variables:");
 			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
 			ImGui::Text("Last Account: %s", Login::last_account().c_str());
-			ImGui::Text("Current Login: %s", Login::m_currentLogin.Account.c_str());
-			ImGui::Text("Current Password: %s", Login::m_currentLogin.Password.c_str());
 			ImGui::Text("Last State:"); ImGui::SameLine();
 			switch (Login::last_state())
 			{
