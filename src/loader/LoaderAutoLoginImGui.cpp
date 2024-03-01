@@ -687,8 +687,6 @@ void EditBehavior(CharacterInfo& characterInfo, const char* name, const Action& 
 
 		DefaultCombo(characterInfo.Account, [&characterInfo]
 			{
-				characterInfo.Server.clear();
-				characterInfo.Character.clear();
 			});
 		ImGui::Spacing();
 

@@ -206,7 +206,7 @@ extern std::function<void(const std::string&, bool)> LoadAllStarredCallback;
 extern std::function<void(const ProfileRecord&, bool)> LoadCharacterCallback;
 extern std::function<void(uint32_t, const std::string&)> UnregisterGlobalHotkeyCallback;
 extern std::function<void(uint32_t, const std::string&)> RegisterGlobalHotkeyCallback;
-
+extern std::string EQPathErrorMessage;
 
 template <typename Result>
 void DefaultComboList(

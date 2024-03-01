@@ -20,6 +20,7 @@
 #include "imgui/imgui_internal.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
+#include "login/AutoLogin.h"
 
 #include "spdlog/spdlog.h"
 
@@ -376,6 +377,42 @@ void Run(const std::function<bool()>& mainLoop)
 				const auto window = ImGui::FindWindowByName(s_focusViewport->c_str());
 				if (window != nullptr && window->Viewport != nullptr)
 					ImGui::GetPlatformIO().Platform_SetWindowFocus(window->Viewport);
+			}
+
+			static bool showPathError = false;
+			if (!EQPathErrorMessage.empty())
+			{
+				LauncherImGui::OpenModal("EverQuest Launch Error");
+				showPathError = true;
+			}
+
+			if (showPathError)
+			{
+				ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_Appearing);
+				if (LauncherImGui::BeginModal("EverQuest Launch Error", &showPathError, 0))
+				{
+					ImGui::Text("Failed to launch one or more EverQuest instances:");
+					ImGui::Separator();
+
+					ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(1, ImGui::GetFrameHeightWithSpacing());
+					ImGui::BeginChild("##TextArea", size);
+					ImGui::TextWrapped("%s", EQPathErrorMessage.c_str());
+
+					ImGui::EndChild();
+
+					if (ImGui::Button("Close"))
+					{
+						EQPathErrorMessage.clear();
+						showPathError = false;
+						LauncherImGui::CloseModal();
+					}
+
+					LauncherImGui::EndModal();
+				}
+			}
+			if (!showPathError && !EQPathErrorMessage.empty())
+			{
+				EQPathErrorMessage.clear();
 			}
 
 			for (auto it = s_viewports.begin(); it != s_viewports.end();)

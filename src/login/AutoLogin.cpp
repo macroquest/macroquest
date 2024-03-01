@@ -36,6 +36,7 @@ std::function<void(const std::string&, bool)> LoadAllStarredCallback;
 std::function<void(const ProfileRecord&, bool)> LoadCharacterCallback;
 std::function<void(uint32_t, const std::string&)> UnregisterGlobalHotkeyCallback;
 std::function<void(uint32_t, const std::string&)> RegisterGlobalHotkeyCallback;
+std::string EQPathErrorMessage;
 
 const std::unordered_map<std::string, LoginInstance>& GetLoadedInstances()
 {
@@ -275,23 +276,31 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 		return UpdateInstance(login_it->second.PID, profile);
 	}
 
+	std::string eqPathSetLocation = "profile";
+
 	// character is not loaded, so load it -- we can assume that it's not already running (with MQ anyway)
 	// because we got a list at startup of the current running instances
 	if (!profile.eqPath)
 	{
-		if (const auto path = login::db::GetEQPath(profile.profileName, profile.serverName, profile.characterName))
+		if (const auto path = login::db::GetEQPath(profile.profileName, profile.serverName, profile.characterName, &eqPathSetLocation))
+		{
 			profile.eqPath = *path;
+		}
 	}
 
 	if (!profile.eqPath && !profile.serverType.empty())
 	{
 		profile.eqPath = login::db::GetPathFromServerType(profile.serverType);
+		eqPathSetLocation = "eq installs";
 	}
 
 	if (!profile.eqPath)
 	{
-		SPDLOG_ERROR("No eq_path found for {} ({}) (profile group {})",
+		std::string msg = fmt::format("No eq_path found for {} ({}) (profile group {})",
 			profile.characterName, profile.serverName, profile.profileName);
+		SPDLOG_ERROR("{}", msg);
+
+		EQPathErrorMessage += fmt::format("{}\n", msg);
 	}
 	else
 	{
@@ -305,7 +314,11 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 			const auto eqgame = fs::path{ *profile.eqPath } / "eqgame.exe";
 			if (std::error_code ec; !fs::exists(eqgame, ec))
 			{
-				SPDLOG_ERROR("eqgame.exe does not exist at {}: {}", *profile.eqPath, ec.message());
+				std::string msg = fmt::format("eqgame.exe does not exist at {} for {} ({}) (profile group {}), set from {}", *profile.eqPath,
+					profile.characterName, profile.serverName, profile.profileName, eqPathSetLocation);
+				SPDLOG_ERROR("{}", msg);
+
+				EQPathErrorMessage += fmt::format("{}\n", msg);
 			}
 			else
 			{

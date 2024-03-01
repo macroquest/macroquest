@@ -1974,7 +1974,8 @@ void login::db::DeleteProfile(std::string_view server, std::string_view name, st
 }
 // ================================================================================================================================
 
-std::optional<std::string> login::db::GetEQPath(std::string_view group, std::string_view server, std::string_view name)
+std::optional<std::string> login::db::GetEQPath(std::string_view group, std::string_view server, std::string_view name,
+	std::string* eqPathFoundWhere)
 {
 	if (!group.empty())
 	{
@@ -1985,13 +1986,21 @@ std::optional<std::string> login::db::GetEQPath(std::string_view group, std::str
 			profile.serverName = server;
 			profile.characterName = name;
 			if (ReadProfile(profile) && profile.eqPath)
+			{
+				if (eqPathFoundWhere)
+					*eqPathFoundWhere = "profile";
 				return profile.eqPath;
+			}
 		}
 
 		ProfileGroup grp;
 		grp.profileName = group;
 		if (ReadProfileGroup(grp) && grp.eqPath)
+		{
+			if (eqPathFoundWhere)
+				*eqPathFoundWhere = "profile group";
 			return grp.eqPath;
+		}
 	}
 
 	if (!server.empty() && !name.empty())
@@ -2000,7 +2009,11 @@ std::optional<std::string> login::db::GetEQPath(std::string_view group, std::str
 		profile.serverName = server;
 		profile.characterName = name;
 		if (ReadAccount(profile) && profile.eqPath)
+		{
+			if (eqPathFoundWhere)
+				*eqPathFoundWhere = "eq installs";
 			return profile.eqPath;
+		}
 	}
 
 	return {};

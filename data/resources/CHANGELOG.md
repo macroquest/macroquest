@@ -1,3 +1,8 @@
+Feb 29, 2024:
+- autologin: Fix bug causing the wrong account to be assigned to characters at character select.
+- autologin: Fix bug causing blank password to be assigned to accounts at character select.
+- autologin: Add error message when launching game if everquest path is invalid.
+
 Feb 28, 2024:
 - test: Updated for latest patch
 
