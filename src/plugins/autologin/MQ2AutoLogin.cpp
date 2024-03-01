@@ -678,13 +678,13 @@ public:
 		Login::m_currentLogin.Password = g_pLoginClient->Password;
 
 		Login::m_currentLogin.ServerName =
-			[serverID = static_cast<ServerID>(serverID)]() -> std::optional<std::string>
+			[serverID = static_cast<ServerID>(serverID)]() -> std::string
 			{
 				for (auto server : g_pLoginClient->ServerList)
 					if (server->ID == serverID)
 						return server->ServerName.c_str();
 
-				return std::nullopt;
+				return {};
 			}();
 
 		return JoinServer_Trampoline(serverID, userdata, timeoutseconds);
@@ -719,15 +719,21 @@ PLUGIN_API void SetGameState(int GameState)
 		Login::clear_current_window();
 
 		// at character select now, if we have a memoized long name let's update the db for the server name pairing
-		if (Login::m_currentLogin.ServerName)
-			login::db::CreateOrUpdateServer(GetServerShortName(), *Login::m_currentLogin.ServerName);
+		if (!Login::m_currentLogin.ServerName.empty())
+			login::db::CreateOrUpdateServer(GetServerShortName(), Login::m_currentLogin.ServerName);
 
-		if (Login::m_currentLogin.Account && Login::m_currentLogin.Password)
+		// If we don't have a password it means our account is not reliable.
+		if (!Login::m_currentLogin.Account.empty() && !Login::m_currentLogin.Password.empty())
 		{
 			ProfileRecord profile;
-			profile.accountName = *Login::m_currentLogin.Account;
+			profile.accountName = Login::m_currentLogin.Account;
 			to_lower(profile.accountName);
-			profile.accountPassword = *Login::m_currentLogin.Password;
+			profile.accountPassword = Login::m_currentLogin.Password;
+
+			if (Login::m_lastAccount.empty())
+			{
+				Login::m_lastAccount = Login::m_currentLogin.Account;
+			}
 
 			char path[MAX_PATH] = { 0 };
 			GetModuleFileName(nullptr, path, MAX_PATH);
@@ -763,7 +769,7 @@ PLUGIN_API void SetGameState(int GameState)
 		Login::m_currentLogin.reset();
 	}
 
-	if (GameState == GAMESTATE_INGAME)
+	if (GameState == GAMESTATE_INGAME )
 	{
 		if (const std::shared_ptr<ProfileRecord>& currentRecord = Login::get_current_record())
 		{
@@ -834,7 +840,7 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 				{
 					// Not performing a login, so just check that the character/server match and
 					// apply the rest.
-					if (DoesProfileMatchCurrentSession(record))
+					if (!pLocalPlayer || DoesProfileMatchCurrentSession(record))
 					{
 						WriteChatf("\ag[AutoLogin]\ax Received new profile assignment: %s", profileStr);
 
@@ -1367,7 +1373,7 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			{
 				float green = (50 - abs(50 - (ImGui::GetFrameCount() % 100))) / 100.0f;
 
-				ImGui::TextColored(ImVec4(1.0f, green, 0.0f, 1.0f), "Missing Password");
+				ImGui::TextColored(ImVec4(1.0f, green, 0.0f, 1.0f), "Missing Password (login manually to fix)");
 			}
 
 			if (bAutoLoginEnabled)
@@ -1472,6 +1478,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::Text("State Variables:");
 			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
 			ImGui::Text("Last Account: %s", Login::last_account().c_str());
+			ImGui::Text("Current Login: %s", Login::m_currentLogin.Account.c_str());
+			ImGui::Text("Current Password: %s", Login::m_currentLogin.Password.c_str());
 			ImGui::Text("Last State:"); ImGui::SameLine();
 			switch (Login::last_state())
 			{

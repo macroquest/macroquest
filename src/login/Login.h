@@ -361,7 +361,7 @@ std::optional<unsigned int> ReadFirstProfile(ProfileRecord& profile);
 void UpdateProfile(const ProfileRecord& profile);
 void DeleteProfile(std::string_view server, std::string_view name, std::string_view group);
 
-std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name);
+std::optional<std::string> GetEQPath(std::string_view group, std::string_view server, std::string_view name, std::string* foundWhere = nullptr);
 std::vector<ProfileGroup> GetProfileGroups();
 Results<std::string> ListProfileGroupMatches(std::string_view search);
 void WriteProfileGroups(const std::vector<ProfileGroup>& groups, std::string_view eq_path);

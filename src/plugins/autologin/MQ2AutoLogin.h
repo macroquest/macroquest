@@ -25,15 +25,15 @@ static bool AUTOLOGIN_DBG = false;
 
 struct CurrentLogin
 {
-	std::optional<std::string> Account;
-	std::optional<std::string> Password;
-	std::optional<std::string> ServerName;
+	std::string Account;
+	std::string Password;
+	std::string ServerName;
 
 	void reset()
 	{
-		Account.reset();
-		Password.reset();
-		ServerName.reset();
+		Account.clear();
+		Password.clear();
+		ServerName.clear();
 	}
 };
 
@@ -219,7 +219,6 @@ protected:
 	static inline uint64_t m_delayTime = 0;
 	static inline LoginState m_lastState = LoginState::InGame;
 	static inline uint8_t m_retries = 0;
-	static inline std::string m_lastAccount;
 
 	static void SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr, bool setCurrent = true);
 
@@ -328,6 +327,7 @@ public:
 	static inline CurrentLogin m_currentLogin;
 	static inline bool m_skipNextDelay = false;
 	static inline int m_campTimer = 0;
+	static inline std::string m_lastAccount;
 };
 
 void AutoLoginDebug(std::string_view svLogMessage, bool bDebugOn = AUTOLOGIN_DBG);
