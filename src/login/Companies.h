@@ -87,7 +87,7 @@
 "Delta Tao",
 "Demiurge",
 "DigiFX",
-"Digital Café",
+"Digital Cafe",
 "Digital Eel",
 "Double Aught",
 "DoubleBear",
