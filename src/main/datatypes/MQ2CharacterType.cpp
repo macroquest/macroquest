@@ -357,6 +357,7 @@ enum class CharacterMembers
 	RaidLeaderPoints,
 	PctRaidLeaderExp,
 	PersonaLevel,
+	MembershipLevel,
 };
 
 enum class CharacterMethods
@@ -704,6 +705,7 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, RaidLeaderPoints);
 	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
 	ScopedTypeMember(CharacterMembers, PersonaLevel);
+	ScopedTypeMember(CharacterMembers, MembershipLevel);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
@@ -1331,12 +1333,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Cash:
-		Dest.Int64 = static_cast<uint64_t>(pProfile->Plat) * 1000 + static_cast<uint64_t>(pProfile->Gold) * 100 + static_cast<uint64_t>(pProfile->Silver) * 10 + pProfile->Copper;
+		Dest.Int64 = pLocalPC->GetTotalCash();
 		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Platinum:
-		Dest.DWord = pProfile->Plat;
+		Dest.DWord = pLocalPC->GetPlatinum();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1346,7 +1348,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Gold:
-		Dest.DWord = pProfile->Gold;
+		Dest.DWord = pLocalPC->GetGold();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1356,7 +1358,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Silver:
-		Dest.DWord = pProfile->Silver;
+		Dest.DWord = pLocalPC->GetSilver();
 		Dest.Type = pIntType;
 		return true;
 
@@ -1366,7 +1368,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::Copper:
-		Dest.DWord = pProfile->Copper;
+		Dest.DWord = pLocalPC->GetCopper();
 		Dest.Type = pIntType;
 		return true;
 
@@ -3398,6 +3400,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pIntType;
 		return true;
 
+	case CharacterMembers::MembershipLevel:
 	case CharacterMembers::Subscription:
 		strcpy_s(DataTypeTemp, "UNKNOWN");
 

@@ -12,14 +12,18 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "ProcessMonitor.h"
-#include "Crashpad.h"
-#include "PostOffice.h"
-#include "ImGui.h"
-
+#include "loader/MacroQuest.h"
+#include "loader/ProcessMonitor.h"
+#include "loader/Crashpad.h"
+#include "loader/PostOffice.h"
+#include "loader/ImGui.h"
+#include "loader/LoaderAutoLogin.h"
+#include "login/AutoLogin.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/ImGuiUtils.h"
+#include "mq/utils/Naming.h"
+#include "mq/utils/OS.h"
+#include "mq/base/BuildInfo.h"
 
 #include "resource.h"
 
@@ -32,10 +36,8 @@
 #include <extras/wil/Constants.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
-
 #include <filesystem>
 #include <tuple>
-
 #include <shellapi.h>
 #include <fcntl.h>
 
@@ -43,7 +45,6 @@
 #include <mq/utils/OS.h>
 #include <mq/base/BuildInfo.h>
 
-#include "AutoLogin.h"
 #include "Network.h"
 
 #pragma comment(lib, "Psapi.lib")
@@ -86,6 +87,10 @@ bool gCrashPadInitialized = false;
 
 std::map<std::tuple<uint16_t, uint16_t>, HWND> hotkeyMap;
 uint32_t gFocusProcessID = 0;
+
+static std::set<uint32_t> s_processIds;
+
+static uint32_t s_taskbarRestart = 0;
 
 //----------------------------------------------------------------------------
 
@@ -308,6 +313,18 @@ void SetForegroundWindowInternal(HWND hWnd)
 			ShowWindow(hWnd, SW_RESTORE);
 		}
 	}
+}
+
+void OnProcessAdded(uint32_t processId)
+{
+	s_processIds.insert(processId);
+	Inject(processId);
+}
+
+void OnProcessRemoved(uint32_t processId)
+{
+	AutoLoginRemoveProcess(processId);
+	s_processIds.erase(processId);
 }
 
 LRESULT HandleHotkey(WPARAM wParam, LPARAM lParam)
@@ -636,11 +653,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_USER_PROCESS_ADDED:
-		Inject((DWORD)wParam, 1s);
+		OnProcessAdded(static_cast<uint32_t>(wParam));
 		break;
 
 	case WM_USER_PROCESS_REMOVED:
-		AutoLoginRemoveProcess((DWORD)wParam);
+		OnProcessRemoved(static_cast<uint32_t>(wParam));
 		break;
 
 	case WM_USER_CALLBACK:
@@ -661,42 +678,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
+		if (MSG == s_taskbarRestart)
+		{
+			Shell_NotifyIcon(NIM_ADD, &NID);
+		}
 	}
 
 	return DefWindowProc(hWnd, MSG, wParam, lParam);
 }
 
+static void AddUnderline(ImColor color)
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
+}
+
+static void DrawTextLink(const std::string& label, const std::string& url)
+{
+	ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+	ImGui::Text(label.c_str());
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
+		}
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
+	}
+	else
+	{
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+	}
+}
+
 void ShowMacroQuestInfo()
 {
-	auto link = [](const std::string& label, const std::string& url)
-		{
-			auto add_underline = [](ImColor color)
-				{
-					ImVec2 min = ImGui::GetItemRectMin();
-					ImVec2 max = ImGui::GetItemRectMax();
-					min.y = max.y;
-					ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
-				};
-
-			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-			ImGui::Text(label.c_str());
-			ImGui::PopStyleColor();
-
-			if (ImGui::IsItemHovered())
-			{
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-				{
-					ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
-				}
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-				ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
-			}
-			else
-			{
-				add_underline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
-			}
-		};
-
 	ImGui::Spacing();
 	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
 	ImGui::Text("MacroQuest Useful Links");
@@ -704,9 +725,77 @@ void ShowMacroQuestInfo()
 	ImGui::Separator();
 	ImGui::Spacing();
 
-	ImGui::Bullet(); link("MacroQuest Website", "https://macroquest.org");
-	ImGui::Bullet(); link("MacroQuest Documentation", "https://docs.macroquest.org/");
-	ImGui::Bullet(); link("MacroQuest on Github", "https://github.com/macroquest/macroquest");
+	ImGui::Bullet(); DrawTextLink("MacroQuest Website", "https://macroquest.org");
+	ImGui::Bullet(); DrawTextLink("MacroQuest Documentation", "https://docs.macroquest.org/");
+	ImGui::Bullet(); DrawTextLink("MacroQuest on GitHub", "https://github.com/macroquest/macroquest");
+}
+
+struct PidInfo
+{
+	const LoginInstance* inst;
+	const std::string* key;
+	bool running = false;
+};
+
+
+void ShowProcessInfo()
+{
+	auto& loadedInstances = GetLoadedInstances();
+
+	std::map<uint32_t, PidInfo> pidInstances;
+
+	for (uint32_t pid : s_processIds)
+	{
+		pidInstances[pid] = { nullptr, nullptr, true };
+	}
+
+	for (auto& [key, inst] : loadedInstances)
+	{
+		pidInstances[inst.PID] = { &inst, &key, pidInstances[inst.PID].running };
+	}
+
+	if (ImGui::BeginTable("##ProcessList", 7, ImGuiTableFlags_Resizable))
+	{
+		ImGui::TableSetupColumn("PID", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Running", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Server", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Character", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Profile Grp", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Hotkey", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableHeadersRow();
+
+		for (auto& [pid, info] : pidInstances)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", pid);
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", info.running ? "Yes" : "No");
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", info.key ? info.key->c_str() : "(none)");
+
+			if (info.inst)
+			{
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Server.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Character.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->ProfileGroup.value_or("").c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Hotkey.value_or("").c_str());
+			}
+		}
+
+		ImGui::EndTable();
+	}
 }
 
 void ShowMacroQuestMenu()
@@ -857,7 +946,10 @@ void InitializeWindows()
 	NID.uFlags = NIF_TIP | NIF_ICON | NIF_MESSAGE;
 	Shell_NotifyIcon(NIM_ADD, &NID);
 
+	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
+
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
+	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
 	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
 }
 
@@ -965,6 +1057,7 @@ int WINAPI CALLBACK WinMain(
 		// Only need this if we're not already the spawned process
 		else if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
+			SPDLOG_INFO("I am a spawned process");
 			spawnedProcess = true;
 		}
 	}
@@ -1028,6 +1121,8 @@ int WINAPI CALLBACK WinMain(
 			STARTUPINFO si = {};
 			wil::unique_process_information pi;
 
+			SPDLOG_INFO("Relaunching as spawned process");
+
 			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
 					&fullCommandLine[0], // Command line to run
 					nullptr,             // Process Attributes - handle not inheritable
@@ -1064,7 +1159,10 @@ int WINAPI CALLBACK WinMain(
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
 	HWND hWndRunning = FindWindow(gszWinClassName, gszWinName);
 	if (hWndRunning != nullptr)
+	{
+		SPDLOG_INFO("Closing because another window of class \"{}\" is open", gszWinClassName);
 		return 0;
+	}
 
 	const std::string cycleNextWindowKey = GetPrivateProfileString("MacroQuest", "CycleNextWindow", "", internal_paths::MQini);
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
@@ -1075,6 +1173,9 @@ int WINAPI CALLBACK WinMain(
 	InitializeNamedPipeServer();
 	InitializeWindows();
 	InitializeAutoLogin();
+
+	auto pids = GetAllEqGameSessions();
+	s_processIds = { begin(pids), end(pids) };
 
 	auto pMonitorEvents = std::make_unique<MQ2ProcessMonitorEvents>();
 	StartProcessMonitor(pMonitorEvents.get());

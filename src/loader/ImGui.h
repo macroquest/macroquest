@@ -14,16 +14,15 @@
 
 #pragma once
 
-#include <functional>
-#include <string>
-
 #include "imgui/imgui.h"
 
-#include <windows.h>
+#include <functional>
+#include <string>
 
 namespace LauncherImGui {
 bool SmallCheckbox(const char* label, bool* v);
 void RenderTableCheckmark();
+void RenderTableCircle(ImU32 color, bool filled);
 bool ToggleSlider(const char* label, bool* v);
 void OpenModal(const std::string& name);
 bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags);

@@ -12,10 +12,10 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "PostOffice.h"
-#include "Crashpad.h"
-
+#include "loader/MacroQuest.h"
+#include "loader/PostOffice.h"
+#include "loader/Crashpad.h"
+#include "loader/LoaderAutoLogin.h"
 #include "routing/PostOffice.h"
 
 #include <date/date.h>
@@ -23,7 +23,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
 
 
 using namespace postoffice;
@@ -101,6 +100,8 @@ private:
 			case mq::MQMessageId::MSG_IDENTIFICATION:
 				if (message->GetHeader()->messageLength > 0)
 				{
+					bool added = false;
+
 					// if there is a payload, then we are getting a notification of ID
 					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
 					if (id.has_name())
@@ -110,12 +111,13 @@ private:
 					}
 					else
 					{
-						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
+						auto result = m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
 							id.pid(),
 							id.has_account() ? id.account() : "",
 							id.has_server() ? id.server() : "",
 							id.has_character() ? id.character() : ""
-							});
+						});
+						added = result.second;
 
 						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
 						SPDLOG_INFO("Got identification from {}", id.pid());
@@ -123,6 +125,12 @@ private:
 
 					// we also need to update all the clients
 					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
+
+					if (added)
+					{
+						proto::login::IdentifyMissive announce;
+						Post(id.pid(), proto::login::Identify, announce);
+					}
 				}
 				else
 				{
@@ -261,8 +269,9 @@ private:
 				if (!ident_it->second.character.empty())
 					id.set_character(ident_it->second.character);
 
-						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
+				// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+				SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
+
 				broadcast(std::move(id));
 
 				m_postOffice->m_identities.erase(ident_it);
