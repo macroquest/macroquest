@@ -586,6 +586,11 @@ void CharacterInfo::Fill()
 		Account.Account = profile.accountName;
 		Account.ServerType.ServerType = profile.serverType;
 	}
+	else
+	{
+		SPDLOG_ERROR("AutoLogin Error failed to load server {} and character {}", Server, Character);
+	}
+
 }
 
 std::string CharacterInfo::Preview() const

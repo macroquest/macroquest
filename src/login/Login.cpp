@@ -1279,7 +1279,6 @@ std::optional<unsigned int> login::db::ReadCharacter(ProfileRecord& profile)
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
-			SPDLOG_ERROR("AutoLogin Error failed to load server {} and character {}: {}", profile.serverName, profile.characterName, sqlite3_errmsg(db));
 			return {};
 		});
 }
