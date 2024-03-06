@@ -907,7 +907,6 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	));
 	ImPlot.set_function("PopStyleColor", [](std::optional<int> count) { ImPlot::PopStyleColor(count.value_or(1)); });
 	ImPlot.set_function("PushStyleVar", sol::overload(
-		[](int idx, int val) { ImPlot::PushStyleVar(idx, val); },
 		[](int idx, float val) { ImPlot::PushStyleVar(idx, val); },
 		[](int idx, float valX, float valY) { ImPlot::PushStyleVar(idx, { valX, valY }); },
 		[](int idx, const ImVec2& val) { ImPlot::PushStyleVar(idx, val); }
