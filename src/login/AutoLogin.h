@@ -36,6 +36,7 @@ struct AutoLoginSettings
 	int ConnectRetries = 5;
 	int ClientLaunchDelay = 3;
 	bool ShowHiddenCharacters = true;
+	bool DetectInformation = true;
 };
 
 struct LoginInstance

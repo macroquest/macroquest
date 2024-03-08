@@ -674,13 +674,16 @@ public:
 	DETOUR_TRAMPOLINE_DEF(unsigned int, JoinServer_Trampoline, (int, void*, int))
 	unsigned int JoinServer_Detour(int serverID, void* userdata, int timeoutseconds)
 	{
+		// if someone uses the everquest patcher instead of launching with the patchme option,
+		// Account isn't correct and Password is empty, so make sure to test for an empty
+		// Password downstream
 		Login::m_currentLogin.Account = g_pLoginClient->LoginName;
 		Login::m_currentLogin.Password = g_pLoginClient->Password;
 
 		Login::m_currentLogin.ServerName =
 			[serverID = static_cast<ServerID>(serverID)]() -> std::string
 			{
-				for (auto server : g_pLoginClient->ServerList)
+				for (const auto server : g_pLoginClient->ServerList)
 					if (server->ID == serverID)
 						return server->ServerName.c_str();
 
@@ -722,8 +725,11 @@ PLUGIN_API void SetGameState(int GameState)
 		if (!Login::m_currentLogin.ServerName.empty())
 			login::db::CreateOrUpdateServer(GetServerShortName(), Login::m_currentLogin.ServerName);
 
-		// If we don't have a password it means our account is not reliable.
-		if (!Login::m_currentLogin.Account.empty() && !Login::m_currentLogin.Password.empty())
+		// grab the option to automatically create entries
+		static auto do_detect = login::db::CacheSetting<bool>("detect_info", true, GetBoolFromString);
+
+		// if we don't have a password it means our account is not reliable.
+		if (do_detect.Read() && !Login::m_currentLogin.Account.empty() && !Login::m_currentLogin.Password.empty())
 		{
 			ProfileRecord profile;
 			profile.accountName = Login::m_currentLogin.Account;
@@ -753,7 +759,25 @@ PLUGIN_API void SetGameState(int GameState)
 			{
 				profile.characterName = char_info.Name;
 				to_lower(profile.characterName);
-				login::db::CreateCharacter(profile);
+
+				// we don't want to completely overwrite an existing character (mostly for the visibility flag)
+				// so ensure that we are only updating the things that we actually detected
+				ProfileRecord existing;
+				existing.characterName = profile.characterName;
+				existing.serverName = profile.serverName;
+				if (login::db::ReadCharacter(existing))
+				{
+					if (!ci_equals(existing.accountName, profile.accountName) || !ci_equals(existing.serverType, profile.serverType))
+					{
+						existing.accountName = profile.accountName;
+						existing.serverType = profile.serverType;
+						login::db::UpdateCharacter(existing.serverName, existing.characterName, existing);
+					}
+				}
+				else
+				{
+					login::db::CreateCharacter(profile);
+				}
 
 				// ClassInfo[0] is empty, don't persist that or any non-class
 				if (char_info.Class > 0 && char_info.Class <= MAX_PLAYER_CLASSES)

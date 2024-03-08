@@ -1665,6 +1665,7 @@ void ShowSettingsWindow()
 	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, GetBoolFromString);
 	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, GetBoolFromString);
 	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
+	static auto detect_info = login::db::CacheSetting<bool>("detect_info", defaultSettings.DetectInformation, GetBoolFromString);
 	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", defaultSettings.ClientLaunchDelay, GetIntFromString);
 	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", defaultSettings.CharSelectDelay, GetIntFromString);
 	static auto connect_retries = login::db::CacheSetting<int>("login_connect_retries", defaultSettings.ConnectRetries, GetIntFromString);
@@ -1679,6 +1680,7 @@ void ShowSettingsWindow()
 	static ServerTypeInfo server_type_info;
 	static ServerNameInfo server_name_info;
 
+	// session section
 	if (ImGui::Checkbox("Debug Output", &debug.Read()))
 		login::db::WriteSetting("debug", debug.Updated() ? "true" : "false", "Show plugin debug statements");
 	ImGui::SameLine(); imgui::HelpMarker("Show plugin debug statements");
@@ -1697,6 +1699,11 @@ void ShowSettingsWindow()
 	if (ImGui::Checkbox("Load Legacy Config Next Load", &load_ini.Read()))
 		login::db::WriteSetting("load_ini", load_ini.Updated() ? "true" : "false", "Import data from autologin ini file one time at load");
 	ImGui::SameLine(); imgui::HelpMarker("Import data from autologin ini file one time at load");
+
+	ImGui::Spacing();
+	if (ImGui::Checkbox("Automatically Detect Login Info", &detect_info.Read()))
+		login::db::WriteSetting("detect_info", detect_info.Updated() ? "true" : "false", "Automatically detect login information from the client as the user logs in");
+	ImGui::SameLine(); imgui::HelpMarker("Automatically detect login information from the client as the user logs in");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
@@ -1722,6 +1729,7 @@ void ShowSettingsWindow()
 	ImGui::SameLine(); imgui::HelpMarker("Import data from autologin ini right now");
 
 	ImGui::Separator();
+	// password section
 	ImGui::Spacing();
 	if (ImGui::Checkbox("Save Password Forever", &perpetual_password.Read()))
 		login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false", "Save the master password to this system so that it never has to be entered again");
@@ -1785,6 +1793,7 @@ void ShowSettingsWindow()
 	ImGui::SameLine(); imgui::HelpMarker("Set the company where the master pass is cached in the registry");
 
 	ImGui::Separator();
+	// management section
 	ImGui::Spacing();
 	if (ImGui::Button("Manage EQ Installs"))
 		LauncherImGui::OpenModal("Manage EQ Installs");
