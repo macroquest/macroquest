@@ -1,3 +1,6 @@
+March 7, 2024:
+- Update for test patch
+
 Feb 29, 2024:
 - autologin: Fix bug causing the wrong account to be assigned to characters at character select.
 - autologin: Fix bug causing blank password to be assigned to accounts at character select.
