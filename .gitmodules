@@ -1,10 +1,310 @@
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://github.com/macroquest/eqlib.git
+	url = https://github.com/macroquest/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://github.com/macroquest/vcpkg.git
 	branch = macroquest
-[submodule "data/lua/IntegrationTests"]
-	path = src/plugins/lua/lua/IntegrationTests
-	url = https://github.com/macroquest/integration-tests.git
+[submodule "plugins/MQ2MoveUtils"]
+	path = plugins/MQ2MoveUtils
+	url = https://github.com/RedGuides/mq2moveutils.git
+	branch = master
+[submodule "plugins/MQ2EQBC"]
+	path = plugins/MQ2EQBC
+	url = https://github.com/RedGuides/mq2eqbc.git
+	branch = master
+[submodule "plugins/MQ2AASpend"]
+	path = plugins/MQ2AASpend
+	url = https://github.com/RedGuides/mq2aaspend.git
+	branch = master
+[submodule "plugins/MQ2AdvPath"]
+	path = plugins/MQ2AdvPath
+	url = https://github.com/RedGuides/mq2advpath.git
+	branch = master
+[submodule "plugins/MQ2AutoAccept"]
+	path = plugins/MQ2AutoAccept
+	url = https://github.com/RedGuides/mq2AutoAccept.git
+	branch = master
+[submodule "plugins/MQ2AutoClaim"]
+	path = plugins/MQ2AutoClaim
+	url = https://github.com/RedGuides/mq2autoclaim.git
+	branch = master
+[submodule "plugins/MQ2AutoForage"]
+	path = plugins/MQ2AutoForage
+	url = https://github.com/RedGuides/mq2autoForage.git
+	branch = master
+[submodule "plugins/MQ2AutoGroup"]
+	path = plugins/MQ2AutoGroup
+	url = https://github.com/RedGuides/mq2AutoGroup.git
+	branch = master
+[submodule "plugins/MQ2AutoLoot"]
+	path = plugins/MQ2AutoLoot
+	url = https://github.com/RedGuides/mq2AutoLoot.git
+	branch = master
+[submodule "plugins/MQ2AutoLootSort"]
+	path = plugins/MQ2AutoLootSort
+	url = https://github.com/RedGuides/mq2AutoLootSort.git
+	branch = master
+[submodule "plugins/MQ2AutoSize"]
+	path = plugins/MQ2AutoSize
+	url = https://github.com/RedGuides/mq2AutoSize.git
+	branch = master
+[submodule "plugins/mq2bardswap"]
+	path = plugins/mq2bardswap
+	url = https://github.com/RedGuides/mq2bardswap.git
+	branch = master
+[submodule "plugins/MQ2Cast"]
+	path = plugins/MQ2Cast
+	url = https://github.com/RedGuides/mq2Cast.git
+	branch = master
+[submodule "plugins/MQ2Clipboard"]
+	path = plugins/MQ2Clipboard
+	url = https://github.com/RedGuides/mq2Clipboard.git
+	branch = master
+[submodule "plugins/MQ2Collections"]
+	path = plugins/MQ2Collections
+	url = https://github.com/RedGuides/mq2Collections.git
+	branch = master
+[submodule "plugins/MQ2CPULoad"]
+	path = plugins/MQ2CPULoad
+	url = https://github.com/RedGuides/mq2CPULoad.git
+	branch = master
+[submodule "plugins/MQ2Debuffs"]
+	path = plugins/MQ2Debuffs
+	url = https://github.com/RedGuides/mq2Debuffs.git
+	branch = master
+[submodule "plugins/MQ2DPSAdv"]
+	path = plugins/MQ2DPSAdv
+	url = https://github.com/RedGuides/mq2DPSAdv.git
+	branch = master
+[submodule "plugins/MQ2Events"]
+	path = plugins/MQ2Events
+	url = https://github.com/RedGuides/mq2Events.git
+	branch = master
+[submodule "plugins/MQ2Exchange"]
+	path = plugins/MQ2Exchange
+	url = https://github.com/RedGuides/mq2Exchange.git
+	branch = master
+[submodule "plugins/MQ2FeedMe"]
+	path = plugins/MQ2FeedMe
+	url = https://github.com/RedGuides/mq2FeedMe.git
+	branch = master
+[submodule "plugins/MQ2GMCheck"]
+	path = plugins/MQ2GMCheck
+	url = https://github.com/RedGuides/mq2GMCheck.git
+	branch = master
+[submodule "plugins/MQ2GroupInfo"]
+	path = plugins/MQ2GroupInfo
+	url = https://github.com/RedGuides/mq2GroupInfo.git
+	branch = master
+[submodule "plugins/MQ2HUDMove"]
+	path = plugins/MQ2HUDMove
+	url = https://github.com/RedGuides/mq2HUDMove.git
+	branch = master
+[submodule "plugins/MQ2KillTracker"]
+	path = plugins/MQ2KillTracker
+	url = https://github.com/RedGuides/mq2KillTracker.git
+	branch = master
+[submodule "plugins/MQ2LinkDB"]
+	path = plugins/MQ2LinkDB
+	url = https://github.com/RedGuides/MQ2LinkDB.git
+	branch = master
+[submodule "plugins/MQ2Log"]
+	path = plugins/MQ2Log
+	url = https://github.com/RedGuides/MQ2Log.git
+	branch = master
+[submodule "plugins/MQ2Melee"]
+	path = plugins/MQ2Melee
+	url = https://github.com/RedGuides/MQ2Melee.git
+	branch = master
+[submodule "plugins/MQ2MyButtons"]
+	path = plugins/MQ2MyButtons
+	url = https://github.com/RedGuides/MQ2MyButtons.git
+	branch = master
+[submodule "plugins/MQ2NetBots"]
+	path = plugins/MQ2NetBots
+	url = https://github.com/RedGuides/MQ2NetBots.git
+	branch = master
+[submodule "plugins/MQ2OTD"]
+	path = plugins/MQ2OTD
+	url = https://github.com/RedGuides/MQ2OTD.git
+	branch = master
+[submodule "plugins/MQ2Paranoid"]
+	path = plugins/MQ2Paranoid
+	url = https://github.com/RedGuides/MQ2Paranoid.git
+	branch = master
+[submodule "plugins/MQ2PlatTracker"]
+	path = plugins/MQ2PlatTracker
+	url = https://github.com/RedGuides/MQ2PlatTracker.git
+	branch = master
+[submodule "plugins/MQ2PluginManager"]
+	path = plugins/MQ2PluginManager
+	url = https://github.com/RedGuides/MQ2PluginManager.git
+	branch = master
+[submodule "plugins/MQ2PortalSetter"]
+	path = plugins/MQ2PortalSetter
+	url = https://github.com/RedGuides/MQ2PortalSetter.git
+	branch = master
+[submodule "plugins/MQ2Posse"]
+	path = plugins/MQ2Posse
+	url = https://github.com/RedGuides/MQ2Posse.git
+	branch = master
+[submodule "plugins/MQ2React"]
+	path = plugins/MQ2React
+	url = https://github.com/RedGuides/MQ2React.git
+	branch = master
+[submodule "plugins/MQ2Relocate"]
+	path = plugins/MQ2Relocate
+	url = https://github.com/RedGuides/MQ2Relocate.git
+	branch = master
+[submodule "plugins/MQ2Rewards"]
+	path = plugins/MQ2Rewards
+	url = https://github.com/RedGuides/MQ2Rewards.git
+	branch = master
+[submodule "plugins/MQ2Rez"]
+	path = plugins/MQ2Rez
+	url = https://github.com/RedGuides/MQ2Rez.git
+	branch = master
+[submodule "plugins/MQ2Say"]
+	path = plugins/MQ2Say
+	url = https://github.com/RedGuides/MQ2Say.git
+	branch = master
+[submodule "plugins/MQ2SpawnMaster"]
+	path = plugins/MQ2SpawnMaster
+	url = https://github.com/RedGuides/MQ2SpawnMaster.git
+	branch = master
+[submodule "plugins/MQ2SpawnSort"]
+	path = plugins/MQ2SpawnSort
+	url = https://github.com/RedGuides/MQ2SpawnSort.git
+	branch = master
+[submodule "plugins/MQ2Status"]
+	path = plugins/MQ2Status
+	url = https://github.com/RedGuides/MQ2Status.git
+	branch = master
+[submodule "plugins/MQ2TributeManager"]
+	path = plugins/MQ2TributeManager
+	url = https://github.com/RedGuides/MQ2TributeManager.git
+	branch = master
+[submodule "plugins/MQ2Twist"]
+	path = plugins/MQ2Twist
+	url = https://github.com/RedGuides/MQ2Twist.git
+	branch = master
+[submodule "plugins/MQ2WorstHurt"]
+	path = plugins/MQ2WorstHurt
+	url = https://github.com/RedGuides/MQ2WorstHurt.git
+	branch = master
+[submodule "plugins/MQ2XAssist"]
+	path = plugins/MQ2XAssist
+	url = https://github.com/RedGuides/MQ2XAssist.git
+	branch = master
+[submodule "plugins/MQ2XPTracker"]
+	path = plugins/MQ2XPTracker
+	url = https://github.com/RedGuides/MQ2XPTracker.git
+	branch = master
+[submodule "plugins/MQ2Nav"]
+	path = plugins/MQ2Nav
+	url = https://github.com/brainiac/MQ2Nav.git
+	branch = master
+[submodule "plugins/MQ2EasyFind"]
+	path = plugins/MQ2EasyFind
+	url = https://github.com/brainiac/MQ2EasyFind.git
+	branch = master
+[submodule "plugins/MQItemColor"]
+	path = plugins/MQItemColor
+	url = https://gitlab.com/Ortster/MQItemColor.git
+[submodule "plugins/MQ2DanInterface"]
+	path = plugins/MQ2DanInterface
+	url = https://github.com/jessebevil/MQ2DanInterface.git
+	branch = master
+[submodule "plugins/MQ2LootManager"]
+	path = plugins/MQ2LootManager
+	url = https://github.com/jessebevil/MQ2LootManager.git
+	branch = master
+[submodule "plugins/MQ2FarmTest"]
+	path = plugins/MQ2FarmTest
+	url = https://github.com/RedGuides/MQ2FarmTest.git
+	branch = master
+[submodule "plugins/MQ2AutoCamp"]
+	path = plugins/MQ2AutoCamp
+	url = https://github.com/RedGuides/MQ2AutoCamp.git
+	branch = master
+[submodule "plugins/MQ2Bandolier"]
+	path = plugins/MQ2Bandolier
+	url = https://github.com/RedGuides/MQ2Bandolier.git
+	branch = master
+[submodule "plugins/MQ2Boxr"]
+	path = plugins/MQ2Boxr
+	url = https://github.com/RedGuides/MQ2Boxr.git
+	branch = master
+[submodule "plugins/MQ2Cursor"]
+	path = plugins/MQ2Cursor
+	url = https://github.com/RedGuides/MQ2Cursor.git
+	branch = master
+[submodule "plugins/MQ2Heals"]
+	path = plugins/MQ2Heals
+	url = https://github.com/RedGuides/MQ2Heals.git
+	branch = master
+[submodule "plugins/MQ2ItemScore"]
+	path = plugins/MQ2ItemScore
+	url = https://github.com/RedGuides/MQ2ItemScore.git
+	branch = master
+[submodule "plugins/MQ2Medley"]
+	path = plugins/MQ2Medley
+	url = https://github.com/RedGuides/MQ2Medley.git
+	branch = master
+[submodule "plugins/MQ2Notepad"]
+	path = plugins/MQ2Notepad
+	url = https://github.com/RedGuides/MQ2Notepad.git
+	branch = master
+[submodule "plugins/MQ2Profiler"]
+	path = plugins/MQ2Profiler
+	url = https://github.com/RedGuides/MQ2Profiler.git
+	branch = master
+[submodule "plugins/MQ2RaidUtils"]
+	path = plugins/MQ2RaidUtils
+	url = https://github.com/RedGuides/MQ2RaidUtils.git
+	branch = master
+[submodule "plugins/MQ2Rand"]
+	path = plugins/MQ2Rand
+	url = https://github.com/RedGuides/MQ2Rand.git
+[submodule "plugins/MQ2RelayTells"]
+	path = plugins/MQ2RelayTells
+	url = https://github.com/RedGuides/MQ2RelayTells.git
+	branch = master
+[submodule "plugins/MQ2Spawns"]
+	path = plugins/MQ2Spawns
+	url = https://github.com/RedGuides/MQ2Spawns.git
+	branch = master
+[submodule "plugins/MQ2TSTrophy"]
+	path = plugins/MQ2TSTrophy
+	url = https://github.com/RedGuides/MQ2TSTrophy.git
+	branch = master
+[submodule "plugins/MQ2AFNuke"]
+	path = plugins/MQ2AFNuke
+	url = https://github.com/RedGuides/MQ2AFNuke.git
+	branch = master
+[submodule "plugins/MQ2DamageMeter"]
+	path = plugins/MQ2DamageMeter
+	url = https://github.com/RedGuides/mq2damagemeter.git
+	branch = master
+[submodule "plugins/MQ2Camera"]
+	path = plugins/MQ2Camera
+	url = https://github.com/brainiac/MQ2Camera.git
+	branch = master
+[submodule "plugins/MQ2Dan"]
+	path = plugins/MQ2Dan
+	url = https://github.com/dannuic/MQ2Dan.git
+	branch = master
+[submodule "plugins/MQ2ToolTip"]
+	path = plugins/MQ2ToolTip
+	url = https://github.com/RedGuides/MQ2ToolTip.git
+	branch = master
+[submodule "plugins/CWTN"]
+	path = plugins/CWTN
+	url = https://github.com/jessebevil/CWTN
+[submodule "plugins/lua/lua"]
+	path = plugins/lua/lua
+	url = https://github.com/macroquest/integration-tests
+[submodule "plugins/MQCollectionManager"]
+	path = plugins/MQCollectionManager
+	url = https://github.com/relaxednature/MQCollectionManager
