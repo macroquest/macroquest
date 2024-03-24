@@ -41,6 +41,12 @@
 #include <shellapi.h>
 #include <fcntl.h>
 
+#include <mq/utils/Naming.h>
+#include <mq/utils/OS.h>
+#include <mq/base/BuildInfo.h>
+
+#include "Network.h"
+
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
@@ -1225,6 +1231,7 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
+	Test();
 
 	MSG msg;
 	LauncherImGui::Run(

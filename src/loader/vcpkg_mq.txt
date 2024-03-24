@@ -5,3 +5,5 @@ date
 curl[schannel]
 cpr
 pe-parse
+asio
+protobuf
