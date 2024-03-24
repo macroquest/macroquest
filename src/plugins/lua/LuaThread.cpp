@@ -125,6 +125,9 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 LuaThread::~LuaThread()
 {
 	RemoveAllDataObjects();
+
+	m_imguiProcessor.reset();
+	m_eventProcessor.reset();
 }
 
 /*static*/ std::shared_ptr<LuaThread> LuaThread::Create(LuaEnvironmentSettings* environment)

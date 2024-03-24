@@ -719,7 +719,8 @@ bool login::db::ReadMasterPassExpired()
 // this will only try to read from the registry, and then validate against the master key hash
 std::optional<std::string> login::db::ReadMasterPass()
 {
-	if (const auto pass = ReadStoredMasterPass(); pass && !ReadMasterPassExpired() && ValidatePass(*pass))
+	std::optional<std::string> pass = ReadStoredMasterPass();
+	if (pass.has_value() && (pass->empty() || !ReadMasterPassExpired()) && ValidatePass(*pass))
 	{
 		MemoizeMasterPass(*pass);
 		return pass;
