@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -2609,6 +2609,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 {
 	if (!szLine[0] || !cmdDoAbility || !pLocalPC)
 		return;
+
 	if (IsNumber(szLine))
 	{
 		cmdDoAbility(pChar, szLine);
@@ -2616,7 +2617,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 	}
 
 	char szBuffer[MAX_STRING] = { 0 };
-	GetArg(szBuffer, szLine, 1);
+	GetMaybeQuotedArg(szBuffer, MAX_STRING, szLine, 1);
 
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile)
@@ -2628,29 +2629,14 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("Abilities & Combat Skills:");
 
 		// display skills that have activated state
-		for (int Index = 0; Index < NUM_SKILLS; Index++)
+		for (int Index = 0; Index < NUM_SKILLS + NUM_INNATE; ++Index)
 		{
-			if (HasSkill(Index))
+			if (HasSkillOrInnate(Index) && SkillOrInnateIsActivatable(Index))
 			{
-				bool Avail = pSkillMgr->pSkill[Index]->Activated;
-
-				// make sure remove trap is added, they give it to everyone except rogues
-				if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pProfile->Class & 0xFF), "Rogue", 6))
-					Avail = true;
-
-				if (Avail)
+				if (const char* skill_name = GetSkillName(Index))
 				{
-					WriteChatf("<\ag%s\ax>", szSkills[Index]);
+					WriteChatf("<\ag%s\ax>", skill_name);
 				}
-			}
-		}
-
-		// display innate skills that are available
-		for (int Index = 0; Index < 28; Index++)
-		{
-			if (pProfile->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100]) > 3)
-			{
-				WriteChatf("<\ag%s\ax>", szSkills[Index + 100]);
 			}
 		}
 
@@ -2670,41 +2656,28 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	int abilityNum = GetIntFromString(szBuffer, 0);
-	if (abilityNum > 0)
-	{
-		// Check if user wants us to activate an ability by its "real id" (?)
-		if (abilityNum > 6 && abilityNum < NUM_SKILLS)
-		{
-			int token = pSkillMgr->GetNameToken(abilityNum);
-			if (token != 0)
-			{
-				strcpy_s(szBuffer, pStringTable->getString(token));
-			}
-		}
-		else
-		{
-			// passthrough to original function
-			cmdDoAbility(pChar, szLine);
-			return;
-		}
-	}
-
 	// scan for matching abilities name
-	for (int Index = 0; Index < 128; Index++)
+	for (int Index = 0; Index < NUM_SKILLS + NUM_INNATE; ++Index)
 	{
-		if (Index < NUM_SKILLS && pSkillMgr->pSkill[Index]->Activated
-			|| Index > NUM_SKILLS && pProfile->InnateSkill[Index - 100] != 0xFF)
+		if (const char* skill_name = GetSkillName(Index))
 		{
-			if (!_stricmp(szBuffer, szSkills[Index]))
+			if (ci_equals(szBuffer, skill_name))
 			{
-				if (!HasSkill(Index))
+				if (HasSkillOrInnate(Index))
 				{
-					WriteChatf("you do not have this skill (%s)", szBuffer);
-					return;
+					if (SkillOrInnateIsActivatable(Index))
+					{
+						pLocalPC->UseSkill(static_cast<uint8_t>(Index), pLocalPlayer);
+					}
+					else
+					{
+						WriteChatf("/doability: Skill is not activatable (%s)", szBuffer);
+					}
 				}
-
-				pLocalPC->UseSkill(static_cast<uint8_t>(Index), pLocalPlayer);
+				else
+				{
+					WriteChatf("You do not have this skill (%s)", szBuffer);
+				}
 				return;
 			}
 		}
@@ -2726,11 +2699,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 
-	// else display that we didnt found abilities
-	if (abilityNum)
-		WriteChatf("You do not seem to have ability %s (%d) available", szBuffer, abilityNum);
-	else
-		WriteChatf("You do not seem to have ability %s available", szBuffer);
+	WriteChatf("You do not seem to have ability %s available", szBuffer);
 }
 
 // ***************************************************************************

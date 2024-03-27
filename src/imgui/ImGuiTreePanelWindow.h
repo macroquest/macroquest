@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -91,7 +91,7 @@ public:
 		// Left Pane
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), ImGuiChildFlags_Border);
 			ImGui::PopStyleVar();
 
 			if (m_treeRoot)
@@ -111,7 +111,7 @@ public:
 		// Right Pane
 		{
 			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
-			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), ImGuiChildFlags_Border);
 
 			if (!m_selectedPanel)
 			{
@@ -244,7 +244,7 @@ private:
 
 	void DrawTreeNode(PanelTreeNode* node)
 	{
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
 		bool isLeaf = node->children.empty();
 
 		if (node->def != nullptr && (m_selectedPanel == nullptr || node->def->selectRequested))

@@ -344,7 +344,7 @@
     <ClCompile Include="MQ2WindowInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImguiWidgets.cpp">
+    <ClCompile Include="MQImguiWidgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
@@ -399,6 +399,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="api\Abilities.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -636,6 +642,12 @@
     </ClInclude>
     <ClInclude Include="..\eqdata\spelleffects.h">
       <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Abilities.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Markov.h">
+      <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

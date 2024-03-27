@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -125,6 +125,9 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 LuaThread::~LuaThread()
 {
 	RemoveAllDataObjects();
+
+	m_imguiProcessor.reset();
+	m_eventProcessor.reset();
 }
 
 /*static*/ std::shared_ptr<LuaThread> LuaThread::Create(LuaEnvironmentSettings* environment)

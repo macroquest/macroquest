@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -453,22 +453,31 @@ const char* szSkills[] = {
 };
 
 const char* szInnates[] = {
-	"Awareness",//c4c
-	"Bash Door",//c50
-	"Breathe Fire",//c54
-	"Harmony",//c58
-	"Harm Touch",//c5c
-	"Infravision",//c60
-	"Lay Hands",//c64
-	"Lore",//c68
-	"No Bash",//c6c
-	"Regeneration",//c70
-	"Slam",//c74
-	"Surprise",//c78
-	"Ultravision",//c7c
-	"Inspect",//c80
-	"Open",//c84
-	nullptr
+	nullptr,          // 0
+	"Awareness",      // 1
+	"Bash Door",      // 2
+	"Breathe Fire",   // 3
+	"Harmony",        // 4
+	"Harm Touch",     // 5
+	"Infravision",    // 6
+	"Lay Hands",      // 7
+	"Lore",           // 8
+	"No Bash",        // 9
+	"Regeneration",   // 10
+	"Slam",           // 11
+	"Surprise",       // 12
+	"Ultravision",    // 13
+	"Inspect",        // 14
+	"Open",           // 15
+	"Reveal Trap",    // 16
+	nullptr,          // 17
+	nullptr,          // 18
+	nullptr,          // 19
+	nullptr,          // 20
+	nullptr,          // 21
+	nullptr,          // 22
+	nullptr,          // 23
+	nullptr,          // 24
 };
 
 [[deprecated("Use GetZoneExpansionName or GetExpansionNumber")]]

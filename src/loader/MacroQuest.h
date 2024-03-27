@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -57,25 +57,12 @@ using namespace mq;
 #define ENCRYPT_ALGORITHM CALG_RC4
 #define ENCRYPT_BLOCK_SIZE 8
 
-// message types received over the named pipe server
-constexpr int MSG_LOGINCHAR                 = 1;
-constexpr int MSG_LOADED                    = 2;
-constexpr int MSG_UNLOADED                  = 3;
-constexpr int MSG_MQ2UNLOAD                 = 4;
-constexpr int MSG_CLASSLVL                  = 5;
-
 // custom window message types
 constexpr int WM_USER_SHELLNOTIFY_CALLBACK  = (WM_USER + 1);
 constexpr int WM_USER_SYSTRAY               = (WM_USER + 2);
-constexpr int WM_USER_REGISTER_HK           = (WM_USER + 3);
-constexpr int WM_USER_UNREGISTER_HK         = (WM_USER + 4);
-constexpr int WM_USER_RESETLOADED           = (WM_USER + 5);
-constexpr int WM_USER_SETLOADED             = (WM_USER + 6);
-constexpr int WM_USER_UPDATECLASS           = (WM_USER + 7);
-constexpr int WM_USER_UPDATELEVEL           = (WM_USER + 8);
-constexpr int WM_USER_PROCESS_ADDED         = (WM_USER + 9);
-constexpr int WM_USER_PROCESS_REMOVED       = (WM_USER + 10);
-constexpr int WM_USER_CALLBACK              = (WM_USER + 11);
+constexpr int WM_USER_PROCESS_ADDED         = (WM_USER + 3);
+constexpr int WM_USER_PROCESS_REMOVED       = (WM_USER + 4);
+constexpr int WM_USER_CALLBACK              = (WM_USER + 5);
 
 
 //----------------------------------------------------------------------------
@@ -102,8 +89,6 @@ extern HMENU hMenu;
 extern HWND hMainWnd;
 extern HINSTANCE g_hInst;
 
-extern char gszMQVersion[64];
-
 extern bool gEnableCrashpad;
 extern bool gEnableSharedCrashpad;
 extern bool gEnableSilentCrashpad;
@@ -114,12 +99,12 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey);
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString);
 void UnregisterGlobalHotkey(std::string_view hotkeyString);
 void UnregisterGlobalHotkey(HWND hWnd);
+std::string_view GetServerType();
 
 // ProcessList
 HMODULE GetEQGameModuleByPID(DWORD processId);
 uint8_t* GetMQ2MainBaseAddress(DWORD processId);
 std::vector<HWND> GetEQWindowHandles();
-bool IsEQGameProcessId(DWORD processId);
 bool IsInjected(DWORD processId);
 void Inject(uint32_t PID, std::chrono::milliseconds delay = std::chrono::milliseconds(0));
 std::vector<DWORD> GetAllEqGameSessions();
@@ -148,8 +133,6 @@ FARPROC WINAPI GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, LPCSTR lpP
 std::string GetLocalPlayer(DWORD pid);
 
 // AutoLogin
-extern HWND hEditProfileWnd;
 void InitializeAutoLogin();
 void ShutdownAutoLogin();
-void AutoLoginRemoveProcess(DWORD processId);
-bool HandleAutoLoginWindowMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);
+void AutoLoginRemoveProcess(uint32_t process_id);

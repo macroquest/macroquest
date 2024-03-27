@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -72,7 +72,7 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 			if (gbTimeStampChat)
 			{
-				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
 
 				Trampoline(timeStampedMsg.c_str(), dwColor, EqLog, dopercentsubst);
 				SkipTrampoline = true;
@@ -113,7 +113,7 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 		if (gbTimeStampChat)
 		{
-			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
 
 			TellWnd_Trampoline(timeStampedMsg.c_str(), from, windowtitle, text, color, bLogOk);
 			SkipTrampoline = true;

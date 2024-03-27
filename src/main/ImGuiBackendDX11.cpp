@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -308,17 +308,26 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 				ID3D11ShaderResourceView* texture_srv = nullptr;
 				ImTextureID texID = pcmd->GetTexID();
 				
-				if (texID.IsBitmap())
+				if (texID.IsBitmap() || texID.IsTexture())
 				{
-					const eqlib::CEQGBitmap* bitmap = texID.GetBitmap();
+					eqlib::Direct3DTexture9* texture;
 
-					eqlib::Direct3DTexture9* texture = bitmap->GetD3DTexture();
+					if (texID.IsTexture())
+					{
+						texture = texID.GetTexture();
+					}
+					else
+					{
+						const eqlib::CEQGBitmap* bitmap = texID.GetBitmap();
+						texture = bitmap->GetD3DTexture();
+					}
+
 					if (texture != nullptr)
 					{
 						// Force a load of the texture if it hasn't been loaded yet.
-						if (bitmap->GetTexture() == nullptr)
+						if (texture->GetShaderResourceView() == nullptr)
 						{
-							gpD3D9Device->SetTexture(0, bitmap->GetD3DTexture());
+							gpD3D9Device->SetTexture(0, texture);
 							gpD3D9Device->SetTexture(0, nullptr);
 						}
 

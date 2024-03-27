@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -62,8 +62,8 @@ public:
 	struct bgr_t {};
 	static const inline bgr_t format_bgr;
 
-	struct bgra_t {};
-	static const inline bgra_t format_bgra;
+	struct abgr_t {};
+	static const inline abgr_t format_abgr;
 
 	struct argb_t {};
 	static const inline argb_t format_argb;
@@ -76,7 +76,7 @@ public:
 	{
 	}
 
-	constexpr MQColor(bgra_t, uint32_t bgracolor)
+	constexpr MQColor(abgr_t, uint32_t bgracolor)
 		: Alpha((bgracolor >> 24) & 0xff)
 		, Blue((bgracolor >> 16) & 0xff)
 		, Green((bgracolor >> 8) & 0xff)
@@ -195,6 +195,16 @@ public:
 	constexpr MQColor GetInverted() const
 	{
 		return MQColor((0xFFFFFF - (ARGB & 0xFFFFFF)) | (ARGB & 0xFF000000));
+	}
+
+	constexpr MQColor operator+(MQColor other) const
+	{
+		return MQColor(
+			static_cast<uint8_t>(std::min(std::max(Red + other.Red, 0), 255)),
+			static_cast<uint8_t>(std::min(std::max(Green + other.Green, 0), 255)),
+			static_cast<uint8_t>(std::min(std::max(Blue + other.Blue, 0), 255)),
+			static_cast<uint8_t>(std::min(std::max(Alpha + other.Alpha, 0), 255))
+		);
 	}
 
 	// Layout matches ARGBCOLOR

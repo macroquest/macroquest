@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -57,7 +57,7 @@ inline bool IsInModuleList(const char* moduleName, int processID = GetCurrentPro
 					const std::filesystem::path mod_path = szModName;
 					if (ci_equals(mod_path.filename().string(), moduleName) || ci_equals(mod_path.stem().string(), moduleName))
 					{
-						return true;						
+						return true;
 					}
 				}
 			}

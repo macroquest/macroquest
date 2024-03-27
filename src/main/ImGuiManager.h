@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -23,9 +23,13 @@ void ImGuiManager_Shutdown();
 void ImGuiManager_Pulse();
 
 void ImGuiManager_DrawFrame();
+void ImGuiManager_DrawCursorAttachment();
+
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);
+ImFont* ImGuiManager_GetEQImFont(int fontID);
+
 
 void ImGuiManager_ReloadContext();
 void ImGuiManager_CreateContext();
@@ -43,6 +47,9 @@ extern bool gbManualResetRequired;
 
 // global imgui toggle
 extern bool gbRenderImGui;
+
+// When true, hides the cursor attachment
+extern bool gbHideCursorAttachment;
 
 
 } // namespace mq

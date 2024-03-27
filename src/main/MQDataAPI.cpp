@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -589,6 +589,7 @@ void MQDataAPI::RegisterTopLevelObjects()
 	AddTopLevelObject("Raid", datatypes::MQ2RaidType::dataRaid);
 	AddTopLevelObject("SelectedItem", datatypes::MQ2ItemType::dataSelectedItem);
 	AddTopLevelObject("Skill", datatypes::MQ2SkillType::dataSkill);
+	AddTopLevelObject("Social", datatypes::MQSocialType::dataSocial);
 	AddTopLevelObject("Spawn", datatypes::MQ2SpawnType::dataSpawn);
 	AddTopLevelObject("SpawnCount", datatypes::MQ2SpawnType::dataSpawnCount);
 	AddTopLevelObject("Spell", datatypes::MQ2SpellType::dataSpell);

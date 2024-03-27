@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -2040,6 +2040,14 @@ public:
 
 				ImGui::EndTabItem();
 			}
+
+			if (ImGui::BeginTabItem("Fonts"))
+			{
+				DrawFonts();
+
+				ImGui::EndTabItem();
+			}
+
 			ImGui::EndTabBar();
 		}
 	}
@@ -2059,6 +2067,92 @@ public:
 		}
 
 		ImGui::Text("Rounding Mode: %s", roundingMode);
+	}
+
+	void DrawFonts()
+	{
+		if (!pGraphicsEngine) return;
+		auto resourceMgr = pGraphicsEngine->pResourceManager;
+		if (!resourceMgr) return;
+
+		CCachedFont* pCachedFont;
+		CCachedFont* pSelectedFont = nullptr;
+		EStatus status = eStatusFailure;
+
+		// GetCachedFont may crash here if the font manager hasn't been created yet, but we're
+		// using this routine to get access to the font manager. If it throws an access violation,
+		// the application state is fine, we can just bail on this attempt.
+		__try {
+			status = resourceMgr->GetCachedFont(0, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			status = eStatusFailure;
+		}
+
+		if (status != eStatusSuccess) return;
+		CFontManager* fontMgr = pCachedFont->pFontManager;
+		if (!fontMgr) return;
+
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_rightPaneSize == 0.0f)
+			m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+		imgui::DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+		// Left Pane
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::PopStyleVar();
+
+			for (int fontIndex = 0; fontIndex < NumFontStyles; ++fontIndex)
+			{
+				resourceMgr->GetCachedFont(fontIndex, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+
+				ImGui::PushID(pCachedFont);
+
+				char szLabel[64];
+				sprintf_s(szLabel, "%d: %s", fontIndex, pCachedFont->strFontName.c_str());
+
+				if (ImGui::Selectable(szLabel, m_selectedFont == fontIndex))
+					m_selectedFont = fontIndex;
+
+				if (m_selectedFont == fontIndex)
+					pSelectedFont = pCachedFont;
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndChild();
+		}
+
+		ImGui::SameLine();
+
+		// Right Pane
+		{
+			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+			if (pSelectedFont)
+			{
+				ImGui::Text("Font: %s", pSelectedFont->strFontName.c_str());
+				ImGui::Text("Font ID: %d", pSelectedFont->eFontId);
+
+				if (ImGui::CollapsingHeader("Textures"))
+				{
+					int index = 0;
+					for (CD3DTexturePointerNode* ptr : pSelectedFont->arTextures)
+					{
+						ImGui::Text("%d:", index++);
+
+						ImTextureID TexID = ptr->pTexture;
+
+						ImGui::Image(TexID, ImVec2(pSelectedFont->fTextureSize, pSelectedFont->fTextureSize));
+					}
+				}
+			}
+
+			ImGui::EndChild();
+		}
 	}
 
 	void DrawBitmaps()
@@ -2286,6 +2380,8 @@ private:
 	float m_leftPaneSize = 150.0f; // initial size of left column
 	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
 	const CEQGBitmap* m_selectedBitmap = nullptr;
+
+	int m_selectedFont = 0;
 };
 
 static EngineInspector* s_engineInspector = nullptr;
