@@ -1,3 +1,6 @@
+March 27, 2024:
+- Updated emu client to catch it up with the latest features
+
 March 13, 2024:
 - Update for live patch
 
