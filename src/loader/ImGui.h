@@ -40,7 +40,6 @@ void RemoveMainPanel(const char* name);
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback);
 bool RemoveContextGroup(const std::string& name);
 void Run(const std::function<bool()>& mainLoop);
-bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
 void OpenMainWindow();
 void OpenContextMenu();
 void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title);

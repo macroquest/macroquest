@@ -785,6 +785,7 @@ public:
 
 	static void CheckForFastCamp()
 	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // A guess
 		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
 		{
@@ -801,6 +802,7 @@ public:
 				}
 			}
 		}
+#endif
 	}
 };
 
