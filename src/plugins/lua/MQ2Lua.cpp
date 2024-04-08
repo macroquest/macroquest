@@ -1984,7 +1984,7 @@ PLUGIN_API void OnUpdateImGui()
 			);
 		}
 
-		if (IGFD_DisplayDialog(s_scriptLaunchDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		if (IGFD_DisplayDialog(s_scriptLaunchDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
 		{
 			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
