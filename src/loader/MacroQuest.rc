@@ -72,7 +72,7 @@ BEGIN
             VALUE "FileDescription", "MacroQuest - Application"
             VALUE "FileVersion", "3.0.0.0"
             VALUE "InternalName", "MacroQuest"
-            VALUE "LegalCopyright", "Copyright (C) 2002-2021"
+            VALUE "LegalCopyright", "Copyright (C) 2002-2024"
             VALUE "OriginalFilename", "MacroQuest.exe"
             VALUE "ProductName", "MacroQuest"
             VALUE "ProductVersion", "3.0.0.0"
