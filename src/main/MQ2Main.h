@@ -95,6 +95,8 @@ void ShutdownMQ2Pulse();
 void InitializeChatHook();
 void ShutdownChatHook();
 
+bool PerformRandomPulse();
+
 /* SPAWN HANDLING */
 MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);

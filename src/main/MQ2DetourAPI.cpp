@@ -17,6 +17,8 @@
 #include "CrashHandler.h"
 
 #include <detours/detours.h>
+#include <chrono>
+#include <random>
 
 namespace mq {
 
@@ -27,6 +29,10 @@ int gbInMemCheck4 = 0;
 
 class Detour;
 static Detour* s_detourList = nullptr;
+
+std::default_random_engine g_randomEngine(std::chrono::system_clock::now().time_since_epoch().count());
+std::uniform_int_distribution<int> g_intervalDistribution(120, 600);
+std::chrono::steady_clock::time_point g_lastPulseTime = std::chrono::steady_clock::now();
 
 class Detour final
 {
@@ -169,6 +175,28 @@ void RemoveDetours()
 		delete detour;
 		detour = next;
 	}
+}
+
+bool IsTimeForPulse()
+{
+	auto currentTime = std::chrono::steady_clock::now();
+	auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - g_lastPulseTime).count();
+	int nextPulseInterval = g_intervalDistribution(g_randomEngine);
+	if (elapsedTime >= nextPulseInterval) {
+		g_lastPulseTime = currentTime;
+		return true;
+	}
+
+	return false;
+}
+
+bool PerformRandomPulse()
+{
+	if (IsTimeForPulse() && GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid) {
+		return true;
+	}
+
+	return false;
 }
 
 // TODO: Maybe someday revisit detection of assist completion...

@@ -574,6 +574,10 @@ static HeartbeatState Heartbeat()
 		return HeartbeatLoad;
 	}
 
+	if (PerformRandomPulse() && gGameState == GAMESTATE_INGAME) {
+		EzCommand("/unload");
+	}
+
 	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
 	static uint64_t TickDiff = 0;
