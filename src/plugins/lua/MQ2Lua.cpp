@@ -1991,11 +1991,13 @@ PLUGIN_API void OnUpdateImGui()
 				IGFD_Selection selection = IGFD_GetSelection(s_scriptLaunchDialog, IGFD_ResultMode_KeepInputFile);
 
 				// avoid a silent crash to desktop by ensuring selection.table is valid
-				char* selected_file = (selection.table != nullptr) ? (
-					(selection.table->filePathName != nullptr) ? selection.table->filePathName : (
-						(selection.table->fileName != nullptr) ? selection.table->fileName : nullptr
-					)
-				) : nullptr;
+				char* selected_file = nullptr;
+				if (selection.table != nullptr) {
+					if (selection.table->filePathName != nullptr && selection.table->fileName != nullptr) {
+						selected_file = selection.table->filePathName;
+						selected_file = selection.table->fileName;
+					}
+				}
 
 				std::error_code ec;
 				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
