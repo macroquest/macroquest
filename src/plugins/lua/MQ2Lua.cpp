@@ -1989,7 +1989,13 @@ PLUGIN_API void OnUpdateImGui()
 			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
 				IGFD_Selection selection = IGFD_GetSelection(s_scriptLaunchDialog, IGFD_ResultMode_KeepInputFile);
-				char* selected_file = selection.table->filePathName;
+
+				// avoid a silent crash to desktop by ensuring selection.table is valid
+				char* selected_file = (selection.table != nullptr) ? (
+					(selection.table->filePathName != nullptr) ? selection.table->filePathName : (
+						(selection.table->fileName != nullptr) ? selection.table->fileName : nullptr
+					)
+				) : nullptr;
 
 				std::error_code ec;
 				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
@@ -2019,6 +2025,7 @@ PLUGIN_API void OnUpdateImGui()
 
 					LuaRunCommand(script_name, allocate_args(args));
 				}
+				WriteChatf("No file was selected or file does not exist.");
 
 				IGFD_Selection_DestroyContent(&selection);
 			}
