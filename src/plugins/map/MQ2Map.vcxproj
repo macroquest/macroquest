@@ -68,6 +68,7 @@
     <ClCompile Include="MQ2Map.cpp" />
     <ClCompile Include="MQ2MapAPI.cpp" />
     <ClCompile Include="MQ2MapCommands.cpp" />
+    <ClCompile Include="MQMapBindings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MapObject.h" />

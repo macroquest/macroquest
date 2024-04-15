@@ -294,12 +294,12 @@ void MapActiveLayerCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	activeLayer = newActiveLayer;
+	g_mapActiveLayer = newActiveLayer;
 
-	WriteChatf("Map Active Layer: %d", activeLayer);
+	WriteChatf("Map Active Layer: %d", g_mapActiveLayer);
 
 	// Write setting to file
-	WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+	WritePrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 
 	// refresh map
 	MapClear();
@@ -806,7 +806,7 @@ void MapHighlightCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssHighlight;
 		ClearSearchSpawn(&ssHighlight);
@@ -853,7 +853,7 @@ void MapHideCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssHide;
 		ClearSearchSpawn(&ssHide);
@@ -873,7 +873,7 @@ void MapShowCmd(PlayerClient* pChar, const char* szLine)
 	{
 		SyntaxError("Usage: /mapshow [spawnfilter|reset|repeat]");
 		return;
-	};
+	}
 
 	GetArg(szArg, szLine, 1);
 	if (!_stricmp(szArg, "reset"))
@@ -895,7 +895,7 @@ void MapShowCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssShow;
 		ClearSearchSpawn(&ssShow);
@@ -952,161 +952,58 @@ void MapNames(PlayerClient* pChar, const char* szLine)
 	}
 }
 
-char* DescribeCombo(DWORD Combo)
+void MapZFilterCmd(PlayerClient* pChar, const char* szLine)
 {
-	static char Description[256];
-	Description[0] = 0;
-	int pos = 0;
-	if (Combo & XKF_SHIFT)
+	char Arg[MAX_STRING] = { 0 };
+
+	GetArg(Arg, szLine, 1);
+
+	if (!Arg[0])
 	{
-		strcpy_s(&Description[pos], 256 - pos, "shift");
-		pos += 5;
-	}
-	if (Combo & XKF_CTRL)
-	{
-		if (pos)
-		{
-			Description[pos] = '+';
-			pos++;
-		}
-
-		strcpy_s(&Description[pos], 256 - pos, "ctrl");
-		pos += 4;
-	}
-
-	if (Combo & XKF_LALT)
-	{
-		if (pos)
-		{
-			Description[pos] = '+';
-			pos++;
-		}
-
-		strcpy_s(&Description[pos], sizeof(Description) - pos, "lalt");
-		pos += 4;
-	}
-
-	if (Combo & XKF_RALT)
-	{
-		if (pos)
-		{
-			Description[pos] = '+';
-			pos++;
-		}
-
-		strcpy_s(&Description[pos], sizeof(Description) - pos, "ralt");
-	}
-
-	if (!Description[0])
-	{
-		return "Invalid";
-	}
-
-	return &Description[0];
-}
-
-DWORD ParseCombo(char* Combo)
-{
-	DWORD Ret = 0;
-	if (!Combo || !Combo[0])
-		return 0;
-	char Copy[MAX_STRING];
-	strcpy_s(Copy, Combo);
-	char* Next_Token1 = nullptr;
-	Combo = strtok_s(Copy, "+", &Next_Token1);
-	while (Combo)
-	{
-		if (!_stricmp(Combo, "ctrl"))
-			Ret += XKF_CTRL;
-		else if (!_stricmp(Combo, "shift"))
-			Ret += XKF_SHIFT;
-		else if (!_stricmp(Combo, "lalt"))
-			Ret += XKF_LALT;
-		else if (!_stricmp(Combo, "ralt"))
-			Ret += XKF_RALT;
-		else if (!_stricmp(Combo, "alt"))
-			Ret += XKF_LALT;
-		Combo = strtok_s(nullptr, "+", &Next_Token1);
-	}
-	return Ret;
-}
-
-void MapClickCommand(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /mapclick [left] <list|<key[+key[...]]> <clear|command>>");
+		WriteChatf("\arUsage: /mapzfilter { z | minz maxz }");
 		return;
 	}
 
-	auto f = [](char szArg[MAX_STRING], const char* szRest, char(&command_array)[16][MAX_STRING], const char* szSection)
+	int minZ = GetIntFromString(Arg, -1);
+
+	GetArg(Arg, szLine, 2);
+
+	int maxZ = Arg[0] ? GetIntFromString(Arg, -1) : minZ;
+
+	if (minZ <= 0 || maxZ <= 0)
 	{
-		char szBuffer[MAX_STRING] = { 0 };
-
-		if (!_stricmp(szArg, "list"))
-		{
-			int Count = 0;
-			for (int i = 1; i < 16; i++)
-			{
-				if (command_array[i][0])
-				{
-					WriteChatf("%s: %s", DescribeCombo(i), command_array[i]);
-					Count++;
-				}
-			}
-
-			WriteChatf("%d special right-click commands", Count);
-			return;
-		}
-
-		DWORD Combo = ParseCombo(szArg);
-		if (!Combo)
-		{
-			WriteChatf("Invalid combo '%s'", szArg);
-			return;
-		}
-
-		if (!szRest[0])
-		{
-			WriteChatf("%s: %s", DescribeCombo(Combo), command_array[Combo]);
-			return;
-		}
-
-		if (!_stricmp(szRest, "clear"))
-		{
-			command_array[Combo][0] = 0;
-			WritePrivateProfileString(szSection, fmt::format("KeyCombo{:d}", Combo), command_array[Combo], INIFileName);
-
-			WriteChatf("%s -- %s cleared", szSection, DescribeCombo(Combo));
-			return;
-		}
-
-		strcpy_s(command_array[Combo], szRest);
-		WritePrivateProfileString(szSection, fmt::format("KeyCombo{:d}", Combo), command_array[Combo], INIFileName);
-
-		WriteChatf("%s -- %s: %s", szSection, DescribeCombo(Combo), command_array[Combo]);
-	};
-
-	char szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-	const char* szRest = GetNextArg(szLine);
-
-	if (!_stricmp(szArg, "left"))
-	{
-		GetArg(szArg, szRest, 1);
-		szRest = GetNextArg(szRest);
-		f(szArg, szRest, MapLeftClickString, "Left Click");
+		WriteChatf("\arInvalid input for minz/maxz, please provide a positive integer");
+		return;
 	}
-	else
+
+	WriteChatf("\ayChanging map z-filter: %d - %d", minZ, maxZ);
+
+	if (pMapViewWnd)
 	{
-		f(szArg, szRest, MapSpecialClickString, "Right Click");
+		char filterText[32];
+
+		CEditWnd* pEditBoxZLow = (CEditWnd*)pMapViewWnd->GetChildItem("MVW_MinZEditBox");
+		if (pEditBoxZLow)
+		{
+			sprintf_s(filterText, "%d", minZ);
+			pEditBoxZLow->SetWindowText(filterText);
+
+			pMapViewWnd->WndNotification(pEditBoxZLow, XWM_NEWVALUE, nullptr);
+		}
+
+		CEditWnd* pEditBoxZHigh = (CEditWnd*)pMapViewWnd->GetChildItem("MVW_MaxZEditBox");
+		if (pEditBoxZHigh)
+		{
+			sprintf_s(filterText, "%d", maxZ);
+			pEditBoxZHigh->SetWindowText(filterText);
+
+			pMapViewWnd->WndNotification(pEditBoxZHigh, XWM_NEWVALUE, nullptr);
+		}
 	}
 }
 
 // marker code
-char* szMarkType[] =
+const char* szMarkType[] =
 {
 	"None",
 	"Triangle",
@@ -1405,28 +1302,28 @@ static void DrawMapSettings_Options()
 
 	ImGui::Text("Active Layer: ");
 	ImGui::SameLine();
-	if (ImGui::RadioButton("Base", &activeLayer, 0))
+	if (ImGui::RadioButton("Base", &g_mapActiveLayer, 0))
 	{
 		regenerate = true;
-		WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+		WritePrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 	}
 	ImGui::SameLine();
-	if (ImGui::RadioButton("1", &activeLayer, 1))
+	if (ImGui::RadioButton("1", &g_mapActiveLayer, 1))
 	{
 		regenerate = true;
-		WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+		WritePrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 	}
 	ImGui::SameLine();
-	if (ImGui::RadioButton("2", &activeLayer, 2))
+	if (ImGui::RadioButton("2", &g_mapActiveLayer, 2))
 	{
 		regenerate = true;
-		WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+		WritePrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 	}
 	ImGui::SameLine();
-	if (ImGui::RadioButton("3", &activeLayer, 3))
+	if (ImGui::RadioButton("3", &g_mapActiveLayer, 3))
 	{
 		regenerate = true;
-		WritePrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+		WritePrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 	}
 
 	ImGui::NewLine();

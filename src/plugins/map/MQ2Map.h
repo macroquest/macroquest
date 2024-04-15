@@ -107,7 +107,7 @@ struct MapFilterOption
 };
 
 extern uint32_t bmMapRefresh;
-extern int activeLayer;
+extern int g_mapActiveLayer;
 extern float CampX;
 extern float CampY;
 extern float PullX;
@@ -130,14 +130,13 @@ extern MQSpawnSearch MapFilterNamed;
 extern std::vector<MapFilterOption> MapFilterOptions;
 extern MapFilterOption MapFilterInvalidOption;
 
-constexpr int MAX_CLICK_STRINGS = 16;
-extern char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING];
-extern char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING];
 extern bool repeatMapshow;
 extern bool repeatMaphide;
 
 extern std::vector<MapFilterOption*> mapFilterObjectOptions;
 extern std::vector<MapFilterOption*> mapFilterGeneralOptions;
+
+extern char YAMLFileName[MAX_PATH];
 
 /* COMMANDS */
 void MapFilters(PlayerClient* pChar, const char* szLine);
@@ -150,6 +149,7 @@ void MapNames(PlayerClient* pChar, const char* szLine);
 void MapClickCommand(PlayerClient* pChar, const char* szLine);
 void MapActiveLayerCmd(PlayerClient* pChar, const char* szLine);
 void MapSetLocationCmd(PlayerClient* pChar, const char* szLine);
+void MapZFilterCmd(PlayerClient* pChar, const char* szLine);
 char* FormatMarker(const char* szLine, char* szDest, size_t BufferSize);
 bool IsFloat(const std::string& in);
 
@@ -167,9 +167,6 @@ void MapDetach();
 void MapLocSyntaxOutput();
 void MapRemoveLocation(const char* szLine);
 
-bool MapSelectTarget();
-void MapClickLocation(float x, float y, const std::vector<float>& z_hits);
-
 int MakeTime();
 void DrawMapSettingsPanel();
 
@@ -179,6 +176,8 @@ MapObject* AddSpawn(SPAWNINFO* pNewSpawn, bool ExplicitAllow = false);
 bool RemoveSpawn(SPAWNINFO* pSpawn);
 MapObject* AddGroundItem(GROUNDITEM* pGroundItem);
 void RemoveGroundItem(GROUNDITEM* pGroundItem);
+
+MapObject* GetCurrentMapObject();
 
 inline MapFilterOption& GetMapFilterOption(MapFilter Option)
 {
@@ -210,3 +209,12 @@ MarkerType FindMarker(std::string_view szMark, MarkerType fallback = MarkerType:
 
 PLUGIN_API MapViewLine* InitLine();
 PLUGIN_API void DeleteLine(MapViewLine* pLine);
+
+
+// Map click bindings
+
+//
+bool MapHandleMouseClick(MapViewLabel* pMapLabel, const CXPoint& point,
+	int mouseButton, uint32_t flags);
+void MapLoadClickBindings();
+

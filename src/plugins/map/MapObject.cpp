@@ -205,7 +205,7 @@ void MapObject::GenerateLabel()
 	m_label->Location.X = -m_pos.X;
 	m_label->Location.Y = -m_pos.Y;
 	m_label->Location.Z = m_pos.Z;
-	m_label->Layer = activeLayer;
+	m_label->Layer = g_mapActiveLayer;
 	m_label->Size = 3;
 	m_label->Color.ARGB = m_color.ToARGB();
 	m_label->Width = 20;
@@ -295,7 +295,7 @@ void MapObject::GenerateMarker()
 		pNewLine->End.X = 0;
 		pNewLine->End.Y = 0;
 		pNewLine->End.Z = m_pos.Z;
-		pNewLine->Layer = activeLayer;
+		pNewLine->Layer = g_mapActiveLayer;
 		pNewLine->Color = m_label->Color;
 
 		m_markerLines.push_back(pNewLine);
@@ -806,7 +806,7 @@ void MapObjectSpawn::GenerateVector()
 
 	UpdateVector();
 
-	newLine->Layer = activeLayer;
+	newLine->Layer = g_mapActiveLayer;
 	newLine->Color = m_label->Color;
 
 	m_vector = newLine;
@@ -1009,7 +1009,7 @@ void MapCircle::UpdateCircle(MQColor Color, float Radius, float X, float Y, floa
 		if (!m_components[i])
 		{
 			m_components[i] = InitLine();
-			m_components[i]->Layer = activeLayer;
+			m_components[i]->Layer = g_mapActiveLayer;
 		}
 
 		m_components[i]->Color.ARGB = Color.ToARGB();
@@ -1178,7 +1178,7 @@ void MapObjectMapLoc::UpdateMapObject()
 		{
 			// Backslash
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize;
 			line->Start.Y = -m_pos.Y - params.lineSize;
@@ -1190,7 +1190,7 @@ void MapObjectMapLoc::UpdateMapObject()
 
 			// Forwardslash
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize;
 			line->Start.Y = -m_pos.Y + params.lineSize;
@@ -1204,7 +1204,7 @@ void MapObjectMapLoc::UpdateMapObject()
 		{
 			// Backslash lower
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize;
 			line->Start.Y = -m_pos.Y - params.lineSize + xWidth - 1;
@@ -1216,7 +1216,7 @@ void MapObjectMapLoc::UpdateMapObject()
 
 			// Forwardslash lower
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize + xWidth - 1;
 			line->Start.Y = -m_pos.Y + params.lineSize;
@@ -1228,7 +1228,7 @@ void MapObjectMapLoc::UpdateMapObject()
 
 			// Backslash upper
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize + xWidth - 1;
 			line->Start.Y = -m_pos.Y - params.lineSize;
@@ -1240,7 +1240,7 @@ void MapObjectMapLoc::UpdateMapObject()
 
 			// Forwardslash upper
 			line = InitLine();
-			line->Layer = activeLayer;
+			line->Layer = g_mapActiveLayer;
 			line->Color.ARGB = colorARGB;
 			line->Start.X = -m_pos.X - params.lineSize;
 			line->Start.Y = -m_pos.Y + params.lineSize - xWidth + 1;

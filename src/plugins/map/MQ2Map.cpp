@@ -27,7 +27,7 @@ long repeatInterval = 10;
 clock_t highPulseRepeatLast = clock();
 long highPulseRepeatIntervalMillis = 50;
 uint32_t bmMapRefresh = 0;
-int activeLayer = 2;
+int g_mapActiveLayer = 2;
 float CampX = 0.0f;
 float CampY = 0.0f;
 float PullX = 0.0f;
@@ -44,48 +44,6 @@ int HighlightPulseDiff = HighlightSIDELEN / 10;
 extern MapObject* gpActiveMapObjects;
 std::vector<MapFilterOption*> mapFilterObjectOptions;
 std::vector<MapFilterOption*> mapFilterGeneralOptions;
-
-#define INVALID_FLOOR ((float)-1.0e27)
-
-char MapSpecialClickString[MAX_CLICK_STRINGS][MAX_STRING] =
-{
-	"",                      // unused, will always target
-	"",                      // SHIFT
-	"/maphide id %i",        // CTRL
-	"",                      // CTRL|SHIFT
-	"/highlight id %i",      // LALT
-	"",                      // LALT|SHIFT
-	"",                      // LALT|CTRL
-	"",                      // LALT|SHIFT|CTRL
-	"",                      // RALT
-	"",                      // RALT|SHIFT
-	"",                      // RALT|CTRL
-	"",                      // RALT|SHIFT|CTRL
-	"",                      // RALT|LALT
-	"",                      // RALT|LALT|SHIFT
-	"",                      // RALT|LALT|CTRL
-	""                       // RALT|LALT|SHIFT|CTRL
-};
-
-char MapLeftClickString[MAX_CLICK_STRINGS][MAX_STRING] =
-{
-	"",                      //  unused, will always target
-	"",                      // SHIFT
-	"",                      // CTRL
-	"/nav locxy %x %y",      // CTRL|SHIFT
-	"",                      // LALT
-	"",                      // LALT|SHIFT
-	"",                      // LALT|CTRL
-	"",                      // LALT|SHIFT|CTRL
-	"",                      // RALT
-	"",                      // RALT|SHIFT
-	"",                      // RALT|CTRL
-	"",                      // RALT|SHIFT|CTRL
-	"",                      // RALT|LALT
-	"",                      // RALT|LALT|SHIFT
-	"",                      // RALT|LALT|CTRL
-	""                       // RALT|LALT|SHIFT|CTRL
-};
 
 char MapNameString[MAX_STRING] = { "%N" };
 char MapTargetNameString[MAX_STRING] = { "%N" };
@@ -193,46 +151,34 @@ public:
 		return result;
 	}
 
-	virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override
+	virtual int HandleKeyboardMsg(uint32_t message, uint32_t flags, bool down) override
 	{
-		CVector3 points = { (float)pos.x, (float)pos.y, 0.f };
-		GetWorldCoordinates(points); // this writes the world X & Y coords into points
-
-		std::vector<float> z_hits;
-
-		float curr_z = 0.0f;
-		for (float f = pZoneInfo->Ceiling; f > pZoneInfo->Floor; f -= 2.0f)
+		if (down && (message == EQ_KEYBOARD_EVENT_MB3 || message == EQ_KEYBOARD_EVENT_MB4 || message == EQ_KEYBOARD_EVENT_MB5))
 		{
-			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, f);
-			if (curr_z != INVALID_FLOOR)
+			if (!MapHandleMouseClick(pCurrentMapLabel, CXPoint(pEverQuestInfo->MouseX, pEverQuestInfo->MouseY), message - EQ_KEYBOARD_EVENT_MB3 + 2, flags))
 			{
-				break;
+				return 0;
 			}
 		}
 
-		do
+		return Super::HandleKeyboardMsg(message, flags, down);
+	}
+
+	virtual int HandleLButtonDown(const CXPoint& pos, uint32_t flags) override
+	{
+		bool handleClick = MapHandleMouseClick(pCurrentMapLabel, pos, 0, flags);
+
+		if (handleClick)
 		{
-			z_hits.push_back(curr_z);
-			curr_z = pDisplay->GetFloorHeight(points.X, points.Y, curr_z - 2.f);
-		} while (curr_z >= pZoneInfo->Floor - 1.f);
+			return Super::HandleLButtonDown(pos, flags);
+		}
 
-		MapClickLocation(points.X, points.Y, z_hits);
-
-		return Super::HandleLButtonDown(pos, flags);
+		return 0;
 	}
 
 	virtual int HandleRButtonDown(const CXPoint& pos, uint32_t flags) override
 	{
-		bool handleClick = false;
-
-		if (pCurrentMapLabel)
-		{
-			handleClick = MapSelectTarget();
-		}
-		else
-		{
-			handleClick = IsOptionEnabled(MapFilter::ContextMenu);
-		}
+		bool handleClick = MapHandleMouseClick(pCurrentMapLabel, pos, 1, flags);
 
 		if (handleClick)
 		{
@@ -258,6 +204,8 @@ private:
 PLUGIN_API void InitializePlugin()
 {
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
+
+	sprintf_s(YAMLFileName, "%s\\%s.yaml", mq::gPathConfig, mqplugin::PluginName);
 
 	char szBuffer[MAX_STRING] = { 0 };
 
@@ -299,7 +247,7 @@ PLUGIN_API void InitializePlugin()
 		option.Marker = FindMarker(markerString, MarkerType::None);
 	}
 
-	activeLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+	g_mapActiveLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", g_mapActiveLayer, INIFileName);
 
 	InitDefaultMapLocParams();
 	ResetMapLocOverrides();
@@ -320,12 +268,7 @@ PLUGIN_API void InitializePlugin()
 	GetPrivateProfileString("Naming Schemes", "Normal", "%N", MapNameString, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Naming Schemes", "Target", "%N", MapTargetNameString, MAX_STRING, INIFileName);
 
-	for (int i = 1; i < MAX_CLICK_STRINGS; i++)
-	{
-		sprintf_s(szBuffer, "KeyCombo%d", i);
-		GetPrivateProfileString("Right Click", szBuffer, MapSpecialClickString[i], MapSpecialClickString[i], MAX_STRING, INIFileName);
-		GetPrivateProfileString("Left Click", szBuffer, MapLeftClickString[i], MapLeftClickString[i], MAX_STRING, INIFileName);
-	}
+	MapLoadClickBindings();
 
 	// Do not use Custom, since the string isn't stored
 	MapFilterOptions[static_cast<size_t>(MapFilter::Custom)].Enabled = false;
@@ -338,6 +281,7 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mapclick", MapClickCommand, false, true, false);
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, false, true, true);
 	AddCommand("/maploc", MapSetLocationCmd, false, true, true);
+	AddCommand("/mapzfilter", MapZFilterCmd, false, true, true);
 
 	// Hook the map window
 	if (pMapViewWnd)
@@ -370,6 +314,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveCommand("/mapclick");
 	RemoveCommand("/mapactivelayer");
 	RemoveCommand("/maploc");
+	RemoveCommand("/mapzfilter");
 
 	RemoveSettingsPanel("plugins/Map");
 }
