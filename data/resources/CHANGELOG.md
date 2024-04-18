@@ -1,3 +1,6 @@
+April 17, 2024:
+- Update for live patch
+
 April 11, 2024:
 - Update for test patch
 
