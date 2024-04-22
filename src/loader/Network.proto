@@ -2,23 +2,6 @@ syntax = "proto3";
 
 package mq.peernetwork;
 
-enum MessageType {
-	ID = 0;
-	Route = 1;
-}
-
-message Header {
-	MessageType type = 1;
-	uint32 length = 2;
-}
-
-message Identification {
-	string uuid = 1; // the local uuid of the peer
-	string host = 2; // the host of the peer
-	uint32 port = 3; // the port to connect to the peer with
-}
-
-message RoutedMessage {
-	bytes header = 1; // this is the pipes header, assume platform and just cast bytes to the type
-	optional bytes payload = 2; // this is the actual payload
+message TestString {
+	string message = 1;
 }

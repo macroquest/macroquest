@@ -19,6 +19,9 @@ void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
 void ProcessPipeServer();
 
+// networking interface
+void RelayMessage(std::unique_ptr<uint8_t[]>&& payload);
+
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();
 
