@@ -61,7 +61,7 @@ static sol::table lua_getAllSpawns(sol::this_state L)
 	return table;
 }
 
-static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
+static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::unsafe_function> predicate)
 {
 	auto table = sol::state_view(L).create_table();
 
@@ -102,7 +102,7 @@ static sol::table lua_getAllGroundItems(sol::this_state L)
 	return table;
 }
 
-static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
+static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::unsafe_function> predicate)
 {
 	auto table = sol::state_view(L).create_table();
 

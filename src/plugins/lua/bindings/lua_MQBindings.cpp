@@ -61,8 +61,14 @@ static uint64_t lua_gettime(sol::this_state s)
 	return t.count();
 }
 
-static std::string lua_Parse(const char* text)
+static std::string lua_Parse(sol::this_state s, const char* text)
 {
+	if (text == nullptr)
+	{
+		luaL_argerror(s, 1, "Expected string, got nil");
+		return {};
+	}
+
 	char buffer[MAX_STRING] = { 0 };
 	strncpy_s(buffer, text, sizeof(buffer));
 	auto old_parser = std::exchange(gParserVersion, 2);
@@ -515,7 +521,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// utility bindings
 	mq.set_function("join",                      &lua_join);
 	mq.set_function("gettime",                   &lua_gettime);
-	mq.set("parse",                              &lua_Parse);
+	mq.set_function("parse",                     &lua_Parse);
 	mq.set_function("pickle",                    &lua_pickle);
 	mq.set_function("unpickle",                  &lua_unpickle);
 

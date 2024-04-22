@@ -255,7 +255,7 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 		ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
 	}
 
-	if (ImGui::GetPlatformIO().Platform_GetWindowFocus(viewport))
+	if (viewport && viewport->PlatformUserData && ImGui::GetPlatformIO().Platform_GetWindowFocus(viewport))
 	{
 		const auto window = ImGui::FindWindowByName(name.c_str());
 		if (window != nullptr && window->Viewport != nullptr && window->Viewport->PlatformHandle != nullptr)
