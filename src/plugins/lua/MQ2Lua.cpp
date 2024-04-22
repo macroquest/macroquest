@@ -1984,12 +1984,22 @@ PLUGIN_API void OnUpdateImGui()
 			);
 		}
 
-		if (IGFD_DisplayDialog(s_scriptLaunchDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
+		if (IGFD_DisplayDialog(s_scriptLaunchDialog, "ChooseScriptKey", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking, ImVec2(700, 350), ImVec2(FLT_MAX, FLT_MAX)))
 		{
 			if (IGFD_IsOk(s_scriptLaunchDialog))
 			{
 				IGFD_Selection selection = IGFD_GetSelection(s_scriptLaunchDialog, IGFD_ResultMode_KeepInputFile);
-				char* selected_file = selection.table->filePathName;
+
+				// avoid a silent crash to desktop by ensuring selection.table is valid
+				char* selected_file = nullptr;
+
+				if (selection.table != nullptr) {
+					if (selection.table->filePathName != nullptr) {
+						selected_file = selection.table->filePathName;
+					} else if (selection.table->fileName != nullptr) {
+						selected_file = selection.table->fileName;
+					}
+				}
 
 				std::error_code ec;
 				if (selected_file != nullptr && std::filesystem::exists(selected_file, ec))
@@ -2018,6 +2028,8 @@ PLUGIN_API void OnUpdateImGui()
 						args = std::string(user_datas);
 
 					LuaRunCommand(script_name, allocate_args(args));
+				} else {
+					WriteChatf("No file was selected or file does not exist.");
 				}
 
 				IGFD_Selection_DestroyContent(&selection);
