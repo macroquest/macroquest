@@ -18,12 +18,23 @@
 
 #include "asio.hpp"
 
-// TODO: remove proto altogether, unless we need to serialize length in a proto (which we can do later)
 #include "Network.pb.h"
+
+// TODO: Unit tests
+// TODO: Leader test (later work, get internal networking done first):
+//	-- leader gets PAT from router
+//	-- only leader will have the external IP in hosts
+//	-- does leader need to be an explicitly configured option? maybe can detect external IPs in hosts?
+//	-- need to handle multiple peers trying to assume leadership
+//	-- unknown IPs in not-leaders should all go to leader
+
+// TODO: default sessions to use the same port as the peer
 
 using asio::ip::tcp;
 
 namespace mq {
+
+using InternalMessageHandler = std::function<void(const peernetwork::Header&, const std::string&, uint16_t, std::unique_ptr<uint8_t[]>&&, size_t)>;
 
 // create an address type for use in keying and lookup
 struct NetworkAddress
@@ -84,19 +95,16 @@ class NetworkMessage
 {
 public:
 	// outgoing message
-	template <typename T>
-	NetworkMessage(const T& data)
-		: m_length(data.ByteSizeLong())
+	NetworkMessage(peernetwork::Header&& header, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+		: m_parsedHeader(std::move(header))
+		, m_length(length)
+		, m_payload(std::move(payload))
 	{
-		if (m_length > 0)
-		{
-			m_payload = std::make_unique<uint8_t[]>(m_length);
-			data.SerializeToArray(m_payload.get(), static_cast<int>(m_length));
-		}
+		InitHeader();
 	}
 
 	// incoming message
-	NetworkMessage() : m_length(0) {}
+	NetworkMessage() : m_headerLength(0), m_length(0) {}
 
 	NetworkMessage(const NetworkMessage&) = delete;
 	NetworkMessage(NetworkMessage&&) = delete;
@@ -105,8 +113,25 @@ public:
 
 	~NetworkMessage() = default;
 
+	void InitHeader()
+	{
+		m_parsedHeader.set_length(static_cast<uint32_t>(m_length));
+		m_headerLength = m_parsedHeader.ByteSizeLong();
+
+		AllocateHeader();
+		m_parsedHeader.SerializeToArray(m_header.get(), static_cast<int>(m_headerLength));
+	}
+
+	void AllocateHeader()
+	{
+		m_header = std::make_unique<uint8_t[]>(m_headerLength);
+	}
+
 	void Init()
 	{
+		m_parsedHeader.ParseFromArray(m_header.get(), static_cast<int>(m_headerLength));
+		m_length = m_parsedHeader.length();
+
 		if (m_length > 0)
 			m_payload = std::make_unique<uint8_t[]>(m_length);
 	}
@@ -116,7 +141,8 @@ public:
 		// This assumes a header will always exist, ensure that the asio read assumes that as well!
 		// This also assumes that size_t is the same on all systems, we can remove this assumption by using a proto for length
 		std::vector<asio::const_buffer> buffers{
-			asio::buffer(&m_length, sizeof(size_t))
+			asio::buffer(&m_headerLength, sizeof(size_t)),
+			asio::buffer(m_header.get(), m_headerLength)
 		};
 
 		if (m_payload && m_length > 0)
@@ -125,32 +151,39 @@ public:
 		return buffers;
 	}
 
-	template <typename T>
-	T Parse()
+	void Receive(const NetworkAddress& address, const InternalMessageHandler& handler)
 	{
-		T obj;
-		if (m_payload && m_length > 0)
-			obj.ParseFromArray(m_payload.get(), static_cast<int>(m_length));
-
-		return obj;
+		handler(m_parsedHeader, address.IP, address.Port, std::move(m_payload), m_length);
 	}
+
+	void Relay(uint16_t port);
+
+	size_t& HeaderLength() { return m_headerLength; }
+	uint8_t* Header() const { return m_header.get(); }
+	const peernetwork::Header& ParsedHeader() const { return m_parsedHeader; }
 
 	size_t& Length() { return m_length; }
 	uint8_t* Payload() const { return m_payload.get(); }
 
 private:
-	std::unique_ptr<uint8_t[]> m_payload;
+	size_t m_headerLength;
+	std::unique_ptr<uint8_t[]> m_header;
+
+	peernetwork::Header m_parsedHeader;
+
 	size_t m_length;
+	std::unique_ptr<uint8_t[]> m_payload;
 };
 
 class NetworkSession
 {
 public:
-	NetworkSession(tcp::socket&& socket, const std::function<void(uint8_t*, size_t)>& receiveHandler)
+	NetworkSession(uint16_t peer_port, tcp::socket&& socket, InternalMessageHandler receiveHandler)
 		: m_socket(std::move(socket))
+		, m_peerPort(peer_port)
 		, m_address({m_socket.remote_endpoint().address().to_string(), m_socket.remote_endpoint().port()})
 		, m_active(true)
-		, m_receiveHandler(receiveHandler)
+		, m_receiveHandler(std::move(receiveHandler))
 	{}
 
 	NetworkSession() = delete;
@@ -162,6 +195,7 @@ public:
 	~NetworkSession()
 	{
 		SPDLOG_DEBUG("Session destroyed ({}:{})", m_address.IP, m_address.Port);
+
 		Close();
 	}
 
@@ -180,6 +214,8 @@ public:
 
 	void Close()
 	{
+		if (m_active)
+			m_active = false;
 
 		if (m_socket.is_open())
 			m_socket.close();
@@ -196,15 +232,16 @@ public:
 		auto message = std::make_shared<NetworkMessage>();
 		asio::async_read(
 			m_socket,
-			asio::buffer(&message->Length(), sizeof(size_t)),
-			[this, message](const std::error_code& ec, size_t size)
+			asio::buffer(&message->HeaderLength(), sizeof(size_t)),
+			[this, message](const std::error_code& ec, size_t)
 			{
 				// TODO: Handle other connection errors with reconnect attempts
 				// TODO: Write a function that handles this the same way every time (error checking)
+				// TODO: check the size of the length also, should be sizeof(size_t)
 				if (ec != asio::error::eof && // this is when the connection was closed remotely
 					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
 					ec != asio::error::shut_down) // this is when we shut down the socket locally
-					ReadLength(ec, message);
+					ReadHeaderLength(ec, message);
 				else Close();
 			});
 	}
@@ -229,24 +266,56 @@ public:
 	const NetworkAddress& Address() const { return m_address; }
 
 private:
-	void ReadLength(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
+	void ReadHeaderLength(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
 	{
 		if (ec)
 		{
-			SPDLOG_ERROR("Message length read error {}: {}", ec.value(), ec.message());
+			SPDLOG_ERROR("Header length read error {}: {}", ec.value(), ec.message());
 			Shutdown();
 		}
-		else if (message->Length() == 0)
+		else if (message->HeaderLength() == 0)
 		{
-			SPDLOG_WARN("Got zero length message");
+			SPDLOG_WARN("Got zero length header");
+		}
+		else
+		{
+			message->AllocateHeader();
+			asio::async_read(
+				m_socket,
+				asio::buffer(message->Header(), message->HeaderLength()),
+				[this, message](const std::error_code& ec, size_t) { ReadHeader(ec, message); });
+		}
+	}
+
+	void ReadHeader(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
+	{
+		if (ec)
+		{
+			SPDLOG_ERROR("Header read error {}: {}", ec.value(), ec.message());
+			Shutdown();
 		}
 		else
 		{
 			message->Init();
-			asio::async_read(
-				m_socket,
-				asio::buffer(message->Payload(), message->Length()),
-				[this, message](const std::error_code& ec, size_t) { ReadPayload(ec, message); });
+
+			if (message->ParsedHeader().has_address())
+			{
+				// this is a redirect
+				// TODO: this should be RPC'able because we can look up the source in the actor infra and respond back to that -- test this assumption
+				message->Relay(m_peerPort);
+			}
+			if (message->Length() > 0)
+			{
+				asio::async_read(
+					m_socket,
+					asio::buffer(message->Payload(), message->Length()),
+					[this, message](const std::error_code& ec, size_t) { ReadPayload(ec, message); });
+			}
+			else
+			{
+				// if there is no length, no need to read from the wire
+				ReadPayload(ec, message);
+			}
 		}
 	}
 
@@ -261,7 +330,7 @@ private:
 		{
 			if (m_receiveHandler != nullptr)
 			{
-				m_receiveHandler(message->Payload(), message->Length());
+				message->Receive(m_address, m_receiveHandler);
 			}
 
 			Read();
@@ -299,10 +368,11 @@ private:
 
 private:
 	tcp::socket m_socket;
+	const uint16_t m_peerPort;
 	const NetworkAddress m_address;
 	bool m_active;
 
-	std::function<void(uint8_t*, size_t)> m_receiveHandler;
+	InternalMessageHandler m_receiveHandler;
 	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
 
 	// we need to make sure async_write doesn't get called while its running
@@ -319,13 +389,12 @@ public:
 	NetworkPeer& operator=(const NetworkPeer&) = delete;
 	NetworkPeer& operator=(NetworkPeer&&) = delete;
 
-	NetworkPeer(const std::string& address, uint16_t port, const std::function<void(uint8_t*, size_t)>& handler)
+	NetworkPeer(uint16_t port, PeerMessageHandler receiveHandler)
 		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
-		, m_address(address)
 		, m_port(port)
-		, m_receiveHandler(handler)
+		, m_receiveHandler(std::move(receiveHandler))
 	{
-		SPDLOG_INFO("Initializing peer at {}:{}", address, port);
+		SPDLOG_INFO("Initializing peer on port {}", port);
 
 		m_acceptor.listen();
 		Accept();
@@ -333,7 +402,7 @@ public:
 
 	~NetworkPeer()
 	{
-		SPDLOG_INFO("Removing peer {}:{}", m_address, m_port);
+		SPDLOG_INFO("Removing peer on port {}", m_port);
 
 		if (m_thread.joinable())
 		{
@@ -358,7 +427,7 @@ public:
 				}
 				catch (std::exception& e)
 				{
-					SPDLOG_ERROR("Peer failed with exception ({}:{}): {}", m_address, m_port, e.what());
+					SPDLOG_ERROR("Peer failed with exception (port {}): {}", m_port, e.what());
 				}
 			});
 	}
@@ -386,17 +455,34 @@ public:
 			});
 	}
 
-	template <typename T>
-	void Send(const NetworkAddress& address, const T& data)
+	void Send(peernetwork::MessageType message_type, const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
 	{
-		const auto sess = m_sessions.find(address);
-		if (sess != m_sessions.end() && sess->second)
+		peernetwork::Header header;
+		header.set_type(message_type);
+
+		auto session = m_sessions.find(address);
+		if (session != m_sessions.end() && session->second)
 		{
-			sess->second->Write(std::make_unique<NetworkMessage>(data));
+			session->second->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
 		}
 		else
 		{
-			SPDLOG_WARN("Attempted to send message to unknown peer {}:{}", address.IP, address.Port);
+			if (m_leaderAddress)
+			{
+				session = m_sessions.find(*m_leaderAddress);
+				if (session != m_sessions.end() && session->second)
+				{
+					header.set_address(address.IP);
+					header.set_port(address.Port);
+					session->second->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+				}
+				else
+				{
+					SPDLOG_WARN("Attempted to send message to unknown leader: {}:{}", m_leaderAddress->IP, m_leaderAddress->Port);
+				}
+			}
+
+			SPDLOG_WARN("Attempted to send message to unknown peer: {}:{}", address.IP, address.Port);
 		}
 	}
 
@@ -420,7 +506,30 @@ private:
 		if (!ec)
 		{
 			// address().to_string() generically handles ipv4 vs ipv6, everything is agnostic to that
-			auto session = std::make_unique<NetworkSession>(std::move(socket), m_receiveHandler);
+			auto session = std::make_unique<NetworkSession>(m_port, std::move(socket),
+				[this](
+					const peernetwork::Header& header,
+					const std::string& address,
+					uint16_t port,
+					std::unique_ptr<uint8_t[]>&& payload,
+					size_t length)
+				{
+					switch (header.type())
+					{
+					case peernetwork::Route:
+						// handler is only called when the message is routed
+						m_receiveHandler(address, port, std::move(payload), length);
+						break;
+					case peernetwork::Leader:
+						// set the leader here (for when the session lookup fails)
+						m_leaderAddress = NetworkAddress{ address, port };
+						break;
+					default:
+						SPDLOG_WARN("Got unreconized header type {}", static_cast<uint32_t>(header.type()));
+						break;
+					}
+				});
+
 			auto [session_it, _] = m_sessions.emplace(
 				session->Address(),
 				std::move(session)
@@ -453,6 +562,9 @@ private:
 		{
 			if (!it->second->IsActive())
 			{
+				if (m_leaderAddress && *m_leaderAddress == it->second->Address())
+					m_leaderAddress = std::nullopt;
+
 				m_closingSessions.emplace_back(std::move(it->second));
 				it = m_sessions.erase(it);
 			}
@@ -466,20 +578,95 @@ private:
 	asio::io_context m_ioContext{};
 	tcp::acceptor m_acceptor;
 
-	std::string m_address;
-	uint16_t m_port = 0;
+	const uint16_t m_port;
 
-	// TODO: Need to create a list of known hosts to try to connect to
+	// TODO: Need to create a list of known hosts to try to connect to -- this should be part of peer configuration
 
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_sessions;
 	std::list<std::unique_ptr<NetworkSession>> m_closingSessions;
+	std::optional<NetworkAddress> m_leaderAddress;
 
 	std::thread m_thread;
 
-	std::function<void(uint8_t*, size_t)> m_receiveHandler;
+	PeerMessageHandler m_receiveHandler;
 };
 
 } // namespace mq
+
+// map of port -> peer
+static std::unordered_map<uint16_t, std::unique_ptr<NetworkPeer>> s_peers;
+
+static std::string CreateUUID()
+{
+	UUID uuid;
+	::UuidCreate(&uuid);
+	char* uuid_str;
+	::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&uuid_str));
+	std::string return_uuid(uuid_str);
+	::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&uuid_str));
+	return return_uuid;
+}
+
+void NetworkMessage::Relay(uint16_t port)
+{
+	const auto peer = s_peers.find(port);
+	if (peer != s_peers.end())
+	{
+		peer->second->Send(
+			m_parsedHeader.type(),
+			NetworkAddress{
+				m_parsedHeader.address(),
+				static_cast<uint16_t>(m_parsedHeader.port())
+			},
+			std::move(m_payload),
+			m_length
+		);
+	}
+	else
+	{
+		SPDLOG_WARN("Attempting to relay message with an uninitialized peer on port {}", port);
+	}
+}
+
+NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
+	: m_port(port)
+{}
+
+NetworkPeerAPI NetworkPeerAPI::Register(uint16_t port, PeerMessageHandler receive)
+{
+	auto peer_it = s_peers.find(port);
+	if (peer_it == s_peers.end())
+	{
+
+		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
+			port, [receive = std::move(receive)]
+			(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, const size_t length)
+			{ receive(address, port, std::move(payload), length); })).first;
+	}
+
+	return NetworkPeerAPI(port);
+}
+
+void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length) const
+{
+	// this lookup is O(1), and is done this way to decouple the implementation from the API
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+	{
+		peer->second->Send(peernetwork::Route, NetworkAddress{ address, port }, std::move(payload), length);
+	}
+	else
+	{
+		SPDLOG_WARN("Attempting to send message with an uninitialized peer on port {}", port);
+	}
+}
+
+void NetworkPeerAPI::Unregister() const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		s_peers.erase(peer);
+}
 
 void Test()
 {
@@ -497,20 +684,23 @@ void Test()
 	//		return hosts;
 	//	}();
 
-	NetworkPeer peer1("0.0.0.0", 7781, [](const uint8_t* message, const size_t length)
+	NetworkPeer peer1(7781,
+		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
 			peernetwork::TestString s;
-			s.ParseFromArray(message, static_cast<int>(length));
+			s.ParseFromArray(message.get(), static_cast<int>(length));
 			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, s.message());
 		});
 
-	NetworkPeer peer2("0.0.0.0", 8177, [](const uint8_t* message, const size_t length)
+	NetworkPeer peer2(8177,
+		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
 			peernetwork::TestString s;
-			s.ParseFromArray(message, static_cast<int>(length));
+			s.ParseFromArray(message.get(), static_cast<int>(length));
 			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, s.message());
 		});
 
+	// TODO: move the rest of this function's functionality into the API (need to do that before the API can be tested)
 	peer1.Run();
 	peer2.Run();
 	std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -521,7 +711,12 @@ void Test()
 
 	peernetwork::TestString s;
 	s.set_message("This is a test");
-	peer1.Send(NetworkAddress{ "127.0.0.1", 8177 }, s);
+	{
+		const size_t length = s.ByteSizeLong();
+		auto payload = std::make_unique<uint8_t[]>(length);
+		s.SerializeToArray(payload.get(), static_cast<int>(length));
+		peer1.Send(peernetwork::Route, NetworkAddress{ "127.0.0.1", 8177 }, std::move(payload), length);
+	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 }

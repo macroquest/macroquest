@@ -20,7 +20,8 @@ void SendForceUnloadAllCommand();
 void ProcessPipeServer();
 
 // networking interface
-void RelayMessage(std::unique_ptr<uint8_t[]>&& payload);
+void PeerMessageReceived(std::string_view address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length);
+void PeerConnected(std::string_view address, uint16_t port);
 
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();
