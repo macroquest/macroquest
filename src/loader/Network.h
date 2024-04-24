@@ -38,8 +38,11 @@ public:
 		}
 	}
 
-	static NetworkPeerAPI Register(uint16_t port, PeerMessageHandler receive);
-	void Unregister() const;
+	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive);
+	void Shutdown() const;
+
+	void AddHost(const std::string& address, uint16_t port) const;
+	void RemoveHost(const std::string& address, uint16_t port) const;
 
 private:
 	explicit NetworkPeerAPI(uint16_t port);

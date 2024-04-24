@@ -434,8 +434,6 @@ public:
 
 	void Connect(const std::string& address, uint16_t port)
 	{
-		// TODO: when a disconnect happens and we should reconnect, trigger a move from sessions into pendingHosts
-		//       and then call Connect
 		auto socket = std::make_shared<tcp::socket>(m_acceptor.get_executor());
 		auto timer = std::make_shared<asio::steady_timer>(m_ioContext);
 		const tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
@@ -483,6 +481,23 @@ public:
 			}
 
 			SPDLOG_WARN("Attempted to send message to unknown peer: {}:{}", address.IP, address.Port);
+		}
+	}
+
+	void AddHost(const NetworkAddress& address)
+	{
+		if (m_knownHosts.insert(address).second)
+			Connect(address.IP, address.Port);
+	}
+
+	void RemoveHost(const NetworkAddress& address)
+	{
+		m_knownHosts.erase(address);
+		const auto session = m_sessions.find(address);
+		if (session != m_sessions.end())
+		{
+			// This will prune the session gracefully
+			session->second->Shutdown();
 		}
 	}
 
@@ -549,23 +564,31 @@ private:
 			if (socket.is_open()) socket.close();
 		}
 
-		// TODO: some error conditions shouldn't warrant a retry
 		return !ec;
 	}
 
 	void PruneSessions()
 	{
-		m_closingSessions.remove_if([](const std::unique_ptr<NetworkSession>& session) { return !session->IsOpen(); });
+		for (auto it = m_closingSessions.begin(); it != m_closingSessions.end();)
+		{
+			if (!it->second->IsOpen())
+			{
+				// always try to reconnect to hosts unless they have been removed
+				if (m_knownHosts.find(it->first) != m_knownHosts.end())
+					Connect(it->first.IP, it->first.Port);
+
+				it = m_closingSessions.erase(it);
+			}
+			else
+				++it;
+		}
 
 		// clear out any sessions that are no longer active
 		for (auto it = m_sessions.begin(); it != m_sessions.end();)
 		{
 			if (!it->second->IsActive())
 			{
-				if (m_leaderAddress && *m_leaderAddress == it->second->Address())
-					m_leaderAddress = std::nullopt;
-
-				m_closingSessions.emplace_back(std::move(it->second));
+				m_closingSessions.emplace(it->first, std::move(it->second));
 				it = m_sessions.erase(it);
 			}
 			else
@@ -580,10 +603,9 @@ private:
 
 	const uint16_t m_port;
 
-	// TODO: Need to create a list of known hosts to try to connect to -- this should be part of peer configuration
-
+	std::unordered_set<NetworkAddress> m_knownHosts;
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_sessions;
-	std::list<std::unique_ptr<NetworkSession>> m_closingSessions;
+	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_closingSessions;
 	std::optional<NetworkAddress> m_leaderAddress;
 
 	std::thread m_thread;
@@ -632,16 +654,17 @@ NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
 	: m_port(port)
 {}
 
-NetworkPeerAPI NetworkPeerAPI::Register(uint16_t port, PeerMessageHandler receive)
+NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler receive)
 {
 	auto peer_it = s_peers.find(port);
 	if (peer_it == s_peers.end())
 	{
-
 		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
 			port, [receive = std::move(receive)]
 			(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, const size_t length)
 			{ receive(address, port, std::move(payload), length); })).first;
+
+		peer_it->second->Run();
 	}
 
 	return NetworkPeerAPI(port);
@@ -661,11 +684,25 @@ void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique
 	}
 }
 
-void NetworkPeerAPI::Unregister() const
+void NetworkPeerAPI::Shutdown() const
 {
 	const auto peer = s_peers.find(m_port);
 	if (peer != s_peers.end())
 		s_peers.erase(peer);
+}
+
+void NetworkPeerAPI::AddHost(const std::string& address, uint16_t port) const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		peer->second->AddHost(NetworkAddress{ address, port });
+}
+
+void NetworkPeerAPI::RemoveHost(const std::string& address, uint16_t port) const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		peer->second->RemoveHost(NetworkAddress{ address, port });
 }
 
 void Test()
@@ -684,7 +721,7 @@ void Test()
 	//		return hosts;
 	//	}();
 
-	NetworkPeer peer1(7781,
+	const auto peer1 = NetworkPeerAPI::GetOrCreate(7781,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
 			peernetwork::TestString s;
@@ -692,7 +729,7 @@ void Test()
 			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, s.message());
 		});
 
-	NetworkPeer peer2(8177,
+	const auto peer2 = NetworkPeerAPI::GetOrCreate(8177,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
 			peernetwork::TestString s;
@@ -700,13 +737,10 @@ void Test()
 			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, s.message());
 		});
 
-	// TODO: move the rest of this function's functionality into the API (need to do that before the API can be tested)
-	peer1.Run();
-	peer2.Run();
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
-	peer1.Connect("127.0.0.1", 8177);
-	peer2.Connect("127.0.0.1", 7781);
+	peer1.AddHost("127.0.0.1", 8177);
+	peer2.AddHost("127.0.0.1", 7781);
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 
 	peernetwork::TestString s;
@@ -715,7 +749,7 @@ void Test()
 		const size_t length = s.ByteSizeLong();
 		auto payload = std::make_unique<uint8_t[]>(length);
 		s.SerializeToArray(payload.get(), static_cast<int>(length));
-		peer1.Send(peernetwork::Route, NetworkAddress{ "127.0.0.1", 8177 }, std::move(payload), length);
+		peer1.Send("127.0.0.1", 8177, std::move(payload), length);
 	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
