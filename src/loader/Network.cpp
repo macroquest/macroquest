@@ -724,17 +724,19 @@ void Test()
 	const auto peer1 = NetworkPeerAPI::GetOrCreate(7781,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
-			peernetwork::TestString s;
-			s.ParseFromArray(message.get(), static_cast<int>(length));
-			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, s.message());
+			std::string s;
+			s.reserve(length);
+			strcpy_s(s.data(), length, reinterpret_cast<char*>(message.get()));
+			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, s);
 		});
 
 	const auto peer2 = NetworkPeerAPI::GetOrCreate(8177,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
-			peernetwork::TestString s;
-			s.ParseFromArray(message.get(), static_cast<int>(length));
-			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, s.message());
+			std::string s;
+			s.reserve(length);
+			strcpy_s(s.data(), length, reinterpret_cast<char*>(message.get()));
+			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, s);
 		});
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -743,14 +745,10 @@ void Test()
 	peer2.AddHost("127.0.0.1", 7781);
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 
-	peernetwork::TestString s;
-	s.set_message("This is a test");
-	{
-		const size_t length = s.ByteSizeLong();
-		auto payload = std::make_unique<uint8_t[]>(length);
-		s.SerializeToArray(payload.get(), static_cast<int>(length));
-		peer1.Send("127.0.0.1", 8177, std::move(payload), length);
-	}
+	const std::string s("This is a test");
+	auto t = std::make_unique<uint8_t[]>(s.length());
+	memcpy(t.get(), s.data(), s.length());
+	peer1.Send("127.0.0.1", 8177, std::move(t), s.length());
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 }

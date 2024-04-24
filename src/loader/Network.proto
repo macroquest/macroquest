@@ -15,7 +15,3 @@ message Header {
 	optional string address = 3;
 	optional uint32 port = 4;
 }
-
-message TestString {
-	string message = 1;
-}
