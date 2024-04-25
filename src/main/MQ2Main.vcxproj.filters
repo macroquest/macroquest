@@ -649,6 +649,9 @@
     <ClInclude Include="..\..\include\mq\utils\Markov.h">
       <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Logging.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

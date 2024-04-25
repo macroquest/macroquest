@@ -24,6 +24,7 @@
 #include "mq/utils/Naming.h"
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
+#include "mq/base/Logging.h"
 
 #include "resource.h"
 
@@ -164,26 +165,34 @@ void UpdateShowConsole(bool showConsole, bool updateIni)
 
 void InitializeLogging()
 {
-	fs::path loggingPath = internal_paths::Logs;
-	std::string filename = (loggingPath / fmt::format("MacroQuest-Launcher-{}.log",
-		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
-			std::chrono::system_clock::now())))).string();
-
 	// create color multi threaded logger
-
 	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
+	spdlog::set_default_logger(logger);
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
 	if (IsDebuggerPresent())
 	{
 		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
 	}
 
-	auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
-	logger->sinks().push_back(fileSink);
+	fmt::memory_buffer filename;
+	auto out = fmt::format_to(fmt::appender(filename),
+		"{}\\{}", internal_paths::Logs, mq::CreateLogFilename("MacroQuest-Launcher"));
+	*out = 0;
 
-	spdlog::set_default_logger(logger);
-	fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
-	spdlog::flush_on(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::trace);
+	try
+	{
+		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
+		fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
+
+		logger->sinks().push_back(fileSink);
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		// Failed to create log file. How would we report this so early?
+		SPDLOG_WARN("Failed to create file logger: {}, ex: {}", std::string_view(filename.data(), filename.size()), ex.what());
+	}
 
 	SPDLOG_DEBUG("Logging Initialized");
 }
