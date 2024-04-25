@@ -2151,7 +2151,6 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 {
 	bRunNextCommand = true;
 
-
 	std::filesystem::path logFilePath = mq::internal_paths::Logs;
 	if (gszMacroName[0] == 0)
 	{
@@ -2162,7 +2161,7 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		logFilePath /= std::string(gszMacroName) + ".log";
 	}
 
-	if (!_stricmp(szLine, "clear"))
+	if (ci_equals(szLine, "clear"))
 	{
 		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
 		if (!fOut)
@@ -2187,14 +2186,21 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	time_t curr_time;
+	time(&curr_time);
 
-	const std::string strLogMessage = fmt::format("[{DateTime:%m/%d/%Y %H:%M:%S}] {LogMessage}",
-		fmt::arg("DateTime", now),
-		fmt::arg("LogMessage", szLine));
+	std::tm local_tm;
+	localtime_s(&local_tm, &curr_time);
 
-	fprintf(fOut, "%s\n", strLogMessage.c_str());
-	DebugSpew("MacroLog - %s", strLogMessage.c_str());
+	fmt::memory_buffer buffer;
+	auto out = fmt::format_to(fmt::appender(buffer),
+		"[{:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d}] {}",
+		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
+		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
+	*out = 0;
+
+	fprintf(fOut, "%s\n", buffer.data());
+	DebugSpew("MacroLog - %s", buffer.data());
 
 	fclose(fOut);
 }
