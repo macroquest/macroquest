@@ -20,6 +20,8 @@
 
 #include "routing/PostOffice.h"
 
+#include <variant>
+
 namespace mq {
 using namespace postoffice;
 
@@ -50,20 +52,16 @@ static MQModule s_PostOfficeModule = {
 };
 MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
+using Container = ActorContainer;
+using Network = Container::Network;
+using Identification = ActorIdentification;
+using Client = Identification::Client;
+
 class MQPostOffice : public PostOffice
 {
 private:
 
-	struct ClientIdentification
-	{
-		uint32_t pid;
-		std::string account;
-		std::string server;
-		std::string character;
-	};
-
-	std::unordered_map<uint32_t, ClientIdentification> m_identities;
-	ci_unordered::map<std::string, uint32_t> m_names;
+	std::unordered_multimap<Container, Identification> m_identities;
 
 	class PipeEventsHandler : public NamedPipeEvents
 	{
@@ -119,24 +117,18 @@ private:
 				if (message->GetHeader()->messageLength > 0)
 				{
 					// this is a message from the server to update or add an ID
-					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-					if (id.has_name())
-					{
-						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
-						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
-					}
-					else
-					{
-						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
-							id.pid(),
-							id.has_account() ? id.account() : "",
-							id.has_server() ? id.server() : "",
-							id.has_character() ? id.character() : ""
-							});
+					auto id = Identification(ProtoMessage::Parse<proto::routing::Identification>(message));
 
-						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_INFO("Got identification from {}", id.pid());
+					for (auto it = m_postOffice->m_identities.begin(); it != m_postOffice->m_identities.end();)
+					{
+						if (it->second.IsDuplicate(id))
+							it = m_postOffice->m_identities.erase(it);
+						else
+							++it;
 					}
+
+					m_postOffice->m_identities.emplace(id.container, id);
+					SPDLOG_INFO("Got identification from {}", id);
 
 					// TODO: forward new ID to all mailboxes here
 				}
@@ -150,14 +142,13 @@ private:
 
 			case MQMessageId::MSG_DROPPED:
 			{
-				auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-				if (id.has_name())
+				auto id = Identification(ProtoMessage::Parse<proto::routing::Identification>(message));
+				for (auto it = m_postOffice->m_identities.begin(); it != m_postOffice->m_identities.end();)
 				{
-					m_postOffice->m_names.erase(id.name());
-				}
-				else
-				{
-					m_postOffice->m_identities.erase(id.pid());
+					if (it->second == id)
+						it = m_postOffice->m_identities.erase(it);
+					else
+						++it;
 				}
 
 				// TODO: forward the message to all mailboxes
@@ -235,7 +226,7 @@ private:
 public:
 
 	MQPostOffice()
-		: m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
+		: m_pipeClient{ mq::MQ_PIPE_SERVER_PATH }
 		, m_launcherProcessID(0)
 	{
 		m_clientDropbox = RegisterAddress("pipe_client",
@@ -284,14 +275,14 @@ public:
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 		{
-			auto& envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 
 			// always enrich the return address if in game
 			if (pLocalPC)
 			{
-				envelope.mutable_return_address()->set_account(GetLoginName());
-				envelope.mutable_return_address()->set_server(GetServerShortName());
-				envelope.mutable_return_address()->set_character(pLocalPC->Name);
+				envelope.mutable_return_address()->mutable_client()->set_account(GetLoginName());
+				envelope.mutable_return_address()->mutable_client()->set_server(GetServerShortName());
+				envelope.mutable_return_address()->mutable_client()->set_character(pLocalPC->Name);
 
 				std::string data(envelope.SerializeAsString());
 				message = std::make_unique<PipeMessage>(*message->GetHeader(), &data[0], data.size());
@@ -299,12 +290,11 @@ public:
 
 			if (envelope.has_address())
 			{
-				auto address = envelope.address();
+				const auto& address = envelope.address();
 				if ((address.has_pid() && address.pid() != GetCurrentProcessId()) ||
+					address.has_peer() ||
 					address.has_name() ||
-					address.has_account() ||
-					address.has_server() ||
-					address.has_character() ||
+					address.has_client() ||
 					address.has_mailbox())
 				{
 					// we can't assume that even if we match the address (account/server/character) that this
@@ -318,7 +308,7 @@ public:
 				else if (address.has_pid() && address.pid() == GetCurrentProcessId() && callback != nullptr)
 				{
 					// special handling for local RPC messages
-					auto mailbox = FindMailbox(address, m_mailboxes.begin());
+					const auto mailbox = FindMailbox(address, m_mailboxes.begin());
 
 					// need to set the request mode here to ensure that failed messages get returned
 					message->SetRequestMode(MQRequestMode::CallAndResponse);
@@ -400,22 +390,33 @@ public:
 			proto::routing::Identification id;
 			id.set_pid(GetCurrentProcessId());
 
-			if (pLocalPC && pLocalPC->Name)
+			const auto client = id.mutable_client();
+			client->set_account(GetLoginName());
+
+			if (strlen(GetServerShortName()) > 0)
+				client->set_server(GetServerShortName());
+
+			if (pLocalPC)
 			{
 				logged_in = true;
-				id.set_account(GetLoginName());
-				id.set_server(GetServerShortName());
-				id.set_character(pLocalPC->Name);
+				client->set_character(pLocalPC->Name);
 			}
 
 			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 		}
 		else if (logged_in && GameState != GAMESTATE_LOGGINGIN && GameState != GAMESTATE_INGAME)
 		{
+			// this is used only when we are changing characters
 			logged_in = false;
 
 			proto::routing::Identification id;
 			id.set_pid(GetCurrentProcessId());
+
+			const auto client = id.mutable_client();
+			client->set_account(GetLoginName());
+
+			if (strlen(GetServerShortName()) > 0)
+				client->set_server(GetServerShortName());
 
 			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 		}
@@ -425,9 +426,10 @@ public:
 
 			proto::routing::Identification id;
 			id.set_pid(GetCurrentProcessId());
-			id.set_account(GetLoginName());
-			id.set_server(GetServerShortName());
-			id.set_character(pLocalPC->Name);
+			const auto client = id.mutable_client();
+			client->set_account(GetLoginName());
+			client->set_server(GetServerShortName());
+			client->set_character(pLocalPC->Name);
 
 			m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, id);
 		}
@@ -473,32 +475,32 @@ namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground)
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
 }
 
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
 void InitializePostOffice()
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).Initialize();
 }
 
 void ShutdownPostOffice()
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
 }
 
 void PulsePostOffice()
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
 void SetGameStatePostOffice(DWORD GameState)
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
+	dynamic_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }
 
 } // namespace pipeclient

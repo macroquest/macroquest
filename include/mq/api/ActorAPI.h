@@ -33,14 +33,29 @@ namespace postoffice {
 	};
 
 	/**
+	 * A network peer addressing struct for use in messages that get sent over the network
+	 */
+	struct Peer
+	{
+		/** The IP of the peer, this must be specified if a peer is specified */
+		std::string IP;
+
+		/** The port of the peer, if excluded then it will use the default actor port in the launcher */
+		std::optional<uint16_t> Port;
+	};
+
+	/**
 	 * An address shim to be used to fill out the address on the envelope in the MQ post office.
 	 */
 	struct Address
 	{
-		/** The PID of the target. If this is specified, all other addressing will be ignored. */
+		/** The PID of the target, will be used to disambiguate otherwise identical addresses */
 		std::optional<uint32_t> PID;
 
-		/** The name of the target, used for addressing external applications. */
+		/** The network peer of the target */
+		std::optional<Peer> Peer;
+
+		/** The name of the target, used for addressing external applications */
 		std::optional<std::string> Name;
 
 		/** The mailbox of the target, if this is fully qualified then make sure to set AbsoluteMailbox */

@@ -36,28 +36,7 @@ namespace mq {
 
 using InternalMessageHandler = std::function<void(const peernetwork::Header&, const std::string&, uint16_t, std::unique_ptr<uint8_t[]>&&, size_t)>;
 
-// create an address type for use in keying and lookup
-struct NetworkAddress
-{
-	std::string IP; // always use IP here, if we ever allow host names, make sure to resolve to IP first
-	uint16_t Port;
-
-	bool operator==(const NetworkAddress& other) const
-	{
-		// exact match on IP, can just use string == override
-		return IP == other.IP && Port == other.Port;
-	}
-};
 } // namespace mq
-
-// provide the hash function for the address outside the mq namespace
-template<> struct std::hash<mq::NetworkAddress>
-{
-	size_t operator()(const mq::NetworkAddress& address) const noexcept
-	{
-		return std::hash<std::string>{}(address.IP) ^ std::hash<uint16_t>{}(address.Port) << 1;
-	}
-};
 
 namespace mq {
 
@@ -453,6 +432,7 @@ public:
 			});
 	}
 
+	// TODO: This needs to also handle sending to peers that are leaders for other networks (possibly improve the map?)
 	void Send(peernetwork::MessageType message_type, const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
 	{
 		peernetwork::Header header;
@@ -484,6 +464,20 @@ public:
 		}
 	}
 
+	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+	{
+		for (const auto& [_, session] : m_sessions)
+		{
+			peernetwork::Header header;
+			header.set_type(message_type);
+
+			auto payload_copy = std::make_unique<uint8_t[]>(length);
+			memcpy(payload_copy.get(), payload.get(), length);
+
+			session->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload_copy), length));
+		}
+	}
+
 	void AddHost(const NetworkAddress& address)
 	{
 		if (m_knownHosts.insert(address).second)
@@ -499,6 +493,11 @@ public:
 			// This will prune the session gracefully
 			session->second->Shutdown();
 		}
+	}
+
+	bool HasHost(const NetworkAddress& address)
+	{
+		return m_knownHosts.find(address) != m_knownHosts.end();
 	}
 
 private:
@@ -659,6 +658,7 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler rec
 	auto peer_it = s_peers.find(port);
 	if (peer_it == s_peers.end())
 	{
+		// TODO: the receiver needs to forward to internal peers here (the map likely needs to be improved to handle network topography)
 		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
 			port, [receive = std::move(receive)]
 			(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, const size_t length)
@@ -680,7 +680,20 @@ void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique
 	}
 	else
 	{
-		SPDLOG_WARN("Attempting to send message with an uninitialized peer on port {}", port);
+		SPDLOG_WARN("Attempting to send message with an uninitialized peer on port {}", m_port);
+	}
+}
+
+void NetworkPeerAPI::Broadcast(std::unique_ptr<uint8_t[]>&& payload, size_t length) const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+	{
+		peer->second->Broadcast(peernetwork::Route, std::move(payload), length);
+	}
+	else
+	{
+		SPDLOG_WARN("Attempting to broadcast message with an uninitialized peer on port {}", m_port);
 	}
 }
 
@@ -705,22 +718,14 @@ void NetworkPeerAPI::RemoveHost(const std::string& address, uint16_t port) const
 		peer->second->RemoveHost(NetworkAddress{ address, port });
 }
 
+bool NetworkPeerAPI::HasHost(const std::string& address, uint16_t port) const
+{
+	const auto peer = s_peers.find(m_port);
+	return peer != s_peers.end() && peer->second->HasHost(NetworkAddress{ address, port });
+}
+
 void Test()
 {
-	//auto hosts = []()
-	//	{
-	//		auto hosts_enabled = GetPrivateProfileKeyValues("NetworkHosts", internal_paths::MQini);
-	//		hosts_enabled.erase(std::remove_if(hosts_enabled.begin(), hosts_enabled.end(),
-	//			[](const std::pair<std::string, std::string>& pair) { return !ci_equals("1", pair.second); }),
-	//			hosts_enabled.end());
-
-	//		std::vector<std::string> hosts(hosts_enabled.size());
-	//		std::transform(hosts_enabled.begin(), hosts_enabled.end(), std::back_inserter(hosts),
-	//			[](const std::pair<std::string, std::string>& pair) { return pair.first; });
-
-	//		return hosts;
-	//	}();
-
 	const auto peer1 = NetworkPeerAPI::GetOrCreate(7781,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{

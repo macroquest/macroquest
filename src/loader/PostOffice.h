@@ -17,7 +17,7 @@
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
-void ProcessPipeServer();
+void ProcessPostOffice();
 
 // networking interface
 void PeerMessageReceived(std::string_view address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length);

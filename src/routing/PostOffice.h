@@ -16,16 +16,257 @@
 
 #include "Routing.h"
 
+#include <fmt/format.h>
+
 #include <string>
 #include <unordered_map>
 #include <queue>
 #include <memory>
+#include <variant>
 
 namespace mq::postoffice {
+
+template <typename... Ts> struct overload : Ts... { using Ts::operator()...; };
+template <typename... Ts> overload(Ts...) -> overload<Ts...>;
 
 using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
 using PostCallback = std::function<void(const std::string&, const PipeMessageResponseCb&)>;
 using DropboxDropper = std::function<void(const std::string&)>;
+
+struct ActorContainer
+{
+	struct Network
+	{
+		std::string IP; // always use IP here, if we ever allow host names, make sure to resolve to IP first
+		uint16_t Port;
+
+		bool operator==(const Network& other) const
+		{
+			// exact match on IP, can just use string == override
+			return IP == other.IP && Port == other.Port;
+		}
+	};
+
+	const std::variant<uint32_t, Network> value;
+
+	template <typename T>
+	explicit ActorContainer(const T& t) : value(t) {}
+
+	static std::variant<uint32_t, Network> GetContainer(const proto::routing::Identification& id) noexcept
+	{
+		switch (id.container_case())
+		{
+		case proto::routing::Identification::kPid:
+			return id.pid();
+		case proto::routing::Identification::kPeer:
+			return Network{ id.peer().ip(), static_cast<uint16_t>(id.peer().port()) };
+		default:
+			return 0;
+		}
+	}
+
+	explicit ActorContainer(const proto::routing::Identification& id) : value(GetContainer(id)) {}
+
+	static std::variant<uint32_t, Network> GetContainer(const proto::routing::Address& addr) noexcept
+	{
+		if (addr.has_pid())
+			return addr.pid();
+
+		if (addr.has_peer())
+			return GetContainer(addr.peer());
+
+		return 0;
+	}
+
+	explicit ActorContainer(const proto::routing::Address& addr) : value(GetContainer(addr)) {}
+
+	static Network GetContainer(const proto::routing::Peer& peer)
+	{
+		return Network{ peer.ip(), static_cast<uint16_t>(peer.port()) };
+	}
+
+	explicit ActorContainer(const proto::routing::Peer& peer) : value(GetContainer(peer)) {}
+
+	template <typename T>
+	bool operator==(const T& other) const
+	{
+		return std::get<T>(other) == value;
+	}
+
+	bool operator==(const ActorContainer& other) const
+	{
+		return other.value == value;
+	}
+
+	std::string ToString() const
+	{
+		return std::visit(overload{
+			[](uint32_t v) { return std::to_string(v); },
+			[](const Network& addr) { return fmt::format("{}:{}", addr.IP, addr.Port); }
+			}, value);
+	}
+};
+
+/**
+ * A shared type to unify the way clients are addressed and identified
+ */
+struct ActorIdentification
+{
+	/**
+	 * The type for a game client actor
+	 */
+	struct Client
+	{
+		std::string account;
+		std::string server;
+		std::string character;
+	};
+
+	/**
+	 * a container is where we send traffic to, it can be a PID or a network address
+	 */
+	ActorContainer container;
+
+	/**
+	 * the address is how the container will address the individual actor (name or client)
+	 */
+	std::variant<std::string, Client> address;
+
+	/**
+	 * generic constructor to create a container and address from any parameters that are accepted
+	 *
+	 * @tparam A a type that can be used to construct a Container type
+	 * @tparam T a type that can construct address (string or Client)
+	 * @param container the value to construct the Container with
+	 * @param address the value to construct the address with
+	 */
+	template <typename A, typename T>
+	ActorIdentification(A container, T address)
+		: container(std::move(container))
+		, address(std::move(address))
+	{}
+
+	/**
+	 * factory function to create an address from an id message
+	 *
+	 * @tparam T Identification or Address proto that contains an address
+	 * @param id the proto  message that contains the address
+	 * @return a constructed variant address using the value from id
+	 */
+	template <typename T>
+	static std::variant<std::string, Client> GetAddress(const T& id)
+	{
+		switch (id.address_case())
+		{
+		case T::kName:
+			return id.name();
+		case T::kClient:
+			return Client{
+				id.client().account(),
+				id.client().server(),
+				id.client().character()
+			};
+		default:
+			return "";
+		}
+	}
+
+	/**
+	 * constructor that fills the identity from a proto Identification message
+	 *
+	 * @param id the proto identification message that contains the address and container
+	 */
+	explicit ActorIdentification(const proto::routing::Identification& id)
+		: container(id)
+		, address(GetAddress(id))
+	{}
+
+	explicit ActorIdentification(const proto::routing::Address& addr)
+		: container(addr)
+		, address(GetAddress(addr))
+	{}
+
+	/**
+	 * provided equality helper, a name address is equal if the container and the name match
+	 * and a client is considered equal if only the address matches
+	 *
+	 * @param other the other identity to compare against
+	 * @return true if other has the same identity as this
+	 */
+	bool operator==(const ActorIdentification& other) const
+	{
+		return container == other.container && address == other.address;
+	}
+
+	/**
+	 * helper method to translate this id into a proto id
+	 *
+	 * @return a proto id containing this id
+	 */
+	proto::routing::Identification GetProto() const
+	{
+		proto::routing::Identification id;
+
+		std::visit(overload{
+			[&id](uint32_t pid) { id.set_pid(pid); },
+			[&id](const ActorContainer::Network& addr)
+			{
+				proto::routing::Peer* p = id.mutable_peer();
+				p->set_ip(addr.IP);
+				p->set_port(addr.Port);
+			}
+		}, container.value);
+
+		std::visit(overload{
+			[&id](const std::string& name) { id.set_name(name); },
+			[&id](const Client& cid)
+			{
+				proto::routing::Client* c = id.mutable_client();
+				if (!cid.account.empty()) c->set_account(cid.account);
+				if (!cid.server.empty()) c->set_server(cid.server);
+				if (!cid.character.empty()) c->set_character(cid.character);
+			}
+		}, address);
+
+		return id;
+	}
+
+	/**
+	 * this tests identity for "duplicates" which follows these rules:
+	 * - container and address are both equal (just use the equality operator)
+	 * - client address is equal, but container are not
+	 * - pid container is equal, and address is a client address
+	 * - special note: we cannot do anything special for only network equality
+	 *
+	 * @param other the other identity to compare against
+	 * @return if this identity duplicates other 
+	 */
+	bool IsDuplicate(const ActorIdentification& other)
+	{
+		return *this == other || std::visit(overload{
+			// this will always be false because the true case is covered in the equality check
+			[this](const std::string&) { return false; },
+			[this, &other](const Client&)
+			{ return std::visit(overload{
+				[this, &other](uint32_t) { return container.value == other.container.value; },
+				[](const ActorContainer::Network&) { return false; } // we can't assume anything about network here
+			}, container.value) || address == other.address; }
+		}, address);
+	}
+
+	/**
+	 * string creation helper
+	 *
+	 * @return a string of format "address (container)"
+	 */
+	std::string ToString() const
+	{
+		return fmt::format("{} ({})", std::visit(overload{
+			[](const std::string& name) { return name; },
+			[](const Client& client) { return fmt::format("{} [{}]", client.character, client.server); }
+		}, address), container);
+	}
+};
 
 class Mailbox
 {
@@ -348,3 +589,70 @@ protected:
 PostOffice& GetPostOffice();
 
 } // namespace mq::postoffice
+
+/**
+ * hash helper for networking
+ */
+template<> struct std::hash<mq::postoffice::ActorContainer::Network>
+{
+	size_t operator()(const mq::postoffice::ActorContainer::Network& address) const noexcept
+	{
+		return std::hash<std::string>{}(address.IP) ^ std::hash<uint16_t>{}(address.Port) << 1;
+	}
+};
+
+/**
+ * fmt string helper for the actor container
+ */
+template<> struct fmt::formatter<mq::postoffice::ActorContainer>
+{
+	template <typename ParseContext>
+	constexpr auto parse(ParseContext& ctx)
+	{
+		return ctx.begin();
+	}
+
+	template <typename FormatContext>
+	auto format(const mq::postoffice::ActorContainer& container, FormatContext& ctx)
+	{
+		return std::visit(mq::postoffice::overload{
+			[&ctx](uint32_t v) { return fmt::format_to(ctx.out(), "{}", v); },
+			[&ctx](const mq::postoffice::ActorContainer::Network& addr) { return fmt::format_to(ctx.out(), "{}:{}", addr.IP, addr.Port); }
+		}, container.value);
+	}
+};
+
+/**
+ * hash helper for the actor container
+ */
+template<> struct std::hash<mq::postoffice::ActorContainer>
+{
+	size_t operator()(const mq::postoffice::ActorContainer& container) const noexcept
+	{
+		return std::hash<std::variant<uint32_t, mq::postoffice::ActorContainer::Network>>{}(container.value);
+	}
+};
+
+/**
+ * fmt string helper for identification
+ */
+template <> struct fmt::formatter<mq::postoffice::ActorIdentification>
+{
+	template <typename ParseContext>
+	constexpr auto parse(ParseContext& ctx)
+	{
+		return ctx.begin();
+	}
+
+	template <typename FormatContext>
+	auto format(const mq::postoffice::ActorIdentification& ident, FormatContext& ctx)
+	{
+		using Client = mq::postoffice::ActorIdentification::Client;
+		return std::visit(mq::postoffice::overload{
+			[&ctx, &ident](const std::string& name)
+			{ return fmt::format_to(ctx.out(), "{} ({})", name, ident.container); },
+			[&ctx, &ident](const Client& client)
+			{ return fmt::format_to(ctx.out(), "{} [{}] ({})", client.character, client.server, ident.container); }
+		}, ident.address);
+	}
+};

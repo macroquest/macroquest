@@ -1237,7 +1237,7 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::Run(
 		[&msg]()
 		{
-			ProcessPipeServer();
+			ProcessPostOffice();
 			ProcessPendingLogins();
 			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
