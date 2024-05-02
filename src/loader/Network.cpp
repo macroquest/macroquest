@@ -83,7 +83,7 @@ public:
 	}
 
 	// incoming message
-	NetworkMessage() : m_headerLength(0), m_length(0) {}
+	NetworkMessage() : m_headerLength(0), m_headerLengthNetwork(0), m_length(0) {}
 
 	NetworkMessage(const NetworkMessage&) = delete;
 	NetworkMessage(NetworkMessage&&) = delete;
@@ -96,6 +96,7 @@ public:
 	{
 		m_parsedHeader.set_length(static_cast<uint32_t>(m_length));
 		m_headerLength = m_parsedHeader.ByteSizeLong();
+		m_headerLengthNetwork = htonll(m_headerLength);
 
 		AllocateHeader();
 		m_parsedHeader.SerializeToArray(m_header.get(), static_cast<int>(m_headerLength));
@@ -120,7 +121,7 @@ public:
 		// This assumes a header will always exist, ensure that the asio read assumes that as well!
 		// This also assumes that size_t is the same on all systems, we can remove this assumption by using a proto for length
 		std::vector<asio::const_buffer> buffers{
-			asio::buffer(&m_headerLength, sizeof(size_t)),
+			asio::buffer(&m_headerLengthNetwork, sizeof(size_t)),
 			asio::buffer(m_header.get(), m_headerLength)
 		};
 
@@ -138,6 +139,7 @@ public:
 	void Relay(uint16_t port);
 
 	size_t& HeaderLength() { return m_headerLength; }
+	size_t& HeaderLengthNetwork() { return m_headerLengthNetwork; }
 	uint8_t* Header() const { return m_header.get(); }
 	const peernetwork::Header& ParsedHeader() const { return m_parsedHeader; }
 
@@ -146,6 +148,7 @@ public:
 
 private:
 	size_t m_headerLength;
+	size_t m_headerLengthNetwork;
 	std::unique_ptr<uint8_t[]> m_header;
 
 	peernetwork::Header m_parsedHeader;
@@ -211,7 +214,7 @@ public:
 		auto message = std::make_shared<NetworkMessage>();
 		asio::async_read(
 			m_socket,
-			asio::buffer(&message->HeaderLength(), sizeof(size_t)),
+			asio::buffer(&message->HeaderLengthNetwork(), sizeof(size_t)),
 			[this, message](const std::error_code& ec, size_t)
 			{
 				// TODO: Handle other connection errors with reconnect attempts
@@ -220,7 +223,10 @@ public:
 				if (ec != asio::error::eof && // this is when the connection was closed remotely
 					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
 					ec != asio::error::shut_down) // this is when we shut down the socket locally
+				{
+					message->HeaderLength() = ntohll(message->HeaderLengthNetwork());
 					ReadHeaderLength(ec, message);
+				}
 				else Close();
 			});
 	}
@@ -729,19 +735,13 @@ void Test()
 	const auto peer1 = NetworkPeerAPI::GetOrCreate(7781,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
-			std::string s;
-			s.reserve(length);
-			strcpy_s(s.data(), length, reinterpret_cast<char*>(message.get()));
-			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, s);
+			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
 		});
 
 	const auto peer2 = NetworkPeerAPI::GetOrCreate(8177,
 		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
 		{
-			std::string s;
-			s.reserve(length);
-			strcpy_s(s.data(), length, reinterpret_cast<char*>(message.get()));
-			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, s);
+			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
 		});
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
