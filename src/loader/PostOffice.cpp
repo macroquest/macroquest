@@ -335,9 +335,9 @@ private:
 	bool m_needsProcessing = false;
 
 	template <std::size_t I = 0>
-	void ProcessConnections() const
+	void ProcessConnections()
 	{
-		using V = decltype(Container::value);
+		using V = std::remove_const_t<decltype(Container::value)>;
 		if constexpr (I < std::variant_size_v<V>)
 		{
 			GetConnection<std::variant_alternative_t<I, V>>()->Process();
@@ -346,9 +346,9 @@ private:
 	}
 
 	template <std::size_t I = 0>
-	void InitializeConnections() const
+	void InitializeConnections()
 	{
-		using V = decltype(Container::value);
+		using V = std::remove_const_t<decltype(Container::value)>;
 		if constexpr (I < std::variant_size_v<V>)
 		{
 			GetConnection<std::variant_alternative_t<I, V>>()->Initialize();
@@ -357,9 +357,9 @@ private:
 	}
 
 	template <std::size_t I = 0>
-	void ShutdownConnections() const
+	void ShutdownConnections()
 	{
-		using V = decltype(Container::value);
+		using V = std::remove_const_t<decltype(Container::value)>;
 		if constexpr (I < std::variant_size_v<V>)
 		{
 			GetConnection<std::variant_alternative_t<I, V>>()->Shutdown();
@@ -370,7 +370,7 @@ private:
 	template <std::size_t I = 0>
 	void BroadcastMessage(PipeMessagePtr&& message)
 	{
-		using V = decltype(Container::value);
+		using V = std::remove_const_t<decltype(Container::value)>;
 		if constexpr (I < std::variant_size_v<V>)
 		{
 			// copy the message for broadcasting on each connection
@@ -396,7 +396,7 @@ private:
 	{
 		return std::visit([this, message = std::move(message), &callback](const auto& c) mutable
 		{
-			return GetConnection<decltype(c)>()->SendMessage(c, std::move(message), callback);
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message), callback);
 		}, ident.value);
 	}
 };
@@ -460,7 +460,7 @@ public:
 		PipeMessagePtr&& message,
 		const PipeMessageResponseCb& callback) override
 	{
-		SPDLOG_WARN("Attempted to send to peer {} over local pipe", peer);
+		SPDLOG_WARN("Attempted to send to peer {} over local pipe", Container(peer));
 		RoutingFailed(MsgError_NoConnection, message, callback);
 		return false;
 	}
@@ -648,7 +648,7 @@ public:
 					m_postOffice->Route(inbound.routed());
 					break;
 				default:
-					SPDLOG_WARN("Got unknown inbound message type {}", inbound.contents_case());
+					SPDLOG_WARN("Got unknown inbound message type {}", static_cast<int>(inbound.contents_case()));
 					break;
 				}
 			}))
@@ -733,7 +733,7 @@ private:
 			*inbound.mutable_routed() = ProtoMessage::Parse<proto::routing::Envelope>(message);
 			break;
 		default:
-			SPDLOG_WARN("Attempted to translate a pipe message of unknown type {}, empty message returned", message->GetMessageId());
+			SPDLOG_WARN("Attempted to translate a pipe message of unknown type {}, empty message returned", static_cast<int>(message->GetMessageId()));
 			break;
 		}
 

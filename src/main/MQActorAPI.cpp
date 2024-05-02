@@ -73,8 +73,29 @@ void MQActorAPI::SendToActor(
 
 	if (address.PID)
 		addr.set_pid(*address.PID);
-	else if (address.Name)
+
+	if (address.Peer)
+	{
+		addr.mutable_peer()->set_ip(address.Peer->IP);
+		if (address.Peer->Port)
+			addr.mutable_peer()->set_port(*address.Peer->Port);
+	}
+
+	if (address.Name)
 		addr.set_name(*address.Name);
+	else
+	{
+		const auto client = addr.mutable_client();
+
+		if (address.Account)
+			client->set_account(*address.Account);
+
+		if (address.Server)
+			client->set_server(*address.Server);
+
+		if (address.Character)
+			client->set_character(*address.Character);
+	}
 
 	if (address.Mailbox && (address.AbsoluteMailbox || owner == nullptr))
 		addr.set_mailbox(*address.Mailbox);
@@ -83,15 +104,6 @@ void MQActorAPI::SendToActor(
 	else if (owner != nullptr)
 		addr.set_mailbox(owner->name);
 	// else we have no mailbox or owner, so it must remain blank
-
-	if (address.Account)
-		addr.set_account(*address.Account);
-
-	if (address.Server)
-		addr.set_server(*address.Server);
-
-	if (address.Character)
-		addr.set_character(*address.Character);
 
 	PipeMessageResponseCb pipe_callback = nullptr;
 	if (callback != nullptr)
@@ -103,19 +115,20 @@ void MQActorAPI::SendToActor(
 				// assume that the sender is the address we sent to
 				if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 				{
-					auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+					const auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 
 					std::optional<postoffice::Address> sender;
 					if (envelope.has_return_address())
 					{
-						auto s = envelope.return_address();
+						const auto& s = envelope.return_address();
 						sender = postoffice::Address{
 							s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
+							s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), s.peer().port()}) : std::nullopt,
 							s.has_name() ? std::make_optional(s.name()) : std::nullopt,
 							s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
-							s.has_account() ? std::make_optional(s.account()) : std::nullopt,
-							s.has_server() ? std::make_optional(s.server()) : std::nullopt,
-							s.has_character() ? std::make_optional(s.character()) : std::nullopt,
+							s.has_client() && s.client().has_account() ? std::make_optional(s.client().account()) : std::nullopt,
+							s.has_client() && s.client().has_server() ? std::make_optional(s.client().server()) : std::nullopt,
+							s.has_client() && s.client().has_character() ? std::make_optional(s.client().character()) : std::nullopt,
 							true
 						};
 					}
@@ -181,15 +194,16 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 		{
 			//auto sender = message->GetSender().value_or(proto::routing::Address());
 			std::optional<postoffice::Address> sender;
-			if (auto s = message->GetSender())
+			if (const auto& s = message->GetSender())
 			{
 				sender = postoffice::Address{
 					s->has_pid() ? std::make_optional(s->pid()) : std::nullopt,
+					s->has_peer() ? std::make_optional(postoffice::Peer{s->peer().ip(), s->peer().port()}) : std::nullopt,
 					s->has_name() ? std::make_optional(s->name()) : std::nullopt,
 					s->has_mailbox() ? std::make_optional(s->mailbox()) : std::nullopt,
-					s->has_account() ? std::make_optional(s->account()) : std::nullopt,
-					s->has_server() ? std::make_optional(s->server()) : std::nullopt,
-					s->has_character() ? std::make_optional(s->character()) : std::nullopt,
+					s->has_client() && s->client().has_account() ? std::make_optional(s->client().account()) : std::nullopt,
+					s->has_client() && s->client().has_server() ? std::make_optional(s->client().server()) : std::nullopt,
+					s->has_client() && s->client().has_character() ? std::make_optional(s->client().character()) : std::nullopt,
 					true
 				};
 			}

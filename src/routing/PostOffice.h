@@ -120,6 +120,13 @@ struct ActorIdentification
 		std::string account;
 		std::string server;
 		std::string character;
+
+		bool operator==(const Client& other) const
+		{
+			return account == other.account &&
+				server == other.server &&
+				character == other.character;
+		}
 	};
 
 	/**
