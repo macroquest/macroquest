@@ -800,17 +800,17 @@ LauncherPostOffice& postoffice::GetPostOffice<LauncherPostOffice>(uint32_t index
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
-	return GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendSetForegroundWindow(hWnd, processID);
+	return GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
-	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
-	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendForceUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendForceUnloadAllCommand();
 }
 
 void ProcessPostOffice(uint32_t index)
