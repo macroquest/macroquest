@@ -49,6 +49,15 @@ using Network = Container::Network;
 using Identification = ActorIdentification;
 using Client = Identification::Client;
 
+static std::unordered_map<uint32_t, std::string> s_postOfficeConfigs;
+const char* GetPipeName(uint32_t index)
+{
+	const auto pipe_name = s_postOfficeConfigs.find(index);
+	if (pipe_name != s_postOfficeConfigs.end())
+		return pipe_name->second.c_str();
+
+	return mq::MQ_PIPE_SERVER_PATH;
+}
 class MQPostOffice : public PostOffice
 {
 private:
@@ -217,8 +226,8 @@ private:
 
 public:
 
-	MQPostOffice()
-		: m_pipeClient{ mq::MQ_PIPE_SERVER_PATH }
+	explicit MQPostOffice(uint32_t index)
+		: m_pipeClient{ GetPipeName(index) }
 		, m_launcherProcessID(0)
 	{
 		m_clientDropbox = RegisterAddress("pipe_client",
@@ -453,21 +462,25 @@ private:
 
 	static void StopPipeClient()
 	{
-		static_cast<MQPostOffice&>(GetPostOffice()).m_pipeClient.Stop();
+		GetPostOffice<MQPostOffice>().m_pipeClient.Stop();
 	}
 };
 
 static std::unordered_map<uint32_t, MQPostOffice> s_postOffices;
 template <>
-PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
+MQPostOffice& postoffice::GetPostOffice<MQPostOffice>(uint32_t index)
 {
-	return s_postOffices[index];
+	auto it = s_postOffices.find(index);
+	if (it == s_postOffices.end())
+		it = s_postOffices.emplace(index, index).first;
+
+	return it->second;
 }
 
 template <>
-MQPostOffice& postoffice::GetPostOffice<MQPostOffice>(uint32_t index)
+PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
 {
-	return s_postOffices[index];
+	return postoffice::GetPostOffice<MQPostOffice>(index);
 }
 
 namespace pipeclient {
@@ -482,6 +495,29 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	GetPostOffice<MQPostOffice>().RequestActivateWindow(hWnd, sendMessage);
 }
 
+void SetPostOfficeConfig(uint32_t index, std::string_view pipeName)
+{
+	s_postOfficeConfigs[index] = pipeName;
+}
+
+void DropPostOfficeConfig(uint32_t index)
+{
+	s_postOfficeConfigs.erase(index);
+}
+
+void ClearPostOfficeConfigs()
+{
+	s_postOfficeConfigs.clear();
+}
+
+void ClearPostOffices()
+{
+	for (auto& [_, post_office] : s_postOffices)
+		post_office.Shutdown();
+
+	s_postOffices.clear();
+}
+
 void InitializePostOffice(uint32_t index)
 {
 	GetPostOffice<MQPostOffice>(index).Initialize();
@@ -490,6 +526,7 @@ void InitializePostOffice(uint32_t index)
 void ShutdownPostOffice(uint32_t index)
 {
 	GetPostOffice<MQPostOffice>(index).Shutdown();
+	s_postOffices.erase(index);
 }
 
 void PulsePostOffice(uint32_t index)

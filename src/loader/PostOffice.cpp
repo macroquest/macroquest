@@ -14,8 +14,6 @@
 
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
-#include "loader/Crashpad.h"
-#include "loader/LoaderAutoLogin.h"
 #include "routing/PostOffice.h"
 #include "loader/Network.h"
 
@@ -92,17 +90,33 @@ struct ConnectionTypeMap;
 template <> struct ConnectionTypeMap<uint32_t> { using Type = LocalConnection; };
 template <> struct ConnectionTypeMap<Network> { using Type = PeerConnection; };
 
+static std::optional<std::string> s_iniLocation;
+static std::optional<GetCrashpadPipe> s_crashpadCallback;
+static std::optional<RequestFocusCallback> s_requestFocusCallback;
+static std::optional<std::function<void()>> s_triggerProcess;
+static std::unordered_map<uint32_t, PostOfficeConfig> s_postOfficeConfigs;
+std::optional<PostOfficeConfig> GetConfig(uint32_t index)
+{
+	const auto config = s_postOfficeConfigs.find(index);
+	if (config != s_postOfficeConfigs.end())
+		return config->second;
+
+	return {};
+}
+
 class LauncherPostOffice final : public PostOffice
 {
 public:
+	LauncherPostOffice() = delete;
 	LauncherPostOffice(const LauncherPostOffice&) = delete;
 	LauncherPostOffice(LauncherPostOffice&&) = delete;
 	LauncherPostOffice& operator=(const LauncherPostOffice&) = delete;
 	LauncherPostOffice& operator=(LauncherPostOffice&&) = delete;
 
-	LauncherPostOffice();
+	explicit LauncherPostOffice(uint32_t index);
 	~LauncherPostOffice() override = default;
 
+	// TODO: This isn't right, it's only checking the address and not the container
 	static bool IsRecipient(const proto::routing::Address& address, const Identification& id)
 	{
 		return std::visit(overload{
@@ -183,7 +197,7 @@ public:
 		if (m_needsProcessing)
 		{
 			m_needsProcessing = false;
-			PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+			if (s_triggerProcess) (*s_triggerProcess)();
 		}
 	}
 
@@ -324,7 +338,7 @@ public:
 	template <typename I, typename C = typename ConnectionTypeMap<I>::Type>
 	const std::unique_ptr<C>& GetConnection()
 	{
-		static_assert(false, "Type does not point to a valid connection.");
+		static_assert(std::is_same_v<I, C>, "Type does not point to a valid connection.");
 	}
 
 private:
@@ -352,7 +366,7 @@ public:
 	LocalConnection& operator=(const LocalConnection&) = delete;
 	LocalConnection& operator=(LocalConnection&&) = delete;
 
-	explicit LocalConnection(LauncherPostOffice* postOffice);
+	LocalConnection(LauncherPostOffice* postOffice, uint32_t index);
 
 	~LocalConnection() override
 	{
@@ -462,17 +476,9 @@ public:
 		}
 
 		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST: {
-			if (message->size() >= sizeof(MQMessageFocusRequest))
+			if (message->size() >= sizeof(MQMessageFocusRequest) && s_requestFocusCallback)
 			{
-				const MQMessageFocusRequest* request = message->get<MQMessageFocusRequest>();
-				if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
-				{
-					SetFocusWindowPID(request->processId, request->state);
-				}
-				else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
-				{
-					SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
-				}
+				(*s_requestFocusCallback)(message->get<MQMessageFocusRequest>());
 			}
 			break;
 		}
@@ -540,17 +546,12 @@ public:
 
 	void OnRequestProcessEvents() override
 	{
-		PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+		if (s_triggerProcess) (*s_triggerProcess)();
 	}
 
 	void OnIncomingConnection(int connectionId, int processId) override
 	{
-		std::string namedPipe;
-
-		if (IsCrashpadInitialized() && gEnableSharedCrashpad)
-		{
-			namedPipe = GetHandlerIPCPipe();
-		}
+		const std::string namedPipe = s_crashpadCallback ? (*s_crashpadCallback)() : "";
 
 		// send the name of the named pipe to the connected client. If crashpad isn't
 		// enabled, or shared is disabled, this will send an empty string, which basically
@@ -569,15 +570,25 @@ private:
 	LocalConnection* m_connection;
 };
 
-// TODO: make the pipe configurable (to handle testing)
-LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
+std::string GetPipePath(uint32_t index)
+{
+	const auto config = GetConfig(index);
+	return config && config->PipeName ? *config->PipeName : mq::MQ_PIPE_SERVER_PATH;
+}
+
+LocalConnection::LocalConnection(LauncherPostOffice* postOffice, uint32_t index)
 	: Connection(postOffice)
-	, m_pipeServer{ mq::MQ_PIPE_SERVER_PATH }
+	, m_pipeServer{ GetPipePath(index).c_str() }
 {
 	m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
 	m_pipeServer.Start();
 }
 
+uint16_t GetPeerPort(uint32_t index)
+{
+	const auto config = GetConfig(index);
+	return config && config->PeerPort ? *config->PeerPort : DEFAULT_ACTOR_PEER_PORT;
+}
 class PeerConnection final : public Connection
 {
 public:
@@ -588,10 +599,10 @@ public:
 	PeerConnection& operator=(PeerConnection&&) = delete;
 
 	// TODO: make the port configurable (default to 7781)
-	explicit PeerConnection(LauncherPostOffice* postOffice)
+	PeerConnection(LauncherPostOffice* postOffice, uint32_t index)
 		: Connection(postOffice)
 		, m_network(NetworkPeerAPI::GetOrCreate(
-			DEFAULT_ACTOR_PEER_PORT,
+			GetPeerPort(index),
 			[this](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length)
 			{
 				using proto::routing::NetworkMessage;
@@ -631,10 +642,24 @@ public:
 				}
 			}))
 	{
-		for (const auto& [address, port]:GetPrivateProfileKeyValues("NetworkPeers", internal_paths::MQini))
+		// TODO: use configured port here as well
+		const uint16_t default_port = GetPeerPort(index);
+		const auto config = GetConfig(index);
+
+		if (config && config->Peers)
 		{
-			// TODO: use configured port here as well
-			m_network.AddHost(address, static_cast<uint16_t>(GetUIntFromString(port, DEFAULT_ACTOR_PEER_PORT)));
+			for (const auto& [address, port] : *config->Peers)
+			{
+				m_network.AddHost(address, port > 0 ? port : default_port);
+			}
+		}
+		else if (s_iniLocation)
+		{
+			for (const auto& [address, port_raw] : GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
+			{
+				const uint16_t port = static_cast<uint16_t>(GetUIntFromString(port_raw, 0));
+				m_network.AddHost(address, port > 0 ? port : default_port);
+			}
 		}
 	}
 
@@ -716,9 +741,9 @@ private:
 	}
 };
 
-LauncherPostOffice::LauncherPostOffice()
-	: m_localConnection(std::make_unique<LocalConnection>(this))
-	, m_peerConnection(std::make_unique<PeerConnection>(this))
+LauncherPostOffice::LauncherPostOffice(uint32_t index)
+	: m_localConnection(std::make_unique<LocalConnection>(this, index))
+	, m_peerConnection(std::make_unique<PeerConnection>(this, index))
 {
 	Identification id(GetCurrentProcessId(), "launcher");
 	m_identities.emplace(id.container, id);
@@ -783,15 +808,19 @@ bool LauncherPostOffice::SendMessage(
 // this map is exclusively to allow testing by standing up multiple post offices
 static std::unordered_map<uint32_t, LauncherPostOffice> s_postOffices;
 template <>
-PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
+LauncherPostOffice& postoffice::GetPostOffice<LauncherPostOffice>(uint32_t index)
 {
-	return s_postOffices[index];
+	auto it = s_postOffices.find(index);
+	if (it == s_postOffices.end())
+		it = s_postOffices.emplace(index, index).first;
+
+	return it->second;
 }
 
 template <>
-LauncherPostOffice& postoffice::GetPostOffice<LauncherPostOffice>(uint32_t index)
+PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
 {
-	return s_postOffices[index];
+	return postoffice::GetPostOffice<LauncherPostOffice>(index);
 }
 
 //----------------------------------------------------------------------------
@@ -813,6 +842,51 @@ void SendForceUnloadAllCommand()
 	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendForceUnloadAllCommand();
 }
 
+//----------------------------------------------------------------------------
+
+void SetPostOfficeConfig(uint32_t index, const PostOfficeConfig& config)
+{
+	s_postOfficeConfigs[index] = config;
+}
+
+void DropPostOfficeConfig(uint32_t index)
+{
+	s_postOfficeConfigs.erase(index);
+}
+
+void ClearPostOfficeConfigs()
+{
+	s_postOfficeConfigs.clear();
+}
+
+void ClearPostOffices()
+{
+	for (auto& [_, post_office] : s_postOffices)
+		post_office.Shutdown();
+
+	s_postOffices.clear();
+}
+
+void SetPostOfficeIni(std::string_view ini)
+{
+	s_iniLocation = ini;
+}
+
+void SetCrashpadCallback(const GetCrashpadPipe& getCrashpad)
+{
+	s_crashpadCallback = getCrashpad;
+}
+
+void SetRequestFocusCallback(const RequestFocusCallback& requestFocus)
+{
+	s_requestFocusCallback = requestFocus;
+}
+
+void SetTriggerPostOffice(const std::function<void()>& triggerProcess)
+{
+	s_triggerProcess = triggerProcess;
+}
+
 void ProcessPostOffice(uint32_t index)
 {
 	GetPostOffice<LauncherPostOffice>(index).ProcessPostOffice();
@@ -826,6 +900,7 @@ void InitializePostOffice(uint32_t index)
 void ShutdownPostOffice(uint32_t index)
 {
 	GetPostOffice<LauncherPostOffice>(index).Shutdown();
+	s_postOffices.erase(index);
 }
 
 //----------------------------------------------------------------------------

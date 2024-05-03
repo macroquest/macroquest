@@ -1170,6 +1170,20 @@ int WINAPI CALLBACK WinMain(
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
+	SetPostOfficeIni(internal_paths::MQini);
+	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
+	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+		{
+			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			{
+				SetFocusWindowPID(request->processId, request->state);
+			}
+			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			{
+				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
+			}
+		});
+	SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
 	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();
