@@ -42,20 +42,20 @@ class Connection
 {
 public:
 	Connection() = delete;
-	Connection(const Connection&) = default;
-	Connection(Connection&&) = default;
-	Connection& operator=(const Connection&) = default;
-	Connection& operator=(Connection&&) = default;
+	Connection(const Connection&) = delete;
+	Connection(Connection&&) = delete;
+	Connection& operator=(const Connection&) = delete;
+	Connection& operator=(Connection&&) = delete;
+
 	virtual ~Connection() = default;
 
 	explicit Connection(LauncherPostOffice* postOffice)
 		: m_postOffice(postOffice)
 	{}
 
-	virtual void Initialize() {}
-	virtual void Shutdown() {}
 	virtual void Process() = 0;
 
+	// TODO: this can be a single templated function that will fail to compile if there are any calls to sending to the wrong kind of container
 	virtual bool SendMessage(uint32_t pid, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
 	virtual bool SendMessage(const Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
 	virtual void BroadcastMessage(PipeMessagePtr&& message) = 0;
@@ -95,14 +95,21 @@ void RoutingFailed(
 		callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data.data(), data.size()));
 }
 
-class LauncherPostOffice : public PostOffice
+class LauncherPostOffice final : public PostOffice
 {
 public:
+	LauncherPostOffice(const LauncherPostOffice&) = delete;
+	LauncherPostOffice(LauncherPostOffice&&) = delete;
+	LauncherPostOffice& operator=(const LauncherPostOffice&) = delete;
+	LauncherPostOffice& operator=(LauncherPostOffice&&) = delete;
+
 	LauncherPostOffice()
 	{
 		Identification id(GetCurrentProcessId(), "launcher");
 		m_identities.emplace(id.container, id);
 	}
+
+	~LauncherPostOffice() override = default;
 
 	static bool IsRecipient(const proto::routing::Address& address, const Identification& id)
 	{
@@ -301,8 +308,6 @@ public:
 
 	void Initialize()
 	{
-		InitializeConnections();
-
 		m_serverDropbox = RegisterAddress("post_office",
 			[this](ProtoMessagePtr&& message)
 			{
@@ -322,8 +327,6 @@ public:
 		// make sure all remaining messages get discarded by dropping the last reference, so we stop
 		// processing
 		m_serverDropbox.Remove();
-
-		ShutdownConnections();
 	}
 
 private:
@@ -342,28 +345,6 @@ private:
 		{
 			GetConnection<std::variant_alternative_t<I, V>>()->Process();
 			ProcessConnections<I + 1>();
-		}
-	}
-
-	template <std::size_t I = 0>
-	void InitializeConnections()
-	{
-		using V = std::remove_const_t<decltype(Container::value)>;
-		if constexpr (I < std::variant_size_v<V>)
-		{
-			GetConnection<std::variant_alternative_t<I, V>>()->Initialize();
-			InitializeConnections<I + 1>();
-		}
-	}
-
-	template <std::size_t I = 0>
-	void ShutdownConnections()
-	{
-		using V = std::remove_const_t<decltype(Container::value)>;
-		if constexpr (I < std::variant_size_v<V>)
-		{
-			GetConnection<std::variant_alternative_t<I, V>>()->Shutdown();
-			ShutdownConnections<I + 1>();
 		}
 	}
 
@@ -401,22 +382,18 @@ private:
 	}
 };
 
-// This is the actual pipe connection handler -- it's important that it is separate from the post office
-class PipeEventsHandler final : public Connection, public NamedPipeEvents, public std::enable_shared_from_this<PipeEventsHandler>
+class LocalConnection final : public Connection
 {
 public:
-	explicit PipeEventsHandler(LauncherPostOffice* postOffice)
-		: Connection(postOffice)
-		, m_pipeServer{ mq::MQ_PIPE_SERVER_PATH }
-	{}
+	LocalConnection() = delete;
+	LocalConnection(const LocalConnection&) = delete;
+	LocalConnection(LocalConnection&&) = delete;
+	LocalConnection& operator=(const LocalConnection&) = delete;
+	LocalConnection& operator=(LocalConnection&&) = delete;
 
-	void Initialize() override
-	{
-		m_pipeServer.SetHandler(shared_from_this());
-		m_pipeServer.Start();
-	}
+	explicit LocalConnection(LauncherPostOffice* postOffice);
 
-	void Shutdown() override
+	~LocalConnection() override
 	{
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
@@ -470,8 +447,7 @@ public:
 		m_pipeServer.BroadcastMessage(std::move(message));
 	}
 
-	// This is called when a message is received over the pipe connection
-	void OnIncomingMessage(PipeMessagePtr&& message) override
+	void RouteFromPipe(PipeMessagePtr&& message)
 	{
 		using namespace mq::proto;
 		SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
@@ -544,29 +520,12 @@ public:
 		}
 	}
 
-	void OnRequestProcessEvents() override
+	void RouteToPipe(int connectionId, PipeMessagePtr&& message)
 	{
-		PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+		m_pipeServer.SendMessage(connectionId, std::move(message));
 	}
 
-	void OnIncomingConnection(int connectionId, int processId) override
-	{
-		std::string namedPipe;
-
-		if (IsCrashpadInitialized() && gEnableSharedCrashpad)
-		{
-			namedPipe = GetHandlerIPCPipe();
-		}
-
-		// send the name of the named pipe to the connected client. If crashpad isn't
-		// enabled, or shared is disabled, this will send an empty string, which basically
-		// tells the process that its on its own.
-		m_pipeServer.SendMessage(connectionId,
-			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
-				namedPipe.c_str(), static_cast<uint32_t>(namedPipe.length()) + 1));
-	}
-
-	void OnConnectionClosed(int connectionId, int processId) override
+	void DropProcessId(uint32_t processId) const
 	{
 		m_postOffice->DropContainer(Container(processId));
 	}
@@ -601,16 +560,73 @@ public:
 		SPDLOG_DEBUG("Requesting to FORCE unload all instances");
 		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 	}
-
+	
 private:
 	mq::ProtoPipeServer m_pipeServer;
 };
 
-class PeerEventsHandler final : public Connection
+// This is the actual pipe connection handler -- it's important that it is separate from the post office
+class PipeEventsHandler final : public NamedPipeEvents
 {
 public:
+	explicit PipeEventsHandler(LocalConnection* connection) : m_connection(connection) {}
+
+	// This is called when a message is received over the pipe connection
+	void OnIncomingMessage(PipeMessagePtr&& message) override
+	{
+		m_connection->RouteFromPipe(std::move(message));
+	}
+
+	void OnRequestProcessEvents() override
+	{
+		PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+	}
+
+	void OnIncomingConnection(int connectionId, int processId) override
+	{
+		std::string namedPipe;
+
+		if (IsCrashpadInitialized() && gEnableSharedCrashpad)
+		{
+			namedPipe = GetHandlerIPCPipe();
+		}
+
+		// send the name of the named pipe to the connected client. If crashpad isn't
+		// enabled, or shared is disabled, this will send an empty string, which basically
+		// tells the process that its on its own.
+		m_connection->RouteToPipe(connectionId,
+			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
+				namedPipe.c_str(), static_cast<uint32_t>(namedPipe.length()) + 1));
+	}
+
+	void OnConnectionClosed(int connectionId, int processId) override
+	{
+		m_connection->DropProcessId(static_cast<uint32_t>(processId));
+	}
+
+private:
+	LocalConnection* m_connection;
+};
+
+LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
+	: Connection(postOffice)
+	, m_pipeServer{ mq::MQ_PIPE_SERVER_PATH }
+{
+	m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
+	m_pipeServer.Start();
+}
+
+class PeerConnection final : public Connection
+{
+public:
+	PeerConnection() = delete;
+	PeerConnection(const PeerConnection&) = delete;
+	PeerConnection(PeerConnection&&) = delete;
+	PeerConnection& operator=(const PeerConnection&) = delete;
+	PeerConnection& operator=(PeerConnection&&) = delete;
+
 	// TODO: make the port configurable (default to 7781)
-	explicit PeerEventsHandler(LauncherPostOffice* postOffice)
+	explicit PeerConnection(LauncherPostOffice* postOffice)
 		: Connection(postOffice)
 		, m_network(NetworkPeerAPI::GetOrCreate(
 			DEFAULT_ACTOR_PEER_PORT,
@@ -652,9 +668,6 @@ public:
 					break;
 				}
 			}))
-	{}
-
-	void Initialize() override
 	{
 		for (const auto& [address, port]:GetPrivateProfileKeyValues("NetworkPeers", internal_paths::MQini))
 		{
@@ -663,7 +676,7 @@ public:
 		}
 	}
 
-	void Shutdown() override
+	~PeerConnection() override
 	{
 		m_network.Shutdown();
 	}
@@ -747,17 +760,18 @@ PostOffice& postoffice::GetPostOffice()
 	return s_postOffice;
 }
 
+// TODO: Test around shutting down the connections -- these will stay alive as long as the app is running
 template <>
 Connection* GetConnection<uint32_t>()
 {
-	static auto pipeConnection = PipeEventsHandler(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
+	static auto pipeConnection = LocalConnection(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
 	return &pipeConnection;
 }
 
 template <>
 Connection* GetConnection<Network>()
 {
-	static auto peerConnection = PeerEventsHandler(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
+	static auto peerConnection = PeerConnection(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
 	return &peerConnection;
 }
 
@@ -767,17 +781,17 @@ Connection* GetConnection<Network>()
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
-	return dynamic_cast<PipeEventsHandler*>(GetConnection<uint32_t>())->SendSetForegroundWindow(hWnd, processID);
+	return dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
-	dynamic_cast<PipeEventsHandler*>(GetConnection<uint32_t>())->SendUnloadAllCommand();
+	dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
-	dynamic_cast<PipeEventsHandler*>(GetConnection<uint32_t>())->SendForceUnloadAllCommand();
+	dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendForceUnloadAllCommand();
 }
 
 void ProcessPostOffice()

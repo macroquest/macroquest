@@ -470,7 +470,7 @@ private:
 class PostOffice
 {
 public:
-	~PostOffice() {}
+	virtual ~PostOffice() {}
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation
