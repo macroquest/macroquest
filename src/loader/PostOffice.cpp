@@ -64,18 +64,6 @@ protected:
 	LauncherPostOffice* m_postOffice;
 };
 
-template <typename T>
-Connection* GetConnection()
-{
-	static_assert(false, "Type does not point to a valid connection.");
-}
-
-template <>
-Connection* GetConnection<uint32_t>();
-
-template <>
-Connection* GetConnection<Network>();
-
 // helper function to respond back for RPC messages with < 0 status
 void RoutingFailed(
 	int status,
@@ -95,6 +83,15 @@ void RoutingFailed(
 		callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data.data(), data.size()));
 }
 
+class LocalConnection;
+class PeerConnection;
+
+template <typename T>
+struct ConnectionTypeMap;
+
+template <> struct ConnectionTypeMap<uint32_t> { using Type = LocalConnection; };
+template <> struct ConnectionTypeMap<Network> { using Type = PeerConnection; };
+
 class LauncherPostOffice final : public PostOffice
 {
 public:
@@ -103,12 +100,7 @@ public:
 	LauncherPostOffice& operator=(const LauncherPostOffice&) = delete;
 	LauncherPostOffice& operator=(LauncherPostOffice&&) = delete;
 
-	LauncherPostOffice()
-	{
-		Identification id(GetCurrentProcessId(), "launcher");
-		m_identities.emplace(id.container, id);
-	}
-
+	LauncherPostOffice();
 	~LauncherPostOffice() override = default;
 
 	static bool IsRecipient(const proto::routing::Address& address, const Identification& id)
@@ -329,57 +321,26 @@ public:
 		m_serverDropbox.Remove();
 	}
 
+	template <typename I, typename C = typename ConnectionTypeMap<I>::Type>
+	const std::unique_ptr<C>& GetConnection()
+	{
+		static_assert(false, "Type does not point to a valid connection.");
+	}
+
 private:
 	std::unordered_multimap<Container, Identification> m_identities;
 
 	Dropbox m_serverDropbox;
+	const std::unique_ptr<LocalConnection> m_localConnection;
+	const std::unique_ptr<PeerConnection> m_peerConnection;
 
 	bool m_processing = false;
 	bool m_needsProcessing = false;
 
-	template <std::size_t I = 0>
-	void ProcessConnections()
-	{
-		using V = std::remove_const_t<decltype(Container::value)>;
-		if constexpr (I < std::variant_size_v<V>)
-		{
-			GetConnection<std::variant_alternative_t<I, V>>()->Process();
-			ProcessConnections<I + 1>();
-		}
-	}
-
-	template <std::size_t I = 0>
-	void BroadcastMessage(PipeMessagePtr&& message)
-	{
-		using V = std::remove_const_t<decltype(Container::value)>;
-		if constexpr (I < std::variant_size_v<V>)
-		{
-			// copy the message for broadcasting on each connection
-			GetConnection<std::variant_alternative_t<I, V>>()->BroadcastMessage(
-				std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()));
-			BroadcastMessage<I + 1>(std::move(message));
-		}
-	}
-
-	template <typename T>
-	void BroadcastMessage(const MQMessageId& id, const T& proto)
-	{
-		const auto payload = std::make_unique<uint8_t[]>(proto.ByteSizeLong());
-		proto.SerializeToArray(payload.get(), static_cast<int>(proto.ByteSizeLong()));
-
-		BroadcastMessage(std::make_unique<PipeMessage>(id, payload.get(), proto.ByteSizeLong()));
-	}
-
-	bool SendMessage(
-		const Container& ident,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback)
-	{
-		return std::visit([this, message = std::move(message), &callback](const auto& c) mutable
-		{
-			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message), callback);
-		}, ident.value);
-	}
+	template <size_t I = 0> void ProcessConnections();
+	template <size_t I = 0> void BroadcastMessage(PipeMessagePtr&& message);
+	template <typename T> void BroadcastMessage(const MQMessageId& id, const T& proto);
+	bool SendMessage(const Container& ident, PipeMessagePtr&& message, const PipeMessageResponseCb& callback);
 };
 
 class LocalConnection final : public Connection
@@ -608,6 +569,7 @@ private:
 	LocalConnection* m_connection;
 };
 
+// TODO: make the pipe configurable (to handle testing)
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
 	, m_pipeServer{ mq::MQ_PIPE_SERVER_PATH }
@@ -754,25 +716,82 @@ private:
 	}
 };
 
-PostOffice& postoffice::GetPostOffice()
+LauncherPostOffice::LauncherPostOffice()
+	: m_localConnection(std::make_unique<LocalConnection>(this))
+	, m_peerConnection(std::make_unique<PeerConnection>(this))
 {
-	static LauncherPostOffice s_postOffice;
-	return s_postOffice;
-}
-
-// TODO: Test around shutting down the connections -- these will stay alive as long as the app is running
-template <>
-Connection* GetConnection<uint32_t>()
-{
-	static auto pipeConnection = LocalConnection(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
-	return &pipeConnection;
+	Identification id(GetCurrentProcessId(), "launcher");
+	m_identities.emplace(id.container, id);
 }
 
 template <>
-Connection* GetConnection<Network>()
+const std::unique_ptr<LocalConnection>& LauncherPostOffice::GetConnection<uint32_t>()
 {
-	static auto peerConnection = PeerConnection(dynamic_cast<LauncherPostOffice*>(&GetPostOffice()));
-	return &peerConnection;
+	return m_localConnection;
+}
+
+template <>
+const std::unique_ptr<PeerConnection>& LauncherPostOffice::GetConnection<Network>()
+{
+	return m_peerConnection;
+}
+
+template <size_t I>
+void LauncherPostOffice::ProcessConnections()
+{
+	using V = std::remove_const_t<decltype(Container::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		GetConnection<std::variant_alternative_t<I, V>>()->Process();
+		ProcessConnections<I + 1>();
+	}
+}
+
+template <size_t I>
+void LauncherPostOffice::BroadcastMessage(PipeMessagePtr&& message)
+{
+	using V = std::remove_const_t<decltype(Container::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		// copy the message for broadcasting on each connection
+		GetConnection<std::variant_alternative_t<I, V>>()->BroadcastMessage(
+			std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()));
+		BroadcastMessage<I + 1>(std::move(message));
+	}
+}
+
+template <typename T>
+void LauncherPostOffice::BroadcastMessage(const MQMessageId& id, const T& proto)
+{
+	const auto payload = std::make_unique<uint8_t[]>(proto.ByteSizeLong());
+	proto.SerializeToArray(payload.get(), static_cast<int>(proto.ByteSizeLong()));
+
+	BroadcastMessage(std::make_unique<PipeMessage>(id, payload.get(), proto.ByteSizeLong()));
+}
+
+bool LauncherPostOffice::SendMessage(
+	const Container& ident,
+	PipeMessagePtr&& message,
+	const PipeMessageResponseCb& callback)
+{
+	return std::visit([this, message = std::move(message), &callback](const auto& c) mutable
+		{
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message), callback);
+		}, ident.value);
+}
+
+// this map is exclusively to allow testing by standing up multiple post offices
+static std::unordered_map<uint32_t, LauncherPostOffice> s_postOffices;
+template <>
+PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
+{
+	return s_postOffices[index];
+}
+
+template <>
+LauncherPostOffice& postoffice::GetPostOffice<LauncherPostOffice>(uint32_t index)
+{
+	return s_postOffices[index];
 }
 
 //----------------------------------------------------------------------------
@@ -781,32 +800,32 @@ Connection* GetConnection<Network>()
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
-	return dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendSetForegroundWindow(hWnd, processID);
+	return GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
-	dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
-	dynamic_cast<LocalConnection*>(GetConnection<uint32_t>())->SendForceUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t, LocalConnection>()->SendForceUnloadAllCommand();
 }
 
-void ProcessPostOffice()
+void ProcessPostOffice(uint32_t index)
 {
-	dynamic_cast<LauncherPostOffice&>(GetPostOffice()).ProcessPostOffice();
+	GetPostOffice<LauncherPostOffice>(index).ProcessPostOffice();
 }
 
-void InitializeNamedPipeServer()
+void InitializePostOffice(uint32_t index)
 {
-	dynamic_cast<LauncherPostOffice&>(GetPostOffice()).Initialize();
+	GetPostOffice<LauncherPostOffice>(index).Initialize();
 }
 
-void ShutdownNamedPipeServer()
+void ShutdownPostOffice(uint32_t index)
 {
-	dynamic_cast<LauncherPostOffice&>(GetPostOffice()).Shutdown();
+	GetPostOffice<LauncherPostOffice>(index).Shutdown();
 }
 
 //----------------------------------------------------------------------------

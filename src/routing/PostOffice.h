@@ -591,9 +591,31 @@ protected:
 /**
  * Returns this application's post office singleton
  *
- * @return the single post office that is used in this application
+ * @tparam P the derived type of post office to get
+ * @param index the index of the post office to get (used for testing)
+ * @return the post office in this application at index
  */
-PostOffice& GetPostOffice();
+template <typename P = PostOffice>
+P& GetPostOffice(uint32_t index);
+
+/**
+ * template specialization that must be implemented in order for clients to get the PostOffice interface
+ *
+ * @param index the index of the post office to get (used for testing)
+ * @return the post office in this application at index
+ */
+template <>
+PostOffice& GetPostOffice<PostOffice>(uint32_t index);
+
+/**
+ * provides a way to default the previous templated functions to index 0
+ *
+ * @tparam P the derived type of post office to get
+ * @tparam I the index of the post office to get (used for testing)
+ * @return the post office in this application at index
+ */
+template <typename P = PostOffice, uint32_t I = 0>
+P& GetPostOffice() { return GetPostOffice<P>(I); }
 
 } // namespace mq::postoffice
 

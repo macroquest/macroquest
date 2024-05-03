@@ -1170,7 +1170,7 @@ int WINAPI CALLBACK WinMain(
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
-	InitializeNamedPipeServer();
+	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();
 
@@ -1231,7 +1231,7 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
-	Test();
+	//Test();
 
 	MSG msg;
 	LauncherImGui::Run(
@@ -1266,7 +1266,7 @@ int WINAPI CALLBACK WinMain(
 
 	ShutdownAutoLogin();
 	ShutdownInjector();
-	ShutdownNamedPipeServer();
+	ShutdownPostOffice();
 	StopProcessMonitor();
 	if (injectOnce)
 		UpdateShowConsole(false, false);

@@ -25,30 +25,22 @@
 namespace mq {
 using namespace postoffice;
 
-// MQModule forward declarations
-namespace pipeclient {
-static void InitializePostOffice();
-static void ShutdownPostOffice();
-static void PulsePostOffice();
-static void SetGameStatePostOffice(DWORD);
-}
-
 static MQModule s_PostOfficeModule = {
 	"PostOffice",
 	false,
-	pipeclient::InitializePostOffice,          // Initialize
-	pipeclient::ShutdownPostOffice,            // Shutdown
-	pipeclient::PulsePostOffice,               // Pulse
-	pipeclient::SetGameStatePostOffice,        // SetGameState
-	nullptr,                                   // UpdateImGui
-	nullptr,                                   // Zoned
-	nullptr,                                   // WriteChatColor
-	nullptr,                                   // SpawnAdded
-	nullptr,                                   // SpawnRemoved
-	nullptr,                                   // BeginZone
-	nullptr,                                   // EndZone
-	nullptr,                                   // LoadPlugin
-	nullptr                                    // UnloadPlugin
+	[] { pipeclient::InitializePostOffice(); },                             // Initialize
+	[] { pipeclient::ShutdownPostOffice(); },                               // Shutdown
+	[] { pipeclient::PulsePostOffice(); },                                  // Pulse
+	[](DWORD GameState) { pipeclient::SetGameStatePostOffice(GameState); }, // SetGameState
+	nullptr,                                                                        // UpdateImGui
+	nullptr,                                                                        // Zoned
+	nullptr,                                                                        // WriteChatColor
+	nullptr,                                                                        // SpawnAdded
+	nullptr,                                                                        // SpawnRemoved
+	nullptr,                                                                        // BeginZone
+	nullptr,                                                                        // EndZone
+	nullptr,                                                                        // LoadPlugin
+	nullptr                                                                         // UnloadPlugin
 };
 MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
@@ -465,42 +457,49 @@ private:
 	}
 };
 
-PostOffice& postoffice::GetPostOffice()
+static std::unordered_map<uint32_t, MQPostOffice> s_postOffices;
+template <>
+PostOffice& postoffice::GetPostOffice<PostOffice>(uint32_t index)
 {
-	static MQPostOffice s_postOffice;
-	return s_postOffice;
+	return s_postOffices[index];
+}
+
+template <>
+MQPostOffice& postoffice::GetPostOffice<MQPostOffice>(uint32_t index)
+{
+	return s_postOffices[index];
 }
 
 namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).NotifyIsForegroundWindow(isForeground);
+	GetPostOffice<MQPostOffice>().NotifyIsForegroundWindow(isForeground);
 }
 
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
+	GetPostOffice<MQPostOffice>().RequestActivateWindow(hWnd, sendMessage);
 }
 
-void InitializePostOffice()
+void InitializePostOffice(uint32_t index)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).Initialize();
+	GetPostOffice<MQPostOffice>(index).Initialize();
 }
 
-void ShutdownPostOffice()
+void ShutdownPostOffice(uint32_t index)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
+	GetPostOffice<MQPostOffice>(index).Shutdown();
 }
 
-void PulsePostOffice()
+void PulsePostOffice(uint32_t index)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
+	GetPostOffice<MQPostOffice>(index).ProcessPipeClient();
 }
 
-void SetGameStatePostOffice(DWORD GameState)
+void SetGameStatePostOffice(DWORD GameState, uint32_t index)
 {
-	dynamic_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
+	GetPostOffice<MQPostOffice>(index).SetGameStatePostOffice(GameState);
 }
 
 } // namespace pipeclient

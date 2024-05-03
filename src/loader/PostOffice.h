@@ -17,12 +17,12 @@
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
-void ProcessPostOffice();
+void ProcessPostOffice(uint32_t index = 0);
 
 // networking interface
 void PeerMessageReceived(std::string_view address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length);
 void PeerConnected(std::string_view address, uint16_t port);
 
-void InitializeNamedPipeServer();
-void ShutdownNamedPipeServer();
+void InitializePostOffice(uint32_t index = 0);
+void ShutdownPostOffice(uint32_t index = 0);
 

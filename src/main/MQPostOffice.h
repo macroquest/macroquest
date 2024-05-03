@@ -23,6 +23,11 @@ namespace pipeclient {
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 
+void InitializePostOffice(uint32_t index = 0);
+void ShutdownPostOffice(uint32_t index = 0);
+void PulsePostOffice(uint32_t index = 0);
+void SetGameStatePostOffice(DWORD, uint32_t index = 0);
+
 } // namespace pipeclient
 
 } // namespace mq
