@@ -3669,8 +3669,9 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 
 	switch (eSPA)
 	{
-	case SPA_MOVEMENT_RATE: // Movement Rate
-		// below 0 means its a snare above its runspeed increase...
+	case SPA_HP: // HP regen or DoT, below 0 means its a DoT or lich-like spell
+	case SPA_MANA: // Mana regen or drain, below 0 means its draining mana
+	case SPA_MOVEMENT_RATE: // Movement Rate, below 0 means its a snare above its runspeed increase
 		return (!bIncrease && base < 0) || (bIncrease && base > 0);
 
 	case SPA_HASTE: // Melee Speed
