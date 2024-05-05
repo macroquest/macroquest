@@ -340,7 +340,6 @@ namespace ImGui
 	}
 }
 
-
 namespace mq {
 
 // Benchmarks for ImGui updates
@@ -364,6 +363,7 @@ static DebugTab s_selectedDebugTab = DebugTab::None;
 static DebugTab s_selectDebugTab = DebugTab::None;
 static bool s_overlayDebug = false;
 static bool s_enableCursorAttachment = true;
+static bool s_imguiIgnoreClampWindow = false;
 static ImGuiWindow* s_cursorLastHoveredWindow = nullptr;  // only used for comparison. might be invalid.
 static std::string s_cursorLastHoveredWindowName;
 static bool s_showCursorAttachment = false;
@@ -1203,6 +1203,18 @@ void ImGuiManager_OverlaySettings()
 	mq::imgui::HelpMarker("When enabled, MacroQuest will take over drawing the EQ Cursor when\n"
 		"it is near to or hovering over an ImGui window.");
 
+	if (ImGui::Checkbox("Ignore Window Clamping", &s_imguiIgnoreClampWindow))
+	{
+		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
+
+		auto& io = ImGui::GetIO();
+		if (io.ImGuiIgnoreClampWindow != s_imguiIgnoreClampWindow)
+			io.ImGuiIgnoreClampWindow = s_imguiIgnoreClampWindow;
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("For ISBoxer users, enable this if your ImGui window positions reset when switching windows");
+
 	ImGui::NewLine();
 
 	if (ImGui::Button("Clear Saved ImGui Window Settings"))
@@ -1356,6 +1368,7 @@ void ImGuiManager_Initialize()
 
 	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
 	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 
