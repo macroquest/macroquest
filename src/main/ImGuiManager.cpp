@@ -1146,6 +1146,8 @@ void ImGuiManager_CreateContext()
 
 	ImGui::StyleColorsDark();
 	mq::imgui::ConfigureStyle();
+
+	io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
 }
 
 void ImGuiManager_DestroyContext()
@@ -1208,8 +1210,7 @@ void ImGuiManager_OverlaySettings()
 		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
 
 		auto& io = ImGui::GetIO();
-		if (io.ImGuiIgnoreClampWindow != s_imguiIgnoreClampWindow)
-			io.ImGuiIgnoreClampWindow = s_imguiIgnoreClampWindow;
+		io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
 	}
 
 	ImGui::SameLine();

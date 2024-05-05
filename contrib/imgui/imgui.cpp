@@ -7169,7 +7169,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         {
             if (!window->ViewportOwned && viewport_rect.GetWidth() > 0 && viewport_rect.GetHeight() > 0.0f)
             {
-                if (!GetIO().ImGuiIgnoreClampWindow)
+                if (!g.IO.IgnoreClampWindow)
                     ClampWindowPos(window, visibility_rect);
             }
             else if (window->ViewportOwned && g.PlatformIO.Monitors.Size > 0)
