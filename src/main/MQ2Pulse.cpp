@@ -17,9 +17,12 @@
 #include <random>
 
 #include "MQ2Main.h"
-#include "MQPostOffice.h"
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
+
+#include "MQCommandAPI.h"
+#include "MQPluginHandler.h"
+#include "MQPostOffice.h"
 
 #include <wil/resource.h>
 
@@ -130,7 +133,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 		if (gbInZone && !gZoning)
 		{
-			DoCommand(pChar, (char*)ml.Command.c_str());
+			DoCommand(ml.Command.c_str(), false);
 			MQMacroBlockPtr pCurrentBlock = GetCurrentMacroBlock();
 
 			if (!pCurrentBlock)
@@ -138,6 +141,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1)
 			{
+				// Only trigger queued bind on select commands
 				if (ci_find_substr(ml.Command, "/varset") == 0
 					|| ci_find_substr(ml.Command, "/echo") == 0
 					|| ci_find_substr(ml.Command, "Sub") == 0
@@ -540,7 +544,7 @@ static void Pulse()
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
-			DoCommand(pChar, pAutoRun);
+			DoCommand(pAutoRun, false);
 
 		// autorun command for toon
 		szAutoRun[0] = 0;
@@ -550,7 +554,7 @@ static void Pulse()
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
-			DoCommand(pChar, pAutoRun);
+			DoCommand(pAutoRun, false);
 	}
 
 	if (gbShowCurrentCamera)
@@ -700,7 +704,7 @@ static HeartbeatState Heartbeat()
 	DebugTry(int GameState = GetGameState());
 	if (GameState != -1)
 	{
-		if ((DWORD)GameState != gGameState)
+		if (GameState != gGameState)
 		{
 			DebugSpew("GetGameState()=%d vs %d", GameState, gGameState);
 			gGameState = GameState;
@@ -737,7 +741,7 @@ static HeartbeatState Heartbeat()
 
 	if (gGameState == -1)
 	{
-		PulseCommands();
+		pCommandAPI->PulseCommands();
 
 		return HeartbeatNormal;
 	}
@@ -762,7 +766,7 @@ static HeartbeatState Heartbeat()
 		pBlock = GetCurrentMacroBlock();
 	}
 
-	PulseCommands();
+	pCommandAPI->PulseCommands();
 
 	return HeartbeatNormal;
 }

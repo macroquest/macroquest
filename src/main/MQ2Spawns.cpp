@@ -14,6 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQDataAPI.h"
+#include "MQPluginHandler.h"
 
 namespace mq {
 

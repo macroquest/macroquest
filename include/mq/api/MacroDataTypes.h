@@ -16,6 +16,7 @@
 
 #include "mq/base/Common.h"
 #include "mq/base/Deprecation.h"
+#include "mq/base/PluginHandle.h"
 
 #include "eqlib/base/Color.h"
 #include "eqlib/CXStr.h"
@@ -414,7 +415,7 @@ namespace datatypes {
 class MQ2Type
 {
 public:
-	MQLIB_OBJECT MQ2Type(std::string_view typeName);
+	MQLIB_OBJECT MQ2Type(std::string_view typeName, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 	MQLIB_OBJECT virtual ~MQ2Type();
 
 	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);

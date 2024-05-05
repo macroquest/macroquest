@@ -15,32 +15,51 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#include <spdlog/spdlog.h>
-#include <wil/resource.h>
-
 #include <mq/utils/OS.h>
 
+#include <spdlog/spdlog.h>
+#include <wil/resource.h>
+#include <random>
+
 //#define DEBUG_PLUGINS
+
+
+namespace mqplugin
+{
+	mq::MQPluginHandle ThisPluginHandle;   // our unique handle for Main.
+}
 
 namespace mq {
 
 #ifdef DEBUG_PLUGINS
 #define PluginDebug DebugSpew
 #else
-#define PluginDebug //
+#define PluginDebug(...)
 #endif
 
 // This is the main plugin list. We use it to preserve some sort of order, thats about it.
 MQPlugin* pPlugins = nullptr;
 
+// This is a plugin entry for Main, but we don't fill its pointers.
+MQPlugin MainPlugin;
+
 static std::atomic_bool s_pluginsInitialized = false;
 static std::recursive_mutex s_pluginsMutex;
 
+struct PluginInfoRec
+{
+	MQPlugin* instance;
+	MQPluginHandle handle;
+};
+
 // a map of plugin names to plugins. The string_view is a reference to the name in the
 // MQPlugin instance.
-using PluginMap = ci_unordered::map<std::string_view, MQPlugin*>;
-static PluginMap g_pluginMap;
-static PluginMap g_pluginUnloadFailedMap;
+using PluginMap = ci_unordered::map<std::string_view, PluginInfoRec>;
+static PluginMap s_pluginMap;
+static PluginMap s_pluginUnloadFailedMap;
+
+using PluginHandleMap = std::unordered_map<uint64_t, MQPlugin*>;
+static PluginHandleMap s_pluginHandleMap;
 
 // String constant used to bake in the version of everquest when performing
 // version checks against plugins.
@@ -149,6 +168,23 @@ bool IsPluginsInitialized()
 	return s_pluginsInitialized;
 }
 
+MQPluginHandle CreatePluginHandle()
+{
+	static std::mt19937_64 rng(std::random_device{}());
+
+	// Generate plugin ID
+	uint64_t pluginID = 0;
+
+	std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
+
+	do
+	{
+		pluginID = dist(rng);
+	} while (s_pluginHandleMap.count(pluginID) != 0);
+
+	return MQPluginHandle(pluginID);
+}
+
 // Strips MQ2/MQ off of the name and returns it back
 std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension = true)
 {
@@ -186,7 +222,7 @@ void PrintModules()
 	{
 		HMODULE hMods[1024];
 		DWORD cbNeeded;
-		if(EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+		if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
 		{
 			for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); ++i)
 			{
@@ -203,23 +239,35 @@ void PrintModules()
 // Returns true if the plugin is loaded by checking its canonical name.
 bool IsPluginLoaded(std::string_view name)
 {
-	return g_pluginMap.count(GetCanonicalPluginName(name)) != 0;
+	return s_pluginMap.count(GetCanonicalPluginName(name)) != 0;
 }
 
 bool IsPluginUnloadFailed(std::string_view name)
 {
-	return g_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
+	return s_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
 }
 
 int GetPluginUnloadFailedCount()
 {
-	return static_cast<int>(g_pluginUnloadFailedMap.size());
+	return static_cast<int>(s_pluginUnloadFailedMap.size());
 }
 
 MQPlugin* GetPlugin(std::string_view name)
 {
-	auto iter = g_pluginMap.find(GetCanonicalPluginName(name));
-	return iter == g_pluginMap.end() ? nullptr : iter->second;
+	auto iter = s_pluginMap.find(GetCanonicalPluginName(name));
+	return iter == s_pluginMap.end() ? nullptr : iter->second.instance;
+}
+
+MQPlugin* GetPluginByHandle(MQPluginHandle handle, bool noMain /* = false */)
+{
+	if (handle.pluginID == 0)
+		return nullptr;
+
+	if (noMain && handle == mqplugin::ThisPluginHandle)
+		return nullptr;
+
+	auto iter = s_pluginHandleMap.find(handle.pluginID);
+	return iter == s_pluginHandleMap.end() ? nullptr : iter->second;
 }
 
 // Locate a plugin dll that matches the given name (canonical or otherwise).
@@ -298,7 +346,7 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	// the name requested. If we fail for whatever reason, we return a null hmodule
 	// and set the reason in szPluginLoadFailure.
 
-	DebugSpew("LoadMQ2Plugin(%.*s)", name.length(), name.data());
+	DebugSpew("LoadPlugin(%.*s)", name.length(), name.data());
 
 	std::string fileName = FindPluginFile(name);
 	if (fileName.empty())
@@ -385,16 +433,14 @@ void RemovePluginFromList(MQPlugin* pPlugin)
 // 1 - success
 // 2 - already loaded
 // 3 - previous load of plugin is still unloading
-int LoadMQ2Plugin(const char* pszFilename, bool)
+int LoadPlugin(std::string_view pluginName, bool save)
 {
 	// Clear the load error message;
 	s_pluginLoadFailure.clear();
 
-	std::string pluginName = pszFilename;
-
 	if (IsPluginLoaded(pluginName))
 	{
-		DebugSpew("LoadMQ2Plugin(%s) already loaded", pluginName.c_str());
+		DebugSpew("LoadPlugin(%.*s) already loaded", pluginName.length(), pluginName.data());
 		s_pluginLoadFailure = "Plugin is already loaded";
 
 		return 2;
@@ -402,7 +448,7 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 
 	if (IsPluginUnloadFailed(pluginName))
 	{
-		DebugSpew("LoadMQ2Plugin(%s) previous instance failed unload", pluginName.c_str());
+		DebugSpew("LoadPlugin(%.*s) previous instance failed unload", pluginName.length(), pluginName.data());
 		s_pluginLoadFailure = "Plugin failed unload from a previous instance, cannot load";
 
 		return 3;
@@ -412,16 +458,26 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	if (!hModule)
 	{
 		// szPluginLoadFailure is set in LoadPluginModule
-		DebugSpew("LoadMQ2Plugin(%s) failed: %s", pluginName.c_str(), s_pluginLoadFailure.c_str());
+		DebugSpew("LoadPlugin(%.*s) failed: %s", pluginName.length(), pluginName.data(), s_pluginLoadFailure.c_str());
 		return 0;
 	}
 
 	MQPlugin* pPlugin = new MQPlugin();
+	PluginInfoRec rec;
+	rec.instance = pPlugin;
+	rec.handle = CreatePluginHandle();
 	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
 	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginName) };
 	pPlugin->hModule           = hModule.release();
 
-	pPlugin->Self              = (MQPlugin**)GetProcAddress(pPlugin->hModule, "ThisPlugin");
+	s_pluginHandleMap.emplace(rec.handle.pluginID, rec.instance);
+
+	// Pass the plugin instance and handle to the plugin
+	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
+
+	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(pPlugin->hModule, "InitPluginHandle"));
+	initPluginFunc(rec.instance, rec.handle);
+
 	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(pPlugin->hModule, "InitializePlugin");
 	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(pPlugin->hModule, "ShutdownPlugin");
 	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(pPlugin->hModule, "OnIncomingChat");
@@ -450,9 +506,6 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 		pPlugin->fpVersion = *ftmp;
 	else
 		pPlugin->fpVersion = 1.0;
-
-	if (pPlugin->Self)
-		*pPlugin->Self = pPlugin;
 
 	// initialize plugin
 	if (pPlugin->Initialize)
@@ -488,52 +541,60 @@ int LoadMQ2Plugin(const char* pszFilename, bool)
 	}
 
 	AddPluginToList(pPlugin);
-	g_pluginMap.emplace(std::string_view(pPlugin->name), pPlugin);
-
+	s_pluginMap.emplace(std::string_view(pPlugin->name), rec);
 
 	// load cfg file if exists
 	std::string autoExec = fmt::format("{}-AutoExec", pPlugin->szFilename);
 	LoadCfgFile(autoExec.c_str(), false);
 
 	PluginsLoadPlugin(pPlugin->szFilename);
+
+	if (save)
+	{
+		WritePrivateProfileBool("Plugins", pPlugin->szFilename, true, mq::internal_paths::MQini);
+	}
 	return 1;
 }
 
-bool UnloadMQ2Plugin(const char* pszFilename)
+bool UnloadPlugin(std::string_view pluginName)
 {
-	DebugSpew("UnloadMQ2Plugin(%s)", pszFilename);
+	DebugSpew("UnloadPlugin(%.*s)", pluginName.length(), pluginName.data());
 
 	// Clear the load error message;
 	s_pluginLoadFailure.clear();
 
-	MQPlugin* pPlugin = nullptr;
-	std::string_view canonicalName = GetCanonicalPluginName(pszFilename);
+	PluginInfoRec rec;
+	MQPlugin* pPlugin;
+	std::string_view canonicalName = GetCanonicalPluginName(pluginName);
 
 	if (IsPluginUnloadFailed(canonicalName))
 	{
-		auto iter = g_pluginUnloadFailedMap.find(canonicalName);
+		auto iter = s_pluginUnloadFailedMap.find(canonicalName);
 		// We know this exists because we just checked it, but in case that changes later...
-		if (iter == g_pluginUnloadFailedMap.end())
+		if (iter == s_pluginUnloadFailedMap.end())
 			return false;
 
-		pPlugin = iter->second;
+		rec = iter->second;
+		pPlugin = rec.instance;
 
-		g_pluginUnloadFailedMap.erase(iter);
+		s_pluginUnloadFailedMap.erase(iter);
 	}
 	else
 	{
-		auto iter = g_pluginMap.find(canonicalName);
-		if (iter == g_pluginMap.end())
+		auto iter = s_pluginMap.find(canonicalName);
+		if (iter == s_pluginMap.end())
 			return false;
 
-		pPlugin = iter->second;
+		rec = iter->second;
+		pPlugin = rec.instance;
 
 		// Inform other plugins that this plugin is being removed
 		PluginsUnloadPlugin(pPlugin->szFilename);
 
 		// Remove it from the list so that it can no longer be accessed
 		RemovePluginFromList(pPlugin);
-		g_pluginMap.erase(iter);
+		s_pluginMap.erase(iter);
+		s_pluginHandleMap.erase(rec.handle.pluginID);
 	}
 
 	// call Plugin:CleanUI
@@ -550,9 +611,9 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 		if (IsInModuleList(pPlugin->szFilename))
 		{
 			s_pluginLoadFailure = "Plugin files still loaded.";
-			DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, s_pluginLoadFailure.c_str());
+			DebugSpew("UnloadPlugin(%s) failed: %.*s", pluginName.length(), pluginName.data(), s_pluginLoadFailure.c_str());
 
-			g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
+			s_pluginUnloadFailedMap.emplace(canonicalName, rec);
 			return false;
 		}
 		delete pPlugin;
@@ -571,48 +632,51 @@ bool UnloadMQ2Plugin(const char* pszFilename)
 			nullptr);
 
 		s_pluginLoadFailure = fmt::format("FreeLibrary failed with error {:#08x}: {}", lastError, szError);
-		DebugSpew("UnloadMQ2Plugin(%s) failed: %s", pszFilename, s_pluginLoadFailure.c_str());
+		DebugSpew("UnloadPlugin(%s) failed: %.*s", pluginName.length(), pluginName.data(), s_pluginLoadFailure.c_str());
 
-		g_pluginUnloadFailedMap.emplace(canonicalName, pPlugin);
+		s_pluginUnloadFailedMap.emplace(canonicalName, rec);
 		return false;
 	}
 
 	return true;
 }
 
-void UnloadMQ2Plugins()
+void UnloadPlugins()
 {
 	while (pPlugins)
 	{
 		DebugSpew("%s->Unload()", pPlugins->szFilename);
-		UnloadMQ2Plugin(pPlugins->szFilename);
+		UnloadPlugin(pPlugins->szFilename);
 	}
 }
 
 bool UnloadFailedPlugins()
 {
-	// UnloadMQ2Plugin modifies the global map, so use a copy here.
-	const PluginMap pluginUnloadFailedCopy = g_pluginUnloadFailedMap;
-	for (auto iter = pluginUnloadFailedCopy.cbegin(); iter != pluginUnloadFailedCopy.cend(); ++iter)
+	// UnloadPlugin modifies the global map, so use a copy here.
+	const PluginMap pluginUnloadFailedCopy = s_pluginUnloadFailedMap;
+	for (auto& [key, rec] : pluginUnloadFailedCopy)
 	{
-		const MQPlugin* pPlugin = iter->second;
-		DebugSpew("UnloadFailedPlugins(%s)", pPlugin->name.c_str());
-		UnloadMQ2Plugin(pPlugin->szFilename);
+		DebugSpew("UnloadFailedPlugins(%s)", rec.instance->name.c_str());
+		UnloadPlugin(rec.instance->szFilename);
 	}
+
 	return GetPluginUnloadFailedCount() == 0;
 }
 
 void ShutdownFailedPlugins()
 {
-	if(!UnloadFailedPlugins() && !gbForceUnload)
+	if (!UnloadFailedPlugins() && !gbForceUnload)
 	{
 		int msgReturn = IDRETRY;
 		while (msgReturn == IDRETRY && !UnloadFailedPlugins())
 		{
-			msgReturn = MessageBox(nullptr, "You have plugins that failed to unload.  Unloading MacroQuest now would be unsafe.\n\n"
-			                                "RETRY to try unloading again.\n"
-			                                "ABORT to kill the game.\n"
-			                                "IGNORE to accept the risk and continue unloading.\n", "UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
+			msgReturn = MessageBox(nullptr,
+				"You have plugins that failed to unload. Unloading MacroQuest now would be unsafe.\n"
+				"\n"
+				"RETRY to try unloading again.\n"
+				"ABORT to kill the game.\n"
+				"IGNORE to accept the risk and continue unloading.\n",
+				"UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
 		}
 
 		if (msgReturn == IDABORT)
@@ -623,7 +687,7 @@ void ShutdownFailedPlugins()
 }
 
 template <typename Callback>
-void ForEachModule(Callback& callback)
+void ForEachModule(Callback&& callback)
 {
 	for (const MQModule* module : gInternalModules)
 	{
@@ -679,7 +743,7 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 		});
 }
 
-bool PluginsIncomingChat(const char* Line, DWORD Color)
+bool PluginsIncomingChat(const char* Line, uint32_t Color)
 {
 	if (!s_pluginsInitialized)
 		return false;
@@ -785,7 +849,7 @@ void PluginsReloadUI()
 		});
 }
 
-void PluginsSetGameState(DWORD GameState)
+void PluginsSetGameState(int GameState)
 {
 	if (!s_pluginsInitialized)
 		return;
@@ -887,7 +951,7 @@ void PluginsDrawHUD()
 		});
 }
 
-void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
+void PluginsAddSpawn(PlayerClient* pNewSpawn)
 {
 	if (!s_pluginsInitialized)
 		return;
@@ -914,7 +978,7 @@ void PluginsAddSpawn(SPAWNINFO* pNewSpawn)
 		});
 }
 
-void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
+void PluginsRemoveSpawn(PlayerClient* pSpawn)
 {
 	InvalidateObservedEQObject(pSpawn);
 
@@ -938,7 +1002,7 @@ void PluginsRemoveSpawn(SPAWNINFO* pSpawn)
 		});
 }
 
-void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem)
+void PluginsAddGroundItem(EQGroundItem* pNewGroundItem)
 {
 	if (!s_pluginsInitialized)
 		return;
@@ -954,7 +1018,7 @@ void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem)
 		});
 }
 
-void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem)
+void PluginsRemoveGroundItem(EQGroundItem* pGroundItem)
 {
 	if (!s_pluginsInitialized)
 		return;
@@ -1199,17 +1263,17 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 			{
 				WriteChatColor("Plugins that Failed to Unload", USERCOLOR_WHO);
 				WriteChatColor("-----------------------------", USERCOLOR_WHO);
-				if (g_pluginUnloadFailedMap.empty())
+				if (s_pluginUnloadFailedMap.empty())
 				{
 					WriteChatColor("No Failed Plugins.", USERCOLOR_WHO);
 				}
 				else
 				{
-					for (auto const& [key, plugin] : g_pluginUnloadFailedMap)
+					for (auto const& [key, rec] : s_pluginUnloadFailedMap)
 					{
-						WriteChatColorf("%s", USERCOLOR_WHO, plugin->szFilename);
+						WriteChatColorf("%s", USERCOLOR_WHO, rec.instance->szFilename);
 					}
-					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload", USERCOLOR_WHO, g_pluginUnloadFailedMap.size());
+					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload", USERCOLOR_WHO, s_pluginUnloadFailedMap.size());
 				}
 			}
 			else if (ci_equals(szCommand, "dlls"))
@@ -1280,7 +1344,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 							WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
 						}
 
-						if (UnloadMQ2Plugin(szName))
+						if (UnloadPlugin(szName))
 						{
 							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
 						}
@@ -1302,15 +1366,11 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 					}
 					else
 					{
-						if (LoadMQ2Plugin(szName) == 1)
+						bool save = !noauto;
+						if (LoadPlugin(szName, save) == 1)
 						{
 							plugin = GetPlugin(szName);
 							WriteChatf("Plugin '%s' loaded.", plugin->szFilename);
-
-							if (!noauto)
-							{
-								WritePrivateProfileBool("Plugins", plugin->szFilename, true, mq::internal_paths::MQini);
-							}
 						}
 						else if (s_pluginLoadFailure.empty())
 						{
@@ -1336,17 +1396,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 }
 
 //----------------------------------------------------------------------------
-// Deprecated
-void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad)
-{
-	std::scoped_lock lock(s_pluginsMutex);
 
-	WritePrivateProfileBool("Plugins", Name, bLoad, mq::internal_paths::MQini);
-}
-
-//----------------------------------------------------------------------------
-
-void InitializeMQ2Plugins()
+void InitializePlugins()
 {
 	AddCommand("/plugin", PluginCommand, false, true, false);
 
@@ -1373,18 +1424,28 @@ void InitializeMQ2Plugins()
 	{
 		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
 		{
-			LoadMQ2Plugin(pluginName.c_str());
+			LoadPlugin(pluginName.c_str(), false);
 		}
 	}
 }
 
-void ShutdownMQ2Plugins()
+void ShutdownPlugins()
 {
 	s_pluginsInitialized = false;
 
-	UnloadMQ2Plugins();
+	UnloadPlugins();
 	RemoveCommand("/plugin");
 }
 
+void InitializePluginHandle()
+{
+	mqplugin::ThisPluginHandle = CreatePluginHandle();
+
+	MainPlugin.name = "main";
+	MainPlugin.hModule = ghModule;
+	strcpy_s(MainPlugin.szFilename, "MQ2Main.dll");
+
+	s_pluginHandleMap.emplace(mqplugin::ThisPluginHandle.pluginID, &MainPlugin);
+}
 
 } // namespace mq

@@ -28,7 +28,7 @@ namespace pipeclient {
 static void InitializePostOffice();
 static void ShutdownPostOffice();
 static void PulsePostOffice();
-static void SetGameStatePostOffice(DWORD);
+static void SetGameStatePostOffice(int);
 }
 
 static MQModule s_PostOfficeModule = {
@@ -181,11 +181,11 @@ private:
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_UNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload", true);
+				DoCommand("/unload", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload force", true);
+				DoCommand("/unload force", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_PROCESS_LOADED: {
@@ -403,7 +403,7 @@ public:
 		}
 	}
 
-	void SetGameStatePostOffice(DWORD GameState)
+	void SetGameStatePostOffice(int GameState)
 	{
 		static bool logged_in = false;
 
@@ -514,7 +514,7 @@ void PulsePostOffice()
 	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
-void SetGameStatePostOffice(DWORD GameState)
+void SetGameStatePostOffice(int GameState)
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }

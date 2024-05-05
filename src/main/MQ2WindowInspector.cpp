@@ -4442,7 +4442,7 @@ void DeveloperTools_WindowInspector_Shutdown()
 	delete s_windowInspector; s_windowInspector = nullptr;
 }
 
-void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState)
+void DeveloperTools_WindowInspector_SetGameState(int gameState)
 {
 	s_windowInspector->Reset();
 }

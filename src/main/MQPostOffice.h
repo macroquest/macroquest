@@ -14,6 +14,10 @@
 
 #pragma once
 
+#ifndef MQ2MAIN_EXPORTS
+#error This header should only be included from the MQ2Main project
+#endif
+
 #include "MQ2MainBase.h"
 
 namespace mq {

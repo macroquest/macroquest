@@ -16,7 +16,8 @@
 
 #include "mq/api/MacroAPI.h"
 #include "mq/api/Main.h"
-#include "mq/api/Plugin.h"
+#include "mq/api/PluginAPI.h"
+#include "mq/base/PluginHandle.h"
 
 #include <map>
 #include <memory>
@@ -333,8 +334,6 @@ struct MQBindList
 
 	MQBindList* pNext = nullptr;
 };
-using BINDLIST DEPRECATE("Use MQBindList instead of BINDLIST") = MQBindList;
-using PBINDLIST DEPRECATE("Use MQBindList* instead of PBINDLIST") = MQBindList *;
 
 struct MQFilter
 {
@@ -409,8 +408,10 @@ struct ModuleInitializer
 #endif
 
 #define DECLARE_MODULE_INITIALIZER(moduleRecord) \
-		extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
-		FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
+	extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
+	FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
+
+
 
 //============================================================================
 
@@ -441,18 +442,18 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const CXStr& screenpiece)
-		: CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const CXStr& screenpiece)
+		: CSidlScreenWnd(nullptr, screenpiece, eIniFlag_All)
 	{
 		Init();
 	}
 
-	CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 	{
 		Init();
 	}
 
-	~CCustomWnd()
+	~CCustomWnd() override
 	{
 	}
 
@@ -477,7 +478,7 @@ public:
 	{
 	}
 
-	~CCustomMenu()
+	~CCustomMenu() override
 	{
 	}
 };
@@ -877,10 +878,19 @@ class MainImpl : public MainInterface
 {
 public:
 	MainImpl();
-	virtual ~MainImpl();
+	~MainImpl() override;
 
-	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, MQPlugin* owner) override;
-	bool RemoveTopLevelObject(const char* name, MQPlugin* owner) override;
+	void DoMainThreadInitialization();
+
+	bool AddTopLevelObject(
+		const char* name,
+		MQTopLevelObjectFunction callback,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool RemoveTopLevelObject(
+		const char* name,
+		const MQPluginHandle& pluginHandle) override;
+
 	MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
 	void SendToActor(
@@ -888,26 +898,70 @@ public:
 		const postoffice::Address& address,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
-		MQPlugin* owner) override;
+		const MQPluginHandle& pluginHandle) override;
 
 	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
 		const std::string& data,
 		uint8_t status,
-		MQPlugin* owner) override;
+		const MQPluginHandle& pluginHandle) override;
 
 	postoffice::Dropbox* AddActor(
 		const char* localAddress,
 		postoffice::ReceiveCallbackAPI&& receive,
-		MQPlugin* owner) override;
+		const MQPluginHandle& pluginHandle) override;
 
 	void RemoveActor(
 		postoffice::Dropbox*& dropbox,
-		MQPlugin* owner) override;
+		const MQPluginHandle& pluginHandle) override;
 
+	// Commands
+	bool AddCommand(
+		std::string_view command,
+		MQCommandHandler handler,
+		bool eq,
+		bool parse,
+		bool inGame,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool RemoveCommand(
+		std::string_view command,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool IsCommand(std::string_view command) const override;
+
+	void DoCommand(
+		const char* command,
+		bool delayed,
+		const MQPluginHandle& pluginHandle) override;
+
+	void TimedCommand(
+		const char* command,
+		int msDelay,
+		const MQPluginHandle& pluginHandle) override;
+
+	// Aliases
+	bool AddAlias(
+		const std::string& shortCommand,
+		const std::string& longCommand,
+		bool persist,
+		const MQPluginHandle& pluginHandle) override;
+	bool RemoveAlias(
+		const std::string& shortCommand,
+		const MQPluginHandle& pluginHandle) override;
+	bool IsAlias(
+		const std::string& alias) const override;
+
+	// Detours
+	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
+		const MQPluginHandle& pluginHandle) override;
+	bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
+	bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
 };
 
 extern MainImpl* gpMainAPI;
+
+MQPluginHandle CreatePluginHandle();
 
 } // namespace mq
