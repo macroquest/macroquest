@@ -390,6 +390,19 @@ public:
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
+	void SendNotification(const std::string& message, const std::string& title)
+	{
+		if (m_pipeClient.IsConnected())
+		{
+			proto::routing::Notification notification;
+			notification.set_title(title);
+			if (!message.empty())
+				notification.set_message(message);
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_MAIN_TRAY_NOTIFY, notification);
+		}
+	}
+
 	void SetGameStatePostOffice(DWORD GameState)
 	{
 		static bool logged_in = false;
@@ -479,6 +492,11 @@ void NotifyIsForegroundWindow(bool isForeground)
 void RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
+}
+
+void SendNotification(const std::string& message, const std::string& title)
+{
+	static_cast<MQPostOffice&>(GetPostOffice()).SendNotification(message, title);
 }
 
 void InitializePostOffice()

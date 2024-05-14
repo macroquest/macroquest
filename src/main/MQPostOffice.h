@@ -22,6 +22,7 @@ namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+void SendNotification(const std::string& message, const std::string& title);
 
 } // namespace pipeclient
 

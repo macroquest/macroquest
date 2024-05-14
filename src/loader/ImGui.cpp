@@ -508,7 +508,7 @@ void OpenContextMenu()
 void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title)
 {
 	OpenWindow(
-		[viewport, &message, &title]
+		[viewport, message, title]
 		{
 			bool is_open = true;
 
