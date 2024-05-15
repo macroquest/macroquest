@@ -60,7 +60,12 @@ static void UnloadPluginActorAPI(const char* pluginName)
 		pActorAPI->OnUnloadPlugin(plugin);
 	}
 
-	s_dropboxes.clear();
+	auto it = s_dropboxes.find(plugin);
+	if (it != s_dropboxes.end())
+	{
+		it->second.clear();
+		s_dropboxes.erase(it);
+	}
 }
 
 void MQActorAPI::SendToActor(
