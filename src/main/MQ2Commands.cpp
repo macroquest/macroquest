@@ -4922,6 +4922,147 @@ void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
 		cmdAdvLoot(pChar, szLine);
 	}
 }
+
+// ***************************************************************************
+// Function:    SetLootFilterCmd
+// Description: '/setlootfilter' command
+//              Adds the ability to set advanced loot filters via command line
+// Usage: /setlootfilter (AN|AG|NV) [AR] itemID itemIconID "itemName"
+//        /setlootfilter remove itemID
+// ***************************************************************************
+void SetLootFilterCmd(SPAWNINFO* pChar, char* szLine)
+{
+	if (pLootFiltersManager)
+	{
+		// No arguments, display usage
+		if (!szLine[0])
+		{
+			WriteChatf("Usage: /setlootfilter (AN|AG|NV) [AR] itemID itemIconID \"itemName\"");
+			WriteChatf("Usage: /setlootfilter remove itemID");
+			WriteChatf("Options:");
+			WriteChatf("       AN - Always Need");
+			WriteChatf("       AG - Always Greed");
+			WriteChatf("       NV - Never");
+			WriteChatf("       AR - Always Roll");
+			WriteChatf("Example: /setlootfilter AN AR 13072 793 \"Rat Ears\"");
+			WriteChatf("       Sets AdvLoot filter for \"Rat Ears\" to Always Need and Always Roll");
+			WriteChatf("Example: /setlootfilter remove 13072");
+			WriteChatf("       Removes AdvLoot filter for \"Rat Ears\"");
+			return;
+		}
+
+		const char* szRest = szLine;
+		char szArg[MAX_STRING] = { 0 };
+
+		// Grab Filter Type or Remove
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+
+		// Check if we are doing a remove
+		if (ci_equals(szArg, "remove"))
+		{
+			// Grab Item ID
+			GetArg(szArg, szRest, 1);
+			szRest = GetNextArg(szRest, 1);
+
+			// Grab/Check Int of Item ID
+			int itemID = GetIntFromString(szArg, -1);
+			if (itemID == -1)
+			{
+				WriteChatf("Unable to remove AdvLoot Filter, Item ID Invalid \"%s\".", szArg);
+			}
+			else
+			{
+				// Call client function to remove advloot filter
+				pLootFiltersManager->RemoveItemLootFilter(itemID);
+				WriteChatf("AdvLoot Filter Removed for Item ID %d", itemID);
+			}
+
+			// Nothing left to do
+			return;
+		}
+
+
+		// Not doing a remove, check filter type
+		// Blank filter types
+		int filterTypes = 0;
+		// String to describe set filter
+		std::string filterDescStr;
+
+		// Always Need
+		if (ci_equals(szArg, "AN"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_AlwaysNeed);
+			filterDescStr = "Always Need";
+		}
+		// Always Greed
+		else if (ci_equals(szArg, "AG"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_AlwaysGreed);
+			filterDescStr = "Always Greed";
+		}
+		// Never
+		else if (ci_equals(szArg, "NV"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_NeverLoot);
+			filterDescStr = "Never";
+		}
+		else
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Filter Type Invalid \"%s\".", szArg);
+			return;
+		}
+
+		// Grab AR or Item ID
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+
+		// Check Arg is AR, set AutoRoll
+		if (ci_equals(szArg, "AR"))
+		{
+			filterTypes |= LootFilterBit(LootFilterType_AutoRoll);
+			filterDescStr.append(" and Always Roll");
+
+			// Grab Item ID
+			GetArg(szArg, szRest, 1);
+			szRest = GetNextArg(szRest, 1);
+		}
+
+		// Grab/Check Int of Item ID
+		int itemID = GetIntFromString(szArg, -1);
+		if (itemID == -1)
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item ID Invalid \"%s\".", szArg);
+			return;
+		}
+
+		// Grab Item Icon ID
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+
+		// Grab/Check Int of Item Icon ID
+		int itemIconID = GetIntFromString(szArg, -1);
+		if (itemIconID == -1)
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item Icon ID Invalid \"%s\".", szArg);
+			return;
+		}
+
+		// Grab Item Name
+		GetMaybeQuotedArg(szArg, MAX_STRING, szRest, 1);
+
+		// Grab/Check String of Item Name
+		if (szArg[0] == 0)
+		{
+			WriteChatf("Unable to set AdvLoot Filter, Item Name Invalid.");
+			return;
+		}
+
+		// Call client function to set advloot filter
+		pLootFiltersManager->SetItemLootFilter(itemID, itemIconID, szArg, filterTypes);
+		WriteChatf("AdvLoot Filter Set for \"%s\" as %s", szArg, filterDescStr.c_str());
+	}
+}
 #endif // HAS_ADVANCED_LOOT
 
 static std::recursive_mutex s_openPickZoneWndMutex;

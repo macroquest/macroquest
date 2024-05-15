@@ -119,6 +119,7 @@ MQLIB_API void PetCmd                              (PSPAWNINFO pChar, char* szLi
 MQLIB_API void MercSwitchCmd                       (PSPAWNINFO pChar, char* szLine);
 #if HAS_ADVANCED_LOOT
 MQLIB_API void AdvLootCmd                          (PSPAWNINFO pChar, char* szLine);
+MQLIB_API void SetLootFilterCmd                    (PSPAWNINFO pChar, char* szLine);
 #endif
 MQLIB_API void PickZoneCmd                         (PSPAWNINFO pChar, char* szLine);
 MQLIB_API void AssistCmd                           (PSPAWNINFO pChar, char* szLine);

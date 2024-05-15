@@ -965,6 +965,7 @@ void InitializeMQ2Commands()
 		{ "/removeaura",        RemoveAura,                 false, true  },
 #if HAS_ADVANCED_LOOT
 		{ "/advloot",           AdvLootCmd,                 true,  true  },
+		{ "/setlootfilter",     SetLootFilterCmd,           true,  true  },
 #endif
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
 		{ "/assist",            AssistCmd,                  true,  true  },
