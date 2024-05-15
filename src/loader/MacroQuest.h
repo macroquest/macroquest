@@ -122,8 +122,6 @@ std::string GetVersionStringRemote(const std::string& versionURL);
 void ShowWarningBlocking(const std::string& Message);
 void ShowErrorBlocking(const std::string& Message);
 void ThreadedMessage(const std::string& Message, int MessageType);
-void SetFocusWindowPID(uint32_t pid, bool state);
-void SetForegroundWindowInternal(HWND hWnd);
 
 // RemoteOps
 HMODULE WINAPI GetRemoteModuleHandle(HANDLE hProcess, LPCSTR lpModuleName);

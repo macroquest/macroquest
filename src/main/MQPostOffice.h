@@ -20,8 +20,19 @@ namespace mq {
 
 namespace pipeclient {
 
+// setting these configs is to allow testing without spoofing config files
+void SetPostOfficeConfig(uint32_t index, std::string_view pipeName);
+void DropPostOfficeConfig(uint32_t index);
+void ClearPostOfficeConfigs();
+void ClearPostOffices();
+
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+
+void InitializePostOffice(uint32_t index = 0);
+void ShutdownPostOffice(uint32_t index = 0);
+void PulsePostOffice(uint32_t index = 0);
+void SetGameStatePostOffice(DWORD, uint32_t index = 0);
 
 } // namespace pipeclient
 

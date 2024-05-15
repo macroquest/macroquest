@@ -42,6 +42,12 @@
 #include <shellapi.h>
 #include <fcntl.h>
 
+#include <mq/utils/Naming.h>
+#include <mq/utils/OS.h>
+#include <mq/base/BuildInfo.h>
+
+#include "Network.h"
+
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
@@ -1503,7 +1509,21 @@ int WINAPI CALLBACK WinMain(
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
-	InitializeNamedPipeServer();
+	SetPostOfficeIni(internal_paths::MQini);
+	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
+	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+		{
+			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			{
+				SetFocusWindowPID(request->processId, request->state);
+			}
+			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			{
+				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
+			}
+		});
+	SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
+	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();
 
@@ -1564,12 +1584,13 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
+	//Test();
 
 	MSG msg;
 	LauncherImGui::Run(
 		[&msg]()
 		{
-			ProcessPipeServer();
+			ProcessPostOffice();
 			ProcessPendingLogins();
 			CheckPruneLogging();
 
@@ -1600,7 +1621,7 @@ int WINAPI CALLBACK WinMain(
 
 	ShutdownAutoLogin();
 	ShutdownInjector();
-	ShutdownNamedPipeServer();
+	ShutdownPostOffice();
 	StopProcessMonitor();
 	if (injectOnce)
 		UpdateShowConsole(false, false);
