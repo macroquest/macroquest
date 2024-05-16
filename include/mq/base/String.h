@@ -371,7 +371,7 @@ struct ci_less
 {
 	struct nocase_compare
 	{
-		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
+		bool operator() (unsigned char c1, unsigned char c2) const noexcept
 		{
 			if (c1 == c2)
 				return false;
@@ -381,7 +381,7 @@ struct ci_less
 
 	struct nocase_equals
 	{
-		bool operator() (const unsigned char& c1, const unsigned char& c2) const noexcept
+		bool operator() (unsigned char c1, unsigned char c2) const noexcept
 		{
 			if (c1 == c2)
 				return true;
@@ -392,7 +392,7 @@ struct ci_less
 
 	struct nocase_equals_w
 	{
-		bool operator() (const wchar_t& c1, const wchar_t& c2) const noexcept
+		bool operator() (wchar_t c1, wchar_t c2) const noexcept
 		{
 			if (c1 == c2)
 				return true;
@@ -508,6 +508,28 @@ inline bool ci_ends_with(std::string_view a, std::string_view b)
 		return false;
 
 	return ci_equals(a.substr(a.length() - b.length()), b);
+}
+
+inline int ci_char_compare(char a, char b)
+{
+	return std::tolower(static_cast<unsigned char>(a)) - std::tolower(static_cast<unsigned char>(b));
+}
+
+inline int ci_string_compare(std::string_view s1, std::string_view s2)
+{
+	size_t size = std::min(s1.size(), s2.size());
+
+	for (size_t i = 0; i < size; ++i)
+	{
+		if (int result = ci_char_compare(s1[i], s2[i]); result != 0)
+			return result < 0 ? -1 : 1;
+	}
+
+	if (s1.size() < s2.size())
+		return -1;
+	if (s1.size() > s2.size())
+		return 1;
+	return 0;
 }
 
 struct ci_unordered

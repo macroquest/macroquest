@@ -86,10 +86,10 @@
     <ClCompile Include="MQ2CleanUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2CommandAPI.cpp">
+    <ClCompile Include="MQCommandAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Commands.cpp">
+    <ClCompile Include="MQCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQInputAPI.cpp">
@@ -104,7 +104,7 @@
     <ClCompile Include="MQ2DataVars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DetourAPI.cpp">
+    <ClCompile Include="MQDetourAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Globals.cpp">
@@ -119,7 +119,7 @@
     <ClCompile Include="MQ2Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2PluginHandler.cpp">
+    <ClCompile Include="MQPluginHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Pulse.cpp">
@@ -544,9 +544,6 @@
     <ClInclude Include="ImGuiBackend.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\base\Detours.h">
-      <Filter>Header Files\mq\base</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Config.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
@@ -598,7 +595,7 @@
     <ClInclude Include="MQDataAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\api\Plugin.h">
+    <ClInclude Include="..\..\include\mq\api\PluginAPI.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsEngine.h">
@@ -648,6 +645,27 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Markov.h">
       <Filter>Header Files\mq\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Logging.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\PluginHandle.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\CommandAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQCommandAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQPluginHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQDetourAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\DetourAPI.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

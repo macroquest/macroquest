@@ -15,9 +15,12 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQCommandAPI.h"
+#include "MQDataAPI.h"
+#include "MQPostOffice.h"
 #include "MQ2KeyBinds.h"
 #include "MQ2Mercenaries.h"
-#include "MQPostOffice.h"
+
 #include "mq/base/WString.h"
 
 #pragma warning(push)
@@ -38,7 +41,7 @@ int GetPluginUnloadFailedCount();
 //              Triggers the DLL to unload itself
 // Usage:       /unload [force]
 // ***************************************************************************
-void Unload(SPAWNINFO* pChar, char* szLine)
+void Unload(PlayerClient* pChar, const char* szLine)
 {
 	if (const int failed_count = GetPluginUnloadFailedCount(); failed_count > 0)
 	{
@@ -74,7 +77,7 @@ void Unload(SPAWNINFO* pChar, char* szLine)
 //              Lists macro files
 // Usage:       /listmacros <partial filename>
 // ***************************************************************************
-void ListMacros(SPAWNINFO* pChar, char* szLine)
+void ListMacros(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -121,7 +124,7 @@ void ListMacros(SPAWNINFO* pChar, char* szLine)
 // Description: Our '/seterror' command
 // Usage:       /seterror <clear|errormsg>
 // ***************************************************************************
-void SetError(SPAWNINFO* pChar, char* szLine)
+void SetError(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -155,7 +158,7 @@ const char* szSortBy[] =
 	nullptr
 };
 
-void SuperWho(SPAWNINFO* pChar, char* szLine)
+void SuperWho(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -227,7 +230,7 @@ void SuperWho(SPAWNINFO* pChar, char* szLine)
 // Usage:       /mqpause <off>
 //              /mqpause chat [on|off]
 // ***************************************************************************
-void MacroPause(SPAWNINFO* pChar, char* szLine)
+void MacroPause(PlayerClient* pChar, const char* szLine)
 {
 	const char* szPause[] = { "off", "on", nullptr };
 
@@ -302,7 +305,7 @@ void MacroPause(SPAWNINFO* pChar, char* szLine)
 //                by default.
 // 2003-10-08     MacroFiend
 // ***************************************************************************
-void KeepKeys(SPAWNINFO* pChar, char* szLine)
+void KeepKeys(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -342,7 +345,7 @@ void KeepKeys(SPAWNINFO* pChar, char* szLine)
 // Description:   Allows for switching engines.
 // Usage:         /engine <type> <version> [noauto]
 // ***************************************************************************
-void EngineCommand(SPAWNINFO* pChar, char* szLine)
+void EngineCommand(PlayerClient* pChar, const char* szLine)
 {
 	bool bNoAuto = false;
 
@@ -406,9 +409,8 @@ void EngineCommand(SPAWNINFO* pChar, char* szLine)
 // Purpose:     Adds the ability to invoke Methods
 // Example      /invoke ${Target.DoAssist}
 //              will execute the DoAssist Method of the Spawn TLO
-// Author:      EqMule
 // ***************************************************************************
-void InvokeCmd(SPAWNINFO* pChar, char* szLine)
+void InvokeCmd(PlayerClient*, const char* szLine)
 {
 	bRunNextCommand = true;
 }
@@ -418,7 +420,7 @@ void InvokeCmd(SPAWNINFO* pChar, char* szLine)
 // Description: Our '/squelch' command
 // Usage:       /squelch <command>
 // ***************************************************************************
-void SquelchCommand(SPAWNINFO* pChar, char* szLine)
+void SquelchCommand(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -428,7 +430,7 @@ void SquelchCommand(SPAWNINFO* pChar, char* szLine)
 
 	bool Temp = gFilterMQ;
 	gFilterMQ = true;
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 	gFilterMQ = Temp;
 }
 
@@ -438,7 +440,7 @@ void SquelchCommand(SPAWNINFO* pChar, char* szLine)
 //              Lists ground item info
 // Usage:       /items <filter>
 // ***************************************************************************
-void Items(SPAWNINFO* pChar, char* szLine)
+void Items(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -528,7 +530,7 @@ void Items(SPAWNINFO* pChar, char* szLine)
 //              Lists ground item info
 // Usage:       /itemtarget <text>
 // ***************************************************************************
-void ItemTarget(SPAWNINFO* pChar, char* szLine)
+void ItemTarget(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -569,7 +571,7 @@ void ItemTarget(SPAWNINFO* pChar, char* szLine)
 //              Lists door info
 // Usage:       /doors <filter>
 // ***************************************************************************
-void Doors(SPAWNINFO* pChar, char* szLine)
+void Doors(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -623,7 +625,7 @@ void Doors(SPAWNINFO* pChar, char* szLine)
 //              Targets the nearest specified door
 // Usage:       /doortarget <text>
 // ***************************************************************************
-void DoorTarget(SPAWNINFO* pChar, char* szLine)
+void DoorTarget(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -684,7 +686,7 @@ void DoorTarget(SPAWNINFO* pChar, char* szLine)
 //              Displays character bind points
 // Usage:       /charinfo
 // ***************************************************************************
-void CharInfo(SPAWNINFO* pChar, char* szLine)
+void CharInfo(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -693,7 +695,7 @@ void CharInfo(SPAWNINFO* pChar, char* szLine)
 
 	if (pLocalPlayer)
 	{
-		DoCommand(pLocalPlayer, "/charinfo");
+		DoCommand("/charinfo", false);
 
 		auto pProfile = GetPcProfile();
 
@@ -707,7 +709,7 @@ void CharInfo(SPAWNINFO* pChar, char* szLine)
 // Description: Our '/SpellSlotInfo' command
 // Usage:       /SpellSlotInfo [#|"spell name"]
 // ***************************************************************************
-void SpellSlotInfo(SPAWNINFO* pChar, char* szLine)
+void SpellSlotInfo(PlayerClient* pChar, const char* szLine)
 {
 	SPELL* pSpell = nullptr;
 
@@ -740,7 +742,7 @@ void SpellSlotInfo(SPAWNINFO* pChar, char* szLine)
 // Description: Our '/MemSpell' command
 // Usage:       /MemSpell gem# "spell name"
 // ***************************************************************************
-void MemSpell(SPAWNINFO* pSpawn, char* szLine)
+void MemSpell(PlayerClient* pChar, const char* szLine)
 {
 	if (!pSpellBookWnd)
 		return;
@@ -761,10 +763,10 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 	char SpellName[MAX_STRING] = { 0 };
 	GetArg(SpellName, szLine, 2);
 
-	SPELL* pSpell = nullptr;
+	EQ_Spell* pSpell = nullptr;
 	for (int index = 0; index < NUM_BOOK_SLOTS; index++)
 	{
-		if (SPELL* pTempSpell = GetSpellByID(pProfile->SpellBook[index]))
+		if (EQ_Spell* pTempSpell = GetSpellByID(pProfile->SpellBook[index]))
 		{
 			// exact name match only
 			if (ci_equals(pTempSpell->Name, SpellName))
@@ -778,7 +780,7 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 	if (!pSpell)
 		return; // did not find spell
 
-	if (pSpell->ClassLevel[pSpawn->GetClass()] > pSpawn->Level)
+	if (pSpell->ClassLevel[pChar->GetClass()] > pChar->Level)
 		return; // level requirement not met
 
 	int loadout[NUM_SPELL_GEMS];
@@ -796,7 +798,7 @@ void MemSpell(SPAWNINFO* pSpawn, char* szLine)
 //
 // will select the specified item in your inventory if merchantwindow is open
 // ***************************************************************************
-void SelectItem(SPAWNINFO* pChar, char* szLine)
+void SelectItem(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = false;
 
@@ -845,7 +847,7 @@ void SelectItem(SPAWNINFO* pChar, char* szLine)
 // uses void CMerchantWnd::RequestBuyItem(int)
 // will buy the specified quantity of the currently selected item
 // ***************************************************************************
-void BuyItem(SPAWNINFO* pChar, char* szLine)
+void BuyItem(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = false;
 
@@ -873,7 +875,7 @@ void BuyItem(SPAWNINFO* pChar, char* szLine)
 // uses private: void __thiscall CMerchantWnd::RequestSellItem(int)
 // will sell the specified quantity of the currently selected item
 // ***************************************************************************
-void SellItem(SPAWNINFO* pChar, char* szLine)
+void SellItem(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = false;
 
@@ -900,7 +902,7 @@ void SellItem(SPAWNINFO* pChar, char* szLine)
 //              Beeps the system speaker
 // Usage:       /beep
 // ***************************************************************************
-void MacroBeep(SPAWNINFO* pChar, char* szLine)
+void MacroBeep(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -931,7 +933,7 @@ void SetDisplaySWhoFilter(bool& bToggle, const char* szFilter, const char* szTog
 	WritePrivateProfileBool("SWho Filter", szFilter, bToggle, mq::internal_paths::MQini);
 }
 
-void SWhoFilter(SPAWNINFO* pChar, char* szLine)
+void SWhoFilter(PlayerClient* pChar, const char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
@@ -1058,7 +1060,7 @@ const char* szUseChat[] = {
 	nullptr
 };
 
-void Filter(SPAWNINFO* pChar, char* szLine)
+void Filter(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -1482,7 +1484,7 @@ void Filter(SPAWNINFO* pChar, char* szLine)
 //              Controls logging of DebugSpew to a file
 // Usage:       /spewfile [on,off]
 // ***************************************************************************
-void DebugSpewFile(SPAWNINFO* pChar, char* szLine)
+void DebugSpewFile(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -1515,7 +1517,7 @@ void DebugSpewFile(SPAWNINFO* pChar, char* szLine)
 //              Identifies the item on the cursor, displaying the LORE name.
 // Usage:       /identify
 // ***************************************************************************
-void Identify(SPAWNINFO* pChar, char* szLine)
+void Identify(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -1763,7 +1765,7 @@ void Identify(SPAWNINFO* pChar, char* szLine)
 //              on a 16 point compass (ie. NNE)
 // Usage:       /loc
 // ***************************************************************************
-void Location(SPAWNINFO* pChar, char* szLine)
+void Location(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -1905,7 +1907,7 @@ bool CMQ2Alerts::ListAlerts(char* szOut, size_t max)
 //              Sets up $alert notifications
 // Usage:       /alert [clear #] [list #] [add/remove # [pc|npc|corpse|any] [radius ###] [zradius ###] [race race] [class class] [range min max] [name]]
 // ***************************************************************************
-void Alert(SPAWNINFO* pChar, char* szLine)
+void Alert(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -2085,7 +2087,7 @@ void Alert(SPAWNINFO* pChar, char* szLine)
 //              Displays spawn currently selected
 // Usage:       /whotarget
 // ***************************************************************************
-void SuperWhoTarget(SPAWNINFO* pChar, char* szLine)
+void SuperWhoTarget(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -2130,7 +2132,7 @@ static DWORD WINAPI thrMsgBox(void* lpParameter)
 //              Our message box
 // Usage:       /msgbox text
 // ***************************************************************************
-void MQMsgBox(SPAWNINFO* pChar, char* szLine)
+void MQMsgBox(PlayerClient* pChar, const char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = true;
@@ -2147,10 +2149,9 @@ void MQMsgBox(SPAWNINFO* pChar, char* szLine)
 //              Our logging
 // Usage:       /mqlog text
 // ***************************************************************************
-void MacroLog(SPAWNINFO* pChar, char* szLine)
+void MacroLog(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
-
 
 	std::filesystem::path logFilePath = mq::internal_paths::Logs;
 	if (gszMacroName[0] == 0)
@@ -2162,7 +2163,7 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		logFilePath /= std::string(gszMacroName) + ".log";
 	}
 
-	if (!_stricmp(szLine, "clear"))
+	if (ci_equals(szLine, "clear"))
 	{
 		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
 		if (!fOut)
@@ -2187,14 +2188,21 @@ void MacroLog(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	time_t curr_time;
+	time(&curr_time);
 
-	const std::string strLogMessage = fmt::format("[{DateTime:%m/%d/%Y %H:%M:%S}] {LogMessage}",
-		fmt::arg("DateTime", now),
-		fmt::arg("LogMessage", szLine));
+	std::tm local_tm;
+	localtime_s(&local_tm, &curr_time);
 
-	fprintf(fOut, "%s\n", strLogMessage.c_str());
-	DebugSpew("MacroLog - %s", strLogMessage.c_str());
+	fmt::memory_buffer buffer;
+	auto out = fmt::format_to(fmt::appender(buffer),
+		"[{:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d}] {}",
+		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
+		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
+	*out = 0;
+
+	fprintf(fOut, "%s\n", buffer.data());
+	DebugSpew("MacroLog - %s", buffer.data());
 
 	fclose(fOut);
 }
@@ -2303,7 +2311,7 @@ static void FaceObject(const MQGameObject& faceTarget, int flags)
 // Usage:       /face <spawn>
 // Usage:       /face loc <y>,<x>
 // ***************************************************************************
-void Face(SPAWNINFO* pChar, char* szLine)
+void Face(PlayerClient* pChar, const char* szLine)
 {
 	if (!pSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2526,7 +2534,7 @@ void Face(SPAWNINFO* pChar, char* szLine)
 // Description:   Our /look command. Changes camera angle
 // 2003-08-30     MacroFiend
 // ***************************************************************************
-void Look(SPAWNINFO* pChar, char* szLine)
+void Look(PlayerClient* pChar, const char* szLine)
 {
 	char szLookAngle[MAX_STRING] = { 0 };
 	GetArg(szLookAngle, szLine, 1);
@@ -2549,7 +2557,7 @@ void Look(SPAWNINFO* pChar, char* szLine)
 //              Displays the direction and distance to the closest spawn
 // Usage:       /where <spawn>
 // ***************************************************************************
-void Where(SPAWNINFO* pChar, char* szLine)
+void Where(PlayerClient* pChar, const char* szLine)
 {
 	if (!pSpawnManager) return;
 	if (!pSpawnList) return;
@@ -2605,7 +2613,7 @@ void Where(SPAWNINFO* pChar, char* szLine)
 //              Does (or lists) your abilities
 // Usage:       /doability [list|ability|#]
 // ***************************************************************************
-void DoAbility(SPAWNINFO* pChar, char* szLine)
+void DoAbility(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0] || !cmdDoAbility || !pLocalPC)
 		return;
@@ -2708,7 +2716,7 @@ void DoAbility(SPAWNINFO* pChar, char* szLine)
 //              Loads (or lists) a spell favorite list
 // Usage:       /loadspells [list|"name"]
 // ***************************************************************************
-void LoadSpells(SPAWNINFO* pChar, char* szLine)
+void LoadSpells(PlayerClient* pChar, const char* szLine)
 {
 	if (!pSpellSets || !pSpellBookWnd || szLine[0] == 0)
 		return;
@@ -2847,7 +2855,7 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 // Description: Our '/cast' command
 // Usage:       /cast [list|#|"name of spell"|item "name of item"] optional:<loc x y z> (splash location)
 // ***************************************************************************
-void Cast(SPAWNINFO* pChar, char* szLine)
+void Cast(PlayerClient* pChar, const char* szLine)
 {
 	if (!cmdCast)
 		return;
@@ -2931,9 +2939,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 
 			if (spellId > 0)
 			{
-				char cmd[256] = { 0 };
-				sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
-				EzCommand(cmd);
+				DoCommandf("/useitem \"%s\"", pItem->GetName());
 			}
 		}
 		else
@@ -2997,7 +3003,7 @@ void Cast(SPAWNINFO* pChar, char* szLine)
 //              Selects the closest spawn
 // Usage:       /target [spawn|myself|mycorpse]
 // ***************************************************************************
-void Target(SPAWNINFO* pChar, char* szLine)
+void Target(PlayerClient* pChar, const char* szLine)
 {
 	gTargetbuffs = false;
 
@@ -3094,7 +3100,7 @@ void Target(SPAWNINFO* pChar, char* szLine)
 //              Displays what your current skill levels are
 // Usage:       /skills [skill name]
 // ***************************************************************************
-void Skills(SPAWNINFO* pChar, char* szLine)
+void Skills(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -3158,7 +3164,7 @@ void Skills(SPAWNINFO* pChar, char* szLine)
 //              Set autorun value
 // Usage:       /setautorun [command]
 // ***************************************************************************
-void SetAutoRun(SPAWNINFO* pChar, char* szLine)
+void SetAutoRun(PlayerClient* pChar, const char* szLine)
 {
 	char szServerAndName[256] = { 0 };
 	sprintf_s(szServerAndName, "%s.%s", GetServerShortName(), pLocalPC->Name);
@@ -3182,7 +3188,7 @@ void SetAutoRun(SPAWNINFO* pChar, char* szLine)
 //
 //    Enclosing NULL in quotes will interpret it as an actual string "NULL"
 // ***************************************************************************
-void IniOutput(SPAWNINFO* pChar, char* szLine)
+void IniOutput(PlayerClient* pChar, const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };   // Filename
 	GetArg(szArg1, szLine, 1);
@@ -3239,7 +3245,7 @@ void IniOutput(SPAWNINFO* pChar, char* szLine)
 // Description:     Our /banklist command. Lists bank contents to chat buffer.
 // 2003-08-30       Valerian
 // ***************************************************************************
-void BankList(SPAWNINFO* pChar, char* szLine)
+void BankList(PlayerClient* pChar, const char* szLine)
 {
 	if (!pLocalPC)
 		return;
@@ -3279,7 +3285,7 @@ void BankList(SPAWNINFO* pChar, char* szLine)
 // Function:      WindowState
 // Description:      Our /windowstate command. Toggles windows open/closed.
 // ***************************************************************************
-void WindowState(SPAWNINFO* pChar, char* szLine)
+void WindowState(PlayerClient* pChar, const char* szLine)
 {
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
@@ -3325,7 +3331,7 @@ void WindowState(SPAWNINFO* pChar, char* szLine)
 // Function:      DisplayLoginName
 // Description:   Our /loginname command.
 // ***************************************************************************
-void DisplayLoginName(SPAWNINFO* pChar, char* szLine)
+void DisplayLoginName(PlayerClient* pChar, const char* szLine)
 {
 	const char* szLogin = GetLoginName();
 	if (!szLogin)
@@ -3342,7 +3348,7 @@ void DisplayLoginName(SPAWNINFO* pChar, char* szLine)
 // Function:      EQDestroyHeldItemOrMoney
 // Description:   Our /destroy command.
 // ***************************************************************************
-void EQDestroyHeldItemOrMoney(SPAWNINFO* pChar, char* szLine)
+void EQDestroyHeldItemOrMoney(PlayerClient* pChar, const char* szLine)
 {
 	pLocalPC->DestroyHeldItemOrMoney();
 }
@@ -3351,7 +3357,7 @@ void EQDestroyHeldItemOrMoney(SPAWNINFO* pChar, char* szLine)
 // Function:      Exec
 // Description:   Our /exec command.
 // ***************************************************************************
-void Exec(SPAWNINFO* pChar, char* szLine)
+void Exec(PlayerClient* pChar, const char* szLine)
 {
 	char szTemp1[MAX_STRING] = { 0 };
 	GetArg(szTemp1, szLine, 1);
@@ -3419,7 +3425,7 @@ void Exec(SPAWNINFO* pChar, char* szLine)
 }
 
 // /keypress
-void DoMappable(SPAWNINFO* pChar, char* szLine)
+void DoMappable(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -3492,25 +3498,25 @@ void DoMappable(SPAWNINFO* pChar, char* szLine)
 }
 
 // /popup
-void PopupText(SPAWNINFO* pChar, char* szLine)
+void PopupText(PlayerClient* pChar, const char* szLine)
 {
 	DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500, 500, 3000);
 }
 
 // /popcustom
-void PopupTextCustom(SPAWNINFO* pChar, char* szLine)
+void PopupTextCustom(PlayerClient* pChar, const char* szLine)
 {
 	CustomPopup(szLine, false);
 }
 
 // /popupecho
-void PopupTextEcho(SPAWNINFO* pChar, char* szLine)
+void PopupTextEcho(PlayerClient* pChar, const char* szLine)
 {
 	CustomPopup(szLine, true);
 }
 
 // /multiline
-void MultilineCommand(SPAWNINFO* pChar, char* szLine)
+void MultilineCommand(PlayerClient*, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -3536,7 +3542,7 @@ void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 		trim(strCmd);
 		if (!strCmd.empty())
 		{
-			DoCommand(pChar, &strCmd[0]);
+			DoCommand(&strCmd[0], false);
 		}
 
 		token1 = strtok_s(nullptr, szArg, &next_token1);
@@ -3544,7 +3550,7 @@ void MultilineCommand(SPAWNINFO* pChar, char* szLine)
 }
 
 // /ranged
-void do_ranged(SPAWNINFO* pChar, char* szLine)
+void RangedCmd(PlayerClient*, const char* szLine)
 {
 	PlayerClient* pRangedTarget = pTarget;
 
@@ -3568,7 +3574,7 @@ void do_ranged(SPAWNINFO* pChar, char* szLine)
 }
 
 // /loadcfg
-void LoadCfgCommand(SPAWNINFO* pChar, char* szLine)
+void LoadCfgCommand(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3583,7 +3589,7 @@ void LoadCfgCommand(SPAWNINFO* pChar, char* szLine)
 }
 
 // /dumpbinds
-void DumpBindsCommand(SPAWNINFO* pChar, char* szLine)
+void DumpBindsCommand(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3601,7 +3607,7 @@ void DumpBindsCommand(SPAWNINFO* pChar, char* szLine)
 }
 
 // /docommand
-void DoCommandCmd(SPAWNINFO* pChar, char* szLine)
+void DoCommandCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3609,11 +3615,11 @@ void DoCommandCmd(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 }
 
 // /alt
-void DoAltCmd(SPAWNINFO* pChar, char* szLine)
+void DoAltCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3624,13 +3630,13 @@ void DoAltCmd(SPAWNINFO* pChar, char* szLine)
 	bool Old = pWndMgr->KeyboardFlags[2];
 	pWndMgr->KeyboardFlags[2] = true;
 
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 
 	pWndMgr->KeyboardFlags[2] = Old;
 }
 
 // /shift
-void DoShiftCmd(SPAWNINFO* pChar, char* szLine)
+void DoShiftCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3643,14 +3649,14 @@ void DoShiftCmd(SPAWNINFO* pChar, char* szLine)
 	bool old2 = pEverQuestInfo->bIsPressedShift;
 	pEverQuestInfo->bIsPressedShift = true;
 
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 
 	pWndMgr->KeyboardFlags[0] = old1;
 	pEverQuestInfo->bIsPressedShift = old2;
 }
 
 // /ctrl
-void DoCtrlCmd(SPAWNINFO* pChar, char* szLine)
+void DoCtrlCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3661,12 +3667,12 @@ void DoCtrlCmd(SPAWNINFO* pChar, char* szLine)
 	bool Old = pWndMgr->KeyboardFlags[1];
 	pWndMgr->KeyboardFlags[1] = true;
 
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 
 	pWndMgr->KeyboardFlags[1] = Old;
 }
 
-void NoModKeyCmd(SPAWNINFO* pChar, char* szLine)
+void NoModKeyCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3678,7 +3684,7 @@ void NoModKeyCmd(SPAWNINFO* pChar, char* szLine)
 	*(DWORD*)&KeyboardFlags = *(DWORD*)&pWndMgr->KeyboardFlags;
 	*(DWORD*)&pWndMgr->KeyboardFlags = 0;
 
-	DoCommand(pChar, szLine);
+	DoCommand(szLine, false);
 
 	*(DWORD*)&pWndMgr->KeyboardFlags = *(DWORD*)&KeyboardFlags;
 }
@@ -3690,7 +3696,7 @@ void NoModKeyCmd(SPAWNINFO* pChar, char* szLine)
 // Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
 
-void UseItemCmd(SPAWNINFO* pChar, char* szLine)
+void UseItemCmd(PlayerClient* pChar, const char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
 	strcpy_s(szCmd, szLine);
@@ -3754,7 +3760,7 @@ void UseItemCmd(SPAWNINFO* pChar, char* szLine)
 //              Does (or lists) your programmed socials
 // Usage:       /dosocial [list|"social name"]
 // ***************************************************************************
-void DoSocial(SPAWNINFO* pChar, char* szLine)
+void DoSocial(PlayerClient*, const char* szLine)
 {
 	char szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
@@ -3814,7 +3820,7 @@ void DoSocial(SPAWNINFO* pChar, char* szLine)
 			for (int LineIndex = 0; LineIndex < 5; LineIndex++)
 			{
 				if (pSocialList[SocialIndex].Line[LineIndex][0] != 0)
-					DoCommand(pChar, pSocialList[SocialIndex].Line[LineIndex]);
+					DoCommand(pSocialList[SocialIndex].Line[LineIndex], false);
 			}
 		}
 		else
@@ -3844,7 +3850,7 @@ void DoSocial(SPAWNINFO* pChar, char* szLine)
 //				/hotbutton TheName 0:/echo hi		(Where 0: in this case means NO Cursor Attachment.)
 //				Finally, just doing /hotbutton TheName 14 /echo hi OR /hotbutton TheName /echo hi just calls the eq function like before.
 // ***************************************************************************
-void DoHotButton(PSPAWNINFO pChar, char* pBuffer)
+void DoHotButton(PlayerClient* pChar, const char* pBuffer)
 {
 	DWORD SocialIndex = -1, LineIndex;
 	DWORD SocialPage = 0, SocialNum = 0;
@@ -3999,7 +4005,7 @@ static bool AbandonTask(const char* taskName, int taskId)
 //              Usage:
 //              /taskquit Name of task
 // ***************************************************************************
-void TaskQuitCmd(PSPAWNINFO pChar, char* pBuffer)
+void TaskQuitCmd(PlayerClient* pChar, const char* pBuffer)
 {
 	char szName[MAX_STRING] = { 0 };
 	strcpy_s(szName, pBuffer);
@@ -4037,7 +4043,7 @@ void TaskQuitCmd(PSPAWNINFO pChar, char* pBuffer)
 }
 
 // /timed
-void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
+void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4052,17 +4058,17 @@ void DoTimedCmd(SPAWNINFO* pChar, char* szLine)
 	if (!szRest[0])
 		return;
 
-	TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
 }
 
-void ClearErrorsCmd(SPAWNINFO* pChar, char* szLine)
+void ClearErrorsCmd(PlayerClient* pChar, const char* szLine)
 {
 	gszLastNormalError[0] = 0;
 	gszLastSyntaxError[0] = 0;
 	gszLastMQ2DataError[0] = 0;
 }
 
-void CombineCmd(SPAWNINFO* pChar, char* szLine)
+void CombineCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4089,7 +4095,7 @@ void CombineCmd(SPAWNINFO* pChar, char* szLine)
 	MacroError("Window '%s' not container window", szLine);
 }
 
-void DropCmd(SPAWNINFO*, char*)
+void DropCmd(PlayerClient*, const char*)
 {
 	ItemPtr pItem = GetPcProfile()->GetInventorySlot(InvSlot_Cursor);
 
@@ -4097,7 +4103,7 @@ void DropCmd(SPAWNINFO*, char*)
 		pEverQuest->DropHeldItemOnGround(1);
 }
 
-void HudCmd(SPAWNINFO* pChar, char* szLine)
+void HudCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4125,7 +4131,7 @@ void HudCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void NoParseCmd(SPAWNINFO* pChar, char* szLine)
+void NoParseCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4140,17 +4146,17 @@ void NoParseCmd(SPAWNINFO* pChar, char* szLine)
 		// Cast it as a char*, Modify the line, and run the command
 		std::string macroString = ModifyMacroString(szLine, true, ModifyMacroMode::WrapNoDoubles);
 
-		DoCommand(pChar, &macroString[0]);
+		DoCommand(&macroString[0], false);
 	}
 	else
 	{
 		bAllowCommandParse = false;
-		DoCommand(pChar, szLine);
+		DoCommand(szLine, false);
 		bAllowCommandParse = true;
 	}
 }
 
-void AltAbility(SPAWNINFO* pChar, char* szLine)
+void AltAbility(PlayerClient* pChar, const char* szLine)
 {
 	char szCommand[MAX_STRING] = { 0 };
 	GetArg(szCommand, szLine, 1);
@@ -4299,9 +4305,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 				{
 					if (!_stricmp(szName, pName))
 					{
-						char szBuffer[MAX_STRING] = { 0 };
-						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
-						DoCommand(pChar, szBuffer);
+						DoCommandf("/alt act %d", pAbility->ID);
 						break;
 					}
 				}
@@ -4320,7 +4324,7 @@ void AltAbility(SPAWNINFO* pChar, char* szLine)
 //              Writes text to the MQ2 Chat channel
 // Usage:       /echo <text>
 // ***************************************************************************
-void Echo(SPAWNINFO* pChar, char* szLine)
+void Echo(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
@@ -4376,7 +4380,7 @@ void Echo(SPAWNINFO* pChar, char* szLine)
 //              Writes text to the MQ2 Chat channel without color formatting
 // Usage:       /cecho <text>
 // ***************************************************************************
-void EchoClean(SPAWNINFO* pChar, char* szLine)
+void EchoClean(PlayerClient* pChar, const char* szLine)
 {
 	DebugSpewNoFile("Echo: %s", szLine);
 
@@ -4393,7 +4397,7 @@ void EchoClean(SPAWNINFO* pChar, char* szLine)
 //              Loots everything on the targeted corpse
 // Usage:       /lootall
 // ***************************************************************************
-void LootAll(SPAWNINFO* pChar, char* szLine)
+void LootAll(PlayerClient* pChar, const char* szLine)
 {
 	pLootWnd->LootAll(true);
 }
@@ -4404,7 +4408,7 @@ void LootAll(SPAWNINFO* pChar, char* szLine)
 //              Set the Window Title
 // Usage:       /setwintitle <something something>
 // ***************************************************************************
-void SetWinTitle(SPAWNINFO* pChar, char* szLine)
+void SetWinTitle(PlayerClient* pChar, const char* szLine)
 {
 	HWND hEQWnd = GetEQWindowHandle();
 
@@ -4423,15 +4427,17 @@ void SetWinTitle(SPAWNINFO* pChar, char* szLine)
 //              Gets the Window Title
 // Usage:       /getwintitle
 // ***************************************************************************
-void GetWinTitle(SPAWNINFO* pChar, char* szLine)
+void GetWinTitle(PlayerClient* pChar, const char* szLine)
 {
-	HWND hEQWnd = GetEQWindowHandle();
+	UNUSED(pChar);
 
-	if (hEQWnd)
+	if (HWND hEQWnd = GetEQWindowHandle())
 	{
-		if (GetWindowTextA(hEQWnd, szLine, 255) && szLine[0] != 0)
+		char szWindowTitle[255] = { 0 };
+
+		if (GetWindowTextA(hEQWnd, szWindowTitle, 255) && szWindowTitle[0] != 0)
 		{
-			WriteChatf("Window Title: \ay%s\ax", szLine);
+			WriteChatf("Window Title: \ay%s\ax", szWindowTitle);
 		}
 	}
 }
@@ -4442,7 +4448,7 @@ void GetWinTitle(SPAWNINFO* pChar, char* szLine)
 //              Adds the ability to do /pet attack #id
 // Usage:       /pet attack 1234 or whatever the spawnid is you want the pet to attack
 // ***************************************************************************
-void PetCmd(SPAWNINFO* pChar, char* szLine)
+void PetCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4489,7 +4495,7 @@ void PetCmd(SPAWNINFO* pChar, char* szLine)
 //              Adds the ability to do /mercswitch Healer,Damage Caster,Melee Damage or Tank
 // Usage:       /mercswitch healer will switch to a Healer merc
 // ***************************************************************************
-void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
+void MercSwitchCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4527,7 +4533,7 @@ void MercSwitchCmd(SPAWNINFO* pChar, char* szLine)
 // Or:    /advloot shared set "item from the shared set to all combo box, can be player name any of the other items that exist in that box..."
 // ***************************************************************************
 
-void AdvLootCmd(SPAWNINFO* pChar, char* szLine)
+void AdvLootCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 		return;
@@ -4999,7 +5005,7 @@ DWORD CALLBACK openpickzonewnd(void* pData)
 //              Adds the ability to do /pickzone #
 // Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
 // ***************************************************************************
-void PickZoneCmd(SPAWNINFO* pChar, char* szLine)
+void PickZoneCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -5019,7 +5025,7 @@ void PickZoneCmd(SPAWNINFO* pChar, char* szLine)
 // Purpose:     Adds the ability to /quit at charselect
 // Author:      EqMule
 // ***************************************************************************
-void QuitCmd(SPAWNINFO* pChar, char* szLine)
+void QuitCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 	{
@@ -5038,7 +5044,7 @@ void QuitCmd(SPAWNINFO* pChar, char* szLine)
 // Purpose:     Adds the ability to forward /assist so we can set the gbAssist flag
 // Author:      EqMule
 // ***************************************************************************
-void AssistCmd(SPAWNINFO* pChar, char* szLine)
+void AssistCmd(PlayerClient* pChar, const char* szLine)
 {
 	gbAssistComplete = AS_None;
 	cmdAssist(pChar, szLine);
@@ -5051,7 +5057,7 @@ void AssistCmd(SPAWNINFO* pChar, char* szLine)
 // Example:		/setprio <1-6> Where 1 is Low, 2 is below Normal, 3 is Normal, 4 is Above Normal, 5 is High, and 6 is RealTime
 // Author:      EqMule
 // ***************************************************************************
-void SetProcessPriority(SPAWNINFO* pChar, char* szLine)
+void SetProcessPriority(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine || szLine[0] == 0)
 	{
@@ -5114,7 +5120,7 @@ void SetProcessPriority(SPAWNINFO* pChar, char* szLine)
 // Example:     /screenmode <#> Where 2 is Normal and 3 is No Windows
 // Author:      EqMule
 // ***************************************************************************
-void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
+void ScreenModeCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine && szLine[0] == '\0')
 	{
@@ -5136,7 +5142,7 @@ void ScreenModeCmd(SPAWNINFO* pChar, char* szLine)
 // Example:     /usercamera load loades the user 1 camera settings
 // Author:      EqMule
 // ***************************************************************************
-void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
+void UserCameraCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine && szLine[0] == '\0')
 	{
@@ -5279,7 +5285,7 @@ void UserCameraCmd(SPAWNINFO* pChar, char* szLine)
 // Example:     /bct <toonname> //foreground
 // Author:      EqMule
 // ***************************************************************************
-void ForeGroundCmd(SPAWNINFO* pChar, char* szLine)
+void ForeGroundCmd(PlayerClient* pChar, const char* szLine)
 {
 	HWND EQhWnd = GetEQWindowHandle();
 
@@ -5321,7 +5327,7 @@ static bool HasLevSPA(SPELL* pBuff)
 	return false;
 }
 
-void RemoveLevCmd(SPAWNINFO* pChar, char* szLine)
+void RemoveLevCmd(PlayerClient* pChar, const char* szLine)
 {
 	PcProfile* pcProfile = GetPcProfile();
 	if (!pcProfile)
@@ -5408,7 +5414,7 @@ void MQCopyLayoutImpl(const std::string& charName, const std::string& serverName
 	}
 }
 
-void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
+void MQCopyLayout(PlayerClient* pChar, const char* szLine)
 {
 	const char* szRest = szLine;
 
@@ -5456,7 +5462,7 @@ void MQCopyLayout(SPAWNINFO* pChar, char* szLine)
 // Usage:       /mqlistmodules [name]
 // Author:      brainiac
 // ***************************************************************************
-void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
+void ListModulesCommand(PlayerClient* pChar, const char* szLine)
 {
 	HANDLE hProcess = GetCurrentProcess();
 
@@ -5497,7 +5503,7 @@ void ListModulesCommand(PSPAWNINFO pChar, char* szLine)
 // Usage:       /mqlistprocesses [name]
 // Author:      dannuic
 // ***************************************************************************
-void ListProcessesCommand(PSPAWNINFO pChar, char* szLine)
+void ListProcessesCommand(PlayerClient* pChar, const char* szLine)
 {
 	std::vector<DWORD> processIDs;
 	processIDs.resize(1024);
@@ -5529,7 +5535,7 @@ void ListProcessesCommand(PSPAWNINFO pChar, char* szLine)
 //----------------------------------------------------------------------------
 
 #if HAS_ITEM_CONVERT_BUTTON
-void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)
+void ConvertItemCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!pItemDisplayManager) return;
 
@@ -5560,7 +5566,7 @@ void ConvertItemCmd(SPAWNINFO* pSpawn, char* szLine)
 }
 #endif // HAS_ITEM_CONVERT_BUTTON
 
-void InsertAugCmd(SPAWNINFO* pChar, char* szLine)
+void InsertAugCmd(PlayerClient* pChar, const char* szLine)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return;
@@ -5683,7 +5689,7 @@ static ItemPtr FindAugmentSolvent(const ItemPtr& pAugItem)
 #endif
 }
 
-void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
+void RemoveAugCmd(PlayerClient* pChar, const char* szLine)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return;
@@ -5790,15 +5796,17 @@ void RemoveAugCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void ExecuteLinkCommand(SPAWNINFO* pChar, char* arg)
+void ExecuteLinkCommand(PlayerClient* pChar, const char* szLine)
 {
-	if (arg[0] != 0)
+	UNUSED(pChar);
+
+	if (szLine[0] != 0)
 	{
-		TextTagInfo link_info = ExtractLink(arg);
+		TextTagInfo link_info = ExtractLink(szLine);
 
 		if (link_info.tagCode == ETAG_INVALID)
 		{
-			WriteChatf("\arInvalid Link Text: \ax%s", arg);
+			WriteChatf("\arInvalid Link Text: \ax%s", szLine);
 		}
 		else
 		{
@@ -5812,5 +5820,9 @@ void ExecuteLinkCommand(SPAWNINFO* pChar, char* arg)
 	}
 }
 
+void ReloadUICmd(PlayerClient*, const char*)
+{
+	DoCommandf("/loadskin %s 1", gUISkin);
+}
 
 } // namespace mq

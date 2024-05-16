@@ -23,6 +23,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <shellapi.h>
+
+#include "ImGui.h"
 
 
 using namespace postoffice;
@@ -195,6 +198,55 @@ private:
 						SetForegroundWindowInternal((HWND)request->hWnd);
 					}
 				}
+				break;
+			}
+
+			case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				if (notification.has_message())
+					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
+				else
+					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
+			}
+
+			case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				NOTIFYICONDATA notify;
+				notify.cbSize = sizeof(NOTIFYICONDATA);
+				notify.uID = WM_USER_SYSTRAY;
+				notify.hWnd = hMainWnd;
+				notify.uFlags = NIF_INFO;
+
+				strcpy_s(notify.szInfoTitle, notification.title().c_str());
+				if (notification.has_message())
+					strcpy_s(notify.szInfo, notification.message().c_str());
+				else
+					strcpy_s(notify.szInfo, notification.title().c_str());
+
+				if (notification.has_level())
+				{
+					switch (notification.level())
+					{
+					case proto::routing::NotifyLevel::Info:
+						notify.dwInfoFlags = NIIF_INFO;
+						break;
+					case proto::routing::NotifyLevel::Warning:
+						notify.dwInfoFlags = NIIF_WARNING;
+						break;
+					case proto::routing::NotifyLevel::Error:
+						notify.dwInfoFlags = NIIF_ERROR;
+						break;
+					default:
+						notify.dwInfoFlags = NIIF_INFO;
+						break;
+					}
+				}
+				else
+					notify.dwInfoFlags = NIIF_INFO;
+
+				Shell_NotifyIcon(NIM_MODIFY, &notify);
 				break;
 			}
 
@@ -547,8 +599,6 @@ private:
 		return false;
 	}
 };
-
-std::unique_ptr<LauncherPostOffice> s_postOffice;
 
 PostOffice& postoffice::GetPostOffice()
 {

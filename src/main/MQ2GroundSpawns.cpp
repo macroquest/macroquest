@@ -17,7 +17,7 @@
 
 namespace mq {
 
-static void SetGameStateGroundSpawns(DWORD);
+static void SetGameStateGroundSpawns(int);
 
 static MQModule s_GroundSpawnsModule = {
 	"GroundSpawns",                // Name
@@ -275,7 +275,7 @@ public:
 	}
 };
 
-static void SetGameStateGroundSpawns(DWORD)
+static void SetGameStateGroundSpawns(int)
 {
 	GroundSpawnSearch::Reset();
 }

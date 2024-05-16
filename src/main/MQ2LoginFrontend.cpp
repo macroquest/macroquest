@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
+#include "MQPluginHandler.h"
 
 // "LoginFrontend" or just "Frontend" refers to the UI part of EQ that contains login
 // and server select. This is contained in eqmain, and its functions are only available

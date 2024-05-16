@@ -14,6 +14,10 @@
 
 #pragma once
 
+#ifndef MQ2MAIN_EXPORTS
+#error This header should only be included from the MQ2Main project
+#endif
+
 #include "mq/base/Common.h"
 #include "mq/api/ActorAPI.h"
 
@@ -27,23 +31,23 @@ public:
 		const postoffice::Address& address,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
 		const std::string& data,
 		uint8_t status,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	postoffice::Dropbox* AddActor(
 		const char* localAddress,
 		postoffice::ReceiveCallbackAPI&& receive,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	void RemoveActor(
 		postoffice::Dropbox*& dropbox,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	void OnUnloadPlugin(MQPlugin* plugin);
 };

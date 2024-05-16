@@ -45,6 +45,12 @@ static MQModule s_ActorAPIModule = {
 	false                            // manualUnload
 };
 MQModule* GetActorAPIModule() { return &s_ActorAPIModule; }
+MQActorAPI* pActorAPI = nullptr;
+
+std::unordered_map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
+
+// this is to allow for replies while not exposing message internals to the API
+std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
 static void UnloadPluginActorAPI(const char* pluginName)
 {
@@ -53,23 +59,26 @@ static void UnloadPluginActorAPI(const char* pluginName)
 	{
 		pActorAPI->OnUnloadPlugin(plugin);
 	}
+
+	auto it = s_dropboxes.find(plugin);
+	if (it != s_dropboxes.end())
+	{
+		it->second.clear();
+		s_dropboxes.erase(it);
+	}
 }
-
-MQActorAPI* pActorAPI = nullptr;
-
-std::map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
-
-// this is to allow for replies while not exposing message internals to the API
-std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
 void MQActorAPI::SendToActor(
 	postoffice::Dropbox* dropbox,
 	const postoffice::Address& address,
 	const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback,
-	MQPlugin* owner)
+	const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
 {
 	proto::routing::Address addr;
+
+	// Treat Main plugin handle as having no owner.
+	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
 
 	if (address.PID)
 		addr.set_pid(*address.PID);
@@ -124,13 +133,14 @@ void MQActorAPI::SendToActor(
 					if (envelope.has_payload())
 						data = envelope.payload();
 
-					callback(status, std::shared_ptr<postoffice::Message>(
-						new postoffice::Message{ message.get(), sender, data }));
+					callback(status, std::make_shared<postoffice::Message>(
+						postoffice::Message{message.get(), sender, data}));
 				}
 				else
 				{
-					callback(status, std::shared_ptr<postoffice::Message>(
-						new postoffice::Message{ message.get(), address, std::string(message->get<const char>(), message->size()) }));
+					callback(status, std::make_shared<postoffice::Message>(postoffice::Message{
+						message.get(), address, std::string(message->get<const char>(), message->size())
+					}));
 				}
 			};
 	}
@@ -154,12 +164,11 @@ void MQActorAPI::ReplyToActor(
 	const std::shared_ptr<postoffice::Message>& message,
 	const std::string& data,
 	uint8_t status,
-	MQPlugin* owner)
+	const MQPluginHandle& pluginHandle)
 {
 	if (dropbox != nullptr && dropbox->IsValid())
 	{
-		auto& message_ptr = s_messageStorage.find(message->Original);
-
+		auto message_ptr = s_messageStorage.find(message->Original);
 		if (message_ptr != s_messageStorage.end())
 		{
 			// we don't want to do any address mangling here because a reply is always going to be fully qualified
@@ -174,8 +183,10 @@ void MQActorAPI::ReplyToActor(
 postoffice::Dropbox* MQActorAPI::AddActor(
 	const char* localAddress,
 	ReceiveCallbackAPI&& receive,
-	MQPlugin* owner)
+	const MQPluginHandle& pluginHandle)
 {
+	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
 		[receive = std::move(receive)](ProtoMessagePtr&& message)
 		{
@@ -217,11 +228,14 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 
 void MQActorAPI::RemoveActor(
 	postoffice::Dropbox*& dropbox,
-	MQPlugin* owner)
+	const MQPluginHandle& pluginHandle)
 {
 	if (dropbox != nullptr)
 	{
 		dropbox->Remove();
+
+		MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+
 		auto dropboxes_it = s_dropboxes.find(owner);
 		if (dropboxes_it != s_dropboxes.end())
 		{
@@ -240,6 +254,7 @@ void MQActorAPI::RemoveActor(
 }
 
 void MQActorAPI::OnUnloadPlugin(MQPlugin* plugin)
-{}
+{
+}
 
 } // namespace mq

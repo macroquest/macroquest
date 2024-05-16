@@ -15,10 +15,9 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#pragma warning(push)
-#pragma warning(disable: 4244)
+#include "MQPluginHandler.h"
+
 #include <fmt/chrono.h>
-#pragma warning(pop)
 
 namespace mq {
 
@@ -72,9 +71,18 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 			if (gbTimeStampChat)
 			{
-				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
+				time_t curr_time;
+				time(&curr_time);
 
-				Trampoline(timeStampedMsg.c_str(), dwColor, EqLog, dopercentsubst);
+				std::tm local_tm;
+				localtime_s(&local_tm, &curr_time);
+
+				fmt::memory_buffer buffer;
+				auto out = fmt::format_to(fmt::appender(buffer),
+					"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
+				*out = 0;
+
+				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst, makeStmlSafe);
 				SkipTrampoline = true;
 			}
 #endif // HAS_CHAT_TIMESTAMPS
@@ -113,9 +121,18 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 		if (gbTimeStampChat)
 		{
-			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()), szMsg);
+			time_t curr_time;
+			time(&curr_time);
 
-			TellWnd_Trampoline(timeStampedMsg.c_str(), from, windowtitle, text, color, bLogOk);
+			std::tm local_tm;
+			localtime_s(&local_tm, &curr_time);
+
+			fmt::memory_buffer buffer;
+			auto out = fmt::format_to(fmt::appender(buffer),
+				"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
+			*out = 0;
+
+			TellWnd_Trampoline(buffer.data(), from, windowtitle, text, color, bLogOk);
 			SkipTrampoline = true;
 		}
 #endif // HAS_CHAT_TIMESTAMPS

@@ -24,6 +24,7 @@
 #include "mq/utils/Naming.h"
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
+#include "mq/base/Logging.h"
 
 #include "resource.h"
 
@@ -85,6 +86,13 @@ uint32_t gFocusProcessID = 0;
 static std::set<uint32_t> s_processIds;
 
 static uint32_t s_taskbarRestart = 0;
+
+// Log cleanup settings
+static uint32_t s_logCleanupMaxCount = 200;         // Default to only keeping a max of 200 log files
+static uint32_t s_logCleanupMaxAgeDays = 14;        // Default to 14 days before deleting log files
+static uint32_t s_logFileCleanupIntervalMins = 360; // Default to 6 hours between cleanings
+
+static std::chrono::steady_clock::time_point s_lastLogFileCleanupRun;
 
 //----------------------------------------------------------------------------
 
@@ -162,30 +170,356 @@ void UpdateShowConsole(bool showConsole, bool updateIni)
 	}
 }
 
-void InitializeLogging()
+static void PerformLoggingCleanup()
 {
 	fs::path loggingPath = internal_paths::Logs;
-	std::string filename = (loggingPath / fmt::format("MacroQuest-Launcher-{}.log",
-		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
-			std::chrono::system_clock::now())))).string();
 
+	const auto durationCutoff = s_logCleanupMaxAgeDays * 24h;
+	const size_t countCutoff = s_logCleanupMaxCount;
+
+	static bool firstTime = true;
+
+	try
+	{
+		fs::directory_iterator dirIter(loggingPath);
+		fs::directory_iterator dirIterEnd;
+
+		using file_clock = fs::file_time_type::clock;
+
+		struct DirEntry
+		{
+			fs::path fileName;
+			file_clock::time_point modifiedTime;
+
+			DirEntry(const fs::path& fileName_, const file_clock::time_point& modifiedTime_)
+				: fileName(fileName_), modifiedTime(modifiedTime_) {}
+			DirEntry() = default;
+		};
+
+		std::vector<DirEntry> dirItems;
+		std::vector<DirEntry> removeItems;
+		auto file_time_now = file_clock::now();
+		std::error_code ec;
+
+		for (; dirIter != dirIterEnd; ++dirIter)
+		{
+			const auto& dirEntry = *dirIter;
+
+			if (!dirEntry.is_regular_file(ec) || !ci_equals(dirEntry.path().extension().string(), ".log"))
+			{
+				continue;
+			}
+
+			// Check last modified time. If it is too old we purge.
+			auto file_time = fs::last_write_time(dirEntry.path(), ec);
+
+			if (s_logCleanupMaxAgeDays > 0 && file_time_now - file_time > durationCutoff)
+			{
+				removeItems.emplace_back(dirEntry.path(), file_time);
+			}
+			else
+			{
+				dirItems.emplace_back(dirEntry.path(), file_time);
+			}
+		}
+
+		// Check if we need to remove log files based on total number remaining
+		if (countCutoff > 0 && dirItems.size() > countCutoff)
+		{
+			// Sort by modified time descending.
+			std::sort(std::begin(dirItems), std::end(dirItems), [&](const DirEntry& a, const DirEntry& b)
+				{
+					return a.modifiedTime > b.modifiedTime;
+				});
+
+			std::copy_n(std::begin(dirItems), dirItems.size() - countCutoff, std::back_inserter(removeItems));
+		}
+
+		if (firstTime)
+		{
+			SPDLOG_INFO("Performing log file cleanup, found {} files to remove.", removeItems.size());
+		}
+
+		// Delete the entries selected for deletion
+		for (const DirEntry& entry : removeItems)
+		{
+			try
+			{
+				SPDLOG_INFO("Removed {}", entry.fileName.string());
+				fs::remove(entry.fileName);
+			}
+			catch (const std::exception& ex)
+			{
+				SPDLOG_WARN("Failed to remove log file: {} ({})", entry.fileName.string(), ex.what());
+			}
+		}
+	}
+	catch (const std::exception& exc)
+	{
+		SPDLOG_WARN("Exception occurred while performing log file cleanup: {}", exc.what());
+	}
+
+	firstTime = false;
+}
+
+static void CheckPruneLogging()
+{
+	using namespace std::chrono;
+
+	if (s_logFileCleanupIntervalMins > 0)
+	{
+		auto now = steady_clock::now();
+		if (now - s_lastLogFileCleanupRun > minutes(s_logFileCleanupIntervalMins))
+		{
+			s_lastLogFileCleanupRun = now;
+
+			PerformLoggingCleanup();
+		}
+	}
+}
+
+void InitializeLogging()
+{
 	// create color multi threaded logger
-
 	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
+	spdlog::set_default_logger(logger);
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
 	if (IsDebuggerPresent())
 	{
 		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
 	}
 
-	auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
-	logger->sinks().push_back(fileSink);
+	fmt::memory_buffer filename;
+	auto out = fmt::format_to(fmt::appender(filename),
+		"{}\\{}", internal_paths::Logs, mq::CreateLogFilename("MacroQuest-Launcher"));
+	*out = 0;
 
-	spdlog::set_default_logger(logger);
-	fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
-	spdlog::flush_on(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::trace);
+	try
+	{
+		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
+		fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
+
+		logger->sinks().push_back(fileSink);
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		// Failed to create log file. How would we report this so early?
+		SPDLOG_WARN("Failed to create file logger: {}, ex: {}", std::string_view(filename.data(), filename.size()), ex.what());
+	}
 
 	SPDLOG_DEBUG("Logging Initialized");
+}
+
+void ShowLoggingSettings()
+{
+	if (ImGui::Button("Open Logs Folder"))
+	{
+		ShellExecuteA(nullptr, "explore", internal_paths::Logs.c_str(), nullptr, nullptr, SW_SHOW);
+	}
+
+	ImGui::NewLine();
+
+	ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("Logging Cleanup");
+	ImGui::PopFont();
+	ImGui::Separator();
+
+	ImGui::TextWrapped("Logging cleanup will automatically delete old log files in the logs folder to avoid consuming excessive amounts of disk space.");
+	ImGui::NewLine();
+
+	using namespace std::chrono;
+
+	using days = std::chrono::duration<int, std::ratio<1440 * 60>>;       // 1440 minutes in a day
+	using weeks = std::chrono::duration<int, std::ratio<1440 * 60 * 7>>;
+	using years = std::chrono::duration<int, std::ratio<1440 * 60 * 365>>;
+
+	// Cleanup interval
+	{
+		static uint32_t lastLogFileCleanupIntervalMins = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if  (lastLogFileCleanupIntervalMins != s_logFileCleanupIntervalMins || !init)
+		{
+			lastLogFileCleanupIntervalMins = s_logFileCleanupIntervalMins;
+			init = true;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastLogFileCleanupIntervalMins <= 0)
+			{
+				fmt::format_to(fmt::appender(buffer), "Never");
+				*buf = 0;
+			}
+			else
+			{
+				// Define durations for days, hours, and minutes
+				auto minutes_duration = minutes(lastLogFileCleanupIntervalMins);
+				auto hours_duration = duration_cast<hours>(minutes_duration);
+				auto days_duration = duration_cast<days>(hours_duration);
+
+				// Calculate remaining hours and minutes
+				hours_duration -= days_duration;
+				minutes_duration -= hours_duration;
+				minutes_duration -= duration_cast<minutes>(days_duration);
+
+				if (days_duration.count() > 0) {
+					fmt::format_to(buf, "{} day{}", days_duration.count(), days_duration.count() != 1 ? "s " : "");
+					if (hours_duration.count() > 0 || minutes_duration.count() > 0) {
+						*buf = ' ';
+					}
+				}
+				if (hours_duration.count() > 0) {
+					fmt::format_to(buf, "{} hour{}", hours_duration.count(), hours_duration.count() != 1 ? "s " : "");
+					if (minutes_duration.count() > 0) {
+						*buf = ' ';
+					}
+				}
+				if (minutes_duration.count() > 0) {
+					fmt::format_to(buf, "{} minute{}", minutes_duration.count(), minutes_duration.count() != 1 ? "s" : "");
+				}
+
+				*buf = 0;
+			}
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 1440; // 1 day
+
+		ImGui::SetNextItemWidth(200);
+
+		if (ImGui::SliderScalar("Cleanup Frequency", ImGuiDataType_U32, &s_logFileCleanupIntervalMins, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"How often logging cleanup runs.\n\n"
+			"Log file cleanup will occur on startup and then whenever this amount\n"
+			"of time passes while the application is running.\n\n"
+			"Set this to 0 to disable.");
+	}
+
+	// Log cleanup max days
+	{
+		static uint32_t lastMaxAgeDays = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if (lastMaxAgeDays != s_logCleanupMaxAgeDays || !init)
+		{
+			init = true;
+			lastMaxAgeDays = s_logCleanupMaxAgeDays;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastMaxAgeDays == 0)
+			{
+				fmt::format_to(buf, "Disabled");
+			}
+			else
+			{
+				// Define durations for days, hours, and minutes
+				auto days_duration = days(lastMaxAgeDays);
+				auto years_duration = duration_cast<years>(days_duration); // 365 days in a year
+				auto weeks_duration = duration_cast<weeks>(days_duration - years_duration); // 7 days in a week
+
+				// Calculate remaining hours and minutes
+				auto remaining_days_duration = days_duration - years_duration - weeks_duration;
+
+				if (years_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} year{}", years_duration.count(), years_duration.count() != 1 ? "s" : "");
+					if (weeks_duration.count() > 0 || remaining_days_duration.count() > 0)
+					{
+						*buf = ' ';
+					}
+				}
+
+				if (weeks_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} week{}", weeks_duration.count(), weeks_duration.count() != 1 ? "s" : "");
+					if (days_duration.count() > 0)
+					{
+						*buf = ' ';
+					}
+				}
+
+				if (remaining_days_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} day{}", remaining_days_duration.count(), remaining_days_duration.count() != 1 ? "s" : "");
+				}
+			}
+			*buf = 0;
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 365; // 1 year
+
+		ImGui::SetNextItemWidth(200);
+
+		if (ImGui::SliderScalar("How long to keep log files", ImGuiDataType_U32, &s_logCleanupMaxAgeDays, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat | ImGuiSliderFlags_Logarithmic))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"Deletes log files that are older than this amount of time.\n\n"
+			"Set this to 0 to disable deleting files by age.");
+	}
+
+	// Log clean max count
+	{
+		//s_logCleanupMaxCount
+
+		static uint32_t lastMaxCount = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if (lastMaxCount != s_logCleanupMaxCount || !init)
+		{
+			init = true;
+			lastMaxCount = s_logCleanupMaxCount;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastMaxCount == 0)
+			{
+				fmt::format_to(buf, "Disabled");
+			}
+			else
+			{
+				fmt::format_to(buf, "{}", lastMaxCount);
+			}
+			*buf = 0;
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 10000;
+
+		ImGui::SetNextItemWidth(200);
+		if (ImGui::SliderScalar("How many log files to keep", ImGuiDataType_U32, &s_logCleanupMaxCount, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"Deletes old log files until only this amount remain.\n\n"
+			"Set to 0 to disable this deleting by count.");
+	}
+
+	if (ImGui::Button("Run Cleanup Now"))
+	{
+		PerformLoggingCleanup();
+	}
 }
 
 #pragma endregion
@@ -943,6 +1277,7 @@ void InitializeWindows()
 	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
 
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
+	LauncherImGui::AddMainPanel("Logging", ShowLoggingSettings);
 	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
 	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
 }
@@ -1162,6 +1497,10 @@ int WINAPI CALLBACK WinMain(
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
 	const std::string bossModeKey = GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
 
+	s_logCleanupMaxCount = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+	s_logCleanupMaxAgeDays = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+	s_logFileCleanupIntervalMins = GetPrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
 	InitializeNamedPipeServer();
@@ -1232,6 +1571,8 @@ int WINAPI CALLBACK WinMain(
 		{
 			ProcessPipeServer();
 			ProcessPendingLogins();
+			CheckPruneLogging();
+
 			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
 				switch (msg.message)

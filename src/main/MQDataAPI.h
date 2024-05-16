@@ -14,7 +14,12 @@
 
 #pragma once
 
+#ifndef MQ2MAIN_EXPORTS
+#error This header should only be included from the MQ2Main project
+#endif
+
 #include "mq/base/Common.h"
+#include "mq/base/PluginHandle.h"
 #include "mq/api/MacroAPI.h"
 
 #include <memory>
@@ -23,28 +28,6 @@
 namespace mq {
 
 //============================================================================
-
-struct MQPlugin;
-
-struct MQTopLevelObject
-{
-	std::string Name;
-	MQTopLevelObjectFunction Function;
-	MQPlugin* Owner;
-};
-using MQDataItem DEPRECATE("Use MQTopLevelObject instead of MQDataItem") = MQTopLevelObject;
-
-struct MQDataVar
-{
-	char szName[MAX_STRING];
-	MQTypeVar Var;
-
-	MQDataVar* pNext;
-	MQDataVar* pPrev;
-	MQDataVar** ppHead;
-};
-
-//----------------------------------------------------------------------------
 
 class MQDataAPI
 {
@@ -55,18 +38,21 @@ public:
 	void Initialize();
 
 	// Top Level Objects
-	bool AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, MQPlugin* Owner = nullptr);
-	bool RemoveTopLevelObject(const char* szName, MQPlugin* Owner = nullptr);
+	bool AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+	bool RemoveTopLevelObject(const char* szName, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+
 	MQTopLevelObject* FindTopLevelObject(const char* szName) const;
 
 	// DataTypes
-	bool AddDataType(MQ2Type& TypeInstance, MQPlugin* Owner = nullptr);
-	bool RemoveDataType(MQ2Type& TypeInstance, MQPlugin* Owner = nullptr);
+	bool AddDataType(MQ2Type& TypeInstance, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+	bool RemoveDataType(MQ2Type& TypeInstance, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+
 	MQ2Type* FindDataType(const char* Name) const;
 
 	// Type Extensions
-	bool AddTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner = nullptr);
-	bool RemoveTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner = nullptr);
+	bool AddTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+
+	bool RemoveTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	//
 	bool FindMacroDataMember(MQ2Type* Type, const std::string& member) const;
@@ -81,7 +67,7 @@ public:
 
 	bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool allowFunction = false) const;
 
-	static inline int EvaluateResultToInt(MQDataAPI::EvaluateResult result)
+	static int EvaluateResultToInt(MQDataAPI::EvaluateResult result)
 	{
 		switch (result)
 		{
@@ -103,10 +89,27 @@ public:
 private:
 	void RegisterTopLevelObjects();
 
-private:
-	std::unordered_map<std::string, std::unique_ptr<MQTopLevelObject>> m_tloMap;
-	std::unordered_map<std::string, MQ2Type*> m_dataTypeMap;
-	std::unordered_map<std::string, std::vector<MQ2Type*>> m_typeExtensions;
+	struct TLORec
+	{
+		std::unique_ptr<MQTopLevelObject> tlo;
+		MQPluginHandle owner;
+	};
+	std::unordered_map<std::string, TLORec> m_tloMap;
+
+	struct TypeRec
+	{
+		MQ2Type* type;
+		MQPluginHandle owner;
+	};
+	std::unordered_map<std::string, TypeRec> m_dataTypeMap;
+
+	struct ExtensionRec
+	{
+		MQ2Type* extentionType;
+		MQPluginHandle owner;
+	};
+	std::unordered_map<std::string, std::vector<ExtensionRec>> m_typeExtensions;
+
 	mutable std::recursive_mutex m_mutex;
 };
 
@@ -120,9 +123,6 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = fa
 	ModifyMacroMode iOperation = ModifyMacroMode::Default);
 
 //============================================================================
-
-// MQ2Hud is using this...
-MQLIB_VAR MQDataVar* FindMQ2DataVariable(const char* Name);
 
 bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
 bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
