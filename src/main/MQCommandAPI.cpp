@@ -742,7 +742,9 @@ bool MQCommandAPI::RemoveAlias(const std::string& shortCommand,
 	auto iter = m_aliases.find(shortCommand);
 	if (iter == m_aliases.end())
 	{
-		DebugSpew("Failed to remove alias \"%s\": this alias does not exist");
+		DebugSpew("Failed to remove alias \"%s\": this alias does not exist",
+			shortCommand.c_str());
+
 		return false;
 	}
 
