@@ -608,7 +608,9 @@ bool MQCommandAPI::AddCommand(std::string_view command, MQCommandHandler handler
 			return false;
 		}
 
-		if (compare < 0)
+		// We already filtered out exact matches that we don't want, so the only exact match that we
+		// can get now are for eq commands.
+		if (compare <= 0)
 		{
 			// insert here.
 			if (pLast)
