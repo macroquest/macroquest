@@ -64,6 +64,8 @@ public:
 
 	bool InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler);
 
+	void OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle);
+
 	void Cmd_Help(const char* szLine) const;
 	void Cmd_Alias(const char* szLine);
 

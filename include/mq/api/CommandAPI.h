@@ -136,6 +136,14 @@ using fEQCommand = void(*)(PlayerClient* pChar, const char* command);
 
 
 /**
+ * Search the list of EQ commands and return a function pointer to the command if it exists
+ *
+ * @param command The EQ slash command to search for (e.g. "/xtarget")
+ * @return A pointer to the command function, or nullptr if not found.
+ */
+MQLIB_API fEQCommand FindEQCommand(std::string_view command);
+
+/**
  * Adds a new chat command. If the command conflicts with an existing EverQuest command, then
  * this command will take precedence. If the ocmmand conflicts with another MacroQuest command,
  * then this call will fail.

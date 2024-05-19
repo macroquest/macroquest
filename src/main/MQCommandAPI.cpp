@@ -295,6 +295,36 @@ MQCommandAPI::~MQCommandAPI()
 	m_aliases.clear();
 }
 
+void MQCommandAPI::OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle)
+{
+	// Remove any commands that were created by this plugin.
+	MQCommand* pCommand = m_pCommands;
+
+	while (pCommand)
+	{
+		if (pCommand->pluginHandle == pluginHandle)
+		{
+			DebugSpew("Removing command left behind by %s: %s", plugin->name.c_str(), pCommand->command.c_str());
+
+			if (pCommand->pNext)
+				pCommand->pNext->pLast = pCommand->pLast;
+			if (pCommand->pLast)
+				pCommand->pLast->pNext = pCommand->pNext;
+			else
+				m_pCommands = pCommand->pNext;
+
+			MQCommand* thisCmd = pCommand;
+			pCommand = pCommand->pNext;
+
+			delete thisCmd;
+		}
+		else
+		{
+			pCommand = pCommand->pNext;
+		}
+	}
+}
+
 bool MQCommandAPI::InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler)
 {
 	if (szFullLine[0] == 0)
@@ -1068,5 +1098,19 @@ void DoCommandf(const char* szFormat, ...)
 	pCommandAPI->DoCommand(szFormat, false);
 }
 
+fEQCommand FindEQCommand(std::string_view command)
+{
+	PCMDLIST pCmdListOrig = EQADDR_CMDLIST;
+
+	for (int i = 0; pCmdListOrig[i].fAddress != nullptr; ++i)
+	{
+		if (ci_equals(pCmdListOrig[i].szName, command))
+		{
+			return pCmdListOrig[i].fAddress;
+		}
+	}
+
+	return nullptr;
+}
 
 } // namespace mq
