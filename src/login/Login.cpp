@@ -1577,7 +1577,7 @@ void login::db::DeleteServerType(std::string_view server_type)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			DELETE FROM server_types WHERE server_type = LOWER(?))",
+			DELETE FROM server_types WHERE type = LOWER(?))",
 		[server_type](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, server_type);
