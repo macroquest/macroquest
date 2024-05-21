@@ -456,9 +456,14 @@ void Run(const std::function<bool()>& mainLoop)
 			MaybeShowContextMenu();
 		};
 
+	static std::chrono::time_point<std::chrono::steady_clock> s_nextFrame = std::chrono::steady_clock::now();
 	while (mainLoop())
 	{
 		LauncherImGui::Backend::DrawFrame(draw_main);
+		std::this_thread::sleep_until(s_nextFrame);
+
+		// 33 1/3 FPS
+		s_nextFrame = s_nextFrame + std::chrono::milliseconds(30);
 	}
 
 	LauncherImGui::Backend::Cleanup();
