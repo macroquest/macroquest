@@ -472,6 +472,12 @@ static void ShowHotkeyWindow(const std::string& name, std::string& hotkey, const
 		ImGui::Text("Pressed: %.*s", static_cast<int>(buf.size()), buf.data());
 		ImGui::Text("Current: %s", !hotkey.empty() ? hotkey.c_str() : "<None>");
 
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##hotkey"))
+		{
+			hotkey.clear();
+		}
+
 		DefaultModalButtons(ok_action);
 
 		LauncherImGui::EndModal();
