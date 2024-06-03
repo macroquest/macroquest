@@ -132,6 +132,7 @@ bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& mes
 	auto mailbox_it = m_mailboxes.find(localAddress);
 	if (mailbox_it != m_mailboxes.end())
 	{
+		OnDeliver(localAddress, message);
 		mailbox_it->second->Deliver(std::move(message));
 		return true;
 	}
@@ -146,6 +147,7 @@ void PostOffice::DeliverAll(PipeMessagePtr& message, std::optional<std::string_v
 	{
 		if (fromAddress && name != *fromAddress)
 		{
+			OnDeliver(name, message);
 			mailbox->Deliver(
 				std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size())
 			);

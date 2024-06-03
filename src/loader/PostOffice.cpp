@@ -46,6 +46,10 @@ private:
 	std::thread m_thread;
 	std::thread::id m_threadId;
 
+	bool m_hasMessages = false;
+	std::mutex m_processMutex;
+	std::condition_variable m_needsProcessing;
+
 	class PipeEventsHandler : public NamedPipeEvents
 	{
 	public:
@@ -253,6 +257,23 @@ private:
 
 			default: break;
 			}
+
+			{
+				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+				m_postOffice->m_hasMessages = true;
+			}
+
+			m_postOffice->m_needsProcessing.notify_one();
+		}
+
+		virtual void OnRequestProcessEvents() override
+		{
+			{
+				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+				m_postOffice->m_hasMessages = true;
+			}
+
+			m_postOffice->m_needsProcessing.notify_one();
 		}
 
 		virtual void OnIncomingConnection(int connectionId, int processid) override
@@ -517,6 +538,16 @@ public:
 		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 	}
 
+	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override
+	{
+		{
+			std::lock_guard<std::mutex> lock(m_processMutex);
+			m_hasMessages = true;
+		}
+
+		m_needsProcessing.notify_one();
+	}
+
 	void Initialize()
 	{
 		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
@@ -535,11 +566,22 @@ public:
 
 				do
 				{
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_needsProcessing.wait(lock, [this] { return m_hasMessages; });
+					}
+
 					m_pipeServer.Process();
+
 					// OnIncomingMessage is only called from this thread. If we ever have another source of messages
 					// (ie, network messages) then we will need to be careful about making sure Deliver and Process
 					// are always called from the same thread to avoid race conditions
 					Process(10);
+
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_hasMessages = false;
+					}
 				} while (m_running);
 
 				m_pipeServer.Stop();
