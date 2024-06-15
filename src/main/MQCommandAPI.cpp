@@ -1095,7 +1095,7 @@ void DoCommandf(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 
-	pCommandAPI->DoCommand(szFormat, false);
+	pCommandAPI->DoCommand(szOutput, false);
 }
 
 fEQCommand FindEQCommand(std::string_view command)
