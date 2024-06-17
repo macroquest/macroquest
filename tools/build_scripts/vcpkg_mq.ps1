@@ -258,7 +258,7 @@ if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
         "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
         # Attempt automatic cleanup
         Write-Warning "vcpkg is now attempting to remove outdated packages"
-        & ./vcpkg.exe remove --outdated
+        & ./vcpkg.exe remove --outdated --recurse
     }
 }
 
