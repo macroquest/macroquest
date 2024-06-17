@@ -1,9 +1,20 @@
+June 16, 2024:
+- Update for test patch
+- Fix MacroQuest.exe now shutting down properly
+- FIx /removeaura not parsing macro arguments (#869).
+
+May 26, 2024:
+- Update for test patch
+
 May 23, 2024:
 - Update for live hotfix patch
 - Please refrain from using MQ on truebox servers.
 
 May 15, 2024:
 - Update for live patch
+
+May 10, 2024:
+- Update for test patch
 
 April 25, 2024:
 - Adjust timestamps in chat and logging to be in local time (#853, #852).

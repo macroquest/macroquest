@@ -563,13 +563,16 @@ public:
 				m_running = true;
 				m_threadId = std::this_thread::get_id();
 				m_pipeServer.Start();
-
+				 
 				do
 				{
 					{
 						std::unique_lock<std::mutex> lock(m_processMutex);
-						m_needsProcessing.wait(lock, [this] { return m_hasMessages; });
+						m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
 					}
+
+					if (!m_running)
+						break;
 
 					m_pipeServer.Process();
 
@@ -609,6 +612,7 @@ public:
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
 		m_running = false;
+		m_needsProcessing.notify_one();
 		m_thread.join();
 	}
 
