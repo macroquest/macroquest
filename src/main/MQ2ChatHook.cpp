@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQPluginHandler.h"
+
 #include <fmt/chrono.h>
 
 namespace mq {

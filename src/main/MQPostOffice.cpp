@@ -28,7 +28,7 @@ namespace pipeclient {
 static void InitializePostOffice();
 static void ShutdownPostOffice();
 static void PulsePostOffice();
-static void SetGameStatePostOffice(DWORD);
+static void SetGameStatePostOffice(int);
 }
 
 static MQModule s_PostOfficeModule = {
@@ -181,11 +181,11 @@ private:
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_UNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload", true);
+				DoCommand("/unload", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload force", true);
+				DoCommand("/unload force", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_PROCESS_LOADED: {
@@ -390,7 +390,20 @@ public:
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
-	void SetGameStatePostOffice(DWORD GameState)
+	void SendNotification(const std::string& message, const std::string& title)
+	{
+		if (m_pipeClient.IsConnected())
+		{
+			proto::routing::Notification notification;
+			notification.set_title(title);
+			if (!message.empty())
+				notification.set_message(message);
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_MAIN_TRAY_NOTIFY, notification);
+		}
+	}
+
+	void SetGameStatePostOffice(int GameState)
 	{
 		static bool logged_in = false;
 
@@ -481,6 +494,11 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
+void SendNotification(const std::string& message, const std::string& title)
+{
+	static_cast<MQPostOffice&>(GetPostOffice()).SendNotification(message, title);
+}
+
 void InitializePostOffice()
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
@@ -496,7 +514,7 @@ void PulsePostOffice()
 	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
-void SetGameStatePostOffice(DWORD GameState)
+void SetGameStatePostOffice(int GameState)
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }

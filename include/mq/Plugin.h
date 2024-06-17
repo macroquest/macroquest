@@ -16,7 +16,7 @@
 
 #define MQ2PLUGIN
 
-#include <mq/plugin/pluginapi.h>
+#include "mq/plugin/pluginapi.h"
 
 using namespace mq;
 

@@ -253,9 +253,12 @@ if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -g
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
     & ./vcpkg.exe upgrade --no-dry-run
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "vcpkg upgrade failed - some packages may need to be manually upgraded"
+        Write-Warning "vcpkg upgrade failed - your vcpkg installation may need to be manually fixed. Save this log before trying again."
         # if the upgrade failed, the bootstrap file should show accordingly
         "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
+        # Attempt automatic cleanup
+        Write-Warning "vcpkg is now attempting to remove outdated packages"
+        & ./vcpkg.exe remove --outdated
     }
 }
 

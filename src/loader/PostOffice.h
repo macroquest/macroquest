@@ -17,7 +17,6 @@
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 void SendUnloadAllCommand();
 void SendForceUnloadAllCommand();
-void ProcessPipeServer();
 
 void InitializeNamedPipeServer();
 void ShutdownNamedPipeServer();

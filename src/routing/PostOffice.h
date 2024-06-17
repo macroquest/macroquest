@@ -312,6 +312,14 @@ public:
 	bool RemoveMailbox(const std::string& localAddress);
 
 	/**
+	 * Callback for when a message is delivered to a mailbox, called before the delivery happens
+	 *
+	 * @param localAddress the local address the message will be delivered to
+	 * @param message the message that is being sent
+	 */
+	virtual void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) {}
+
+	/**
 	 * Delivers a message to a local mailbox
 	 *
 	 * @param localAddress the local address to deliver the message to

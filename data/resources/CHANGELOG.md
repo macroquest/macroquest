@@ -1,6 +1,13 @@
 May 26, 2024:
 - Update for test patch
 
+May 23, 2024:
+- Update for live hotfix patch
+- Please refrain from using MQ on truebox servers.
+
+May 15, 2024:
+- Update for live patch
+
 May 10, 2024:
 - Update for test patch
 

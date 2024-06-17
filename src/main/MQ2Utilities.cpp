@@ -297,7 +297,7 @@ void FatalError(const char* szFormat, ...)
 	}
 }
 
-void MQ2DataError(char* szFormat, ...)
+void MQ2DataError(const char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -1792,7 +1792,7 @@ void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency
 		msHold);
 }
 
-void CustomPopup(char* szPopText, bool bPopOutput)
+void CustomPopup(const char* szPopText, bool bPopOutput)
 {
 	int iArgNum = 1;
 	int iMsgColor = CONCOLOR_LIGHTBLUE;
@@ -1977,7 +1977,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
 				if (Cmd && Cmd[0] && Cmd[0] != ';')
 				{
-					HideDoCommand(pLocalPlayer, Cmd, Delayed);
+					DoCommand(Cmd, Delayed);
 				}
 			}
 
@@ -5029,27 +5029,14 @@ void AttackRanged(PlayerClient* pRangedTarget)
 
 void UseAbility(const char* sAbility)
 {
-	char szBuffer[MAX_STRING] = { 0 };
-	strcpy_s(szBuffer, sAbility);
-
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return;
 
 	if (!cmdDoAbility)
-	{
-		CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
-
-		for (int i = 0; pCmdListOrig[i].fAddress != nullptr; i++)
-		{
-			if (ci_equals(pCmdListOrig[i].szName, "/doability"))
-			{
-				cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
-			}
-		}
-	}
-
-	if (!cmdDoAbility)
 		return;
+
+	char szBuffer[MAX_STRING] = { 0 };
+	strcpy_s(szBuffer, sAbility);
 
 	if (GetIntFromString(szBuffer, 0))
 	{
@@ -5793,7 +5780,7 @@ bool StripQuotes(char* str)
 //.text:00638051                 push    0
 //.text:00638053                 add     ecx, 1FE0h
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
-void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
+void MakeMeVisible(PlayerClient* pChar, const char* szLine)
 {
 	if (pLocalPC)
 	{
@@ -5805,9 +5792,8 @@ void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 // Function:    RemoveAura
 // Description: Removes auras
 // Usage:       /removeaura <name> or <partial name>
-// Author:      EqMule
 // ***************************************************************************
-void RemoveAura(SPAWNINFO* pChar, char* szLine)
+void RemoveAura(PlayerClient* pChar, const char* szLine)
 {
 	if (!pAuraWnd)
 		return;

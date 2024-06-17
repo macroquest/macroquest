@@ -28,7 +28,7 @@ namespace mq {
 static void Items_Initialize();
 static void Items_Shutdown();
 static void Items_Pulse();
-static void Items_SetGameState(DWORD gameState);
+static void Items_SetGameState(int gameState);
 static void Items_UpdateImGui();
 
 static MQModule gItemsModule = {
@@ -571,7 +571,7 @@ static void Items_Pulse()
 #endif // HAS_KEYRING_WINDOW
 }
 
-static void Items_SetGameState(DWORD gameState)
+static void Items_SetGameState(int gameState)
 {
 #if HAS_KEYRING_WINDOW
 	if (gameState == GAMESTATE_INGAME)

@@ -1317,7 +1317,7 @@ static void PulseFrameLimiter()
 	s_frameLimiter.OnPulse();
 }
 
-static void SetGameStateFrameLimiter(DWORD GameState)
+static void SetGameStateFrameLimiter(int GameState)
 {
 	s_frameLimiter.PauseForZone();
 

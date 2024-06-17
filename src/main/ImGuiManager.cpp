@@ -18,6 +18,7 @@
 #include "GraphicsEngine.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
+#include "MQPluginHandler.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>

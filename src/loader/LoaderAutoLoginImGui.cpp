@@ -472,6 +472,12 @@ static void ShowHotkeyWindow(const std::string& name, std::string& hotkey, const
 		ImGui::Text("Pressed: %.*s", static_cast<int>(buf.size()), buf.data());
 		ImGui::Text("Current: %s", !hotkey.empty() ? hotkey.c_str() : "<None>");
 
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##hotkey"))
+		{
+			hotkey.clear();
+		}
+
 		DefaultModalButtons(ok_action);
 
 		LauncherImGui::EndModal();
@@ -925,6 +931,12 @@ static void CharacterTable(const std::string_view search)
 		ImGui::SameLine();
 		ImGui::Text("%s", selected_profile.eqPath ? selected_profile.eqPath->c_str() : "<Default>");
 
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##path"))
+		{
+			selected_profile.eqPath = std::nullopt;
+		}
+
 		DefaultModalButtons([]
 			{
 				LoadCharacter(selected_profile, true);
@@ -989,6 +1001,12 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 
 		ImGui::SameLine();
 		ImGui::Text("%s", profileInfo.eqPath ? profileInfo.eqPath->c_str() : "<Default>");
+
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##path"))
+		{
+			profileInfo.eqPath = std::nullopt;
+		}
 
 		DefaultOptional<int>(profileInfo.charSelectDelay, "Override Character Select Delay",
 			[]()
@@ -1240,6 +1258,12 @@ void EditBehavior(ProfileGroupInfo& profileGroupInfo, const char* name, const Ac
 
 		ImGui::SameLine();
 		ImGui::Text("%s", profileGroupInfo.eqPath ? profileGroupInfo.eqPath->c_str() : "<Default>");
+
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##path"))
+		{
+			profileGroupInfo.eqPath = std::nullopt;
+		}
 
 		DefaultModalButtons(ok_action);
 

@@ -642,12 +642,12 @@ PLUGIN_API void OnDrawHUD()
 						std::list<std::string> out;
 						ParseMacroLine(szTemp, MAX_STRING, out);
 
-						for (auto& i : out)
+						for (auto& line : out)
 						{
 							bOkToCheck = false;
-							char* pChar = (char*)i.c_str();
+							const char* pChar = line.c_str();
 
-							if (FindMQ2Data(pChar))
+							if (FindTopLevelObject(pChar))
 							{
 								bOkToCheck = true;
 								continue;
@@ -655,9 +655,9 @@ PLUGIN_API void OnDrawHUD()
 
 							if (!bOkToCheck)
 							{
-								// ok fine we didnt find it in the tlo map...
+								// ok fine we didn't find it in the tlo map...
 								// lets check variables
-								if (FindMQ2DataVariable(pChar))
+								if (IsMacroVariable(pChar))
 								{
 									bOkToCheck = true;
 									continue;

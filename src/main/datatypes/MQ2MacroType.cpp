@@ -263,7 +263,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			strcpy_s(szIndex, &pBracket[1]);
 		}
 
-		MQDataVar* pVar = FindMQ2DataVariable(szName);
+		MQDataVar* pVar = FindMacroVariable(szName);
 		if (!pVar)
 		{
 			return false;

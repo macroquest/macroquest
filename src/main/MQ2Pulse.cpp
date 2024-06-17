@@ -13,12 +13,21 @@
  */
 
 #include "pch.h"
+
+#include <random>
+
 #include "MQ2Main.h"
-#include "MQPostOffice.h"
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
 
+#include "MQCommandAPI.h"
+#include "MQPluginHandler.h"
+#include "MQPostOffice.h"
+
 #include <wil/resource.h>
+
+#include "argon2.h"
+#pragma comment(lib, "argon2")
 
 #pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
 
@@ -26,6 +35,8 @@ namespace mq {
 
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
+static bool s_isValid = true;
+static bool s_hasNotified = false;
 
 void UpdateMQ2SpawnSort();
 
@@ -122,7 +133,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 		if (gbInZone && !gZoning)
 		{
-			DoCommand(pChar, (char*)ml.Command.c_str());
+			DoCommand(ml.Command.c_str(), false);
 			MQMacroBlockPtr pCurrentBlock = GetCurrentMacroBlock();
 
 			if (!pCurrentBlock)
@@ -130,6 +141,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1)
 			{
+				// Only trigger queued bind on select commands
 				if (ci_find_substr(ml.Command, "/varset") == 0
 					|| ci_find_substr(ml.Command, "/echo") == 0
 					|| ci_find_substr(ml.Command, "Sub") == 0
@@ -267,6 +279,78 @@ void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
 	}
 }
 
+static void CheckGameValidity()
+{
+#if IS_LIVE_CLIENT
+	constexpr uint8_t salt[8] = {0x04, 0xc4, 0x57, 0xbf, 0x31, 0xd3, 0x62, 0x5a};
+	constexpr uint8_t hashes[24][8] = {
+		{0xc3, 0x33, 0x27, 0x8c, 0xc9, 0x9c, 0x4f, 0xe1},
+		{0x11, 0xa7, 0xac, 0x4a, 0x03, 0x79, 0x29, 0xb8},
+		{0x72, 0x63, 0x78, 0xde, 0x7c, 0xb6, 0xfe, 0xa2},
+		{0xbe, 0x49, 0xa1, 0xf3, 0x9d, 0xc9, 0xfa, 0x84},
+		{0x09, 0xaf, 0x0d, 0xf3, 0x42, 0xd0, 0xd0, 0x54},
+		{0xdc, 0x42, 0x3a, 0x35, 0xe6, 0x90, 0xbb, 0xe4},
+		{0xe6, 0x18, 0xee, 0x6a, 0x4b, 0xe9, 0x55, 0x7e},
+		{0x86, 0x6d, 0x4b, 0x14, 0x9d, 0x44, 0x5e, 0x81},
+		{0x50, 0x73, 0x0f, 0x9b, 0x6b, 0x92, 0x61, 0x34},
+		{0xa7, 0x7d, 0xca, 0x36, 0x27, 0x84, 0x87, 0xfe},
+		{0xeb, 0xb9, 0x82, 0x87, 0x75, 0x28, 0x05, 0xaf},
+		{0x34, 0xc2, 0xd0, 0xe7, 0xda, 0x1e, 0xea, 0xc1},
+		{0xf6, 0x55, 0x1e, 0x82, 0x24, 0x38, 0xa3, 0xf5},
+		{0x10, 0xae, 0x3e, 0x85, 0xef, 0x62, 0x15, 0x3f},
+		{0x13, 0x1f, 0x73, 0x7e, 0xe2, 0xb9, 0x31, 0x44},
+		{0xc9, 0x8c, 0xe1, 0xcc, 0x98, 0xe4, 0x64, 0x91},
+		{0xd0, 0x66, 0xe6, 0x98, 0x70, 0xac, 0x09, 0x4a},
+		{0x89, 0xe1, 0xdc, 0x85, 0x3f, 0xe9, 0x13, 0xab},
+		{0x40, 0x46, 0xa8, 0x55, 0x52, 0xc1, 0x99, 0x27},
+		{0x12, 0xc3, 0x8c, 0x05, 0xf2, 0xad, 0xa4, 0x54},
+		{0x3f, 0x4b, 0x77, 0x94, 0x1f, 0x1f, 0x85, 0xd1},
+		{0x3e, 0xb1, 0x87, 0x6c, 0x2a, 0xe5, 0x1f, 0x21},
+		{0xe6, 0x57, 0xf9, 0x13, 0x93, 0xac, 0xea, 0x4a},
+		{0x93, 0x53, 0x3d, 0x8d, 0x37, 0x48, 0xd0, 0x7c},
+	};
+
+	const auto now = std::chrono::steady_clock::now();
+
+	static std::mt19937 generator{ std::random_device{}() };
+	static std::uniform_int_distribution<unsigned int> distribution{ 30, 60 };
+	static std::chrono::steady_clock::time_point next_check = now + std::chrono::seconds(distribution(generator));
+
+	if (s_isValid && now > next_check)
+	{
+		next_check = now + std::chrono::seconds(distribution(generator));
+		const char* name = GetServerShortName();
+		const size_t len = strlen(name);
+
+		if (len > 0)
+		{
+			uint8_t hash[8];
+			const int argon2_err = argon2id_hash_raw(
+				1, 8, 1,
+				name, len, salt,
+				8, hash, 8);
+
+			const auto valid = [&hash](const uint8_t* test)
+				{
+					for (uint8_t idx = 0; idx < 8; ++idx)
+						if (hash[idx] != test[idx]) return false;
+
+					return true;
+				};
+
+			if (argon2_err == ARGON2_OK)
+			{
+				for (const auto* test : hashes)
+					if (valid(test)) return;
+
+				s_isValid = false;
+			}
+
+		}
+	}
+#endif
+}
+
 static void CheckGameState()
 {
 	static int lastGameState = gGameState;
@@ -374,6 +458,12 @@ static void Pulse()
 	ProcessQueuedEvents();
 
 	//CheckGameState();
+	CheckGameValidity();
+	if (!s_isValid && !s_hasNotified)
+	{
+		pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
+		s_hasNotified = true;
+	}
 
 	if (!pControlledPlayer) return;
 
@@ -454,7 +544,7 @@ static void Pulse()
 		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
-			DoCommand(pChar, pAutoRun);
+			DoCommand(pAutoRun, false);
 
 		// autorun command for toon
 		szAutoRun[0] = 0;
@@ -464,7 +554,7 @@ static void Pulse()
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0)
-			DoCommand(pChar, pAutoRun);
+			DoCommand(pAutoRun, false);
 	}
 
 	if (gbShowCurrentCamera)
@@ -563,6 +653,11 @@ enum HeartbeatState
 
 static HeartbeatState Heartbeat()
 {
+	if (!s_isValid && s_hasNotified)
+	{
+		gbUnload = true;
+	}
+
 	if (gbUnload)
 	{
 		return HeartbeatUnload;
@@ -609,7 +704,7 @@ static HeartbeatState Heartbeat()
 	DebugTry(int GameState = GetGameState());
 	if (GameState != -1)
 	{
-		if ((DWORD)GameState != gGameState)
+		if (GameState != gGameState)
 		{
 			DebugSpew("GetGameState()=%d vs %d", GameState, gGameState);
 			gGameState = GameState;
@@ -646,7 +741,7 @@ static HeartbeatState Heartbeat()
 
 	if (gGameState == -1)
 	{
-		PulseCommands();
+		pCommandAPI->PulseCommands();
 
 		return HeartbeatNormal;
 	}
@@ -671,7 +766,7 @@ static HeartbeatState Heartbeat()
 		pBlock = GetCurrentMacroBlock();
 	}
 
-	PulseCommands();
+	pCommandAPI->PulseCommands();
 
 	return HeartbeatNormal;
 }

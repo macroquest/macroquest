@@ -264,7 +264,7 @@ void ClearCachedBuffs()
 	gCachedBuffMap.clear();
 }
 
-void CachedBuffsCommand(SPAWNINFO* pChar, char* szLine)
+void CachedBuffsCommand(PlayerClient* pChar, const char* szLine)
 {
 	if (!strcmp(szLine, "cleartarget"))
 	{
