@@ -245,7 +245,7 @@ public:
 	{}
 
 	[[nodiscard]] Iterator begin() const { return Iterator(this); }
-	[[nodiscard]] typename Iterator::Sentinel end() const { return Iterator::Sentinel{}; }
+	[[nodiscard]] typename Iterator::Sentinel end() const { return Iterator::Sentinel(); }
 
 	[[nodiscard]] std::vector<T> vector() const
 	{

@@ -14,6 +14,10 @@
 
 #pragma once
 
+#ifndef MQ2MAIN_EXPORTS
+#error This header should only be included from the MQ2Main project
+#endif
+
 #include "MQ2MainBase.h"
 
 namespace mq {
@@ -22,6 +26,7 @@ namespace pipeclient {
 
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+void SendNotification(const std::string& message, const std::string& title);
 
 } // namespace pipeclient
 

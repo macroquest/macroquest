@@ -175,13 +175,31 @@ HRESULT CALLBACK DInput_GetDeviceState_Detour(IDirectInputDevice8A* This, DWORD 
 
 		if (IsMouseWaitingForButton())
 		{
-			data->rgbButtons[0] = pEverQuestInfo->MouseButtons[0];
-			data->rgbButtons[1] = pEverQuestInfo->MouseButtons[1];
+			data->rgbButtons[0] = g_pDeviceInputProxy->mouse.CurrentClickState[0];
+			data->rgbButtons[1] = g_pDeviceInputProxy->mouse.CurrentClickState[1];
 		}
 	}
 
 	s_inGetDeviceState = false;
 	return hResult;
+}
+
+DETOUR_TRAMPOLINE_DEF(int64_t, ProcessDeviceEvents_Trampoline, (SDeviceInputEvent* ev))
+int64_t ProcessDeviceEvents_Detour(SDeviceInputEvent* ev)
+{
+	const bool delayed = (ev->EventStateBitmask & (SDeviceInputState_Blocked | SDeviceInputState_Pending)) == ev->EventStateBitmask;
+	const uint8_t status = g_pDeviceInputProxy->events.CurrentEventStatus;
+
+	if (g_pDeviceInputProxy->events.LastEventStatus && delayed)
+	{
+		g_pDeviceInputProxy->events.CurrentEventStatus = g_pDeviceInputProxy->events.LastEventStatus;
+		const int64_t timer = ProcessDeviceEvents_Trampoline(ev);
+		return timer;
+	}
+
+	g_pDeviceInputProxy->events.CurrentEventStatus = status;
+
+	return ProcessDeviceEvents_Trampoline(ev);
 }
 
 static void MouseButtonUp(DWORD x, DWORD y, int mouseButton = -1)
@@ -191,7 +209,7 @@ static void MouseButtonUp(DWORD x, DWORD y, int mouseButton = -1)
 	if (mouseButton == 0)
 	{
 		// click will fail if this isn't set to a time less than TimeStamp minus 750ms
-		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 69;
+		g_pDeviceInputProxy->mouse.LeftButton = pDisplay->TimeStamp - 69;
 		pEverQuest->LMouseUp(x, y);
 
 		CVector3 cv1, cv2;
@@ -216,12 +234,12 @@ bool MoveMouse(int x, int y)
 	ClientToScreen(EQhWnd, reinterpret_cast<LPPOINT>(&pt));
 	SetCursorPos(pt.x, pt.y);
 
-	pEverQuestInfo->MouseY = y;
-	pEverQuestInfo->MouseX = x;
-	EQADDR_MOUSE->Y = pEverQuestInfo->MouseY;
-	EQADDR_MOUSE->X = pEverQuestInfo->MouseX;
-	g_pDIMouseState->lY = pEverQuestInfo->MouseY;
-	g_pDIMouseState->lX = pEverQuestInfo->MouseX;
+	g_pDeviceInputProxy->mouse.Position.Y = y;
+	g_pDeviceInputProxy->mouse.Position.X = x;
+	EQADDR_MOUSE->Y = y;
+	EQADDR_MOUSE->X = x;
+	g_pDIMouseState->lY = y;
+	g_pDIMouseState->lX = x;
 
 	pWndMgr->MousePoint = pt;
 	pWndMgr->StoredMousePos = pt;
@@ -277,8 +295,8 @@ bool ClickMouseButton(int mouseButton)
 
 	MQMouseEventType eventType = static_cast<MQMouseEventType>(MD_Button0 + mouseButton);
 
-	if (!((pEverQuestInfo->MouseButtons[mouseButton] == 0x80) && !pEverQuestInfo->OldMouseButtons[mouseButton]))
-		pEverQuestInfo->MouseButtons[mouseButton] = 0x80;
+	if (!((g_pDeviceInputProxy->mouse.CurrentClickState[mouseButton] == 0x80) && !g_pDeviceInputProxy->mouse.CurrentClickState[mouseButton]))
+		g_pDeviceInputProxy->mouse.CurrentClickState[mouseButton] = 0x80;
 
 	gMouseClickInProgress[mouseButton] = true;
 
@@ -355,7 +373,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 
 	if (!left) // implied right click
 	{
-		pEverQuestInfo->RMouseDown = pDisplay->TimeStamp - 70;
+		g_pDeviceInputProxy->mouse.RightButton = pDisplay->TimeStamp - 70;
 
 		if (pWndMgr)
 		{
@@ -366,7 +384,7 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 	}
 	else
 	{
-		pEverQuestInfo->LMouseDown = pDisplay->TimeStamp - 70;
+		g_pDeviceInputProxy->mouse.LeftButton = pDisplay->TimeStamp - 70;
 
 		// we "click" at -10000,-10000 because we expect that the user doesnt have any windows there.
 
@@ -380,8 +398,8 @@ bool ClickMouseItem(const MQGroundSpawn& GroundSpawn, bool left)
 
 bool IsMouseWaitingForButton()
 {
-	return !((pEverQuestInfo->MouseButtons[1] == pEverQuestInfo->OldMouseButtons[1])
-		&& (pEverQuestInfo->MouseButtons[0] == pEverQuestInfo->OldMouseButtons[0]));
+	return !((g_pDeviceInputProxy->mouse.CurrentClickState[1] == g_pDeviceInputProxy->mouse.LastClickState[1])
+		&& (g_pDeviceInputProxy->mouse.CurrentClickState[0] == g_pDeviceInputProxy->mouse.LastClickState[0]));
 }
 
 bool IsMouseWaiting()
@@ -396,16 +414,16 @@ bool IsMouseWaiting()
 
 		if (gMouseClickInProgress[0])
 		{
-			if (!((!pEverQuestInfo->MouseButtons[0])
-				&& (pEverQuestInfo->OldMouseButtons[0] == 0x80))) pEverQuestInfo->MouseButtons[0] = 0;
+			if (!((!g_pDeviceInputProxy->mouse.CurrentClickState[0])
+				&& (g_pDeviceInputProxy->mouse.LastClickState[0] == 0x80))) g_pDeviceInputProxy->mouse.CurrentClickState[0] = 0;
 			gMouseClickInProgress[0] = false;
 			Result = true;
 		}
 
 		if (gMouseClickInProgress[1])
 		{
-			if (!((!pEverQuestInfo->MouseButtons[1])
-				&& (pEverQuestInfo->OldMouseButtons[1] == 0x80))) pEverQuestInfo->MouseButtons[1] = 0;
+			if (!((!g_pDeviceInputProxy->mouse.CurrentClickState[1])
+				&& (g_pDeviceInputProxy->mouse.LastClickState[1] == 0x80))) g_pDeviceInputProxy->mouse.CurrentClickState[1] = 0;
 			gMouseClickInProgress[1] = false;
 			Result = true;
 		}
@@ -483,6 +501,12 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 	return true;
 }
 
+void MouseConsume(int mouseButton, bool pressed)
+{
+	g_pDeviceInputProxy->mouse.CurrentClickState[mouseButton] = pressed;
+	g_pDeviceInputProxy->mouse.LastClickState[mouseButton] = pressed;
+}
+
 
 // ***************************************************************************
 // Function: Click
@@ -490,7 +514,7 @@ bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick)
 // Clicks the mouse button (calls EQ's mouse up commands)
 // Usage: /click left|right [<mouseloc>]
 // ***************************************************************************
-void Click(SPAWNINFO* pChar, char* szLine)
+void Click(PlayerClient* pChar, const char* szLine)
 {
 	// This check protects against many of the pointers in this function being uninitialized
 	if (GetGameState() != GAMESTATE_INGAME)
@@ -647,7 +671,7 @@ void Click(SPAWNINFO* pChar, char* szLine)
 // Moves the mouse
 // Usage: /mouseto <mouseloc>
 // ***************************************************************************
-void MouseTo(SPAWNINFO* pChar, char* szLine)
+void MouseTo(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine && szLine[0])
 	{
@@ -666,6 +690,9 @@ static void InstallDirectInputHooks()
 	if (g_pDIKeyboard)
 	{
 		uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(g_pDIKeyboard.get());
+
+		// hook Process
+		EzDetour(__ProcessDeviceEvents, ProcessDeviceEvents_Detour, ProcessDeviceEvents_Trampoline);
 
 		// hook GetDeviceState
 		GetDeviceState = vtable[9];
@@ -732,6 +759,7 @@ void InputAPI_Shutdown()
 	{
 		RemoveDetour(GetDeviceData);
 		RemoveDetour(GetDeviceState);
+		RemoveDetour(__ProcessDeviceEvents);
 	}
 }
 

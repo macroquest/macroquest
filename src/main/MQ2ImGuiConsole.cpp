@@ -1321,11 +1321,11 @@ public:
 		}
 		else if (strlen(commandLine) > 1 && commandLine[0] == '/')
 		{
-			mq::HideDoCommand(pLocalPlayer, commandLine, true);
+			mq::DoCommand(commandLine, true);
 		}
 		else if (gBuild == static_cast<int>(BuildTarget::Emu) && strlen(commandLine) > 1 && commandLine[0] == '#')
 		{
-			mq::HideDoCommand(pLocalPlayer, fmt::format("/say {}", commandLine).c_str(), true);
+			mq::DoCommandf("/say %s", commandLine, true);
 		}
 		else
 		{

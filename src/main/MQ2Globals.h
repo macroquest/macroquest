@@ -238,7 +238,7 @@ MQLIB_VAR MQFilter* gpFilters;
 // TODO: Change to use case insensitive comparison
 MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
-MQLIB_VAR DWORD gGameState;
+MQLIB_VAR int gGameState;
 MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;
 
@@ -270,27 +270,27 @@ MQLIB_API uint32_t GetExpansionNumber(std::string_view expansionName);
 
 MQLIB_VAR const char* szWornLoc[];
 
-MQLIB_VAR fEQCommand            cmdHelp;
-MQLIB_VAR fEQCommand            cmdWho;
-MQLIB_VAR fEQCommand            cmdWhoTarget;
-MQLIB_VAR fEQCommand            cmdLocation;
-MQLIB_VAR fEQCommand            cmdFace;
-MQLIB_VAR fEQCommand            cmdTarget;
-MQLIB_VAR fEQCommand            cmdCharInfo;
-MQLIB_VAR fEQCommand            cmdFilter;
-MQLIB_VAR fEQCommand            cmdDoAbility;
-MQLIB_VAR fEQCommand            cmdCast;
-MQLIB_VAR fEQCommand            cmdUseItem;
-MQLIB_VAR fEQCommand            cmdHotbutton;
-MQLIB_VAR fEQCommand            cmdTaskQuit;
-MQLIB_VAR fEQCommand            cmdPet;
-MQLIB_VAR fEQCommand            cmdMercSwitch;
-MQLIB_VAR fEQCommand            cmdAdvLoot;
-MQLIB_VAR fEQCommand            cmdPickZone;
-MQLIB_VAR fEQCommand            cmdAssist;
-MQLIB_VAR fEQCommand            cmdQuit;
+MQLIB_VAR fEQCommand cmdHelp;
+MQLIB_VAR fEQCommand cmdWho;
+MQLIB_VAR fEQCommand cmdWhoTarget;
+MQLIB_VAR fEQCommand cmdLocation;
+MQLIB_VAR fEQCommand cmdFace;
+MQLIB_VAR fEQCommand cmdTarget;
+MQLIB_VAR fEQCommand cmdCharInfo;
+MQLIB_VAR fEQCommand cmdFilter;
+MQLIB_VAR fEQCommand cmdDoAbility;
+MQLIB_VAR fEQCommand cmdCast;
+MQLIB_VAR fEQCommand cmdUseItem;
+MQLIB_VAR fEQCommand cmdHotbutton;
+MQLIB_VAR fEQCommand cmdTaskQuit;
+MQLIB_VAR fEQCommand cmdPet;
+MQLIB_VAR fEQCommand cmdMercSwitch;
+MQLIB_VAR fEQCommand cmdAdvLoot;
+MQLIB_VAR fEQCommand cmdPickZone;
+MQLIB_VAR fEQCommand cmdAssist;
+MQLIB_VAR fEQCommand cmdQuit;
 
-MQLIB_VAR fEQGetMelee           get_melee_range;
+MQLIB_VAR fEQGetMelee get_melee_range;
 
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 

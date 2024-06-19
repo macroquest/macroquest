@@ -15,6 +15,9 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQCommandAPI.h"
+#include "MQDataAPI.h"
+#include "MQPluginHandler.h"
 #include "MQ2KeyBinds.h"
 
 #include <fstream>
@@ -229,9 +232,9 @@ static std::vector<std::string> ArgsToVector(const char* szLine)
 	return args;
 }
 
-void ProfileCommand(PlayerClient* pPlayer, char* szLine)
+void ProfileCmd(PlayerClient* pChar, const char* szLine)
 {
-	Macro(pPlayer, szLine);
+	Macro(pChar, szLine);
 
 	if (g_pProfile)
 	{
@@ -314,7 +317,7 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = f
 				}
 
 				auto forward = lineIter;
-				forward++;
+				++forward;
 
 				if (forward == gMacroBlock->Line.end())
 				{
@@ -334,7 +337,7 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = f
 
 			if (!All && (!_strnicmp(currLine.Command.c_str(), "} else ", 7)))
 			{
-				DoCommand(pChar, (char*)currLine.Command.substr(7).c_str());
+				DoCommand(currLine.Command.substr(7).c_str(), false);
 			}
 			else if (!All && (!_strnicmp(currLine.Command.c_str(), "} else", 6)))
 			{
@@ -358,7 +361,7 @@ void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = f
 // Description: Our '/delay' command
 // Usage:       /delay <time> [condition to end early]
 // ***************************************************************************
-void Delay(SPAWNINFO* pChar, char* szLine)
+void Delay(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -973,7 +976,7 @@ int GetMacroBlockCount()
 // Description: Our '/macro' command
 // Usage:       /macro <filename>
 // ***************************************************************************
-void Macro(PSPAWNINFO pChar, char* szLine)
+void Macro(PlayerClient* pChar, const char* szLine)
 {
 	gWarning = false;
 	bRunNextCommand = true;
@@ -1147,7 +1150,7 @@ void Macro(PSPAWNINFO pChar, char* szLine)
 //              Sends i, esc, esc, esc, esc, i
 // Usage:       /cleanup
 // ***************************************************************************
-void Cleanup(PSPAWNINFO pChar, char* szLine)
+void Cleanup(PlayerClient* pChar, const char* szLine)
 {
 	KeyCombo Escape;
 	ParseKeyCombo("Esc", Escape);
@@ -1193,7 +1196,7 @@ void Cleanup(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/goto' command
 // Usage:       /goto :label
 // ***************************************************************************
-void Goto(PSPAWNINFO pChar, char* szLine)
+void Goto(PlayerClient* pChar, const char* szLine)
 {
 	if (!gMacroBlock)
 	{
@@ -1269,7 +1272,7 @@ char* GetSubFromLine(int Line, char* szSub, size_t Sublen)
 	return szSub;
 }
 
-void DumpStack(PSPAWNINFO pChar, char* szLine)
+void DumpStack(PlayerClient* pChar, const char* szLine)
 {
 	char szSub[MAX_STRING] = { 0 };
 
@@ -1311,7 +1314,7 @@ void DumpStack(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/endmacro' command
 // Usage:       /endmacro
 // ***************************************************************************
-void EndMacro(PSPAWNINFO pChar, char* szLine)
+void EndMacro(PlayerClient* pChar, const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char MacroName[MAX_STRING] = { 0 };
@@ -1556,7 +1559,7 @@ static int GetNumArgsFromSub(const std::string& Sub)
 // Description: Our '/call' command
 // Usage:       /call <Subroutine>
 // ***************************************************************************
-void Call(PSPAWNINFO pChar, char* szLine)
+void Call(PlayerClient*, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -1651,7 +1654,7 @@ void Call(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-void NewIf(PSPAWNINFO pChar, char* szLine)
+void MacroIfCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine[0] != '(')
 	{
@@ -1660,7 +1663,7 @@ void NewIf(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	char* pEnd = &szLine[1];
+	const char* pEnd = &szLine[1];
 	int nParens = 1;
 
 	while (true)
@@ -1691,10 +1694,9 @@ void NewIf(PSPAWNINFO pChar, char* szLine)
 		++pEnd;
 	}
 
-	*pEnd = 0;
 	char szCond[MAX_STRING] = { 0 };
-	strcpy_s(szCond, szLine);
-	*pEnd = ' ';
+	strncpy_s(szCond, szLine, pEnd - szLine);
+	szCond[pEnd - szLine] = 0;
 	++pEnd;
 
 	double Result = 0;
@@ -1716,11 +1718,11 @@ void NewIf(PSPAWNINFO pChar, char* szLine)
 			// Cast it as a char*, Modify the command, and run it
 			std::string str = ModifyMacroString(pEnd, true, ModifyMacroMode::Wrap);
 
-			DoCommand(pChar, &str[0]);
+			DoCommand(&str[0], false);
 		}
 		else
 		{
-			DoCommand(pChar, pEnd);
+			DoCommand(pEnd, false);
 		}
 	}
 	else
@@ -1817,7 +1819,7 @@ static void MarkWhile(const char* szCommand, MQLoop& loop)
 //                   ....
 //              }
 // ***************************************************************************
-void WhileCmd(PSPAWNINFO pChar, char* szLine)
+void MacroWhileCmd(PlayerClient* pChar, const char* szLine)
 {
 	char szCond[MAX_STRING] = { 0 };
 
@@ -1828,7 +1830,7 @@ void WhileCmd(PSPAWNINFO pChar, char* szLine)
 		return;
 	}
 
-	char* pEnd = &szLine[1];
+	const char* pEnd = &szLine[1];
 	DWORD nParens = 1;
 	while (true)
 	{
@@ -1858,9 +1860,9 @@ void WhileCmd(PSPAWNINFO pChar, char* szLine)
 		++pEnd;
 	}
 
-	*pEnd = 0;
 	strcpy_s(szCond, szLine);
-	*pEnd = ' ';
+	strncpy_s(szCond, szLine, pEnd - szLine);
+	szCond[pEnd - szLine] = 0;
 	++pEnd;
 
 	double Result = 0;
@@ -1889,7 +1891,7 @@ void WhileCmd(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/doevents' command
 // Usage:       /doevents [flush] [custom event]
 // ***************************************************************************
-void DoEvents(PSPAWNINFO pChar, char* szLine)
+void DoEvents(PlayerClient* pChar, const char* szLine)
 {
 	if (!gEventQueue || !gMacroStack)
 		return;
@@ -2076,7 +2078,7 @@ void DoEvents(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/return' command
 // Usage:       /return [value]
 // ***************************************************************************
-void Return(PSPAWNINFO pChar, char* szLine)
+void Return(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 	MQMacroStack* pStack = gMacroStack;
@@ -2119,7 +2121,7 @@ void Return(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/for' command
 // Usage:       /for v# <start> <to|downto> <end>
 // ***************************************************************************
-void For(PSPAWNINFO pChar, char* szLine)
+void For(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 	char ArgLoop[MAX_STRING] = { 0 };
@@ -2133,7 +2135,7 @@ void For(PSPAWNINFO pChar, char* szLine)
 	GetArg(ArgEnd, szLine, 4);
 	_strlwr_s(ArgDirection);
 
-	MQDataVar* pVar = FindMQ2DataVariable(ArgLoop);
+	MQDataVar* pVar = FindMacroVariable(ArgLoop);
 	if (!pVar)
 	{
 		FatalError("/for loop using invalid variable");
@@ -2177,14 +2179,14 @@ void For(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/next' command
 // Usage:       /next v#
 // ***************************************************************************
-void Next(PSPAWNINFO pChar, char* szLine)
+void Next(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
 	char szNext[MAX_STRING];
 	GetArg(szNext, szLine, 1);
 
-	MQDataVar* pVar = FindMQ2DataVariable(szNext);
+	MQDataVar* pVar = FindMacroVariable(szNext);
 	if (!pVar)
 	{
 		FatalError("/next using invalid variable");
@@ -2232,7 +2234,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 			StepSize = GetIntFromString(pTemp, StepSize);
 	}
 
-	pVar = FindMQ2DataVariable(szNext);
+	pVar = FindMacroVariable(szNext);
 	if (!pVar)
 	{
 		FatalError("/next without badly matching /for");
@@ -2287,7 +2289,7 @@ void Next(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/continue' command
 // Usage:       /continue
 // ***************************************************************************
-void Continue(PSPAWNINFO pChar, char* szLine)
+void Continue(PlayerClient* pChar, const char* szLine)
 {
 	if (!gMacroBlock)
 	{
@@ -2350,7 +2352,7 @@ void Continue(PSPAWNINFO pChar, char* szLine)
 // Description: Our '/break' command
 // Usage:       /break
 // ***************************************************************************
-void Break(PSPAWNINFO pChar, char* szLine)
+void Break(PlayerClient* pChar, const char* szLine)
 {
 	if (!gMacroBlock)
 	{

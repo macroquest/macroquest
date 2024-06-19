@@ -4177,7 +4177,7 @@ bool RemovePetBuffByName(std::string_view buffName)
 	return false;
 }
 
-void RemoveBuff(SPAWNINFO* pChar, char* szLine)
+void RemoveBuff(PlayerClient* pChar, const char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
 	GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 1);
@@ -4205,7 +4205,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
+void RemovePetBuff(PlayerClient* pChar, const char* szLine)
 {
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
 		return;

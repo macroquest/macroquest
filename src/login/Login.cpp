@@ -644,10 +644,10 @@ bool login::db::CreateMasterPass(std::string_view pass)
 		[pass, &hash_params](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			std::mt19937 generator{ std::random_device{}() };
-			std::uniform_int_distribution<unsigned char> distribution{ '!', '~' };
+			std::uniform_int_distribution<int> distribution{ '!', '~' };
 			std::string salt(hash_params.SaltLength, '\0');
 			for (auto& c : salt)
-				c = distribution(generator);
+				c = static_cast<char>(distribution(generator));
 
 			std::string encoded(argon2_encodedlen(
 				hash_params.TimeCost,
@@ -1577,7 +1577,7 @@ void login::db::DeleteServerType(std::string_view server_type)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			DELETE FROM server_types WHERE server_type = LOWER(?))",
+			DELETE FROM server_types WHERE type = LOWER(?))",
 		[server_type](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, server_type);

@@ -20,6 +20,7 @@
 #include "mq/api/MacroDataTypes.h"
 
 #include <functional>
+#include <string>
 
 namespace eqlib {
 	class PlayerClient;
@@ -30,11 +31,34 @@ namespace mq {
 namespace datatypes {
 	class MQ2Type;
 }
-struct MQTopLevelObject;
-using MQDataItem = MQTopLevelObject;
 
-struct MQDataVar;
+struct MQPlugin;
 
+/**
+ * Function signature for TLO callbacks
+ */
+using MQTopLevelObjectFunction = std::function<bool(const char*, MQTypeVar&)>;
+
+struct MQTopLevelObject
+{
+	std::string Name;
+	MQTopLevelObjectFunction Function;
+	MQPlugin* Owner;
+};
+using MQDataItem DEPRECATE("Use MQTopLevelObject instead of MQDataItem") = MQTopLevelObject;
+
+/**
+ * Represents a variablein the macro engine.
+ */
+struct MQDataVar
+{
+	char szName[MAX_STRING];
+	MQTypeVar Var;
+
+	MQDataVar* pNext;
+	MQDataVar* pPrev;
+	MQDataVar** ppHead;
+};
 
 //
 // MacroQuest DataTypes
@@ -96,9 +120,6 @@ MQLIB_API bool RemoveMQ2TypeExtension(const char* typeName, datatypes::MQ2Type* 
 // Top Level Objects
 //
 
-// Function signature for TLO callbacks
-using MQTopLevelObjectFunction = std::function<bool(const char*, MQTypeVar&)>;
-
 /**
  * Adds a new Top Level Object to the macro environment.
  * 
@@ -141,6 +162,25 @@ MQLIB_API int EvaluateMacroDataMember(MQ2Type* Type, MQVarPtr VarPtr, MQTypeVar&
 MQLIB_OBJECT bool FindMacroDataMember(MQ2Type* Type, const std::string& Member);
 
 //----------------------------------------------------------------------------
+// Macro Variables
+
+/**
+ * Check if a variable exists with the given name.
+ *
+ * @param variableName The name of the variable.
+ * @return True if a variable exists with this name.
+ */
+MQLIB_API bool IsMacroVariable(const char* variableName);
+
+/**
+ * Find a macro variable by name.
+ *
+ * @param variableName the name of the variable.
+ * @return The variable if it exists, otherwise nullptr.
+ */
+MQLIB_API MQDataVar* FindMacroVariable(const char* variableName);
+
+//----------------------------------------------------------------------------
 // Compatibility shims
 
 using fMQData = bool(*)(const char*, MQTypeVar&);
@@ -161,8 +201,12 @@ inline bool RemoveMQ2Data(const char* name) {
 	return RemoveTopLevelObject(name);
 }
 
+inline MQDataVar* FindMQ2DataVariable(const char* variableName) {
+	return FindMacroVariable(variableName);
+}
+
 template <unsigned int Size>
-inline char* ParseMacroParameter(char(&szOriginal)[Size])
+char* ParseMacroParameter(char(&szOriginal)[Size])
 {
 	return ParseMacroParameter(szOriginal, Size);
 }
@@ -191,7 +235,7 @@ inline namespace deprecated
 
 	template <unsigned int Size>
 	DEPRECATE("ParseMacroParameter no longer takes a PlayerClient parameter. It can be safely removed")
-	inline char* ParseMacroParameter(eqlib::PlayerClient* pChar, char(&szOriginal)[Size])
+	char* ParseMacroParameter(eqlib::PlayerClient* pChar, char(&szOriginal)[Size])
 	{
 		return mq::ParseMacroParameter(szOriginal, Size);
 	}

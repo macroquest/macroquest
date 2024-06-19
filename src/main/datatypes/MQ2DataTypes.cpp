@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DataTypes.h"
+#include "MQDataAPI.h"
 
 namespace mq::datatypes {
 
