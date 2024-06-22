@@ -1,6 +1,6 @@
 [submodule "src/eqlib"]
 	path = src/eqlib
-    url = https://github.com/macroquest/eqlib.git
+        url = https://github.com/cezero/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
 	url = https://github.com/macroquest/vcpkg.git

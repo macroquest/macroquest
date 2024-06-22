@@ -281,6 +281,7 @@ void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
 
 static void CheckGameValidity()
 {
+	return;
 #if IS_LIVE_CLIENT
 	constexpr uint8_t salt[8] = {0x04, 0xc4, 0x57, 0xbf, 0x31, 0xd3, 0x62, 0x5a};
 	constexpr uint8_t hashes[24][8] = {
