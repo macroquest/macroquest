@@ -22,8 +22,8 @@ namespace mq {
 
 // This is here, and not in mq/base/String.h because it is dependent on fmt/format.h,
 // while mq/base/String.h is not.
-template<typename T>
-inline std::string join(const std::vector<T>& vec, std::string_view delim)
+template <typename T>
+std::string join(const std::vector<T>& vec, std::string_view delim)
 {
 	return fmt::format("{}", fmt::join(vec, delim));
 }

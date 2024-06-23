@@ -1587,10 +1587,8 @@ static void ShowServerList(bool* p_open)
 					ImGui::TextUnformatted("No");
 				else if (server->TrueBoxStatus == 1)
 					ImGui::TextUnformatted("Yes");
-				else if (server->TrueBoxStatus == 2)
-					ImGui::TextUnformatted("Relaxed");
-				else
-					ImGui::Text("Unknown (%d)", server->TrueBoxStatus);
+				else if (server->TrueBoxStatus >= 2)
+					ImGui::Text("Relaxed (%d)", server->TrueBoxStatus);
 			}
 
 			ImGui::EndTable();
