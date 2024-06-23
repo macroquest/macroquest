@@ -412,7 +412,14 @@ public:
 		}
 
 		if (server_it != g_pLoginClient->ServerList.end())
-			return *server_it;
+		{
+			EQLS::EQClientServerData* serverData = *server_it;
+
+			if (!serverData || serverData->TrueBoxStatus == 1)
+				return nullptr;
+
+			return serverData;
+		}
 
 		return nullptr;
 	}

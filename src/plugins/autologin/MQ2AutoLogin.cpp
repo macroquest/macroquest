@@ -1207,8 +1207,9 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-static bool bShowAutoLoginOverlay = true;
-static bool bShowOverlayDebugInfo = false;
+static bool s_showAutoLoginOverlay = true;
+static bool s_showOverlayDebugInfo = false;
+static bool s_showServerList = false;
 
 static bool InputInt(const char* label, int* v, int step = 1, int step_fast = 10, ImGuiInputTextFlags flags = 0)
 {
@@ -1529,12 +1530,73 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 		if (ImGui::BeginPopupContextWindow())
 		{
-			ImGui::MenuItem("Show Debug Info", nullptr, &bShowOverlayDebugInfo);
+			ImGui::MenuItem("Show Debug Info", nullptr, &s_showOverlayDebugInfo);
+			ImGui::MenuItem("Show Server List", nullptr, &s_showServerList);
 			ImGui::Separator();
 			if (p_open && ImGui::MenuItem("Close")) *p_open = false;
 			ImGui::EndPopup();
 		}
 	}
+	ImGui::End();
+}
+
+static void ShowServerList(bool* p_open)
+{
+	if (!g_pLoginClient )
+		return;
+
+	if (ImGui::Begin("Server List", p_open, 0))
+	{
+		auto& serverList = g_pLoginClient->ServerList;
+
+		if (ImGui::BeginTable("##ServerList", 7, ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Name");
+			ImGui::TableSetupColumn("Flags");
+			ImGui::TableSetupColumn("RuleSet");
+			ImGui::TableSetupColumn("Desc");
+			ImGui::TableSetupColumn("Status");
+			ImGui::TableSetupColumn("Expansion");
+			ImGui::TableSetupColumn("TrueBox");
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			for (EQLS::EQClientServerData* server : serverList)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->ServerName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%08x", server->Flags);
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->RuleSet.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->Description.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%08x", server->StatusFlags);
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->Expansion > 0 && server->Expansion <= NUM_EXPANSIONS ? szExpansions[server->Expansion - 1] : "");
+
+				ImGui::TableNextColumn();
+				if (server->TrueBoxStatus == 0)
+					ImGui::TextUnformatted("No");
+				else if (server->TrueBoxStatus == 1)
+					ImGui::TextUnformatted("Yes");
+				else if (server->TrueBoxStatus == 2)
+					ImGui::TextUnformatted("Relaxed");
+				else
+					ImGui::Text("Unknown (%d)", server->TrueBoxStatus);
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
 	ImGui::End();
 }
 
@@ -1546,7 +1608,12 @@ PLUGIN_API void OnUpdateImGui()
 	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT
 		|| (gameState == GAMESTATE_INGAME && Login::get_record() != nullptr))
 	{
-		ShowAutoLoginOverlay(&bShowAutoLoginOverlay);
+		ShowAutoLoginOverlay(&s_showAutoLoginOverlay);
+	}
+
+	if (gameState == GAMESTATE_PRECHARSELECT && s_showServerList)
+	{
+		ShowServerList(&s_showServerList);
 	}
 }
 
