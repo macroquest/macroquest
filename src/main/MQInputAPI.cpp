@@ -735,6 +735,32 @@ static LRESULT WINAPI DispatchMessageA_Detour(const MSG* lpMsg)
 	return DispatchMessageA_Trampoline(lpMsg);
 }
 
+// EQ currently has a bug that was introduced in the patch on 6/20/2024.
+//
+// This bug causes the window to un-maximize (restore) whenever a WM_SYSCOMMAND is sent
+// that is not a SC_MAXIMIZE message.
+// 
+// This happens because the game has flawed logic in the code that is handling the
+// WM_SYSCOMMAND message. The game is updating the window's maximized state based on
+// whether this message is a SC_MAXIMIZE command or not. If the command is any of the
+// multiple commands that are NOT SC_MAXIMIZE, the window will be restored instead.
+// For more information on WM_SYSCOMMAND, see: https://learn.microsoft.com/en-us/windows/win32/menurc/wm-syscommand
+
+class CResolutionHandler_Detours
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(void, HandleSysCommand_Trampoline, (WPARAM wParam));
+	void HandleSysCommand_Detour(WPARAM wParam)
+	{
+		const WPARAM sc = wParam & 0xFFF0;
+
+		if (sc == SC_RESTORE || sc == SC_MAXIMIZE)
+		{
+			HandleSysCommand_Trampoline(wParam);
+		}
+	}
+};
+
 static void InputAPI_Initialize()
 {
 	DebugSpew("Initializing Input");
@@ -745,6 +771,7 @@ static void InputAPI_Initialize()
 	EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
 
 	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
+	EzDetour(CResolutionHandler__HandleSysCommand, &CResolutionHandler_Detours::HandleSysCommand_Detour, &CResolutionHandler_Detours::HandleSysCommand_Trampoline);
 }
 
 void InputAPI_Shutdown()
@@ -754,6 +781,7 @@ void InputAPI_Shutdown()
 	RemoveDetour(CDisplay__GetClickedActor);
 	RemoveDetour(TranslateMessage_Ptr);
 	RemoveDetour(DispatchMessageA_Ptr);
+	RemoveDetour(CResolutionHandler__HandleSysCommand);
 
 	if (s_dinputInitialized)
 	{
