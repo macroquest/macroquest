@@ -2839,20 +2839,22 @@ public:
 		if (BeginColorSection("CPageWndProperties", open))
 		{
 			ColumnCXStr("Tab Text", pWnd->TabText);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnCXStr("Original Tab Text", pWnd->OrigTabText);
+#endif
 			ColumnColor("Tab Color", pWnd->CRTabText);
 			ColumnColor("Tab Color (Active)", pWnd->CRTabTextActive);
 			DisplayTextureAnimation("Tab Icon", pWnd->pTATabIcon, true);
 			DisplayTextureAnimation("Tab Icon (Active)", pWnd->pTATabIconActive, true);
-
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnColor("Flash Highlight Color", pWnd->CRHighlightFlashColor);
-
 
 			ColumnElapsedTimestamp("Last Flash Time", std::chrono::milliseconds(pWnd->LastFlashTime),
 				std::chrono::system_clock::now().time_since_epoch());
 
 			ColumnCheckBox("Flash On Message", pWnd->bHighlightOnNewMessages);
 			ColumnCheckBox("Flashing", &pWnd->bFlashing);
+#endif
 		}
 	}
 
@@ -4040,7 +4042,9 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 		DisplayDynamicTemplateExpand("Background", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
 		DisplayDynamicTemplateExpand("Overlay", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
 		DisplayTextObject("Text Object", pCursorAttachment->pTextObject);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBL)
 		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObject);
+#endif
 		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
 	}
 

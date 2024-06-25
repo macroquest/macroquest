@@ -735,6 +735,7 @@ static LRESULT WINAPI DispatchMessageA_Detour(const MSG* lpMsg)
 	return DispatchMessageA_Trampoline(lpMsg);
 }
 
+#if IS_CLIENT_DATE(20240611)
 // EQ currently has a bug that was introduced in the patch on 6/20/2024.
 //
 // This bug causes the window to un-maximize (restore) whenever a WM_SYSCOMMAND is sent
@@ -760,6 +761,7 @@ public:
 		}
 	}
 };
+#endif
 
 static void InputAPI_Initialize()
 {
@@ -771,7 +773,9 @@ static void InputAPI_Initialize()
 	EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
 
 	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
+#if IS_CLIENT_DATE(20240611)
 	EzDetour(CResolutionHandler__HandleSysCommand, &CResolutionHandler_Detours::HandleSysCommand_Detour, &CResolutionHandler_Detours::HandleSysCommand_Trampoline);
+#endif
 }
 
 void InputAPI_Shutdown()
@@ -781,7 +785,9 @@ void InputAPI_Shutdown()
 	RemoveDetour(CDisplay__GetClickedActor);
 	RemoveDetour(TranslateMessage_Ptr);
 	RemoveDetour(DispatchMessageA_Ptr);
+#if IS_CLIENT_DATE(20240611)
 	RemoveDetour(CResolutionHandler__HandleSysCommand);
+#endif
 
 	if (s_dinputInitialized)
 	{

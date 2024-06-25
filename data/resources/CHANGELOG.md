@@ -27,21 +27,8 @@ April 25, 2024:
 - Adjust timestamps in chat and logging to be in local time (#853, #852).
 - Add logging auto cleanup feature to launcher (#419).
 
-April 17, 2024:
-- Update for live patch
-
-April 11, 2024:
-- Update for test patch
-
-April 1, 2024:
-- Update for live patch
-
-March 30, 2024:
-- Update for live patch
-- Update for test patch
-
-March 23, 2024:
-- Update for test patch
+March 27, 2024:
+- Updated emu client to catch it up with the latest features
 
 March 13, 2024:
 - Update for live patch
