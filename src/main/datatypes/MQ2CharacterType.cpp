@@ -1294,7 +1294,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					Dest = pItemType->MakeTypeVar(pLocalPC->BankItems.GetItem(nSlot));
 					return true;
 				}
-		
+
 				if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
@@ -3964,7 +3964,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pTimeStampType;
 		if (pLocalPlayer->CastingData.SpellETA)
 		{
-			int64_t delta = pLocalPlayer->CastingData.SpellETA - pLocalPlayer->TimeStamp;
+			int64_t delta = pLocalPlayer->CastingData.SpellETA - pDisplay->TimeStamp;
 			if (delta > 0)
 			{
 				Dest.Int64 = delta;
