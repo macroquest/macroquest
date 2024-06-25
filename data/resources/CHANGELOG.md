@@ -1,3 +1,6 @@
+June 24, 2024:
+- Update for live hotfix patch
+
 June 20, 2024:
 - Fix a bug in EverQuest so the window doesn't constantly resize/restore
   itself whenever common system events happen.
