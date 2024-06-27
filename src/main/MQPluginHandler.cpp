@@ -21,6 +21,8 @@
 #include <wil/resource.h>
 #include <random>
 
+#include "MQCommandAPI.h"
+
 //#define DEBUG_PLUGINS
 
 
@@ -256,6 +258,12 @@ MQPlugin* GetPlugin(std::string_view name)
 {
 	auto iter = s_pluginMap.find(GetCanonicalPluginName(name));
 	return iter == s_pluginMap.end() ? nullptr : iter->second.instance;
+}
+
+PluginInfoRec* GetPluginInfoRec(std::string_view name)
+{
+	auto iter = s_pluginMap.find(GetCanonicalPluginName(name));
+	return iter == s_pluginMap.end() ? nullptr : &iter->second;
 }
 
 MQPlugin* GetPluginByHandle(MQPluginHandle handle, bool noMain /* = false */)
@@ -556,6 +564,22 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	return 1;
 }
 
+static void ShutdownPlugin(const PluginInfoRec& rec)
+{
+	MQPlugin* pPlugin = rec.instance;
+
+	// call Plugin:CleanUI
+	if (pPlugin->CleanUI)
+		pPlugin->CleanUI();
+
+	// call Plugin:Shutdown
+	if (pPlugin->Shutdown)
+		pPlugin->Shutdown();
+
+	// Perform any additional de-registration as required
+	pCommandAPI->OnPluginUnloaded(pPlugin, rec.handle);
+}
+
 bool UnloadPlugin(std::string_view pluginName)
 {
 	DebugSpew("UnloadPlugin(%.*s)", pluginName.length(), pluginName.data());
@@ -593,17 +617,12 @@ bool UnloadPlugin(std::string_view pluginName)
 
 		// Remove it from the list so that it can no longer be accessed
 		RemovePluginFromList(pPlugin);
+
 		s_pluginMap.erase(iter);
 		s_pluginHandleMap.erase(rec.handle.pluginID);
 	}
 
-	// call Plugin:CleanUI
-	if (pPlugin->CleanUI)
-		pPlugin->CleanUI();
-
-	// call Plugin:Shutdown
-	if (pPlugin->Shutdown)
-		pPlugin->Shutdown();
+	ShutdownPlugin(rec);
 
 	// Cleanup
 	if (FreeLibrary(pPlugin->hModule))

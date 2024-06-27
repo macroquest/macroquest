@@ -185,7 +185,7 @@ MQCommandAPI::MQCommandAPI()
 		{ "/hotbutton",         DoHotButton,                true,  true  },
 		{ "/hud",               HudCmd,                     true,  false },
 		{ "/identify",          Identify,                   true,  true  },
-		{ "/if",                MacroIfCmd,                      true,  false },
+		{ "/if",                MacroIfCmd,                 true,  false },
 		{ "/ini",               IniOutput,                  true,  false },
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
 		{ "/invoke",            InvokeCmd,                  true,  false },
@@ -226,7 +226,7 @@ MQCommandAPI::MQCommandAPI()
 		{ "/ranged",            RangedCmd,                  true,  true  },
 		{ "/reloadui",          ReloadUICmd,                true,  true  },
 		{ "/removeaug",         RemoveAugCmd,               true,  true  },
-		{ "/removeaura",        RemoveAura,                 false, true  },
+		{ "/removeaura",        RemoveAura,                 true,  true  },
 		{ "/removebuff",        RemoveBuff,                 true,  true  },
 		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/removepetbuff",     RemovePetBuff,              true,  true  },
@@ -253,7 +253,7 @@ MQCommandAPI::MQCommandAPI()
 		{ "/vardata",           VarDataCmd,                 true,  false },
 		{ "/varset",            VarSetCmd,                  true,  false },
 		{ "/where",             Where,                      true,  true  },
-		{ "/while",             MacroWhileCmd,                   true,  false },
+		{ "/while",             MacroWhileCmd,              true,  false },
 		{ "/who",               SuperWho,                   true,  true  },
 		{ "/whofilter",         SWhoFilter,                 true,  true  },
 		{ "/whotarget",         SuperWhoTarget,             true,  true  },
@@ -293,6 +293,36 @@ MQCommandAPI::~MQCommandAPI()
 	}
 
 	m_aliases.clear();
+}
+
+void MQCommandAPI::OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle)
+{
+	// Remove any commands that were created by this plugin.
+	MQCommand* pCommand = m_pCommands;
+
+	while (pCommand)
+	{
+		if (pCommand->pluginHandle == pluginHandle)
+		{
+			DebugSpew("Removing command left behind by %s: %s", plugin->name.c_str(), pCommand->command.c_str());
+
+			if (pCommand->pNext)
+				pCommand->pNext->pLast = pCommand->pLast;
+			if (pCommand->pLast)
+				pCommand->pLast->pNext = pCommand->pNext;
+			else
+				m_pCommands = pCommand->pNext;
+
+			MQCommand* thisCmd = pCommand;
+			pCommand = pCommand->pNext;
+
+			delete thisCmd;
+		}
+		else
+		{
+			pCommand = pCommand->pNext;
+		}
+	}
 }
 
 bool MQCommandAPI::InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler)
@@ -608,7 +638,9 @@ bool MQCommandAPI::AddCommand(std::string_view command, MQCommandHandler handler
 			return false;
 		}
 
-		if (compare < 0)
+		// We already filtered out exact matches that we don't want, so the only exact match that we
+		// can get now are for eq commands.
+		if (compare <= 0)
 		{
 			// insert here.
 			if (pLast)
@@ -742,7 +774,9 @@ bool MQCommandAPI::RemoveAlias(const std::string& shortCommand,
 	auto iter = m_aliases.find(shortCommand);
 	if (iter == m_aliases.end())
 	{
-		DebugSpew("Failed to remove alias \"%s\": this alias does not exist");
+		DebugSpew("Failed to remove alias \"%s\": this alias does not exist",
+			shortCommand.c_str());
+
 		return false;
 	}
 
@@ -1061,8 +1095,22 @@ void DoCommandf(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 
-	pCommandAPI->DoCommand(szFormat, false);
+	pCommandAPI->DoCommand(szOutput, false);
 }
 
+fEQCommand FindEQCommand(std::string_view command)
+{
+	PCMDLIST pCmdListOrig = EQADDR_CMDLIST;
+
+	for (int i = 0; pCmdListOrig[i].fAddress != nullptr; ++i)
+	{
+		if (ci_equals(pCmdListOrig[i].szName, command))
+		{
+			return pCmdListOrig[i].fAddress;
+		}
+	}
+
+	return nullptr;
+}
 
 } // namespace mq

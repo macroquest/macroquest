@@ -917,8 +917,15 @@ bool NamedPipeServer::CreateAndConnect()
 
 void NamedPipeServer::CloseConnection(PipeConnection* connection)
 {
-	if (m_handler)
-		m_handler->OnConnectionClosed(connection->GetConnectionId(), connection->GetProcessId());
+	PostToMainThread(
+		[connectionId = connection->GetConnectionId(),
+		processId = connection->GetProcessId(), this]()
+	{
+		if (m_handler)
+		{
+			m_handler->OnConnectionClosed(connectionId, processId);
+		}
+	});
 
 	// close the connection
 	if (connection->InternalClose(true))

@@ -531,9 +531,15 @@ void DrawSpellGem(ImDrawList* drawList,
 				position.y + static_cast<int>(pSpellGem->SpellIconOffsetY * scale),
 			};
 			CXSize iconSize = {
+#if IS_CLIENT_DATE(20180920u) // earliest known date with these fields
 				static_cast<int>(pSpellGem->SpellIconWidth * scale),
 				static_cast<int>(pSpellGem->SpellIconHeight * scale),
+#else
+				static_cast<int>(pTAIcon->CellWidth * scale),
+				static_cast<int>(pTAIcon->CellHeight * scale)
+#endif
 			};
+
 
 			if (pSpellGem->TintIndex == 0)
 			{

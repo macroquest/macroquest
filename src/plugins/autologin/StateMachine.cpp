@@ -412,7 +412,14 @@ public:
 		}
 
 		if (server_it != g_pLoginClient->ServerList.end())
-			return *server_it;
+		{
+			EQLS::EQClientServerData* serverData = *server_it;
+
+			if (!serverData || serverData->TrueBoxStatus == 1)
+				return nullptr;
+
+			return serverData;
+		}
 
 		return nullptr;
 	}
@@ -785,6 +792,7 @@ public:
 
 	static void CheckForFastCamp()
 	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // A guess
 		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
 		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
 		{
@@ -801,6 +809,7 @@ public:
 				}
 			}
 		}
+#endif
 	}
 };
 
