@@ -1,3 +1,7 @@
+July 1, 2024:
+- emu: Fix CTAFrameDraw, fixes several issues with window inspector (#871)
+- emu: Fix CBazaarSearchWnd, fixes several issues with /bzsrch (#872)
+
 June 20, 2024:
 - Fix a bug in EverQuest so the window doesn't constantly resize/restore
   itself whenever common system events happen.
