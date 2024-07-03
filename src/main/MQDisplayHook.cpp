@@ -52,7 +52,7 @@ public:
 	{
 		RestartUI_Trampoline();
 
-		gDrawWindowFrameSkipCount++;
+		gDrawWindowFrameSkipCount = 2;
 
 		// This is similar to ReloadUI, but it doesn't reload XML. This is the function
 		// that is used to restart the UI after swapping personas.
