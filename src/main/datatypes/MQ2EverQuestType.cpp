@@ -28,6 +28,7 @@ enum class EverQuestMembers
 	MouseX,
 	MouseY,
 	Ping,
+	ConnectionStrength,
 	LClickedObject,
 	WinTitle,
 	PID,
@@ -91,6 +92,7 @@ MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
 	ScopedTypeMember(EverQuestMembers, MaxFPS);
 	ScopedTypeMember(EverQuestMembers, MaxBGFPS);
 	ScopedTypeMember(EverQuestMembers, UiScale);
+	ScopedTypeMember(EverQuestMembers, ConnectionStrength);
 }
 
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -178,9 +180,28 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::Ping:
-		Dest.DWord = pConnection->Last;
+		Dest.DWord = 0;
 		Dest.Type = pIntType;
+		if (pConnection)
+		{
+			UdpLibrary::UdpConnectionStatistics stats;
+			pConnection->GetStats(&stats);
+			Dest.DWord = stats.averagePingTime;
+		}
 		return true;
+
+	case EverQuestMembers::ConnectionStrength:
+		Dest.Float = 0.0f;
+		Dest.Type = pFloatType;
+		if (pConnection)
+		{
+			int f = std::max<int>(pConnection->LastReceive() - 500, 0);
+			float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
+
+			Dest.Float = connectionStrength * 100.0f;
+		}
+		return true;
+
 
 	case EverQuestMembers::ChatChannels:
 		Dest.DWord = 0;

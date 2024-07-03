@@ -709,13 +709,6 @@ MQLIB_OBJECT void RemoveTokenMessageCmd(int StringID, int CallbackID);
 
 //----------------------------------------------------------------------------
 
-enum class GetMoneyFromStringFormat {
-	Long = 0,       // e.g. pp, gp, sp, cp
-	Short = 1,      // e.g. p, g, s, c
-};
-MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
-MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
-
 MQLIB_API MembershipLevel GetMembershipLevel();
 inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 

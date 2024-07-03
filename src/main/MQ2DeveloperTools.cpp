@@ -2764,6 +2764,134 @@ public:
 				ImGui::TreePop();
 			}
 
+			if (pConnection)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (ImGui::TreeNode("Network"))
+				{
+					UdpLibrary::UdpConnectionStatistics stats;
+					pConnection->GetStats(&stats);
+
+					char temp[64];
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Sent");
+					FormatBytes(temp, stats.totalBytesSent);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Received");
+					FormatBytes(temp, stats.totalBytesSent);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted("%s", temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("CRC Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.crcRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Order Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.orderRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Order Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfOrderPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Duplicate Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.duplicatePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Range Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfRangePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Accelerated");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsAccelerated);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Timed Out");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsTimedOut);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Iterations");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.iterations);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Corrupt Packet Errors");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.corruptPacketErrors);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Age");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingAge);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Average Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.averagePingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("High Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Reliable Average Ping");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.reliableAveragePing);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (stats.percentSentSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Received");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (stats.percentReceivedSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Connection Strength");
+
+					int f = std::max<int>(pConnection->LastReceive() - 500, 0);
+					float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", connectionStrength * 100);
+
+					ImGui::TreePop();
+				}
+			}
+
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			if (ImGui::TreeNode("Server"))
