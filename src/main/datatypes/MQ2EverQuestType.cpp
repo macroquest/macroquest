@@ -180,14 +180,8 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::Ping:
-		Dest.DWord = 0;
+		Dest.DWord = pConnection ? pConnection->GetAveragePing() : 0;
 		Dest.Type = pIntType;
-		if (pConnection)
-		{
-			UdpLibrary::UdpConnectionStatistics stats;
-			pConnection->GetStats(&stats);
-			Dest.DWord = stats.averagePingTime;
-		}
 		return true;
 
 	case EverQuestMembers::ConnectionStrength:
@@ -195,7 +189,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pFloatType;
 		if (pConnection)
 		{
-			int f = std::max<int>(pConnection->LastReceive() - 500, 0);
+			int f = std::max<int>(pConnection->GetLastReceiveTime() - 500, 0);
 			float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
 
 			Dest.Float = connectionStrength * 100.0f;

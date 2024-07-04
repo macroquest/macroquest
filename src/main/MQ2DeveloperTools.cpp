@@ -2783,7 +2783,7 @@ public:
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Received");
 					FormatBytes(temp, stats.totalBytesSent);
-					ImGui::TableNextColumn(); ImGui::TextUnformatted("%s", temp);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Total Packets Sent");
@@ -2884,7 +2884,7 @@ public:
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Connection Strength");
 
-					int f = std::max<int>(pConnection->LastReceive() - 500, 0);
+					int f = std::max<int>(pConnection->GetLastReceiveTime() - 500, 0);
 					float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
 					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", connectionStrength * 100);
 
