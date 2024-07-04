@@ -2850,8 +2850,16 @@ public:
 					ImGui::TableNextColumn(); ImGui::Text("%d", stats.averagePingTime);
 
 					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Low Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("High Ping Time");
 					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Last Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.lastPingTime);
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Reliable Average Ping");
@@ -2875,18 +2883,15 @@ public:
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Sent");
-					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (stats.percentSentSuccess) * 100);
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentSentSuccess) * 100);
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Received");
-					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (stats.percentReceivedSuccess) * 100);
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentReceivedSuccess) * 100);
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Connection Strength");
-
-					int f = std::max<int>(pConnection->GetLastReceiveTime() - 500, 0);
-					float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
-					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", connectionStrength * 100);
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", pConnection->GetConnectionStrength() * 100);
 
 					ImGui::TreePop();
 				}

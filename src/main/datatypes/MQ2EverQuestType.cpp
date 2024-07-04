@@ -185,15 +185,8 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::ConnectionStrength:
-		Dest.Float = 0.0f;
+		Dest.Float = pConnection ? (pConnection->GetConnectionStrength() * 100.f) : 0.0f;
 		Dest.Type = pFloatType;
-		if (pConnection)
-		{
-			int f = std::max<int>(pConnection->GetLastReceiveTime() - 500, 0);
-			float connectionStrength = 1.0f - static_cast<float>(f) / 180000;
-
-			Dest.Float = connectionStrength * 100.0f;
-		}
 		return true;
 
 

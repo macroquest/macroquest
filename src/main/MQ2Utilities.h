@@ -21,10 +21,10 @@
 namespace mq {
 
 // Format a number of bytes into a string with the appropriate unit.
-MQLIB_API void FormatBytes(char* szBuffer, size_t bufferLength, size_t bytes);
+MQLIB_API void FormatBytes(char* szBuffer, size_t bufferLength, uint64_t bytes);
 
 template <size_t Size>
-void FormatBytes(char(&szBuffer)[Size], size_t bytes) {
+void FormatBytes(char(&szBuffer)[Size], uint64_t bytes) {
 	FormatBytes(szBuffer, Size, bytes);
 }
 
