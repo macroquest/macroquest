@@ -7499,7 +7499,7 @@ std::string GetCurrentUI()
 	return "Default";
 }
 
-void FormatBytes(char* szBuffer, size_t bufferLength, size_t bytes)
+void FormatBytes(char* szBuffer, size_t bufferLength, uint64_t bytes)
 {
 	if (bytes < 1024)
 	{
