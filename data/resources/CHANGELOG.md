@@ -1,3 +1,7 @@
+July 3, 2024:
+- Fix EverQuest.Ping, add EverQuest.ConnectionStrength - these are the value from the net meter.
+- Fix UI not working after persona swap (#797).
+
 June 24, 2024:
 - Update for live hotfix patch
 
