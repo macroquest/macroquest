@@ -2782,7 +2782,7 @@ public:
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Received");
-					FormatBytes(temp, stats.totalBytesSent);
+					FormatBytes(temp, stats.totalBytesReceived);
 					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
 
 					ImGui::TableNextRow();
