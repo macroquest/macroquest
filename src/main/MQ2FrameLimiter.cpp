@@ -218,6 +218,11 @@ public:
 	{
 		static bool lastHide = false;
 
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			--gDrawWindowFrameSkipCount;
+		}
+
 		if (pCursorAttachment)
 		{
 			if (gbHideCursorAttachment)
@@ -242,6 +247,12 @@ public:
 			lastHide = gbHideCursorAttachment;
 		}
 
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			DrawWindows_Trampoline();
+			return;
+		}
+
 		if (!IsLimiterEnabled())
 		{
 			// this is a pass through if we have the frame limiter off
@@ -251,6 +262,11 @@ public:
 
 	static void CallDrawWindows()
 	{
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			return;
+		}
+
 		if (pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
 		{
 			pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();

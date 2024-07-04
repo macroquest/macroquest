@@ -1109,7 +1109,7 @@ static void FindItemPulse()
 						{
 							if (pItemDef->NoDestroy)
 							{
-								WriteChatf("Skipping \"No Destroy\" item \%s", pItem->GetName());
+								WriteChatf("Skipping \"No Destroy\" item %s", pItem->GetName());
 								DoCommandf("/autoinventory");
 							}
 							else

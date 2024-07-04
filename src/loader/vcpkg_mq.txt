@@ -2,6 +2,6 @@ crashpad-backtrace
 spdlog
 wil
 date
-curl[schannel]
+curl-84[schannel]
 cpr
 pe-parse

@@ -351,6 +351,7 @@ uint32_t bmPluginsUpdateImGui = 0;
 bool gbRenderImGui = true;
 
 bool gbHideCursorAttachment = false;
+int gDrawWindowFrameSkipCount = -1;
 
 enum class DebugTab {
 	MouseInput = 0,

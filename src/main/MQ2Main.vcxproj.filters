@@ -83,7 +83,7 @@
     <ClCompile Include="MQ2ChatHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2CleanUI.cpp">
+    <ClCompile Include="MQDisplayHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQCommandAPI.cpp">
