@@ -13,6 +13,8 @@
  */
 
 #include "pch.h"
+
+#include "ImGuiManager.h"
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
 
@@ -43,6 +45,20 @@ public:
 			PluginsReloadUI();
 		}
 	}
+
+#ifdef CDisplay__RestartUI_x
+	DETOUR_TRAMPOLINE_DEF(void, RestartUI_Trampoline, ())
+	void RestartUI_Detour()
+	{
+		RestartUI_Trampoline();
+
+		gDrawWindowFrameSkipCount = 2;
+
+		// This is similar to ReloadUI, but it doesn't reload XML. This is the function
+		// that is used to restart the UI after swapping personas.
+		ReloadUI_Hook();
+	}
+#endif // CDisplay__RestartUI_x
 
 #if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool))
@@ -179,6 +195,9 @@ void InitializeDisplayHook()
 	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
 	EzDetour(CDisplay__InitCharSelectUI, &CDisplayHook::InitCharSelectUI_Detour, &CDisplayHook::InitCharSelectUI_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
+#ifdef CDisplay__RestartUI_x
+	EzDetour(CDisplay__RestartUI, &CDisplayHook::RestartUI_Detour, &CDisplayHook::RestartUI_Trampoline);
+#endif
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
@@ -216,6 +235,9 @@ void ShutdownDisplayHook()
 	RemoveDetour(CDisplay__ReloadUI);
 	RemoveDetour(CDisplay__InitCharSelectUI);
 	RemoveDetour(DrawNetStatus);
+#ifdef CDisplay__RestartUI_x
+	RemoveDetour(CDisplay__RestartUI);
+#endif
 }
 
 } // namespace mq

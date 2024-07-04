@@ -82,7 +82,11 @@ public:
 					"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
 				*out = 0;
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst, makeStmlSafe);
+#else
+				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst);
+#endif
 				SkipTrampoline = true;
 			}
 #endif // HAS_CHAT_TIMESTAMPS

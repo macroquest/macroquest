@@ -51,6 +51,10 @@
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
+namespace LauncherImGui {
+	bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
+}
+
 HWND hMainWnd;
 
 PROCESS_INFORMATION pInfo = { 0 };
