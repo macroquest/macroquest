@@ -1,3 +1,6 @@
+July 5, 2024:
+- emu: Fix RaidMember accessors (#685), (#861)
+
 July 4, 2024:
 - emu: Fix Spell.Inspect (#831).
 
