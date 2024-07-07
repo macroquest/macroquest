@@ -1077,6 +1077,11 @@ enum class HotButtonWindowMembers
 	TypeName,
 };
 
+enum class HotButtonWindowMethods
+{
+	Activate,
+};
+
 MQHotButtonType::MQHotButtonType() : MQ2Type("hotbuttonwindow")
 {
 	ScopedTypeMember(HotButtonWindowMembers, AltAbility);
@@ -1095,6 +1100,8 @@ MQHotButtonType::MQHotButtonType() : MQ2Type("hotbuttonwindow")
 	ScopedTypeMember(HotButtonWindowMembers, Spell);
 	ScopedTypeMember(HotButtonWindowMembers, Type);
 	ScopedTypeMember(HotButtonWindowMembers, TypeName);
+
+	ScopedTypeMethod(HotButtonWindowMethods, Activate);
 }
 
 static void GetHotButtonLabel(CHotButton* hotButton, char* dest, size_t bufferSize)
@@ -1137,7 +1144,37 @@ bool MQHotButtonType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 
 	MQTypeMember* pMember = MQHotButtonType::FindMember(Member);
 	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQHotButtonType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<HotButtonWindowMethods>(pMethod->ID))
+			{
+			case HotButtonWindowMethods::Activate:
+			{
+				char wndName[64];
+				if (pHotButton->BarIndex > 0)
+				{
+					sprintf_s(wndName, "HotButtonWnd%d", pHotButton->BarIndex + 1);
+				}
+				else
+				{
+					strcpy_s(wndName, "HotButtonWnd");
+				}
+
+				if (CHotButtonWnd* window = static_cast<CHotButtonWnd*>(FindMQ2Window(wndName)))
+				{
+					window->DoHotButton(pHotButton->ButtonIndex, false, nullptr);
+				}
+
+				return true;
+			}
+			default: break;
+			}
+		}
+
 		return false;
+	}
 
 	switch (static_cast<HotButtonWindowMembers>(pMember->ID))
 	{
