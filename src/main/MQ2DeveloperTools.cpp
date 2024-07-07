@@ -2390,6 +2390,69 @@ static EngineInspector* s_engineInspector = nullptr;
 
 #pragma region EverQuest Data Inspector
 
+void DeveloperTools_DrawHotButtonData(const HotButtonData& data)
+{
+	// Item
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item");
+	if (ItemPtr pItem = data.Item)
+	{
+		ImGui::TableNextColumn();
+		if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+			pItemDisplayManager->ShowItem(pItem);
+	}
+
+	// ItemGuid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemGuid");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemGuid.guid);
+
+	// Label
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Label");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.Label);
+
+	// Item Name
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item Name");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemName);
+
+	// ItemID
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.ItemId);
+
+	// IconType
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconType");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconType);
+
+	// IconSlot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconSlot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconSlot);
+
+	// IconId
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconId);
+
+	// Slot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Slot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.Slot);
+
+	// Type
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Type");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.Type);
+
+	// Item Valid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemValid");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.ItemValid);
+}
+
 class EverQuestDataInspector : public ImGuiWindowBase
 {
 public:
@@ -3047,6 +3110,49 @@ public:
 								ImGui::TableNextRow();
 								ImGui::TableNextColumn(); ImGui::Text("Changed");
 								ImGui::TableNextColumn(); ImGui::Checkbox("##Changed", &eq.bSocialChanged[i][j]);
+
+								ImGui::TreePop();
+							}
+						}
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("HotButtons"))
+			{
+				for (int window = 0; window < NUM_HOTBUTTON_WINDOWS; ++window)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode((void*)&eq.hotButtons[window][0][0], "Window %d", window + 1))
+					{
+						for (int page = 0; page < NUM_HOTBUTTON_PAGES; ++page)
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							if (ImGui::TreeNode((void*)&eq.hotButtons[window][page][0], "Page %d", page + 1))
+							{
+								for (int button = 0; button < HOTBUTTONS_PER_PAGE; ++button)
+								{
+									HotButtonData& data = eq.hotButtons[window][page][button];
+
+									ImGui::TableNextRow();
+									ImGui::TableNextColumn();
+									if (ImGui::TreeNode((void*)&data, "Button %d", button + 1))
+									{
+										DeveloperTools_DrawHotButtonData(data);
+
+										ImGui::TreePop();
+									}
+								}
 
 								ImGui::TreePop();
 							}

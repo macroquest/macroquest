@@ -1755,23 +1755,19 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			if (IsNumber(Index))
 			{
 				// numeric
-				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
-				{
-					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
-					{
-						if (pAbility->ID == GetIntFromString(Index, 0))
-						{
-							int reusetimer = 0;
-							pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &reusetimer);
-							if (reusetimer < 0)
-							{
-								reusetimer = 0;
-							}
+				int aaId = GetIntFromString(Index, 0);
 
-							Dest.UInt64 = reusetimer * 1000;
-							return true;
-						}
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
+				{
+					int reusetimer = 0;
+					pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &reusetimer);
+					if (reusetimer < 0)
+					{
+						reusetimer = 0;
 					}
+
+					Dest.UInt64 = reusetimer * 1000;
+					return true;
 				}
 			}
 			else
@@ -1858,17 +1854,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			if (IsNumber(Index))
 			{
-				// numeric
-				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+				int aaId = GetIntFromString(Index, 0);
+
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
 				{
-					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
-					{
-						if (pAbility->ID == GetIntFromString(Index, 0))
-						{
-							Dest.Ptr = pAbility;
-							return true;
-						}
-					}
+					Dest.Ptr = pAbility;
+					return true;
 				}
 			}
 			else
