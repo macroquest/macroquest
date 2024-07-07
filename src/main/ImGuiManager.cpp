@@ -1402,8 +1402,8 @@ void ImGuiManager_Initialize()
 	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-	s_shiftToDock = GetPrivateProfileBool("Overlay", "ShiftDock", false, mq::internal_paths::MQini);
-	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "KeyboardNav", false, mq::internal_paths::MQini);
+	s_shiftToDock = GetPrivateProfileBool("Overlay", "ConfigDockingWithShift", false, mq::internal_paths::MQini);
+	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", false, mq::internal_paths::MQini);
 
 	if (gbWriteAllConfig)
 	{
@@ -1411,8 +1411,8 @@ void ImGuiManager_Initialize()
 		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ShiftDock", s_shiftToDock, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "KeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", s_keyboardNavImGui, mq::internal_paths::MQini);
 	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
