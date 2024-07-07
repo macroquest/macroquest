@@ -68,7 +68,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(bool, ResetDevice_Trampoline, (bool))
 	bool ResetDevice_Detour(bool a)
 	{
-		SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
+		//SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
 
 		bool success = ResetDevice_Trampoline(a);
 
@@ -84,7 +84,7 @@ public:
 			success = ResetDevice_Trampoline(a);
 		}
 
-		SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
+		//SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
 		return success;
 	}
 };
