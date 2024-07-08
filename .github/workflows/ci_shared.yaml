@@ -13,7 +13,7 @@ env:
 jobs:
   build:
     if: github.repository == 'macroquest/macroquest'
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
