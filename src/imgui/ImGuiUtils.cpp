@@ -209,7 +209,7 @@ void HelpMarker(const char* desc, float width, ImFont* tooltipFont)
 	}
 }
 
-void HelpMarker(const std::function<std::string()>& getText, float width, ImFont* tooltipFont)
+void HelpMarker(const std::function<void(char*, size_t)>& getText, float width, ImFont* tooltipFont)
 {
 	ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE_O);
 
@@ -223,8 +223,10 @@ void HelpMarker(const std::function<std::string()>& getText, float width, ImFont
 			ImGui::PushFont(tooltipFont);
 		}
 
-		std::string value = getText();
-		ImGui::TextUnformatted(value.c_str());
+		char buffer[1024];
+		getText(buffer, 1024);
+
+		ImGui::TextUnformatted(buffer);
 
 		if (tooltipFont)
 		{
