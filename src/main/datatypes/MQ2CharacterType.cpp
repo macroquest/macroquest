@@ -2721,18 +2721,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::CombatState:
 		Dest.Type = pStringType;
-		if (!pPlayerWnd)
-			return false;
+		Dest.Ptr = &DataTypeTemp[0];
 
-		switch (pPlayerWnd->CombatState)
+		switch (GetCombatState())
 		{
 		case eCombatState_Combat:
-			if (pPlayerWnd->GetChildItem("PW_CombatStateAnim"))
-			{
-				strcpy_s(DataTypeTemp, "COMBAT");
-				break;
-			}
-			strcpy_s(DataTypeTemp, "NULL");
+			strcpy_s(DataTypeTemp, "COMBAT");
 			break;
 
 		case eCombatState_Debuff:
@@ -2743,21 +2737,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			strcpy_s(DataTypeTemp, "COOLDOWN");
 			break;
 
-		case eCombatState_Standing:
-			strcpy_s(DataTypeTemp, "ACTIVE");
-			break;
-
 		case eCombatState_Regen:
 			strcpy_s(DataTypeTemp, "RESTING");
 			break;
 
+		case eCombatState_Standing:
 		default:
-			sprintf_s(DataTypeTemp, "UNKNOWN(%d)", pPlayerWnd->CombatState);
+			strcpy_s(DataTypeTemp, "ACTIVE");
 			break;
 		}
 
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
 		return true;
 
 	case CharacterMembers::svCorruption:
