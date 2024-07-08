@@ -51,5 +51,7 @@ extern bool gbRenderImGui;
 // When true, hides the cursor attachment
 extern bool gbHideCursorAttachment;
 
+// When greater than 0, we will skip this number of frames of tampering with the ui
+extern int gDrawWindowFrameSkipCount;
 
 } // namespace mq

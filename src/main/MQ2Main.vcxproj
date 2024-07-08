@@ -523,7 +523,7 @@
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2CachedBuffs.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
-    <ClCompile Include="MQ2CleanUI.cpp" />
+    <ClCompile Include="MQDisplayHook.cpp" />
     <ClCompile Include="MQCommandAPI.cpp" />
     <ClCompile Include="MQCommands.cpp" />
     <ClCompile Include="MQ2DeveloperTools.cpp" />

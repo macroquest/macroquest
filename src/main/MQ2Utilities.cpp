@@ -7499,4 +7499,24 @@ std::string GetCurrentUI()
 	return "Default";
 }
 
+void FormatBytes(char* szBuffer, size_t bufferLength, uint64_t bytes)
+{
+	if (bytes < 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%d Bytes", static_cast<int>(bytes));
+	}
+	else if (bytes < 1024 * 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f KB", static_cast<float>(bytes) / 1024);
+	}
+	else if (bytes < 1024 * 1024 * 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f MB", static_cast<float>(bytes) / (1024 * 1024));
+	}
+	else
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f GB", static_cast<float>(bytes) / (1024 * 1024 * 1024));
+	}
+}
+
 } // namespace mq

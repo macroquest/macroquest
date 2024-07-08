@@ -570,7 +570,7 @@ ObjectiveIndex FindObjectiveIndex(CTaskElement* objective)
 	return { -1, -1, TaskSystemType::cTaskSystemTypeTask };
 }
 
-MQ2TaskObjectiveType::MQ2TaskObjectiveType() : MQ2Type("taskobjectivemember")
+MQ2TaskObjectiveType::MQ2TaskObjectiveType() : MQ2Type("taskobjective")
 {
 	ScopedTypeMember(TaskObjectiveTypeMembers, Instruction);
 	ScopedTypeMember(TaskObjectiveTypeMembers, Status);
