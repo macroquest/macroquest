@@ -2207,6 +2207,74 @@ void MacroLog(PlayerClient* pChar, const char* szLine)
 	fclose(fOut);
 }
 
+// ***************************************************************************
+// Function:    MacroLog2
+// Description: Our '/mqlog2' command
+//              Requires filename as first param.
+// Usage:       /mqlog2 filename text
+// ***************************************************************************
+void MacroLog2(PlayerClient* pChar, const char* szLine)
+{
+	bRunNextCommand = true;
+
+	char szArg1[MAX_STRING] = { 0 };
+	GetArg(szArg1, szLine, 1); // Get the first argument as the file name
+
+	if (szArg1[0] == 0)
+	{
+		MacroError("Usage: /mqlog2 <filename> <log text>");
+		return;
+	}
+
+	std::filesystem::path logFilePath = mq::internal_paths::Logs;
+	logFilePath /= std::string(szArg1) + ".log";
+
+	const char* logMessage = GetNextArg(szLine); // Get the rest of the arguments as the log message
+
+	if (ci_equals(logMessage, "clear"))
+	{
+		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
+		if (!fOut)
+		{
+			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
+			return;
+		}
+
+		WriteChatColor("Cleared log.", USERCOLOR_DEFAULT);
+		fclose(fOut);
+		return;
+	}
+
+	std::error_code ec;
+	create_directories(logFilePath.parent_path(), ec);
+
+	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
+	if (!fOut)
+	{
+		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
+		return;
+	}
+
+	time_t curr_time;
+	time(&curr_time);
+
+	std::tm local_tm;
+	localtime_s(&local_tm, &curr_time);
+
+	fmt::memory_buffer buffer;
+	auto out = fmt::format_to(fmt::appender(buffer),
+		"[{:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d}] {}",
+		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
+		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, logMessage);
+	*out = 0;
+
+	fprintf(fOut, "%s\n", buffer.data());
+	DebugSpew("MacroLog2 - %s", buffer.data());
+
+	fclose(fOut);
+}
+
+
 static void FaceObject(const MQGameObject& faceTarget, int flags)
 {
 	if (flags & FaceFlags_HeadingOnly)

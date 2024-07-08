@@ -39,6 +39,7 @@ MQLIB_API void Continue                            (PlayerClient* pChar, const c
 MQLIB_API void ListMacros                          (PlayerClient* pChar, const char* szLine);
 MQLIB_API void SquelchCommand                      (PlayerClient* pChar, const char* szLine);
 MQLIB_API void MacroLog                            (PlayerClient* pChar, const char* szLine);
+MQLIB_API void MacroLog2							(PlayerClient* pChar, const char* szLine);
 MQLIB_API void MacroBeep                           (PlayerClient* pChar, const char* szLine);
 MQLIB_API void Echo                                (PlayerClient* pChar, const char* szLine);
 MQLIB_API void EchoClean                           (PlayerClient* pChar, const char* szLine);

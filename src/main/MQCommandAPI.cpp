@@ -209,6 +209,7 @@ MQCommandAPI::MQCommandAPI()
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
 		{ "/mqlog",             MacroLog,                   true,  false },
+		{ "/mqlog2",            MacroLog2,                  true,  false },
 		{ "/mqpause",           MacroPause,                 true,  false },
 		{ "/mqtarget",          Target,                     true,  true  },
 		{ "/msgbox",            MQMsgBox,                   true,  false },
