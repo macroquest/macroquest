@@ -1411,7 +1411,7 @@ namespace mq {
 		s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 		gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
 		s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-		s_shiftToDock = GetPrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", false, mq::internal_paths::MQini);
+		s_shiftToDock = GetPrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
 		s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", false, mq::internal_paths::MQini);
 
 		if (gbWriteAllConfig)
