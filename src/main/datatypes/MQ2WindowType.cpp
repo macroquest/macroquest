@@ -31,6 +31,7 @@ enum class WindowMembers
 	Height,
 	Highlighted,
 	HisTradeReady,
+	HotButton,
 	HScrollMax,
 	HScrollPct,
 	HScrollPos,
@@ -98,6 +99,7 @@ MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 	ScopedTypeMember(WindowMembers, Height);
 	ScopedTypeMember(WindowMembers, Highlighted);
 	ScopedTypeMember(WindowMembers, HisTradeReady);
+	ScopedTypeMember(WindowMembers, HotButton);
 	ScopedTypeMember(WindowMembers, HScrollMax);
 	ScopedTypeMember(WindowMembers, HScrollPct);
 	ScopedTypeMember(WindowMembers, HScrollPos);
@@ -644,6 +646,15 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		}
 		return false;
 
+	case WindowMembers::HotButton:
+		if (pWnd->GetType() == UI_HotButton)
+		{
+			Dest.Type = pHotButtonWindowType;
+			Dest.Ptr = VarPtr.Ptr;
+			return true;
+		}
+		return false;
+
 	case WindowMembers::Name:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
@@ -874,7 +885,10 @@ bool MQ2WindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-/* SubWindow Type: MQ2InvSlotWindowType */
+//============================================================================
+// SubWindow Type: MQInvSlotWindowType
+//============================================================================
+
 enum class InvSlotWindowMembers
 {
 	Background,
@@ -1032,6 +1046,282 @@ bool MQInvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
 bool MQInvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 {
 	if (Source.Type != pInvSlotWindowType)
+		return false;
+
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
+
+//============================================================================
+// SubWindow Type: MQHotButtonType
+//============================================================================
+
+enum class HotButtonWindowMembers
+{
+	AltAbility,
+	ButtonIndex,
+	BarIndex,
+	IconSlot,
+	IconType,
+	Item,
+	ItemGuid,
+	ItemId,
+	ItemName,
+	Label,
+	PageIndex,
+	Slot,
+	Social,
+	Spell,
+	Type,
+	TypeName,
+};
+
+enum class HotButtonWindowMethods
+{
+	Activate,
+};
+
+MQHotButtonType::MQHotButtonType() : MQ2Type("hotbuttonwindow")
+{
+	ScopedTypeMember(HotButtonWindowMembers, AltAbility);
+	ScopedTypeMember(HotButtonWindowMembers, ButtonIndex);
+	ScopedTypeMember(HotButtonWindowMembers, BarIndex);
+	ScopedTypeMember(HotButtonWindowMembers, IconSlot);
+	ScopedTypeMember(HotButtonWindowMembers, IconType);
+	ScopedTypeMember(HotButtonWindowMembers, Item);
+	ScopedTypeMember(HotButtonWindowMembers, ItemGuid);
+	ScopedTypeMember(HotButtonWindowMembers, ItemId);
+	ScopedTypeMember(HotButtonWindowMembers, ItemName);
+	ScopedTypeMember(HotButtonWindowMembers, Label);
+	ScopedTypeMember(HotButtonWindowMembers, PageIndex);
+	ScopedTypeMember(HotButtonWindowMembers, Slot);
+	ScopedTypeMember(HotButtonWindowMembers, Social);
+	ScopedTypeMember(HotButtonWindowMembers, Spell);
+	ScopedTypeMember(HotButtonWindowMembers, Type);
+	ScopedTypeMember(HotButtonWindowMembers, TypeName);
+
+	ScopedTypeMethod(HotButtonWindowMethods, Activate);
+}
+
+static void GetHotButtonLabel(CHotButton* hotButton, char* dest, size_t bufferSize)
+{
+	// We're copy the text from the button and replace line breaks with spaces. A more involved
+	// way to do this might be to fetch the name of the spell/item/ability, but this is simpler.
+	if (!hotButton->LastLabel.empty())
+	{
+		strcpy_s(dest, bufferSize, hotButton->LastLabel.c_str());
+	}
+	else if (hotButton->DefaultLabel.c_str())
+	{
+		strcpy_s(dest, bufferSize, hotButton->DefaultLabel.c_str());
+	}
+	else
+	{
+		dest[0] = 0;
+	}
+
+	// Remove line breaks
+	for (size_t i = 0; i < strlen(dest); ++i)
+	{
+		if (dest[i] == '\r' || dest[i] == '\n')
+		{
+			dest[i] = ' ';
+		}
+	}
+}
+
+bool MQHotButtonType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+	if (!VarPtr.Ptr)
+		return false;
+
+	if (pWnd->GetType() != UI_HotButton)
+		return false;
+
+	CHotButton* pHotButton = static_cast<CHotButton*>(pWnd);
+
+	MQTypeMember* pMember = MQHotButtonType::FindMember(Member);
+	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQHotButtonType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<HotButtonWindowMethods>(pMethod->ID))
+			{
+			case HotButtonWindowMethods::Activate:
+			{
+				char wndName[64];
+				if (pHotButton->BarIndex > 0)
+				{
+					sprintf_s(wndName, "HotButtonWnd%d", pHotButton->BarIndex + 1);
+				}
+				else
+				{
+					strcpy_s(wndName, "HotButtonWnd");
+				}
+
+				if (CHotButtonWnd* window = static_cast<CHotButtonWnd*>(FindMQ2Window(wndName)))
+				{
+					window->DoHotButton(pHotButton->ButtonIndex, false, nullptr);
+				}
+
+				return true;
+			}
+			default: break;
+			}
+		}
+
+		return false;
+	}
+
+	switch (static_cast<HotButtonWindowMembers>(pMember->ID))
+	{
+	case HotButtonWindowMembers::AltAbility:
+		Dest.Type = pAltAbilityType;
+		Dest.Ptr = nullptr;
+
+		if (pHotButton->LastButtonType == HotButtonType_Social)
+		{
+			if (pHotButton->LastButtonSlot >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
+			{
+				int aaId = pHotButton->LastButtonSlot - (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE);
+				Dest.Ptr = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId);
+			}
+		}
+		return true;
+
+	case HotButtonWindowMembers::ButtonIndex:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->ButtonIndex + 1;
+		return true;
+
+	case HotButtonWindowMembers::BarIndex:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->BarIndex + 1;
+		return true;
+
+	case HotButtonWindowMembers::IconSlot:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastIconSlot;
+		return true;
+
+	case HotButtonWindowMembers::IconType:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastIconType;
+		return true;
+
+	case HotButtonWindowMembers::Item:
+		if (const HotButtonData* data = pHotButton->GetHotButtonData())
+			Dest = pItemType->MakeTypeVar(data->Item);
+		else
+			Dest = pItemType->MakeTypeVar();
+
+		return true;
+
+	case HotButtonWindowMembers::ItemGuid:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pHotButton->LastItemGuid.guid);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::ItemId:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastItemId;
+		return true;
+
+	case HotButtonWindowMembers::ItemName:
+		Dest.Type = pStringType;
+		if (const HotButtonData* data = pHotButton->GetHotButtonData())
+			strcpy_s(DataTypeTemp, data->ItemName);
+		else
+			DataTypeTemp[0] = '\0';
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::Label:
+		Dest.Type = pStringType;
+		GetHotButtonLabel(pHotButton, DataTypeTemp, MAX_STRING);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::PageIndex:
+		Dest.Type = pIntType;
+		Dest.Int = pEverQuestInfo->hotBank[pHotButton->BarIndex] + 1;
+		return true;
+
+	case HotButtonWindowMembers::Slot:
+		Dest.Type = pIntType;
+		Dest.Int = pHotButton->LastButtonSlot;
+		return true;
+
+	case HotButtonWindowMembers::Social:
+		if (pHotButton->LastButtonType == HotButtonType_Social
+			&& pHotButton->LastButtonSlot >= 0
+			&& pHotButton->LastButtonSlot < (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE)) // If social is outside the range, its an AA
+		{
+			Dest.Type = pSocialType;
+			Dest.Int = pHotButton->LastButtonSlot;
+			return true;
+		}
+		return false;
+
+	case HotButtonWindowMembers::Spell:
+		Dest.Type = pSpellType;
+		Dest.Ptr = nullptr;
+
+		if (pHotButton->LastButtonType == HotButtonType_SpellGem)
+		{
+			if (pHotButton->LastButtonSlot >= 0 && pHotButton->LastButtonSlot < NUM_SPELL_GEMS)
+			{
+				Dest.Ptr = GetSpellByID(GetMemorizedSpell(pHotButton->LastButtonSlot));
+				return true;
+			}
+		}
+		else if (pHotButton->LastButtonType == HotButtonType_Social)
+		{
+			if (pHotButton->LastButtonSlot >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
+			{
+				int aaId = pHotButton->LastButtonSlot - (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE);
+
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
+				{
+					Dest.Ptr = GetSpellByID(pAbility->SpellID);
+					return true;
+				}
+			}
+		}
+		return true;
+
+	case HotButtonWindowMembers::Type:
+		Dest.Type = pIntType;
+		Dest.Int = static_cast<int>(pHotButton->LastButtonType);
+		return true;
+
+	case HotButtonWindowMembers::TypeName:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, HotButtonTypeToString(pHotButton->LastButtonType));
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+	}
+	return false;
+}
+
+bool MQHotButtonType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (CHotButton* pWnd = static_cast<CHotButton*>(VarPtr.Ptr))
+	{
+		GetHotButtonLabel(pWnd, Destination, MAX_STRING);
+		return true;
+	}
+
+	return false;
+}
+
+bool MQHotButtonType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
+{
+	if (Source.Type != pHotButtonWindowType)
 		return false;
 
 	VarPtr.Ptr = Source.Ptr;

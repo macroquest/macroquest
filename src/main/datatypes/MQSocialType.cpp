@@ -31,11 +31,11 @@ enum class SocialTypeMembers
 
 MQSocialType::MQSocialType() : MQ2Type("social")
 {
-	ScopedTypeMember(SocialTypeMembers, Name);
 	ScopedTypeMember(SocialTypeMembers, Cmd);
+	ScopedTypeMember(SocialTypeMembers, Color);
+	ScopedTypeMember(SocialTypeMembers, Name);
 	ScopedTypeMember(SocialTypeMembers, TimerBegin);
 	ScopedTypeMember(SocialTypeMembers, TimerDuration);
-	ScopedTypeMember(SocialTypeMembers, Color);
 }
 
 static const char* getCommandLine(const int socialIdx, const int lineIdx)
@@ -77,11 +77,27 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (idx >= 0 && idx < SOCIAL_NUM_LINES)
 		{
 			strcpy_s(DataTypeTemp, getCommandLine(socialIndex, idx));
-			Dest.Type = mq::datatypes::pStringType;
-			Dest.Ptr = &DataTypeTemp[0];
-			return true;
 		}
-		return false;
+		else
+		{
+			DataTypeTemp[0] = 0;
+
+			for (int i = 0; i < SOCIAL_NUM_LINES; ++i)
+			{
+				const char* line = getCommandLine(socialIndex, i);
+				if (i > 0 && DataTypeTemp[strlen(DataTypeTemp) - 1] != '\n')
+					strcat_s(DataTypeTemp, "\n");
+
+				strcat_s(DataTypeTemp, line);
+			}
+
+			if (DataTypeTemp[strlen(DataTypeTemp) - 1] == '\n')
+				DataTypeTemp[strlen(DataTypeTemp) - 1] = 0;
+		}
+
+		Dest.Type = mq::datatypes::pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
 	}
 
 	case SocialTypeMembers::TimerBegin:
@@ -106,10 +122,21 @@ bool MQSocialType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return false;
 }
 
+bool MQSocialType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	int socialIndex = VarPtr.Int;
+
+	if (socialIndex < 0 || socialIndex >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
+		return false;
+
+	strcpy_s(Destination, MAX_STRING, pSocialList[socialIndex].Name);
+	return true;
+}
+
 bool MQSocialType::dataSocial(const char* szIndex, MQTypeVar& Ret)
 {
 	Ret.Type = pSocialType;
-	Ret.Int = GetIntFromString(szIndex, -1);
+	Ret.Int = GetIntFromString(szIndex, 0) - 1;
 	
 	return true;
 }

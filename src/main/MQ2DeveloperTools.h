@@ -40,6 +40,9 @@ void DeveloperTools_WindowInspector_SetSelectedWindow(CXWnd* pWnd);
 
 bool DeveloperTools_WindowInspector_HandleClick(int mouseButton, bool clicked);
 
+// Misc helper functions
+void DeveloperTools_DrawHotButtonData(const HotButtonData& data);
+
 //----------------------------------------------------------------------------
 
 struct PersistedBool
