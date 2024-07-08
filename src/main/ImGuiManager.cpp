@@ -1110,6 +1110,13 @@ void ImGuiManager_ReloadContext()
 	ImGuiManager_CreateContext();
 }
 
+std::string GetSavedFontName()
+{
+	char fontName[256];
+	GetPrivateProfileStringA("MacroQuest", "DefaultFont", "", fontName, sizeof(fontName), mq::internal_paths::MQini.c_str());
+	return std::string(fontName);
+}
+
 void ImGuiManager_CreateContext()
 {
 	bool buildFonts = false;
@@ -1162,6 +1169,19 @@ void ImGuiManager_CreateContext()
 		io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 	}
 
+	// Set the default font
+	std::string savedFontName = GetSavedFontName();
+	if (!savedFontName.empty())
+	{
+		for (int i = 0; i < io.Fonts->Fonts.Size; i++)
+		{
+			if (strcmp(io.Fonts->Fonts[i]->ConfigData->Name, savedFontName.c_str()) == 0)
+			{
+				io.FontDefault = io.Fonts->Fonts[i];
+				break;
+			}
+		}
+	}
 }
 
 void ImGuiManager_DestroyContext()
@@ -1221,7 +1241,7 @@ void ImGuiManager_OverlaySettings()
 
 	if (ImGui::Checkbox("Require Shift to Dock", &s_shiftToDock))
 	{
-		WritePrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+	WritePrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
 		auto& io = ImGui::GetIO();
 		io.ConfigDockingWithShift = s_shiftToDock;
 	}
@@ -1255,6 +1275,15 @@ void ImGuiManager_OverlaySettings()
 
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("For ISBoxer users, enable this if your ImGui window positions reset when switching windows");
+
+	ImGui::ShowFontSelector("Fonts##Selector");
+
+	// Save the selected font name to the INI file
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.FontDefault)
+	{
+		WritePrivateProfileStringA("MacroQuest", "DefaultFont", io.FontDefault->ConfigData->Name, mq::internal_paths::MQini.c_str());
+	}
 
 	ImGui::NewLine();
 
