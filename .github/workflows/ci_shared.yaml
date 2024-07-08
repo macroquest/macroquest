@@ -13,7 +13,7 @@ env:
 jobs:
   build:
     if: github.repository == 'macroquest/macroquest'
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64, fast]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
 
       - name: Checkout ${{ inputs.client_target }} eqlib
         run: |
-          git submodule update --init --remote "src\eqlib"
+          git submodule update --init --remote "src/eqlib"
           git -C src/eqlib checkout ${{ inputs.client_target }}
 
       - name: Setup MSBuild
