@@ -591,7 +591,7 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 	MQPlugin* pPlugin;
 	std::string_view canonicalName = GetCanonicalPluginName(pluginName);
 
-	if (!save)
+	if (save)
 	{
 		std::string pluginNameStr = std::string(pluginName);
 
