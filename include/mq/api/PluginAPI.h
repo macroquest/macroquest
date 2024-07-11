@@ -121,9 +121,10 @@ MQLIB_OBJECT int LoadPlugin(std::string_view pluginName, bool save = false);
  * Unload a plugin by name.
  *
  * @param pluginName The name of the plugin to unload.
+ * @param save If true, save this plugin so that it is not loaded automatically.
  * @return True if the unload was successful.
  */
-MQLIB_OBJECT bool UnloadPlugin(std::string_view pluginName);
+MQLIB_OBJECT bool UnloadPlugin(std::string_view pluginName, bool save = false);
 
 /**
  * Get the address of an exported symbol from a loaded plugin.
