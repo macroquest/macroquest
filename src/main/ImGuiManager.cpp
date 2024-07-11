@@ -365,7 +365,7 @@ static DebugTab s_selectedDebugTab = DebugTab::None;
 static DebugTab s_selectDebugTab = DebugTab::None;
 static bool s_overlayDebug = false;
 static bool s_enableCursorAttachment = true;
-static bool s_shiftToDock = true; // Default to true, to help prevent docking issues when accidently docking a window.
+static bool s_shiftToDock = false;
 static bool s_keyboardNavImGui = false;
 static bool s_imguiIgnoreClampWindow = false;
 static ImGuiWindow* s_cursorLastHoveredWindow = nullptr;  // only used for comparison. might be invalid.
@@ -1153,6 +1153,7 @@ void ImGuiManager_CreateContext()
 
 	io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
 	io.ConfigDockingWithShift = s_shiftToDock;
+
 	if (s_keyboardNavImGui)
 	{
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -1161,7 +1162,6 @@ void ImGuiManager_CreateContext()
 	{
 		io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 	}
-
 }
 
 void ImGuiManager_DestroyContext()
@@ -1221,13 +1221,13 @@ void ImGuiManager_OverlaySettings()
 
 	if (ImGui::Checkbox("Require Shift to Dock", &s_shiftToDock))
 	{
-		WritePrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+
 		auto& io = ImGui::GetIO();
 		io.ConfigDockingWithShift = s_shiftToDock;
 	}
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("When enabled, HOLD Shift to Dock a Window");
-
 
 	if (ImGui::Checkbox("Navigate with Keyboard", &s_keyboardNavImGui))
 	{
@@ -1240,7 +1240,8 @@ void ImGuiManager_OverlaySettings()
 		{
 			io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 		}
-		WritePrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", s_keyboardNavImGui, mq::internal_paths::MQini);
+
+		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 	}
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("When enabled, Tab and Arrow Keys will navigate active ImGui window.");
@@ -1409,21 +1410,21 @@ void ImGuiManager_Initialize()
 
 	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
 	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
-	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-	s_shiftToDock = GetPrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", true, mq::internal_paths::MQini);
-	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", false, mq::internal_paths::MQini);
+	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
+	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
 
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ImGuiConfigDockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ImGuiConfigFlags_NavEnableKeyboard", s_keyboardNavImGui, mq::internal_paths::MQini);
-
+		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
