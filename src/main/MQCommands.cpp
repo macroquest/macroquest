@@ -4673,9 +4673,6 @@ void AdvLootCmd(PlayerClient* pChar, const char* szLine)
 
 			if (ci_equals(szCmd, "shared"))
 			{
-				char szID[MAX_STRING] = { 0 };
-				GetArg(szID, szLine, 2);
-
 				if (!_stricmp(szID, "set"))
 				{
 					char szEntity[MAX_STRING] = { 0 };
