@@ -624,9 +624,6 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 		rec = iter->second;
 		pPlugin = rec.instance;
 
-		// Inform other plugins that this plugin is being removed
-		PluginsUnloadPlugin(pPlugin->szFilename);
-
 		// Remove it from the list so that it can no longer be accessed
 		RemovePluginFromList(pPlugin);
 
@@ -635,6 +632,12 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 	}
 
 	ShutdownPlugin(rec);
+
+	if (!IsPluginUnloadFailed(canonicalName))
+	{
+		// Inform other plugins that this plugin is being removed
+		PluginsUnloadPlugin(pPlugin->szFilename);
+	}
 
 	// Cleanup
 	if (FreeLibrary(pPlugin->hModule))
