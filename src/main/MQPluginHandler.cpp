@@ -580,7 +580,7 @@ static void ShutdownPlugin(const PluginInfoRec& rec)
 	pCommandAPI->OnPluginUnloaded(pPlugin, rec.handle);
 }
 
-bool UnloadPlugin(std::string_view pluginName)
+bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 {
 	DebugSpew("UnloadPlugin(%.*s)", pluginName.length(), pluginName.data());
 
@@ -590,6 +590,18 @@ bool UnloadPlugin(std::string_view pluginName)
 	PluginInfoRec rec;
 	MQPlugin* pPlugin;
 	std::string_view canonicalName = GetCanonicalPluginName(pluginName);
+
+	if (save)
+	{
+		std::string pluginNameStr = std::string(pluginName);
+
+		// Regardless of whether unload succeeds, turn it off in the ini if it exists.  This prevents a scenario where
+		// a plugin failing to unload keeps it enabled in the ini despite the user trying to turn it off.
+		if (PrivateProfileKeyExists("Plugins", pluginNameStr, mq::internal_paths::MQini))
+		{
+			WritePrivateProfileBool("Plugins", pluginNameStr, false, mq::internal_paths::MQini);
+		}
+	}
 
 	if (IsPluginUnloadFailed(canonicalName))
 	{
@@ -1356,14 +1368,7 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 					const std::string origPluginName = plugin ? plugin->szFilename : szName;
 					if (plugin || IsPluginUnloadFailed(origPluginName))
 					{
-						// Regardless of whether unload succeeds, turn it off in the ini if it exists.  This prevents a scenario where
-						// a plugin failing to unload keeps it enabled in the ini despite the user trying to turn it off.
-						if (!noauto && PrivateProfileKeyExists("Plugins", origPluginName, mq::internal_paths::MQini))
-						{
-							WritePrivateProfileBool("Plugins", origPluginName, false, mq::internal_paths::MQini);
-						}
-
-						if (UnloadPlugin(szName))
+						if (UnloadPlugin(szName, !noauto))
 						{
 							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
 						}

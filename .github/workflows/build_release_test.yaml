@@ -1,0 +1,17 @@
+name: Build MacroQuest Test Release
+
+on:
+  push:
+    tags:
+      - rel-test
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/build_release_shared.yaml
+    with:
+      client_target: test
+    secrets: inherit

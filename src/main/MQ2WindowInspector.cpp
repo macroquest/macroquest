@@ -2775,7 +2775,7 @@ public:
 			ColumnText("Button index", "%d", pWnd->ButtonIndex);
 			ColumnText("Timer", "%d", std::max<int>(0, pWnd->Timer - pDisplay->TimeStamp));
 			DisplayTextureAnimation("Decal icon", pWnd->DecalIcon);
-			ColumnText("Button type", "%d", pWnd->LastButtonType); // TODO: translate enum
+			ColumnText("Button type", "%s (%d)", HotButtonTypeToString(pWnd->LastButtonType), pWnd->LastButtonType);
 			ColumnText("Button slot", "%d", pWnd->LastButtonSlot);
 			ColumnText("Button page", "%d", (int)pWnd->LastButtonPage);
 			ColumnText("Item Guid", "%s", pWnd->LastItemGuid.guid);
@@ -2794,6 +2794,25 @@ public:
 			ColumnCXSize("Base decal size", pWnd->BaseDecalSize);
 			ColumnCXSize("Base inv button size", pWnd->BaseInvButtonSize);
 			ColumnCXSize("Base spell button size", pWnd->BaseSpellButtonSize);
+
+			const HotButtonData& data = pEverQuestInfo->hotButtons[pWnd->BarIndex][pEverQuestInfo->hotBank[pWnd->BarIndex]][pWnd->ButtonIndex];
+
+			if (ColumnTreeNodeType("HotButton Data", "HotButtonData", "%s", data.Label[0] ? data.Label : data.ItemName))
+			{
+				ColumnItem("Item", data.Item);
+				ColumnText("ItemGuid", "%s", data.ItemGuid.guid);
+				ColumnText("Label", "%s", data.Label);
+				ColumnText("Item Name", data.ItemName);
+				ColumnText("Item ID", "%d", data.ItemId);
+				ColumnTextType("Icon Type", "eIconCacheType", "%s (%d)", IconCacheTypeToString(static_cast<eIconCacheType>(data.IconType)), data.IconType);
+				ColumnText("Icon Slot", "%d", data.IconSlot);
+				ColumnText("Icon ID", "%d", data.IconId);
+				ColumnText("Slot", "%d", data.Slot);
+				ColumnTextType("Type", "HotButtonTypes", "%s (%d)", HotButtonTypeToString(static_cast<HotButtonTypes>(data.Type)), (int)data.Type);
+				ColumnCheckBox("Item Valid", data.ItemValid);
+
+				ImGui::TreePop();
+			}
 		}
 	}
 
