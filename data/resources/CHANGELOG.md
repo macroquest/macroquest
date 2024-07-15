@@ -1,3 +1,6 @@
+July 14, 2024:
+- test: Update for test patch
+
 July 7, 2024:
 - Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
 - See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/
