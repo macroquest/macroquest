@@ -16,7 +16,7 @@ jobs:
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
       - name: Install and cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.0
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
           modules-to-cache: powershell-yaml
 
