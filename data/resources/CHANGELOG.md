@@ -1,3 +1,8 @@
+July 7, 2024:
+- Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
+- See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/
+- Me.CombatState no longer depends on the player window being visible (#123).
+
 July 5, 2024:
 - emu: Fix RaidMember accessors (#685), (#861)
 

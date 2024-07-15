@@ -115,6 +115,7 @@ DATATYPE(MQInventoryType, pInventoryType, nullptr);
 DATATYPE(MQCursorAttachmentType, pCursorAttachmentType, nullptr);
 DATATYPE(MQInvSlotWindowType, pInvSlotWindowType, nullptr);
 DATATYPE(MQSocialType, pSocialType, nullptr);
+DATATYPE(MQHotButtonType, pHotButtonWindowType, nullptr);
 
 #if HAS_ADVANCED_LOOT
 DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr);

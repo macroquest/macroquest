@@ -44,6 +44,72 @@ MQModule* GetSpawnsModule() { return &gSpawnsModule; }
 // Global spawn array, sorted by distance.
 std::vector<MQSpawnArrayItem> gSpawnsArray;
 
+// Our last known combat state
+static ECombatState s_combatState = eCombatState_Standing;
+
+#pragma region Combat State Calculation
+//----------------------------------------------------------------------------
+// Combat State Calculation
+//----------------------------------------------------------------------------
+static void UpdateCombatState()
+{
+	ECombatState newState = eCombatState_Standing;
+
+	if (gGameState == GAMESTATE_INGAME && pLocalPC)
+	{
+		if (pLocalPC->IsInCombat())
+		{
+			newState = eCombatState_Combat;
+		}
+		else if (pLocalPC->GetDowntime() > 0)
+		{
+			newState = eCombatState_Timer;
+		}
+		else
+		{
+			// Calculate debuff timer
+			bool debuffed = false;
+
+			for (int i = 0; i < pLocalPC->GetMaxEffects(); ++i)
+			{
+				EQ_Spell* spell = GetSpellByID(pLocalPC->GetEffect(i).SpellID);
+
+				if (spell != nullptr 
+					&& !spell->IsBeneficialSpell()
+					&& !spell->BypassRegenCheck)
+				{
+					debuffed = true;
+					break;
+				}
+			}
+
+			if (debuffed)
+			{
+				newState = eCombatState_Debuff;
+			}
+			else if (pLocalPC->standstate != STANDSTATE_SIT && !pLocalPC->CanMedOnHorse())
+			{
+				newState = eCombatState_Standing;
+			}
+			else
+			{
+				newState = eCombatState_Regen;
+			}
+		}
+	}
+
+	if (s_combatState != newState)
+	{
+		s_combatState = newState;
+	}
+}
+
+ECombatState GetCombatState()
+{
+	return s_combatState;
+}
+
+#pragma endregion
 
 #pragma region Caption Colors
 //----------------------------------------------------------------------------
@@ -988,6 +1054,8 @@ static void Spawns_Shutdown()
 
 static void Spawns_Pulse()
 {
+	UpdateCombatState();
+
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 

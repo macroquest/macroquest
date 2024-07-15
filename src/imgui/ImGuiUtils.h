@@ -44,7 +44,7 @@ IMGUI_API void DrawSplitter(bool split_vertically, float thickness, float* size0
 // Draws a (?) marker with the provided text as its tooltip. Width defines the size of
 // the tooltip box. The height will grow to fit.
 IMGUI_API void HelpMarker(const char* text, float width = 450.0f, ImFont* tooltipFont = nullptr);
-IMGUI_API void HelpMarker(const std::function<std::string()>& getText, float width = 450.0f, ImFont* tooltipFont = nullptr);
+IMGUI_API void HelpMarker(const std::function<void(char*, size_t)>& getText, float width = 450.0f, ImFont* tooltipFont = nullptr);
 
 // Utilities for rendering text in an overlay (not tied to a window)
 // Render floating text (not tied to a window)
