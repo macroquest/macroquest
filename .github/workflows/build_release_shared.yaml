@@ -16,12 +16,16 @@ jobs:
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
       - name: Install and cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.0
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
           modules-to-cache: powershell-yaml
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Reset eqlib
+        run: git -C src/eqlib reset --hard
+        continue-on-error: true
 
       - name: Update builtin submodules
         run: git submodule update --init --recursive --depth=1
