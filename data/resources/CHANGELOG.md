@@ -1,3 +1,6 @@
+July 18, 2024:
+- Update for live hotfix patch
+
 July 17, 2024:
 - Update for live patch
 
