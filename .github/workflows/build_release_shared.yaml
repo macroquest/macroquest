@@ -211,7 +211,7 @@ jobs:
           $ReleaseDescription = "Automated release for ${{ inputs.client_target }}"
           if (Test-Path "${{ github.workspace }}/build/changelog/CHANGELOG.md")
           {
-            $FileDiff = (Compare-Object (Get-Content "data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
+            $FileDiff = (Compare-Object (Get-Content "${{ github.workspace }}/data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
             if ($FileDiff.Count -gt 0)
             {
                 if ($FileDiff[0].SideIndicator -eq '<=')
@@ -225,7 +225,7 @@ jobs:
           {
             New-Item -Path "${{ github.workspace }}/build/changelog" -ItemType Directory -ErrorAction SilentlyContinue
           }
-          Copy-Item -Path "data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
+          Copy-Item -Path "${{ github.workspace }}/data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
           "release_description=$ReleaseDescription" >> $env:GITHUB_OUTPUT
 
       - name: Remove Release 'rel-${{ inputs.client_target }}'
