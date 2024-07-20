@@ -6,6 +6,15 @@ on:
       client_target:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      client_target:
+        required: true
+        type: choice
+        options:
+        - live
+        - test
+        - emu
 
 env:
   platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
