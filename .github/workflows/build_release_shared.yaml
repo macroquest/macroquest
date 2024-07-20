@@ -235,7 +235,8 @@ jobs:
             New-Item -Path "${{ github.workspace }}/build/changelog" -ItemType Directory -ErrorAction SilentlyContinue
           }
           Copy-Item -Path "${{ github.workspace }}/data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
-          "release_description=$ReleaseDescription" >> $env:GITHUB_OUTPUT
+          Remove-Item -Force "${{ github.workspace }}/build/ReleaseNotes.md" -ErrorAction SilentlyContinue
+          $ReleaseDescription | Out-File "${{ github.workspace }}/build/ReleaseNotes.md"
 
       - name: Remove Release 'rel-${{ inputs.client_target }}'
         shell: pwsh
@@ -252,7 +253,9 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
-        run: gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes "${{ steps.diff_changelog.outputs.release_description }}" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
+        run: |
+          $ReleaseNotes = Get-Content "${{ github.workspace }}/build/ReleaseNotes.md"
+          gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes "$ReleaseNotes" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
 
       - name: Update Published Version Information
         shell: pwsh
