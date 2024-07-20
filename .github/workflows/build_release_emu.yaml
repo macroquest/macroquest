@@ -1,0 +1,17 @@
+name: Build MacroQuest Emu Release
+
+on:
+  push:
+    tags:
+      - rel-emu
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/build_release_shared.yaml
+    with:
+      client_target: emu
+    secrets: inherit
