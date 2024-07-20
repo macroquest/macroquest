@@ -16,12 +16,16 @@ jobs:
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
       - name: Install and cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.0
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
           modules-to-cache: powershell-yaml
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Reset eqlib
+        run: git -C src/eqlib reset --hard
+        continue-on-error: true
 
       - name: Update builtin submodules
         run: git submodule update --init --recursive --depth=1
@@ -207,7 +211,7 @@ jobs:
           $ReleaseDescription = "Automated release for ${{ inputs.client_target }}"
           if (Test-Path "${{ github.workspace }}/build/changelog/CHANGELOG.md")
           {
-            $FileDiff = (Compare-Object (Get-Content "data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
+            $FileDiff = (Compare-Object (Get-Content "${{ github.workspace }}/data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
             if ($FileDiff.Count -gt 0)
             {
                 if ($FileDiff[0].SideIndicator -eq '<=')
@@ -221,7 +225,7 @@ jobs:
           {
             New-Item -Path "${{ github.workspace }}/build/changelog" -ItemType Directory -ErrorAction SilentlyContinue
           }
-          Copy-Item -Path "data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
+          Copy-Item -Path "${{ github.workspace }}/data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
           "release_description=$ReleaseDescription" >> $env:GITHUB_OUTPUT
 
       - name: Remove Release 'rel-${{ inputs.client_target }}'

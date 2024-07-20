@@ -73,7 +73,7 @@ bool IsCommand(std::string_view command);
  * @param delayed If true, this function will return immediate and the command will be.
  * executed on the next Pulse.
  */
-void DoCommand(const char* command, bool delayed);
+void DoCommand(const char* command, bool delayed = true);
 
 /**
  * Execute a chat command with printf style formatting. Behaves the same as `DoCommand`,
