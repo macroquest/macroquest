@@ -1304,7 +1304,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		}
 		else
 		{
-			WriteChatf("Overlay is already running");
+			WriteChatf("Overlay is not suspended; Can not resume.");
 		}
 	}
 	else if (ci_equals(szArg, "stop"))
