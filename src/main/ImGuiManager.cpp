@@ -371,6 +371,7 @@ static bool s_imguiIgnoreClampWindow = false;
 static ImGuiWindow* s_cursorLastHoveredWindow = nullptr;  // only used for comparison. might be invalid.
 static std::string s_cursorLastHoveredWindowName;
 static bool s_showCursorAttachment = false;
+static bool s_charIniLoaded = false;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
@@ -1110,6 +1111,52 @@ void ImGuiManager_ReloadContext()
 	ImGuiManager_CreateContext();
 }
 
+void UpdateImGuiSettingsFile()
+{
+	// Check if the player is in-game
+	if (GetGameState() == GAMESTATE_INGAME)
+	{
+		if (!s_charIniLoaded)
+		{
+			// Player is in-game and the character-specific INI file is not yet loaded
+			if (PCHARINFO pCharInfo = GetCharInfo())
+			{
+				// Build the path for the character-specific INI file
+				char CharIniFile[MAX_PATH] = { 0 };
+				fmt::format_to(CharIniFile, "{}/{}_{}_Overlay.ini", mq::internal_paths::Config, GetServerShortName(), pCharInfo->Name);
+
+				// Check if the character-specific INI file exists
+				if (!std::filesystem::exists(CharIniFile))
+				{
+					// If it doesn't exist, copy the default INI file to create it
+					char DefaultIniFile[MAX_PATH] = { 0 };
+					fmt::format_to(DefaultIniFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+
+					std::error_code ec;
+					std::filesystem::copy_file(DefaultIniFile, CharIniFile, ec);
+
+				}
+
+				// Update the ImGui settings file to use the character-specific INI file
+				strcpy_s(ImGuiSettingsFile, CharIniFile);
+				s_charIniLoaded = true;
+			}
+		}
+	}
+	else
+	{
+		if (s_charIniLoaded)
+		{
+			// Player is not in-game and we need to switch back to the default INI file
+			fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+			s_charIniLoaded = false;
+		}
+	}
+
+	// Update ImGui IO structure with the correct INI filename
+	ImGui::GetIO().IniFilename = &ImGuiSettingsFile[0];
+}
+
 void ImGuiManager_CreateContext()
 {
 	bool buildFonts = false;
@@ -1135,7 +1182,8 @@ void ImGuiManager_CreateContext()
 
 	ImGuiIO& io = ImGui::GetIO();
 
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	// Update the INI file path based on the game state
+	UpdateImGuiSettingsFile();
 
 	if (s_deferredClearSettings)
 	{
@@ -1143,7 +1191,6 @@ void ImGuiManager_CreateContext()
 		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
 			std::filesystem::remove(ImGuiSettingsFile, ec);
 	}
-	io.IniFilename = &ImGuiSettingsFile[0];
 
 	fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
 	io.LogFilename = &ImGuiLogFile[0];
@@ -1474,6 +1521,9 @@ void ImGuiManager_Pulse()
 {
 	engine::OnUpdateFrame();
 	PulseFonts();
+
+	// Update the INI file path based on the game state on every pulse
+	UpdateImGuiSettingsFile();
 }
 
 } // namespace mq
