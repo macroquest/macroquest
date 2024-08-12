@@ -67,7 +67,7 @@ static LuaEnvironmentSettings s_environment;
 static std::chrono::milliseconds s_infoGC = 3600s; // 1 hour
 static bool s_squelchStatus = false;
 static bool s_verboseErrors = true;
-static bool s_cleanLinks = true;
+bool s_cleanLinks = true;
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
