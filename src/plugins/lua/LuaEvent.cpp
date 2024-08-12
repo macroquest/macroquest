@@ -121,7 +121,7 @@ void LuaEventProcessor::Process(std::string_view line) const
 
 	char line_char[MAX_STRING] = { 0 };
 
-	if (line.find_first_of('\x12') != std::string::npos)
+	if (line.find_first_of('\x12') != std::string::npos && s_cleanLinks)
 	{
 		CXStr line_str(line);
 		line_str = CleanItemTags(line_str, false);

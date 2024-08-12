@@ -67,6 +67,7 @@ static LuaEnvironmentSettings s_environment;
 static std::chrono::milliseconds s_infoGC = 3600s; // 1 hour
 static bool s_squelchStatus = false;
 static bool s_verboseErrors = true;
+static bool s_cleanLinks = true;
 
 // this is static and will never change
 static std::string s_configPath = (std::filesystem::path(gPathConfig) / "MQ2Lua.yaml").string();
@@ -871,6 +872,7 @@ static void ReadSettings()
 	}
 
 	s_verboseErrors = s_configNode["verboseErrors"].as<bool>(false);
+	s_cleanLinks = s_configNode["cleanLinks"].as<bool>(false);
 
 	std::string tempDirName = s_luaDirName;
 	if (mq::test_and_set(tempDirName, s_configNode[KEY_LUA_DIR].as<std::string>(tempDirName)) || s_environment.luaDir.empty())
@@ -1396,6 +1398,11 @@ static void DrawLuaSettings()
 	if (ImGui::Checkbox("Print Lua Stack in Exception Messages", &s_verboseErrors))
 	{
 		s_configNode["verboseErrors"] = s_verboseErrors;
+	}
+
+	if (ImGui::Checkbox("Clean Links from Events", &s_cleanLinks))
+	{
+		s_configNode["cleanLinks"] = s_cleanLinks;
 	}
 
 	ImGui::NewLine();
