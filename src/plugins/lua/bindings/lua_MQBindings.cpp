@@ -249,7 +249,7 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 	}
 }
 
-static bool lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
+static bool lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::optional<sol::table> options, sol::this_state s)
 {
 	if (function == sol::nil)
 	{
@@ -260,7 +260,10 @@ static bool lua_addevent(std::string_view name, std::string_view expression, sol
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			return events->AddEvent(name, expression, function);
+		{
+			sol::table opts = options.value_or(sol::table());
+			return events->AddEvent(name, expression, function, opts);
+		}
 	}
 
 	return false;
