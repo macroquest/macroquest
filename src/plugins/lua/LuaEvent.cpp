@@ -276,7 +276,21 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
 	{
 		auto num = GetIntFromString(value->Name, 0);
 		if (num > 0) // this will skip any '*' instances for me -- it will in fact only Get valid argument positions
-			args.emplace_back(num, value->Value);
+		{
+			std::string argValue = value->Value;
+
+			// If we should not keep links, clean the argument value
+			if (!pEvent->ShouldKeepLinks() && argValue.find_first_of('\x12') != std::string::npos)
+			{
+				CXStr arg_str(argValue.c_str());
+				arg_str = CleanItemTags(arg_str, false);
+				char cleaned_arg[MAX_STRING] = { 0 };
+				StripMQChat(arg_str, cleaned_arg);
+				argValue = cleaned_arg;
+			}
+
+			args.emplace_back(num, std::move(argValue));
+		}
 		value = value->pNext;
 	}
 
