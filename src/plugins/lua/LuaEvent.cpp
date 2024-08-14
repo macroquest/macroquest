@@ -43,7 +43,7 @@ LuaEventProcessor::~LuaEventProcessor()
 	m_eventDefinitions.clear();
 }
 
-bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function, const sol::table& options)
+bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function,  sol::optional<sol::table>& options)
 {
 	// the number of events will always be fairly small, and this is a manual operation.
 	// If this is deemed too slow, the event names can be memoized in a set of string_views.
@@ -56,7 +56,6 @@ bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view express
 		return false;
 	}
 
-    // Create the event with the options table
     m_eventDefinitions.push_back(std::make_unique<LuaEvent>(name, expression, function, options, this, *m_blech));
     return true;
 }
@@ -121,17 +120,31 @@ void LuaEventProcessor::Process(std::string_view line) const
 		return;
 
 	char line_char[MAX_STRING] = { 0 };
-	
-	// handle links later based on options.
-	StripMQChat(line, line_char);
+	char line_char_unclean[MAX_STRING] = { 0 };
+
+	StripMQChat(line, line_char_unclean);
+	if (line.find_first_of('\x12') != std::string::npos)
+	{
+		CXStr line_str(line);
+		line_str = CleanItemTags(line_str, false);
+		StripMQChat(line_str, line_char);
+	}
+	else
+	{
+		StripMQChat(line, line_char);
+	}
+		
 	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
 	line_char[MAX_STRING - 1] = 0;
+	line_char_unclean[MAX_STRING - 1] = 0;
 
 	sol::state_view state = m_thread->GetState();
 
+	state["_mq_event_line_unclean"] = line_char_unclean;
 	state["_mq_event_line"] = line_char;
 	m_blech->Feed(line_char);
 	state["_mq_event_line"] = sol::lua_nil;
+	state["_mq_event_line_unclean"] = sol::lua_nil;
 }
 
 static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEventFunction>>& vec)
@@ -241,56 +254,22 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
 {
 	std::vector<std::pair<uint32_t, std::string>> args;
 
-	std::optional<std::string> line = m_thread->GetState()["_mq_event_line"];
-	if (!line.has_value())
-		return;
-
-	char line_char[MAX_STRING] = { 0 };
-
-	if (pEvent->ShouldKeepLinks())
+	if (!pEvent->ShouldKeepLinks())
 	{
-		// Use the original line with links
-		strncpy_s(line_char, line->c_str(), MAX_STRING);
+		std::optional<std::string> line = m_thread->GetState()["_mq_event_line"];
+		args.emplace_back(0, line.value_or(""));
 	}
 	else
 	{
-		// Clean the links from the original line
-		if (line->find_first_of('\x12') != std::string::npos)
-		{
-			CXStr line_str(line.value());
-			line_str = CleanItemTags(line_str, false);
-			StripMQChat(line_str, line_char);
-		}
-		else
-		{
-			StripMQChat(line.value(), line_char);
-		}
-		// Replace the cleaned line back into the Lua state
-		line = std::string(line_char);
-		m_thread->GetState()["_mq_event_line"] = line_char;
+		std::optional<std::string> line = m_thread->GetState()["_mq_event_line_unclean"];
+		args.emplace_back(0, line.value_or(""));
 	}
-	args.emplace_back(0, line.value_or(""));
-
 	auto value = pValues;
 	while (value != nullptr)
 	{
 		auto num = GetIntFromString(value->Name, 0);
 		if (num > 0) // this will skip any '*' instances for me -- it will in fact only Get valid argument positions
-		{
-			std::string argValue = value->Value;
-
-			// If we should not keep links, clean the argument value
-			if (!pEvent->ShouldKeepLinks() && argValue.find_first_of('\x12') != std::string::npos)
-			{
-				CXStr arg_str(argValue.c_str());
-				arg_str = CleanItemTags(arg_str, false);
-				char cleaned_arg[MAX_STRING] = { 0 };
-				StripMQChat(arg_str, cleaned_arg);
-				argValue = cleaned_arg;
-			}
-
-			args.emplace_back(num, std::move(argValue));
-		}
+			args.emplace_back(num, value->Value);
 		value = value->pNext;
 	}
 
@@ -338,20 +317,21 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, BLECHVALUE* pValues
 
 LuaEvent::LuaEvent(std::string_view name, std::string_view expression,
 	const sol::function& func,
-	const sol::table& options, // Accept options table
+	sol::optional<sol::table>& options,
 	LuaEventProcessor* processor, Blech& blech)
 	: m_name(name)
 	, m_expression(expression)
 	, m_function(func)
 	, m_processor(processor)
 	, m_blech(blech)
-	, m_keep_links(false)
+	, m_keep_links()
 {
-	if (options.valid())
+	if (options.has_value())
 	{
-		if (auto keep_links_opt = options["keep_links"]; keep_links_opt.valid())
+		sol::table optTable = options.value();
+		if (auto keep_links_opt = optTable["keep_links"]; keep_links_opt.valid())
 		{
-			m_keep_links = keep_links_opt.get_or(false); // Get the value or default to false
+			m_keep_links = keep_links_opt.get_or(false);
 		}
 	}
 	m_id = m_blech.AddEvent(m_expression.c_str(), LuaEventCallback, this);

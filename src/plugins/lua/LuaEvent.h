@@ -35,7 +35,7 @@ public:
 	LuaEvent(std::string_view name,
 		std::string_view expression,
 		const sol::function& func,
-		const sol::table& options, // Accept options table
+		sol::optional<sol::table>& options,
 		LuaEventProcessor* processor,
 		Blech& blech);
 	~LuaEvent();
@@ -45,8 +45,7 @@ public:
 	std::string_view GetName() const { return m_name; }
 	const sol::function GetFunction() const { return m_function; }
 
-	bool ShouldKeepLinks() const { return m_keep_links; } // Add accessor for keep_links
-	std::string_view GetExpression() const { return m_expression; } // Add accessor for expression
+	bool ShouldKeepLinks() const { return m_keep_links; }
 
 private:
 	const std::string m_name;
@@ -55,7 +54,7 @@ private:
 	LuaEventProcessor* m_processor;
 	Blech& m_blech;
 	uint32_t m_id;
-	bool m_keep_links; // Store the keep_links option
+	bool m_keep_links = false;
 };
 
 //----------------------------------------------------------------------------
@@ -118,7 +117,7 @@ public:
 	LuaEventProcessor(LuaThread* thread);
 	~LuaEventProcessor();
 
-	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function, const sol::table& options);
+	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function, sol::optional<sol::table>& options);
 	bool RemoveEvent(std::string_view name);
 
 	bool AddBind(std::string_view name, const sol::function& function);

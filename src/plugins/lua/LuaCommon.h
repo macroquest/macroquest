@@ -27,7 +27,6 @@ using CoroutineResult = std::optional<sol::protected_function_result>;
 
 void DebugStackTrace(lua_State* L, const char* message);
 bool DoStatus();
-extern bool s_cleanLinks;
 
 using Writer = void(*)(const char*, ...);
 

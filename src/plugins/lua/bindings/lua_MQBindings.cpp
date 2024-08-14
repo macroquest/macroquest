@@ -261,8 +261,7 @@ static bool lua_addevent(std::string_view name, std::string_view expression, sol
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
 		{
-			sol::table opts = options.value_or(sol::table());
-			return events->AddEvent(name, expression, function, opts);
+			return events->AddEvent(name, expression, function, options);
 		}
 	}
 
