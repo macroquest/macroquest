@@ -274,6 +274,21 @@ jobs:
           git -C "$versionDir" commit -m "Update ${{ inputs.client_target }} version to $($env:MQVERSION_INFO)"
           git -C "$versionDir" push
 
+      - name: Send Discord Notice
+        run: |
+          [System.Collections.ArrayList]$embedArray = @()
+          $embedObject = [PSCustomObject]@{
+              color = "4289797"
+              title = "New MacroQuest (${{ inputs.client_target }}) Build $($env:MQVERSION_INFO)"
+              description = "Build has been uploaded to: https://github.com/macroquest/macroquest/releases/tag/$($env:GITHUB_REF_NAME)"
+          }
+          $embedArray.Add($embedObject) | Out-Null
+          $discordPayload = [PSCustomObject]@{
+              embeds = $embedArray
+          } | ConvertTo-Json
+          Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
+        continue-on-error: true
+
       - name: Handle LuaRocks Cache
         uses: actions/cache@v4
         with:
