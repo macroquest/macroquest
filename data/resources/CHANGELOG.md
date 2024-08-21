@@ -1,3 +1,7 @@
+Aug 21, 2024:
+- Update for live patch
+- Add SpellHold to Pet TLO (#893)
+
 Aug 19, 20924:
 - Update for test patch
 
