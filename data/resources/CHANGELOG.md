@@ -1,3 +1,9 @@
+Aug 19, 20924:
+- Update for test patch
+
+July 28, 2024:
+- Update for test patch
+
 July 22, 2024:
 - Update for live hotfix patch
 
@@ -6,6 +12,9 @@ July 18, 2024:
 
 July 17, 2024:
 - Update for live patch
+
+July 14, 2024:
+- test: Update for test patch
 
 July 7, 2024:
 - Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
