@@ -125,7 +125,7 @@ public:
 			Dest.Type = mq::datatypes::pIntType;
 			return true;
 		case LoginProfileMembers::CustomCharacterIni:
-			strcpy_s(DataTypeTemp, record->customClientIni ? record->customClientIni->c_str() : "No Custom INI");
+			strcpy_s(DataTypeTemp, record->customClientIni ? record->customClientIni->c_str() : "");
 			Dest.Ptr = &DataTypeTemp[0];
 			Dest.Type = mq::datatypes::pStringType;
 			return true;
@@ -227,7 +227,7 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
 {
 	auto& record = *ptr;
-	
+
 	// Fill in the profile first.
 	if (!record.profileName.empty())
 	{
@@ -1492,9 +1492,9 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 		default: break;
 		}
-	
+
 		ImGui::Spacing();
-	
+
 		if (ImGui::CollapsingHeader("Settings"))
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
