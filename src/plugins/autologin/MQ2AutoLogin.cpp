@@ -53,7 +53,8 @@ public:
 		Profile,
 		Account,
 		Class,
-		Level
+		Level,
+		CustomCharacterIni,
 	};
 
 	LoginProfileType() : MQ2Type("LoginProfile")
@@ -65,6 +66,7 @@ public:
 		ScopedTypeMember(LoginProfileMembers, Account);
 		ScopedTypeMember(LoginProfileMembers, Class);
 		ScopedTypeMember(LoginProfileMembers, Level);
+		ScopedTypeMember(LoginProfileMembers, CustomCharacterIni);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -121,6 +123,11 @@ public:
 		case LoginProfileMembers::Level:
 			Dest.Int = record->characterLevel;
 			Dest.Type = mq::datatypes::pIntType;
+			return true;
+		case LoginProfileMembers::CustomCharacterIni:
+			strcpy_s(DataTypeTemp, record->customClientIni ? record->customClientIni->c_str() : "No Custom INI");
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
 			return true;
 		}
 
