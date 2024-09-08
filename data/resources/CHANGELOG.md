@@ -1,3 +1,34 @@
+Sep 5, 2024:
+- lua: events can now preserve links:
+    - mq.event('linkDetector', '#*#', linkDetector, { keepLinks = true })
+- lua: New set of APIs for manipulating links.
+    - See the [definitions](https://github.com/macroquest/mq-definitions/blob/master/mq/_itemlinks.lua) for a full listing.
+    - lua: New examples/linkdetector.lua script in the lua folder provides some examples.
+- lua: Add support for Macro token expansion in event patterns:
+    - mq.event('meDetector', '#*#|${Me.Name}|#*#', meDetector)
+
+Aug 21, 2024:
+- Update for live patch
+- Add SpellHold to Pet TLO (#893)
+
+Aug 19, 20924:
+- Update for test patch
+
+July 28, 2024:
+- Update for test patch
+
+July 22, 2024:
+- Update for live hotfix patch
+
+July 18, 2024:
+- Update for live hotfix patch
+
+July 17, 2024:
+- Update for live patch
+
+July 14, 2024:
+- test: Update for test patch
+
 July 7, 2024:
 - Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
 - See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/

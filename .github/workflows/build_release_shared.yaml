@@ -6,6 +6,15 @@ on:
       client_target:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      client_target:
+        required: true
+        type: choice
+        options:
+        - live
+        - test
+        - emu
 
 env:
   platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
@@ -16,12 +25,16 @@ jobs:
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
       - name: Install and cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.0
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
           modules-to-cache: powershell-yaml
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Reset eqlib
+        run: git -C src/eqlib reset --hard
+        continue-on-error: true
 
       - name: Update builtin submodules
         run: git submodule update --init --recursive --depth=1
@@ -135,6 +148,7 @@ jobs:
           nuget restore src/MacroQuestCustom.sln
 
       - name: Handle vcpkg Cache
+        if: false # Disabled for build server speed improvements
         uses: actions/cache@v4
         with:
           path: |
@@ -207,7 +221,7 @@ jobs:
           $ReleaseDescription = "Automated release for ${{ inputs.client_target }}"
           if (Test-Path "${{ github.workspace }}/build/changelog/CHANGELOG.md")
           {
-            $FileDiff = (Compare-Object (Get-Content "data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
+            $FileDiff = (Compare-Object (Get-Content "${{ github.workspace }}/data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
             if ($FileDiff.Count -gt 0)
             {
                 if ($FileDiff[0].SideIndicator -eq '<=')
@@ -221,8 +235,9 @@ jobs:
           {
             New-Item -Path "${{ github.workspace }}/build/changelog" -ItemType Directory -ErrorAction SilentlyContinue
           }
-          Copy-Item -Path "data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
-          "release_description=$ReleaseDescription" >> $env:GITHUB_OUTPUT
+          Copy-Item -Path "${{ github.workspace }}/data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
+          Remove-Item -Force "${{ github.workspace }}/build/ReleaseNotes.md" -ErrorAction SilentlyContinue
+          $ReleaseDescription | Out-File "${{ github.workspace }}/build/ReleaseNotes.md"
 
       - name: Remove Release 'rel-${{ inputs.client_target }}'
         shell: pwsh
@@ -239,7 +254,8 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
-        run: gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes "${{ steps.diff_changelog.outputs.release_description }}" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
+        run: |
+          gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes-file "${{ github.workspace }}/build/ReleaseNotes.md" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
 
       - name: Update Published Version Information
         shell: pwsh
@@ -257,6 +273,21 @@ jobs:
           git -C "$versionDir" add CurrentVersion.txt
           git -C "$versionDir" commit -m "Update ${{ inputs.client_target }} version to $($env:MQVERSION_INFO)"
           git -C "$versionDir" push
+
+      - name: Send Discord Notice
+        run: |
+          [System.Collections.ArrayList]$embedArray = @()
+          $embedObject = [PSCustomObject]@{
+              color = "4289797"
+              title = "New MacroQuest (${{ inputs.client_target }}) Build $($env:MQVERSION_INFO)"
+              description = "Build has been uploaded to: https://github.com/macroquest/macroquest/releases/tag/$($env:GITHUB_REF_NAME)"
+          }
+          $embedArray.Add($embedObject) | Out-Null
+          $discordPayload = [PSCustomObject]@{
+              embeds = $embedArray
+          } | ConvertTo-Json
+          Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
+        continue-on-error: true
 
       - name: Handle LuaRocks Cache
         uses: actions/cache@v4
