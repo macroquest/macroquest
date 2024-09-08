@@ -83,6 +83,89 @@ void EmuSetCpuAffinity()
 #endif // EMU_CONSTANT_AFFINITY_ENABLED
 
 //--------------------------------------------------------------------------
+// Emu Exception Handler "Fix"
+//--------------------------------------------------------------------------
+
+#if EMU_POP_EXCEPTION_HANDLER_ENABLED
+
+static bool s_hasFixedExceptionHandlerChain = false;
+
+// This a workaround for the EMU client having a global __try/__catch block wrapping
+// the main game loop, which causes exceptions that we want to catch to be swallowed
+// up instead of going to our unhandled exception filter.
+
+// Structure for the exception registration record
+struct EXCEPTION_REGISTRATION_RECORD {
+	EXCEPTION_REGISTRATION_RECORD* Next;
+	PVOID ExceptionHandler;
+};
+
+#pragma warning(push)
+#pragma warning(disable: 4733)
+static EXCEPTION_REGISTRATION_RECORD* GetExceptionRegistrationRecords()
+{
+	EXCEPTION_REGISTRATION_RECORD* result;
+
+	__asm {
+		mov eax, dword ptr fs : [0]
+		mov result, eax
+	}
+
+	return result;
+}
+
+bool EmuFixExceptionHandler()
+{
+	EXCEPTION_REGISTRATION_RECORD* pRecord = GetExceptionRegistrationRecords();
+	EXCEPTION_REGISTRATION_RECORD* pPrevRecord = nullptr;
+
+	while (reinterpret_cast<uintptr_t>(pRecord) != 0xffffffff)
+	{
+		if (reinterpret_cast<uintptr_t>(pRecord->ExceptionHandler) == __ExceptionFilter)
+		{
+			DebugSpewAlways("Removing exception handler: 0x%p", pRecord);
+
+			if (pPrevRecord)
+			{
+				pPrevRecord->Next = pRecord->Next;
+			}
+			else
+			{
+				EXCEPTION_REGISTRATION_RECORD* pNextRecord = pRecord->Next;
+				__asm {
+					mov eax, pNextRecord
+					mov dword ptr fs:[0], eax
+				}
+			}
+			return true;
+		}
+
+		pPrevRecord = pRecord;
+		pRecord = pRecord->Next;
+	}
+
+	return false;
+}
+
+static void Command_PrintSEHChain(PlayerClient*, const char*)
+{
+	EXCEPTION_REGISTRATION_RECORD* pRecord = GetExceptionRegistrationRecords();
+
+	WriteChatf("SEH Chain:");
+	while (reinterpret_cast<uintptr_t>(pRecord) != 0xffffffff)
+	{
+		const char* color = "\ag";
+		if (reinterpret_cast<uintptr_t>(pRecord->ExceptionHandler) == __ExceptionFilter)
+			color = "\ar";
+		WriteChatf("%s%p: Next: %p, Handler: %p", color, pRecord, pRecord->Next, pRecord->ExceptionHandler);
+		pRecord = pRecord->Next;
+	}
+}
+#pragma warning(pop)
+
+#endif // EMU_POP_EXCEPTION_HANDLER_ENABLED
+
+//--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
 
 static void EmuExtensions_SettingsPanel()
@@ -104,12 +187,22 @@ static void EmuExtensions_Initialize()
 #if EMU_CONSTANT_AFFINITY_ENABLED
 	EmuInitCpuAffinity();
 #endif
+#if EMU_FIX_EXCEPTION_HANDLER_ENABLED
+	AddCommand("/printsehchain", Command_PrintSEHChain);
+#endif
 
 	AddSettingsPanel("Emu Extensions", EmuExtensions_SettingsPanel);
 }
 
 static void EmuExtensions_Shutdown()
 {
+#if EMU_SPELL_LINKS_ENABLED
+	RemoveDetour(__ConvertItemTags);
+	RemoveDetour(CChatWindow__WndNotification);
+#endif
+#if EMU_FIX_EXCEPTION_HANDLER_ENABLED
+	RemoveCommand("/printsehchain");
+#endif
 }
 
 static void EmuExtensions_Pulse()
@@ -122,6 +215,21 @@ static void EmuExtensions_Pulse()
 		s_hasSetCpuAffinity = true;
 	}
 #endif // EMU_CONSTANT_AFFINITY_ENABLED
+#if EMU_FIX_EXCEPTION_HANDLER_ENABLED
+	if (gGameState >= GAMESTATE_CHARSELECT && gGameState <= GAMESTATE_INGAME)
+	{
+		if (!s_hasFixedExceptionHandlerChain)
+		{
+			EmuFixExceptionHandler();
+			s_hasFixedExceptionHandlerChain = true;
+		}
+	}
+	else if (s_hasFixedExceptionHandlerChain)
+	{
+		// We'll need to fix it again when we're back in game
+		s_hasFixedExceptionHandlerChain = false;
+	}
+#endif // EMU_FIX_EXCEPTION_HANDLER_ENABLED
 }
 
 static void EmuExtensions_UpdateImGui()
