@@ -1,3 +1,9 @@
+Sep 7, 2024:
+- emu: Fix bug that kept OnBeginZone events to fire. This fix will
+  resolve severael bugs, including nav not stopping when zoning.
+- emu: Added new Emu Extensions section in settings, with new option
+  to automatically set cpu affinity. This is on by default.
+
 Sep 5, 2024:
 - lua: events can now preserve links:
     - mq.event('linkDetector', '#*#', linkDetector, { keepLinks = true })
