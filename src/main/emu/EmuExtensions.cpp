@@ -86,7 +86,7 @@ void EmuSetCpuAffinity()
 // Emu Exception Handler "Fix"
 //--------------------------------------------------------------------------
 
-#if EMU_POP_EXCEPTION_HANDLER_ENABLED
+#if EMU_FIX_EXCEPTION_HANDLER_ENABLED
 
 static bool s_hasFixedExceptionHandlerChain = false;
 
