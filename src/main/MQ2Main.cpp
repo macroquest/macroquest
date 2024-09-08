@@ -107,6 +107,9 @@ MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
 MQModule* GetPostOfficeModule();
+#if IS_EMU_CLIENT
+MQModule* GetEmuExtensionsModule();
+#endif
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -623,6 +626,9 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
 	AddInternalModule(GetPostOfficeModule());
+#if IS_EMU_CLIENT
+	AddInternalModule(GetEmuExtensionsModule());
+#endif
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializePlugins();
