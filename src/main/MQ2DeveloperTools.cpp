@@ -1216,6 +1216,11 @@ public:
 
 		ImGui::Checkbox("Show Visible Only", &m_showVisable);
 
+		ImGui::Text("Search: ");
+	
+		static char searchText[256] = { 0 };
+		ImGui::InputText("##AASearchText", searchText, 256);
+
 		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
 		{
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
@@ -1234,7 +1239,20 @@ public:
 				CAltAbilityData* altAbility = *ppAltAbility;
 				if (!m_showVisable || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
 				{
-					DrawAltAbilityTableRow(altAbility);
+					bool bDraw = true;
+					if (searchText[0])
+					{
+						if (ci_find_substr(altAbility->GetNameString(), searchText) == -1 &&
+							ci_find_substr(altAbility->GetCategoryString(), searchText) == -1 &&
+							ci_find_substr(altAbility->GetDescriptionString(), searchText) == -1 &&
+							ci_find_substr(altAbility->GetExpansionString(), searchText) == -1)
+							bDraw = false;
+					}
+
+					if (bDraw)
+					{
+						DrawAltAbilityTableRow(altAbility);
+					}
 				}
 
 				if (altAbility == m_selectedAbility)
