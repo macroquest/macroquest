@@ -1125,7 +1125,8 @@ class AltAbilityInspector : public ImGuiWindowBase
 {
 	CAltAbilityData* m_selectedAbility = nullptr;
 	bool m_foundSelected = false;
-	bool m_showVisable = true;
+	bool m_showVisible = true;
+	char m_searchText[256] = { 0 };
 
 public:
 	AltAbilityInspector() : ImGuiWindowBase("Alt Abilities Inspector")
@@ -1214,12 +1215,11 @@ public:
 
 		CAltAbilityData* nextSelection = nullptr;
 
-		ImGui::Checkbox("Show Visible Only", &m_showVisable);
+		ImGui::Checkbox("Show Visible Only", &m_showVisible);
 
 		ImGui::Text("Search: ");
 	
-		static char searchText[256] = { 0 };
-		ImGui::InputText("##AASearchText", searchText, 256);
+		ImGui::InputText("##AASearchText", m_searchText, 256);
 
 		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
 		{
@@ -1237,19 +1237,13 @@ public:
 			while (ppAltAbility)
 			{
 				CAltAbilityData* altAbility = *ppAltAbility;
-				if (!m_showVisable || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
+				if (!m_showVisible || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
 				{
-					bool bDraw = true;
-					if (searchText[0])
-					{
-						if (ci_find_substr(altAbility->GetNameString(), searchText) == -1 &&
-							ci_find_substr(altAbility->GetCategoryString(), searchText) == -1 &&
-							ci_find_substr(altAbility->GetDescriptionString(), searchText) == -1 &&
-							ci_find_substr(altAbility->GetExpansionString(), searchText) == -1)
-							bDraw = false;
-					}
-
-					if (bDraw)
+					if (!m_searchText[0] ||
+							ci_find_substr(altAbility->GetNameString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetCategoryString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetDescriptionString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetExpansionString(), m_searchText) != -1)
 					{
 						DrawAltAbilityTableRow(altAbility);
 					}
