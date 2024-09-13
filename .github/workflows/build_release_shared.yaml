@@ -148,7 +148,7 @@ jobs:
           nuget restore src/MacroQuestCustom.sln
 
       - name: Handle vcpkg Cache
-        if: false() # Disabled for build server speed improvements
+        if: false # Disabled for build server speed improvements
         uses: actions/cache@v4
         with:
           path: |
