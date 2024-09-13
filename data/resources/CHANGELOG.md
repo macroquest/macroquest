@@ -1,3 +1,6 @@
+Sep 12, 2024:
+- test: Update for test patch
+
 Sep 5, 2024:
 - lua: events can now preserve links:
     - mq.event('linkDetector', '#*#', linkDetector, { keepLinks = true })
