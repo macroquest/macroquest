@@ -16,8 +16,6 @@
 
 #include "LuaCommon.h"
 
-#include <queue>
-
 class Blech;
 struct BLECHVALUE;
 
@@ -35,8 +33,8 @@ public:
 	LuaEvent(std::string_view name,
 		std::string_view expression,
 		const sol::function& func,
-		LuaEventProcessor* processor,
-		Blech& blech);
+		const sol::optional<sol::table>& options,
+		LuaEventProcessor* processor);
 	~LuaEvent();
 
 	LuaEventProcessor* GetEventProcessor() { return m_processor; }
@@ -44,13 +42,16 @@ public:
 	std::string_view GetName() const { return m_name; }
 	const sol::function GetFunction() const { return m_function; }
 
+	bool KeepLinks() const { return m_keepLinks; }
+
 private:
 	const std::string m_name;
 	const std::string m_expression;
 	const sol::function m_function;
 	LuaEventProcessor* m_processor;
-	Blech& m_blech;
+	Blech* m_blech = nullptr;
 	uint32_t m_id;
+	bool m_keepLinks = false;
 };
 
 //----------------------------------------------------------------------------
@@ -113,13 +114,14 @@ public:
 	LuaEventProcessor(LuaThread* thread);
 	~LuaEventProcessor();
 
-	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function);
+	bool AddEvent(std::string_view name, std::string_view expression, const sol::function& function,
+		const sol::optional<sol::table>& options);
 	bool RemoveEvent(std::string_view name);
 
 	bool AddBind(std::string_view name, const sol::function& function);
 	bool RemoveBind(std::string_view name);
 
-	void Process(std::string_view line) const;
+	void Process(std::string_view line);
 
 	// this is guaranteed to always run at the exact same time, so we can run binds and events in it
 	void RunEvents(LuaThread& thread);
@@ -135,9 +137,15 @@ public:
 	void HandleBlechEvent(LuaEvent* event, BLECHVALUE* pValues);
 	void HandleBindCallback(LuaBind* bind, const char* args);
 
+	Blech& GetBlech() { return *m_blech; }
+	Blech& GetBlechStripped() { return *m_blechStripped; }
+
 private:
 	LuaThread* m_thread;
 	std::unique_ptr<Blech> m_blech;
+	std::unique_ptr<Blech> m_blechStripped;
+	const char* m_currentLineStripped = nullptr;
+	const char* m_currentLine = nullptr;
 
 	// Events
 	std::vector<std::unique_ptr<LuaEvent>> m_eventDefinitions;

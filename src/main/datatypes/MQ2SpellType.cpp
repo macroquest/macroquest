@@ -211,7 +211,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	auto pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
+	EQ_Spell* pSpell = GetSpell(VarPtr);
 	if (!pSpell)
 		return false;
 
@@ -1333,7 +1333,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpellType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
+	EQ_Spell* pSpell = GetSpell(VarPtr);
 	if (!pSpell)
 		return false;
 
@@ -1403,6 +1403,14 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 	GetVarPtrFromString(Ret, szIndex);
 	Ret.Type = pSpellType;
 	return true;
+}
+
+EQ_Spell* MQ2SpellType::GetSpell(const MQVarPtr& VarPtr)
+{
+	if (!VarPtr.IsType(MQVarPtr::VariantIdx::Ptr))
+		return nullptr;
+
+	return static_cast<EQ_Spell*>(VarPtr.Ptr);
 }
 
 } // namespace mq::datatypes
