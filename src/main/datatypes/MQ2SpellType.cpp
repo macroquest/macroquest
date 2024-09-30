@@ -1123,7 +1123,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				continue;
 
 			auto pFoundSpell = GetSpellByID(pAbility->SpellID);
-			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup)
+			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup && pSpell->Category == pFoundSpell->Category && pSpell->Subcategory == pFoundSpell->Subcategory)
 			{
 				Dest.Ptr = pFoundSpell;
 				return true;
