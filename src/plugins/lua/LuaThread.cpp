@@ -19,6 +19,7 @@
 #include "LuaImGui.h"
 #include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -61,6 +62,9 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
 
 // Mapping of TLOs to the pid of the script that created it
 std::unordered_map<const MQTopLevelObject*, int> s_allRegisteredTLOs;
+
+static std::unordered_map<int, std::unique_ptr<bindings::lua_MQTypeVar>> s_spawns;
+static std::unordered_map<int, std::unique_ptr<bindings::lua_MQTypeVar>> s_groundItems;
 
 //============================================================================
 
@@ -656,5 +660,55 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 }
 
 //============================================================================
+
+void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
+{
+	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
+	if (spawn != nullptr)
+		s_spawns[spawn->SpawnID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::pSpawnType->MakeTypeVar(spawn));
+}
+
+void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
+{
+	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
+	if (spawn != nullptr)
+		s_spawns.erase(spawn->SpawnID);
+}
+
+sol::table LuaThread::GetSpawns(sol::state_view L)
+{
+	auto table = L.create_table();
+
+	for (const auto& [_, spawn] : s_spawns)
+	{
+		table.add(*spawn);
+	}
+
+	return table;
+}
+
+void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
+{
+	if (item != nullptr)
+		s_groundItems[item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+}
+
+void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
+{
+	if (item != nullptr)
+		s_groundItems.erase(item->DropID);
+}
+
+sol::table LuaThread::GetGroundItems(sol::state_view L)
+{
+	auto table = L.create_table();
+
+	for (const auto& [_, item] : s_groundItems)
+	{
+		table.add(*item);
+	}
+
+	return table;
+}
 
 } // namespace mq::lua

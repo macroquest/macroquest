@@ -16,6 +16,11 @@
 
 #include "LuaCommon.h"
 
+namespace eqlib {
+class PlayerClient;
+class EQGroundItem;
+} // namespace eqlib
+
 namespace mq::lua::bindings {
 
 void RegisterBindings_EQ(LuaThread* thread, sol::table& mq);

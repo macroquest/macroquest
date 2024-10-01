@@ -957,7 +957,7 @@ bool lua_RemoveTopLevelObject(const char* name, sol::this_state s)
 {
 	if (!name || name[0] == 0)
 	{
-		luaL_error(s, "Invalid name passed to AddTopLevelObject");
+		luaL_error(s, "Invalid name passed to RemoveTopLevelObject");
 	}
 	else if (auto thread_ptr = LuaThread::get_from(s))
 	{

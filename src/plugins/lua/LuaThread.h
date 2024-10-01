@@ -26,6 +26,11 @@
 #include <chrono>
 #include <stack>
 
+namespace eqlib {
+	class PlayerClient;
+	class EQGroundItem;
+}
+
 namespace mq {
 	struct MQPlugin;
 }
@@ -189,6 +194,14 @@ public:
 	void AddNamedDependency(const std::string& name) {
 		m_namedDependencies.insert(name);
 	}
+
+	static void AddSpawn(eqlib::PlayerClient* spawn);
+	static void RemoveSpawn(eqlib::PlayerClient* spawn);
+	static sol::table GetSpawns(sol::state_view L);
+
+	static void AddGroundItem(eqlib::EQGroundItem* item);
+	static void RemoveGroundItem(eqlib::EQGroundItem* item);
+	static sol::table GetGroundItems(sol::state_view L);
 
 private:
 	RunResult RunOnce();
