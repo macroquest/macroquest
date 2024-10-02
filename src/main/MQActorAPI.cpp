@@ -41,8 +41,6 @@ static MQModule s_ActorAPIModule = {
 	nullptr,                         // EndZone
 	nullptr,                         // LoadPlugin
 	UnloadPluginActorAPI,            // UnloadPlugin
-	false,                           // loaded
-	false                            // manualUnload
 };
 MQModule* GetActorAPIModule() { return &s_ActorAPIModule; }
 MQActorAPI* pActorAPI = nullptr;

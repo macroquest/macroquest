@@ -4,6 +4,12 @@ Sep 18, 2024:
 Sep 12, 2024:
 - test: Update for test patch
 
+Sep 7, 2024:
+- emu: Fix bug that kept OnBeginZone events to fire. This fix will
+  resolve severael bugs, including nav not stopping when zoning.
+- emu: Added new Emu Extensions section in settings, with new option
+  to automatically set cpu affinity. This is on by default.
+
 Sep 5, 2024:
 - lua: events can now preserve links:
     - mq.event('linkDetector', '#*#', linkDetector, { keepLinks = true })
@@ -39,6 +45,12 @@ July 7, 2024:
 - Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
 - See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/
 - Me.CombatState no longer depends on the player window being visible (#123).
+
+July 5, 2024:
+- emu: Fix RaidMember accessors (#685), (#861)
+
+July 4, 2024:
+- emu: Fix Spell.Inspect (#831).
 
 July 3, 2024:
 - Fix EverQuest.Ping, add EverQuest.ConnectionStrength - these are the value from the net meter.

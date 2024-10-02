@@ -72,6 +72,12 @@
     <Filter Include="Header Files\eqdata">
       <UniqueIdentifier>{2b7d5e30-e807-4d3b-ac81-56092830cb6a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\emu">
+      <UniqueIdentifier>{7b5b93b4-0c81-41c2-92f0-45f73d2cc354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\emu">
+      <UniqueIdentifier>{e76cfbc5-b95f-40ca-b940-ffc54cbd169e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2AutoInventory.cpp">
@@ -407,6 +413,9 @@
     <ClCompile Include="datatypes\MQSocialType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="emu\EmuExtensions.cpp">
+      <Filter>Source Files\emu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -666,6 +675,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\DetourAPI.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="emu\EmuExtensions.h">
+      <Filter>Header Files\emu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

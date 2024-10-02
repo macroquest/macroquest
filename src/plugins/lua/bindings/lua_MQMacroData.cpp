@@ -596,22 +596,22 @@ std::string to_string(const lua_MQTLO& item)
 	return "TLO";
 }
 
-std::optional<std::string> mq_gettype_MQTopLevelObject(const lua_MQTopLevelObject& item)
+const char* mq_gettype_MQTopLevelObject(lua_MQTopLevelObject* item)
 {
-	MQ2Type* type = item.GetType();
+	MQ2Type* type = item ? item->GetType() : nullptr;
 	if (!type)
-		return std::nullopt;
+		return nullptr;
 
-	return std::string(type->GetName());
+	return type->GetName();
 }
 
-std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
+const char* mq_gettype_MQTypeVar(lua_MQTypeVar* item)
 {
-	MQ2Type* type = item.GetType();
+	MQ2Type* type = item ? item->GetType() : nullptr;
 	if (!type)
-		return std::nullopt;
+		return nullptr;
 
-	return std::string(type->GetName());
+	return type->GetName();
 }
 
 #pragma endregion
@@ -619,11 +619,6 @@ std::optional<std::string> mq_gettype_MQTypeVar(const lua_MQTypeVar& item)
 //============================================================================
 
 #pragma region Lua DataTypes
-
-static std::string DefaultToString(const sol::object&)
-{
-	return "NULL";
-}
 
 class LuaAbstractDataType
 {
@@ -1113,8 +1108,9 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 	mq.set("TLO",                                lua_MQTLO());
 	mq.set("null",                               lua_MQTypeVar(MQTypeVar()));
 	mq.set("gettype",                            sol::overload(
-		                                             mq_gettype_MQTopLevelObject,
-		                                             mq_gettype_MQTypeVar));
+		                                             &mq_gettype_MQTypeVar,
+		                                             &mq_gettype_MQTopLevelObject
+		                                         ));
 
 	//----------------------------------------------------------------------------
 	// DataTypes and TLOs
