@@ -1,3 +1,9 @@
+Sep 18, 2024:
+- live: Update for live patch
+
+Sep 12, 2024:
+- test: Update for test patch
+
 Sep 7, 2024:
 - emu: Fix bug that kept OnBeginZone events to fire. This fix will
   resolve severael bugs, including nav not stopping when zoning.
