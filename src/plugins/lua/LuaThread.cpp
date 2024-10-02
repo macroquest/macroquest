@@ -63,8 +63,7 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
 // Mapping of TLOs to the pid of the script that created it
 std::unordered_map<const MQTopLevelObject*, int> s_allRegisteredTLOs;
 
-static std::unordered_map<int, std::unique_ptr<bindings::lua_MQTypeVar>> s_spawns;
-static std::unordered_map<int, std::unique_ptr<bindings::lua_MQTypeVar>> s_groundItems;
+static sol::environment s_environment(sol::state(), sol::create);
 
 //============================================================================
 
@@ -122,6 +121,7 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 
 	m_environment = sol::environment(m_globalState, sol::create, m_globalState.globals());
 	m_environment.set_on(m_coroutine->thread);
+	s_environment.set_on(m_coroutine->thread);
 
 	m_threadTable = m_globalState.create_table();
 }
@@ -464,6 +464,12 @@ void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
 	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
 }
 
+void LuaThread::GlobalInitialize()
+{
+	s_environment["__spawns"] = sol::table();
+	s_environment["__groundItems"] = sol::table();
+}
+
 LuaThread::RunResult LuaThread::RunOnce()
 {
 	if (!m_coroutine->thread.valid())
@@ -665,50 +671,36 @@ void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		s_spawns[spawn->SpawnID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::pSpawnType->MakeTypeVar(spawn));
+		s_environment["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 }
 
 void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		s_spawns.erase(spawn->SpawnID);
+		s_environment["__spawns"][spawn->SpawnID] = sol::nil;
 }
 
 sol::table LuaThread::GetSpawns(sol::state_view L)
 {
-	auto table = L.create_table();
-
-	for (const auto& [_, spawn] : s_spawns)
-	{
-		table.add(*spawn);
-	}
-
-	return table;
+	return s_environment["__spawns"];
 }
 
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		s_groundItems[item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+		s_environment["__groundItems"][item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 }
 
 void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		s_groundItems.erase(item->DropID);
+		s_environment["__groundItems"][item->DropID] = sol::nil;
 }
 
 sol::table LuaThread::GetGroundItems(sol::state_view L)
 {
-	auto table = L.create_table();
-
-	for (const auto& [_, item] : s_groundItems)
-	{
-		table.add(*item);
-	}
-
-	return table;
+	return s_environment["__groundItems"];
 }
 
 } // namespace mq::lua

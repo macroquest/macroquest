@@ -173,6 +173,8 @@ public:
 	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
+	static void GlobalInitialize();
+
 	// TLOs
 	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction func);
 	bool RemoveTopLevelObject(const char* name);

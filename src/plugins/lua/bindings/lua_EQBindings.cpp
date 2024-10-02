@@ -261,7 +261,7 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	sol::function getFilteredSpawns = sol::state_view(mq.lua_state()).script(R"(
 		return function(predicate)
 			local spawns = {}
-			for _, spawn in ipairs(require('mq').getAllSpawns()) do
+			for _, spawn in ipairs(__spawns) do
 				if predicate(spawn) then table.insert(spawns, spawn) end
 			end
 			return spawns
@@ -272,7 +272,7 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	sol::function getFilteredGroundItems = sol::state_view(mq.lua_state()).script(R"(
 		return function(predicate)
 			local items = {}
-			for _, item in ipairs(require('mq').getAllGroundItems()) do
+			for _, item in ipairs(__groundItems) do
 				if predicate(item) then table.insert(items, item) end
 			end
 			return items
