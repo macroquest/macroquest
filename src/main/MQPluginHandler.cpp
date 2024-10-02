@@ -853,6 +853,12 @@ void PluginsCleanUI()
 	DeleteMQ2NewsWindow();
 	RemoveFindItemMenu();
 
+	ForEachModule([](const MQModule* module)
+		{
+			if (module->CleanUI)
+				module->CleanUI();
+		});
+
 	ForEachPlugin([](const MQPlugin* plugin)
 		{
 			if (plugin->CleanUI)
@@ -869,6 +875,12 @@ void PluginsReloadUI()
 		return;
 
 	PluginDebug("PluginsReloadUI()");
+
+	ForEachModule([](const MQModule* module)
+		{
+			if (module->CleanUI)
+				module->ReloadUI();
+		});
 
 	ForEachPlugin([](const MQPlugin* plugin)
 		{

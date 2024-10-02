@@ -61,8 +61,8 @@ static const ImU32 s_linkColorSpam = Zep::ZepColor(128, 128, 0);
 static const ImU32 s_linkColorPlayer = Zep::ZepColor(0, 0, 0, 0); // use current color
 
 static const int s_userColorItemLink = USERCOLOR_LINK;
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
 static const int s_userColorAchievementLink = USERCOLOR_ACHIEVEMENT;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
 static const int s_userColorDialogLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
@@ -726,10 +726,10 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 			color = s_linkColorSpam;
 			color = s_linkHoverColorSpam;
 			break;
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
 		case ETAG_ACHIEVEMENT:
 			color = GetColorForChatColor(s_userColorAchievementLink).ToABGR();
 			break;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
 		case ETAG_DIALOG_RESPONSE:
 			color = GetColorForChatColor(s_userColorDialogLink).ToABGR();
 			break;
