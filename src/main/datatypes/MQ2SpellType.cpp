@@ -227,7 +227,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			{
 #if defined(CSpellDisplayManager__ShowSpell_x)
 				if (pSpellDisplayManager)
-					pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, 0);
+					pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, SpellDisplayType_SpellBookWnd);
 #else
 				char buffer[512] = { 0 };
 				if (Index[0])

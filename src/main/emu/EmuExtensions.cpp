@@ -17,6 +17,7 @@
 
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
+#include "eqlib/WindowOverride.h"
 #include "imgui/ImGuiUtils.h"
 
 #if IS_EMU_CLIENT
@@ -26,6 +27,8 @@ static void EmuExtensions_Initialize();
 static void EmuExtensions_Shutdown();
 static void EmuExtensions_Pulse();
 static void EmuExtensions_UpdateImGui();
+static void EmuExtensions_CleanUI();
+static void EmuExtensions_ReloadUI();
 
 static MQModule gEmuExtensionsModule = {
 	"EmuExtensions",              // Name
@@ -43,9 +46,154 @@ static MQModule gEmuExtensionsModule = {
 	nullptr,                      // EndZone
 	nullptr,                      // LoadPlugin
 	nullptr,                      // UnloadPlugin
+	EmuExtensions_CleanUI,        // CleanUI
+	EmuExtensions_ReloadUI        // ReloadUI
 };
 MQModule* GetEmuExtensionsModule() { return &gEmuExtensionsModule; }
 
+
+//--------------------------------------------------------------------------
+// Emu Spell Link Support
+//--------------------------------------------------------------------------
+
+#if EMU_SPELL_LINKS_ENABLED
+
+static bool ParsePartialSpellLink(std::string_view sv, SpellLinkInfo& linkInfo)
+{
+	// Repackage the data back up in a link then re-parse it (to re-use code).
+	// Need to figure out how to simplify this and still have code re-use.
+	char tempStr[256] = { 0 };
+	sprintf_s(tempStr, "%c%c%.*s%c", ITEM_TAG_CHAR, '0' + ETAG_SPELL,
+		(int)sv.length(), sv.data(), ITEM_TAG_CHAR);
+
+	return ParseSpellLink(tempStr, linkInfo);
+}
+
+static void DispatchSpellLink(const char* linkData)
+{
+	SpellLinkInfo linkInfo;
+	if (ParsePartialSpellLink(linkData, linkInfo))
+	{
+		// Check that it is a valid spell
+		EQ_Spell* pSpell = GetSpellByID(linkInfo.spellID);
+
+		if (pSpell != nullptr && pSpellDisplayManager != nullptr)
+		{
+			pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, SpellDisplayType_SpellBookWnd);
+		}
+	}
+}
+
+DETOUR_TRAMPOLINE_DEF(void, ConvertItemTags_Trampoline, (CXStr&, bool));
+void ConvertItemTags_Detour(CXStr& text, bool canDisplay)
+{
+	char* p = &text[0];
+
+	// Fast scan for spell links.
+	while (*p)
+	{
+		// Look ahead for item tag character that identify spell links. If it isn't
+		// a spell link, we want to skip to the end of the tag and keep looking. There
+		// might be multiple tags in the same string.
+		if (*p == ITEM_TAG_CHAR)
+		{
+			if (p[1] == '6')
+			{
+				TextTagInfo tagInfo = ExtractLink(p);
+
+				size_t linkLength = tagInfo.link.length();
+				size_t linkPos = tagInfo.link.data() - &text[0];
+
+				size_t pos = tagInfo.link.find("'");
+				if (pos != std::string::npos)
+				{
+					tagInfo.link = tagInfo.link.substr(2, pos - 2);
+				}
+
+				std::string wndNotification = fmt::format("<a WndNotify=\"{},{}\">{}</a>", XWM_SPELL_LINK, tagInfo.link, tagInfo.text);
+
+				// Replace the tag with the new notification string
+				text.replace(linkPos, linkLength, wndNotification);
+			}
+
+			// Skip to the next item tag character
+			++p;
+			while (*p && *p != ITEM_TAG_CHAR)
+			{
+				++p;
+			}
+		}
+		
+		++p;
+	}
+
+	ConvertItemTags_Trampoline(text, canDisplay);
+}
+
+class CChatWindowHook : public CChatWindow
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*));
+	int WndNotification_Detour(CXWnd* sender, uint32_t message, void* data)
+	{
+		if (message == XWM_SPELL_LINK)
+		{
+			if (sender == OutputWnd)
+			{
+				DispatchSpellLink(static_cast<char*>(data));
+			}
+			return 1;
+		}
+
+		return WndNotification_Trampoline(sender, message, data);
+	}
+};
+
+class CSpellDisplayWndOverride : public WindowOverride<CSpellDisplayWndOverride, CSpellDisplayWnd>
+{
+public:
+	static void OnHooked(CSpellDisplayWndOverride* pWnd) { pWnd->OnHooked(); }
+	static void OnAboutToUnhook(CSpellDisplayWndOverride* pWnd) { pWnd->OnAboutToUnhook(); }
+
+	virtual int WndNotification(CXWnd* sender, uint32_t message, void* data) override
+	{
+		DebugSpewAlways("WndNotification: %p -> %d", sender, message);
+		if (sender == nullptr)
+		{
+			if (message == XWM_SPELL_LINK)
+			{
+				DispatchSpellLink(static_cast<char*>(data));
+			}
+		}
+		else if (message == XWM_LCLICK && sender == pIcon)
+		{
+			EQ_Spell* pSpell = GetSpellByID(SpellID);
+			CEditWnd* inputWnd = pChatManager->GetActiveChatWindow()->InputWnd;
+
+			if (pSpell && inputWnd)
+			{
+				char Buffer[256] = { 0 };
+				FormatSpellLink(Buffer, lengthof(Buffer), pSpell);
+				
+				inputWnd->ReplaceSelection(CXStr(Buffer), false);
+				inputWnd->SetFocus();
+			}
+		}
+
+		return Super::WndNotification(sender, message, data);
+	}
+
+private:
+	void OnHooked()
+	{
+	}
+
+	void OnAboutToUnhook()
+	{
+	}
+};
+
+#endif // EMU_SPELL_LINKS_ENABLED
 
 //--------------------------------------------------------------------------
 // Emu Constant CPU Affinity Support
@@ -187,6 +335,12 @@ static void EmuExtensions_Initialize()
 #if EMU_CONSTANT_AFFINITY_ENABLED
 	EmuInitCpuAffinity();
 #endif
+
+#if EMU_SPELL_LINKS_ENABLED
+	EzDetour(__ConvertItemTags, &ConvertItemTags_Detour, &ConvertItemTags_Trampoline);
+	EzDetour(CChatWindow__WndNotification, &CChatWindowHook::WndNotification_Detour, &CChatWindowHook::WndNotification_Trampoline);
+#endif
+
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
 	AddCommand("/printsehchain", Command_PrintSEHChain);
 #endif
@@ -200,6 +354,7 @@ static void EmuExtensions_Shutdown()
 	RemoveDetour(__ConvertItemTags);
 	RemoveDetour(CChatWindow__WndNotification);
 #endif
+
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
 	RemoveCommand("/printsehchain");
 #endif
@@ -215,6 +370,7 @@ static void EmuExtensions_Pulse()
 		s_hasSetCpuAffinity = true;
 	}
 #endif // EMU_CONSTANT_AFFINITY_ENABLED
+
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
 	if (gGameState >= GAMESTATE_CHARSELECT && gGameState <= GAMESTATE_INGAME)
 	{
@@ -230,10 +386,55 @@ static void EmuExtensions_Pulse()
 		s_hasFixedExceptionHandlerChain = false;
 	}
 #endif // EMU_FIX_EXCEPTION_HANDLER_ENABLED
+
+#if EMU_SPELL_LINKS_ENABLED
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		// Check if we're able to hook the SpellDisplayWnd yet. We only need one instance.
+		// These are created dynamically so we need to wait for it to exist before we can hook it.
+		if (!CSpellDisplayWndOverride::IsHooked()
+			&& pSpellDisplayManager
+			&& pSpellDisplayManager->GetCount() > 0)
+		{
+			CSpellDisplayWndOverride::InstallHooks(pSpellDisplayManager->GetWindow(0));
+		}
+
+		if (CSpellDisplayWndOverride::IsHooked()
+			&& pSpellDisplayManager
+			&& pSpellDisplayManager->GetCount() > 1)
+		{
+			// Replicate hooks to other windows
+			for (int i = 1; i < pSpellDisplayManager->GetCount(); ++i)
+			{
+				CSpellDisplayWndOverride::InstallAdditionalHook(pSpellDisplayManager->GetWindow(i));
+			}
+		}
+	}
+#endif // EMU_SPELL_LINKS_ENABLED
 }
 
 static void EmuExtensions_UpdateImGui()
 {
+}
+
+static void EmuExtensions_CleanUI()
+{
+#if EMU_SPELL_LINKS_ENABLED
+	if (pSpellDisplayManager && pSpellDisplayManager->GetCount() > 0)
+	{
+		for (int i = 0; i < pSpellDisplayManager->GetCount(); ++i)
+		{
+			CSpellDisplayWndOverride::RestoreVFTable(pSpellDisplayManager->GetWindow(i));
+		}
+
+		CSpellDisplayWndOverride::RemoveHooks(pSpellDisplayManager->GetWindow(0));
+	}
+#endif // EMU_SPELL_LINKS_ENABLED
+}
+
+void EmuExtensions_ReloadUI()
+{
+	
 }
 
 } // namespace mq
