@@ -1713,6 +1713,8 @@ PLUGIN_API void ShutdownPlugin()
 	LuaActors::Stop();
 
 	bindings::ShutdownBindings_MQMacroData();
+	s_running.clear();
+	s_pending.clear();
 
 	RemoveCommand("/lua");
 
@@ -1783,14 +1785,14 @@ PLUGIN_API void OnPulse()
 
 PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
 {
-	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
+	WriteChatf("Adding spawn %d: %s", spawn->SpawnID, spawn->Name);
 	if (spawn != nullptr)
 		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = lua::bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 }
 
 PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
 {
-	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
+	WriteChatf("Removing spawn %d: %s", spawn->SpawnID, spawn->Name);
 	if (spawn != nullptr)
 		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = sol::nil;
 }

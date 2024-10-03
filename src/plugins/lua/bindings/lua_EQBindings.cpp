@@ -40,20 +40,6 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 //============================================================================
 
-#pragma region MQ Data Bindings
-
-static sol::table lua_getAllSpawns(sol::this_state L)
-{
-	return LuaThread::GetSpawns(L);
-}
-
-static sol::table lua_getAllGroundItems(sol::this_state L)
-{
-	return LuaThread::GetGroundItems(L);
-}
-
-#pragma endregion
-
 #pragma region Text Links
 
 sol::table lua_ExtractLinks(sol::this_state L, std::string_view str)
@@ -256,16 +242,10 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
 	sol::function getAllSpawns = sol::state_view(mq.lua_state()).script(R"(
-		return function()
-			if not __spawns then
-				print('nil __spawns')
-				return nil
-			end
-			return __spawns
-		end
+		return function() return __spawns end
 	)");
 
-	mq.set_function("getAllSpawns", &LuaThread::GetSpawns);
+	mq.set_function("getAllSpawns", getAllSpawns);
 
 	sol::function getFilteredSpawns = sol::state_view(mq.lua_state()).script(R"(
 		return function(predicate)
