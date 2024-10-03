@@ -173,8 +173,6 @@ public:
 	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
-	static void GlobalInitialize();
-
 	// TLOs
 	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction func);
 	bool RemoveTopLevelObject(const char* name);
@@ -205,6 +203,8 @@ public:
 	static void RemoveGroundItem(eqlib::EQGroundItem* item);
 	static sol::table GetGroundItems(sol::state_view L);
 
+	static int lua_PackageLoader(lua_State* L);
+
 private:
 	RunResult RunOnce();
 
@@ -215,14 +215,12 @@ private:
 
 	int PackageLoader(const std::string& pkg, lua_State* L);
 
-	static int lua_PackageLoader(lua_State* L);
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:
 	LuaEnvironmentSettings* m_luaEnvironmentSettings = nullptr;
 
 	// this needs to be first in initialization order because other things depend on it
-	sol::state m_globalState;
 	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
 	sol::table m_threadTable;

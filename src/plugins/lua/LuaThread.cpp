@@ -58,12 +58,11 @@ static uint32_t NextID()
 std::shared_ptr<mq::lua::LuaThread> GetLuaThreadByPID(int pid);
 void OnLuaThreadDestroyed(LuaThread* thread);
 void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
+sol::state& GetGlobalState();
 
 
 // Mapping of TLOs to the pid of the script that created it
 std::unordered_map<const MQTopLevelObject*, int> s_allRegisteredTLOs;
-
-static sol::environment s_environment(sol::state(), sol::create);
 
 //============================================================================
 
@@ -114,16 +113,12 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	: m_luaEnvironmentSettings(environment)
 	, m_name("(unnamed)")
 	, m_pid(NextID())
-	, m_coroutine(LuaCoroutine::Create(sol::thread::create(m_globalState), this))
+	, m_coroutine(LuaCoroutine::Create(sol::thread::create(GetGlobalState()), this))
 {
-	m_globalState.open_libraries();
-	m_luaEnvironmentSettings->ConfigureLuaState(m_globalState);
-
-	m_environment = sol::environment(m_globalState, sol::create, m_globalState.globals());
+	m_environment = sol::environment(GetGlobalState(), sol::create, GetGlobalState().globals());
 	m_environment.set_on(m_coroutine->thread);
-	s_environment.set_on(m_coroutine->thread);
 
-	m_threadTable = m_globalState.create_table();
+	m_threadTable = GetGlobalState().create_table(m_environment);
 }
 
 LuaThread::~LuaThread()
@@ -144,10 +139,7 @@ LuaThread::~LuaThread()
 
 void LuaThread::Initialize()
 {
-	bindings::RegisterBindings_Globals(this, m_globalState);
-	bindings::RegisterBindings_Bit32(m_globalState);
-
-	m_globalState.add_package_loader(LuaThread::lua_PackageLoader);
+	m_environment["mqthread"] = LuaThreadRef(shared_from_this());
 }
 
 void LuaThread::EnableImGui()
@@ -168,7 +160,7 @@ void LuaThread::EnableEvents()
 
 void LuaThread::InjectMQNamespace()
 {
-	m_globalState["mq"] = RegisterMQNamespace(m_globalState.lua_state());
+	m_environment["mq"] = RegisterMQNamespace(GetGlobalState().lua_state());
 }
 
 void LuaThread::Exit(LuaThreadExitReason reason)
@@ -182,7 +174,7 @@ void LuaThread::Exit(LuaThreadExitReason reason)
 
 std::pair<uint32_t, sol::thread> LuaThread::CreateThread()
 {
-	auto thread = sol::thread::create(m_globalState);
+	auto thread = sol::thread::create(GetGlobalState());
 	m_environment.set_on(thread);
 	m_threadTable[m_threadIndex] = thread;
 
@@ -199,7 +191,7 @@ sol::table LuaThread::RegisterMQNamespace(sol::this_state L)
 {
 	sol::state_view sv{ L };
 
-	auto mq = sv.create_table();
+	auto mq = sv.create_table(m_environment);
 	bindings::RegisterBindings_MQ(this, mq);
 	bindings::RegisterBindings_MQMacroData(mq);
 
@@ -259,7 +251,7 @@ bool LuaThread::IsValid() const
 
 sol::state_view LuaThread::GetState() const
 {
-	return m_globalState;
+	return GetGlobalState();
 }
 
 sol::thread LuaThread::GetLuaThread() const
@@ -283,13 +275,13 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string runDir = fs::path{ script_path }.parent_path().string();
 	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
 	{
-		m_globalState["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
+		m_environment["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
 			fmt::arg("runDir", runDir),
-			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
+			fmt::arg("existingPath", m_environment["package"]["path"].get<std::string_view>()));
 
-		m_globalState["package"]["cpath"] = fmt::format("{runDir}\\?.dll;{existingPath}",
+		m_environment["package"]["cpath"] = fmt::format("{runDir}\\?.dll;{existingPath}",
 			fmt::arg("runDir", runDir),
-			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
+			fmt::arg("existingPath", m_environment["package"]["cpath"].get<std::string_view>()));
 	}
 
 	m_name = GetCanonicalScriptName(script_path, m_luaEnvironmentSettings->luaDir);
@@ -462,12 +454,6 @@ void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
 {
 	m_name = GetCanonicalScriptName(m_path, newLuaDir);
 	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
-}
-
-void LuaThread::GlobalInitialize()
-{
-	s_environment["__spawns"] = sol::table();
-	s_environment["__groundItems"] = sol::table();
 }
 
 LuaThread::RunResult LuaThread::RunOnce()
@@ -671,36 +657,41 @@ void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		s_environment["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+		GetGlobalState()["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 }
 
 void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		s_environment["__spawns"][spawn->SpawnID] = sol::nil;
+		GetGlobalState()["__spawns"][spawn->SpawnID] = sol::nil;
 }
 
 sol::table LuaThread::GetSpawns(sol::state_view L)
 {
-	return s_environment["__spawns"];
+	sol::table source = GetGlobalState()["__spawns"];
+	sol::table target = L.create_table();
+	for (auto [key, val] : source)
+		target.set(sol::make_object(L, key), sol::make_object(L, val));
+
+	return target;
 }
 
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		s_environment["__groundItems"][item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+		GetGlobalState()["__groundItems"][item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 }
 
 void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		s_environment["__groundItems"][item->DropID] = sol::nil;
+		GetGlobalState()["__groundItems"][item->DropID] = sol::nil;
 }
 
 sol::table LuaThread::GetGroundItems(sol::state_view L)
 {
-	return s_environment["__groundItems"];
+	return GetGlobalState()["__groundItems"];
 }
 
 } // namespace mq::lua

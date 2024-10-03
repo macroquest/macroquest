@@ -255,25 +255,41 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
-	mq.set_function("getAllSpawns", &lua_getAllSpawns);
-	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
+	sol::function getAllSpawns = sol::state_view(mq.lua_state()).script(R"(
+		return function()
+			if not __spawns then
+				print('nil __spawns')
+				return nil
+			end
+			return __spawns
+		end
+	)");
+
+	mq.set_function("getAllSpawns", &LuaThread::GetSpawns);
 
 	sol::function getFilteredSpawns = sol::state_view(mq.lua_state()).script(R"(
 		return function(predicate)
 			local spawns = {}
-			for _, spawn in ipairs(__spawns) do
-				if predicate(spawn) then table.insert(spawns, spawn) end
+			for id, spawn in pairs(__spawns) do
+				if predicate(spawn) then spawns[id] = spawn end
 			end
 			return spawns
 		end
 	)");
+
 	mq.set_function("getFilteredSpawns", getFilteredSpawns);
+
+	sol::function getAllGroundItems = sol::state_view(mq.lua_state()).script(R"(
+		return function() return __groundItems end
+	)");
+
+	mq.set_function("getAllGroundItems", getAllGroundItems);
 
 	sol::function getFilteredGroundItems = sol::state_view(mq.lua_state()).script(R"(
 		return function(predicate)
 			local items = {}
-			for _, item in ipairs(__groundItems) do
-				if predicate(item) then table.insert(items, item) end
+			for id, item in pairs(__groundItems) do
+				if predicate(item) then items[id] = item end
 			end
 			return items
 		end

@@ -21,6 +21,7 @@
 #include "LuaActor.h"
 #include "LuaImGui.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -248,6 +249,28 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 			}
 			return false;
 		}), end(s_running));
+}
+
+sol::state& GetGlobalState()
+{
+	static sol::state s_globalState = [] {
+		sol::state s;
+		s.open_libraries();
+		s_environment.ConfigureLuaState(s);
+
+		bindings::RegisterBindings_Globals(&s_environment, s);
+		bindings::RegisterBindings_Bit32(s);
+
+		s.add_package_loader(LuaThread::lua_PackageLoader);
+
+		// TODO: move these into a RegisterBindings
+		s.create_named_table("__spawns");
+		s.create_named_table("__groundItems");
+
+		return s;
+	}();
+
+	return s_globalState;
 }
 
 #pragma endregion
@@ -1760,22 +1783,26 @@ PLUGIN_API void OnPulse()
 
 PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
 {
-	lua::LuaThread::AddSpawn(spawn);
+	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
+	if (spawn != nullptr)
+		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = lua::bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 }
 
 PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
 {
-	lua::LuaThread::RemoveSpawn(spawn);
+	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
+	if (spawn != nullptr)
+		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = sol::nil;
 }
 
 PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
 {
-	lua::LuaThread::AddGroundItem(item);
+	//lua::LuaThread::AddGroundItem(item);
 }
 
 PLUGIN_API void OnRemoveGroundItem(EQGroundItem* item)
 {
-	lua::LuaThread::RemoveGroundItem(item);
+	//lua::LuaThread::RemoveGroundItem(item);
 }
 
 PLUGIN_API void OnUpdateImGui()
