@@ -58,7 +58,7 @@ static uint32_t NextID()
 std::shared_ptr<mq::lua::LuaThread> GetLuaThreadByPID(int pid);
 void OnLuaThreadDestroyed(LuaThread* thread);
 void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
-sol::state& GetGlobalState();
+sol::state* GetGlobalState();
 
 
 // Mapping of TLOs to the pid of the script that created it
@@ -113,12 +113,12 @@ LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
 	: m_luaEnvironmentSettings(environment)
 	, m_name("(unnamed)")
 	, m_pid(NextID())
-	, m_coroutine(LuaCoroutine::Create(sol::thread::create(GetGlobalState()), this))
+	, m_coroutine(LuaCoroutine::Create(sol::thread::create(*GetGlobalState()), this))
 {
-	m_environment = sol::environment(GetGlobalState(), sol::create, GetGlobalState().globals());
+	m_environment = sol::environment(*GetGlobalState(), sol::create, GetGlobalState()->globals());
 	m_environment.set_on(m_coroutine->thread);
 
-	m_threadTable = GetGlobalState().create_table(m_environment);
+	m_threadTable = GetGlobalState()->create_table(m_environment);
 }
 
 LuaThread::~LuaThread()
@@ -160,7 +160,7 @@ void LuaThread::EnableEvents()
 
 void LuaThread::InjectMQNamespace()
 {
-	m_environment["mq"] = RegisterMQNamespace(GetGlobalState().lua_state());
+	m_environment["mq"] = RegisterMQNamespace(GetGlobalState()->lua_state());
 }
 
 void LuaThread::Exit(LuaThreadExitReason reason)
@@ -174,7 +174,7 @@ void LuaThread::Exit(LuaThreadExitReason reason)
 
 std::pair<uint32_t, sol::thread> LuaThread::CreateThread()
 {
-	auto thread = sol::thread::create(GetGlobalState());
+	auto thread = sol::thread::create(*GetGlobalState());
 	m_environment.set_on(thread);
 	m_threadTable[m_threadIndex] = thread;
 
@@ -251,7 +251,7 @@ bool LuaThread::IsValid() const
 
 sol::state_view LuaThread::GetState() const
 {
-	return GetGlobalState();
+	return m_environment.lua_state();
 }
 
 sol::thread LuaThread::GetLuaThread() const
@@ -657,19 +657,19 @@ void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Adding spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		GetGlobalState()["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+		(*GetGlobalState())["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 }
 
 void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 {
 	WriteChatf("Removing spawn %s", spawn ? spawn->Name : "NULL");
 	if (spawn != nullptr)
-		GetGlobalState()["__spawns"][spawn->SpawnID] = sol::nil;
+		(*GetGlobalState())["__spawns"][spawn->SpawnID] = sol::nil;
 }
 
 sol::table LuaThread::GetSpawns(sol::state_view L)
 {
-	sol::table source = GetGlobalState()["__spawns"];
+	sol::table source = (*GetGlobalState())["__spawns"];
 	sol::table target = L.create_table();
 	for (auto [key, val] : source)
 		target.set(sol::make_object(L, key), sol::make_object(L, val));
@@ -680,18 +680,18 @@ sol::table LuaThread::GetSpawns(sol::state_view L)
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		GetGlobalState()["__groundItems"][item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+		(*GetGlobalState())["__groundItems"][item->DropID] = std::make_unique<bindings::lua_MQTypeVar>(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 }
 
 void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
 {
 	if (item != nullptr)
-		GetGlobalState()["__groundItems"][item->DropID] = sol::nil;
+		(*GetGlobalState())["__groundItems"][item->DropID] = sol::nil;
 }
 
 sol::table LuaThread::GetGroundItems(sol::state_view L)
 {
-	return GetGlobalState()["__groundItems"];
+	return (*GetGlobalState())["__groundItems"];
 }
 
 } // namespace mq::lua

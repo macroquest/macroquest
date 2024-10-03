@@ -86,6 +86,8 @@ std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
+sol::state* s_globalState;
+
 #pragma region Shared Function Definitions
 
 void DebugStackTrace(lua_State* L, const char* message)
@@ -251,25 +253,8 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 		}), end(s_running));
 }
 
-sol::state& GetGlobalState()
+sol::state* GetGlobalState()
 {
-	static sol::state s_globalState = [] {
-		sol::state s;
-		s.open_libraries();
-		s_environment.ConfigureLuaState(s);
-
-		bindings::RegisterBindings_Globals(&s_environment, s);
-		bindings::RegisterBindings_Bit32(s);
-
-		s.add_package_loader(LuaThread::lua_PackageLoader);
-
-		// TODO: move these into a RegisterBindings
-		s.create_named_table("__spawns");
-		s.create_named_table("__groundItems");
-
-		return s;
-	}();
-
 	return s_globalState;
 }
 
@@ -1690,6 +1675,19 @@ PLUGIN_API void InitializePlugin()
 
 	ReadSettings();
 
+	// TODO: change this to a class that does all this internally
+	s_globalState = new sol::state();
+	s_globalState->open_libraries();
+	s_environment.ConfigureLuaState(*s_globalState);
+
+	bindings::RegisterBindings_Globals(&s_environment, *s_globalState);
+	bindings::RegisterBindings_Bit32(*s_globalState);
+
+	s_globalState->add_package_loader(LuaThread::lua_PackageLoader);
+
+	s_globalState->create_named_table("__spawns");
+	s_globalState->create_named_table("__groundItems");
+
 	AddCommand("/lua", LuaCommand);
 
 	pLuaInfoType = new MQ2LuaInfoType;
@@ -1715,6 +1713,8 @@ PLUGIN_API void ShutdownPlugin()
 	bindings::ShutdownBindings_MQMacroData();
 	s_running.clear();
 	s_pending.clear();
+
+	delete s_globalState;
 
 	RemoveCommand("/lua");
 
@@ -1787,14 +1787,17 @@ PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
 {
 	WriteChatf("Adding spawn %d: %s", spawn->SpawnID, spawn->Name);
 	if (spawn != nullptr)
-		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = lua::bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+		(*lua::GetGlobalState())["__spawns"][spawn->SpawnID] = lua::bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+
+	auto script = fmt::format("print(__spawns[{}])", spawn->SpawnID);
+	lua::LuaParseCommand(script);
 }
 
 PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
 {
 	WriteChatf("Removing spawn %d: %s", spawn->SpawnID, spawn->Name);
 	if (spawn != nullptr)
-		lua::GetGlobalState()["__spawns"][spawn->SpawnID] = sol::nil;
+		(*lua::GetGlobalState())["__spawns"][spawn->SpawnID] = sol::nil;
 }
 
 PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
