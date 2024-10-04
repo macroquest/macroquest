@@ -1758,21 +1758,40 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-// TODO: simply loop through threads and call these
 PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
 {
+	for (const auto& thread : s_running)
+		thread->AddSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->AddSpawn(spawn);
 }
 
 PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
 {
+	for (const auto& thread : s_running)
+		thread->RemoveSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveSpawn(spawn);
 }
 
 PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
 {
+	for (const auto& thread : s_running)
+		thread->AddGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->AddGroundItem(item);
 }
 
 PLUGIN_API void OnRemoveGroundItem(EQGroundItem* item)
 {
+	for (const auto& thread : s_running)
+		thread->RemoveGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveGroundItem(item);
 }
 
 PLUGIN_API void OnUpdateImGui()

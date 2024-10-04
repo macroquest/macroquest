@@ -198,12 +198,10 @@ public:
 	void InitializeSpawnTable();
 	void AddSpawn(eqlib::PlayerClient* spawn);
 	void RemoveSpawn(eqlib::PlayerClient* spawn);
-	sol::table GetSpawns(sol::state_view L);
 
 	void InitializeGroundItemTable();
 	void AddGroundItem(eqlib::EQGroundItem* item);
 	void RemoveGroundItem(eqlib::EQGroundItem* item);
-	sol::table GetGroundItems(sol::state_view L);
 
 private:
 	RunResult RunOnce();
