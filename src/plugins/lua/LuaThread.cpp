@@ -19,6 +19,7 @@
 #include "LuaImGui.h"
 #include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -656,5 +657,92 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 }
 
 //============================================================================
+
+void LuaThread::InitializeSpawnTable()
+{
+	if (m_globalState["__spawns"] == sol::nil)
+	{
+		m_globalState.create_named_table("__spawns");
+
+		if (pSpawnManager != nullptr)
+		{
+			auto spawn = pSpawnManager->FirstSpawn;
+			while (spawn != nullptr)
+			{
+				AddSpawn(spawn);
+				spawn = spawn->GetNext();
+			}
+		}
+	}
+}
+
+void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_globalState["__spawns"] != sol::nil)
+	{
+		WriteChatf("Adding spawn %s", spawn->Name);
+		m_globalState["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+	}
+}
+
+void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_globalState["__spawns"] != sol::nil)
+	{
+		WriteChatf("Removing spawn %s", spawn->Name);
+		m_globalState["__spawns"][spawn->SpawnID] = sol::nil;
+	}
+}
+
+sol::table LuaThread::GetSpawns(sol::state_view L)
+{
+	sol::table source = m_globalState["__spawns"];
+	sol::table target = L.create_table();
+	for (auto [key, val] : source)
+		target.set(sol::make_object(L, key), sol::make_object(L, val));
+
+	return target;
+}
+
+void LuaThread::InitializeGroundItemTable()
+{
+	if (m_globalState["__groundItems"] == sol::nil)
+	{
+		m_globalState.create_named_table("__groundItems");
+
+		if (pItemList != nullptr)
+		{
+			auto item = pItemList->Top;
+			while (item != nullptr)
+			{
+				AddGroundItem(item);
+				item = item->pNext;
+			}
+		}
+	}
+}
+
+void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_globalState["__groundItems"] != sol::nil)
+	{
+		WriteChatf("Adding groundItem %s", item->Name);
+		m_globalState["__groundItems"][item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+	}
+}
+
+void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_globalState["__groundItems"] != sol::nil)
+	{
+		WriteChatf("Removing groundItem %s", item->Name);
+		m_globalState["__groundItems"][item->DropID] = sol::nil;
+	}
+}
+
+sol::table LuaThread::GetGroundItems(sol::state_view L)
+{
+	return m_globalState["__groundItems"];
+}
 
 } // namespace mq::lua

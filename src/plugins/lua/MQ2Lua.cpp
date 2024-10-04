@@ -1758,6 +1758,23 @@ PLUGIN_API void OnPulse()
 	}
 }
 
+// TODO: simply loop through threads and call these
+PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
+{
+}
+
+PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
+{
+}
+
+PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
+{
+}
+
+PLUGIN_API void OnRemoveGroundItem(EQGroundItem* item)
+{
+}
+
 PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;
