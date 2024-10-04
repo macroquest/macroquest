@@ -38,7 +38,7 @@ static void ShutdownMQ2ImGuiTools();
 static void PulseMQ2ImGuiTools();
 static void UpdateSettingsUI();
 
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter);
+static int WriteChatColorImGuiAPI(const char* line, uint32_t color, uint32_t filter);
 
 static MQModule gImGuiModule = {
 	"ImGuiAPI",                   // Name
@@ -378,7 +378,7 @@ static void PulseMQ2ImGuiTools()
 {
 }
 
-static DWORD WriteChatColorImGuiAPI(const char* line, DWORD color, DWORD filter)
+static int WriteChatColorImGuiAPI(const char* line, uint32_t color, uint32_t filter)
 {
 	return ImGuiConsoleAddText(line, color, filter);
 }

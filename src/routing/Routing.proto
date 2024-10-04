@@ -67,3 +67,15 @@ message NetworkMessage {
 		Envelope routed = 10;
 	}
 }
+
+enum NotifyLevel {
+	Info = 0;
+	Warning = 1;
+	Error = 2;
+}
+
+message Notification {
+	string title = 1;
+	optional string message = 2;
+	optional NotifyLevel level = 3;
+}

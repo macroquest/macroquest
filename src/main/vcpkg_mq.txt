@@ -5,3 +5,4 @@ date
 detours
 protobuf
 sqlite3
+argon2

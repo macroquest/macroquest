@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 
 namespace mq {
@@ -23,9 +24,8 @@ std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 std::mutex s_objectMapMutex;
 uint32_t bmParseMacroData;
 
-static void SetGameStateDataAPI(DWORD);
+static void SetGameStateDataAPI(int);
 static void UnloadPluginDataAPI(const char*);
-
 
 static MQModule s_DataAPIModule = {
 	"DataAPI",                      // Name
@@ -46,6 +46,13 @@ static MQModule s_DataAPIModule = {
 };
 MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
 
+struct MQDataTypeRegistration
+{
+	std::string Name;
+	MQ2Type* Type;
+
+};
+
 //============================================================================
 // Observed objects (Why are these here under MQDataAPI?)
 
@@ -64,7 +71,7 @@ static void PruneObservedEQObjects()
 		std::end(s_objectMap));
 }
 
-static void SetGameStateDataAPI(DWORD)
+static void SetGameStateDataAPI(int)
 {
 	PruneObservedEQObjects();
 
@@ -142,23 +149,28 @@ bool MQDataAPI::IsReservedName(const std::string& name) const
 	return m_tloMap.find(name) != end(m_tloMap) || m_dataTypeMap.find(name) != end(m_dataTypeMap);
 }
 
-bool MQDataAPI::AddDataType(MQ2Type& Type, MQPlugin* Owner)
+bool MQDataAPI::AddDataType(MQ2Type& Type, const MQPluginHandle& pluginHandle)
 {
 	std::scoped_lock lock(m_mutex);
+
+	// TODO: Check if type is already registered
+	// TODO: Check ownership of type
 
 	// returns pair with iterator pointing to the constructed
 	// element, and a bool indicating if it was actually inserted.
 	// this will not replace existing elements.
-	auto result = m_dataTypeMap.emplace(Type.GetName(), &Type);
+	TypeRec rec = { &Type, pluginHandle };
+
+	auto result = m_dataTypeMap.emplace(Type.GetName(), rec);
 	return result.second;
 }
 
-bool MQDataAPI::RemoveDataType(MQ2Type& Type, MQPlugin* Owner)
+bool MQDataAPI::RemoveDataType(MQ2Type& Type, const MQPluginHandle& pluginHandle)
 {
 	std::scoped_lock lock(m_mutex);
 
-	// use iterator to erase. allows us to check for existence
-	// and erase it without any waste
+	// TODO Logging: Report why type failed to remove
+
 	const char* thetypename = Type.GetName();
 	if (!thetypename)
 		return false;
@@ -166,6 +178,8 @@ bool MQDataAPI::RemoveDataType(MQ2Type& Type, MQPlugin* Owner)
 	auto iter = m_dataTypeMap.find(thetypename);
 	if (iter == m_dataTypeMap.end())
 		return false;
+
+	// TODO: Check ownership of type
 
 	// The type existed. Erase it.
 	m_dataTypeMap.erase(iter);
@@ -180,17 +194,23 @@ MQ2Type* MQDataAPI::FindDataType(const char* Name) const
 	if (iter == m_dataTypeMap.end())
 		return nullptr;
 
-	return iter->second;
+	return iter->second.type;
 }
 
-bool MQDataAPI::AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, MQPlugin* owner)
+bool MQDataAPI::AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function,
+	const MQPluginHandle& pluginHandle)
 {
 	std::scoped_lock lock(m_mutex);
 
 	// check if the item exists first, so we don't construct
 	// something we don't actually need.
 	if (m_tloMap.find(szName) != m_tloMap.end())
+	{
+		// TODO Logging: Report reason for failure
 		return false;
+	}
+
+	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
 
 	// create new MQTopLevelObject inside a unique_ptr
 	auto newItem = std::make_unique<MQTopLevelObject>();
@@ -198,18 +218,30 @@ bool MQDataAPI::AddTopLevelObject(const char* szName, MQTopLevelObjectFunction F
 	newItem->Function = std::move(Function);
 	newItem->Owner = owner;
 
+	TLORec rec = { std::move(newItem), pluginHandle };
+
 	// put the new item into the map
-	m_tloMap.emplace(szName, std::move(newItem));
+	m_tloMap.emplace(szName, std::move(rec));
 	return true;
 }
 
-bool MQDataAPI::RemoveTopLevelObject(const char* szName, MQPlugin* owner)
+bool MQDataAPI::RemoveTopLevelObject(const char* szName, const MQPluginHandle& pluginHandle)
 {
 	std::scoped_lock lock(m_mutex);
 
 	auto iter = m_tloMap.find(szName);
 	if (iter == m_tloMap.end())
 		return false;
+
+	//MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+
+	auto& item = iter->second;
+	if (item.owner != pluginHandle)
+	{
+		//SPDLOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
+		//	std::string_view(owner ? owner->name : "(Unknown)"), szName, item.tlo->Owner->name);
+		return false;
+	}
 
 	m_tloMap.erase(iter);
 	return true;
@@ -223,39 +255,49 @@ MQTopLevelObject* MQDataAPI::FindTopLevelObject(const char* szName) const
 	if (iter == m_tloMap.end())
 		return nullptr;
 
-	return iter->second.get();
+	return iter->second.tlo.get();
 }
 
 
-bool MQDataAPI::AddTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner)
+bool MQDataAPI::AddTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle)
 {
 	// get the extension record for this type name
 	auto& record = m_typeExtensions[szName];
 
 	// check if we already have this extension added
-	if (std::find(record.begin(), record.end(), extension) != record.end())
+	if (std::find_if(record.begin(), record.end(),
+		[&](const ExtensionRec& rec) { return rec.extentionType == extension; }) != record.end())
+	{
 		return false;
+	}
+
+	ExtensionRec rec = { extension, pluginHandle };
 
 	// insert extension into the record
-	record.push_back(extension);
+	record.push_back(rec);
 	return true;
 }
 
-bool MQDataAPI::RemoveTypeExtension(const char* szName, MQ2Type* extension, MQPlugin* Owner)
+bool MQDataAPI::RemoveTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle)
 {
 	// check if we have a record for this type name
 	auto iter = m_typeExtensions.find(szName);
 	if (iter == m_typeExtensions.end())
 		return false;
-
-	// check if this extension is registered in this record
 	auto& record = iter->second;
-	auto iter2 = std::find(record.begin(), record.end(), extension);
-	if (iter2 == record.end())
-		return false;
 
-	// delete the existing record
-	record.erase(iter2);
+	{
+		// check if this extension is registered in this record
+		auto iter2 = std::find_if(record.begin(), record.end(),
+			[&](const ExtensionRec& rec) { return rec.extentionType == extension; });
+		if (iter2 == record.end())
+			return false;
+		if (iter2->owner != pluginHandle)
+			return false;
+
+		// delete the existing record
+		record.erase(iter2);
+	}
 
 	// if the record is empty, remove it
 	if (record.empty())
@@ -271,8 +313,10 @@ bool MQDataAPI::FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
 	if (extIter != m_typeExtensions.end())
 	{
 		// we have at least one extension. process each one until a match is found
-		for (MQ2Type* ext : extIter->second)
+		for (const ExtensionRec& rec: extIter->second)
 		{
+			MQ2Type* ext = rec.extentionType;
+
 			if (ext->CanEvaluateMethodOrMember(strMember))
 				return true;
 
@@ -305,8 +349,10 @@ MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVa
 	if (extIter != m_typeExtensions.end())
 	{
 		// we have at least one extension. process each one until a match is found
-		for (MQ2Type* ext : extIter->second)
+		for (const ExtensionRec& rec : extIter->second)
 		{
+			MQ2Type* ext = rec.extentionType;
+
 			// optimize for failure case, check if exists first
 			auto result = EvaluateMacroDataMember(ext, VarPtr, Result, Member, pIndex, true);
 			if (result != EvaluateResult::NotFound)
@@ -424,9 +470,9 @@ static bool CallFunction(const char* name, const char* args)
 	{
 		gMacroStack->LocationIndex = gMacroBlock->CurrIndex;
 
-		// TODO:  This is where delays are ignored.  I'm assuming it was coded that way initially because of the while loop,
-		//         but a callback system might be better.  For now, just dropping in a warning.  This will throw
-		//         false positives for /echo /timed and such, but better than the previous no output otherwise.
+		// TODO: This is where delays are ignored. I'm assuming it was coded that way initially because of the while loop,
+		// but a callback system might be better. For now, just dropping in a warning. This will throw
+		// false positives for /echo /timed and such, but better than the previous no output otherwise.
 		if (ci_starts_with(subBlock->second.Command, "/delay") || ci_find_substr(subBlock->second.Command, "/timed") != -1)
 		{
 			if (MQMacroBlockPtr pBlock = GetCurrentMacroBlock())
@@ -436,7 +482,7 @@ static bool CallFunction(const char* name, const char* args)
 				WriteChatf("\ayWARNING: Delays in subs called with variable syntax are ignored: (\ao%s\ay) Line \ao%i\ay called (\ao%s\ay) from (\a-o%s\ay) Line \a-o%i\ay (\a-o%s\ay) ", ml.SourceFile.c_str(), ml.LineNumber, ml.Command.c_str(), ml_saved.SourceFile.c_str(), ml_saved.LineNumber, ml_saved.Command.c_str());
 			}
 		}
-		DoCommand(pLocalPlayer, &subBlock->second.Command[0]);
+		DoCommand(&subBlock->second.Command[0], false);
 
 		if (!gMacroBlock)
 			break;
@@ -473,7 +519,7 @@ bool MQDataAPI::EvaluateDataExpression(MQTypeVar& Result, const char* pStart, ch
 			if (!tlo->Function(pIndex, Result))
 				return false;
 		}
-		else if (MQDataVar* DataVar = FindMQ2DataVariable(pStart))
+		else if (MQDataVar* DataVar = FindMacroVariable(pStart))
 		{
 			if (pIndex[0])
 			{
@@ -1581,10 +1627,10 @@ namespace datatypes {
 //============================================================================
 // MQ2Type
 
-MQ2Type::MQ2Type(std::string_view newName)
+MQ2Type::MQ2Type(std::string_view newName, const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
 {
 	m_typeName = newName;
-	m_owned = pDataAPI->AddDataType(*this);
+	m_owned = pDataAPI->AddDataType(*this, pluginHandle);
 }
 
 MQ2Type::~MQ2Type()

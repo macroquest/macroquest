@@ -1294,7 +1294,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					Dest = pItemType->MakeTypeVar(pLocalPC->BankItems.GetItem(nSlot));
 					return true;
 				}
-		
+
 				if (nSlot >= NUM_BANK_SLOTS)
 				{
 					nSlot -= NUM_BANK_SLOTS;
@@ -1755,23 +1755,19 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			if (IsNumber(Index))
 			{
 				// numeric
-				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
-				{
-					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
-					{
-						if (pAbility->ID == GetIntFromString(Index, 0))
-						{
-							int reusetimer = 0;
-							pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &reusetimer);
-							if (reusetimer < 0)
-							{
-								reusetimer = 0;
-							}
+				int aaId = GetIntFromString(Index, 0);
 
-							Dest.UInt64 = reusetimer * 1000;
-							return true;
-						}
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
+				{
+					int reusetimer = 0;
+					pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &reusetimer);
+					if (reusetimer < 0)
+					{
+						reusetimer = 0;
 					}
+
+					Dest.UInt64 = reusetimer * 1000;
+					return true;
 				}
 			}
 			else
@@ -1858,17 +1854,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			if (IsNumber(Index))
 			{
-				// numeric
-				for (int nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++)
+				int aaId = GetIntFromString(Index, 0);
+
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
 				{
-					if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
-					{
-						if (pAbility->ID == GetIntFromString(Index, 0))
-						{
-							Dest.Ptr = pAbility;
-							return true;
-						}
-					}
+					Dest.Ptr = pAbility;
+					return true;
 				}
 			}
 			else
@@ -2730,18 +2721,12 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::CombatState:
 		Dest.Type = pStringType;
-		if (!pPlayerWnd)
-			return false;
+		Dest.Ptr = &DataTypeTemp[0];
 
-		switch (pPlayerWnd->CombatState)
+		switch (GetCombatState())
 		{
 		case eCombatState_Combat:
-			if (pPlayerWnd->GetChildItem("PW_CombatStateAnim"))
-			{
-				strcpy_s(DataTypeTemp, "COMBAT");
-				break;
-			}
-			strcpy_s(DataTypeTemp, "NULL");
+			strcpy_s(DataTypeTemp, "COMBAT");
 			break;
 
 		case eCombatState_Debuff:
@@ -2752,21 +2737,16 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			strcpy_s(DataTypeTemp, "COOLDOWN");
 			break;
 
-		case eCombatState_Standing:
-			strcpy_s(DataTypeTemp, "ACTIVE");
-			break;
-
 		case eCombatState_Regen:
 			strcpy_s(DataTypeTemp, "RESTING");
 			break;
 
+		case eCombatState_Standing:
 		default:
-			sprintf_s(DataTypeTemp, "UNKNOWN(%d)", pPlayerWnd->CombatState);
+			strcpy_s(DataTypeTemp, "ACTIVE");
 			break;
 		}
 
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
 		return true;
 
 	case CharacterMembers::svCorruption:
@@ -3964,7 +3944,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		Dest.Type = pTimeStampType;
 		if (pLocalPlayer->CastingData.SpellETA)
 		{
-			int64_t delta = pLocalPlayer->CastingData.SpellETA - pLocalPlayer->TimeStamp;
+			int64_t delta = pLocalPlayer->CastingData.SpellETA - pDisplay->TimeStamp;
 			if (delta > 0)
 			{
 				Dest.Int64 = delta;

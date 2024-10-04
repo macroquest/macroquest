@@ -105,7 +105,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	if (szLine && szLine[0] == '/')
 	{
 		uint64_t Start = MQGetTickCount64();
-		HideDoCommand(pChar, szLine, false);
+		DoCommand(szLine, false);
 
 		uint64_t Time = MQGetTickCount64() - Start;
 		WriteChatf("\ay%s\ax completed in \at%.2f\axs", szLine, static_cast<double>(Time) / 1000.);

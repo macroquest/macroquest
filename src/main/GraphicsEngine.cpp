@@ -16,9 +16,8 @@
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
+#include "MQDetourAPI.h"
 #include "MQ2DeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
-
-#include "mq/base/Detours.h"
 
 #include <cfenv>
 
@@ -69,7 +68,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(bool, ResetDevice_Trampoline, (bool))
 	bool ResetDevice_Detour(bool a)
 	{
-		SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
+		//SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
 
 		bool success = ResetDevice_Trampoline(a);
 
@@ -85,7 +84,7 @@ public:
 			success = ResetDevice_Trampoline(a);
 		}
 
-		SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
+		//SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
 		return success;
 	}
 };
@@ -266,8 +265,7 @@ bool ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed)
 	if (consume && mouseButton < NUM_MOUSE_BUTTONS)
 	{
 		// Update EQ to act like we already handled this click
-		pEverQuestInfo->OldMouseButtons[mouseButton] = pressed;
-		pEverQuestInfo->MouseButtons[mouseButton] = pressed;
+		MouseConsume(mouseButton, pressed);
 	}
 
 	return consume;

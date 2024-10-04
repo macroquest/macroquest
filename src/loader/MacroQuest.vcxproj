@@ -65,8 +65,8 @@
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
     <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
-    <LoaderDependenciesDebug>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib;libprotobufd.lib</LoaderDependenciesDebug>
-    <LoaderDependenciesRelease>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib;libprotobuf.lib</LoaderDependenciesRelease>
+    <LoaderDependenciesDebug>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-84-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib;libprotobufd.lib</LoaderDependenciesDebug>
+    <LoaderDependenciesRelease>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-84.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib;libprotobuf.lib</LoaderDependenciesRelease>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />

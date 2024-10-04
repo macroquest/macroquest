@@ -341,6 +341,8 @@ public:
 	void InitVariable(MQVarPtr& VarPtr) override;
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	MQLIB_OBJECT static const Achievement* GetAchievement(const MQVarPtr& VarPtr);
 };
 
 
@@ -476,6 +478,8 @@ public:
 
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
+
+	MQLIB_OBJECT static EQ_Spell* GetSpell(const MQVarPtr& VarPtr);
 
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
@@ -754,7 +758,21 @@ public:
 };
 
 //============================================================================
-// MQ2InvSlotWindowType
+// MQHotButtonWindowType
+
+class MQHotButtonType : public MQ2Type
+{
+public:
+	MQHotButtonType();
+
+	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+};
+
+//============================================================================
+// MQInvSlotWindowType
 
 class MQInvSlotWindowType : public MQ2Type
 {
@@ -1504,6 +1522,7 @@ public:
 	MQSocialType();
 
 	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
 
 	static bool dataSocial(const char* szIndex, MQTypeVar& Ret);
 };

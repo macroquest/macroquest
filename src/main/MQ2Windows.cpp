@@ -288,7 +288,6 @@ void ListWindows(PSPAWNINFO pChar, char* szLine);
 void WndNotify(PSPAWNINFO pChar, char* szLine);
 void ItemNotify(PSPAWNINFO pChar, char* szLine);
 void ListItemSlots(PSPAWNINFO pChar, char* szLine);
-void ReloadUI(PSPAWNINFO pChar, char* szLine);
 
 #define WSF_AUTOSTRETCHH    0x00400000
 #define WSF_CLIENTMOVABLE   0x00200000
@@ -1497,9 +1496,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 				// we fake it with /useitem
 				if (pItem->GetItemDefinition()->Clicky.SpellID > 0)
 				{
-					char cmd[MAX_STRING] = { 0 };
-					sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
-					EzCommand(cmd);
+					DoCommandf("/useitem \"%s\"", pItem->GetName());
 					return;
 				}
 			}
@@ -1647,9 +1644,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 
 					if (pItem->GetItemDefinition()->Clicky.SpellID != -1)
 					{
-						char cmd[512] = { 0 };
-						sprintf_s(cmd, "/useitem \"%s\"", pItem->GetName());
-						EzCommand(cmd);
+						DoCommandf("/useitem \"%s\"", pItem->GetName());
 						return;
 					}
 
@@ -1715,15 +1710,6 @@ void ListItemSlots(SPAWNINFO* pChar, char* szLine)
 	}
 
 	WriteChatf("%d available item slots", count);
-}
-
-void ReloadUI(SPAWNINFO* pChar, char* szLine)
-{
-	// gUISkin is MAX_PATH and /loadskin 1 null terminated is 13
-	char szBuffer[MAX_PATH + 13] = { 0 };
-	sprintf_s(szBuffer, "/loadskin %s 1", gUISkin);
-
-	DoCommand(pChar, szBuffer);
 }
 
 //============================================================================
@@ -2018,7 +2004,6 @@ static void Windows_Initialize()
 	AddCommand("/notify", WndNotify);
 	AddCommand("/itemnotify", ItemNotify, false, true, true);
 	AddCommand("/itemslots", ListItemSlots, false, true, true);
-	AddCommand("/reloadui", ReloadUI, false, true, true);
 
 	InitializeWindowList();
 
@@ -2038,7 +2023,6 @@ static void Windows_Shutdown()
 	RemoveCommand("/notify");
 	RemoveCommand("/itemnotify");
 	RemoveCommand("/itemslots");
-	RemoveCommand("/reloadui");
 
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__Init1);

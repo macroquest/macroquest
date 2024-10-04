@@ -21,6 +21,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <shellapi.h>
 
 #include <variant>
 
@@ -148,28 +149,6 @@ public:
 		}
 	}
 
-	void ProcessPostOffice()
-	{
-		if (m_processing)
-		{
-			m_needsProcessing = true;
-			return;
-		}
-
-		m_processing = true;
-
-		ProcessConnections();
-		Process(10);
-
-		m_processing = false;
-
-		if (m_needsProcessing)
-		{
-			m_needsProcessing = false;
-			if (s_triggerProcess) (*s_triggerProcess)();
-		}
-	}
-
 	void AddIdentity(const Identification& id)
 	{
 		DropIdentity(id); // make sure we remove any duplicates
@@ -281,8 +260,59 @@ public:
 		}
 	}
 
+	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override
+	{
+		{
+			std::lock_guard<std::mutex> lock(m_processMutex);
+			m_hasMessages = true;
+		}
+
+		m_needsProcessing.notify_one();
+	}
+
 	void Initialize()
 	{
+		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
+		m_thread = std::thread(
+			[this]
+			{
+
+				using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+				auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandle("kernel32.dll"), "SetThreadDescription");
+				if (SetThreadDescription)
+					SetThreadDescription(GetCurrentThread(), L"PostOffice");
+
+				m_running = true;
+				m_threadId = std::this_thread::get_id();
+				m_pipeServer.Start();
+				 
+				do
+				{
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
+					}
+
+					if (!m_running)
+						break;
+
+					m_pipeServer.Process();
+
+					// OnIncomingMessage is only called from this thread. If we ever have another source of messages
+					// (ie, network messages) then we will need to be careful about making sure Deliver and Process
+					// are always called from the same thread to avoid race conditions
+					Process(10);
+
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_hasMessages = false;
+					}
+				} while (m_running);
+
+				m_pipeServer.Stop();
+			}
+		);
+
 		m_serverDropbox = RegisterAddress("post_office",
 			[this](ProtoMessagePtr&& message)
 			{
@@ -302,6 +332,12 @@ public:
 		// make sure all remaining messages get discarded by dropping the last reference, so we stop
 		// processing
 		m_serverDropbox.Remove();
+
+		// we don't need to worry about sending messages after we stop because the pipe client will log
+		// and handle this situation.
+		m_running = false;
+		m_needsProcessing.notify_one();
+		m_thread.join();
 	}
 
 	template <typename I, typename C = typename ConnectionTypeMap<I>::Type>
@@ -317,8 +353,13 @@ private:
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
 
-	bool m_processing = false;
-	bool m_needsProcessing = false;
+	bool m_running = false;
+	std::thread m_thread;
+	std::thread::id m_threadId;
+
+	bool m_hasMessages = false;
+	std::mutex m_processMutex;
+	std::condition_variable m_needsProcessing;
 
 	template <size_t I = 0> void ProcessConnections();
 	template <size_t I = 0> void BroadcastMessage(PipeMessagePtr&& message);
@@ -341,6 +382,13 @@ public:
 	void OnRequestProcessEvents() override
 	{
 		if (s_triggerProcess) (*s_triggerProcess)();
+
+		{
+			std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+			m_postOffice->m_hasMessages = true;
+		}
+
+		m_postOffice->m_needsProcessing.notify_one();
 	}
 
 	void OnIncomingConnection(int connectionId, int processId) override
@@ -514,11 +562,6 @@ void SetRequestFocusCallback(const RequestFocusCallback& requestFocus)
 void SetTriggerPostOffice(const std::function<void()>& triggerProcess)
 {
 	s_triggerProcess = triggerProcess;
-}
-
-void ProcessPostOffice(uint32_t index)
-{
-	GetPostOffice<LauncherPostOffice>(index).ProcessPostOffice();
 }
 
 void InitializePostOffice(uint32_t index)

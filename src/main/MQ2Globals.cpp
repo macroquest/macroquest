@@ -52,7 +52,7 @@ int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
 int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
 #endif
 
-DWORD gGameState = 0;
+int gGameState = 0;
 bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
 bool g_Loaded = false;

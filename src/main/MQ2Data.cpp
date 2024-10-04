@@ -14,8 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-
-#include <date/date.h>
+#include "MQCommandAPI.h"
+#include "MQDataAPI.h"
 
 namespace mq::datatypes {
 
@@ -134,7 +134,7 @@ bool dataDefined(const char* szIndex, MQTypeVar& Ret)
 {
 	if (!szIndex[0])
 		return false;
-	Ret.Set(FindMQ2DataVariable(szIndex) != nullptr);
+	Ret.Set(IsMacroVariable(szIndex));
 	Ret.Type = pBoolType;
 	return true;
 }
@@ -226,7 +226,7 @@ bool dataAlias(const char* szIndex, MQTypeVar& Ret)
 {
 	if (szIndex[0])
 	{
-		if (IsAlias(szIndex))
+		if (pCommandAPI->IsAlias(szIndex))
 		{
 			Ret.Set(true);
 			Ret.Type = pBoolType;

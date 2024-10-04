@@ -1354,14 +1354,13 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option, std::stack
 		ImGui::SameLine();
 
 		mq::imgui::HelpMarker(
-			[&]() -> const std::string
+			[&](char* buffer, size_t length)
 			{
-				std::string requireString = "Requires: ";
+				strcpy_s(buffer, length, "Requires: ");
 				if (requirement.IsObject() != option->IsObject())
-					requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
+					strcat_s(buffer, length, requirement.IsObject() ? "Object Filters -> " : "Options -> ");
 
-				requireString += std::string(requirement.szName);
-				return requireString;
+				strcat_s(buffer, length, requirement.szName);
 			}
 		);
 	}

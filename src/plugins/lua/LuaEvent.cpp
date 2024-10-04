@@ -23,11 +23,16 @@ namespace mq::lua {
 
 //============================================================================
 
-unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
+static unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
 {
-	// TODO: do we need to evaluate lua code in `Value` here? it should come to us as a string, not sure how to detect string vs lua code similar to the delay condition code
 	strcpy_s(Value, ValueLen, VarName);
-	return static_cast<int>(strlen(Value));
+
+	if (pLocalPlayer)
+	{
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
+	}
+
+	return static_cast<uint32_t>(strlen(Value));
 }
 
 //----------------------------------------------------------------------------
@@ -35,6 +40,7 @@ unsigned int CALLBACK LuaVarProcess(char* VarName, char* Value, size_t ValueLen)
 LuaEventProcessor::LuaEventProcessor(LuaThread* thread)
 	: m_thread(thread)
 	, m_blech(std::make_unique<Blech>('#', '|', LuaVarProcess))
+	, m_blechStripped(std::make_unique<Blech>('#', '|', LuaVarProcess))
 {
 }
 
@@ -43,7 +49,8 @@ LuaEventProcessor::~LuaEventProcessor()
 	m_eventDefinitions.clear();
 }
 
-bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function)
+bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view expression, const sol::function& function,
+	const sol::optional<sol::table>& options)
 {
 	// the number of events will always be fairly small, and this is a manual operation.
 	// If this is deemed too slow, the event names can be memoized in a set of string_views.
@@ -56,7 +63,7 @@ bool LuaEventProcessor::AddEvent(std::string_view name, std::string_view express
 		return false;
 	}
 
-	m_eventDefinitions.push_back(std::make_unique<LuaEvent>(name, expression, function, this, *m_blech));
+	m_eventDefinitions.push_back(std::make_unique<LuaEvent>(name, expression, function, options, this));
 	return true;
 }
 
@@ -110,7 +117,7 @@ bool LuaEventProcessor::RemoveBind(std::string_view name)
 	return false;
 }
 
-void LuaEventProcessor::Process(std::string_view line) const
+void LuaEventProcessor::Process(std::string_view line)
 {
 	if (!m_thread->IsValid())
 		return;
@@ -120,26 +127,102 @@ void LuaEventProcessor::Process(std::string_view line) const
 		return;
 
 	char line_char[MAX_STRING] = { 0 };
+	char line_char_stripped[MAX_STRING] = { 0 };
 
-	if (line.find_first_of('\x12') != std::string::npos)
+	m_currentLineStripped = nullptr;
+	m_currentLine = nullptr;
+
+	// Split event handling by whether we have links in the string or not. If there are no links in
+	// the string then this is much simpler.
+	if (line.find_first_of('\x12') == std::string::npos)
 	{
-		CXStr line_str(line);
-		line_str = CleanItemTags(line_str, false);
-		StripMQChat(line_str, line_char);
+		StripMQChat(line, line_char);
+
+		m_currentLineStripped = line_char;
+		m_currentLine = line_char;
 	}
 	else
 	{
-		StripMQChat(line, line_char);
+		// We have links in the string. Do the minimal amount of work required based on what kinds of
+		// events have been registered.
+
+		// Check if we need to keep both the stripped and unstripped links.
+		if (!m_blech->IsEmpty() && !m_blechStripped->IsEmpty())
+		{
+			StripMQChat(line, line_char);
+			m_currentLine = line_char;
+
+			CXStr line_str(line);
+			line_str = CleanItemTags(line_str, false);
+			StripMQChat(line_str, line_char_stripped);
+			m_currentLineStripped = line_char_stripped;
+		}
+		else if (!m_blech->IsEmpty())
+		{
+			StripMQChat(line, line_char);
+
+			m_currentLine = line_char;
+			m_currentLineStripped = line_char;
+		}
+		else if (!m_blechStripped->IsEmpty())
+		{
+			CXStr line_str(line);
+			line_str = CleanItemTags(line_str, false);
+			StripMQChat(line_str, line_char_stripped);
+
+			m_currentLineStripped = line_char_stripped;
+			m_currentLine = line_char_stripped;
+		}
 	}
 
-	// since we initialized to 0, we know that any remaining members will be 0, so just in case we Get an overflow, re-set the last character to 0
+	// since we initialized to 0, we know that any remaining members will be 0, so just in case we
+	// get an overflow, re-set the last character to 0
 	line_char[MAX_STRING - 1] = 0;
+	line_char_stripped[MAX_STRING - 1] = 0;
 
-	sol::state_view state = m_thread->GetState();
+	if (!m_blech->IsEmpty() && m_currentLine != nullptr)
+	{
+		m_blech->Feed(m_currentLine, MAX_STRING);
+	}
+	if (!m_blechStripped->IsEmpty() && m_currentLineStripped != nullptr)
+	{
+		m_blechStripped->Feed(m_currentLineStripped, MAX_STRING);
+	}
 
-	state["_mq_event_line"] = line_char;
-	m_blech->Feed(line_char);
-	state["_mq_event_line"] = sol::lua_nil;
+	m_currentLineStripped = nullptr;
+	m_currentLine = nullptr;
+}
+
+void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
+{
+	std::vector<std::pair<uint32_t, std::string>> args;
+
+	const char* line = pEvent->KeepLinks() ? m_currentLine : m_currentLineStripped;
+	args.emplace_back(0, line ? line : "");
+
+	auto value = pValues;
+	while (value != nullptr)
+	{
+		auto num = GetIntFromString(value->Name, 0);
+		if (num > 0) // this will skip any '*' instances for me -- it will in fact only Get valid argument positions
+			args.emplace_back(num, value->Value);
+		value = value->pNext;
+	}
+
+	if (args.empty())
+	{
+		m_eventsPending.emplace_back(pEvent);
+	}
+	else
+	{
+		std::sort(args.begin(), args.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+		std::vector<std::string> ordered_args(args.back().first + 1, "");
+		for (const auto& a : args)
+			ordered_args[a.first] = a.second;
+
+		m_eventsPending.emplace_back(pEvent, std::move(ordered_args));
+	}
 }
 
 static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEventFunction>>& vec)
@@ -245,38 +328,6 @@ void LuaEventProcessor::RemoveBinds(const std::vector<std::string>& binds)
 	}
 }
 
-void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
-{
-	std::vector<std::pair<uint32_t, std::string>> args;
-
-	std::optional<std::string> line = m_thread->GetState()["_mq_event_line"];
-	args.emplace_back(0, line.value_or(""));
-
-	auto value = pValues;
-	while (value != nullptr)
-	{
-		auto num = GetIntFromString(value->Name, 0);
-		if (num > 0) // this will skip any '*' instances for me -- it will in fact only Get valid argument positions
-			args.emplace_back(num, value->Value);
-		value = value->pNext;
-	}
-
-	if (args.empty())
-	{
-		m_eventsPending.emplace_back(pEvent);
-	}
-	else
-	{
-		std::sort(args.begin(), args.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-		std::vector<std::string> ordered_args(args.back().first + 1, "");
-		for (const auto& a : args)
-			ordered_args[a.first] = a.second;
-
-		m_eventsPending.emplace_back(pEvent, std::move(ordered_args));
-	}
-}
-
 void LuaEventProcessor::HandleBindCallback(LuaBind* bind, const char* args)
 {
 	auto& args_view = tokenize_args(args);
@@ -304,19 +355,27 @@ void CALLBACK LuaEventCallback(unsigned int ID, void* pData, BLECHVALUE* pValues
 }
 
 LuaEvent::LuaEvent(std::string_view name, std::string_view expression,
-	const sol::function& func, LuaEventProcessor* processor, Blech& blech)
+	const sol::function& func, const sol::optional<sol::table>& options,
+	LuaEventProcessor* processor)
 	: m_name(name)
 	, m_expression(expression)
 	, m_function(func)
 	, m_processor(processor)
-	, m_blech(blech)
 {
-	m_id = m_blech.AddEvent(m_expression.c_str(), LuaEventCallback, this);
+	if (options.has_value())
+	{
+		const sol::table& optionsTable = options.value();
+
+		m_keepLinks = optionsTable.get_or("keepLinks", false);
+	}
+
+	m_blech = m_keepLinks ? &processor->GetBlech() : &processor->GetBlechStripped();
+	m_id = m_blech->AddEvent(m_expression.c_str(), LuaEventCallback, this);
 }
 
 LuaEvent::~LuaEvent()
 {
-	m_blech.RemoveEvent(m_id);
+	m_blech->RemoveEvent(m_id);
 }
 
 //============================================================================
@@ -342,8 +401,8 @@ LuaBind::~LuaBind()
 template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaBind>& instance)
 	: luaThread(instance.definition->GetEventProcessor()->GetThread())
 	, solThreadInfo(luaThread->CreateThread())
-	, args(std::move(instance.args))
 	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
+	, args(std::move(instance.args))
 {
 	coroutine->coroutine = sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction());
 }
@@ -351,8 +410,8 @@ template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaBind>& instanc
 template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaEvent>& instance)
 	: luaThread(instance.definition->GetEventProcessor()->GetThread())
 	, solThreadInfo(luaThread->CreateThread())
-	, args(std::move(instance.args))
 	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
+	, args(std::move(instance.args))
 {
 	coroutine->coroutine = sol::coroutine(solThreadInfo.second.state(), instance.definition->GetFunction());
 }

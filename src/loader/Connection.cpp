@@ -14,6 +14,8 @@
 
 #include "loader/PostOffice.h"
 
+#include "ImGui.h"
+
 // -------------------------- LocalConnection ---------------------------------
 
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice, uint32_t index)
@@ -131,16 +133,73 @@ void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
 				break;
 			}
 
-		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST: {
-														  if (message->size() >= sizeof(MQMessageFocusRequest) && s_requestFocusCallback)
-														  {
-															  (*s_requestFocusCallback)(message->get<MQMessageFocusRequest>());
-														  }
-														  break;
-													  }
+		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST:
+			{
+				if (message->size() >= sizeof(MQMessageFocusRequest) && s_requestFocusCallback)
+				{
+					(*s_requestFocusCallback)(message->get<MQMessageFocusRequest>());
+				}
+				break;
+			}
+
+		case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				if (notification.has_message())
+					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
+				else
+					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
+			}
+
+		case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				NOTIFYICONDATA notify;
+				notify.cbSize = sizeof(NOTIFYICONDATA);
+				notify.uID = WM_USER_SYSTRAY;
+				notify.hWnd = hMainWnd;
+				notify.uFlags = NIF_INFO;
+
+				strcpy_s(notify.szInfoTitle, notification.title().c_str());
+				if (notification.has_message())
+					strcpy_s(notify.szInfo, notification.message().c_str());
+				else
+					strcpy_s(notify.szInfo, notification.title().c_str());
+
+				if (notification.has_level())
+				{
+					switch (notification.level())
+					{
+						case proto::routing::NotifyLevel::Info:
+							notify.dwInfoFlags = NIIF_INFO;
+							break;
+						case proto::routing::NotifyLevel::Warning:
+							notify.dwInfoFlags = NIIF_WARNING;
+							break;
+						case proto::routing::NotifyLevel::Error:
+							notify.dwInfoFlags = NIIF_ERROR;
+							break;
+						default:
+							notify.dwInfoFlags = NIIF_INFO;
+							break;
+					}
+				}
+				else
+					notify.dwInfoFlags = NIIF_INFO;
+
+				Shell_NotifyIcon(NIM_MODIFY, &notify);
+				break;
+			}
 
 		default: break;
 	}
+
+	{
+		std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+		m_postOffice->m_hasMessages = true;
+	}
+
+	m_postOffice->m_needsProcessing.notify_one();
 }
 
 void LocalConnection::RouteToPipe(int connectionId, PipeMessagePtr&& message)

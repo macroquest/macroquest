@@ -43,6 +43,9 @@ static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWind
 static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const CXStr& string);
 static void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* string);
 
+static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const SoeUtil::String& string);
+static void DeveloperTools_WindowInspector_EditString(std::string_view name, SoeUtil::String* string);
+
 static void DeveloperTools_windowInspector_SetHoveredWindow(CXWnd* pWnd);
 
 static inline void  TreeAdvanceToLabelPos() { ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing()); }
@@ -540,7 +543,6 @@ inline void ColumnCXStr(const char* Label, CXStr* str)
 	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
-	//ImGui::SetNextItemWidth(22);
 	bool view = ImGui::Button(ICON_FA_PENCIL);
 	ImGui::PopID();
 	if (view)
@@ -561,6 +563,11 @@ inline void ColumnCXStr(const char* Label, CXStr* str)
 	ImGui::TableNextColumn();
 }
 
+inline void ColumnString(const char* label, CXStr* str)
+{
+	ColumnCXStr(label, str);
+}
+
 inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = true)
 {
 	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
@@ -568,7 +575,6 @@ inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = t
 	if (expandable)
 	{
 		ImGui::PushID(Label);
-		//ImGui::SetNextItemWidth(22);
 		bool view = ImGui::Button(ICON_FA_EYE);
 		ImGui::PopID();
 		if (view)
@@ -586,6 +592,64 @@ inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = t
 	ImGui::TableNextColumn();
 
 	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXStr");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+inline void ColumnString(const char* label, const CXStr& str, bool expandable = true)
+{
+	ColumnCXStr(label, str, expandable);
+}
+
+inline void ColumnString(const char* Label, SoeUtil::String* str)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	ImGui::PushID(Label);
+	bool view = ImGui::Button(ICON_FA_PENCIL);
+	ImGui::PopID();
+	if (view)
+	{
+		DeveloperTools_WindowInspector_EditString(Label, str);
+	}
+	ImGui::SameLine();
+
+	if (str->empty())
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+	else
+		ImGui::Text("%s", str->c_str());
+
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "SoeUtil::String");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+inline void ColumnString(const char* Label, const SoeUtil::String& str, bool expandable = true)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	if (expandable)
+	{
+		ImGui::PushID(Label);
+		bool view = ImGui::Button(ICON_FA_EYE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_ViewString(Label, str);
+		}
+		ImGui::SameLine();
+	}
+
+	if (str.empty())
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+	else
+		ImGui::Text("%s", str.c_str());
+
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "SoeUtil::String");
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 }
@@ -1629,29 +1693,171 @@ public:
 #pragma endregion
 #pragma region Property Viewer - String Viewer
 
+struct StringStorage
+{
+public:
+	StringStorage(const CXStr& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const SoeUtil::String& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const std::string& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const eqstd::string& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(CXStr* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(SoeUtil::String* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(std::string* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(eqstd::string* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	bool IsMutable() const { return m_mutable; }
+
+private:
+	template <typename T>
+	static std::string_view read_string_view(T* ptr)
+	{
+		if (ptr)
+			return std::string_view(*ptr);
+
+		return {};
+	}
+
+	template <typename T>
+	static std::string_view read_string_view(const T& str)
+	{
+		return std::string_view(str);
+	}
+
+	template <typename T>
+	static void write_string_view(T* ptr, std::string_view sv)
+	{
+		if (ptr)
+			*ptr = sv;
+	}
+
+	template <typename T>
+	static void write_string_view(const T&, std::string_view) 
+	{
+		// Its immutable
+	}
+
+public:
+	std::string_view GetStringView() const
+	{
+		return std::visit([](const auto& str) -> std::string_view
+			{ return read_string_view(str); }, m_storage);
+	}
+
+	void Assign(std::string_view sv)
+	{
+		if (m_mutable)
+			std::visit([&sv](auto& str) { write_string_view(str, sv); }, m_storage);
+	}
+
+	using Storage = std::variant<
+		CXStr,
+		SoeUtil::String,
+		std::string,
+		eqstd::string,
+		CXStr*,
+		SoeUtil::String*,
+		std::string*,
+		eqstd::string*
+	>;
+
+	Storage m_storage;
+	bool m_mutable;
+};
+
 class ImGuiWindowStringEditor
 {
 public:
 	ImGuiWindowStringEditor(std::string_view name, const CXStr& readOnlyString)
-		: m_string(nullptr)
-		, m_readOnlyString(readOnlyString)
+		: m_storage(readOnlyString)
 		, m_stringName(name)
-		, m_readOnly(true)
 	{
 	}
 
 	ImGuiWindowStringEditor(std::string_view name, CXStr* mutableString)
-		: m_string(mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, const SoeUtil::String& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, SoeUtil::String* mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, const std::string& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, std::string* mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, const eqstd::string& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, eqstd::string* mutableString)
+		: m_storage(mutableString)
 		, m_stringName(name)
 	{
 	}
 
 	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
-		: m_string(other.m_string)
-		, m_readOnlyString(other.m_readOnlyString)
+		: m_storage(other.m_storage)
 		, m_stringName(std::move(other.m_stringName))
 		, m_textEditor(std::move(other.m_textEditor))
-		, m_readOnly(other.m_readOnly)
 		, m_closeRequested(other.m_closeRequested)
 		, m_changed(other.m_changed)
 		, m_requestFocus(other.m_requestFocus)
@@ -1664,9 +1870,7 @@ public:
 
 	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other)
 	{
-		m_readOnly = other.m_readOnly;
-		m_string = other.m_string;
-		m_readOnlyString = std::move(other.m_readOnlyString);
+		m_storage = other.m_storage;
 		m_stringName = std::move(other.m_stringName);
 		m_closeRequested = other.m_closeRequested;
 		m_textEditor = std::move(other.m_textEditor);
@@ -1674,6 +1878,8 @@ public:
 		m_requestFocus = other.m_requestFocus;
 		return *this;
 	}
+
+	bool IsMutable() const { return m_storage.IsMutable(); }
 
 	void Render(bool* open)
 	{
@@ -1688,9 +1894,11 @@ public:
 		{
 			ImGui::SetNextItemWidth(-1.0f);
 
-			if (m_readOnly)
+			if (!m_storage.IsMutable())
 			{
-				ImGui::TextWrapped(m_readOnlyString.c_str());
+				std::string_view sv = m_storage.GetStringView();
+
+				ImGui::TextWrapped("%.*s", static_cast<uint32_t>(sv.length()), sv.data());
 			}
 			else
 			{
@@ -1707,8 +1915,9 @@ public:
 					m_textEditor->GetEditor().GetConfig().style = Zep::EditorStyle::Normal;
 
 					std::string s = "";
+					std::string_view sv = m_storage.GetStringView();
 
-					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", *m_string);
+					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", sv);
 				}
 
 				m_textEditor->Render("##StringEditor", ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
@@ -1721,7 +1930,7 @@ public:
 				if (ImGui::Button("Save"))
 				{
 					m_changed = false;
-					m_string->assign(buffer.GetBufferText());
+					m_storage.Assign(buffer.GetBufferText());
 
 					buffer.ClearFileFlags(Zep::FileFlags::Dirty);
 				}
@@ -1739,11 +1948,9 @@ public:
 		ImGui::End();
 	}
 
-	CXStr* m_string;
-	CXStr m_readOnlyString;
+	StringStorage m_storage;
 	std::string m_stringName;
 	std::unique_ptr<imgui::ImGuiZepEditor> m_textEditor;
-	bool m_readOnly = false;
 	bool m_closeRequested = false;
 	bool m_changed = false;
 	bool m_requestFocus = false;
@@ -1875,18 +2082,8 @@ public:
 
 	void AddStringEditor(ImGuiWindowStringEditor editor)
 	{
-		// Look for matching string already...
-		for (auto& ed : m_stringEditors)
-		{
-			if (ed.m_string == editor.m_string)
-			{
-				ed.m_requestFocus = true;
-				return;
-			}
-		}
-
 		editor.m_stringName = fmt::format("String {}: {} - {}",
-			editor.m_readOnly ? "Viewer" : "Editor", m_windowDisplayName, editor.m_stringName);
+			!editor.IsMutable() ? "Viewer" : "Editor", m_windowDisplayName, editor.m_stringName);
 		m_stringEditors.push_back(std::move(editor));
 		editor.m_requestFocus = true;
 	}
@@ -2775,7 +2972,7 @@ public:
 			ColumnText("Button index", "%d", pWnd->ButtonIndex);
 			ColumnText("Timer", "%d", std::max<int>(0, pWnd->Timer - pDisplay->TimeStamp));
 			DisplayTextureAnimation("Decal icon", pWnd->DecalIcon);
-			ColumnText("Button type", "%d", pWnd->LastButtonType); // TODO: translate enum
+			ColumnText("Button type", "%s (%d)", HotButtonTypeToString(pWnd->LastButtonType), pWnd->LastButtonType);
 			ColumnText("Button slot", "%d", pWnd->LastButtonSlot);
 			ColumnText("Button page", "%d", (int)pWnd->LastButtonPage);
 			ColumnText("Item Guid", "%s", pWnd->LastItemGuid.guid);
@@ -2794,6 +2991,25 @@ public:
 			ColumnCXSize("Base decal size", pWnd->BaseDecalSize);
 			ColumnCXSize("Base inv button size", pWnd->BaseInvButtonSize);
 			ColumnCXSize("Base spell button size", pWnd->BaseSpellButtonSize);
+
+			const HotButtonData& data = pEverQuestInfo->hotButtons[pWnd->BarIndex][pEverQuestInfo->hotBank[pWnd->BarIndex]][pWnd->ButtonIndex];
+
+			if (ColumnTreeNodeType("HotButton Data", "HotButtonData", "%s", data.Label[0] ? data.Label : data.ItemName))
+			{
+				ColumnItem("Item", data.Item);
+				ColumnText("ItemGuid", "%s", data.ItemGuid.guid);
+				ColumnText("Label", "%s", data.Label);
+				ColumnText("Item Name", data.ItemName);
+				ColumnText("Item ID", "%d", data.ItemId);
+				ColumnTextType("Icon Type", "eIconCacheType", "%s (%d)", IconCacheTypeToString(static_cast<eIconCacheType>(data.IconType)), data.IconType);
+				ColumnText("Icon Slot", "%d", data.IconSlot);
+				ColumnText("Icon ID", "%d", data.IconId);
+				ColumnText("Slot", "%d", data.Slot);
+				ColumnTextType("Type", "HotButtonTypes", "%s (%d)", HotButtonTypeToString(static_cast<HotButtonTypes>(data.Type)), (int)data.Type);
+				ColumnCheckBox("Item Valid", data.ItemValid);
+
+				ImGui::TreePop();
+			}
 		}
 	}
 
@@ -2839,20 +3055,22 @@ public:
 		if (BeginColorSection("CPageWndProperties", open))
 		{
 			ColumnCXStr("Tab Text", pWnd->TabText);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnCXStr("Original Tab Text", pWnd->OrigTabText);
+#endif
 			ColumnColor("Tab Color", pWnd->CRTabText);
 			ColumnColor("Tab Color (Active)", pWnd->CRTabTextActive);
 			DisplayTextureAnimation("Tab Icon", pWnd->pTATabIcon, true);
 			DisplayTextureAnimation("Tab Icon (Active)", pWnd->pTATabIconActive, true);
-
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnColor("Flash Highlight Color", pWnd->CRHighlightFlashColor);
-
 
 			ColumnElapsedTimestamp("Last Flash Time", std::chrono::milliseconds(pWnd->LastFlashTime),
 				std::chrono::system_clock::now().time_since_epoch());
 
 			ColumnCheckBox("Flash On Message", pWnd->bHighlightOnNewMessages);
 			ColumnCheckBox("Flashing", &pWnd->bFlashing);
+#endif
 		}
 	}
 
@@ -3954,6 +4172,27 @@ static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGu
 	ColumnText("Window Index", "%d", pWindow->ItemWndIndex);
 }
 
+// Property Viewer for SpellDisplayWindow
+static void WindowProperties_SpellDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CSpellDisplayWnd* pWindow = static_cast<CSpellDisplayWnd*>(pSidlWindow);
+
+	ColumnText("Spell ID", "%d", pWindow->SpellID);
+	ColumnText("Window ID", "%d", pWindow->WindowID);
+	ColumnString("Title Text", &pWindow->TitleText);
+	ColumnString("Description Text", &pWindow->DescriptionText);
+#if IS_LIVE_CLIENT
+	ColumnString("Caster Name", &pWindow->CasterName);
+#endif
+	DisplayTextureAnimation("Spell Icon", pWindow->ptaBuffIcons);
+	DisplayTextureAnimation("Drag Icon", pWindow->ptaDragIcons);
+	ColumnText("Display Type", "%d", pWindow->SpellDisplayType);
+	ColumnElapsedTimestamp("Last Update Time", pWindow->LastUpdateTime - EQGetTime());
+#if IS_LIVE_CLIENT
+	ColumnText("Unknown", "%d", pWindow->Unknown);
+#endif
+}
+
 // Property Viewer for Buffwindow
 static void WindowProperties_BuffWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
 {
@@ -4040,7 +4279,9 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 		DisplayDynamicTemplateExpand("Background", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
 		DisplayDynamicTemplateExpand("Overlay", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
 		DisplayTextObject("Text Object", pCursorAttachment->pTextObject);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBL)
 		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObject);
+#endif
 		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
 	}
 
@@ -4429,6 +4670,7 @@ void DeveloperTools_WindowInspector_Initialize()
 	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
 	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
 	RegisterWindowPropertyViewer("ShortDurationBuffWindow", WindowProperties_BuffWindow);
+	RegisterWindowPropertyViewer("SpellDisplayWindow", WindowProperties_SpellDisplayWindow);
 #if HAS_TRADESKILL_DEPOT
 	RegisterWindowPropertyViewer("TradeskillDepotWnd", WindowProperties_TradeskillDepotWnd);
 #endif
@@ -4442,7 +4684,7 @@ void DeveloperTools_WindowInspector_Shutdown()
 	delete s_windowInspector; s_windowInspector = nullptr;
 }
 
-void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState)
+void DeveloperTools_WindowInspector_SetGameState(int gameState)
 {
 	s_windowInspector->Reset();
 }
@@ -4464,6 +4706,25 @@ void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* str
 
 	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
 }
+
+void DeveloperTools_WindowInspector_ViewString(std::string_view name, const SoeUtil::String& string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
+}
+
+void DeveloperTools_WindowInspector_EditString(std::string_view name, SoeUtil::String* string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
+}
+
 
 //----------------------------------------------------------------------------
 

@@ -1105,8 +1105,20 @@ static void FindItemPulse()
 				{
 					if (PickupItem(pItem->GetItemLocation()))
 					{
-						WriteChatf("Destroyed %s", pItem->GetName());
-						DoCommandf("/destroyitem");
+						if (ItemDefinition* pItemDef = GetItemFromContents(pItem))
+						{
+							if (pItemDef->NoDestroy)
+							{
+								WriteChatf("Skipping \"No Destroy\" item %s", pItem->GetName());
+								DoCommandf("/autoinventory");
+							}
+							else
+							{
+
+								WriteChatf("Destroyed %s", pItem->GetName());
+								DoCommandf("/destroyitem");
+							}
+						}
 					}
 				}
 			}

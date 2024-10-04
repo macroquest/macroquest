@@ -40,6 +40,8 @@ enum class MQMessageId : uint16_t
 	MSG_MAIN_FOCUS_REQUEST                 = 1004,  // to/from mq: i have focus or i want focus.
 	MSG_MAIN_FOCUS_ACTIVATE_WND            = 1005,  // to mq: activate requested window
 	MSG_MAIN_REQ_FORCEUNLOAD               = 1006,  // to mq: ask mq to less nicely unload.
+	MSG_MAIN_MESSAGEBOX                    = 1007,  // from mq: ask to display an imgui popup message
+	MSG_MAIN_TRAY_NOTIFY                   = 1008,  // from mq: ask to display a tray notification
 };
 
 enum class MQProtoVersion : uint8_t
