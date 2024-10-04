@@ -658,18 +658,21 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 
 //============================================================================
 
+// TODO: Remove the debugging statements
 void LuaThread::InitializeSpawnTable()
 {
 	if (m_globalState["__spawns"] == sol::nil)
 	{
-		m_globalState.create_named_table("__spawns");
+		sol::table spawn_table = m_globalState.create_named_table("__spawns");
 
 		if (pSpawnManager != nullptr)
 		{
 			auto spawn = pSpawnManager->FirstSpawn;
+
 			while (spawn != nullptr)
 			{
-				AddSpawn(spawn);
+				WriteChatf("Adding spawn %s", spawn->Name);
+				spawn_table[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 				spawn = spawn->GetNext();
 			}
 		}
@@ -698,14 +701,15 @@ void LuaThread::InitializeGroundItemTable()
 {
 	if (m_globalState["__groundItems"] == sol::nil)
 	{
-		m_globalState.create_named_table("__groundItems");
+		sol::table item_table = m_globalState.create_named_table("__groundItems");
 
 		if (pItemList != nullptr)
 		{
 			auto item = pItemList->Top;
 			while (item != nullptr)
 			{
-				AddGroundItem(item);
+				WriteChatf("Adding groundItem %s", item->Name);
+				item_table[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 				item = item->pNext;
 			}
 		}
