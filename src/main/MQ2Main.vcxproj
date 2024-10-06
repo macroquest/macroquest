@@ -593,6 +593,7 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />

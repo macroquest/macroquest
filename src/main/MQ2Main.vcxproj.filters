@@ -679,6 +679,9 @@
     <ClInclude Include="emu\EmuExtensions.h">
       <Filter>Header Files\emu</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">

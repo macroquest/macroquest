@@ -614,7 +614,6 @@ void DoMainThreadInitialization()
 	InitializeStringDB();
 
 	InitializeChatHook();
-	InitializeMQ2CrashHandler();
 	InitializeAnonymizer();
 	InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
@@ -756,7 +755,7 @@ bool MQ2Initialize()
 	}
 
 	InitializeLogging();
-	InitializeCrashHandler();
+	CrashHandler_Startup();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
 
@@ -822,7 +821,6 @@ void MQ2Shutdown()
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMQ2CrashHandler();
 	ShutdownAnonymizer();
 	ShutdownPlugins();
 	ShutdownFailedPlugins();
