@@ -14,11 +14,6 @@
 
 #pragma once
 
-#include <functional>
-#include <excpt.h>
-
-#pragma warning (disable : 4509)
-
 namespace mq {
 
 #define DebugTryBegin()
@@ -35,14 +30,12 @@ namespace mq {
 void InstallUnhandledExceptionFilter();
 void UninstallUnhandledExceptionFilter();
 
-void InitializeCrashHandler();
-
 bool InitializeCrashpad();
 void InitializeCrashpadPipe(const std::string& pipeName);
 
-// Init/Shutdown CrashHandler extra modules
-void InitializeMQ2CrashHandler();
-void ShutdownMQ2CrashHandler();
+void CrashHandler_Startup();
+void CrashHandler_SetLastCommand(const char* command);
+void CrashHandler_SetLastMacroData(const char* macroData);
 
 } // namespace mq
 
