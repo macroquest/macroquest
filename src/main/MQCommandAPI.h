@@ -19,6 +19,7 @@
 #endif
 
 #include "mq/base/PluginHandle.h"
+#include "mq/base/String.h"
 #include "mq/api/CommandAPI.h"
 
 #include <mutex>
@@ -29,6 +30,7 @@ namespace mq {
 
 struct MQTimedCommand;
 struct MQCommand;
+struct MQPlugin;
 
 class MQCommandAPI
 {

@@ -18,6 +18,9 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 
+#include "CrashHandler.h"
+#include "mq/base/ScopeExit.h"
+
 namespace mq {
 
 std::vector<std::weak_ptr<MQTransient>> s_objectMap;
@@ -1426,6 +1429,8 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
 	return strReturn;
 }
 
+static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize);
+
 /**
  * @fn ParseMacroData
  *
@@ -1453,6 +1458,15 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  *                                            left to parse
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
+{
+	// Update crash state with last known string in case something goes wrong
+	CrashHandler_SetLastMacroData(szOriginal);
+	SCOPE_EXIT(CrashHandler_SetLastMacroData(nullptr));
+
+	return ParseMacroDataImpl(szOriginal, BufferSize);
+}
+
+static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 {
 	MQScopedBenchmark bm(bmParseMacroData);
 
@@ -1554,7 +1568,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 			goto pmdbottom;
 		}
 
-		if (ParseMacroData(szCurrent, sizeof(szCurrent)))
+		if (ParseMacroDataImpl(szCurrent, sizeof(szCurrent)))
 		{
 			size_t NewLength = strlen(szCurrent);
 			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
@@ -1614,7 +1628,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 
 	if (Changed)
 	{
-		while (ParseMacroData(szOriginal, BufferSize)) {}
+		while (ParseMacroDataImpl(szOriginal, BufferSize)) {}
 	}
 
 	return Changed;
