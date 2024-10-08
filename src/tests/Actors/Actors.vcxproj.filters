@@ -30,5 +30,11 @@
     <ClCompile Include="..\..\loader\Network.pb.cc">
       <Filter>Source Files\loader</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\loader\Connection.cpp">
+      <Filter>Source Files\loader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\loader\ImGui.cpp">
+      <Filter>Source Files\loader</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

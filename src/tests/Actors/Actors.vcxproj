@@ -159,6 +159,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\loader\Connection.cpp" />
+    <ClCompile Include="..\..\loader\ImGui.cpp" />
     <ClCompile Include="..\..\loader\Network.cpp" />
     <ClCompile Include="..\..\loader\Network.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
@@ -168,6 +170,11 @@
     </ClCompile>
     <ClCompile Include="..\..\loader\PostOffice.cpp" />
     <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\imgui\imgui.vcxproj">
+      <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

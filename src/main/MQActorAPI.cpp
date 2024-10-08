@@ -130,7 +130,7 @@ void MQActorAPI::SendToActor(
 						const auto& s = envelope.return_address();
 						sender = postoffice::Address{
 							s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
-							s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), s.peer().port()}) : std::nullopt,
+							s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
 							s.has_name() ? std::make_optional(s.name()) : std::nullopt,
 							s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
 							s.has_client() && s.client().has_account() ? std::make_optional(s.client().account()) : std::nullopt,
@@ -207,7 +207,7 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 			{
 				sender = postoffice::Address{
 					s->has_pid() ? std::make_optional(s->pid()) : std::nullopt,
-					s->has_peer() ? std::make_optional(postoffice::Peer{s->peer().ip(), s->peer().port()}) : std::nullopt,
+					s->has_peer() ? std::make_optional(postoffice::Peer{s->peer().ip(), static_cast<uint16_t>(s->peer().port())}) : std::nullopt,
 					s->has_name() ? std::make_optional(s->name()) : std::nullopt,
 					s->has_mailbox() ? std::make_optional(s->mailbox()) : std::nullopt,
 					s->has_client() && s->client().has_account() ? std::make_optional(s->client().account()) : std::nullopt,

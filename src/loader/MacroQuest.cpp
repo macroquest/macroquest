@@ -1539,7 +1539,8 @@ int WINAPI CALLBACK WinMain(
 				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
 			}
 		});
-	SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
+	// TODO: this can probably be removed?
+	//SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
 	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();

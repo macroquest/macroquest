@@ -96,7 +96,7 @@ public:
 	{
 		m_parsedHeader.set_length(static_cast<uint32_t>(m_length));
 		m_headerLength = m_parsedHeader.ByteSizeLong();
-		m_headerLengthNetwork = htonll(m_headerLength);
+		m_headerLengthNetwork = static_cast<size_t>(htonll(m_headerLength));
 
 		AllocateHeader();
 		m_parsedHeader.SerializeToArray(m_header.get(), static_cast<int>(m_headerLength));
@@ -224,7 +224,7 @@ public:
 					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
 					ec != asio::error::shut_down) // this is when we shut down the socket locally
 				{
-					message->HeaderLength() = ntohll(message->HeaderLengthNetwork());
+					message->HeaderLength() = static_cast<size_t>(ntohll(message->HeaderLengthNetwork()));
 					ReadHeaderLength(ec, message);
 				}
 				else Close();

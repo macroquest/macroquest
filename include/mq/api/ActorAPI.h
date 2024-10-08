@@ -64,6 +64,9 @@ struct Address
 	/** The name of the target, used for addressing external applications */
 	std::optional<std::string> Name;
 
+	/** The mailbox of the target, if this is fully qualified then make sure to set AbsoluteMailbox */
+	std::optional<std::string> Mailbox;
+
 	/** The account of the target post office */
 	std::optional<std::string> Account;
 
