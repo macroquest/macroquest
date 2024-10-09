@@ -284,6 +284,7 @@ void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
 					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
 				else
 					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
+				break;
 			}
 
 		case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:

@@ -25,6 +25,31 @@
 #include <cstdio>
 #include <utility>
 
+HWND hMainWnd;
+
+// mirrors the implementation in mq2main. This could possibly be shared code
+// between them.
+namespace internal_paths
+{
+	extern std::string MQRoot;
+	extern std::string Config;
+	extern std::string MQini;
+	extern std::string Macros;
+	extern std::string Logs;
+	extern std::string CrashDumps;
+	extern std::string Plugins;
+	extern std::string Resources;
+}; // namespace internal_paths
+
+std::string internal_paths::MQRoot = ".";
+std::string internal_paths::Config = "Config";
+std::string internal_paths::MQini = internal_paths::Config + "\\MacroQuest.ini";
+std::string internal_paths::Macros = "Macros";
+std::string internal_paths::Logs = "Logs";
+std::string internal_paths::CrashDumps = internal_paths::Logs + "\\Dumps";
+std::string internal_paths::Plugins = "Plugins";
+std::string internal_paths::Resources = "Resources";
+
 std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 {
 	return std::make_pair(std::string(addr), port);

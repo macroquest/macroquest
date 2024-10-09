@@ -135,3 +135,4 @@ std::string GetLocalPlayer(DWORD pid);
 void InitializeAutoLogin();
 void ShutdownAutoLogin();
 void AutoLoginRemoveProcess(uint32_t process_id);
+
