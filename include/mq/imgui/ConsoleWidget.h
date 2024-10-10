@@ -45,6 +45,9 @@ public:
 	virtual bool IsCursorAtEnd() const = 0;
 	virtual void ScrollToBottom() = 0;
 
+	virtual int GetConsoleFontSize() const = 0;
+	virtual void SetConsoleFontSize(int fontSize) = 0;
+
 	virtual bool GetAutoScroll() const = 0;
 	virtual void SetAutoScroll(bool autoScroll) = 0;
 

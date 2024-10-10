@@ -602,13 +602,14 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
+	int m_fontSize = 13;
 	std::string m_id;
 
 	ImGuiZepConsole(std::string_view id)
 		: m_id(std::string(id))
 	{
 		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);  
 		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
 		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
 		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
@@ -628,7 +629,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 			Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
 				return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
 			})
-		});
+			});
 
 		m_buffer = GetEditor().InitWithText("Console", "");
 		m_buffer->SetTheme(m_theme);
@@ -856,6 +857,8 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 
 	void Render(const ImVec2& displaySize = ImVec2()) override
 	{
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
+
 		if (m_deferredCursorToEnd)
 		{
 			m_deferredCursorToEnd = false;
@@ -888,6 +891,18 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 
 		ImGuiZepEditor::Notify(message);
 	}
+
+	int GetConsoleFontSize() const override
+	{
+		return m_fontSize;
+	}
+
+	void SetConsoleFontSize(int newFontSize) override
+	{
+		m_fontSize = newFontSize;
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
+	}
+
 
 	bool GetAutoScroll() const override { return m_autoScroll; }
 
@@ -1777,6 +1792,19 @@ static void ConsoleSettings()
 
 		ImGui::SameLine();
 		mq::imgui::HelpMarker("Set the number of lines to keep in the scrollback buffer. Any lines above this amount will be deleted from the top of the buffer and won't be available for viewing in the console. Larger numbers here may cause performance issues like hitching or FPS slowdowns.");
+
+		ImGui::NewLine();
+
+		int newConsoleFontSize = gImGuiConsole->m_zepEditor->GetConsoleFontSize();
+		if (ImGui::SliderInt("Console Font Size", &newConsoleFontSize, 10, 30))
+		{
+			gImGuiConsole->m_zepEditor->SetConsoleFontSize(newConsoleFontSize);
+			s_consoleFontSize = newConsoleFontSize;
+			WritePrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
+		}
+
+		ImGui::SameLine();
+		mq::imgui::HelpMarker("Adjust the font size of the console. Changes will take effect immediately and will be saved for future sessions.");
 
 		ImGui::NewLine();
 	}

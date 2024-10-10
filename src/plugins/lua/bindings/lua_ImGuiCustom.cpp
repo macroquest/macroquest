@@ -68,6 +68,7 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		"ScrollToBottom"             , &mq::imgui::ConsoleWidget::ScrollToBottom,
 		"autoScroll"                 , sol::property(&mq::imgui::ConsoleWidget::GetAutoScroll, &mq::imgui::ConsoleWidget::SetAutoScroll),
 		"maxBufferLines"             , sol::property(&mq::imgui::ConsoleWidget::GetMaxBufferLines, &mq::imgui::ConsoleWidget::SetMaxBufferLines),
+		"consoleFontSize"			 , sol::property(&mq::imgui::ConsoleWidget::GetConsoleFontSize, &mq::imgui::ConsoleWidget::SetConsoleFontSize),
 		"opacity"                    , sol::property(&mq::imgui::ConsoleWidget::GetOpacity, &mq::imgui::ConsoleWidget::SetOpacity),
 
 		"AppendText",                sol::overload(
