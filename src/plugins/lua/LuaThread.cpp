@@ -671,7 +671,6 @@ void LuaThread::InitializeSpawnTable()
 
 			while (spawn != nullptr)
 			{
-				WriteChatf("Adding spawn %s", spawn->Name);
 				spawn_table[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 				spawn = spawn->GetNext();
 			}
@@ -681,19 +680,19 @@ void LuaThread::InitializeSpawnTable()
 
 void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
 {
-	if (m_globalState["__spawns"] != sol::nil)
+	sol::table spawns = m_globalState["__spawns"];
+	if (spawns != sol::nil)
 	{
-		WriteChatf("Adding spawn %s", spawn->Name);
-		m_globalState["__spawns"][spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+		spawns[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 	}
 }
 
 void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 {
-	if (m_globalState["__spawns"] != sol::nil)
+	sol::table spawns = m_globalState["__spawns"];
+	if (spawns != sol::nil)
 	{
-		WriteChatf("Removing spawn %s", spawn->Name);
-		m_globalState["__spawns"][spawn->SpawnID] = sol::nil;
+		spawns[spawn->SpawnID] = sol::nil;
 	}
 }
 
@@ -708,7 +707,6 @@ void LuaThread::InitializeGroundItemTable()
 			auto item = pItemList->Top;
 			while (item != nullptr)
 			{
-				WriteChatf("Adding groundItem %s", item->Name);
 				item_table[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 				item = item->pNext;
 			}
@@ -718,19 +716,19 @@ void LuaThread::InitializeGroundItemTable()
 
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
 {
-	if (m_globalState["__groundItems"] != sol::nil)
+	sol::table items = m_globalState["__groundItems"];
+	if (items != sol::nil)
 	{
-		WriteChatf("Adding groundItem %s", item->Name);
-		m_globalState["__groundItems"][item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+		items[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 	}
 }
 
 void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
 {
-	if (m_globalState["__groundItems"] != sol::nil)
+	sol::table items = m_globalState["__groundItems"];
+	if (items != sol::nil)
 	{
-		WriteChatf("Removing groundItem %s", item->Name);
-		m_globalState["__groundItems"][item->DropID] = sol::nil;
+		items[item->DropID] = sol::nil;
 	}
 }
 
