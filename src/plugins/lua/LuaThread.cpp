@@ -661,9 +661,9 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 // TODO: Remove the debugging statements
 void LuaThread::InitializeSpawnTable()
 {
-	if (m_globalState["__spawns"] == sol::nil)
+	if (m_spawnTable == sol::nil)
 	{
-		sol::table spawn_table = m_globalState.create_named_table("__spawns");
+		m_spawnTable = m_globalState.create_named_table("__spawns");
 
 		if (pSpawnManager != nullptr)
 		{
@@ -671,7 +671,7 @@ void LuaThread::InitializeSpawnTable()
 
 			while (spawn != nullptr)
 			{
-				spawn_table[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 				spawn = spawn->GetNext();
 			}
 		}
@@ -680,34 +680,32 @@ void LuaThread::InitializeSpawnTable()
 
 void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
 {
-	sol::table spawns = m_globalState["__spawns"];
-	if (spawns != sol::nil)
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
 	{
-		spawns[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+		m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
 	}
 }
 
 void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 {
-	sol::table spawns = m_globalState["__spawns"];
-	if (spawns != sol::nil)
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
 	{
-		spawns[spawn->SpawnID] = sol::nil;
+		m_spawnTable[spawn->SpawnID] = sol::nil;
 	}
 }
 
 void LuaThread::InitializeGroundItemTable()
 {
-	if (m_globalState["__groundItems"] == sol::nil)
+	if (m_groundItemTable == sol::nil)
 	{
-		sol::table item_table = m_globalState.create_named_table("__groundItems");
+		m_groundItemTable = m_globalState.create_named_table("__groundItems");
 
 		if (pItemList != nullptr)
 		{
 			auto item = pItemList->Top;
 			while (item != nullptr)
 			{
-				item_table[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+				m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 				item = item->pNext;
 			}
 		}
@@ -716,19 +714,17 @@ void LuaThread::InitializeGroundItemTable()
 
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
 {
-	sol::table items = m_globalState["__groundItems"];
-	if (items != sol::nil)
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
 	{
-		items[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+		m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
 	}
 }
 
 void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
 {
-	sol::table items = m_globalState["__groundItems"];
-	if (items != sol::nil)
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
 	{
-		items[item->DropID] = sol::nil;
+		m_groundItemTable[item->DropID] = sol::nil;
 	}
 }
 

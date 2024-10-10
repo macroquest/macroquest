@@ -246,6 +246,10 @@ private:
 
 	// datatypes
 	ci_unordered::set<std::string> m_registeredTLOs;
+
+	// memoized table references
+	sol::table m_spawnTable = sol::nil;
+	sol::table m_groundItemTable = sol::nil;
 };
 
 //============================================================================
