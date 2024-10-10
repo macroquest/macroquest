@@ -68,12 +68,18 @@ static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 #endif
 
+// Some default font size
+static const int s_defaultFontSize = 13;
+static const int s_defaultFontIndex = 2;
+
+static int s_fontSize = s_defaultFontSize;
 static bool s_dockspaceVisible = true;
 static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 static bool s_consolePersistentCommandHistory = false;
+static int s_currentFontIndex = s_defaultFontIndex;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -244,6 +250,18 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 
 	return { { pos, (size_t)(end - pos) }, color };
 }
+
+struct FontSizeInfo
+{
+	std::string label;
+	int value;
+};
+
+std::vector<FontSizeInfo> s_fontSizeInfo = {
+	{"10", 10}, {"12", 12}, {"13", 13}, {"14", 14}, {"16", 16},
+	{"18", 18}, {"20", 20}, {"22", 22}, {"24", 24}, {"26", 26},
+	{"28", 28}, {"30", 30}
+};
 
 //============================================================================
 
@@ -602,13 +620,14 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
+	int m_fontSize = s_defaultFontSize;
 	std::string m_id;
 
 	ImGuiZepConsole(std::string_view id)
 		: m_id(std::string(id))
 	{
 		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
 		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
 		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
 		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
@@ -889,6 +908,17 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 		ImGuiZepEditor::Notify(message);
 	}
 
+	int GetFontSize() const override
+	{
+		return m_fontSize;
+	}
+
+	void SetFontSize(int newFontSize) override
+	{
+		m_fontSize = newFontSize;
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
+	}
+
 	bool GetAutoScroll() const override { return m_autoScroll; }
 
 	void SetAutoScroll(bool autoScroll) override
@@ -1088,6 +1118,9 @@ public:
 		int maxBufferLines = GetPrivateProfileInt("Console", "MaxBufferLines", m_zepEditor->GetMaxBufferLines(), internal_paths::MQini);
 		m_zepEditor->SetMaxBufferLines(maxBufferLines);
 		m_history = InitConsoleDatabase(m_db, current_pid);
+
+		int fontSize = GetPrivateProfileInt("Console", "FontSize", m_zepEditor->GetFontSize(), internal_paths::MQini);
+		m_zepEditor->SetFontSize(fontSize);
 	}
 
 	~ImGuiConsole()
@@ -1554,6 +1587,39 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 	WriteChatColor(szBuffer);
 }
 
+void FontSizePicker()
+{
+	for (int i = 0; i < s_fontSizeInfo.size(); ++i)
+	{
+		if (s_fontSizeInfo[i].value == s_fontSize)
+		{
+			s_currentFontIndex = i;
+			break;
+		}
+	}
+
+	if (ImGui::Combo("Main Console Font Size", &s_currentFontIndex,
+		[](void* data, int idx, const char** out_text) {
+			*out_text = static_cast<FontSizeInfo*>(data)[idx].label.c_str();
+			return true;
+		}, s_fontSizeInfo.data(), static_cast<int>(s_fontSizeInfo.size())))
+	{
+		int selectedFontSize = s_fontSizeInfo[s_currentFontIndex].value;
+
+		if (selectedFontSize != s_fontSize)
+		{
+			s_fontSize = selectedFontSize;
+			if (gImGuiConsole)
+				gImGuiConsole->m_zepEditor->SetFontSize(s_fontSize);
+
+			WritePrivateProfileInt("Console", "FontSize", s_fontSize, internal_paths::MQini);
+		}
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Choose the font size for the main console. Changes will take effect immediately and will be saved for future sessions.");
+}
+
 //----------------------------------------------------------------------------
 
 void UpdateImGuiConsole()
@@ -1779,6 +1845,10 @@ static void ConsoleSettings()
 		mq::imgui::HelpMarker("Set the number of lines to keep in the scrollback buffer. Any lines above this amount will be deleted from the top of the buffer and won't be available for viewing in the console. Larger numbers here may cause performance issues like hitching or FPS slowdowns.");
 
 		ImGui::NewLine();
+
+		FontSizePicker();
+
+		ImGui::NewLine();
 	}
 
 	if (ImGui::Button("Clear Saved Console Settings"))
@@ -1787,6 +1857,14 @@ static void ConsoleSettings()
 		s_consolePersistentCommandHistory = false;
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
+
+		s_fontSize = s_defaultFontSize;
+		s_currentFontIndex = s_defaultFontIndex;
+		WritePrivateProfileInt("Console", "FontSize", s_fontSize, internal_paths::MQini);
+		if (gImGuiConsole != nullptr)
+		{
+			gImGuiConsole->m_zepEditor->SetFontSize(s_fontSize);
+		}
 	}
 }
 
@@ -1795,10 +1873,12 @@ void InitializeImGuiConsole()
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
 	s_consolePersistentCommandHistory = GetPrivateProfileBool("Console", "PersistentCommandHistory", false, mq::internal_paths::MQini);
+	s_fontSize = GetPrivateProfileInt("Console", "FontSize", s_defaultFontSize, internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
+		WritePrivateProfileInt("Console", "FontSize", s_fontSize, internal_paths::MQini);
 	}
 
 	AddSettingsPanel("Console", ConsoleSettings);
