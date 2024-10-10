@@ -13,7 +13,7 @@
  */
 
 // Uncomment to see super spammy read/write trace logging
-//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include "NamedPipes.h"
 #include "common/Common.h"
@@ -631,7 +631,7 @@ void NamedPipeEndpointBase::Start()
 				}
 				catch (const std::exception & error)
 				{
-					SPDLOG_ERROR("{} thread aborted: {}", error.what());
+					SPDLOG_ERROR("{} thread aborted: {}", m_threadName, error.what());
 				}
 			} while (m_running);
 		}
