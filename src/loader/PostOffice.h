@@ -88,10 +88,12 @@ public:
 		const proto::routing::Address& address,
 		const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from);
 
-	// This is called when a dropbox registered to this pipe server attempts to send a message
+	// This is called when a dropbox registered to this pipe server attempts to send a message (an _outbound_ message)
 	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
-	void Route(const proto::routing::Envelope& message);
 	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override;
+
+	// This is called when a message is received over a connection (an _inbound_ message)
+	void RouteFromConnection(const proto::routing::Envelope& message);
 
 	void AddIdentity(const ActorIdentification& id);
 	void DropIdentity(const ActorIdentification& id);
@@ -118,6 +120,7 @@ private:
 	template <size_t I = 0> void BroadcastMessage(PipeMessagePtr&& message);
 	template <typename T> void BroadcastMessage(const MQMessageId& id, const T& proto);
 	bool SendMessage(const ActorContainer& ident, PipeMessagePtr&& message, const PipeMessageResponseCb& callback);
+	template <typename T> bool SendMessage(const ActorContainer& ident, const MQMessageId& id, const T& proto, const PipeMessageResponseCb& callback);
 };
 
 // ----------------------------- Connection -----------------------------------
@@ -185,6 +188,7 @@ public:
 	
 private:
 	mq::ProtoPipeServer m_pipeServer;
+	uint32_t m_configIndex;
 
 	bool m_running = false;
 	std::thread m_thread;
@@ -207,6 +211,7 @@ public:
 	// TODO: make the port configurable (default to 7781)
 	PeerConnection(LauncherPostOffice* postOffice, uint32_t index);
 	~PeerConnection() override;
+	void AddConfiguredHosts();
 
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
 	void Process() override {}
@@ -215,10 +220,12 @@ public:
 	bool SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
 	void BroadcastMessage(PipeMessagePtr&& message) override;
 
-	// TODO: need add_connection/remove_connection callbacks in NetworkAPI
+	void AddHost(const std::string& address, uint16_t port) const;
+	void RemoveHost(const std::string& address, uint16_t port) const;
 
 private:
 	NetworkPeerAPI m_network;
+	uint32_t m_configIndex;
 
 	static proto::routing::NetworkMessage Translate(const PipeMessagePtr& message);
 };

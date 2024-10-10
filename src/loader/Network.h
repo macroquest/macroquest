@@ -24,6 +24,9 @@ struct NetworkAddress
 	}
 };
 
+// this is the signature for onconnected callbacks
+using OnSessionConnectedHandler = std::function<void(const NetworkAddress& address)>;
+
 class NetworkPeerAPI
 {
 public:
@@ -34,7 +37,7 @@ public:
 	NetworkPeerAPI& operator=(NetworkPeerAPI&&) = default;
 	~NetworkPeerAPI() = default;
 
-	void Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length) const;
+	void Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const;
 
 	// templated helper functions to assist with the common use case of protobuf
 	template <typename T>
@@ -53,7 +56,7 @@ public:
 		}
 	}
 
-	void Broadcast(std::unique_ptr<uint8_t[]>&& payload, size_t length) const;
+	void Broadcast(std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const;
 
 	template <typename T>
 	void Broadcast(const T& data) const
@@ -71,7 +74,7 @@ public:
 		}
 	}
 
-	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive);
+	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected);
 	void Shutdown() const;
 
 	void AddHost(const std::string& address, uint16_t port) const;

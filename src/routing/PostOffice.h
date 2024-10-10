@@ -206,6 +206,18 @@ struct ActorIdentification
 	}
 
 	/**
+	 * provided inequality helper, a name address is equal if the container and the name match
+	 * and a client is considered equal if only the address matches
+	 *
+	 * @param other the other identity to compare against
+	 * @return true if other has the same identity as this
+	 */
+	bool operator!=(const ActorIdentification& other) const
+	{
+		return !(*this == other);
+	}
+
+	/**
 	 * helper method to translate this id into a proto id
 	 *
 	 * @return a proto id containing this id
@@ -236,6 +248,35 @@ struct ActorIdentification
 		}, address);
 
 		return id;
+	}
+
+	/**
+	 * helper method to set this id into a proto address
+	 */
+	proto::routing::Address& BuildAddress(proto::routing::Address& addr) const
+	{
+		std::visit(overload{
+			[&addr](uint32_t pid) { addr.set_pid(pid); },
+			[&addr](const ActorContainer::Network& netaddr)
+			{
+				proto::routing::Peer* p = addr.mutable_peer();
+				p->set_ip(netaddr.IP);
+				p->set_port(netaddr.Port);
+			}
+		}, container.value);
+
+		std::visit(overload{
+			[&addr](const std::string& name) { addr.set_name(name); },
+			[&addr](const Client& cid)
+			{
+				proto::routing::Client* c = addr.mutable_client();
+				if (!cid.account.empty()) c->set_account(cid.account);
+				if (!cid.server.empty()) c->set_server(cid.server);
+				if (!cid.character.empty()) c->set_character(cid.character);
+			}
+		}, address);
+
+		return addr;
 	}
 
 	/**

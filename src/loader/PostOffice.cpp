@@ -12,6 +12,9 @@
  * GNU General Public License for more details.
  */
 
+// Uncomment to see super spammy read/write trace logging
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
 #include "routing/PostOffice.h"
@@ -49,18 +52,6 @@ void RoutingFailed(
 	else
 		callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data.data(), data.size()));
 }
-
-//template <typename T>
-//struct ConnectionTypeMap;
-//
-//template <> struct ConnectionTypeMap<uint32_t> { using Type = LocalConnection; };
-//template <> struct ConnectionTypeMap<ActorContainer::Network> { using Type = PeerConnection; };
-//
-//template <typename I, typename C = typename ConnectionTypeMap<I>::Type>
-//const std::unique_ptr<C>& GetConnection()
-//{
-//	static_assert(std::is_same_v<I, C>, "Type does not point to a valid connection.");
-//}
 
 // TODO: This isn't right, it's only checking the address and not the container
 bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, const ActorIdentification& id)
@@ -132,8 +123,18 @@ void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 	m_identities.emplace(id.container, id);
 	SPDLOG_INFO("Got identification from {}", id);
 
+	// TODO: this should probably be a property of this
+	ActorIdentification self(GetCurrentProcessId(), "launcher");
+
+	// TODO: this is maybe too aggressive?
 	// we also need to update all the clients
-	BroadcastMessage(MQMessageId::MSG_IDENTIFICATION, id.GetProto());
+	for (const auto& identity : m_identities)
+	{
+		if (id != identity.second && self != identity.second)
+		{
+			SendMessage(identity.first, MQMessageId::MSG_IDENTIFICATION, id.GetProto(), nullptr);
+		}
+	}
 }
 
 void LauncherPostOffice::DropIdentity(const ActorIdentification& id)
@@ -178,8 +179,12 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 }
 
 // TODO: add callback handling to this as well
-void LauncherPostOffice::Route(const proto::routing::Envelope& message)
+void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& message)
 {
+	SPDLOG_TRACE("Routing received message: to={} from={}",
+		message.address().has_name() ? message.address().name() : message.address().client().character(),
+		message.has_return_address() ? (message.return_address().has_name() ? message.return_address().name() : message.return_address().client().character()) : "unk");
+
 	const auto& address = message.address();
 
 	auto make_message = [&message]
@@ -195,44 +200,41 @@ void LauncherPostOffice::Route(const proto::routing::Envelope& message)
 	auto routing_failed = [](int status, PipeMessagePtr&& message)
 		{ RoutingFailed(status, message, nullptr); };
 
-	// we want to deliver the message to launcher _and then_ forward it to other launchers
-	// TODO: how do we only deliver to the local launcher? -- by setting peer to "127.0.0.1" (0 port would be fine)
-
-	// TODO: make sure network messages set the pid before passing it along to be routed (pipe messages can be either)
-	// we have to intentionally and explicitly handle the case where something is addressed to this peer
-	// for any mailbox we have registered here
-	if ((address.has_pid() && address.pid() == GetCurrentProcessId()) ||
-		(!address.has_pid() && !address.has_peer() && address.has_name() && ci_equals(address.name(), "launcher")))
+	// break this routing out explicitly to make it easier to read -- there will be some duplicated routes
+	if (address.has_pid() && address.pid() == GetCurrentProcessId())
 	{
-		if (!address.has_pid())
-		{
-			// if we don't have a PID, then we have a launcher that needs to be routed out, so we need a copy of the message
-			RouteMessage(make_message(), nullptr);
-		}
-
-		if (address.has_mailbox())
-		{
-			// this is a local message
-			DeliverTo(address.mailbox(), make_message(), routing_failed);
-		}
-		else
-		{
-			// This is a failsafe action, we shouldn't expect to be here often. For this code to
-			// be reached, we would have to have a client that packages a message in an envelope
-			// that is intended to be parsed directly by the server and not routed anywhere (so
-			// no mailbox routing information is included), rather than just send the message
-			DeliverTo("post_office", make_message(), routing_failed);
-		}
+		// we are explicitly sending to this PID, so route entirely internally
+		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
+	}
+	else if (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.has_name() && ci_equals(address.name(), "launcher"))
+	{
+		// we are addressing this peer's launcher, this, so route entirely internally
+		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
 	}
 	else
 	{
-		// forward everything else (pid is _not_ this and (pid, peer, or name is not launcher)
-		// all we have to do here is route, this is the same as if an internal mailbox is
-		// attempting to route a message
-		// note: this is calling the same callback that gets called when something is trying to send
-		//       a message from their registered dropboxes, care needs to be taken to avoid infinite
-		//       message loops because of that
-		RouteMessage(make_message(), nullptr);
+		// This message isn't addressed specifically to this launcher, so find all identities that
+		// should receive this message and send to each one
+		// TODO: handle RPC here (it should fail here if we have more than one recipient)
+		for (const auto& identity : m_identities)
+		{
+			if (IsRecipient(address, identity.second))
+			{
+				proto::routing::Envelope e;
+				proto::routing::Address& explicit_address = *e.mutable_address();
+
+				explicit_address.set_mailbox(address.mailbox()); // first copy the mailbox
+				identity.second.BuildAddress(explicit_address); // then set the identity's address
+
+				if (message.has_payload()) e.set_payload(message.payload());
+				if (message.has_return_address()) *e.mutable_return_address() = message.return_address();
+
+				const auto& payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
+				e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
+
+				RouteMessage(std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE, payload.get(), e.ByteSizeLong()), nullptr);
+			}
+		}
 	}
 }
 
@@ -271,6 +273,8 @@ LauncherPostOffice::LauncherPostOffice(uint32_t index)
 {
 	ActorIdentification id(GetCurrentProcessId(), "launcher");
 	m_identities.emplace(id.container, id);
+
+	m_peerConnection->AddConfiguredHosts();
 }
 
 template <>
@@ -327,6 +331,16 @@ bool LauncherPostOffice::SendMessage(
 		{
 			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message), callback);
 		}, ident.value);
+}
+
+
+template<typename T>
+bool LauncherPostOffice::SendMessage(const ActorContainer& ident, const MQMessageId& id, const T& proto, const PipeMessageResponseCb& callback)
+{
+	const auto payload = std::make_unique<uint8_t[]>(proto.ByteSizeLong());
+	proto.SerializeToArray(payload.get(), static_cast<int>(proto.ByteSizeLong()));
+
+	return SendMessage(ident, std::make_unique<PipeMessage>(id, payload.get(), proto.ByteSizeLong()), callback);
 }
 
 } // namespace mq::postoffice

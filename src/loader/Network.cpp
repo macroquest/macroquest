@@ -1,5 +1,8 @@
 // the number of the day is 7781 and 239.255.77.81
 
+// Uncomment to see super spammy read/write trace logging
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #pragma comment(lib, "rpcrt4.lib")
 
 #include <queue>
@@ -34,7 +37,7 @@ using asio::ip::tcp;
 
 namespace mq {
 
-using InternalMessageHandler = std::function<void(const peernetwork::Header&, const std::string&, uint16_t, std::unique_ptr<uint8_t[]>&&, size_t)>;
+using InternalMessageHandler = std::function<void(const peernetwork::Header&, const std::string&, uint16_t, std::unique_ptr<uint8_t[]>&&, uint32_t)>;
 
 } // namespace mq
 
@@ -74,7 +77,7 @@ class NetworkMessage
 {
 public:
 	// outgoing message
-	NetworkMessage(peernetwork::Header&& header, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+	NetworkMessage(peernetwork::Header&& header, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
 		: m_parsedHeader(std::move(header))
 		, m_length(length)
 		, m_payload(std::move(payload))
@@ -94,9 +97,9 @@ public:
 
 	void InitHeader()
 	{
-		m_parsedHeader.set_length(static_cast<uint32_t>(m_length));
+		m_parsedHeader.set_length(m_length);
 		m_headerLength = m_parsedHeader.ByteSizeLong();
-		m_headerLengthNetwork = static_cast<size_t>(htonll(m_headerLength));
+		m_headerLengthNetwork = htonl(m_headerLength);
 
 		AllocateHeader();
 		m_parsedHeader.SerializeToArray(m_header.get(), static_cast<int>(m_headerLength));
@@ -119,9 +122,8 @@ public:
 	std::vector<asio::const_buffer> Buffers() const
 	{
 		// This assumes a header will always exist, ensure that the asio read assumes that as well!
-		// This also assumes that size_t is the same on all systems, we can remove this assumption by using a proto for length
 		std::vector<asio::const_buffer> buffers{
-			asio::buffer(&m_headerLengthNetwork, sizeof(size_t)),
+			asio::buffer(&m_headerLengthNetwork, sizeof(uint32_t)),
 			asio::buffer(m_header.get(), m_headerLength)
 		};
 
@@ -138,22 +140,22 @@ public:
 
 	void Relay(uint16_t port);
 
-	size_t& HeaderLength() { return m_headerLength; }
-	size_t& HeaderLengthNetwork() { return m_headerLengthNetwork; }
+	uint32_t& HeaderLength() { return m_headerLength; }
+	uint32_t& HeaderLengthNetwork() { return m_headerLengthNetwork; }
 	uint8_t* Header() const { return m_header.get(); }
 	const peernetwork::Header& ParsedHeader() const { return m_parsedHeader; }
 
-	size_t& Length() { return m_length; }
+	uint32_t& Length() { return m_length; }
 	uint8_t* Payload() const { return m_payload.get(); }
 
 private:
-	size_t m_headerLength;
-	size_t m_headerLengthNetwork;
+	uint32_t m_headerLength;
+	uint32_t m_headerLengthNetwork;
 	std::unique_ptr<uint8_t[]> m_header;
 
 	peernetwork::Header m_parsedHeader;
 
-	size_t m_length;
+	uint32_t m_length;
 	std::unique_ptr<uint8_t[]> m_payload;
 };
 
@@ -214,17 +216,20 @@ public:
 		auto message = std::make_shared<NetworkMessage>();
 		asio::async_read(
 			m_socket,
-			asio::buffer(&message->HeaderLengthNetwork(), sizeof(size_t)),
+			asio::buffer(&message->HeaderLengthNetwork(), sizeof(uint32_t)),
 			[this, message](const std::error_code& ec, size_t)
 			{
 				// TODO: Handle other connection errors with reconnect attempts
 				// TODO: Write a function that handles this the same way every time (error checking)
-				// TODO: check the size of the length also, should be sizeof(size_t)
+				// TODO: check the size of the length also, should be sizeof(uint32_t)
 				if (ec != asio::error::eof && // this is when the connection was closed remotely
 					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
 					ec != asio::error::shut_down) // this is when we shut down the socket locally
 				{
-					message->HeaderLength() = static_cast<size_t>(ntohll(message->HeaderLengthNetwork()));
+					message->HeaderLength() = ntohl(message->HeaderLengthNetwork());
+					SPDLOG_TRACE("Detected message on {} ({} header length)",
+						m_peerPort, message->HeaderLength());
+
 					ReadHeaderLength(ec, message);
 				}
 				else Close();
@@ -313,6 +318,9 @@ private:
 		}
 		else
 		{
+			SPDLOG_TRACE("Received message on {} from {}:{} ({} bytes)",
+				m_peerPort, m_address.IP, m_address.Port, message->Length());
+
 			if (m_receiveHandler != nullptr)
 			{
 				message->Receive(m_address, m_receiveHandler);
@@ -374,10 +382,11 @@ public:
 	NetworkPeer& operator=(const NetworkPeer&) = delete;
 	NetworkPeer& operator=(NetworkPeer&&) = delete;
 
-	NetworkPeer(uint16_t port, PeerMessageHandler receiveHandler)
+	NetworkPeer(uint16_t port, PeerMessageHandler receiveHandler, OnSessionConnectedHandler connectedHandler)
 		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
 		, m_port(port)
 		, m_receiveHandler(std::move(receiveHandler))
+		, m_sessionConnectedHandler(std::move(connectedHandler))
 	{
 		SPDLOG_INFO("Initializing peer on port {}", port);
 
@@ -439,10 +448,13 @@ public:
 	}
 
 	// TODO: This needs to also handle sending to peers that are leaders for other networks (possibly improve the map?)
-	void Send(peernetwork::MessageType message_type, const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+	void Send(peernetwork::MessageType message_type, const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
 	{
 		peernetwork::Header header;
 		header.set_type(message_type);
+
+		SPDLOG_TRACE("Sending message from {} to {}:{} ({} bytes)",
+			m_port, address.IP, address.Port, length);
 
 		auto session = m_sessions.find(address);
 		if (session != m_sessions.end() && session->second)
@@ -470,7 +482,7 @@ public:
 		}
 	}
 
-	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
 	{
 		for (const auto& [_, session] : m_sessions)
 		{
@@ -532,7 +544,7 @@ private:
 					const std::string& address,
 					uint16_t port,
 					std::unique_ptr<uint8_t[]>&& payload,
-					size_t length)
+					uint32_t length)
 				{
 					switch (header.type())
 					{
@@ -558,9 +570,11 @@ private:
 			session_it->second->Receive();
 
 			const auto endpoint = session_it->second->Endpoint();
-			SPDLOG_INFO("Adding connection to endpoint {}:{} (total sessions {})",
-				endpoint.address().to_string(), endpoint.port(),
+			SPDLOG_INFO("Adding connection from {} to endpoint {}:{} (total sessions {})",
+				m_port, endpoint.address().to_string(), endpoint.port(),
 				m_sessions.size());
+
+			m_sessionConnectedHandler(session_it->second->Address());
 		}
 		else
 		{
@@ -616,6 +630,7 @@ private:
 	std::thread m_thread;
 
 	PeerMessageHandler m_receiveHandler;
+	OnSessionConnectedHandler m_sessionConnectedHandler;
 };
 
 } // namespace mq
@@ -659,16 +674,18 @@ NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
 	: m_port(port)
 {}
 
-NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler receive)
+NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected)
 {
 	auto peer_it = s_peers.find(port);
 	if (peer_it == s_peers.end())
 	{
 		// TODO: the receiver needs to forward to internal peers here (the map likely needs to be improved to handle network topography)
 		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
-			port, [receive = std::move(receive)]
-			(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, const size_t length)
-			{ receive(address, port, std::move(payload), length); })).first;
+			port, std::move(receive), std::move(connected))).first;
+			//[receive = std::move(receive)](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, const uint32_t length)
+			//{ receive(address, port, std::move(payload), length); },
+			//[connected = std::move(connected)](const NetworkAddress& address)
+			//{ connected(address); })).first;
 
 		peer_it->second->Run();
 	}
@@ -676,7 +693,7 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler rec
 	return NetworkPeerAPI(port);
 }
 
-void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length) const
+void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const
 {
 	// this lookup is O(1), and is done this way to decouple the implementation from the API
 	const auto peer = s_peers.find(m_port);
@@ -690,8 +707,9 @@ void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique
 	}
 }
 
-void NetworkPeerAPI::Broadcast(std::unique_ptr<uint8_t[]>&& payload, size_t length) const
+void NetworkPeerAPI::Broadcast(std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const
 {
+	SPDLOG_DEBUG("Attempting to broadcast message with peer on port {}", m_port);
 	const auto peer = s_peers.find(m_port);
 	if (peer != s_peers.end())
 	{
@@ -733,16 +751,16 @@ bool NetworkPeerAPI::HasHost(const std::string& address, uint16_t port) const
 void Test()
 {
 	const auto peer1 = NetworkPeerAPI::GetOrCreate(7781,
-		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
+		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const uint32_t length)
 		{
 			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
-		});
+		}, [](const auto&) {});
 
 	const auto peer2 = NetworkPeerAPI::GetOrCreate(8177,
-		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const size_t length)
+		[](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& message, const uint32_t length)
 		{
 			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
-		});
+		}, [](const auto&) {});
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 

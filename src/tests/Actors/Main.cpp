@@ -12,6 +12,8 @@
  * GNU General Public License for more details.
  */
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #include <windows.h>
 
 #include "routing/PostOffice.h"
@@ -19,8 +21,10 @@
 #include "loader/PostOffice.h"
 //#include "main/MQPostOffice.h"
 
-#include <spdlog/spdlog.h>
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/wincolor_sink.h>
+#include <spdlog/sinks/msvc_sink.h>
 
 #include <cstdio>
 #include <utility>
@@ -71,10 +75,14 @@ void TestBasicNetworkPeerSetup()
 	auto dropbox0 = mq::postoffice::GetPostOffice(0).RegisterAddress("test0", [](mq::ProtoMessagePtr&& message)
 		{
 			const auto envelope = message->Parse<mq::proto::routing::Envelope>();
-			std::cout << envelope.payload() << "\n";
+			std::cout << "test0 received: " << envelope.payload() << "\n";
 		});
 
-	auto dropbox1 = mq::postoffice::GetPostOffice(1).RegisterAddress("test1", [](mq::ProtoMessagePtr&&) {});
+	auto dropbox1 = mq::postoffice::GetPostOffice(1).RegisterAddress("test1", [](mq::ProtoMessagePtr&& message)
+		{
+			const auto envelope = message->Parse<mq::proto::routing::Envelope>();
+			std::cout << "test1 received: " << envelope.payload() << "\n";
+		});
 
 	mq::proto::routing::Address addr;
 	addr.set_name("launcher");
@@ -87,9 +95,25 @@ void TestBasicNetworkPeerSetup()
 	ClearPostOffices();
 }
 
+void InitializeLogging()
+{
+	// create color multi threaded logger
+	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("ActorTest");
+	spdlog::set_default_logger(logger);
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
+	if (IsDebuggerPresent())
+	{
+		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+	}
+
+	SPDLOG_DEBUG("Logging Initialized");
+}
+
 int main(int argc, TCHAR* argv[])
 {
-	spdlog::set_level(spdlog::level::trace);
+	InitializeLogging();
 
 	TestBasicNetworkPeerSetup();
 
