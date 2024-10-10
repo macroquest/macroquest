@@ -1758,6 +1758,46 @@ PLUGIN_API void OnPulse()
 	}
 }
 
+PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->AddSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->AddSpawn(spawn);
+}
+
+PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->RemoveSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveSpawn(spawn);
+}
+
+PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->AddGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->AddGroundItem(item);
+}
+
+PLUGIN_API void OnRemoveGroundItem(EQGroundItem* item)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->RemoveGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveGroundItem(item);
+}
+
 PLUGIN_API void OnUpdateImGui()
 {
 	using namespace mq::lua;

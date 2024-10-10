@@ -26,6 +26,11 @@
 #include <chrono>
 #include <stack>
 
+namespace eqlib {
+	class PlayerClient;
+	class EQGroundItem;
+}
+
 namespace mq {
 	struct MQPlugin;
 }
@@ -190,6 +195,14 @@ public:
 		m_namedDependencies.insert(name);
 	}
 
+	void InitializeSpawnTable();
+	void AddSpawn(eqlib::PlayerClient* spawn);
+	void RemoveSpawn(eqlib::PlayerClient* spawn);
+
+	void InitializeGroundItemTable();
+	void AddGroundItem(eqlib::EQGroundItem* item);
+	void RemoveGroundItem(eqlib::EQGroundItem* item);
+
 private:
 	RunResult RunOnce();
 
@@ -233,6 +246,10 @@ private:
 
 	// datatypes
 	ci_unordered::set<std::string> m_registeredTLOs;
+
+	// memoized table references
+	sol::table m_spawnTable = sol::nil;
+	sol::table m_groundItemTable = sol::nil;
 };
 
 //============================================================================
