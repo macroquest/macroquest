@@ -75,6 +75,7 @@ static bool s_consoleVisibleOnStartup = false;
 static bool s_resetConsolePosition = false;
 static bool s_setFocus = false;
 static bool s_consolePersistentCommandHistory = false;
+static int s_currentFontIndex = 2;
 
 class ImGuiConsole;
 ImGuiConsole* gImGuiConsole = nullptr;
@@ -244,6 +245,39 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 	colorStack.push_back(color);
 
 	return { { pos, (size_t)(end - pos) }, color };
+}
+
+struct FontSizeInfo
+{
+	std::string label;
+	int value;
+};
+
+std::vector<FontSizeInfo> s_fontSizeInfo = {
+	{"10", 10}, {"12", 12}, {"13", 13}, {"14", 14}, {"16", 16},
+	{"18", 18}, {"20", 20}, {"22", 22}, {"24", 24}, {"26", 26},
+	{"28", 28}, {"30", 30}
+};
+
+void FontSizePicker()
+{
+	for (int i = 0; i < s_fontSizeInfo.size(); ++i)
+	{
+		if (s_fontSizeInfo[i].value == s_consoleFontSize)
+		{
+			s_currentFontIndex = i;
+			break;
+		}
+	}
+
+	if (ImGui::Combo("Main Console Font Size", &s_currentFontIndex,
+		[](void* data, int idx, const char** out_text) {
+			*out_text = static_cast<FontSizeInfo*>(data)[idx].label.c_str();
+			return true;
+		}, s_fontSizeInfo.data(), static_cast<int>(s_fontSizeInfo.size())))
+
+		ImGui::SameLine();
+	mq::imgui::HelpMarker("Choose the font size for the main console. Changes will take effect immediately and will be saved for future sessions.");
 }
 
 //============================================================================
@@ -610,7 +644,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 		: m_id(std::string(id))
 	{
 		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);  
+		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
 		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
 		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
 		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
@@ -901,7 +935,6 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 		m_fontSize = newFontSize;
 		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
 	}
-
 
 	bool GetAutoScroll() const override { return m_autoScroll; }
 
@@ -1794,10 +1827,13 @@ static void ConsoleSettings()
 
 		ImGui::NewLine();
 
-		if (ImGui::SliderInt("Main Console Font Size", &s_consoleFontSize, 10, 30))
+		FontSizePicker();
+
+		if (s_consoleFontSize != s_fontSizeInfo[s_currentFontIndex].value)
 		{
-			gImGuiConsole->m_zepEditor->SetConsoleFontSize(s_consoleFontSize);
+			s_consoleFontSize = s_fontSizeInfo[s_currentFontIndex].value;
 			WritePrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
+			gImGuiConsole->m_zepEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, s_consoleFontSize);
 		}
 
 		ImGui::SameLine();
