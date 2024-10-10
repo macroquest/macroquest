@@ -68,6 +68,7 @@ static const int s_userColorCommandLink = USERCOLOR_DIALOG_LINK;
 static const int s_userColorFactionLink = USERCOLOR_FACTION_LINK;
 #endif
 
+static int s_consoleFontSize = 13;
 static bool s_dockspaceVisible = true;
 static bool s_consoleVisible = false;
 static bool s_consoleVisibleOnStartup = false;
@@ -629,7 +630,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 			Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
 				return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
 			})
-			});
+		});
 
 		m_buffer = GetEditor().InitWithText("Console", "");
 		m_buffer->SetTheme(m_theme);
@@ -857,8 +858,6 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 
 	void Render(const ImVec2& displaySize = ImVec2()) override
 	{
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
-
 		if (m_deferredCursorToEnd)
 		{
 			m_deferredCursorToEnd = false;
@@ -1795,16 +1794,14 @@ static void ConsoleSettings()
 
 		ImGui::NewLine();
 
-		int newConsoleFontSize = gImGuiConsole->m_zepEditor->GetConsoleFontSize();
-		if (ImGui::SliderInt("Console Font Size", &newConsoleFontSize, 10, 30))
+		if (ImGui::SliderInt("Main Console Font Size", &s_consoleFontSize, 10, 30))
 		{
-			gImGuiConsole->m_zepEditor->SetConsoleFontSize(newConsoleFontSize);
-			s_consoleFontSize = newConsoleFontSize;
+			gImGuiConsole->m_zepEditor->SetConsoleFontSize(s_consoleFontSize);
 			WritePrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
 		}
 
 		ImGui::SameLine();
-		mq::imgui::HelpMarker("Adjust the font size of the console. Changes will take effect immediately and will be saved for future sessions.");
+		mq::imgui::HelpMarker("Adjust the font size of the Main Console. Changes will take effect immediately and will be saved for future sessions.");
 
 		ImGui::NewLine();
 	}
@@ -1815,6 +1812,13 @@ static void ConsoleSettings()
 		s_consolePersistentCommandHistory = false;
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
+
+		s_consoleFontSize = 13;
+		WritePrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
+		if (gImGuiConsole != nullptr)
+		{
+			gImGuiConsole->m_zepEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, s_consoleFontSize);
+		}
 	}
 }
 
@@ -1823,15 +1827,18 @@ void InitializeImGuiConsole()
 	s_consoleVisibleOnStartup = GetPrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", false, mq::internal_paths::MQini);
 	s_consoleVisible = s_consoleVisibleOnStartup;
 	s_consolePersistentCommandHistory = GetPrivateProfileBool("Console", "PersistentCommandHistory", false, mq::internal_paths::MQini);
+	s_consoleFontSize = GetPrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "ShowMacroQuestConsole", s_consoleVisibleOnStartup, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Console", "PersistentCommandHistory", s_consolePersistentCommandHistory, mq::internal_paths::MQini);
+		WritePrivateProfileInt("Console", "ConsoleFontSize", s_consoleFontSize, internal_paths::MQini);
 	}
 
 	AddSettingsPanel("Console", ConsoleSettings);
 
 	gImGuiConsole = new ImGuiConsole();
+	gImGuiConsole->m_zepEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, s_consoleFontSize);
 	AddCommand("/mqconsole", MQConsoleCommand);
 }
 
