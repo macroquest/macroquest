@@ -19,6 +19,7 @@
 #include "LuaImGui.h"
 #include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -656,5 +657,74 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 }
 
 //============================================================================
+
+void LuaThread::InitializeSpawnTable()
+{
+	if (m_spawnTable == sol::nil)
+	{
+		m_spawnTable = m_globalState.create_named_table("__spawns");
+
+		if (pSpawnManager != nullptr)
+		{
+			auto spawn = pSpawnManager->FirstSpawn;
+
+			while (spawn != nullptr)
+			{
+				m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				spawn = spawn->GetNext();
+			}
+		}
+	}
+}
+
+void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
+	{
+		m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+	}
+}
+
+void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
+	{
+		m_spawnTable[spawn->SpawnID] = sol::nil;
+	}
+}
+
+void LuaThread::InitializeGroundItemTable()
+{
+	if (m_groundItemTable == sol::nil)
+	{
+		m_groundItemTable = m_globalState.create_named_table("__groundItems");
+
+		if (pItemList != nullptr)
+		{
+			auto item = pItemList->Top;
+			while (item != nullptr)
+			{
+				m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+				item = item->pNext;
+			}
+		}
+	}
+}
+
+void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
+	{
+		m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+	}
+}
+
+void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
+	{
+		m_groundItemTable[item->DropID] = sol::nil;
+	}
+}
 
 } // namespace mq::lua
