@@ -658,7 +658,6 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 
 //============================================================================
 
-// TODO: Remove the debugging statements
 void LuaThread::InitializeSpawnTable()
 {
 	if (m_spawnTable == sol::nil)
