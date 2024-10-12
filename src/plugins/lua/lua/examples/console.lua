@@ -10,6 +10,17 @@ local localEcho = false
 local resetPosition = false
 local commandBuffer = ''
 local setFocus = false
+local fontSize = 13
+
+local fontSizes = {}
+for i = 10, 30 do
+    if i % 2 == 0 then
+        table.insert(fontSizes, i)
+        if i == 12 then
+            table.insert(fontSizes, 13) -- this is the default font size so keep it in the list
+        end
+    end
+end
 
 function MakeColorGradient(freq1, freq2, freq3, phase1, phase2, phase3, center, width, length)
     local text = ''
@@ -35,6 +46,7 @@ end
 local GUI = function()
     if console == nil then
         console = imgui.ConsoleWidget.new("##Console")
+        console.fontSize = fontSize
     end
 
     local flags = ImGuiWindowFlags.MenuBar
@@ -70,7 +82,6 @@ local GUI = function()
             end
 
             if imgui.BeginMenu('Extras') then
-
                 if imgui.MenuItem('Color Test 1') then
                     console:AppendText("\ayYELLOW    \a-yDARK YELLOW");
                     console:AppendText("\aoORANGE    \a-oDARK ORANGE");
@@ -90,12 +101,28 @@ local GUI = function()
 
                 imgui.EndMenu()
             end
-
+            if ImGui.BeginMenu('Font Size##') then
+                ImGui.SetNextItemWidth(100)
+                if ImGui.BeginCombo("##FontSize", tostring(fontSize)) then
+                    for k, data in pairs(fontSizes) do
+                        local isSelected = data == fontSize
+                        if ImGui.Selectable(tostring(data), isSelected) then
+                            if fontSize ~= data then
+                                fontSize = data
+                                console.fontSize = data
+                            end
+                        end
+                    end
+                    ImGui.EndCombo()
+                end
+                ImGui.EndMenu()
+            end
             imgui.EndMenu()
         end
         imgui.EndMenuBar()
     end
     -- End of menu bar
+
 
     local footerHeight = imgui.GetStyle().ItemSpacing.y + imgui.GetFrameHeightWithSpacing()
 
@@ -119,9 +146,9 @@ local GUI = function()
 
     local textFlags = bit32.bor(0,
         ImGuiInputTextFlags.EnterReturnsTrue
-        -- not implemented yet
-        -- ImGuiInputTextFlags.CallbackCompletion,
-        -- ImGuiInputTextFlags.CallbackHistory
+    -- not implemented yet
+    -- ImGuiInputTextFlags.CallbackCompletion,
+    -- ImGuiInputTextFlags.CallbackHistory
     )
 
     imgui.SetCursorPosX(imgui.GetCursorPosX() + 6)
@@ -155,7 +182,7 @@ end
 
 function StringTrim(s)
     return s:gsub("^%s*(.-)%s*$", "%1")
- end
+end
 
 function ExecCommand(text)
     if localEcho then
@@ -164,7 +191,6 @@ function ExecCommand(text)
 
     -- todo: implement history
     if string.len(text) > 0 then
-
         text = StringTrim(text)
         if text == 'clear' then
             console:Clear()
