@@ -113,10 +113,10 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui, sol::state_view lua)
 		"Clear", &mq::imgui::ImGuiZepEditor::Clear,
 		"SetSyntax", [](mq::imgui::ImGuiZepEditor* pThis, const char* syntaxName) { pThis->SetSyntaxProvider(syntaxName); },
 		"text", sol::property(
-			[](mq::imgui::ImGuiZepEditor* pThis) -> std::string { size_t bufferSize = pThis->GetTextLength(); std::string text; text.reserve(bufferSize); pThis->GetText(text); return text; }
-			, &mq::imgui::ImGuiZepEditor::SetText),
+			[](mq::imgui::ImGuiZepEditor* pThis) -> std::string { size_t bufferSize = pThis->GetTextLength(); std::string text; text.reserve(bufferSize); pThis->GetText(text); return text; }/* read only */),
+		"LoadContents", [](mq::imgui::ImGuiZepEditor* pThis, std::string_view text) { pThis->SetText(text); },
 		"fontSize", sol::property(&mq::imgui::ImGuiZepEditor::GetFontSize, &mq::imgui::ImGuiZepEditor::SetFontSize),
-		"flags", sol::property(&mq::imgui::ImGuiZepEditor::GetWindowFlags, &mq::imgui::ImGuiZepEditor::SetWindowFlags)
+		"windowFlags", sol::property(&mq::imgui::ImGuiZepEditor::GetWindowFlags, &mq::imgui::ImGuiZepEditor::SetWindowFlags)
 	);
 
 	// ZepEditor Flags
