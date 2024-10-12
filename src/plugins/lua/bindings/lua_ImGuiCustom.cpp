@@ -23,6 +23,9 @@
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
+#include <zep/enums.h>
+
+#include "main/ImGuiZepEditor.h"
 
 #include <string>
 
@@ -33,7 +36,7 @@ namespace mq::lua::bindings {
 void lua_addimgui(std::string_view name, sol::function function, sol::this_state s);
 void lua_removeimgui(std::string_view name, sol::this_state s);
 
-void RegisterBindings_ImGuiCustom(sol::table& ImGui)
+void RegisterBindings_ImGuiCustom(sol::table& ImGui, sol::state_view lua)
 {
 	// Variables
 	ImGui.set("ConsoleFont", mq::imgui::ConsoleFont);
@@ -99,6 +102,39 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 			[](mq::imgui::ConsoleWidget* pThis, const ImVec4& col, std::string_view text) { pThis->AppendText(text, MQColor(col), false); }
 		)
 	);
-}
 
+	// Widgets: ZepInputBox
+	ImGui.new_usertype<mq::imgui::ImGuiZepEditor>(
+		"TextEditor", sol::factories(&mq::imgui::ImGuiZepEditor::Create),
+		"Render", sol::overload(
+			[](mq::imgui::ImGuiZepEditor* pThis) { pThis->Render(); },
+			[](mq::imgui::ImGuiZepEditor* pThis, ImVec2 displaySize) { pThis->Render(displaySize); }
+		),
+		"Clear", &mq::imgui::ImGuiZepEditor::Clear,
+		"SetSyntax", [](mq::imgui::ImGuiZepEditor* pThis, const char* syntaxName) { pThis->SetSyntaxProvider(syntaxName); },
+		"text", sol::property(
+			[](mq::imgui::ImGuiZepEditor* pThis) -> std::string { size_t bufferSize = pThis->GetTextLength(); std::string text; text.reserve(bufferSize); pThis->GetText(text); return text; }
+			, &mq::imgui::ImGuiZepEditor::SetText),
+		"fontSize", sol::property(&mq::imgui::ImGuiZepEditor::GetFontSize, &mq::imgui::ImGuiZepEditor::SetFontSize),
+		"flags", sol::property(&mq::imgui::ImGuiZepEditor::GetWindowFlags, &mq::imgui::ImGuiZepEditor::SetWindowFlags)
+	);
+
+	// ZepEditor Flags
+	lua.new_enum("TextEditorWindowFlags",
+		"None"						, Zep::WindowFlags::None,
+		"ShowWhiteSpace"			, Zep::WindowFlags::ShowWhiteSpace,
+		"ShowCR"					, Zep::WindowFlags::ShowCR,
+		"ShowLineNumbers"			, Zep::WindowFlags::ShowLineNumbers,
+		"ShowIndicators"			, Zep::WindowFlags::ShowIndicators,
+		"HideScrollBar"				, Zep::WindowFlags::HideScrollBar,
+		"Modal"						, Zep::WindowFlags::Modal,
+		"WrapText"					, Zep::WindowFlags::WrapText,
+		"HideSplitMark"				, Zep::WindowFlags::HideSplitMark,
+		"GridStyle"					, Zep::WindowFlags::GridStyle,
+		"ShowLineBackground"		, Zep::WindowFlags::ShowLineBackground,
+		"ShowWrappedLineNumbers"	, Zep::WindowFlags::ShowWrappedLineNumbers,
+		"ShowAirLine"				, Zep::WindowFlags::ShowAirLine,
+		"HideTrailingNewline"		, Zep::WindowFlags::HideTrailingNewline
+	);
+}
 } // namespace mq::lua::bindings

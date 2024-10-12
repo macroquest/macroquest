@@ -59,6 +59,7 @@ public:
     }
 
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator& index) const = 0;
+    virtual void QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation) = 0;
 
     const uint32_t ToBackgroundColor(const SyntaxResult& res) const
     {

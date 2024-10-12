@@ -1905,7 +1905,7 @@ public:
 				// TODO: Refactor into general purpose editor control
 				if (!m_textEditor)
 				{
-					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>();
+					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>("##StringEditor");
 					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
 					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont, 16);
 
@@ -1920,7 +1920,7 @@ public:
 					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", sv);
 				}
 
-				m_textEditor->Render("##StringEditor", ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
+				m_textEditor->Render(ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
 				auto& buffer = m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
 				if (buffer.HasFileFlags(Zep::FileFlags::Dirty))
 				{

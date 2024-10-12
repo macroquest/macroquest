@@ -23,6 +23,7 @@
 
 #include "pch.h"
 #include "ImGuiZepEditor.h"
+#include "imgui/ImGuiUtils.h"
 
 #include "zep/display.h"
 #include "zep/editor.h"
@@ -437,11 +438,22 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 
 //----------------------------------------------------------------------------
 
-ImGuiZepEditor::ImGuiZepEditor()
-{
+ImGuiZepEditor::ImGuiZepEditor(std::string_view id)
+		: m_id(std::string(id))
+	{
 	m_editor = new ZepEditor_ImGui(ZepPath(), ZepEditorFlags::DisableThreads);
 	m_editor->RegisterCallback(this);
 	m_editor->SetGlobalMode(ZepMode_Standard::StaticName());
+
+	SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
+
+	m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
+
+	m_editor->GetConfig().style = Zep::EditorStyle::Normal;
+	m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
+
+	m_buffer = m_editor->InitWithText(m_id, "");
+	m_buffer->SetFileFlags(Zep::FileFlags::CrudeUtf8Vaidate);
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
@@ -478,7 +490,7 @@ ZepEditor& ImGuiZepEditor::GetEditor() const
 	return *m_editor;
 }
 
-void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
+void ImGuiZepEditor::Render(const ImVec2& displaySize)
 {
 	ImVec2 actualSize = ImGui::GetContentRegionAvail();
 	if (displaySize.x != 0)
@@ -488,7 +500,7 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 
 	ImGuiIO& io = ImGui::GetIO();
 
-	if (ImGui::BeginChild(id, actualSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground))
+	if (ImGui::BeginChild(m_id.c_str(), actualSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground))
 	{
 		m_editor->SetScreenPosition(toNVec2f(ImGui::GetCursorScreenPos()));
 		m_editor->SetDisplayRegionSize(toNVec2f(actualSize));
@@ -509,6 +521,66 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 	}
 
 	ImGui::EndChild();
+}
+
+void ImGuiZepEditor::Clear()
+{
+	m_buffer->Clear();
+}
+
+void ImGuiZepEditor::GetText(std::string& outBuffer) const
+{
+	outBuffer.reserve(GetTextLength());
+	auto& workingBuffer = m_buffer->GetWorkingBuffer();
+	std::copy(workingBuffer.begin(), workingBuffer.end(), std::back_inserter(outBuffer));
+	// copy 1 less character to avoid adding the null terminator into the std::string size.
+	outBuffer.pop_back();
+}
+
+size_t ImGuiZepEditor::GetTextLength() const
+{
+	// buffer size includes the null terminator the text length should not.
+	return m_buffer->GetWorkingBuffer().size() - 1;
+}
+
+void ImGuiZepEditor::SetSyntaxProvider(const char* syntaxName) const
+{
+	GetEditor().SetBufferSyntax(*m_buffer, syntaxName);
+}
+
+Zep::GlyphIterator ImGuiZepEditor::InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color /*= -1*/)
+{
+	Zep::ChangeRecord changeRecord;
+	m_buffer->Insert(position, text, changeRecord);
+
+	return position.Move(static_cast<long>(text.length()));
+}
+
+void ImGuiZepEditor::SetText(std::string_view text)
+{
+	Clear();
+	InsertText(m_buffer->End(), text);
+}
+
+void ImGuiZepEditor::SetFontSize(int size)
+{
+	m_fontSize = size;
+	SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, m_fontSize);
+}
+
+int ImGuiZepEditor::GetWindowFlags() const
+{ 
+	return m_window->GetWindowFlags(); 
+}
+
+void ImGuiZepEditor::SetWindowFlags(int flags) const
+{
+	m_window->SetWindowFlags(flags);
+}
+
+std::shared_ptr<mq::imgui::ImGuiZepEditor> ImGuiZepEditor::Create(std::string_view id)
+{
+	return std::make_shared<ImGuiZepEditor>(id);
 }
 
 } // namespace mq::imgui

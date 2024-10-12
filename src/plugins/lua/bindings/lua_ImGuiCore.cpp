@@ -27,7 +27,7 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
-void RegisterBindings_ImGuiCustom(sol::table& ImGui);
+void RegisterBindings_ImGuiCustom(sol::table& ImGui, sol::state_view state);
 void RegisterBindings_ImGuiWidgets(sol::table& ImGui);
 void RegisterBindings_ImGuiUserTypes(sol::state_view state);
 void RegisterBindings_ImGuiEnums(sol::state_view state);
@@ -657,7 +657,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 #pragma endregion
 
 	bindings::RegisterBindings_ImGuiWidgets(ImGui);
-	bindings::RegisterBindings_ImGuiCustom(ImGui);
+	bindings::RegisterBindings_ImGuiCustom(ImGui, state);
 
 	return ImGui;
 }

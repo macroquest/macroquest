@@ -79,8 +79,8 @@ enum class BufferType
 };
 
 // A really big cursor move; which will likely clamp
-//static const iterator MaxCursorMove = iterator(0xFFFFFFF);
-//const long InvalidByteIndex = -1;
+// static const iterator MaxCursorMove = iterator(0xFFFFFFF);
+// const long InvalidByteIndex = -1;
 
 enum class ExpressionType
 {
@@ -182,22 +182,7 @@ public:
         m_spSyntax = syntax;
     }
 
-    void SetSyntaxProvider(SyntaxProvider provider)
-    {
-        if (provider.syntaxID != m_syntaxProvider.syntaxID)
-        {
-            if (provider.factory)
-            {
-                m_spSyntax = provider.factory(this);
-            }
-            else
-            {
-                m_spSyntax.reset();
-            }
-
-            m_syntaxProvider = provider;
-        }
-    }
+    void SetSyntaxProvider(SyntaxProvider provider);
 
     ZepSyntax* GetSyntax() const
     {
