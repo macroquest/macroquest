@@ -28,12 +28,13 @@ using RequestFocusCallback = std::function<void(const mq::MQMessageFocusRequest*
 // setting these configs is to allow testing without spoofing config files
 struct PostOfficeConfig
 {
+	std::string Name; // useful for debugging
 	std::optional<uint16_t> PeerPort;
 	std::optional<std::string> PipeName;
 	std::optional<std::vector<std::pair<std::string, uint16_t>>> Peers;
 };
 
-std::optional<PostOfficeConfig> GetPostOfficeConfig(uint32_t index);
+const PostOfficeConfig& GetPostOfficeConfig(uint32_t index);
 void SetPostOfficeConfig(uint32_t index, const PostOfficeConfig& config);
 void DropPostOfficeConfig(uint32_t index);
 void ClearPostOfficeConfigs();
@@ -78,8 +79,11 @@ public:
 	LauncherPostOffice& operator=(const LauncherPostOffice&) = delete;
 	LauncherPostOffice& operator=(LauncherPostOffice&&) = delete;
 
-	explicit LauncherPostOffice(uint32_t index);
+	explicit LauncherPostOffice(const PostOfficeConfig& config);
 	~LauncherPostOffice() override = default;
+
+	const PostOfficeConfig& GetConfig() const { return m_config; }
+	const std::string& GetName() const { return m_config.Name; }
 
 	// TODO: This isn't right, it's only checking the address and not the container
 	static bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
@@ -110,6 +114,8 @@ public:
 	}
 
 private:
+	const PostOfficeConfig m_config;
+
 	std::unordered_multimap<ActorContainer, ActorIdentification> m_identities;
 
 	Dropbox m_serverDropbox;
@@ -160,7 +166,7 @@ public:
 	LocalConnection& operator=(const LocalConnection&) = delete;
 	LocalConnection& operator=(LocalConnection&&) = delete;
 
-	LocalConnection(LauncherPostOffice* postOffice, uint32_t index);
+	LocalConnection(LauncherPostOffice* postOffice);
 	~LocalConnection();
 	void Process() override;
 	void RequestProcessEvents();
@@ -188,7 +194,6 @@ public:
 	
 private:
 	mq::ProtoPipeServer m_pipeServer;
-	uint32_t m_configIndex;
 
 	bool m_running = false;
 	std::thread m_thread;
@@ -209,7 +214,7 @@ public:
 	PeerConnection& operator=(PeerConnection&&) = delete;
 
 	// TODO: make the port configurable (default to 7781)
-	PeerConnection(LauncherPostOffice* postOffice, uint32_t index);
+	PeerConnection(LauncherPostOffice* postOffice);
 	~PeerConnection() override;
 	void AddConfiguredHosts();
 
@@ -225,9 +230,8 @@ public:
 
 private:
 	NetworkPeerAPI m_network;
-	uint32_t m_configIndex;
 
-	static proto::routing::NetworkMessage Translate(const PipeMessagePtr& message);
+	proto::routing::NetworkMessage Translate(const PipeMessagePtr& message);
 };
 
 } // namespace postoffice

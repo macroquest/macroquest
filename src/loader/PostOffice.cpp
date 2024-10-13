@@ -118,19 +118,26 @@ void LauncherPostOffice::RouteMessage(PipeMessagePtr&& message, const PipeMessag
 
 void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 {
-	DropIdentity(id); // make sure we remove any duplicates
+	// make sure we remove any duplicates without broadcasting
+	for (auto ident_it = m_identities.begin(); ident_it != m_identities.end();)
+	{
+		if (ident_it->second.IsDuplicate(id))
+			ident_it = m_identities.erase(ident_it);
+		else
+			++ident_it;
+	}
 
 	m_identities.emplace(id.container, id);
-	SPDLOG_INFO("Got identification from {}", id);
+	SPDLOG_INFO("{}: Got identification from {}", GetName(), id);
 
 	// TODO: this should probably be a property of this
 	ActorIdentification self(GetCurrentProcessId(), "launcher");
 
-	// TODO: this is maybe too aggressive?
+	// TODO: this is maybe too aggressive? not sure how else to make identities idempotent
 	// we also need to update all the clients
 	for (const auto& identity : m_identities)
 	{
-		if (id != identity.second && self != identity.second)
+		if (!identity.second.IsDuplicate(id) && !identity.second.IsDuplicate(self))
 		{
 			SendMessage(identity.first, MQMessageId::MSG_IDENTIFICATION, id.GetProto(), nullptr);
 		}
@@ -181,7 +188,7 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 // TODO: add callback handling to this as well
 void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& message)
 {
-	SPDLOG_TRACE("Routing received message: to={} from={}",
+	SPDLOG_TRACE("{}: Routing received message: to={} from={}", GetName(),
 		message.address().has_name() ? message.address().name() : message.address().client().character(),
 		message.has_return_address() ? (message.return_address().has_name() ? message.return_address().name() : message.return_address().client().character()) : "unk");
 
@@ -204,11 +211,13 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 	if (address.has_pid() && address.pid() == GetCurrentProcessId())
 	{
 		// we are explicitly sending to this PID, so route entirely internally
+		SPDLOG_TRACE("{}: Internal pipe message received, routing to mailbox {}", GetName(), address.has_mailbox() ? address.mailbox() : "post_office");
 		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
 	}
 	else if (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.has_name() && ci_equals(address.name(), "launcher"))
 	{
 		// we are addressing this peer's launcher, this, so route entirely internally
+		SPDLOG_TRACE("{}: Internal peer message received, routing to mailbox {}", GetName(), address.has_mailbox() ? address.mailbox() : "post_office");
 		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
 	}
 	else
@@ -216,6 +225,7 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 		// This message isn't addressed specifically to this launcher, so find all identities that
 		// should receive this message and send to each one
 		// TODO: handle RPC here (it should fail here if we have more than one recipient)
+		SPDLOG_TRACE("{}: Routing message to {}", GetName(), address.has_name() ? address.name() : address.client().character());
 		for (const auto& identity : m_identities)
 		{
 			if (IsRecipient(address, identity.second))
@@ -267,9 +277,10 @@ void LauncherPostOffice::Shutdown()
 }
 
 
-LauncherPostOffice::LauncherPostOffice(uint32_t index)
-	: m_localConnection(std::make_unique<LocalConnection>(this, index))
-	, m_peerConnection(std::make_unique<PeerConnection>(this, index))
+LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
+	: m_config(config)
+	, m_localConnection(std::make_unique<LocalConnection>(this))
+	, m_peerConnection(std::make_unique<PeerConnection>(this))
 {
 	ActorIdentification id(GetCurrentProcessId(), "launcher");
 	m_identities.emplace(id.container, id);
@@ -327,6 +338,7 @@ bool LauncherPostOffice::SendMessage(
 	PipeMessagePtr&& message,
 	const PipeMessageResponseCb& callback)
 {
+	SPDLOG_TRACE("{}: Sending message to {}", GetName(), ident);
 	return std::visit([this, message = std::move(message), &callback](const auto& c) mutable
 		{
 			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message), callback);
@@ -352,7 +364,7 @@ postoffice::LauncherPostOffice& postoffice::GetPostOffice<postoffice::LauncherPo
 {
 	auto it = s_postOffices.find(index);
 	if (it == s_postOffices.end())
-		it = s_postOffices.emplace(index, index).first;
+		it = s_postOffices.emplace(index, GetPostOfficeConfig(index)).first;
 
 	return it->second;
 }
@@ -387,13 +399,14 @@ void SendForceUnloadAllCommand()
 
 //----------------------------------------------------------------------------
 
-std::optional<PostOfficeConfig> GetPostOfficeConfig(uint32_t index)
+const PostOfficeConfig& GetPostOfficeConfig(uint32_t index)
 {
 	const auto config = s_postOfficeConfigs.find(index);
 	if (config != s_postOfficeConfigs.end())
 		return config->second;
 
-	return {};
+	static PostOfficeConfig s_defaultPostOfficeConfig;
+	return s_defaultPostOfficeConfig;
 }
 
 void SetPostOfficeConfig(uint32_t index, const PostOfficeConfig& config)

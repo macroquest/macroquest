@@ -289,7 +289,7 @@ struct ActorIdentification
 	 * @param other the other identity to compare against
 	 * @return if this identity duplicates other 
 	 */
-	bool IsDuplicate(const ActorIdentification& other)
+	bool IsDuplicate(const ActorIdentification& other) const
 	{
 		return *this == other || std::visit(overload{
 			// this will always be false because the true case is covered in the equality check

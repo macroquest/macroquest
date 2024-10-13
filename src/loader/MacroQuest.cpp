@@ -1602,7 +1602,6 @@ int WINAPI CALLBACK WinMain(
 	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
 
 	SPDLOG_INFO("Waiting for events...");
-	//Test();
 
 	MSG msg;
 	LauncherImGui::Run(

@@ -5,6 +5,12 @@ package mq.peernetwork;
 enum MessageType {
 	Route = 0; // normally everything is a route, everything after this is a bookkeeping message type
 	Leader = 1;
+	Handshake = 2;
+}
+
+message Identity {
+	string uuid = 1;
+	uint32 port = 2;
 }
 
 message Header {

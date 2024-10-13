@@ -7,10 +7,6 @@
 
 namespace mq {
 
-// this serves as the signature for sending and receiving messages
-// the signature is address, port, payload, length
-using PeerMessageHandler = std::function<void(const std::string&, uint16_t, std::unique_ptr<uint8_t[]>&&, size_t)>;
-
 // create an address type for use in keying and lookup
 struct NetworkAddress
 {
@@ -22,10 +18,20 @@ struct NetworkAddress
 		// exact match on IP, can just use string == override
 		return IP == other.IP && Port == other.Port;
 	}
+
+	bool operator!=(const NetworkAddress& other) const
+	{
+		return !(*this == other);
+	}
 };
+
+// this serves as the signature for sending and receiving messages
+// the signature is address, port, payload, length
+using PeerMessageHandler = std::function<void(const NetworkAddress&, std::unique_ptr<uint8_t[]>&&, size_t)>;
 
 // this is the signature for onconnected callbacks
 using OnSessionConnectedHandler = std::function<void(const NetworkAddress& address)>;
+using OnSessionDisconnectedHandler = std::function<void(const NetworkAddress& address)>;
 
 class NetworkPeerAPI
 {
@@ -74,7 +80,7 @@ public:
 		}
 	}
 
-	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected);
+	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected, OnSessionDisconnectedHandler disconnected);
 	void Shutdown() const;
 
 	void AddHost(const std::string& address, uint16_t port) const;
@@ -98,4 +104,3 @@ template<> struct std::hash<mq::NetworkAddress>
 	}
 };
 
-void Test();

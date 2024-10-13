@@ -98,16 +98,15 @@ private:
 	LocalConnection* m_connection;
 };
 
-std::string GetPipePath(uint32_t index)
+std::string GetPipePath(LauncherPostOffice* postOffice)
 {
-	const auto config = GetPostOfficeConfig(index);
-	return config && config->PipeName ? *config->PipeName : mq::MQ_PIPE_SERVER_PATH;
+	const auto& config = postOffice->GetConfig();
+	return config.PipeName ? *config.PipeName : mq::MQ_PIPE_SERVER_PATH;
 }
 
-LocalConnection::LocalConnection(LauncherPostOffice* postOffice, uint32_t index)
+LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
-	, m_configIndex(index)
-	, m_pipeServer{ GetPipePath(index).c_str() }
+	, m_pipeServer{ GetPipePath(postOffice).c_str() }
 {
 	m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
 	m_thread = std::thread(
@@ -197,7 +196,7 @@ bool LocalConnection::SendMessage(
 		return true;
 	}
 
-	SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed.", m_postOffice->GetName(), pid);
 	RoutingFailed(MsgError_NoConnection, message, callback);
 	return false;
 }
@@ -207,7 +206,7 @@ bool LocalConnection::SendMessage(
 		PipeMessagePtr&& message,
 		const PipeMessageResponseCb& callback)
 {
-	SPDLOG_WARN("Attempted to send to peer {} over local pipe", ActorContainer(peer));
+	SPDLOG_WARN("{}: Attempted to send to peer {} over local pipe", m_postOffice->GetName(), ActorContainer(peer));
 	RoutingFailed(MsgError_NoConnection, message, callback);
 	return false;
 }
@@ -220,7 +219,7 @@ void LocalConnection::BroadcastMessage(PipeMessagePtr&& message)
 void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
 {
 	using namespace mq::proto;
-	SPDLOG_TRACE("Received message: id={} length={} connectionId={}", static_cast<int>(message->GetMessageId()),
+	SPDLOG_TRACE("{}: Received message id={} length={} connectionId={}", m_postOffice->GetName(), static_cast<int>(message->GetMessageId()),
 			message->size(), message->GetConnectionId());
 
 	switch (message->GetMessageId())
@@ -229,7 +228,7 @@ void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
 			{
 				std::string str(message->get<const char>(), message->size() - 1);
 				message->SendReply(MQMessageId::MSG_ECHO, str.data(), static_cast<uint32_t>(str.length()) + 1, 0);
-				SPDLOG_INFO("Handling echo request: {}", str);
+				SPDLOG_INFO("{}: Handling echo request: {}", m_postOffice->GetName(), str);
 				break;
 			}
 
@@ -381,37 +380,36 @@ bool LocalConnection::SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 
 void LocalConnection::SendUnloadAllCommand()
 {
-	SPDLOG_DEBUG("Requesting to unload all instances");
+	SPDLOG_DEBUG("{}: Requesting to unload all instances", m_postOffice->GetName());
 	m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
 }
 
 void LocalConnection::SendForceUnloadAllCommand()
 {
-	SPDLOG_DEBUG("Requesting to FORCE unload all instances");
+	SPDLOG_DEBUG("{}: Requesting to FORCE unload all instances", m_postOffice->GetName());
 	m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 }
 
 // ------------------------ PeerConnection ------------------------------------
 
-uint16_t GetPeerPort(uint32_t index)
+uint16_t GetPeerPort(LauncherPostOffice* postOffice)
 {
-	const auto config = GetPostOfficeConfig(index);
-	return config && config->PeerPort ? *config->PeerPort : DEFAULT_ACTOR_PEER_PORT;
+	const auto config = postOffice->GetConfig();
+	return config.PeerPort ? *config.PeerPort : DEFAULT_ACTOR_PEER_PORT;
 }
 
-PeerConnection::PeerConnection(LauncherPostOffice* postOffice, uint32_t index)
+PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
-	, m_configIndex(index)
 	, m_network(NetworkPeerAPI::GetOrCreate(
-		GetPeerPort(index),
-		[this](const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+		GetPeerPort(postOffice),
+		[this](const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
 		{
 			using proto::routing::NetworkMessage;
 
 			NetworkMessage inbound;
 			inbound.ParseFromArray(payload.get(), static_cast<int>(length));
 
-			auto source_addr = ActorContainer::Network{ address, port };
+			auto source_addr = ActorContainer::Network{ address.IP, address.Port };
 
 			switch (inbound.contents_case())
 			{
@@ -430,8 +428,8 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice, uint32_t index)
 				if (inbound.routed().has_return_address())
 				{
 					inbound.mutable_routed()->mutable_return_address()->clear_pid();
-					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_ip(address);
-					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_port(port);
+					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_ip(address.IP);
+					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_port(address.Port);
 				}
 
 				// if this message has been routed here, then we need to let the local launcher handle any routing
@@ -442,14 +440,19 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice, uint32_t index)
 				m_postOffice->RouteFromConnection(inbound.routed());
 				break;
 			default:
-				SPDLOG_WARN("Got unknown inbound message type {}", static_cast<int>(inbound.contents_case()));
+				SPDLOG_WARN("{}: Got unknown inbound message type {}", m_postOffice->GetName(), static_cast<int>(inbound.contents_case()));
 				break;
 			}
 		},
 		[this](const NetworkAddress& address)
 		{
-			ActorIdentification launcher(ActorContainer::Network{ address.IP, address.Port }, "launcher");
-			m_postOffice->SendIdentities(launcher.container);
+			// once the connect attempt is successful, send all known identities to the remote to sync
+			m_postOffice->SendIdentities(ActorContainer(ActorContainer::Network{ address.IP, address.Port }));
+		},
+		[this](const NetworkAddress& address)
+		{
+			// let's just always reconnect to disconnected hosts
+			AddHost(address.IP, address.Port);
 		}))
 {}
 
@@ -460,13 +463,13 @@ PeerConnection::~PeerConnection()
 
 void mq::postoffice::PeerConnection::AddConfiguredHosts()
 {
-	const uint16_t default_port = GetPeerPort(m_configIndex);
-	const auto config = GetPostOfficeConfig(m_configIndex);
+	const uint16_t default_port = GetPeerPort(m_postOffice);
+	const auto config = m_postOffice->GetConfig();
 
 	// TODO: add a way to add/remove hosts during runtime
-	if (config && config->Peers)
+	if (config.Peers)
 	{
-		for (const auto& [address, port] : *config->Peers)
+		for (const auto& [address, port] : *config.Peers)
 		{
 			AddHost(address, port > 0 ? port : default_port);
 		}
@@ -483,7 +486,7 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 
 bool PeerConnection::SendMessage(uint32_t pid, PipeMessagePtr&& message, const PipeMessageResponseCb& callback)
 {
-	SPDLOG_WARN("Attempted to send to pid {} over network", pid);
+	SPDLOG_WARN("{}: Attempted to send to pid {} over network", m_postOffice->GetName(), pid);
 	RoutingFailed(MsgError_NoConnection, message, callback);
 	return false;
 }
@@ -504,7 +507,7 @@ bool PeerConnection::SendMessage(const ActorContainer::Network& peer, PipeMessag
 		return true;
 	}
 
-	SPDLOG_WARN("Unable to find peer for address {}:{}, message route failed.", peer.IP, peer.Port);
+	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed.", m_postOffice->GetName(), peer.IP, peer.Port);
 	RoutingFailed(MsgError_NoConnection, message, callback);
 	return false;
 
@@ -549,7 +552,7 @@ proto::routing::NetworkMessage PeerConnection::Translate(const PipeMessagePtr& m
 			*inbound.mutable_routed() = ProtoMessage::Parse<proto::routing::Envelope>(message);
 			break;
 		default:
-			SPDLOG_WARN("Attempted to translate a pipe message of unknown type {}, empty message returned", static_cast<int>(message->GetMessageId()));
+			SPDLOG_WARN("{}: Attempted to translate a pipe message of unknown type {}, empty message returned", m_postOffice->GetName(), static_cast<int>(message->GetMessageId()));
 			break;
 	}
 

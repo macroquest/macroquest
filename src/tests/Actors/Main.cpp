@@ -19,6 +19,7 @@
 #include "routing/PostOffice.h"
 
 #include "loader/PostOffice.h"
+#include "loader/Network.h"
 //#include "main/MQPostOffice.h"
 
 #include <fmt/format.h>
@@ -59,30 +60,61 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 	return std::make_pair(std::string(addr), port);
 }
 
+void Test()
+{
+	const auto peer1 = mq::NetworkPeerAPI::GetOrCreate(7781,
+		[](const mq::NetworkAddress& address, std::unique_ptr<uint8_t[]>&& message, const uint32_t length)
+		{
+			SPDLOG_DEBUG("Received message in peer1 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
+		}, [](const auto&) {}, [](const auto&) {});
+
+	const auto peer2 = mq::NetworkPeerAPI::GetOrCreate(8177,
+		[](const mq::NetworkAddress& address, std::unique_ptr<uint8_t[]>&& message, const uint32_t length)
+		{
+			SPDLOG_DEBUG("Received message in peer2 of length {}: {}", length, std::string_view(reinterpret_cast<char*>(message.get()), length));
+		}, [](const auto&) {}, [](const auto&) {});
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	peer1.AddHost("127.0.0.1", 8177);
+	peer2.AddHost("127.0.0.1", 7781);
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+
+	const std::string s("This is a test");
+	auto t = std::make_unique<uint8_t[]>(s.length());
+	memcpy(t.get(), s.data(), s.length());
+	peer1.Send("127.0.0.1", 8177, std::move(t), s.length());
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
 void TestBasicNetworkPeerSetup()
 {
-	SetPostOfficeConfig(0, PostOfficeConfig{ 7781, R"(\\.\pipe\mqpipe0)",std::vector{
+	SetPostOfficeConfig(0, PostOfficeConfig{ "7781", 7781, R"(\\.\pipe\mqpipe0)",std::vector{
 		NetPeer("127.0.0.1", 8177),
 	}});
 
-	SetPostOfficeConfig(1, PostOfficeConfig{ 8177, R"(\\.\pipe\mqpipe1)", std::vector{
+	SetPostOfficeConfig(1, PostOfficeConfig{ "8177", 8177, R"(\\.\pipe\mqpipe1)", std::vector{
 		NetPeer("127.0.0.1", 7781),
 	}});
 
 	InitializePostOffice(0);
 	InitializePostOffice(1);
 
-	auto dropbox0 = mq::postoffice::GetPostOffice(0).RegisterAddress("test0", [](mq::ProtoMessagePtr&& message)
+	auto dropbox0 = mq::postoffice::GetPostOffice(0).RegisterAddress("test7781", [](mq::ProtoMessagePtr&& message)
 		{
 			const auto envelope = message->Parse<mq::proto::routing::Envelope>();
-			std::cout << "test0 received: " << envelope.payload() << "\n";
+			SPDLOG_DEBUG("test7781 received {}", envelope.payload());
 		});
 
-	auto dropbox1 = mq::postoffice::GetPostOffice(1).RegisterAddress("test1", [](mq::ProtoMessagePtr&& message)
+	auto dropbox1 = mq::postoffice::GetPostOffice(1).RegisterAddress("test8177", [](mq::ProtoMessagePtr&& message)
 		{
 			const auto envelope = message->Parse<mq::proto::routing::Envelope>();
-			std::cout << "test1 received: " << envelope.payload() << "\n";
+			SPDLOG_DEBUG("test8177 received {}", envelope.payload());
 		});
+
+	// allow both post offices to set up, otherwise messages will just get dropped with no destination
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	mq::proto::routing::Address addr;
 	addr.set_name("launcher");
@@ -115,6 +147,7 @@ int main(int argc, TCHAR* argv[])
 {
 	InitializeLogging();
 
+	//Test();
 	TestBasicNetworkPeerSetup();
 
 	return 0;
