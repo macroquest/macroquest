@@ -89,6 +89,42 @@ auto LauncherPostOffice::FindIdentity(
 		{ return IsRecipient(address, pair.second); });
 }
 
+proto::routing::Envelope FillAddress(const proto::routing::Envelope& message, const ActorIdentification& identity)
+{
+	const proto::routing::Address& address = message.address();
+
+	proto::routing::Envelope e;
+	proto::routing::Address& explicit_address = *e.mutable_address();
+
+	explicit_address.set_mailbox(address.mailbox()); // first copy the mailbox
+	identity.BuildAddress(explicit_address); // then set the identity's address
+
+	if (message.has_payload()) e.set_payload(message.payload());
+	if (message.has_return_address()) *e.mutable_return_address() = message.return_address();
+
+	return e;
+}
+
+PipeMessagePtr MakeExplicitMessage(const proto::routing::Envelope& message, const ActorIdentification& identity)
+{
+	const auto& e = FillAddress(message, identity);
+	const auto payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
+	e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
+
+	return std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE,
+		payload.get(), message.ByteSizeLong());
+}
+
+PipeMessagePtr MakeExplicitMessage(const mq::MQMessageHeader& header, const proto::routing::Envelope& message, const ActorIdentification& identity)
+{
+	const auto& e = FillAddress(message, identity);
+	const auto payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
+	e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
+
+	return std::make_unique<PipeMessage>(header,
+		payload.get(), message.ByteSizeLong());
+}
+
 // This is called when a dropbox registered to this pipe server attempts to send a message
 void LauncherPostOffice::RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback)
 {
@@ -121,7 +157,7 @@ void LauncherPostOffice::RouteMessage(PipeMessagePtr&& message, const PipeMessag
 			{
 				SendMessage(
 					identity.first,
-					std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()),
+					MakeExplicitMessage(*message->GetHeader(), envelope, identity.second),
 					callback);
 			}
 		}
@@ -199,6 +235,7 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 
 // TODO: routing needs a responsibility chain (ie, internal messages route out and in, but external messages only route in? think about this)
 // TODO: add callback handling to this as well
+// TODO: The post office in general should probably stop using PipeMessages and instead just use Envelopes -- let the connections handle the packaging
 void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& message)
 {
 	SPDLOG_TRACE("{}: Routing received message: to={} from={}", GetName(),
@@ -207,37 +244,24 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 
 	const auto& address = message.address();
 
-	auto make_message = [&message, &address](const ActorIdentification& identity)
-		{
-			proto::routing::Envelope e;
-			proto::routing::Address& explicit_address = *e.mutable_address();
-
-			explicit_address.set_mailbox(address.mailbox()); // first copy the mailbox
-			identity.BuildAddress(explicit_address); // then set the identity's address
-
-			if (message.has_payload()) e.set_payload(message.payload());
-			if (message.has_return_address()) *e.mutable_return_address() = message.return_address();
-
-			const auto payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
-			e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
-
-			return std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE,
-				payload.get(), message.ByteSizeLong());
-		};
-
 	// curry out the callback in the failure helper
 	auto routing_failed = [](int status, PipeMessagePtr&& message)
 		{ RoutingFailed(status, message, nullptr); };
 
-	// break this routing out explicitly to make it easier to read -- there will be some duplicated routes
-	if (address.has_pid() && address.pid() == GetCurrentProcessId())
+	if (address.has_pid() && address.pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
 	{
-		// we are explicitly sending to this PID, so route entirely internally
+		// we are explicitly sending to this launcher, so route entirely internally
 		const auto mailbox = address.has_mailbox() ? address.mailbox() : "post_office";
-		SPDLOG_TRACE("{}: Internal pipe message received, routing to mailbox {}", GetName(), mailbox);
-		DeliverTo(mailbox, make_message(ActorIdentification(GetCurrentProcessId(), mailbox)), routing_failed);
+		SPDLOG_TRACE("{}: Internal pipe message received in launcher, routing to mailbox {}", GetName(), mailbox);
+
+		// This is already an explicit address, so just package up the envelope into a message and deliver it
+		const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
+		message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+
+		// TODO: DeliverTo should probably just take an envelope, there should be no reason to repackage this into a PipeMessage
+		DeliverTo(mailbox, std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong()), routing_failed);
 	}
-	else if (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort())
+	else if (address.has_pid() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
 	{
 		// this message is intended to be routed locally and not relayed to external peers
 		// TODO: handle RPC here (it should fail here if we have more than one recipient)
@@ -253,7 +277,7 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 		{
 			if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
 			{
-				RouteMessage(make_message(identity.second), nullptr);
+				RouteMessage(MakeExplicitMessage(message, identity.second), nullptr);
 			}
 		}
 	}
@@ -267,7 +291,7 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 		{
 			if (IsRecipient(address, identity.second))
 			{
-				RouteMessage(make_message(identity.second), nullptr);
+				RouteMessage(MakeExplicitMessage(message, identity.second), nullptr);
 			}
 		}
 	}
