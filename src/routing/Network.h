@@ -7,6 +7,8 @@
 
 namespace mq {
 
+constexpr uint16_t DEFAULT_NETWORK_PEER_PORT = 7781;
+
 // create an address type for use in keying and lookup
 struct NetworkAddress
 {

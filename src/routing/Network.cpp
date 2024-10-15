@@ -16,9 +16,6 @@
 
 #include "Network.h"
 
-// for settings
-#include "MacroQuest.h"
-
 #include "asio.hpp"
 
 #include "Network.pb.h"
@@ -34,15 +31,10 @@
 // TODO: default sessions to use the same port as the peer
 
 using asio::ip::tcp;
-
-namespace mq {
+using namespace mq;
 
 class NetworkSession;
 using InternalMessageHandler = std::function<void(const peernetwork::Header&, NetworkSession*, std::unique_ptr<uint8_t[]>&&, uint32_t)>;
-
-} // namespace mq
-
-namespace mq {
 
 template <typename T>
 class LockedQueue
@@ -467,8 +459,6 @@ public:
 			endpoint,
 			[this, address, port, socket, timer](const std::error_code& ec)
 			{
-				// [2024-10-11 11:05:35.199] [ActorTest] [trace] [Network.cpp:442] Connect attempt on 8177 with local endpoint 127.0.0.1:51412 and remote endpoint 127.0.0.1:7781
-				// [2024-10-11 11:05:35.199] [ActorTest] [trace] [Network.cpp:542] Accepting connection on 7781 with local endpoint 127.0.0.1:7781 and remote endpoint 127.0.0.1:51412
 				SPDLOG_TRACE("{}: Connect attempt with local endpoint {}:{} and remote endpoint {}:{}",
 					m_port,
 					socket->local_endpoint().address().to_string(), socket->local_endpoint().port(),
@@ -650,12 +640,6 @@ private:
 
 	void ResolveHandshake(const NetworkAddress& fromAddress, const std::string& peerUuid, uint16_t peerPort)
 	{
-		// [2024-10-11 11:05:35.199] [ActorTest] [trace] [Network.cpp:442] Connect attempt on 8177 with local endpoint 127.0.0.1:51412 and remote endpoint 127.0.0.1:7781
-		// [2024-10-11 11:05:35.199] [ActorTest] [trace] [Network.cpp:542] Accepting connection on 7781 with local endpoint 127.0.0.1:7781 and remote endpoint 127.0.0.1:51412
-
-		// [2024-10-11 11:05:35.701] [ActorTest] [trace] [Network.cpp:442] Connect attempt on 7781 with local endpoint 127.0.0.1:51411 and remote endpoint 127.0.0.1:8177
-		// [2024-10-11 11:05:35.701] [ActorTest] [trace] [Network.cpp:542] Accepting connection on 8177 with local endpoint 127.0.0.1:8177 and remote endpoint 127.0.0.1:51411
-
 		// we always want the remote peer's configured port to be in the known host set, but depending on
 		// the order of connection, we could have a connection with a generated port as the remote so
 		// we have to map the session to the _remote_ port, and we need to deterministically choose which
@@ -789,8 +773,6 @@ private:
 	OnSessionConnectedHandler m_sessionConnectedHandler;
 	OnSessionDisconnectedHandler m_sessionDisconnectedHandler;
 };
-
-} // namespace mq
 
 // map of port -> peer
 static std::unordered_map<uint16_t, std::unique_ptr<NetworkPeer>> s_peers;

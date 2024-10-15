@@ -66,12 +66,6 @@
     <ClCompile Include="LoaderAutoLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.pb.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Network.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -119,9 +113,6 @@
     <ClInclude Include="..\..\include\mq\utils\Markov.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico">
@@ -135,10 +126,5 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="MacroQuest.exe.manifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProtocolBuffer Include="Network.proto">
-      <Filter>Proto Files</Filter>
-    </ProtocolBuffer>
   </ItemGroup>
 </Project>

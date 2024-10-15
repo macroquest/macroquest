@@ -55,9 +55,15 @@ message RequestIdentities {
 message Envelope {
 	Address address = 1;
 	Address return_address = 2;
+
+	uint32 mode = 3;
+	int32 status = 4;
+	uint32 sequence = 5;
+
 	optional bytes payload = 99;
 }
 
+// TODO: NetworkMessage should be in Network.proto
 message NetworkMessage {
 	oneof contents {
 		AddIdentity add = 1;

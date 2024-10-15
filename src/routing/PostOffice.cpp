@@ -15,15 +15,13 @@
 #define MQLIB_OBJECT
 #include "PostOffice.h"
 
+#include <windows.h> // this is needed for GetCurrentProcessId
+
 namespace mq::postoffice {
 
-void Mailbox::Deliver(PipeMessagePtr&& message) const
+void Mailbox::Deliver(proto::routing::Envelope&& message) const
 {
-	// Don't do anything if this isn't wrapped in an envelope
-	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
-	{
-		m_receiveQueue.push(Open(ProtoMessage::Parse<proto::routing::Envelope>(message), message));
-	}
+	m_receiveQueue.push(std::move(message));
 }
 
 void Mailbox::Process(size_t howMany) const
@@ -35,29 +33,6 @@ void Mailbox::Process(size_t howMany) const
 
 		Process(howMany - 1);
 	}
-}
-
-ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const PipeMessagePtr& message)
-{
-	ProtoMessagePtr unwrapped;
-
-	const void* data = nullptr;
-	size_t length = 0;
-	if (envelope.has_payload())
-	{
-		data = &envelope.payload()[0];
-		length = envelope.payload().size();
-	}
-
-	if (message != nullptr) // this resets the m_replied member, but it couldn't have become true before this anyway
-		unwrapped = std::make_unique<ProtoMessage>(*message, data, length);
-	else
-		unwrapped = std::make_unique<ProtoMessage>(MQMessageId::MSG_NULL, data, length);
-
-	if (envelope.has_return_address())
-		unwrapped->SetSender(envelope.return_address());
-
-	return unwrapped;
 }
 
 Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister)
@@ -90,6 +65,19 @@ Dropbox& Dropbox::operator=(Dropbox other) noexcept
 	return *this;
 }
 
+void Dropbox::PostReply(proto::routing::Envelope&& message, const std::string& data, int status)
+{
+	if (IsValid() && message.has_return_address())
+	{
+		proto::routing::Envelope reply = Stuff(message.return_address(), data);
+		reply.set_sequence(message.sequence());
+		reply.set_status(status);
+		reply.set_mode(static_cast<uint32_t>(MQRequestMode::MessageReply));
+
+		m_post(std::move(reply), nullptr);
+	}
+}
+
 void Dropbox::Remove()
 {
 	if (m_valid)
@@ -98,25 +86,100 @@ void Dropbox::Remove()
 	m_valid = false;
 }
 
-void PostOffice::RouteMessage(const void* data, size_t length, const PipeMessageResponseCb& callback)
+proto::routing::Envelope Dropbox::Stuff(const proto::routing::Address& address, const std::string& data)
 {
-	RouteMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data, length), callback);
+	proto::routing::Envelope envelope;
+	*envelope.mutable_address() = address;
+	envelope.set_payload(data);
+
+	return envelope;
 }
 
-void PostOffice::RouteMessage(const std::string& data, const PipeMessageResponseCb& callback)
+PostOffice::PostOffice(ActorIdentification&& id)
+	: m_id(std::move(id))
+{}
+
+PostOffice::~PostOffice()
 {
-	RouteMessage(&data[0], data.size(), callback);
+	for (const auto& [sequenceId, request] : m_rpcRequests)
+	{
+		request->callback(MsgError_ConnectionClosed, {});
+	}
+
+	m_rpcRequests.clear();
+}
+
+void PostOffice::RouteMessage(const proto::routing::Address& address, const std::string& data, const MessageResponseCallback& callback)
+{
+	proto::routing::Envelope envelope;
+	*envelope.mutable_address() = address;
+
+	proto::routing::Address& ret = *envelope.mutable_return_address();
+	ret.set_pid(GetCurrentProcessId());
+
+	envelope.set_payload(data);
+
+	RouteMessage(std::move(envelope), callback);
 }
 
 Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
 {
-	auto [mailbox, added] = m_mailboxes.emplace(localAddress, std::make_unique<Mailbox>(localAddress, std::move(receive)));
+	auto [mailbox, added] = m_mailboxes.emplace(
+		localAddress, std::make_unique<Mailbox>(localAddress,
+			[receive = std::move(receive), this](proto::routing::Envelope&& message)
+			{
+				if (message.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
+				{
+					auto request = m_rpcRequests.find(message.sequence());
+					if (request != m_rpcRequests.end())
+					{
+						int status = message.status();
+						request->second->callback(status, std::move(message));
+
+						m_rpcRequests.erase(request);
+					}
+				}
+				else
+				{
+					receive(std::move(message));
+				}
+			}));
+
 	if (added)
 	{
 		return Dropbox(
 			localAddress,
-			[this](const std::string& data, const PipeMessageResponseCb& callback) { RouteMessage(data, callback); },
-			[this](const std::string& localAddress) { RemoveMailbox(localAddress); });
+			[this](proto::routing::Envelope&& message, const MessageResponseCallback& callback)
+			{
+				// set the specific return address
+				proto::routing::Address& ret = *message.mutable_return_address();
+				m_id.BuildAddress(ret);
+
+				if (message.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
+				{
+					// we are trying to reply to an RPC, make sure it's valid and gets replied to exactly once
+					auto seq_it = m_rpcReceived.find(message.sequence());
+					if (seq_it != m_rpcReceived.end())
+					{
+						m_rpcReceived.erase(seq_it);
+						RouteMessage(std::move(message), callback);
+					}
+				}
+				else
+				{
+					// the post callback -- this will always be called on the generation side of messages so we need
+					// to set initial values
+					if (message.sequence() == 0)
+						message.set_sequence(++m_nextSequence);
+
+					if (callback != nullptr)
+						message.set_mode(static_cast<uint32_t>(MQRequestMode::CallAndResponse));
+
+					RouteMessage(std::move(message), callback);
+				}
+			},
+			[this](const std::string& localAddress)
+			{ RemoveMailbox(localAddress); });
 	}
 
 	return Dropbox();
@@ -127,7 +190,7 @@ bool PostOffice::RemoveMailbox(const std::string& localAddress)
 	return m_mailboxes.erase(localAddress) == 1;
 }
 
-bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed)
+bool PostOffice::DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message, const MessageResponseCallback& failed)
 {
 	auto mailbox_it = m_mailboxes.find(localAddress);
 	if (mailbox_it != m_mailboxes.end())
@@ -139,20 +202,6 @@ bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& mes
 
 	failed(MsgError_RoutingFailed, std::move(message));
 	return false;
-}
-
-void PostOffice::DeliverAll(PipeMessagePtr& message, std::optional<std::string_view> fromAddress)
-{
-	for (const auto& [name, mailbox] : m_mailboxes)
-	{
-		if (fromAddress && name != *fromAddress)
-		{
-			OnDeliver(name, message);
-			mailbox->Deliver(
-				std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size())
-			);
-		}
-	}
 }
 
 void PostOffice::Process(size_t howMany)

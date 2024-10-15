@@ -17,7 +17,8 @@
 
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
-#include "routing/PostOffice.h"
+#include "routing/ProtoPipes.h" // LocalConnection
+#include "routing/Network.h" // PeerConnection
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -63,12 +64,125 @@ void SetRequestFocusCallback(const RequestFocusCallback& requestFocus)
 class PipeEventsHandler final : public NamedPipeEvents
 {
 public:
-	explicit PipeEventsHandler(LocalConnection* connection) : m_connection(connection) {}
+	explicit PipeEventsHandler(LocalConnection* connection)
+		: m_connection(connection)
+	{}
 
 	// This is called when a message is received over the pipe connection
 	void OnIncomingMessage(PipeMessagePtr&& message) override
 	{
-		m_connection->RouteFromPipe(std::move(message));
+		SPDLOG_TRACE("{}: Received message id={} length={} connectionId={}",
+			m_connection->GetPostOffice()->GetName(), static_cast<int>(message->GetMessageId()),
+			message->size(), message->GetConnectionId());
+
+		switch (message->GetMessageId())
+		{
+		case mq::MQMessageId::MSG_ECHO:
+		{
+			std::string str(message->get<const char>(), message->size() - 1);
+			message->SendReply(MQMessageId::MSG_ECHO, str.data(), static_cast<uint32_t>(str.length()) + 1, 0);
+			SPDLOG_INFO("{}: Handling echo request: {}", m_connection->GetPostOffice()->GetName(), str);
+			break;
+		}
+
+		case mq::MQMessageId::MSG_ROUTE:
+			m_connection->RouteFromPipe(ProtoMessage::Parse<proto::routing::Envelope>(message));
+			break;
+
+		case mq::MQMessageId::MSG_IDENTIFICATION:
+			if (message->GetHeader()->messageLength > 0)
+			{
+				// if there is a payload, then we are getting a notification of ID
+				// send this to the post office to process in the launcher dropbox
+				m_connection->GetPostOffice()->AddIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
+			}
+			else if (auto pipeServer = m_connection->GetPipeServer())
+			{
+				if (const auto& conn = pipeServer->GetConnection(message->GetConnectionId()))
+				{
+					// we are getting a request to send all IDs, do so sequentially and asynchronously
+					// send this to the post office to process in the launcher dropbox
+					m_connection->GetPostOffice()->SendIdentities(ActorContainer(conn->GetProcessId()));
+				}
+			}
+
+			break;
+
+		case mq::MQMessageId::MSG_DROPPED:
+			m_connection->GetPostOffice()->DropIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
+			break;
+
+		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
+			break;
+
+		case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED:
+			if (auto pipeServer = m_connection->GetPipeServer())
+			{
+				MQMessageProcessLoadedResponse response;
+				response.processId = GetCurrentProcessId();
+
+				pipeServer->SendMessage(message->GetConnectionId(), mq::MQMessageId::MSG_MAIN_PROCESS_LOADED,
+					&response, sizeof(response));
+			}
+			break;
+
+		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST:
+			if (message->size() >= sizeof(MQMessageFocusRequest) && s_requestFocusCallback)
+			{
+				(*s_requestFocusCallback)(message->get<MQMessageFocusRequest>());
+			}
+			break;
+
+		case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
+			if (const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				notification.has_message())
+				LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
+			else
+				LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
+			break;
+
+		case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
+		{
+			const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+			NOTIFYICONDATAA notify;
+			notify.cbSize = sizeof(NOTIFYICONDATAA);
+			notify.uID = WM_USER_SYSTRAY;
+			notify.hWnd = hMainWnd;
+			notify.uFlags = NIF_INFO;
+
+			strcpy_s(notify.szInfoTitle, notification.title().c_str());
+			if (notification.has_message())
+				strcpy_s(notify.szInfo, notification.message().c_str());
+			else
+				strcpy_s(notify.szInfo, notification.title().c_str());
+
+			if (notification.has_level())
+			{
+				switch (notification.level())
+				{
+				case proto::routing::NotifyLevel::Info:
+					notify.dwInfoFlags = NIIF_INFO;
+					break;
+				case proto::routing::NotifyLevel::Warning:
+					notify.dwInfoFlags = NIIF_WARNING;
+					break;
+				case proto::routing::NotifyLevel::Error:
+					notify.dwInfoFlags = NIIF_ERROR;
+					break;
+				default:
+					notify.dwInfoFlags = NIIF_INFO;
+					break;
+				}
+			}
+			else
+				notify.dwInfoFlags = NIIF_INFO;
+
+			Shell_NotifyIconA(NIM_MODIFY, &notify);
+			break;
+		}
+
+		default: break;
+		}
 	}
 
 	void OnRequestProcessEvents() override
@@ -79,14 +193,17 @@ public:
 
 	void OnIncomingConnection(int connectionId, int processId) override
 	{
-		const std::string namedPipe = s_crashpadCallback ? (*s_crashpadCallback)() : "";
+		if (auto pipeServer = m_connection->GetPipeServer())
+		{
+			const std::string namedPipe = s_crashpadCallback ? (*s_crashpadCallback)() : "";
 
-		// send the name of the named pipe to the connected client. If crashpad isn't
-		// enabled, or shared is disabled, this will send an empty string, which basically
-		// tells the process that its on its own.
-		m_connection->RouteToPipe(connectionId,
-			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
-				namedPipe.c_str(), static_cast<uint32_t>(namedPipe.length()) + 1));
+			// send the name of the named pipe to the connected client. If crashpad isn't
+			// enabled, or shared is disabled, this will send an empty string, which basically
+			// tells the process that its on its own.
+			pipeServer->SendMessage(connectionId,
+				mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
+					namedPipe.c_str(), static_cast<uint32_t>(namedPipe.length()) + 1));
+		}
 	}
 
 	void OnConnectionClosed(int connectionId, int processId) override
@@ -106,9 +223,9 @@ std::string GetPipePath(LauncherPostOffice* postOffice)
 
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
-	, m_pipeServer{ GetPipePath(postOffice).c_str() }
+	, m_pipeServer(std::make_unique<ProtoPipeServer>(GetPipePath(postOffice).c_str()))
 {
-	m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
+	m_pipeServer->SetHandler(std::make_shared<PipeEventsHandler>(this));
 }
 
 LocalConnection::~LocalConnection()
@@ -116,170 +233,108 @@ LocalConnection::~LocalConnection()
 
 void LocalConnection::Process()
 {
-	m_pipeServer.Process();
+	m_pipeServer->Process();
 }
 
 bool LocalConnection::SendMessage(
-		uint32_t pid,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback)
+	uint32_t pid,
+	proto::routing::Envelope&& message,
+	const MessageResponseCallback& callback)
 {
+	const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
+	message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+
+	auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong());
+
 	if (pid == GetCurrentProcessId())
 	{
 		// send to self, dispatch directly to the handler
-		m_pipeServer.DispatchMessage(std::move(message));
+		m_pipeServer->DispatchMessage(std::move(msg));
 		return true;
 	}
 
-	if (const auto connection = m_pipeServer.GetConnectionForProcessId(pid))
+	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
 	{
 		// found a connection to send it over
 		if (callback != nullptr)
-			connection->SendMessageWithResponse(std::move(message), callback);
+		{
+			m_rpcs.emplace(message.sequence(), std::move(callback));
+			connection->SendMessageWithResponse(std::move(msg),
+				[this](int status, PipeMessagePtr&& message)
+				{
+					auto msg = ProtoMessage::Parse<proto::routing::Envelope>(message);
+					if (const auto it = m_rpcs.find(msg.sequence()); it != m_rpcs.end())
+					{
+						msg.set_status(status);
+						it->second(status, std::move(msg));
+						m_rpcs.erase(it);
+					}
+
+					SPDLOG_WARN("{}: Can't find RPC for message from local connection with sequence {}", msg.sequence());
+				});
+		}
 		else
-			connection->SendMessage(std::move(message));
+			connection->SendMessage(std::move(msg));
 		return true;
 	}
 
 	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed.", m_postOffice->GetName(), pid);
-	RoutingFailed(MsgError_NoConnection, message, callback);
+	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), callback);
 	return false;
 }
 
-bool LocalConnection::SendMessage(
-		const ActorContainer::Network& peer,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback)
+void mq::postoffice::LocalConnection::SendIdentification(uint32_t pid, const ActorIdentification& identity) const
 {
-	SPDLOG_WARN("{}: Attempted to send to peer {} over local pipe", m_postOffice->GetName(), ActorContainer(peer));
-	RoutingFailed(MsgError_NoConnection, message, callback);
-	return false;
-}
-
-void LocalConnection::BroadcastMessage(PipeMessagePtr&& message)
-{
-	m_pipeServer.BroadcastMessage(std::move(message));
-}
-
-void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
-{
-	using namespace mq::proto;
-	SPDLOG_TRACE("{}: Received message id={} length={} connectionId={}", m_postOffice->GetName(), static_cast<int>(message->GetMessageId()),
-			message->size(), message->GetConnectionId());
-
-	switch (message->GetMessageId())
+	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
 	{
-		case mq::MQMessageId::MSG_ECHO:
-			{
-				std::string str(message->get<const char>(), message->size() - 1);
-				message->SendReply(MQMessageId::MSG_ECHO, str.data(), static_cast<uint32_t>(str.length()) + 1, 0);
-				SPDLOG_INFO("{}: Handling echo request: {}", m_postOffice->GetName(), str);
-				break;
-			}
+		proto::routing::Identification id = identity.GetProto();
 
-		case mq::MQMessageId::MSG_ROUTE:
-			m_postOffice->RouteFromConnection(ProtoMessage::Parse<proto::routing::Envelope>(message));
-			break;
+		const auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
+		id.SerializeToArray(payload.get(), static_cast<int>(id.ByteSizeLong()));
 
-		case mq::MQMessageId::MSG_IDENTIFICATION:
-			if (message->GetHeader()->messageLength > 0)
-			{
-				// if there is a payload, then we are getting a notification of ID
-				// send this to the post office to process in the launcher dropbox
-				m_postOffice->AddIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
-			}
-			else if (const auto& conn = m_pipeServer.GetConnection(message->GetConnectionId()))
-			{
-				// we are getting a request to send all IDs, do so sequentially and asynchronously
-				// send this to the post office to process in the launcher dropbox
-				m_postOffice->SendIdentities(ActorContainer(conn->GetProcessId()));
-			}
-
-			break;
-
-		case mq::MQMessageId::MSG_DROPPED:
-			m_postOffice->DropIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
-			break;
-
-		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
-			break;
-
-		case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED:
-			{
-				MQMessageProcessLoadedResponse response;
-				response.processId = GetCurrentProcessId();
-
-				m_pipeServer.SendMessage(message->GetConnectionId(), mq::MQMessageId::MSG_MAIN_PROCESS_LOADED,
-						&response, sizeof(response));
-				break;
-			}
-
-		case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST:
-			{
-				if (message->size() >= sizeof(MQMessageFocusRequest) && s_requestFocusCallback)
-				{
-					(*s_requestFocusCallback)(message->get<MQMessageFocusRequest>());
-				}
-				break;
-			}
-
-		case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
-			{
-				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
-				if (notification.has_message())
-					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
-				else
-					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
-				break;
-			}
-
-		case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
-			{
-				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
-				NOTIFYICONDATAA notify;
-				notify.cbSize = sizeof(NOTIFYICONDATAA);
-				notify.uID = WM_USER_SYSTRAY;
-				notify.hWnd = hMainWnd;
-				notify.uFlags = NIF_INFO;
-
-				strcpy_s(notify.szInfoTitle, notification.title().c_str());
-				if (notification.has_message())
-					strcpy_s(notify.szInfo, notification.message().c_str());
-				else
-					strcpy_s(notify.szInfo, notification.title().c_str());
-
-				if (notification.has_level())
-				{
-					switch (notification.level())
-					{
-						case proto::routing::NotifyLevel::Info:
-							notify.dwInfoFlags = NIIF_INFO;
-							break;
-						case proto::routing::NotifyLevel::Warning:
-							notify.dwInfoFlags = NIIF_WARNING;
-							break;
-						case proto::routing::NotifyLevel::Error:
-							notify.dwInfoFlags = NIIF_ERROR;
-							break;
-						default:
-							notify.dwInfoFlags = NIIF_INFO;
-							break;
-					}
-				}
-				else
-					notify.dwInfoFlags = NIIF_INFO;
-
-				Shell_NotifyIconA(NIM_MODIFY, &notify);
-				break;
-			}
-
-		default: break;
+		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, payload.get(), id.ByteSizeLong()));
 	}
+	else
+		SPDLOG_WARN("{}: Unable to get connection for PID {}, identification message failed.", m_postOffice->GetName(), pid);
 }
 
-void LocalConnection::RouteToPipe(int connectionId, PipeMessagePtr&& message)
+void mq::postoffice::LocalConnection::DropIdentification(uint32_t pid, const ActorIdentification& identity) const
 {
-	m_pipeServer.SendMessage(connectionId, std::move(message));
+	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	{
+		proto::routing::Identification id = identity.GetProto();
+
+		const auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
+		id.SerializeToArray(payload.get(), static_cast<int>(id.ByteSizeLong()));
+
+		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, payload.get(), id.ByteSizeLong()));
+	}
+	else
+		SPDLOG_WARN("{}: Unable to get connection for PID {}, drop message failed.", m_postOffice->GetName(), pid);
+}
+
+// TODO: this could be RPC
+void mq::postoffice::LocalConnection::RequestIdentities(uint32_t pid) const
+{
+	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	{
+		std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
+	}
+	else
+		SPDLOG_WARN("{}: Unable to get connection for PID {}, send request failed.", m_postOffice->GetName(), pid);
+}
+
+void LocalConnection::BroadcastMessage(proto::routing::Envelope&& message)
+{
+	const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
+	message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+
+	m_pipeServer->BroadcastMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong()));
+}
+
+void LocalConnection::RouteFromPipe(proto::routing::Envelope&& message)
+{
+	m_postOffice->RouteFromConnection(std::move(message));
 }
 
 void LocalConnection::DropProcessId(uint32_t processId) const
@@ -289,24 +344,24 @@ void LocalConnection::DropProcessId(uint32_t processId) const
 
 void mq::postoffice::LocalConnection::Start()
 {
-	m_pipeServer.Start();
+	m_pipeServer->Start();
 }
 
 void mq::postoffice::LocalConnection::Stop()
 {
-	m_pipeServer.Stop();
+	m_pipeServer->Stop();
 }
 
 bool LocalConnection::SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
 	if (processID != 0)
 	{
-		if (const auto connection = m_pipeServer.GetConnectionForProcessId(processID))
+		if (const auto connection = m_pipeServer->GetConnectionForProcessId(processID))
 		{
 			MQMessageActivateWnd message;
 			message.hWnd = hWnd;
 
-			m_pipeServer.SendMessage(connection->GetConnectionId(),
+			m_pipeServer->SendMessage(connection->GetConnectionId(),
 					mq::MQMessageId::MSG_MAIN_FOCUS_ACTIVATE_WND, &message, sizeof(message));
 
 			return true;
@@ -319,13 +374,13 @@ bool LocalConnection::SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 void LocalConnection::SendUnloadAllCommand()
 {
 	SPDLOG_DEBUG("{}: Requesting to unload all instances", m_postOffice->GetName());
-	m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
+	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
 }
 
 void LocalConnection::SendForceUnloadAllCommand()
 {
 	SPDLOG_DEBUG("{}: Requesting to FORCE unload all instances", m_postOffice->GetName());
-	m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
+	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 }
 
 // ------------------------ PeerConnection ------------------------------------
@@ -333,12 +388,12 @@ void LocalConnection::SendForceUnloadAllCommand()
 uint16_t GetPeerPort(LauncherPostOffice* postOffice)
 {
 	const auto config = postOffice->GetConfig();
-	return config.PeerPort ? *config.PeerPort : DEFAULT_ACTOR_PEER_PORT;
+	return config.PeerPort ? *config.PeerPort : DEFAULT_NETWORK_PEER_PORT;
 }
 
 PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
-	, m_network(NetworkPeerAPI::GetOrCreate(
+	, m_network(std::make_unique<NetworkPeerAPI>(NetworkPeerAPI::GetOrCreate(
 		GetPeerPort(postOffice),
 		[this](const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
 		{
@@ -363,22 +418,24 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 				m_postOffice->SendIdentities(ActorContainer(source_addr));
 				break;
 			case NetworkMessage::kRouted:
-				if (inbound.routed().has_return_address())
+			{
+				proto::routing::Envelope routed = inbound.routed();
+				if (routed.has_return_address())
 				{
-					inbound.mutable_routed()->mutable_return_address()->clear_pid();
-					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_ip(address.IP);
-					inbound.mutable_routed()->mutable_return_address()->mutable_peer()->set_port(address.Port);
+					routed.mutable_return_address()->clear_pid();
+					routed.mutable_return_address()->mutable_peer()->set_ip(address.IP);
+					routed.mutable_return_address()->mutable_peer()->set_port(address.Port);
 				}
 
 				// if this message has been routed here, then we need to let the local launcher handle any routing
-				inbound.mutable_routed()->mutable_address()->clear_pid();
-				inbound.mutable_routed()->mutable_address()->clear_peer();
-				inbound.mutable_routed()->mutable_address()->mutable_peer()->set_ip("127.0.0.1");
-				inbound.mutable_routed()->mutable_address()->mutable_peer()->set_port(m_network.GetPort());
+				routed.mutable_address()->clear_pid();
+				routed.mutable_address()->mutable_peer()->set_ip("127.0.0.1");
+				routed.mutable_address()->mutable_peer()->set_port(m_network->GetPort());
 
 				// if the address is not on the pipe, this will fail or route back out to the network if the client has a peer container
-				m_postOffice->RouteFromConnection(inbound.routed());
+				m_postOffice->RouteFromConnection(std::move(routed));
 				break;
+			}
 			default:
 				SPDLOG_WARN("{}: Got unknown inbound message type {}", m_postOffice->GetName(), static_cast<int>(inbound.contents_case()));
 				break;
@@ -393,12 +450,11 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		{
 			// let's just always reconnect to disconnected hosts
 			AddHost(address.IP, address.Port);
-		}))
+		})))
 {}
 
 PeerConnection::~PeerConnection()
 {
-	m_network.Shutdown();
 }
 
 void mq::postoffice::PeerConnection::AddConfiguredHosts()
@@ -424,42 +480,88 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 	}
 }
 
-bool PeerConnection::SendMessage(uint32_t pid, PipeMessagePtr&& message, const PipeMessageResponseCb& callback)
-{
-	SPDLOG_WARN("{}: Attempted to send to pid {} over network", m_postOffice->GetName(), pid);
-	RoutingFailed(MsgError_NoConnection, message, callback);
-	return false;
-}
-
-// TODO: wrap this callback? how do we handle callbacks sent over the network? We've lost the sequence ID
-bool PeerConnection::SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback)
+// TODO: wrap this callback like we do for local connections -- this requires the network to handle RPC as well to work
+bool PeerConnection::SendMessage(
+	const ActorContainer::Network& peer,
+	proto::routing::Envelope&& message,
+	const MessageResponseCallback& callback)
 {
 	// the network library handles routing of any address (we can't short circuit local IP
 	// detection because it needs knowledge of the network)
-	if (m_network.HasHost(peer.IP, peer.Port))
+	if (m_network->HasHost(peer.IP, peer.Port))
 	{
 		// the network has the host (we do this in order to provide routing errors)
-		const auto outbound = Translate(message);
+		proto::routing::NetworkMessage outbound;
+		*outbound.mutable_routed() = std::move(message);
 		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
 		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
 
-		m_network.Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
 		return true;
 	}
 
 	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed.", m_postOffice->GetName(), peer.IP, peer.Port);
-	RoutingFailed(MsgError_NoConnection, message, callback);
+	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), callback);
 	return false;
 
 }
 
-void PeerConnection::BroadcastMessage(PipeMessagePtr&& message)
+void mq::postoffice::PeerConnection::SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
 {
-	const auto outbound = Translate(message);
+	if (m_network->HasHost(peer.IP, peer.Port))
+	{
+		proto::routing::NetworkMessage outbound;
+		proto::routing::AddIdentity& add = *outbound.mutable_add();
+		*add.mutable_id() = identity.GetProto();
+
+		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
+		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
+		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+	}
+	else
+		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, identification message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+}
+
+void mq::postoffice::PeerConnection::DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
+{
+	if (m_network->HasHost(peer.IP, peer.Port))
+	{
+		proto::routing::NetworkMessage outbound;
+		proto::routing::DropIdentity& drop = *outbound.mutable_drop();
+		*drop.mutable_id() = identity.GetProto();
+
+		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
+		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
+		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+	}
+	else
+		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, drop message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+}
+
+// TODO: this could be RPC
+void mq::postoffice::PeerConnection::RequestIdentities(const ActorContainer::Network& peer) const
+{
+	if (m_network->HasHost(peer.IP, peer.Port))
+	{
+		proto::routing::NetworkMessage outbound;
+		proto::routing::RequestIdentities& req = *outbound.mutable_request();
+
+		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
+		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
+		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+	}
+	else
+		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, send request failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+}
+
+void PeerConnection::BroadcastMessage(proto::routing::Envelope&& message)
+{
+	proto::routing::NetworkMessage outbound;
+	*outbound.mutable_routed() = std::move(message);
 	auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
 	outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
 
-	m_network.Broadcast(std::move(payload), outbound.ByteSizeLong());
+	m_network->Broadcast(std::move(payload), outbound.ByteSizeLong());
 }
 
 void mq::postoffice::PeerConnection::Start()
@@ -468,47 +570,22 @@ void mq::postoffice::PeerConnection::Start()
 
 void mq::postoffice::PeerConnection::Stop()
 {
+	m_network->Shutdown();
 }
 
 void mq::postoffice::PeerConnection::AddHost(const std::string& address, uint16_t port) const
 {
-	m_network.AddHost(address, port);
+	m_network->AddHost(address, port);
 }
 
 void mq::postoffice::PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
 {
-	m_network.RemoveHost(address, port);
+	m_network->RemoveHost(address, port);
 	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }));
 }
 
 uint16_t mq::postoffice::PeerConnection::GetPort() const
 {
-	return m_network.GetPort();
-}
-
-proto::routing::NetworkMessage PeerConnection::Translate(const PipeMessagePtr& message)
-{
-	proto::routing::NetworkMessage inbound;
-	switch (message->GetMessageId())
-	{
-		case MQMessageId::MSG_IDENTIFICATION:
-			if (message->GetHeader()->messageLength > 0)
-				*inbound.mutable_add()->mutable_id() = ProtoMessage::Parse<proto::routing::Identification>(message);
-			else
-				// if we have a pipe message, then the requester must be this PID (destination networks will translate from pid to network)
-				inbound.mutable_request()->set_pid(GetCurrentProcessId());
-			break;
-		case MQMessageId::MSG_DROPPED:
-			*inbound.mutable_drop()->mutable_id() = ProtoMessage::Parse<proto::routing::Identification>(message);
-			break;
-		case MQMessageId::MSG_ROUTE:
-			*inbound.mutable_routed() = ProtoMessage::Parse<proto::routing::Envelope>(message);
-			break;
-		default:
-			SPDLOG_WARN("{}: Attempted to translate a pipe message of unknown type {}, empty message returned", m_postOffice->GetName(), static_cast<int>(message->GetMessageId()));
-			break;
-	}
-
-	return inbound;
+	return m_network->GetPort();
 }
 

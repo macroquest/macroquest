@@ -18,9 +18,17 @@
 #include <optional>
 #include <vector>
 
-#include "routing/NamedPipes.h"
 #include "routing/PostOffice.h"
-#include "loader/Network.h"
+
+#if defined(SendMessage)
+#undef SendMessage
+#endif
+
+namespace mq {
+struct MQMessageFocusRequest;
+class ProtoPipeServer;
+class NetworkPeerAPI;
+} // namespace mq
 
 using GetCrashpadPipe = std::function<std::string()>;
 using RequestFocusCallback = std::function<void(const mq::MQMessageFocusRequest*)>;
@@ -52,12 +60,6 @@ void InitializePostOffice(uint32_t index = 0);
 void ShutdownPostOffice(uint32_t index = 0);
 
 namespace mq::postoffice {
-constexpr uint16_t DEFAULT_ACTOR_PEER_PORT = 7781;
-
-void RoutingFailed(
-	int status,
-	const PipeMessagePtr& message,
-	const PipeMessageResponseCb& callback);
 
 // ----------------------------- Post Office ----------------------------------
 
@@ -92,11 +94,13 @@ public:
 		const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from);
 
 	// This is called when a dropbox registered to this pipe server attempts to send a message (an _outbound_ message)
-	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
-	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override;
+	void RouteMessage(proto::routing::Envelope&& message, const MessageResponseCallback& callback) override;
+	void OnDeliver(const std::string& localAddress, proto::routing::Envelope& message) override;
 
 	// This is called when a message is received over a connection (an _inbound_ message)
-	void RouteFromConnection(const proto::routing::Envelope& message);
+	void RouteFromConnection(proto::routing::Envelope&& message);
+
+	void RoutingFailed(int status, proto::routing::Envelope&& message, const MessageResponseCallback& callback);
 
 	void AddIdentity(const ActorIdentification& id);
 	void DropIdentity(const ActorIdentification& id);
@@ -131,10 +135,11 @@ private:
 	std::condition_variable m_needsProcessing;
 
 	template <size_t I = 0> void ProcessConnections();
-	template <size_t I = 0> void BroadcastMessage(PipeMessagePtr&& message);
-	template <typename T> void BroadcastMessage(const MQMessageId& id, const T& proto);
-	bool SendMessage(const ActorContainer& ident, PipeMessagePtr&& message, const PipeMessageResponseCb& callback);
-	template <typename T> bool SendMessage(const ActorContainer& ident, const MQMessageId& id, const T& proto, const PipeMessageResponseCb& callback);
+	template <size_t I = 0> void BroadcastMessage(proto::routing::Envelope&& message);
+	bool SendMessage(const ActorContainer& ident, proto::routing::Envelope&& message, const MessageResponseCallback& callback);
+	void SendIdentification(const ActorContainer& target, const ActorIdentification& id);
+	void DropIdentification(const ActorContainer& target, const ActorIdentification& id);
+	void RequestIdentities(const ActorContainer& from);
 };
 
 // ----------------------------- Connection -----------------------------------
@@ -156,14 +161,15 @@ public:
 
 	virtual void Process() = 0;
 
-	// TODO: this can be a single templated function that will fail to compile if there are any calls to sending to the wrong kind of container
-	virtual bool SendMessage(uint32_t pid, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
-	virtual bool SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
-	virtual void BroadcastMessage(PipeMessagePtr&& message) = 0;
+	virtual void BroadcastMessage(proto::routing::Envelope&& message) = 0;
 
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
 	void RequestProcessEvents(); // TODO: the network connection never calls this, does it need to?
+
+	//virtual void SendIdentification(const ActorContainer& target, const ActorIdentification& identity) = 0;
+
+	LauncherPostOffice* GetPostOffice() const { return m_postOffice; }
 
 protected:
 	LauncherPostOffice* m_postOffice;
@@ -184,17 +190,15 @@ public:
 
 	bool SendMessage(
 		uint32_t pid,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback) override;
+		proto::routing::Envelope&& message,
+		const MessageResponseCallback& callback);
 
-	bool SendMessage(
-		const ActorContainer::Network& peer,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback) override;
+	void SendIdentification(uint32_t pid, const ActorIdentification& identity) const;
+	void DropIdentification(uint32_t pid, const ActorIdentification& identity) const;
+	void RequestIdentities(uint32_t pid) const;
 
-	void BroadcastMessage(PipeMessagePtr&& message) override;
-	void RouteFromPipe(PipeMessagePtr&& message);
-	void RouteToPipe(int connectionId, PipeMessagePtr&& message);
+	void BroadcastMessage(proto::routing::Envelope&& message) override;
+	void RouteFromPipe(proto::routing::Envelope&& message);
 	void DropProcessId(uint32_t processId) const;
 
 	void Start() override;
@@ -203,9 +207,13 @@ public:
 	bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 	void SendUnloadAllCommand();
 	void SendForceUnloadAllCommand();
+
+	mq::ProtoPipeServer* GetPipeServer() { return m_pipeServer.get(); }
 	
 private:
-	mq::ProtoPipeServer m_pipeServer;
+	std::unique_ptr<mq::ProtoPipeServer> m_pipeServer;
+
+	std::unordered_map<uint32_t, MessageResponseCallback> m_rpcs;
 };
 
 class PeerConnection final : public Connection
@@ -225,9 +233,16 @@ public:
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
 	void Process() override {}
 
-	bool SendMessage(uint32_t pid, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
-	bool SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
-	void BroadcastMessage(PipeMessagePtr&& message) override;
+	bool SendMessage(
+		const ActorContainer::Network& peer,
+		proto::routing::Envelope&& message,
+		const MessageResponseCallback& callback);
+
+	void SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
+	void DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
+	void RequestIdentities(const ActorContainer::Network& peer) const;
+
+	void BroadcastMessage(proto::routing::Envelope&& message) override;
 
 	void Start() override;
 	void Stop() override;
@@ -238,9 +253,7 @@ public:
 	uint16_t GetPort() const;
 
 private:
-	NetworkPeerAPI m_network;
-
-	proto::routing::NetworkMessage Translate(const PipeMessagePtr& message);
+	std::unique_ptr<mq::NetworkPeerAPI> m_network;
 };
 
 } // namespace postoffice

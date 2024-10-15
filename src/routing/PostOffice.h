@@ -23,14 +23,16 @@
 #include <queue>
 #include <memory>
 #include <variant>
+#include <optional>
 
 namespace mq::postoffice {
 
 template <typename... Ts> struct overload : Ts... { using Ts::operator()...; };
 template <typename... Ts> overload(Ts...) -> overload<Ts...>;
 
-using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
-using PostCallback = std::function<void(const std::string&, const PipeMessageResponseCb&)>;
+using MessageResponseCallback = std::function<void(int status, proto::routing::Envelope&& message)>;
+using ReceiveCallback = std::function<void(proto::routing::Envelope&&)>;
+using PostCallback = std::function<void(proto::routing::Envelope&&, const MessageResponseCallback&) > ;
 using DropboxDropper = std::function<void(const std::string&)>;
 
 struct ActorContainer
@@ -346,7 +348,7 @@ public:
 	 *
 	 * @param message the message to deliver
 	 */
-	void Deliver(PipeMessagePtr&& message) const;
+	void Deliver(proto::routing::Envelope&& message) const;
 
 	/**
 	 * Process some messages that have been delivered
@@ -356,12 +358,10 @@ public:
 	void Process(size_t howMany) const;
 
 private:
-	static ProtoMessagePtr Open(proto::routing::Envelope&& envelope, const PipeMessagePtr& header);
-
 	const std::string m_localAddress;
 	const ReceiveCallback m_receive;
 
-	mutable std::queue<ProtoMessagePtr> m_receiveQueue;
+	mutable std::queue<proto::routing::Envelope> m_receiveQueue;
 };
 
 class Dropbox
@@ -391,7 +391,7 @@ public:
 	 * @param callback optional callback for an expected response
 	 */
 	template <typename T>
-	void Post(const proto::routing::Address& address, const T& obj, const PipeMessageResponseCb& callback = nullptr)
+	void Post(const proto::routing::Address& address, const T& obj, const MessageResponseCallback& callback = nullptr)
 	{
 		if (IsValid()) m_post(Stuff(address, obj), callback);
 	}
@@ -402,7 +402,7 @@ public:
 	 * @param address the address to send the message
 	 * @param callback optional callback for an expected response
 	 */
-	void Post(const proto::routing::Address& address, const PipeMessageResponseCb& callback = nullptr)
+	void Post(const proto::routing::Address& address, const MessageResponseCallback& callback = nullptr)
 	{
 		if (IsValid()) m_post(Stuff(address, std::string()), callback);
 	}
@@ -418,40 +418,12 @@ public:
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
 	template <typename T>
-	void PostReply(PipeMessagePtr&& message, const T& obj, uint8_t status = 0)
+	void PostReply(proto::routing::Envelope&& message, const T& obj, int status = 0)
 	{
-		if (IsValid())
-		{
-			std::string data(Data(obj));
-			message->SendReply(message->GetMessageId(), &data[0], data.size(), status);
-		}
+		PostReply(std::move(message), Data(obj), status);
 	}
 
-	/**
-	 * Sends a reply to the sender of a message -- the message can be anything
-	 * because we make no assumption about what is wrapped in the envelope
-	 *
-	 * @param message the original message to reply to
-	 * @param obj the message (as an object)
-	 * @param status a return status, sometimes used by reply handling logic
-	 */
-	template <typename T>
-	void PostReply(ProtoMessagePtr&& message, const T& obj, uint8_t status = 0)
-	{
-		if (IsValid())
-		{
-			if (auto sender = message->GetSender())
-			{
-				std::string data(Stuff(*sender, obj));
-				message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
-			}
-			else
-			{
-				std::string data(Data(obj));
-				message->SendReply(message->GetMessageId(), &data[0], data.size(), status);
-			}
-		}
-	}
+	void PostReply(proto::routing::Envelope&& message, const std::string& data, int status = 0);
 
 	/**
 	 * Checks if the dropbox has a post callback and an address
@@ -478,24 +450,12 @@ private:
 	}
 
 	template <typename T>
-	std::string Stuff(const proto::routing::Address& address, const T& obj)
+	proto::routing::Envelope Stuff(const proto::routing::Address& address, const T& obj)
 	{
 		return Stuff(address, obj.SerializeAsString());
 	}
 
-	std::string Stuff(const proto::routing::Address& address, const std::string& data)
-	{
-		proto::routing::Envelope envelope;
-		*envelope.mutable_address() = address;
-
-		proto::routing::Address& ret = *envelope.mutable_return_address();
-		ret.set_pid(GetCurrentProcessId());
-		ret.set_mailbox(m_localAddress);
-
-		envelope.set_payload(data);
-
-		return envelope.SerializeAsString();
-	}
+	proto::routing::Envelope Stuff(const proto::routing::Address& address, const std::string& data);
 
 	std::string m_localAddress;
 	PostCallback m_post;
@@ -519,7 +479,8 @@ private:
 class PostOffice
 {
 public:
-	virtual ~PostOffice() {}
+	PostOffice(ActorIdentification&& id);
+	virtual ~PostOffice();
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation
@@ -527,16 +488,7 @@ public:
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
 	 * @param callback an optional callback for RPC responses
 	 */
-	virtual void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
-
-	/**
-	 * The interface to route a message, to be implemented in the post office instantiation
-	 *
-	 * @param data the data buffer of the message to route
-	 * @param length the length of the data buffer
-	 * @param callback an optional callback for RPC responses
-	 */
-	void RouteMessage(const void* data, size_t length, const PipeMessageResponseCb& callback);
+	virtual void RouteMessage(proto::routing::Envelope&& message, const MessageResponseCallback& callback) = 0;
 
 	/**
 	 * A helper interface to route a message directly
@@ -546,7 +498,7 @@ public:
 	 * @param callback an optional callback for RPC responses
 	 */
 	template <typename T>
-	void RouteMessage(const proto::routing::Address& address, const T& obj, const PipeMessageResponseCb& callback)
+	void RouteMessage(const proto::routing::Address& address, const T& obj, const MessageResponseCallback& callback)
 	{
 		RouteMessage(address, obj.SerializeAsString(), callback);
 	}
@@ -558,38 +510,7 @@ public:
 	 * @param data a string of data (which embeds its length)
 	 * @param callback an optional callback for RPC responses
 	 */
-	void RouteMessage(const proto::routing::Address& address, const std::string& data, const PipeMessageResponseCb& callback)
-	{
-		proto::routing::Envelope envelope;
-		*envelope.mutable_address() = address;
-
-		proto::routing::Address& ret = *envelope.mutable_return_address();
-		ret.set_pid(GetCurrentProcessId());
-
-		envelope.set_payload(data);
-
-		RouteMessage(envelope, callback);
-	}
-
-	/**
-	 * A helper interface to route a message
-	 *
-	 * @param obj a protobuf object to route
-	 * @param callback an optional callback for RPC responses
-	 */
-	template <typename T>
-	void RouteMessage(const T& obj, const PipeMessageResponseCb& callback)
-	{
-		RouteMessage(obj.SerializeAsString(), callback);
-	}
-
-	/**
-	 * A helper interface to route a message
-	 *
-	 * @param data a string of data (which embeds its length)
-	 * @param callback an optional callback for RPC responses
-	 */
-	void RouteMessage(const std::string& data, const PipeMessageResponseCb& callback);
+	void RouteMessage(const proto::routing::Address& address, const std::string& data, const MessageResponseCallback& callback);
 
 	/**
 	 * Creates and registers a mailbox with the post office
@@ -614,7 +535,7 @@ public:
 	 * @param localAddress the local address the message will be delivered to
 	 * @param message the message that is being sent
 	 */
-	virtual void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) {}
+	virtual void OnDeliver(const std::string& localAddress, proto::routing::Envelope& message) {}
 
 	/**
 	 * Delivers a message to a local mailbox
@@ -624,15 +545,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed = [](int, const auto&) {});
-
-	/**
-	 * Delivers a message to all local mailboxes, optionally excluding self
-	 *
-	 * @param message the message to send -- only the message ID and the payload is used (the header is rebuilt per message)
-	 * @param fromAddress the address to exclude from the delivery
-	 */
-	void DeliverAll(PipeMessagePtr& message, std::optional<std::string_view> fromAddress = {});
+	bool DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message, const MessageResponseCallback& failed = [](int, const auto&) {});
 
 	/**
 	 * Processes messages waiting in the queue
@@ -643,6 +556,17 @@ public:
 
 protected:
 	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
+	ActorIdentification m_id;
+
+	uint32_t m_nextSequence = 0;
+	std::unordered_set<uint32_t> m_rpcReceived;
+	struct RPCRequest
+	{
+		MessageResponseCallback callback;
+		uint32_t sequence;
+		std::chrono::steady_clock::time_point sent; // TODO: need to add timeout logic in a pulse
+	};
+	std::unordered_map<uint32_t, std::unique_ptr<RPCRequest>> m_rpcRequests;
 };
 
 /**

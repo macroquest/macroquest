@@ -27,12 +27,6 @@
     <ClCompile Include="..\..\loader\PostOffice.cpp">
       <Filter>Source Files\loader</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\loader\Network.cpp">
-      <Filter>Source Files\loader</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\Network.pb.cc">
-      <Filter>Source Files\loader</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\loader\Connection.cpp">
       <Filter>Source Files\loader</Filter>
     </ClCompile>
