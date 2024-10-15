@@ -53,10 +53,22 @@ void RoutingFailed(
 		callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, data.data(), data.size()));
 }
 
-// TODO: This isn't right, it's only checking the address and not the container
 bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, const ActorIdentification& id)
 {
+	//SPDLOG_TRACE("{}: Testing address {} against id {}", GetName(), address.DebugString(), id.ToString());
+
 	return std::visit(overload{
+		[&address](uint32_t pid)
+		{
+			return (address.has_pid() && address.pid() == pid) ||
+				(!address.has_peer() && !address.has_pid());
+		},
+		[&address](const ActorContainer::Network& network)
+		{
+			return (address.has_peer() && address.peer().ip() == network.IP && address.peer().port() == network.Port) ||
+				(!address.has_peer() && !address.has_pid());
+		}
+		}, id.container.value) && std::visit(overload{
 		[&address](const std::string& name) { return address.has_name() && ci_equals(name, address.name()); },
 		[&address](const ActorIdentification::Client& client)
 		{
@@ -73,7 +85,7 @@ auto LauncherPostOffice::FindIdentity(
 	const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from)
 {
 	return std::find_if(from, m_identities.end(),
-		[&address](const std::pair<ActorContainer, ActorIdentification>& pair)
+		[&address, this](const std::pair<ActorContainer, ActorIdentification>& pair)
 		{ return IsRecipient(address, pair.second); });
 }
 
@@ -185,6 +197,7 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 	}
 }
 
+// TODO: routing needs a responsibility chain (ie, internal messages route out and in, but external messages only route in? think about this)
 // TODO: add callback handling to this as well
 void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& message)
 {
@@ -194,10 +207,19 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 
 	const auto& address = message.address();
 
-	auto make_message = [&message]
+	auto make_message = [&message, &address](const ActorIdentification& identity)
 		{
-			const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
-			message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+			proto::routing::Envelope e;
+			proto::routing::Address& explicit_address = *e.mutable_address();
+
+			explicit_address.set_mailbox(address.mailbox()); // first copy the mailbox
+			identity.BuildAddress(explicit_address); // then set the identity's address
+
+			if (message.has_payload()) e.set_payload(message.payload());
+			if (message.has_return_address()) *e.mutable_return_address() = message.return_address();
+
+			const auto payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
+			e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
 
 			return std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE,
 				payload.get(), message.ByteSizeLong());
@@ -211,14 +233,29 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 	if (address.has_pid() && address.pid() == GetCurrentProcessId())
 	{
 		// we are explicitly sending to this PID, so route entirely internally
-		SPDLOG_TRACE("{}: Internal pipe message received, routing to mailbox {}", GetName(), address.has_mailbox() ? address.mailbox() : "post_office");
-		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
+		const auto mailbox = address.has_mailbox() ? address.mailbox() : "post_office";
+		SPDLOG_TRACE("{}: Internal pipe message received, routing to mailbox {}", GetName(), mailbox);
+		DeliverTo(mailbox, make_message(ActorIdentification(GetCurrentProcessId(), mailbox)), routing_failed);
 	}
-	else if (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.has_name() && ci_equals(address.name(), "launcher"))
+	else if (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort())
 	{
-		// we are addressing this peer's launcher, this, so route entirely internally
-		SPDLOG_TRACE("{}: Internal peer message received, routing to mailbox {}", GetName(), address.has_mailbox() ? address.mailbox() : "post_office");
-		DeliverTo(address.has_mailbox() ? address.mailbox() : "post_office", make_message(), routing_failed);
+		// this message is intended to be routed locally and not relayed to external peers
+		// TODO: handle RPC here (it should fail here if we have more than one recipient)
+		SPDLOG_TRACE("{}: Routing message to local connections ({})", GetName(), address.has_name() ? address.name() : address.client().character());
+		proto::routing::Address local_address;
+		local_address.set_mailbox(address.mailbox());
+		if (address.has_name())
+			local_address.set_name(address.name());
+		else if (address.has_client())
+			*local_address.mutable_client() = address.client();
+
+		for (const auto& identity : m_identities)
+		{
+			if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
+			{
+				RouteMessage(make_message(identity.second), nullptr);
+			}
+		}
 	}
 	else
 	{
@@ -230,27 +267,27 @@ void LauncherPostOffice::RouteFromConnection(const proto::routing::Envelope& mes
 		{
 			if (IsRecipient(address, identity.second))
 			{
-				proto::routing::Envelope e;
-				proto::routing::Address& explicit_address = *e.mutable_address();
-
-				explicit_address.set_mailbox(address.mailbox()); // first copy the mailbox
-				identity.second.BuildAddress(explicit_address); // then set the identity's address
-
-				if (message.has_payload()) e.set_payload(message.payload());
-				if (message.has_return_address()) *e.mutable_return_address() = message.return_address();
-
-				const auto& payload = std::make_unique<uint8_t[]>(e.ByteSizeLong());
-				e.SerializeToArray(payload.get(), static_cast<int>(e.ByteSizeLong()));
-
-				RouteMessage(std::make_unique<PipeMessage>(mq::MQMessageId::MSG_ROUTE, payload.get(), e.ByteSizeLong()), nullptr);
+				RouteMessage(make_message(identity.second), nullptr);
 			}
 		}
 	}
+
+	{
+		std::lock_guard<std::mutex> lock(m_processMutex);
+		m_hasMessages = true;
+	}
+
+	m_needsProcessing.notify_one();
 }
 
 void LauncherPostOffice::OnDeliver(const std::string& localAddress, PipeMessagePtr& message)
 {
-	m_localConnection->OnDeliver(localAddress, message);
+	{
+		std::lock_guard<std::mutex> lock(m_processMutex);
+		m_hasMessages = true;
+	}
+
+	m_needsProcessing.notify_one();
 }
 
 void LauncherPostOffice::Initialize()
@@ -276,6 +313,16 @@ void LauncherPostOffice::Shutdown()
 	m_serverDropbox.Remove();
 }
 
+void LauncherPostOffice::RequestProcessEvents()
+{
+	{
+		std::lock_guard<std::mutex> lock(m_processMutex);
+		m_hasMessages = true;
+	}
+
+	m_needsProcessing.notify_one();
+}
+
 
 LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 	: m_config(config)
@@ -286,6 +333,59 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 	m_identities.emplace(id.container, id);
 
 	m_peerConnection->AddConfiguredHosts();
+
+	m_thread = std::thread(
+		[this]
+		{
+
+			using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+			auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetThreadDescription");
+			if (SetThreadDescription)
+				SetThreadDescription(GetCurrentThread(), L"PostOffice");
+
+			m_running = true;
+			m_threadId = std::this_thread::get_id();
+
+			m_localConnection->Start();
+			m_peerConnection->Start();
+
+			do
+			{
+				{
+					std::unique_lock<std::mutex> lock(m_processMutex);
+					m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
+				}
+
+				if (!m_running)
+					break;
+
+				m_localConnection->Process();
+				m_peerConnection->Process();
+
+				// OnIncomingMessage is only called from this thread. If we ever have another source of messages
+				// (ie, network messages) then we will need to be careful about making sure Deliver and Process
+				// are always called from the same thread to avoid race conditions
+				Process(10);
+
+				{
+					std::unique_lock<std::mutex> lock(m_processMutex);
+					m_hasMessages = false;
+				}
+			} while (m_running);
+
+			m_localConnection->Stop();
+			m_peerConnection->Stop();
+		}
+	);
+}
+
+LauncherPostOffice::~LauncherPostOffice()
+{
+	// we don't need to worry about sending messages after we stop because the connections should log
+	// and handle this situation.
+	m_running = false;
+	m_needsProcessing.notify_one();
+	m_thread.join();
 }
 
 template <>
@@ -353,6 +453,11 @@ bool LauncherPostOffice::SendMessage(const ActorContainer& ident, const MQMessag
 	proto.SerializeToArray(payload.get(), static_cast<int>(proto.ByteSizeLong()));
 
 	return SendMessage(ident, std::make_unique<PipeMessage>(id, payload.get(), proto.ByteSizeLong()), callback);
+}
+
+void Connection::RequestProcessEvents()
+{
+	m_postOffice->RequestProcessEvents();
 }
 
 } // namespace mq::postoffice

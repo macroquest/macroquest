@@ -80,13 +80,12 @@ public:
 	LauncherPostOffice& operator=(LauncherPostOffice&&) = delete;
 
 	explicit LauncherPostOffice(const PostOfficeConfig& config);
-	~LauncherPostOffice() override = default;
+	~LauncherPostOffice() override;
 
 	const PostOfficeConfig& GetConfig() const { return m_config; }
 	const std::string& GetName() const { return m_config.Name; }
 
-	// TODO: This isn't right, it's only checking the address and not the container
-	static bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
+	bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
 
 	auto FindIdentity(
 		const proto::routing::Address& address,
@@ -106,6 +105,7 @@ public:
 
 	void Initialize();
 	void Shutdown();
+	void RequestProcessEvents();
 
 	template <typename I, typename C = typename ConnectionTypeMap<I>::Type>
 	const std::unique_ptr<C>& GetConnection()
@@ -121,6 +121,14 @@ private:
 	Dropbox m_serverDropbox;
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
+
+	bool m_running = false;
+	std::thread m_thread;
+	std::thread::id m_threadId;
+
+	bool m_hasMessages = false;
+	std::mutex m_processMutex;
+	std::condition_variable m_needsProcessing;
 
 	template <size_t I = 0> void ProcessConnections();
 	template <size_t I = 0> void BroadcastMessage(PipeMessagePtr&& message);
@@ -153,6 +161,10 @@ public:
 	virtual bool SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
 	virtual void BroadcastMessage(PipeMessagePtr&& message) = 0;
 
+	virtual void Start() = 0;
+	virtual void Stop() = 0;
+	void RequestProcessEvents(); // TODO: the network connection never calls this, does it need to?
+
 protected:
 	LauncherPostOffice* m_postOffice;
 };
@@ -169,7 +181,6 @@ public:
 	LocalConnection(LauncherPostOffice* postOffice);
 	~LocalConnection();
 	void Process() override;
-	void RequestProcessEvents();
 
 	bool SendMessage(
 		uint32_t pid,
@@ -186,7 +197,8 @@ public:
 	void RouteToPipe(int connectionId, PipeMessagePtr&& message);
 	void DropProcessId(uint32_t processId) const;
 
-	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message);
+	void Start() override;
+	void Stop() override;
 
 	bool SendSetForegroundWindow(HWND hWnd, uint32_t processID);
 	void SendUnloadAllCommand();
@@ -194,14 +206,6 @@ public:
 	
 private:
 	mq::ProtoPipeServer m_pipeServer;
-
-	bool m_running = false;
-	std::thread m_thread;
-	std::thread::id m_threadId;
-
-	bool m_hasMessages = false;
-	std::mutex m_processMutex;
-	std::condition_variable m_needsProcessing;
 };
 
 class PeerConnection final : public Connection
@@ -225,8 +229,13 @@ public:
 	bool SendMessage(const ActorContainer::Network& peer, PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override;
 	void BroadcastMessage(PipeMessagePtr&& message) override;
 
+	void Start() override;
+	void Stop() override;
+
 	void AddHost(const std::string& address, uint16_t port) const;
 	void RemoveHost(const std::string& address, uint16_t port) const;
+
+	uint16_t GetPort() const;
 
 private:
 	NetworkPeerAPI m_network;

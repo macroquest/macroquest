@@ -118,7 +118,7 @@ void TestBasicNetworkPeerSetup()
 
 	mq::proto::routing::Address addr;
 	addr.set_name("launcher");
-	addr.set_mailbox("test0");
+	addr.set_mailbox("test7781");
 	dropbox1.Post(addr, std::string("This is a test"));
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));

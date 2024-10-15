@@ -87,6 +87,14 @@ struct ActorContainer
 
 	explicit ActorContainer(const proto::routing::Peer& peer) : value(GetContainer(peer)) {}
 
+	bool IsLocal() const
+	{
+		return std::visit(overload{
+			[](uint32_t) { return true; },
+			[](const Network&) { return false; }
+			}, value);
+	}
+
 	template <typename T>
 	bool operator==(const T& other) const
 	{

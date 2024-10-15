@@ -109,69 +109,14 @@ LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	, m_pipeServer{ GetPipePath(postOffice).c_str() }
 {
 	m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
-	m_thread = std::thread(
-		[this]
-		{
-
-			using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
-			auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandleA("kernel32.dll"), "SetThreadDescription");
-			if (SetThreadDescription)
-				SetThreadDescription(GetCurrentThread(), L"PostOffice");
-
-			m_running = true;
-			m_threadId = std::this_thread::get_id();
-			m_pipeServer.Start();
-
-			do
-			{
-				{
-					std::unique_lock<std::mutex> lock(m_processMutex);
-					m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
-				}
-
-				if (!m_running)
-					break;
-
-				m_pipeServer.Process();
-
-				// OnIncomingMessage is only called from this thread. If we ever have another source of messages
-				// (ie, network messages) then we will need to be careful about making sure Deliver and Process
-				// are always called from the same thread to avoid race conditions
-				Process();
-
-				{
-					std::unique_lock<std::mutex> lock(m_processMutex);
-					m_hasMessages = false;
-				}
-			} while (m_running);
-
-			m_pipeServer.Stop();
-		}
-	);
 }
 
 LocalConnection::~LocalConnection()
-{
-	// we don't need to worry about sending messages after we stop because the pipe client will log
-	// and handle this situation.
-	m_running = false;
-	m_needsProcessing.notify_one();
-	m_thread.join();
-}
+{}
 
 void LocalConnection::Process()
 {
 	m_pipeServer.Process();
-}
-
-void mq::postoffice::LocalConnection::RequestProcessEvents()
-{
-	{
-		std::lock_guard<std::mutex> lock(m_processMutex);
-		m_hasMessages = true;
-	}
-
-	m_needsProcessing.notify_one();
 }
 
 bool LocalConnection::SendMessage(
@@ -330,13 +275,6 @@ void LocalConnection::RouteFromPipe(PipeMessagePtr&& message)
 
 		default: break;
 	}
-
-	{
-		std::lock_guard<std::mutex> lock(m_processMutex);
-		m_hasMessages = true;
-	}
-
-	m_needsProcessing.notify_one();
 }
 
 void LocalConnection::RouteToPipe(int connectionId, PipeMessagePtr&& message)
@@ -349,14 +287,14 @@ void LocalConnection::DropProcessId(uint32_t processId) const
 	m_postOffice->DropContainer(ActorContainer(processId));
 }
 
-void mq::postoffice::LocalConnection::OnDeliver(const std::string& localAddress, PipeMessagePtr& message)
+void mq::postoffice::LocalConnection::Start()
 {
-	{
-		std::lock_guard<std::mutex> lock(m_processMutex);
-		m_hasMessages = true;
-	}
+	m_pipeServer.Start();
+}
 
-	m_needsProcessing.notify_one();
+void mq::postoffice::LocalConnection::Stop()
+{
+	m_pipeServer.Stop();
 }
 
 bool LocalConnection::SendSetForegroundWindow(HWND hWnd, uint32_t processID)
@@ -435,6 +373,8 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 				// if this message has been routed here, then we need to let the local launcher handle any routing
 				inbound.mutable_routed()->mutable_address()->clear_pid();
 				inbound.mutable_routed()->mutable_address()->clear_peer();
+				inbound.mutable_routed()->mutable_address()->mutable_peer()->set_ip("127.0.0.1");
+				inbound.mutable_routed()->mutable_address()->mutable_peer()->set_port(m_network.GetPort());
 
 				// if the address is not on the pipe, this will fail or route back out to the network if the client has a peer container
 				m_postOffice->RouteFromConnection(inbound.routed());
@@ -522,6 +462,14 @@ void PeerConnection::BroadcastMessage(PipeMessagePtr&& message)
 	m_network.Broadcast(std::move(payload), outbound.ByteSizeLong());
 }
 
+void mq::postoffice::PeerConnection::Start()
+{
+}
+
+void mq::postoffice::PeerConnection::Stop()
+{
+}
+
 void mq::postoffice::PeerConnection::AddHost(const std::string& address, uint16_t port) const
 {
 	m_network.AddHost(address, port);
@@ -531,6 +479,11 @@ void mq::postoffice::PeerConnection::RemoveHost(const std::string& address, uint
 {
 	m_network.RemoveHost(address, port);
 	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }));
+}
+
+uint16_t mq::postoffice::PeerConnection::GetPort() const
+{
+	return m_network.GetPort();
 }
 
 proto::routing::NetworkMessage PeerConnection::Translate(const PipeMessagePtr& message)

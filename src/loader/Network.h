@@ -87,6 +87,8 @@ public:
 	void RemoveHost(const std::string& address, uint16_t port) const;
 	bool HasHost(const std::string& address, uint16_t port) const;
 
+	uint16_t GetPort() const { return m_port; }
+
 private:
 	explicit NetworkPeerAPI(uint16_t port);
 
