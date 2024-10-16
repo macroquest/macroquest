@@ -379,6 +379,8 @@ void ToolHelpProcessMonitor::ThreadProc()
 				// 	"Switching to WMI process monitor.", waitList.size());
 				// switchToWMI = true;
 				// m_running = false;
+
+				Sleep(2500); // Well, we were going to sleep for 5 seconds as a timeout anyway.
 			}
 			else
 			{
