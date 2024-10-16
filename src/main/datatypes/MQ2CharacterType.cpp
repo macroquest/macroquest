@@ -960,7 +960,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS || pProfile->GetEffect(nBuff).SpellID <= 0)
+			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS)
 				return false;
 
 			Dest.Int = nBuff;
@@ -987,7 +987,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		if (IsNumber(Index))
 		{
 			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS || pProfile->GetTempEffect(nBuff).SpellID <= 0)
+			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS)
 				return false;
 
 			Dest.Int = nBuff + NUM_LONG_BUFFS;
