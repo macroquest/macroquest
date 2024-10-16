@@ -46,7 +46,7 @@
 #include <mq/utils/OS.h>
 #include <mq/base/BuildInfo.h>
 
-#include "Network.h"
+#include "routing/NamedPipesProtocol.h"
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")

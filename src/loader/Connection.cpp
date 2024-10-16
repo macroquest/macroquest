@@ -258,7 +258,7 @@ bool LocalConnection::SendMessage(
 		// found a connection to send it over
 		if (callback != nullptr)
 		{
-			m_rpcs.emplace(message.sequence(), std::move(callback));
+			m_rpcs.emplace(message.sequence(), callback);
 			connection->SendMessageWithResponse(std::move(msg),
 				[this](int status, PipeMessagePtr&& message)
 				{
@@ -269,8 +269,8 @@ bool LocalConnection::SendMessage(
 						it->second(status, std::move(msg));
 						m_rpcs.erase(it);
 					}
-
-					SPDLOG_WARN("{}: Can't find RPC for message from local connection with sequence {}", msg.sequence());
+					else
+						SPDLOG_WARN("{}: Can't find RPC for message from local connection with sequence {}", msg.sequence());
 				});
 		}
 		else
@@ -318,7 +318,7 @@ void mq::postoffice::LocalConnection::RequestIdentities(uint32_t pid) const
 {
 	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
 	{
-		std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
+		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, nullptr, 0));
 	}
 	else
 		SPDLOG_WARN("{}: Unable to get connection for PID {}, send request failed.", m_postOffice->GetName(), pid);

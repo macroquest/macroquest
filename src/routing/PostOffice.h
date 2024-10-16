@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-2024 MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -47,9 +47,25 @@ struct ActorContainer
 			// exact match on IP, can just use string == override
 			return IP == other.IP && Port == other.Port;
 		}
+
+		bool operator!=(const Network& other) const
+		{
+			return !(*this == other);
+		}
+
+		Network& operator=(const Network& other)
+		{
+			if (*this != other)
+			{
+				IP = other.IP;
+				Port = other.Port;
+			}
+
+			return *this;
+		}
 	};
 
-	const std::variant<uint32_t, Network> value;
+	std::variant<uint32_t, Network> value;
 
 	template <typename T>
 	explicit ActorContainer(const T& t) : value(t) {}
@@ -108,6 +124,20 @@ struct ActorContainer
 		return other.value == value;
 	}
 
+	template <typename T>
+	bool operator!=(const T& other) const
+	{
+		return !(*this == other);
+	}
+
+	ActorContainer& operator=(const ActorContainer& other)
+	{
+		if (*this != other)
+			value = other.value;
+
+		return *this;
+	}
+
 	std::string ToString() const
 	{
 		return std::visit(overload{
@@ -136,6 +166,23 @@ struct ActorIdentification
 			return account == other.account &&
 				server == other.server &&
 				character == other.character;
+		}
+
+		bool operator!=(const Client& other) const
+		{
+			return !(*this == other);
+		}
+
+		Client& operator=(const Client& other)
+		{
+			if (*this != other)
+			{
+				account = other.account;
+				server = other.server;
+				character = other.character;
+			}
+
+			return *this;
 		}
 	};
 
@@ -225,6 +272,17 @@ struct ActorIdentification
 	bool operator!=(const ActorIdentification& other) const
 	{
 		return !(*this == other);
+	}
+
+	ActorIdentification& operator=(const ActorIdentification& other)
+	{
+		if (*this != other)
+		{
+			container = other.container;
+			address = other.address;
+		}
+
+		return *this;
 	}
 
 	/**
@@ -473,8 +531,7 @@ private:
  * mailboxes or send mail to other actors (nominally through the launcher).
  *
  * we should assume that everything lives inside an Envelope here. All mail must be
- * in an envelope, no postcards (yet), but we open the Envelope to create ProtoMessages
- * when we put them on the queue
+ * in an envelope, no postcards (yet), and put the Envelopes on the queue directly
  */
 class PostOffice
 {

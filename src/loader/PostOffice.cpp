@@ -198,7 +198,6 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 }
 
 // TODO: add callback handling to this as well
-// TODO: The post office in general should probably stop using PipeMessages and instead just use Envelopes -- let the connections handle the packaging
 void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 {
 	SPDLOG_TRACE("{}: Routing received message: to={} from={}", GetName(),

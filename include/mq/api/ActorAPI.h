@@ -20,7 +20,9 @@
 
 namespace mq {
 
-class PipeMessage;
+namespace proto::routing {
+	class Envelope;
+} // namespace proto::routing
 
 namespace postoffice {
 
@@ -88,7 +90,7 @@ class Message
 public:
 	// the original message is used internally for setting sequence ID on reply.
 	// this won't be usable by plugins unless they link against routing
-	PipeMessage* Original;
+	proto::routing::Envelope* Original;
 
 	/** The address of the sender of the message in case message handling requires this */
 	std::optional<Address> Sender;
