@@ -102,7 +102,7 @@ proto::routing::Envelope FillAddress(const proto::routing::Envelope& message, co
 	return e;
 }
 
-// This is called when a dropbox registered to this pipe server attempts to send a message
+// This is called when a dropbox registered to this post office attempts to send a message
 void LauncherPostOffice::RouteMessage(proto::routing::Envelope&& message, const MessageResponseCallback& callback)
 {
 	const auto& address = message.address();
@@ -200,6 +200,11 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 // TODO: add callback handling to this as well
 void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 {
+	// it's safe to assume that any RPC requests will get routed back to the originating connection, so there is no
+	// need to handle callbacks here, we can just allow the connections to handle them when the reply is sent back
+	// over the connection (via route). What we _do_ need here is early detection of multiple recipients if the
+	// message is an RPC and sending it back if it's ambiguous
+
 	SPDLOG_TRACE("{}: Routing received message: to={} from={}", GetName(),
 		message.address().has_name() ? message.address().name() : message.address().client().character(),
 		message.has_return_address() ? (message.return_address().has_name() ? message.return_address().name() : message.return_address().client().character()) : "unk");
@@ -222,7 +227,6 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 	else if (address.has_pid() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
 	{
 		// this message is intended to be routed locally and not relayed to external peers
-		// TODO: handle RPC here (it should fail here if we have more than one recipient)
 		SPDLOG_TRACE("{}: Routing message to local connections ({})", GetName(), address.has_name() ? address.name() : address.client().character());
 		proto::routing::Address local_address;
 		local_address.set_mailbox(address.mailbox());
@@ -231,11 +235,20 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 		else if (address.has_client())
 			*local_address.mutable_client() = address.client();
 
-		for (const auto& identity : m_identities)
+		if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
+			[&local_address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
+			{ return identity.first.IsLocal() && IsRecipient(local_address, identity.second); }) > 1)
 		{
-			if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
+			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), nullptr);
+		}
+		else
+		{
+			for (const auto& identity : m_identities)
 			{
-				RouteMessage(FillAddress(message, identity.second), nullptr);
+				if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
+				{
+					RouteMessage(FillAddress(message, identity.second), nullptr);
+				}
 			}
 		}
 	}
@@ -243,13 +256,21 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 	{
 		// This message isn't addressed specifically to a container, so find all identities that
 		// should receive this message and send to each one
-		// TODO: handle RPC here (it should fail here if we have more than one recipient)
 		SPDLOG_TRACE("{}: Routing message to {}", GetName(), address.has_name() ? address.name() : address.client().character());
-		for (const auto& identity : m_identities)
+		if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
+			[&address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
+			{ return IsRecipient(address, identity.second); }) > 1)
 		{
-			if (IsRecipient(address, identity.second))
+			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), nullptr);
+		}
+		else
+		{
+			for (const auto& identity : m_identities)
 			{
-				RouteMessage(FillAddress(message, identity.second), nullptr);
+				if (IsRecipient(address, identity.second))
+				{
+					RouteMessage(FillAddress(message, identity.second), nullptr);
+				}
 			}
 		}
 	}

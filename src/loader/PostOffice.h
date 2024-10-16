@@ -167,8 +167,6 @@ public:
 	virtual void Stop() = 0;
 	void RequestProcessEvents(); // TODO: the network connection never calls this, does it need to?
 
-	//virtual void SendIdentification(const ActorContainer& target, const ActorIdentification& identity) = 0;
-
 	LauncherPostOffice* GetPostOffice() const { return m_postOffice; }
 
 protected:

@@ -42,7 +42,7 @@
 //	-- need to handle multiple peers trying to assume leadership
 //	-- unknown IPs in not-leaders should all go to leader
 
-// TODO: default sessions to use the same port as the peer
+// TODO: write networking RPC
 
 using asio::ip::tcp;
 using namespace mq;
@@ -155,6 +155,18 @@ public:
 	uint32_t& Length() { return m_length; }
 	uint8_t* Payload() const { return m_payload.get(); }
 
+	void Reset()
+	{
+		m_headerLength = 0;
+		m_headerLengthNetwork = 0;
+		m_header.reset();
+
+		m_parsedHeader.Clear();
+
+		m_length = 0;
+		m_payload.reset();
+	}
+
 private:
 	uint32_t m_headerLength;
 	uint32_t m_headerLengthNetwork;
@@ -175,6 +187,7 @@ public:
 		, m_address({m_socket.remote_endpoint().address().to_string(), m_socket.remote_endpoint().port()})
 		, m_knownAddress(m_address)
 		, m_active(true)
+		, m_messageBuffer(std::make_unique<NetworkMessage>())
 		, m_receiveHandler(std::move(receiveHandler))
 	{}
 
@@ -219,31 +232,6 @@ public:
 		Read();
 	}
 
-	void Read()
-	{
-		auto message = std::make_shared<NetworkMessage>();
-		asio::async_read(
-			m_socket,
-			asio::buffer(&message->HeaderLengthNetwork(), sizeof(uint32_t)),
-			[this, message](const std::error_code& ec, size_t)
-			{
-				// TODO: Handle other connection errors with reconnect attempts
-				// TODO: Write a function that handles this the same way every time (error checking)
-				// TODO: check the size of the length also, should be sizeof(uint32_t)
-				if (ec != asio::error::eof && // this is when the connection was closed remotely
-					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
-					ec != asio::error::shut_down) // this is when we shut down the socket locally
-				{
-					message->HeaderLength() = ntohl(message->HeaderLengthNetwork());
-					SPDLOG_TRACE("{}: Detected message ({} header length)",
-						m_peerPort, message->HeaderLength());
-
-					ReadHeaderLength(ec, message);
-				}
-				else Close();
-			});
-	}
-
 	void Write(std::unique_ptr<NetworkMessage> message)
 	{
 		std::unique_lock lock(m_writeMutex);
@@ -274,28 +262,58 @@ public:
 	const std::string& UUID() { return m_peerUuid; }
 
 private:
-	void ReadHeaderLength(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
+	void Read()
+	{
+		// ASIO is designed around either shared pointers or some externally controlled pointer
+		// the simpler solution for now is a shared_ptr but it would reduce overhead (by how much?)
+		// to use an external buffer. Using a reset method means we don't have to allocate for each
+		// message as well.
+		m_messageBuffer->Reset();
+		asio::async_read(
+			m_socket,
+			asio::buffer(&m_messageBuffer->HeaderLengthNetwork(), sizeof(uint32_t)),
+			[this](const std::error_code& ec, size_t)
+			{
+				// TODO: Handle other connection errors with reconnect attempts
+				// TODO: Write a function that handles this the same way every time (error checking)
+				// TODO: check the size of the length also, should be sizeof(uint32_t)
+				if (ec != asio::error::eof && // this is when the connection was closed remotely
+					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
+					ec != asio::error::shut_down) // this is when we shut down the socket locally
+				{
+					m_messageBuffer->HeaderLength() = ntohl(m_messageBuffer->HeaderLengthNetwork());
+					SPDLOG_TRACE("{}: Detected message ({} header length)",
+						m_peerPort, m_messageBuffer->HeaderLength());
+
+					ReadHeaderLength(ec);
+				}
+				else Close();
+			});
+	}
+
+	void ReadHeaderLength(const std::error_code& ec)
 	{
 		if (ec)
 		{
 			SPDLOG_ERROR("{}: Header length read error {}: {}", m_peerPort, ec.value(), ec.message());
 			Shutdown();
 		}
-		else if (message->HeaderLength() == 0)
+		else if (m_messageBuffer->HeaderLength() == 0)
 		{
-			SPDLOG_WARN("{}: Got zero length header", m_peerPort);
+			SPDLOG_WARN("{}: Got zero length header, dropping message", m_peerPort);
+			Read();
 		}
 		else
 		{
-			message->AllocateHeader();
+			m_messageBuffer->AllocateHeader();
 			asio::async_read(
 				m_socket,
-				asio::buffer(message->Header(), message->HeaderLength()),
-				[this, message](const std::error_code& ec, size_t) { ReadHeader(ec, message); });
+				asio::buffer(m_messageBuffer->Header(), m_messageBuffer->HeaderLength()),
+				[this](const std::error_code& ec, size_t) { ReadHeader(ec); });
 		}
 	}
 
-	void ReadHeader(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
+	void ReadHeader(const std::error_code& ec)
 	{
 		if (ec)
 		{
@@ -304,30 +322,31 @@ private:
 		}
 		else
 		{
-			message->Init();
+			m_messageBuffer->Init();
 
-			if (message->ParsedHeader().has_address())
+			if (m_messageBuffer->ParsedHeader().has_address())
 			{
 				// this is a redirect
 				// TODO: this should be RPC'able because we can look up the source in the actor infra and respond back to that -- test this assumption
-				message->Relay(m_peerPort);
+				// TODO: how does this even work? We don't re-call Read() -- this needs to be thought about... is it even needed?
+				m_messageBuffer->Relay(m_peerPort);
 			}
-			if (message->Length() > 0)
+			if (m_messageBuffer->Length() > 0)
 			{
 				asio::async_read(
 					m_socket,
-					asio::buffer(message->Payload(), message->Length()),
-					[this, message](const std::error_code& ec, size_t) { ReadPayload(ec, message); });
+					asio::buffer(m_messageBuffer->Payload(), m_messageBuffer->Length()),
+					[this](const std::error_code& ec, size_t) { ReadPayload(ec); });
 			}
 			else
 			{
 				// if there is no length, no need to read from the wire
-				ReadPayload(ec, message);
+				ReadPayload(ec);
 			}
 		}
 	}
 
-	void ReadPayload(const std::error_code& ec, const std::shared_ptr<NetworkMessage>& message)
+	void ReadPayload(const std::error_code& ec)
 	{
 		if (ec)
 		{
@@ -337,11 +356,11 @@ private:
 		else
 		{
 			SPDLOG_TRACE("{}: Received message from {}:{} ({} bytes)",
-				m_peerPort, m_knownAddress.IP, m_knownAddress.Port, message->Length());
+				m_peerPort, m_knownAddress.IP, m_knownAddress.Port, m_messageBuffer->Length());
 
 			if (m_receiveHandler != nullptr)
 			{
-				message->Receive(this, m_receiveHandler);
+				m_messageBuffer->Receive(this, m_receiveHandler);
 			}
 
 			Read();
@@ -384,6 +403,8 @@ private:
 	NetworkAddress m_knownAddress; // this is what the user will "know" the connection address as
 	std::string m_peerUuid;
 	bool m_active;
+
+	const std::unique_ptr<NetworkMessage> m_messageBuffer;
 
 	InternalMessageHandler m_receiveHandler;
 	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
@@ -777,6 +798,8 @@ private:
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_closingSessions;
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
+
+	//std::unordered_map<uint32_t, MessageResponseCallback> m_rpcRequests;
 
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks

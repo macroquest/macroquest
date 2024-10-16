@@ -103,7 +103,7 @@ PostOffice::~PostOffice()
 {
 	for (const auto& [sequenceId, request] : m_rpcRequests)
 	{
-		request->callback(MsgError_ConnectionClosed, {});
+		request.callback(MsgError_ConnectionClosed, {});
 	}
 
 	m_rpcRequests.clear();
@@ -130,17 +130,23 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 			{
 				if (message.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
 				{
+					// we are receiving a reply, find the associated RPC and call the callback
 					auto request = m_rpcRequests.find(message.sequence());
 					if (request != m_rpcRequests.end())
 					{
 						int status = message.status();
-						request->second->callback(status, std::move(message));
+						request->second.callback(status, std::move(message));
 
 						m_rpcRequests.erase(request);
 					}
 				}
 				else
 				{
+					// if we are receiving a request for a reply, store the request so we get one-time guarantees
+						// TODO: handle timeouts so we don't grow this set without bound
+					if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
+						m_rpcReceived.insert(message.sequence());
+
 					receive(std::move(message));
 				}
 			}));
@@ -151,12 +157,16 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 			localAddress,
 			[this](proto::routing::Envelope&& message, const MessageResponseCallback& callback)
 			{
+				// the post callback -- this will always be called on the generation side of messages so we need
+				// to set initial values
+
 				// set the specific return address
 				proto::routing::Address& ret = *message.mutable_return_address();
 				m_id.BuildAddress(ret);
 
 				if (message.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
 				{
+					// assume a reply always has a sequence set
 					// we are trying to reply to an RPC, make sure it's valid and gets replied to exactly once
 					auto seq_it = m_rpcReceived.find(message.sequence());
 					if (seq_it != m_rpcReceived.end())
@@ -167,13 +177,21 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 				}
 				else
 				{
-					// the post callback -- this will always be called on the generation side of messages so we need
-					// to set initial values
 					if (message.sequence() == 0)
 						message.set_sequence(++m_nextSequence);
 
 					if (callback != nullptr)
+					{
+						// we are posting an RPC, store the request here so it gets handled on the response
+						// TODO: handle timeouts so we don't grow this map without bound
 						message.set_mode(static_cast<uint32_t>(MQRequestMode::CallAndResponse));
+						m_rpcRequests.emplace(message.sequence(),
+							RPCRequest{
+								callback,
+								message.sequence(),
+								std::chrono::steady_clock::now()
+							});
+					}
 
 					RouteMessage(std::move(message), callback);
 				}
