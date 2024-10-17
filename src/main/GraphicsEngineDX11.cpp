@@ -19,6 +19,7 @@
 
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
+#include "MQRenderDoc.h"
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -156,7 +157,6 @@ public:
 	HRESULT OnSetFullscreenState(IDXGISwapChain* SwapChain, BOOL Fullscreen, IDXGIOutput* Target);
 	HRESULT OnResizeBuffers(IDXGISwapChain* SwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 
-private:
 	wil::com_ptr<IDXGISwapChain> m_swapChain;
 	wil::com_ptr<ID3D11Device> m_device;
 	wil::com_ptr<ID3D11DeviceContext> m_deviceContext;
@@ -168,7 +168,6 @@ private:
 static MQGraphicsEngineDX11* s_gfxEngine = nullptr;
 
 //============================================================================
-
 
 struct DXGISwapChainHook
 {
@@ -186,7 +185,7 @@ struct DXGISwapChainHook
 		return s_gfxEngine->OnPresent(GetThisSwapChain(), SyncInterval, Flags);
 	}
 
-	static inline HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
+	static HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
 	{
 		return reinterpret_cast<DXGISwapChainHook*>(pSwapChain)->Present_Trampoline(SyncInterval, Flags);
 	}
@@ -197,7 +196,7 @@ struct DXGISwapChainHook
 		return s_gfxEngine->OnSetFullscreenState(GetThisSwapChain(), Fullscreen, target);
 	}
 
-	static inline HRESULT SetFullscreenState(IDXGISwapChain* pSwapChain, BOOL Fullscreen, IDXGIOutput* target)
+	static HRESULT SetFullscreenState(IDXGISwapChain* pSwapChain, BOOL Fullscreen, IDXGIOutput* target)
 	{
 		return reinterpret_cast<DXGISwapChainHook*>(pSwapChain)->SetFullscreenState_Trampoline(Fullscreen, target);
 	}
@@ -330,16 +329,17 @@ bool MQGraphicsEngineDX11::InstallHooks()
 		}
 		else
 		{
+			// Hook DXGISwapChain
 			uintptr_t* vtable = *(uintptr_t**)swapChain.get();
 
 			InstallDetour(vtable[2], &DXGISwapChainHook::Release_Detour,
-				DXGISwapChainHook::Release_Trampoline_Ptr, "DXGISwapChain_Release");
+				DXGISwapChainHook::Release_Trampoline_Ptr, "DXGISwapChainHook::Release");
 			InstallDetour(vtable[8], &DXGISwapChainHook::Present_Detour,
-				DXGISwapChainHook::Present_Trampoline_Ptr, "DXGISwapChain_Present");
+				DXGISwapChainHook::Present_Trampoline_Ptr, "DXGISwapChainHook::Present");
 			InstallDetour(vtable[10], &DXGISwapChainHook::SetFullscreenState_Detour,
-				DXGISwapChainHook::SetFullscreenState_Trampoline_Ptr, "DXGISwapChain_SetFullscreenState");
+				DXGISwapChainHook::SetFullscreenState_Trampoline_Ptr, "DXGISwapChainHook::SetFullscreenState");
 			InstallDetour(vtable[13], &DXGISwapChainHook::ResizeBuffers_Detour,
-				DXGISwapChainHook::ResizeBuffers_Trampoline_Ptr, "DXGISwapChain_ResizeBuffers");
+				DXGISwapChainHook::ResizeBuffers_Trampoline_Ptr, "DXGISwapChainHook::ResizeBuffers");
 
 			success = true;
 		}
@@ -487,7 +487,7 @@ HRESULT MQGraphicsEngineDX11::OnPresent(IDXGISwapChain* pSwapChain, UINT SyncInt
 	// Prevent re-entrancy. This happens because we will render ImGui from this call, which also calls Present
 	// on its own viewport swap chains.
 	static bool sbInPresentDetour = false;
-	if (sbInPresentDetour)
+	if (sbInPresentDetour || (Flags & DXGI_PRESENT_TEST) != 0)
 	{
 		return DXGISwapChainHook::Present(pSwapChain, SyncInterval, Flags);
 	}
@@ -495,11 +495,6 @@ HRESULT MQGraphicsEngineDX11::OnPresent(IDXGISwapChain* pSwapChain, UINT SyncInt
 	sbInPresentDetour = true;
 
 	AcquireDevice(pSwapChain);
-
-	if (m_deviceAcquired)
-	{
-		PostUpdateScene();
-	}
 
 	HRESULT result = DXGISwapChainHook::Present(pSwapChain, SyncInterval, Flags);
 
@@ -553,6 +548,8 @@ void MQGraphicsEngineDX11::ImGui_DrawFrame()
 
 void MQGraphicsEngineDX11::ImGui_RenderDrawData()
 {
+	RenderDoc_ScopedEvent e(MQColor(104, 149, 255), L"ImGui_RenderDrawData");
+
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
