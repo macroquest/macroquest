@@ -14,6 +14,8 @@
 
 syntax = "proto3";
 
+import "Routing.proto";
+
 package mq.peernetwork;
 
 enum MessageType {
@@ -31,7 +33,20 @@ message Header {
 	MessageType type = 1;
 	uint32 length = 2;
 
+	uint32 sequence_id = 3;
+	int32 status = 4;
+
 	// optional handling of relay requests
-	optional string address = 3;
-	optional uint32 port = 4;
+	optional string address = 11;
+	optional uint32 port = 12;
+}
+
+message NetworkMessage {
+	oneof contents {
+		mq.proto.routing.AddIdentity add = 1;
+		mq.proto.routing.DropIdentity drop = 2;
+		mq.proto.routing.RequestIdentities request = 3;
+
+		bytes routed = 10;
+	}
 }

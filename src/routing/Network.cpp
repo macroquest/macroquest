@@ -29,13 +29,14 @@
 #include <spdlog/spdlog.h>
 
 #include "Network.h"
+#include "Routing.h"
 
 #include "asio.hpp"
 
 #include "Network.pb.h"
 
 // TODO: Unit tests
-// TODO: Leader test (later work, get internal networking done first):
+// TODO: Leader (later work, get internal networking done first):
 //	-- leader gets PAT from router
 //	-- only leader will have the external IP in hosts
 //	-- does leader need to be an explicitly configured option? maybe can detect external IPs in hosts?
@@ -84,16 +85,20 @@ class NetworkMessage
 {
 public:
 	// outgoing message
-	NetworkMessage(peernetwork::Header&& header, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
+	NetworkMessage(peernetwork::Header&& header, uint32_t sequenceId, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
 		: m_parsedHeader(std::move(header))
 		, m_length(length)
 		, m_payload(std::move(payload))
 	{
-		InitHeader();
+		InitHeader(sequenceId);
 	}
 
 	// incoming message
-	NetworkMessage() : m_headerLength(0), m_headerLengthNetwork(0), m_length(0) {}
+	NetworkMessage()
+		: m_headerLength(0)
+		, m_headerLengthNetwork(0)
+		, m_length(0)
+	{}
 
 	NetworkMessage(const NetworkMessage&) = delete;
 	NetworkMessage(NetworkMessage&&) = delete;
@@ -102,9 +107,10 @@ public:
 
 	~NetworkMessage() = default;
 
-	void InitHeader()
+	void InitHeader(uint32_t sequenceId)
 	{
 		m_parsedHeader.set_length(m_length);
+		m_parsedHeader.set_sequence_id(sequenceId);
 		m_headerLength = m_parsedHeader.ByteSizeLong();
 		m_headerLengthNetwork = htonl(m_headerLength);
 
@@ -150,7 +156,7 @@ public:
 	uint32_t& HeaderLength() { return m_headerLength; }
 	uint32_t& HeaderLengthNetwork() { return m_headerLengthNetwork; }
 	uint8_t* Header() const { return m_header.get(); }
-	const peernetwork::Header& ParsedHeader() const { return m_parsedHeader; }
+	const peernetwork::Header& ParsedHeader() { return m_parsedHeader; }
 
 	uint32_t& Length() { return m_length; }
 	uint8_t* Payload() const { return m_payload.get(); }
@@ -210,6 +216,12 @@ public:
 		{
 			SPDLOG_DEBUG("{}: Shutting down connection ({}:{})", m_peerPort, m_address.IP, m_address.Port);
 			std::error_code ec;
+
+			for (const auto& [seq, request] : m_rpcRequests)
+				request.callback(MsgError_ConnectionClosed, nullptr);
+
+			m_rpcRequests.clear();
+
 			(void)m_socket.shutdown(asio::socket_base::shutdown_both, ec);
 			if (ec)
 				SPDLOG_ERROR("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
@@ -232,10 +244,12 @@ public:
 		Read();
 	}
 
-	void Write(std::unique_ptr<NetworkMessage> message)
+	void Write(peernetwork::Header&& header, std::unique_ptr<uint8_t[]> payload, uint32_t length, NetworkMessageResponseCb callback)
 	{
 		std::unique_lock lock(m_writeMutex);
-		m_outgoing.Push(std::move(message));
+		m_outgoing.Push(std::make_pair(
+			std::make_unique<NetworkMessage>(std::move(header), ++m_nextSequenceId, std::move(payload), length),
+			std::move(callback)));
 
 		// kick off the loop if it's not running
 		if (!m_writing)
@@ -265,7 +279,7 @@ private:
 	void Read()
 	{
 		// ASIO is designed around either shared pointers or some externally controlled pointer
-		// the simpler solution for now is a shared_ptr but it would reduce overhead (by how much?)
+		// the simpler solution is a shared_ptr but it would reduce overhead (by how much?)
 		// to use an external buffer. Using a reset method means we don't have to allocate for each
 		// message as well.
 		m_messageBuffer->Reset();
@@ -358,7 +372,19 @@ private:
 			SPDLOG_TRACE("{}: Received message from {}:{} ({} bytes)",
 				m_peerPort, m_knownAddress.IP, m_knownAddress.Port, m_messageBuffer->Length());
 
-			if (m_receiveHandler != nullptr)
+			auto cb_it = m_rpcRequests.find(m_messageBuffer->ParsedHeader().sequence_id());
+			if (cb_it != m_rpcRequests.end())
+			{
+				auto msg = std::make_unique<peernetwork::NetworkMessage>();
+				msg->set_routed(m_messageBuffer->Payload(), m_messageBuffer->Length());
+				// TODO: does this need to be executed on the non-asio thread?
+				cb_it->second.callback(
+					m_messageBuffer->ParsedHeader().status(),
+					std::move(msg));
+
+				m_rpcRequests.erase(cb_it);
+			}
+			else if (m_receiveHandler != nullptr)
 			{
 				m_messageBuffer->Receive(this, m_receiveHandler);
 			}
@@ -384,13 +410,23 @@ private:
 			else
 			{
 				m_writing = true;
-				const std::unique_ptr message(m_outgoing.Pop());
+				const auto message(m_outgoing.Pop());
+
+				if (message.second != nullptr)
+				{
+					auto seq = message.first->ParsedHeader().sequence_id();
+
+					m_rpcRequests.emplace(seq, RpcRequest<NetworkMessageResponseCb>{
+						message.second,
+						seq,
+						std::chrono::steady_clock::now() });
+				}
 
 				// explicitly unlock before we start the next async_write
 				lock.unlock();
 				asio::async_write(
 					m_socket,
-					message->Buffers(),
+					message.first->Buffers(),
 					[this](const std::error_code& ec, size_t) { InternalWrite(ec); });
 			}
 		}
@@ -406,8 +442,11 @@ private:
 
 	const std::unique_ptr<NetworkMessage> m_messageBuffer;
 
+	uint32_t m_nextSequenceId = 0;
+	std::unordered_map<uint32_t, RpcRequest<NetworkMessageResponseCb>> m_rpcRequests;
+
 	InternalMessageHandler m_receiveHandler;
-	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
+	LockedQueue<std::pair<std::unique_ptr<NetworkMessage>, NetworkMessageResponseCb>> m_outgoing;
 
 	// we need to make sure async_write doesn't get called while its running
 	std::mutex m_writeMutex;
@@ -511,7 +550,12 @@ public:
 	}
 
 	// TODO: This needs to also handle sending to peers that are leaders for other networks (possibly improve the map?)
-	void Send(peernetwork::MessageType message_type, const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
+	void Send(
+		peernetwork::MessageType message_type,
+		const NetworkAddress& address,
+		std::unique_ptr<uint8_t[]> payload,
+		uint32_t length,
+		NetworkMessageResponseCb callback)
 	{
 		peernetwork::Header header;
 		header.set_type(message_type);
@@ -521,11 +565,11 @@ public:
 
 		if (auto session = m_connectingSessions.find(address); session != m_connectingSessions.end())
 		{
-			session->second->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+			session->second->Write(std::move(header), std::move(payload), length, std::move(callback));
 		}
 		else if (auto session = m_sessions.find(address); session != m_sessions.end())
 		{
-			session->second->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+			session->second->Write(std::move(header), std::move(payload), length, std::move(callback));
 		}
 		else
 		{
@@ -536,7 +580,7 @@ public:
 				{
 					header.set_address(address.IP);
 					header.set_port(address.Port);
-					session->second->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+					session->second->Write(std::move(header), std::move(payload), length, std::move(callback));
 				}
 				else
 				{
@@ -550,7 +594,7 @@ public:
 		}
 	}
 
-	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]>&& payload, uint32_t length)
+	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
 		for (const auto& [_, session] : m_sessions)
 		{
@@ -560,7 +604,7 @@ public:
 			auto payload_copy = std::make_unique<uint8_t[]>(length);
 			memcpy(payload_copy.get(), payload.get(), length);
 
-			session->Write(std::make_unique<NetworkMessage>(std::move(header), std::move(payload_copy), length));
+			session->Write(std::move(header), std::move(payload_copy), length, nullptr);
 		}
 	}
 
@@ -622,9 +666,13 @@ private:
 					switch (header.type())
 					{
 					case peernetwork::Route:
+					{
+						auto msg = std::make_unique<peernetwork::NetworkMessage>();
+						msg->ParseFromArray(payload.get(), length);
 						// handler is only called when the message is routed
-						m_receiveHandler(session->KnownAddress(), std::move(payload), length);
+						m_receiveHandler(session->KnownAddress(), std::move(msg));
 						break;
+					}
 					case peernetwork::Leader:
 						// set the leader here (for when the session lookup fails)
 						m_leaderAddress = session->KnownAddress();
@@ -661,7 +709,7 @@ private:
 			auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
 			id.SerializeToArray(payload.get(), id.ByteSizeLong());
 
-			Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), id.ByteSizeLong());
+			Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), id.ByteSizeLong(), nullptr);
 		}
 		else
 		{
@@ -799,8 +847,6 @@ private:
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
 
-	//std::unordered_map<uint32_t, MessageResponseCallback> m_rpcRequests;
-
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks
 
@@ -814,6 +860,7 @@ private:
 // map of port -> peer
 static std::unordered_map<uint16_t, std::unique_ptr<NetworkPeer>> s_peers;
 
+// This is for the leader logic
 void NetworkMessage::Relay(uint16_t port)
 {
 	const auto peer = s_peers.find(port);
@@ -826,7 +873,8 @@ void NetworkMessage::Relay(uint16_t port)
 				static_cast<uint16_t>(m_parsedHeader.port())
 			},
 			std::move(m_payload),
-			m_length
+			m_length,
+			nullptr
 		);
 	}
 	else
@@ -854,13 +902,20 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler rec
 	return NetworkPeerAPI(port);
 }
 
-void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const
+void NetworkPeerAPI::Send(const std::string& address, uint16_t port, NetworkMessagePtr message, NetworkMessageResponseCb callback) const
 {
 	// this lookup is O(1), and is done this way to decouple the implementation from the API
 	const auto peer = s_peers.find(m_port);
 	if (peer != s_peers.end())
 	{
-		peer->second->Send(peernetwork::Route, NetworkAddress{ address, port }, std::move(payload), length);
+		auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
+		message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
+		peer->second->Send(
+			peernetwork::Route,
+			NetworkAddress{ address, port },
+			std::move(payload),
+			static_cast<uint32_t>(message->ByteSizeLong()),
+			std::move(callback));
 	}
 	else
 	{
@@ -868,13 +923,15 @@ void NetworkPeerAPI::Send(const std::string& address, uint16_t port, std::unique
 	}
 }
 
-void NetworkPeerAPI::Broadcast(std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const
+void NetworkPeerAPI::Broadcast(NetworkMessagePtr message) const
 {
 	SPDLOG_TRACE("{}: Attempting to broadcast message with peer", m_port);
 	const auto peer = s_peers.find(m_port);
 	if (peer != s_peers.end())
 	{
-		peer->second->Broadcast(peernetwork::Route, std::move(payload), length);
+		auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
+		message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
+		peer->second->Broadcast(peernetwork::Route, std::move(payload), static_cast<uint32_t>(message->ByteSizeLong()));
 	}
 	else
 	{

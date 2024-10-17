@@ -16,6 +16,8 @@
 
 #include "Routing.pb.h"
 
+#include <chrono>
+
 enum class MQRequestMode : uint8_t
 {
 	SimpleMessage   = 0,          // (Default) This is a simple message. There is no reply.
@@ -29,6 +31,16 @@ constexpr int MsgError_ConnectionClosed        = -1;                  // connect
 constexpr int MsgError_NoConnection            = -2;                  // no connection established
 constexpr int MsgError_RoutingFailed           = -3;                  // message routing failed
 constexpr int MsgError_AmbiguousRecipient      = -4;                  // RPC message couldn't determine single recipient
+
+// mapping of sequence id to callbacks -- these need to be maintained independently for each connection
+// and the post office if there is more than one connection, so provide a universal method for handling them
+template <typename Cb>
+struct RpcRequest
+{
+	Cb callback;
+	uint32_t sequenceId;
+	std::chrono::steady_clock::time_point sendTime; // for timeouts
+};
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")

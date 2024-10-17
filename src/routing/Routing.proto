@@ -77,17 +77,6 @@ message Envelope {
 	optional bytes payload = 99;
 }
 
-// TODO: NetworkMessage should be in Network.proto
-message NetworkMessage {
-	oneof contents {
-		AddIdentity add = 1;
-		DropIdentity drop = 2;
-		RequestIdentities request = 3;
-
-		Envelope routed = 10;
-	}
-}
-
 enum NotifyLevel {
 	Info = 0;
 	Warning = 1;

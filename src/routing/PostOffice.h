@@ -616,14 +616,7 @@ protected:
 	ActorIdentification m_id;
 
 	uint32_t m_nextSequence = 0;
-	std::unordered_set<uint32_t> m_rpcReceived;
-	struct RPCRequest
-	{
-		MessageResponseCallback callback;
-		uint32_t sequence;
-		std::chrono::steady_clock::time_point sent; // TODO: need to add timeout logic in a pulse
-	};
-	std::unordered_map<uint32_t, RPCRequest> m_rpcRequests;
+	std::unordered_map<uint32_t, RpcRequest<MessageResponseCallback>> m_rpcRequests;
 };
 
 /**

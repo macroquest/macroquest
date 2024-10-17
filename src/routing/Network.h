@@ -19,6 +19,8 @@
 #include <memory>
 #include <functional>
 
+#include "Network.pb.h"
+
 namespace mq {
 
 constexpr uint16_t DEFAULT_NETWORK_PEER_PORT = 7781;
@@ -41,13 +43,15 @@ struct NetworkAddress
 	}
 };
 
+using NetworkMessagePtr = std::unique_ptr<peernetwork::NetworkMessage>;
+
 // this serves as the signature for sending and receiving messages
-// the signature is address, port, payload, length
-using PeerMessageHandler = std::function<void(const NetworkAddress&, std::unique_ptr<uint8_t[]>&&, size_t)>;
+using PeerMessageHandler = std::function<void(const NetworkAddress&, NetworkMessagePtr)>;
+using NetworkMessageResponseCb = std::function<void(int, NetworkMessagePtr)>;
 
 // this is the signature for onconnected callbacks
-using OnSessionConnectedHandler = std::function<void(const NetworkAddress& address)>;
-using OnSessionDisconnectedHandler = std::function<void(const NetworkAddress& address)>;
+using OnSessionConnectedHandler = std::function<void(const NetworkAddress&)>;
+using OnSessionDisconnectedHandler = std::function<void(const NetworkAddress&)>;
 
 class NetworkPeerAPI
 {
@@ -59,42 +63,13 @@ public:
 	NetworkPeerAPI& operator=(NetworkPeerAPI&&) = default;
 	~NetworkPeerAPI() = default;
 
-	void Send(const std::string& address, uint16_t port, std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const;
+	void Send(
+		const std::string& address,
+		uint16_t port,
+		NetworkMessagePtr message,
+		NetworkMessageResponseCb callback) const;
 
-	// templated helper functions to assist with the common use case of protobuf
-	template <typename T>
-	void Send(const std::string& address, uint16_t port, const T& data) const
-	{
-		const size_t length = data.ByteSizeLong();
-		if (length > 0)
-		{
-			auto payload = std::make_unique<uint8_t[]>(length);
-			data.SerializeToArray(payload.get(), static_cast<int>(length));
-			Send(address, port, std::move(payload), length);
-		}
-		else
-		{
-			Send(address, port, nullptr, 0);
-		}
-	}
-
-	void Broadcast(std::unique_ptr<uint8_t[]>&& payload, uint32_t length) const;
-
-	template <typename T>
-	void Broadcast(const T& data) const
-	{
-		const size_t length = data.ByteSizeLong();
-		if (length > 0)
-		{
-			auto payload = std::make_unique<uint8_t[]>(length);
-			data.SerializeToArray(payload.get(), static_cast<int>(length));
-			Broadcast(std::move(payload), length);
-		}
-		else
-		{
-			Broadcast(nullptr, 0);
-		}
-	}
+	void Broadcast(NetworkMessagePtr message) const;
 
 	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected, OnSessionDisconnectedHandler disconnected);
 	void Shutdown() const;

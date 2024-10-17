@@ -88,6 +88,40 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 //	std::this_thread::sleep_for(std::chrono::seconds(2));
 //}
 
+// TODO: this is uuuuugly, message should be able to send replies directly and we shouldn't need to wrap the dropbox
+class TestDropbox
+{
+public:
+	TestDropbox(uint32_t index, const std::string& name)
+		: m_name(name)
+		, m_dropbox(mq::postoffice::GetPostOffice(index).RegisterAddress(name,
+			[this](mq::proto::routing::Envelope&& message)
+			{
+				SPDLOG_DEBUG("{}: received {}", m_name, message.payload());
+
+				if (message.payload() == "Please respond")
+				{
+					auto response = fmt::format("{}: responding to message {}", m_name, message.payload());
+					PostReply(std::move(message), response, 1);
+				}
+			}))
+	{}
+
+	void Post(const mq::proto::routing::Address& addr, const std::string& obj, const mq::postoffice::MessageResponseCallback& callback = nullptr)
+	{
+		m_dropbox.Post(addr, obj, callback);
+	}
+
+	void PostReply(mq::proto::routing::Envelope&& message, const std::string& data, int status)
+	{
+		m_dropbox.PostReply(std::move(message), data, status);
+	}
+
+private:
+	std::string m_name;
+	mq::postoffice::Dropbox m_dropbox;
+};
+
 void TestBasicNetworkPeerSetup()
 {
 	SetPostOfficeConfig(0, PostOfficeConfig{ "7781", 7781, R"(\\.\pipe\mqpipe0)",std::vector{
@@ -101,23 +135,48 @@ void TestBasicNetworkPeerSetup()
 	InitializePostOffice(0);
 	InitializePostOffice(1);
 
-	auto dropbox0 = mq::postoffice::GetPostOffice(0).RegisterAddress("test7781", [](mq::proto::routing::Envelope&& message)
-		{
-			SPDLOG_DEBUG("test7781 received {}", message.payload());
-		});
-
-	auto dropbox1 = mq::postoffice::GetPostOffice(1).RegisterAddress("test8177", [](mq::proto::routing::Envelope&& message)
-		{
-			SPDLOG_DEBUG("test8177 received {}", message.payload());
-		});
+	auto dropbox0 = TestDropbox(0, "test7781");
+	auto dropbox1 = TestDropbox(1, "test8177");
 
 	// allow both post offices to set up, otherwise messages will just get dropped with no destination
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
-	mq::proto::routing::Address addr;
-	addr.set_name("launcher");
-	addr.set_mailbox("test7781");
-	dropbox1.Post(addr, std::string("This is a test"));
+	{
+		mq::proto::routing::Address addr;
+		addr.set_name("launcher");
+		addr.set_mailbox("test7781");
+		dropbox1.Post(addr, std::string("This is a test"));
+	}
+
+
+	{
+		// this should fail with -4 because there are 2 launchers
+		mq::proto::routing::Address addr;
+		addr.set_name("launcher");
+		addr.set_mailbox("test8177");
+		dropbox0.Post(addr, std::string("Please respond"),
+			[](int status, mq::proto::routing::Envelope&& message)
+			{
+				SPDLOG_DEBUG("Received status {} and response: {}", message.status(), message.payload());
+			});
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	{
+		// this should succeed
+		mq::proto::routing::Address addr;
+		mq::proto::routing::Peer& peer = *addr.mutable_peer();
+		peer.set_ip("127.0.0.1");
+		peer.set_port(8177);
+		addr.set_name("launcher");
+		addr.set_mailbox("test8177");
+		dropbox0.Post(addr, std::string("Please respond"),
+			[](int status, mq::proto::routing::Envelope&& message)
+			{
+				SPDLOG_DEBUG("Received status {} and response: {}", message.status(), message.payload());
+			});
+	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 

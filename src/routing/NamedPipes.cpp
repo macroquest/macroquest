@@ -447,7 +447,7 @@ void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
 		&& callback != nullptr)
 	{
 		// If we have a callback, create a request object to track the response.
-		RpcRequest request;
+		RpcRequest<PipeMessageResponseCb> request;
 		request.callback = callback;
 		request.sequenceId = message->GetSequenceId();
 		request.sendTime = std::chrono::steady_clock::now();

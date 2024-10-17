@@ -171,6 +171,7 @@ public:
 
 protected:
 	LauncherPostOffice* m_postOffice;
+	std::unordered_map<uint32_t, MessageResponseCallback> m_rpcs; // all connections will need to translate RPCs
 };
 
 class LocalConnection final : public Connection
@@ -210,8 +211,6 @@ public:
 	
 private:
 	std::unique_ptr<mq::ProtoPipeServer> m_pipeServer;
-
-	std::unordered_map<uint32_t, MessageResponseCallback> m_rpcs;
 };
 
 class PeerConnection final : public Connection

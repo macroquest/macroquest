@@ -270,7 +270,7 @@ bool LocalConnection::SendMessage(
 						m_rpcs.erase(it);
 					}
 					else
-						SPDLOG_WARN("{}: Can't find RPC for message from local connection with sequence {}", msg.sequence());
+						SPDLOG_WARN("{}: Can't find RPC for message from local connection seq={}", msg.sequence());
 				});
 		}
 		else
@@ -278,7 +278,7 @@ bool LocalConnection::SendMessage(
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed.", m_postOffice->GetName(), pid);
+	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed. seq={}", m_postOffice->GetName(), pid, message.sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), callback);
 	return false;
 }
@@ -395,31 +395,30 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
 	, m_network(std::make_unique<NetworkPeerAPI>(NetworkPeerAPI::GetOrCreate(
 		GetPeerPort(postOffice),
-		[this](const NetworkAddress& address, std::unique_ptr<uint8_t[]>&& payload, size_t length)
+		[this](const NetworkAddress& address, NetworkMessagePtr message)
 		{
-			using proto::routing::NetworkMessage;
-
-			NetworkMessage inbound;
-			inbound.ParseFromArray(payload.get(), static_cast<int>(length));
+			using peernetwork::NetworkMessage;
 
 			auto source_addr = ActorContainer::Network{ address.IP, address.Port };
 
-			switch (inbound.contents_case())
+			switch (message->contents_case())
 			{
 			case NetworkMessage::kAdd:
 				m_postOffice->AddIdentity(ActorIdentification(
-					std::move(source_addr), ActorIdentification::GetAddress(inbound.add().id())));
+					std::move(source_addr), ActorIdentification::GetAddress(message->add().id())));
 				break;
 			case NetworkMessage::kDrop:
 				m_postOffice->DropIdentity(ActorIdentification(
-					std::move(source_addr), ActorIdentification::GetAddress(inbound.drop().id())));
+					std::move(source_addr), ActorIdentification::GetAddress(message->drop().id())));
 				break;
 			case NetworkMessage::kRequest:
 				m_postOffice->SendIdentities(ActorContainer(source_addr));
 				break;
 			case NetworkMessage::kRouted:
 			{
-				proto::routing::Envelope routed = inbound.routed();
+				proto::routing::Envelope routed;
+				routed.ParseFromString(message->routed());
+
 				if (routed.has_return_address())
 				{
 					routed.mutable_return_address()->clear_pid();
@@ -433,11 +432,24 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 				routed.mutable_address()->mutable_peer()->set_port(m_network->GetPort());
 
 				// if the address is not on the pipe, this will fail or route back out to the network if the client has a peer container
-				m_postOffice->RouteFromConnection(std::move(routed));
+				if (routed.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
+				{
+					auto rpc = m_rpcs.find(routed.sequence());
+					if (rpc != m_rpcs.end())
+					{
+						int status = routed.status();
+						rpc->second(status, std::move(routed));
+					}
+					else
+						m_postOffice->RouteFromConnection(std::move(routed));
+				}
+				else
+					m_postOffice->RouteFromConnection(std::move(routed));
+
 				break;
 			}
 			default:
-				SPDLOG_WARN("{}: Got unknown inbound message type {}", m_postOffice->GetName(), static_cast<int>(inbound.contents_case()));
+				SPDLOG_WARN("{}: Got unknown inbound message type {}", m_postOffice->GetName(), static_cast<int>(message->contents_case()));
 				break;
 			}
 		},
@@ -480,7 +492,6 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 	}
 }
 
-// TODO: wrap this callback like we do for local connections -- this requires the network to handle RPC as well to work
 bool PeerConnection::SendMessage(
 	const ActorContainer::Network& peer,
 	proto::routing::Envelope&& message,
@@ -491,16 +502,40 @@ bool PeerConnection::SendMessage(
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
 		// the network has the host (we do this in order to provide routing errors)
-		proto::routing::NetworkMessage outbound;
-		*outbound.mutable_routed() = std::move(message);
-		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
-		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
+		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+		outbound->set_routed(message.SerializeAsString());
 
-		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+		if (callback != nullptr)
+		{
+			m_rpcs.emplace(message.sequence(), callback);
+			m_network->Send(peer.IP, peer.Port, std::move(outbound),
+				[this](int status, NetworkMessagePtr message)
+				{
+					if (message->has_routed())
+					{
+						proto::routing::Envelope msg;
+						msg.ParseFromString(message->routed());
+
+						if (const auto it = m_rpcs.find(msg.sequence()); it != m_rpcs.end())
+						{
+							msg.set_status(status);
+							it->second(status, std::move(msg));
+							m_rpcs.erase(it);
+						}
+						else
+							SPDLOG_WARN("{}: Can't find RPC for message from peer connection seq={}", m_postOffice->GetName(), msg.sequence());
+					}
+					else
+						SPDLOG_WARN("{}: Got incorrect network message type {} in RPC callback", m_postOffice->GetName(), static_cast<int>(message->contents_case()));
+				});
+		}
+		else
+			m_network->Send(peer.IP, peer.Port, std::move(outbound), nullptr);
+
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed. seq={}", m_postOffice->GetName(), peer.IP, peer.Port, message.sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), callback);
 	return false;
 
@@ -510,13 +545,11 @@ void mq::postoffice::PeerConnection::SendIdentification(const ActorContainer::Ne
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
-		proto::routing::NetworkMessage outbound;
-		proto::routing::AddIdentity& add = *outbound.mutable_add();
+		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+		proto::routing::AddIdentity& add = *outbound->mutable_add();
 		*add.mutable_id() = identity.GetProto();
 
-		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
-		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
-		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+		m_network->Send(peer.IP, peer.Port, std::move(outbound), nullptr);
 	}
 	else
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, identification message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
@@ -526,13 +559,11 @@ void mq::postoffice::PeerConnection::DropIdentification(const ActorContainer::Ne
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
-		proto::routing::NetworkMessage outbound;
-		proto::routing::DropIdentity& drop = *outbound.mutable_drop();
+		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+		proto::routing::DropIdentity& drop = *outbound->mutable_drop();
 		*drop.mutable_id() = identity.GetProto();
 
-		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
-		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
-		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+		m_network->Send(peer.IP, peer.Port, std::move(outbound), nullptr);
 	}
 	else
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, drop message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
@@ -543,12 +574,10 @@ void mq::postoffice::PeerConnection::RequestIdentities(const ActorContainer::Net
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
-		proto::routing::NetworkMessage outbound;
-		proto::routing::RequestIdentities& req = *outbound.mutable_request();
+		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+		proto::routing::RequestIdentities& req = *outbound->mutable_request();
 
-		auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
-		outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
-		m_network->Send(peer.IP, peer.Port, std::move(payload), outbound.ByteSizeLong());
+		m_network->Send(peer.IP, peer.Port, std::move(outbound), nullptr);
 	}
 	else
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, send request failed.", m_postOffice->GetName(), peer.IP, peer.Port);
@@ -556,12 +585,10 @@ void mq::postoffice::PeerConnection::RequestIdentities(const ActorContainer::Net
 
 void PeerConnection::BroadcastMessage(proto::routing::Envelope&& message)
 {
-	proto::routing::NetworkMessage outbound;
-	*outbound.mutable_routed() = std::move(message);
-	auto payload = std::make_unique<uint8_t[]>(outbound.ByteSizeLong());
-	outbound.SerializeToArray(payload.get(), static_cast<int>(outbound.ByteSizeLong()));
+	auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+	outbound->set_routed(message.SerializeAsString());
 
-	m_network->Broadcast(std::move(payload), outbound.ByteSizeLong());
+	m_network->Broadcast(std::move(outbound));
 }
 
 void mq::postoffice::PeerConnection::Start()
