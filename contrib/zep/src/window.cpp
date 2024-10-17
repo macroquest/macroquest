@@ -1172,7 +1172,8 @@ void ZepWindow::DisplayLineNumbers()
             }
             else
             {
-                strNum = std::to_string(lineInfo.bufferLineNumber);
+                // Derple's school for the non-criminally insane says that Line numbers should start at 1.
+                strNum = std::to_string(lineInfo.bufferLineNumber + 1);
             }
 
             ZepFont& numFont = display.GetFont(ZepTextType::UI);

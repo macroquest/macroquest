@@ -15,6 +15,8 @@
 #include "zep/mcommon/threadpool.h"
 #include "zep/mcommon/file/path.h"
 
+#include "zep/component.h"
+
 #include "zep/keymap.h"
 
 #include "splits.h"
@@ -56,8 +58,6 @@ class IZepFileSystem;
 class Indexer;
 
 struct Region;
-
-#define ZEP_UNUSED(var) (void)var;
 
 // Helpers
 inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) ? true : false); }
@@ -103,7 +103,6 @@ enum class Msg
     UserEvent = 100,
 };
 
-struct IZepComponent;
 class ZepMessage
 {
 public:
@@ -137,13 +136,6 @@ public:
     ZepMouseButton button = ZepMouseButton::Unknown;
     uint32_t modifiers;
     IZepComponent* pComponent = nullptr;
-};
-
-struct IZepComponent
-{
-    virtual void Notify(std::shared_ptr<ZepMessage> message) { ZEP_UNUSED(message); };
-    virtual void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) { ZEP_UNUSED(message); }
-    virtual ZepEditor& GetEditor() const = 0;
 };
 
 class ZepComponent : public IZepComponent
@@ -414,6 +406,7 @@ public:
     void OnMouseWheel(const NVec2f& mousePos, float scrollAmount);
 
     void SetBufferSyntax(ZepBuffer& buffer) const;
+    void SetBufferSyntax(ZepBuffer& buffer, const std::string& syntaxName) const;
     void SetBufferMode(ZepBuffer& buffer) const;
 
     EditorConfig& GetConfig()
