@@ -16,6 +16,7 @@
 
 #include "mq/base/Common.h"
 #include "mq/base/Color.h"
+#include "main/ImGuiZepEditor.h"
 
 #include <memory>
 #include <string_view>
@@ -28,17 +29,16 @@ namespace mq::imgui {
 
 // Interface to a ImGuiZepConsole, suitable for exposure to plugins.
 
-class ConsoleWidget
+class ConsoleWidget : public mq::imgui::ImGuiZepEditor
 {
 public:
 	static inline const MQColor DEFAULT_COLOR = MQColor(240, 240, 240, 255);
 
 	MQLIB_OBJECT static  std::shared_ptr<ConsoleWidget> Create(std::string_view id);
+	
+	ConsoleWidget(std::string_view id) : mq::imgui::ImGuiZepEditor(id) {}
 	virtual ~ConsoleWidget() {};
 
-	virtual void Render(const ImVec2& displaySize = ImVec2()) = 0;
-
-	virtual void Clear() = 0;
 	virtual void AppendText(std::string_view text, MQColor defaultColor = DEFAULT_COLOR,
 		bool appendNewLine = false) = 0;
 

@@ -7,6 +7,7 @@
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/filesystem.h"
+#include "zep/syntax.h"
 
 #include "zep/mcommon/file/path.h"
 #include "zep/mcommon/string/stringutils.h"
@@ -641,6 +642,25 @@ bool ZepBuffer::Save(int64_t& size)
         return true;
     }
     return false;
+}
+
+void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
+{
+    if (provider.syntaxID != m_syntaxProvider.syntaxID)
+    {
+        if (provider.factory)
+        {
+            m_spSyntax = provider.factory(this);
+        }
+        else
+        {
+            m_spSyntax.reset();
+        }
+
+        m_syntaxProvider = provider;
+
+        m_spSyntax->QueueUpdateSyntax(Begin(), End());
+    }
 }
 
 std::string ZepBuffer::GetBufferText() const
