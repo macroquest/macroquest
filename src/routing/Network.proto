@@ -33,9 +33,6 @@ message Header {
 	MessageType type = 1;
 	uint32 length = 2;
 
-	uint32 sequence_id = 3;
-	int32 status = 4;
-
 	// optional handling of relay requests
 	optional string address = 11;
 	optional uint32 port = 12;

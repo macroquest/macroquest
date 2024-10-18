@@ -12,8 +12,13 @@
  * GNU General Public License for more details.
  */
 
+// Uncomment to see super spammy read/write trace logging
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #define MQLIB_OBJECT
 #include "PostOffice.h"
+
+#include <spdlog/spdlog.h>
 
 #include <windows.h> // this is needed for GetCurrentProcessId
 
@@ -97,19 +102,30 @@ proto::routing::Envelope Dropbox::Stuff(const proto::routing::Address& address, 
 
 PostOffice::PostOffice(ActorIdentification&& id)
 	: m_id(std::move(id))
-{}
+{
+	m_dropbox = RegisterAddress("post_office",
+		[this](proto::routing::Envelope&& message)
+		{
+			// if we've gotten here, then something is delivering a message to this
+			// post office ("post_office"), we don't have any logic to do here so
+			// all messages will just get dropped
+		});
+}
 
 PostOffice::~PostOffice()
 {
 	for (const auto& [sequenceId, request] : m_rpcRequests)
-	{
 		request.callback(MsgError_ConnectionClosed, {});
-	}
 
 	m_rpcRequests.clear();
+
+	// after the mailbox is removed from the post office, it won't get any more messages, and let's
+	// make sure all remaining messages get discarded by dropping the last reference, so we stop
+	// processing
+	m_dropbox.Remove();
 }
 
-void PostOffice::RouteMessage(const proto::routing::Address& address, const std::string& data, const MessageResponseCallback& callback)
+void PostOffice::RouteMessage(const proto::routing::Address& address, const std::string& data)
 {
 	proto::routing::Envelope envelope;
 	*envelope.mutable_address() = address;
@@ -119,7 +135,17 @@ void PostOffice::RouteMessage(const proto::routing::Address& address, const std:
 
 	envelope.set_payload(data);
 
-	RouteMessage(std::move(envelope), callback);
+	RouteMessage(std::move(envelope));
+}
+
+void PostOffice::RoutingFailed(int status, proto::routing::Envelope&& message, std::string_view what)
+{
+	// don't do anything if this isn't an RPC, nothing else will expect a response
+	if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
+	{
+		auto data = fmt::format("{} at address {}", what, message.address().ShortDebugString());
+		m_dropbox.PostReply(std::move(message), std::move(data), status);
+	}
 }
 
 Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive)
@@ -128,6 +154,7 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 		localAddress, std::make_unique<Mailbox>(localAddress,
 			[receive = std::move(receive), this](proto::routing::Envelope&& message)
 			{
+				SPDLOG_TRACE("{}: Mailbox received message at address {}", m_id, message.address().ShortDebugString());
 				if (message.mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
 				{
 					// we are receiving a reply, find the associated RPC and call the callback
@@ -139,6 +166,8 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 
 						m_rpcRequests.erase(request);
 					}
+					else
+						SPDLOG_WARN("{}: Failed to find RPC seq={} in post office on message reply at address {}", m_id, message.sequence(), message.address().ShortDebugString());
 				}
 				else
 				{
@@ -154,11 +183,15 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 			{
 				// the post callback -- this will always be called on the generation side of messages so we need
 				// to set initial values
+				if (message.sequence() == 0)
+					message.set_sequence(++m_nextSequence);
 
 				// set the specific return address
 				proto::routing::Address& ret = *message.mutable_return_address();
 				m_id.BuildAddress(ret);
 				ret.set_mailbox(localAddress);
+
+				SPDLOG_TRACE("{}: Dropbox posting message to address {}", m_id, message.address().ShortDebugString());
 
 				if (callback != nullptr)
 				{
@@ -173,7 +206,7 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 					});
 				}
 
-				RouteMessage(std::move(message), callback);
+				RouteMessage(std::move(message));
 			},
 			[this](const std::string& localAddress)
 			{ RemoveMailbox(localAddress); });
@@ -187,7 +220,7 @@ bool PostOffice::RemoveMailbox(const std::string& localAddress)
 	return m_mailboxes.erase(localAddress) == 1;
 }
 
-bool PostOffice::DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message, const MessageResponseCallback& failed)
+bool PostOffice::DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message)
 {
 	auto mailbox_it = m_mailboxes.find(localAddress);
 	if (mailbox_it != m_mailboxes.end())
@@ -197,7 +230,7 @@ bool PostOffice::DeliverTo(const std::string& localAddress, proto::routing::Enve
 		return true;
 	}
 
-	failed(MsgError_RoutingFailed, std::move(message));
+	RoutingFailed(MsgError_RoutingFailed, std::move(message), "Cannot find mailbox to receive");
 	return false;
 }
 

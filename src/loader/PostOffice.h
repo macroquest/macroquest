@@ -94,13 +94,11 @@ public:
 		const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from);
 
 	// This is called when a dropbox registered to this pipe server attempts to send a message (an _outbound_ message)
-	void RouteMessage(proto::routing::Envelope&& message, const MessageResponseCallback& callback) override;
+	void RouteMessage(proto::routing::Envelope&& message) override;
 	void OnDeliver(const std::string& localAddress, proto::routing::Envelope& message) override;
 
 	// This is called when a message is received over a connection (an _inbound_ message)
 	void RouteFromConnection(proto::routing::Envelope&& message);
-
-	void RoutingFailed(int status, proto::routing::Envelope&& message, const MessageResponseCallback& callback);
 
 	void AddIdentity(const ActorIdentification& id);
 	void DropIdentity(const ActorIdentification& id);
@@ -122,7 +120,6 @@ private:
 
 	std::unordered_multimap<ActorContainer, ActorIdentification> m_identities;
 
-	Dropbox m_serverDropbox;
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
 
@@ -136,7 +133,7 @@ private:
 
 	template <size_t I = 0> void ProcessConnections();
 	template <size_t I = 0> void BroadcastMessage(proto::routing::Envelope&& message);
-	bool SendMessage(const ActorContainer& ident, proto::routing::Envelope&& message, const MessageResponseCallback& callback);
+	bool SendMessage(const ActorContainer& ident, proto::routing::Envelope&& message);
 	void SendIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void DropIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void RequestIdentities(const ActorContainer& from);
@@ -171,7 +168,6 @@ public:
 
 protected:
 	LauncherPostOffice* m_postOffice;
-	std::unordered_map<uint32_t, MessageResponseCallback> m_rpcs; // all connections will need to translate RPCs
 };
 
 class LocalConnection final : public Connection
@@ -187,10 +183,7 @@ public:
 	~LocalConnection();
 	void Process() override;
 
-	bool SendMessage(
-		uint32_t pid,
-		proto::routing::Envelope&& message,
-		const MessageResponseCallback& callback);
+	bool SendMessage(uint32_t pid, proto::routing::Envelope&& message);
 
 	void SendIdentification(uint32_t pid, const ActorIdentification& identity) const;
 	void DropIdentification(uint32_t pid, const ActorIdentification& identity) const;
@@ -230,10 +223,7 @@ public:
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
 	void Process() override {}
 
-	bool SendMessage(
-		const ActorContainer::Network& peer,
-		proto::routing::Envelope&& message,
-		const MessageResponseCallback& callback);
+	bool SendMessage(const ActorContainer::Network& peer, proto::routing::Envelope&& message);
 
 	void SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
 	void DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;

@@ -47,7 +47,6 @@ using NetworkMessagePtr = std::unique_ptr<peernetwork::NetworkMessage>;
 
 // this serves as the signature for sending and receiving messages
 using PeerMessageHandler = std::function<void(const NetworkAddress&, NetworkMessagePtr)>;
-using NetworkMessageResponseCb = std::function<void(int, NetworkMessagePtr)>;
 
 // this is the signature for onconnected callbacks
 using OnSessionConnectedHandler = std::function<void(const NetworkAddress&)>;
@@ -63,12 +62,7 @@ public:
 	NetworkPeerAPI& operator=(NetworkPeerAPI&&) = default;
 	~NetworkPeerAPI() = default;
 
-	void Send(
-		const std::string& address,
-		uint16_t port,
-		NetworkMessagePtr message,
-		NetworkMessageResponseCb callback) const;
-
+	void Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const;
 	void Broadcast(NetworkMessagePtr message) const;
 
 	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected, OnSessionDisconnectedHandler disconnected);

@@ -153,9 +153,19 @@ void MQActorAPI::SendToActor(
 	{
 		dropbox->Post(addr, data, pipe_callback);
 	}
+	else if (pipe_callback != nullptr)
+	{
+		proto::routing::Envelope env;
+		*env.mutable_address() = addr;
+		env.set_payload(data);
+
+		std::string_view plugin_name = owner != nullptr ? owner->name : "None";
+
+		GetPostOffice().RoutingFailed(MsgError_RoutingFailed, std::move(env), fmt::format("No dropbox registered in plugin {}", plugin_name));
+	}
 	else
 	{
-		GetPostOffice().RouteMessage(addr, data, pipe_callback);
+		GetPostOffice().RouteMessage(addr, data);
 	}
 }
 

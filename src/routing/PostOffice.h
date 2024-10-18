@@ -545,7 +545,7 @@ public:
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
 	 * @param callback an optional callback for RPC responses
 	 */
-	virtual void RouteMessage(proto::routing::Envelope&& message, const MessageResponseCallback& callback) = 0;
+	virtual void RouteMessage(proto::routing::Envelope&& message) = 0;
 
 	/**
 	 * A helper interface to route a message directly
@@ -555,9 +555,9 @@ public:
 	 * @param callback an optional callback for RPC responses
 	 */
 	template <typename T>
-	void RouteMessage(const proto::routing::Address& address, const T& obj, const MessageResponseCallback& callback)
+	void RouteMessage(const proto::routing::Address& address, const T& obj)
 	{
-		RouteMessage(address, obj.SerializeAsString(), callback);
+		RouteMessage(address, obj.SerializeAsString());
 	}
 
 	/**
@@ -567,7 +567,16 @@ public:
 	 * @param data a string of data (which embeds its length)
 	 * @param callback an optional callback for RPC responses
 	 */
-	void RouteMessage(const proto::routing::Address& address, const std::string& data, const MessageResponseCallback& callback);
+	void RouteMessage(const proto::routing::Address& address, const std::string& data);
+
+	/**
+	 * A helper to easily formulate routing failed messages to the source
+	 * 
+	 * @param status the integer status of the reply -- matches the pipe implementation but can be independent
+	 * @param message the originating message that failed to route, used to build the response
+	 * @param what a string message that prepends to the address to print out at the source
+	 */
+	void RoutingFailed(int status, proto::routing::Envelope&& message, std::string_view what);
 
 	/**
 	 * Creates and registers a mailbox with the post office
@@ -602,7 +611,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message, const MessageResponseCallback& failed = [](int, const auto&) {});
+	bool DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message);
 
 	/**
 	 * Processes messages waiting in the queue
@@ -613,6 +622,7 @@ public:
 
 protected:
 	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
+	Dropbox m_dropbox;
 	ActorIdentification m_id;
 
 	uint32_t m_nextSequence = 0;
