@@ -30,9 +30,11 @@ namespace mq::postoffice {
 template <typename... Ts> struct overload : Ts... { using Ts::operator()...; };
 template <typename... Ts> overload(Ts...) -> overload<Ts...>;
 
-using MessageResponseCallback = std::function<void(int status, proto::routing::Envelope&& message)>;
-using ReceiveCallback = std::function<void(proto::routing::Envelope&&)>;
-using PostCallback = std::function<void(proto::routing::Envelope&&, const MessageResponseCallback&) > ;
+using MessagePtr = std::unique_ptr<proto::routing::Envelope>;
+
+using MessageResponseCallback = std::function<void(int status, MessagePtr message)>;
+using ReceiveCallback = std::function<void(MessagePtr)>;
+using PostCallback = std::function<void(MessagePtr, const MessageResponseCallback&) > ;
 using DropboxDropper = std::function<void(const std::string&)>;
 
 struct ActorContainer
@@ -406,7 +408,7 @@ public:
 	 *
 	 * @param message the message to deliver
 	 */
-	void Deliver(proto::routing::Envelope&& message) const;
+	void Deliver(MessagePtr message) const;
 
 	/**
 	 * Process some messages that have been delivered
@@ -419,7 +421,7 @@ private:
 	const std::string m_localAddress;
 	const ReceiveCallback m_receive;
 
-	mutable std::queue<proto::routing::Envelope> m_receiveQueue;
+	mutable std::queue<MessagePtr> m_receiveQueue;
 };
 
 class Dropbox
@@ -476,12 +478,12 @@ public:
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
 	template <typename T>
-	void PostReply(proto::routing::Envelope&& message, const T& obj, int status = 0)
+	void PostReply(MessagePtr message, const T& obj, int status = 0)
 	{
 		PostReply(std::move(message), Data(obj), status);
 	}
 
-	void PostReply(proto::routing::Envelope&& message, const std::string& data, int status = 0);
+	void PostReply(MessagePtr message, const std::string& data, int status = 0);
 
 	/**
 	 * Checks if the dropbox has a post callback and an address
@@ -508,12 +510,12 @@ private:
 	}
 
 	template <typename T>
-	proto::routing::Envelope Stuff(const proto::routing::Address& address, const T& obj)
+	MessagePtr Stuff(const proto::routing::Address& address, const T& obj)
 	{
 		return Stuff(address, obj.SerializeAsString());
 	}
 
-	proto::routing::Envelope Stuff(const proto::routing::Address& address, const std::string& data);
+	MessagePtr Stuff(const proto::routing::Address& address, const std::string& data);
 
 	std::string m_localAddress;
 	PostCallback m_post;
@@ -545,7 +547,7 @@ public:
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
 	 * @param callback an optional callback for RPC responses
 	 */
-	virtual void RouteMessage(proto::routing::Envelope&& message) = 0;
+	virtual void RouteMessage(MessagePtr message) = 0;
 
 	/**
 	 * A helper interface to route a message directly
@@ -576,7 +578,7 @@ public:
 	 * @param message the originating message that failed to route, used to build the response
 	 * @param what a string message that prepends to the address to print out at the source
 	 */
-	void RoutingFailed(int status, proto::routing::Envelope&& message, std::string_view what);
+	void RoutingFailed(int status, MessagePtr message, std::string_view what);
 
 	/**
 	 * Creates and registers a mailbox with the post office
@@ -601,7 +603,7 @@ public:
 	 * @param localAddress the local address the message will be delivered to
 	 * @param message the message that is being sent
 	 */
-	virtual void OnDeliver(const std::string& localAddress, proto::routing::Envelope& message) {}
+	virtual void OnDeliver(const std::string& localAddress, MessagePtr& message) {}
 
 	/**
 	 * Delivers a message to a local mailbox
@@ -611,7 +613,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, proto::routing::Envelope&& message);
+	bool DeliverTo(const std::string& localAddress, MessagePtr message);
 
 	/**
 	 * Processes messages waiting in the queue

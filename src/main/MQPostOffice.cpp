@@ -92,8 +92,8 @@ private:
 				// this is an incoming routed message, so we can assume that we need to dispatch the message
 				// from here to a mailbox in this client
 
-				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				auto address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
+				auto envelope = std::make_unique<proto::routing::Envelope>(ProtoMessage::Parse<proto::routing::Envelope>(message));
+				auto address = envelope->has_address() ? std::make_optional(envelope->address()) : std::nullopt;
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
 				// was within the client. In either case, we can safely assume that we should route it to an
@@ -249,7 +249,7 @@ public:
 		, m_launcherProcessID(0)
 	{
 		m_clientDropbox = RegisterAddress("pipe_client",
-			[this](proto::routing::Envelope&& message)
+			[this](MessagePtr message)
 			{
 				// if we've gotten here, then something is delivering a message to this
 				// post office ("pipe_client"), so handle messages directly
@@ -272,27 +272,27 @@ public:
 			{ return ci_ends_with(pair.first, address.mailbox()); });
 	}
 
-	void RouteMessage(proto::routing::Envelope&& message) override
+	void RouteMessage(MessagePtr message) override
 	{
 		// dropbox.Post(Reply) was called, so route the message out
 
 		// always enrich the return address if in game
 		if (pLocalPC)
 		{
-			message.mutable_return_address()->mutable_client()->set_account(GetLoginName());
-			message.mutable_return_address()->mutable_client()->set_server(GetServerShortName());
-			message.mutable_return_address()->mutable_client()->set_character(pLocalPC->Name);
+			message->mutable_return_address()->mutable_client()->set_account(GetLoginName());
+			message->mutable_return_address()->mutable_client()->set_server(GetServerShortName());
+			message->mutable_return_address()->mutable_client()->set_character(pLocalPC->Name);
 		}
 
 		// no matter what, we need to route this message over the pipe
-		auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
-		message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+		auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
+		message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
 
-		auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong());
+		auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message->ByteSizeLong());
 
-		if (message.has_address())
+		if (message->has_address())
 		{
-			const auto& address = message.address();
+			const auto& address = message->address();
 			if ((address.has_pid() && address.pid() != GetCurrentProcessId()) ||
 				address.has_peer() ||
 				address.has_name() ||

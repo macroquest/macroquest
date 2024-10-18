@@ -224,10 +224,10 @@ std::string GetEQRoot()
 	return "";
 }
 
-static void ReceivedMessageHandler(proto::routing::Envelope&& message)
+static void ReceivedMessageHandler(postoffice::MessagePtr message)
 {
 	proto::login::LoginMessage login_message;
-	if (login_message.ParseFromString(message.payload()))
+	if (login_message.ParseFromString(message->payload()))
 	{
 		switch (login_message.id())
 		{

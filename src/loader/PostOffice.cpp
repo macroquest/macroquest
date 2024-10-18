@@ -70,31 +70,28 @@ auto LauncherPostOffice::FindIdentity(
 		{ return IsRecipient(address, pair.second); });
 }
 
-proto::routing::Envelope FillAddress(const proto::routing::Envelope& message, const ActorIdentification& identity)
+MessagePtr FillAddress(MessagePtr message, const ActorIdentification& identity)
 {
-	proto::routing::Envelope e(message);
-	proto::routing::Address& address = *e.mutable_address();
-	identity.BuildAddress(address); // then set the identity's address
+	proto::routing::Address& address = *message->mutable_address();
+	identity.BuildAddress(address);
 
-	return e;
+	return message;
 }
 
 // This is called when a dropbox registered to this post office attempts to send a message
-void LauncherPostOffice::RouteMessage(proto::routing::Envelope&& message)
+void LauncherPostOffice::RouteMessage(MessagePtr message)
 {
-	const auto& address = message.address();
-
-	SPDLOG_TRACE("{}: Routing message to {} seq={}", GetName(), address.ShortDebugString(), message.sequence());
+	SPDLOG_TRACE("{}: Routing message to {} seq={}", GetName(), message->address().ShortDebugString(), message->sequence());
 
 	// if we have a PID here, we could still have multiple names on the same PID, so we can't
 	// avoid the loop
-	if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
+	if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
 	{
-		const auto identity = FindIdentity(message.address(), m_identities.begin());
+		const auto identity = FindIdentity(message->address(), m_identities.begin());
 
 		if (identity == m_identities.end())
 			RoutingFailed(MsgError_RoutingFailed, std::move(message), "Failed to find identity in post office");
-		else if (FindIdentity(message.address(), std::next(identity)) != m_identities.end())
+		else if (FindIdentity(message->address(), std::next(identity)) != m_identities.end())
 			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
 		else
 			SendMessage(identity->first, std::move(message));
@@ -105,8 +102,8 @@ void LauncherPostOffice::RouteMessage(proto::routing::Envelope&& message)
 		// all clients that match the address -- it's important to copy these messages
 		for (const auto& identity : m_identities)
 		{
-			if (IsRecipient(address, identity.second))
-				SendMessage(identity.first, FillAddress(message, identity.second));
+			if (IsRecipient(message->address(), identity.second))
+				SendMessage(identity.first, FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
 		}
 	}
 }
@@ -169,25 +166,23 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 }
 
 // TODO: add callback handling to this as well
-void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
+void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 {
 	// it's safe to assume that any RPC requests will get routed back to the originating connection, so there is no
 	// need to handle callbacks here, we can just allow the connections to handle them when the reply is sent back
 	// over the connection (via route). What we _do_ need here is early detection of multiple recipients if the
 	// message is an RPC and sending it back if it's ambiguous
 
-	SPDLOG_TRACE("{}: Routing received message: to={} from={} seq={}", GetName(),
-		message.address().has_name() ? message.address().name() : message.address().client().character(),
-		message.has_return_address() ? (message.return_address().has_name() ? message.return_address().name() : message.return_address().client().character()) : "unk",
-		message.sequence());
+	SPDLOG_TRACE("{}: Routing received message: to=[{}] from=[{}] seq={}", GetName(),
+		message->address().ShortDebugString(), message->return_address().ShortDebugString(), message->sequence());
 
-	const auto& address = message.address();
+	const auto& address = message->address();
 
 	if (address.has_pid() && address.pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
 	{
 		// we are explicitly sending to this launcher, so route entirely internally
 		const auto mailbox = address.has_mailbox() ? address.mailbox() : "post_office";
-		SPDLOG_TRACE("{}: Internal pipe message received in launcher, routing to mailbox {} seq={}", GetName(), mailbox, message.sequence());
+		SPDLOG_TRACE("{}: Internal pipe message received in launcher, routing to mailbox {} seq={}", GetName(), mailbox, message->sequence());
 
 		// This is already an explicit address, so just package up the envelope into a message and deliver it
 		DeliverTo(mailbox, std::move(message));
@@ -195,7 +190,7 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 	else if (address.has_pid() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
 	{
 		// this message is intended to be routed locally and not relayed to external peers
-		SPDLOG_TRACE("{}: Routing message to local connections ({}) seq={}", GetName(), address.has_name() ? address.name() : address.client().character(), message.sequence());
+		SPDLOG_TRACE("{}: Routing message to local connections ({}) seq={}", GetName(), address.has_name() ? address.name() : address.client().character(), message->sequence());
 		proto::routing::Address local_address;
 		local_address.set_mailbox(address.mailbox());
 		if (address.has_name())
@@ -203,7 +198,7 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 		else if (address.has_client())
 			*local_address.mutable_client() = address.client();
 
-		if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
+		if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
 			[&local_address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
 			{ return identity.first.IsLocal() && IsRecipient(local_address, identity.second); }) > 1)
 		{
@@ -215,7 +210,8 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 			{
 				if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
 				{
-					RouteMessage(FillAddress(message, identity.second));
+					// copy here because we could potentially have multiple matches
+					RouteMessage(FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
 				}
 			}
 		}
@@ -224,8 +220,8 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 	{
 		// This message isn't addressed specifically to a container, so find all identities that
 		// should receive this message and send to each one
-		SPDLOG_TRACE("{}: Routing message to {} seq={}", GetName(), address.has_name() ? address.name() : address.client().character(), message.sequence());
-		if (message.mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
+		SPDLOG_TRACE("{}: Routing message to [{}] seq={}", GetName(), address.ShortDebugString(), message->sequence());
+		if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
 			[&address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
 			{ return IsRecipient(address, identity.second); }) > 1)
 		{
@@ -237,7 +233,8 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 			{
 				if (IsRecipient(address, identity.second))
 				{
-					RouteMessage(FillAddress(message, identity.second));
+					// copy here because we could potentially have multiple matches
+					RouteMessage(FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
 				}
 			}
 		}
@@ -251,7 +248,7 @@ void LauncherPostOffice::RouteFromConnection(proto::routing::Envelope&& message)
 	m_needsProcessing.notify_one();
 }
 
-void LauncherPostOffice::OnDeliver(const std::string& localAddress, proto::routing::Envelope& message)
+void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& message)
 {
 	{
 		std::lock_guard<std::mutex> lock(m_processMutex);
@@ -373,7 +370,7 @@ void LauncherPostOffice::ProcessConnections()
 }
 
 template <size_t I>
-void LauncherPostOffice::BroadcastMessage(proto::routing::Envelope&& message)
+void LauncherPostOffice::BroadcastMessage(MessagePtr message)
 {
 	using V = std::remove_const_t<decltype(ActorContainer::value)>;
 	if constexpr (I < std::variant_size_v<V>)
@@ -384,9 +381,9 @@ void LauncherPostOffice::BroadcastMessage(proto::routing::Envelope&& message)
 	}
 }
 
-bool LauncherPostOffice::SendMessage(const ActorContainer& ident, proto::routing::Envelope&& message)
+bool LauncherPostOffice::SendMessage(const ActorContainer& ident, MessagePtr message)
 {
-	SPDLOG_TRACE("{}: Sending message to {} seq={}", GetName(), ident, message.sequence());
+	SPDLOG_TRACE("{}: Sending message to {} seq={}", GetName(), ident, message->sequence());
 	return std::visit([this, message = std::move(message)](const auto& c) mutable
 		{
 			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message));

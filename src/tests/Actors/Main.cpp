@@ -95,20 +95,19 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 //	std::this_thread::sleep_for(std::chrono::seconds(2));
 //}
 
-// TODO: this is uuuuugly, message should be able to send replies directly and we shouldn't need to wrap the dropbox
 class TestDropbox
 {
 public:
 	TestDropbox(uint32_t index, const std::string& name)
 		: m_name(name)
 		, m_dropbox(mq::postoffice::GetPostOffice(index).RegisterAddress(name,
-			[this](mq::proto::routing::Envelope&& message)
+			[this](mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("{}: received {}", m_name, message.payload());
+				SPDLOG_DEBUG("{}: received {}", m_name, message->payload());
 
-				if (message.payload() == "Please respond")
+				if (message->payload() == "Please respond")
 				{
-					auto response = fmt::format("{}: responding to message {}", m_name, message.payload());
+					auto response = fmt::format("{}: responding to message {}", m_name, message->payload());
 					PostReply(std::move(message), response, 1);
 				}
 			}))
@@ -119,7 +118,7 @@ public:
 		m_dropbox.Post(addr, obj, callback);
 	}
 
-	void PostReply(mq::proto::routing::Envelope&& message, const std::string& data, int status)
+	void PostReply(mq::postoffice::MessagePtr message, const std::string& data, int status)
 	{
 		m_dropbox.PostReply(std::move(message), data, status);
 	}
@@ -162,9 +161,9 @@ void TestBasicNetworkPeerSetup()
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),
-			[](int status, mq::proto::routing::Envelope&& message)
+			[](int status, mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("Received status {} and response: {}", message.status(), message.payload());
+				SPDLOG_DEBUG("Received status {} and response: {}", message->status(), message->payload());
 			});
 	}
 
@@ -178,9 +177,9 @@ void TestBasicNetworkPeerSetup()
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),
-			[](int status, mq::proto::routing::Envelope&& message)
+			[](int status, mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("Received status {} and response: {}", message.status(), message.payload());
+				SPDLOG_DEBUG("Received status {} and response: {}", message->status(), message->payload());
 			});
 	}
 

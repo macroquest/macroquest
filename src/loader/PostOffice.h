@@ -94,11 +94,11 @@ public:
 		const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from);
 
 	// This is called when a dropbox registered to this pipe server attempts to send a message (an _outbound_ message)
-	void RouteMessage(proto::routing::Envelope&& message) override;
-	void OnDeliver(const std::string& localAddress, proto::routing::Envelope& message) override;
+	void RouteMessage(MessagePtr message) override;
+	void OnDeliver(const std::string& localAddress, MessagePtr& message) override;
 
 	// This is called when a message is received over a connection (an _inbound_ message)
-	void RouteFromConnection(proto::routing::Envelope&& message);
+	void RouteFromConnection(MessagePtr message);
 
 	void AddIdentity(const ActorIdentification& id);
 	void DropIdentity(const ActorIdentification& id);
@@ -132,8 +132,8 @@ private:
 	std::condition_variable m_needsProcessing;
 
 	template <size_t I = 0> void ProcessConnections();
-	template <size_t I = 0> void BroadcastMessage(proto::routing::Envelope&& message);
-	bool SendMessage(const ActorContainer& ident, proto::routing::Envelope&& message);
+	template <size_t I = 0> void BroadcastMessage(MessagePtr message);
+	bool SendMessage(const ActorContainer& ident, MessagePtr message);
 	void SendIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void DropIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void RequestIdentities(const ActorContainer& from);
@@ -158,7 +158,7 @@ public:
 
 	virtual void Process() = 0;
 
-	virtual void BroadcastMessage(proto::routing::Envelope&& message) = 0;
+	virtual void BroadcastMessage(MessagePtr message) = 0;
 
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
@@ -183,14 +183,14 @@ public:
 	~LocalConnection();
 	void Process() override;
 
-	bool SendMessage(uint32_t pid, proto::routing::Envelope&& message);
+	bool SendMessage(uint32_t pid, MessagePtr message);
 
 	void SendIdentification(uint32_t pid, const ActorIdentification& identity) const;
 	void DropIdentification(uint32_t pid, const ActorIdentification& identity) const;
 	void RequestIdentities(uint32_t pid) const;
 
-	void BroadcastMessage(proto::routing::Envelope&& message) override;
-	void RouteFromPipe(proto::routing::Envelope&& message);
+	void BroadcastMessage(MessagePtr message) override;
+	void RouteFromPipe(MessagePtr message);
 	void DropProcessId(uint32_t processId) const;
 
 	void Start() override;
@@ -223,13 +223,13 @@ public:
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
 	void Process() override {}
 
-	bool SendMessage(const ActorContainer::Network& peer, proto::routing::Envelope&& message);
+	bool SendMessage(const ActorContainer::Network& peer, MessagePtr message);
 
 	void SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
 	void DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
 	void RequestIdentities(const ActorContainer::Network& peer) const;
 
-	void BroadcastMessage(proto::routing::Envelope&& message) override;
+	void BroadcastMessage(MessagePtr message) override;
 
 	void Start() override;
 	void Stop() override;

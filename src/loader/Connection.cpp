@@ -86,8 +86,10 @@ public:
 		}
 
 		case mq::MQMessageId::MSG_ROUTE:
-			m_connection->RouteFromPipe(ProtoMessage::Parse<proto::routing::Envelope>(message));
+		{
+			m_connection->RouteFromPipe(std::make_unique<proto::routing::Envelope>(ProtoMessage::Parse<proto::routing::Envelope>(message)));
 			break;
+		}
 
 		case mq::MQMessageId::MSG_IDENTIFICATION:
 			if (message->GetHeader()->messageLength > 0)
@@ -236,12 +238,12 @@ void LocalConnection::Process()
 	m_pipeServer->Process();
 }
 
-bool LocalConnection::SendMessage(uint32_t pid, proto::routing::Envelope&& message)
+bool LocalConnection::SendMessage(uint32_t pid, MessagePtr message)
 {
-	const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
-	message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+	const auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
+	message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
 
-	auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong());
+	auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message->ByteSizeLong());
 
 	if (pid == GetCurrentProcessId())
 	{
@@ -257,7 +259,7 @@ bool LocalConnection::SendMessage(uint32_t pid, proto::routing::Envelope&& messa
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed. seq={}", m_postOffice->GetName(), pid, message.sequence());
+	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed. seq={}", m_postOffice->GetName(), pid, message->sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
 	return false;
 }
@@ -302,15 +304,15 @@ void mq::postoffice::LocalConnection::RequestIdentities(uint32_t pid) const
 		SPDLOG_WARN("{}: Unable to get connection for PID {}, send request failed.", m_postOffice->GetName(), pid);
 }
 
-void LocalConnection::BroadcastMessage(proto::routing::Envelope&& message)
+void LocalConnection::BroadcastMessage(MessagePtr message)
 {
-	const auto payload = std::make_unique<uint8_t[]>(message.ByteSizeLong());
-	message.SerializeToArray(payload.get(), static_cast<int>(message.ByteSizeLong()));
+	const auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
+	message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
 
-	m_pipeServer->BroadcastMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message.ByteSizeLong()));
+	m_pipeServer->BroadcastMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message->ByteSizeLong()));
 }
 
-void LocalConnection::RouteFromPipe(proto::routing::Envelope&& message)
+void LocalConnection::RouteFromPipe(MessagePtr message)
 {
 	m_postOffice->RouteFromConnection(std::move(message));
 }
@@ -394,20 +396,20 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 				break;
 			case NetworkMessage::kRouted:
 			{
-				proto::routing::Envelope routed;
-				routed.ParseFromString(message->routed());
+				auto routed = std::make_unique<proto::routing::Envelope>();
+				routed->ParseFromString(message->routed());
 
-				if (routed.has_return_address())
+				if (routed->has_return_address())
 				{
-					routed.mutable_return_address()->clear_pid();
-					routed.mutable_return_address()->mutable_peer()->set_ip(address.IP);
-					routed.mutable_return_address()->mutable_peer()->set_port(address.Port);
+					routed->mutable_return_address()->clear_pid();
+					routed->mutable_return_address()->mutable_peer()->set_ip(address.IP);
+					routed->mutable_return_address()->mutable_peer()->set_port(address.Port);
 				}
 
 				// if this message has been routed here, then we need to let the local launcher handle any routing
-				routed.mutable_address()->clear_pid();
-				routed.mutable_address()->mutable_peer()->set_ip("127.0.0.1");
-				routed.mutable_address()->mutable_peer()->set_port(m_network->GetPort());
+				routed->mutable_address()->clear_pid();
+				routed->mutable_address()->mutable_peer()->set_ip("127.0.0.1");
+				routed->mutable_address()->mutable_peer()->set_port(m_network->GetPort());
 
 				// if the address is not on the pipe, this will fail or route back out to the network if the client has a peer container
 				m_postOffice->RouteFromConnection(std::move(routed));
@@ -458,7 +460,7 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 	}
 }
 
-bool PeerConnection::SendMessage(const ActorContainer::Network& peer, proto::routing::Envelope&& message)
+bool PeerConnection::SendMessage(const ActorContainer::Network& peer, MessagePtr message)
 {
 	// the network library handles routing of any address (we can't short circuit local IP
 	// detection because it needs knowledge of the network)
@@ -466,14 +468,14 @@ bool PeerConnection::SendMessage(const ActorContainer::Network& peer, proto::rou
 	{
 		// the network has the host (we do this in order to provide routing errors)
 		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-		outbound->set_routed(message.SerializeAsString());
+		outbound->set_routed(message->SerializeAsString());
 
 		m_network->Send(peer.IP, peer.Port, std::move(outbound));
 
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed. seq={}", m_postOffice->GetName(), peer.IP, peer.Port, message.sequence());
+	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed. seq={}", m_postOffice->GetName(), peer.IP, peer.Port, message->sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
 	return false;
 
@@ -520,10 +522,10 @@ void mq::postoffice::PeerConnection::RequestIdentities(const ActorContainer::Net
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, send request failed.", m_postOffice->GetName(), peer.IP, peer.Port);
 }
 
-void PeerConnection::BroadcastMessage(proto::routing::Envelope&& message)
+void PeerConnection::BroadcastMessage(MessagePtr message)
 {
 	auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-	outbound->set_routed(message.SerializeAsString());
+	outbound->set_routed(message->SerializeAsString());
 
 	m_network->Broadcast(std::move(outbound));
 }

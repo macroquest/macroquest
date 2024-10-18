@@ -115,15 +115,15 @@ void MQActorAPI::SendToActor(
 	MessageResponseCallback pipe_callback = nullptr;
 	if (callback != nullptr)
 	{
-		pipe_callback = [callback, address](int status, proto::routing::Envelope&& message)
+		pipe_callback = [callback, address](int status, MessagePtr message)
 			{
 				// no need to store this message in the message storage since we know it
 				// can't be replied to -- which means we also don't need the custom deleter
 				// assume that the sender is the address we sent to
 				std::optional<postoffice::Address> sender;
-				if (message.has_return_address())
+				if (message->has_return_address())
 				{
-					const auto& s = message.return_address();
+					const auto& s = message->return_address();
 					sender = postoffice::Address{
 						s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
 						s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
@@ -137,8 +137,8 @@ void MQActorAPI::SendToActor(
 				}
 
 				std::optional<std::string> data;
-				if (message.has_payload())
-					data = message.payload();
+				if (message->has_payload())
+					data = message->payload();
 
 				callback(status, std::make_shared<postoffice::Message>(
 					postoffice::Message{ nullptr, sender, data }));
@@ -155,9 +155,9 @@ void MQActorAPI::SendToActor(
 	}
 	else if (pipe_callback != nullptr)
 	{
-		proto::routing::Envelope env;
-		*env.mutable_address() = addr;
-		env.set_payload(data);
+		auto env = std::make_unique<proto::routing::Envelope>();
+		*env->mutable_address() = addr;
+		env->set_payload(data);
 
 		std::string_view plugin_name = owner != nullptr ? owner->name : "None";
 
@@ -182,7 +182,7 @@ void MQActorAPI::ReplyToActor(
 		if (message_ptr != s_messageStorage.end())
 		{
 			// we don't want to do any address mangling here because a reply is always going to be fully qualified
-			dropbox->PostReply(std::move(*message_ptr->second), data, status);
+			dropbox->PostReply(std::move(message_ptr->second), data, status);
 			s_messageStorage.erase(message_ptr);
 		}
 	}
@@ -198,13 +198,13 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
 
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
-		[receive = std::move(receive)](proto::routing::Envelope&& message)
+		[receive = std::move(receive)](MessagePtr message)
 		{
 			//auto sender = message->GetSender().value_or(proto::routing::Address());
 			std::optional<postoffice::Address> sender;
-			if (message.has_return_address())
+			if (message->has_return_address())
 			{
-				proto::routing::Address s = message.return_address();
+				proto::routing::Address s = message->return_address();
 				sender = postoffice::Address{
 					s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
 					s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
@@ -218,15 +218,14 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 			}
 
 			std::optional<std::string> data;
-			if (message.has_payload() && message.payload().size() > 0)
-				data = message.payload();
+			if (message->has_payload() && message->payload().size() > 0)
+				data = message->payload();
 
-			auto message_ptr = std::make_unique<proto::routing::Envelope>(std::move(message));
-			auto message_raw = message_ptr.get();
-			s_messageStorage.emplace(message_raw, std::move(message_ptr));
+			auto message_ptr = message.get();
+			s_messageStorage.emplace(message_ptr, std::move(message));
 
 			receive(std::shared_ptr<postoffice::Message>(
-				new postoffice::Message{ message_raw, sender, data },
+				new postoffice::Message{ message_ptr, sender, data },
 				[](postoffice::Message* message)
 				{
 					s_messageStorage.erase(message->Original);
