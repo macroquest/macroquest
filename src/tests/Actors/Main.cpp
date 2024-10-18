@@ -29,7 +29,14 @@
 #include <cstdio>
 #include <utility>
 
+
+// stub some things because the local connection takes care of some legacy operations in the launcher that doesn't need testing
 HWND hMainWnd;
+
+struct ImGuiViewport;
+namespace LauncherImGui {
+	void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title) {}
+}
 
 // mirrors the implementation in mq2main. This could possibly be shared code
 // between them.

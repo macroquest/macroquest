@@ -16,9 +16,6 @@
     <Filter Include="Source Files\loader">
       <UniqueIdentifier>{dc889ce2-6d0e-4cfe-bbfa-b955fe1e6019}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\loader\imgui_backend">
-      <UniqueIdentifier>{a36c1f97-0672-46c4-8cfa-d52da236e873}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -29,18 +26,6 @@
     </ClCompile>
     <ClCompile Include="..\..\loader\Connection.cpp">
       <Filter>Source Files\loader</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\ImGui.cpp">
-      <Filter>Source Files\loader</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_engine.cpp">
-      <Filter>Source Files\loader\imgui_backend</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_impl_dx11.cpp">
-      <Filter>Source Files\loader\imgui_backend</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_impl_win32.cpp">
-      <Filter>Source Files\loader\imgui_backend</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

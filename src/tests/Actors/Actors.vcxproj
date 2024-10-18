@@ -160,17 +160,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\loader\Connection.cpp" />
-    <ClCompile Include="..\..\loader\ImGui.cpp" />
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_engine.cpp" />
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\..\loader\imgui_backend\imgui_impl_win32.cpp" />
     <ClCompile Include="..\..\loader\PostOffice.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\imgui\imgui.vcxproj">
-      <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\routing\routing.vcxproj">
       <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
     </ProjectReference>
