@@ -1,34 +1,80 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-2024 MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 syntax = "proto3";
 
 package mq.proto.routing;
 
-message Address {
-	oneof target {
+message Peer {
+	string ip = 1;
+	uint32 port = 2;
+}
+
+message Client {
+	optional string account = 1;
+	optional string server = 2;
+	optional string character = 3;
+}
+
+message Identification {
+	oneof container {
 		uint32 pid = 1;
-		string name = 2;
+		Peer peer = 2;
 	}
-	optional string account = 3;
-	optional string server = 4;
-	optional string character = 5;
+
+	oneof address {
+		string name = 11;
+		Client client = 12;
+	}
+}
+
+message Address {
+	optional uint32 pid = 1;
+	optional Peer peer = 2;
+
+	oneof address {
+		string name = 3;
+		Client client = 4;
+	}
+
 	optional string mailbox = 6;
+}
+
+message AddIdentity {
+	Identification id = 1;
+}
+
+message DropIdentity {
+	Identification id = 1;
+}
+
+message RequestIdentities {
+	oneof container {
+		uint32 pid = 1;
+		Peer peer = 2;
+	}
 }
 
 message Envelope {
 	Address address = 1;
 	Address return_address = 2;
+
+	uint32 mode = 3;
+	int32 status = 4;
+	uint32 sequence = 5;
+
 	optional bytes payload = 99;
-}
-
-message Identification {
-	uint32 pid = 1;
-	optional string name = 2;
-	optional string account = 3;
-	optional string server = 4;
-	optional string character = 5;
-}
-
-message Identifications {
-	repeated Identification ids = 1;
 }
 
 enum NotifyLevel {
