@@ -515,6 +515,10 @@ static void RenderDoc_Shutdown()
 
 #else // HAS_DIRECTX_11
 
+void RenderDoc_BeginEvent(MQColor color, const wchar_t* name) {}
+void RenderDoc_EndEvent() {}
+void RenderDoc_SetMarker(MQColor color, const wchar_t* name) {}
+
 void RenderDoc_Startup()
 {
 }
