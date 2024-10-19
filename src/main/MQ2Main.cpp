@@ -19,6 +19,7 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQDetourAPI.h"
+#include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
@@ -195,6 +196,8 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 
 			mq::internal_paths::MQRoot = szFilename;
 			g_Loaded = true;
+
+			RenderDoc_Startup();
 
 			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
 		}
@@ -614,7 +617,6 @@ void DoMainThreadInitialization()
 	InitializeStringDB();
 
 	InitializeChatHook();
-	InitializeMQ2CrashHandler();
 	InitializeAnonymizer();
 	InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
@@ -756,7 +758,7 @@ bool MQ2Initialize()
 	}
 
 	InitializeLogging();
-	InitializeCrashHandler();
+	CrashHandler_Startup();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
 
@@ -822,7 +824,6 @@ void MQ2Shutdown()
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMQ2CrashHandler();
 	ShutdownAnonymizer();
 	ShutdownPlugins();
 	ShutdownFailedPlugins();

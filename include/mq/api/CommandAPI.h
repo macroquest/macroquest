@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
 #include <functional>
 
 namespace eqlib
@@ -33,7 +34,7 @@ namespace mq {
  * @param pChar Pointer to the current player.
  * @param szLine Line of text passed as an argument to the command
  */
-using MQCommandHandler = std::function<void(PlayerClient* pChar, const char* szLine)>;
+using MQCommandHandler = std::function<void(eqlib::PlayerClient* pChar, const char* szLine)>;
 
 
 /**
@@ -124,7 +125,7 @@ bool IsAlias(const std::string& alias);
  *
  * @deprecated
  */
-using fEQCommandOld = void(*)(PlayerClient* pChar, char* command);
+using fEQCommandOld = void(*)(eqlib::PlayerClient* pChar, char* command);
 
 /**
  * A handler function that is invoked with a slash command is executed.
@@ -132,7 +133,7 @@ using fEQCommandOld = void(*)(PlayerClient* pChar, char* command);
  * @param pChar Pointer to the current player.
  * @param command Line of text passed as an argument to the command
  */
-using fEQCommand = void(*)(PlayerClient* pChar, const char* command);
+using fEQCommand = void(*)(eqlib::PlayerClient* pChar, const char* command);
 
 
 /**

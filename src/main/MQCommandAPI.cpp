@@ -15,7 +15,9 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "CrashHandler.h"
 #include "MQCommandAPI.h"
+#include "mq/base/ScopeExit.h"
 
 namespace mq {
 
@@ -44,7 +46,7 @@ struct MQCommand
 
 void PopMacroLoop();
 // Defined in MQ2MacroCommands.cpp
-void FailIf(SPAWNINFO* pChar, const char* szCommand, int pStartLine, bool All);
+void FailIf(PlayerClient* pChar, const char* szCommand, int pStartLine, bool All);
 
 MQCommandAPI* pCommandAPI = nullptr;
 
@@ -487,6 +489,10 @@ void MQCommandAPI::DoCommand(const char* szLine, bool delayed,
 	}
 
 	WeDidStuff();
+
+	// Update crash state with last known command in case something goes wrong
+	CrashHandler_SetLastCommand(szLine);
+	SCOPE_EXIT(CrashHandler_SetLastCommand(nullptr));
 
 	char szTheCmd[MAX_STRING] = { 0 };
 	strcpy_s(szTheCmd, szLine);

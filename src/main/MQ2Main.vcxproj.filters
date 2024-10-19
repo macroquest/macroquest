@@ -416,6 +416,9 @@
     <ClCompile Include="emu\EmuExtensions.cpp">
       <Filter>Source Files\emu</Filter>
     </ClCompile>
+    <ClCompile Include="MQRenderDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -678,6 +681,18 @@
     </ClInclude>
     <ClInclude Include="emu\EmuExtensions.h">
       <Filter>Header Files\emu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="MQRenderDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\RenderDoc.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h">
+      <Filter>Header Files\contrib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

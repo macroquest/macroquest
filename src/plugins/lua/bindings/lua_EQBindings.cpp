@@ -42,86 +42,18 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 #pragma region MQ Data Bindings
 
-static sol::table lua_getAllSpawns(sol::this_state L)
+static void lua_initializeSpawnTable(sol::this_state L)
 {
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
+	std::shared_ptr<LuaThread> thread = LuaThread::get_from(L);
+	if (thread)
+		thread->InitializeSpawnTable();
 }
 
-static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::unsafe_function> predicate)
+static void lua_initializeGroundItemTable(sol::this_state L)
 {
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager && predicate)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		const auto& predicate_value = predicate.value();
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			if (predicate_value(lua_spawn))
-				table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getAllGroundItems(sol::this_state L)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pItemList)
-	{
-		auto pGroundItem = pItemList->Top;
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			table.add(std::move(lua_ground));
-
-			pGroundItem = pGroundItem->pNext;
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::unsafe_function> predicate)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pItemList && predicate)
-	{
-		auto pGroundItem = pItemList->Top;
-		const auto& predicate_value = predicate.value();
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			if (predicate_value(lua_ground))
-				table.add(std::move(lua_ground));
-
-			pGroundItem = pGroundItem->pNext;
-		}
-	}
-
-	return table;
+	std::shared_ptr<LuaThread> thread = LuaThread::get_from(L);
+	if (thread)
+		thread->InitializeGroundItemTable();
 }
 
 #pragma endregion
@@ -327,10 +259,52 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
-	mq.set_function("getAllSpawns", &lua_getAllSpawns);
-	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
-	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
-	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
+	mq.set_function("initializeSpawnTable", &lua_initializeSpawnTable);
+	mq.set_function("initializeGroundItemTable", &lua_initializeGroundItemTable);
+
+	sol::function getAllSpawns = thread->GetState().script(R"(
+		return function()
+			if not __spawns then require('mq').initializeSpawnTable() end
+			local spawns = {}
+			for _, spawn in pairs(__spawns) do table.insert(spawns, spawn) end
+			return spawns
+		end
+	)");
+	mq.set("getAllSpawns", getAllSpawns);
+
+	sol::function getFilteredSpawns = thread->GetState().script(R"(
+		return function(predicate)
+			if not __spawns then require('mq').initializeSpawnTable() end
+			local spawns = {}
+			for _, spawn in pairs(__spawns) do
+				if predicate(spawn) then table.insert(spawns, spawn) end
+			end
+			return spawns
+		end
+	)");
+	mq.set_function("getFilteredSpawns", getFilteredSpawns);
+
+	sol::function getAllGroundItems = thread->GetState().script(R"(
+		return function()
+			if not __groundItems then require('mq').initializeGroundItemTable() end
+			local items = {}
+			for _, item in pairs(__groundItems) do table.insert(items, item) end
+			return items
+		end
+	)");
+	mq.set_function("getAllGroundItems", getAllGroundItems);
+
+	sol::function getFilteredGroundItems = thread->GetState().script(R"(
+		return function(predicate)
+			if not __groundItems then require('mq').initializeGroundItemTable() end
+			local items = {}
+			for _, item in pairs(__groundItems) do
+				if predicate(item) then table.insert(items, item) end
+			end
+			return items
+		end
+	)");
+	mq.set_function("getFilteredGroundItems", getFilteredGroundItems);
 }
 
 } // namespace mq::lua::bindings

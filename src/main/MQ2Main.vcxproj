@@ -556,6 +556,7 @@
     <ClCompile Include="MQ2Windows.cpp" />
     <ClCompile Include="MQAchievements.cpp" />
     <ClCompile Include="MQInventory.cpp" />
+    <ClCompile Include="MQRenderDoc.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -568,6 +569,7 @@
     <ClInclude Include="..\..\contrib\args\args.hxx" />
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
+    <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\extras\wil\Constants.h" />
     <ClInclude Include="..\..\include\moveitem.h" />
@@ -582,6 +584,7 @@
     <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
     <ClInclude Include="..\..\include\mq\api\Main.h" />
     <ClInclude Include="..\..\include\mq\api\PluginAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\RenderDoc.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\api\Textures.h" />
@@ -593,6 +596,7 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />
@@ -649,6 +653,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQDetourAPI.h" />
     <ClInclude Include="MQPluginHandler.h" />
+    <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="MQPostOffice.h" />
