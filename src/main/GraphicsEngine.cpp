@@ -19,8 +19,9 @@
 #include "MQDetourAPI.h"
 #include "MQ2DeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
 
-#include <cfenv>
+#include "mq/api/RenderDoc.h"
 
+#include <cfenv>
 
 namespace mq {
 
@@ -35,6 +36,8 @@ eqlib::Direct3DDevice9* gpD3D9Device = nullptr;
 static bool s_enableImGuiDocking = true;
 bool gbEnableImGuiViewports = false;
 bool gbDeviceAcquired = false;
+
+static bool s_inObjectPreview = false;
 
 //============================================================================
 //============================================================================
@@ -68,8 +71,6 @@ public:
 	DETOUR_TRAMPOLINE_DEF(bool, ResetDevice_Trampoline, (bool))
 	bool ResetDevice_Detour(bool a)
 	{
-		//SPDLOG_DEBUG("CRender::ResetDevice: Resetting device");
-
 		bool success = ResetDevice_Trampoline(a);
 
 		if (!success)
@@ -221,7 +222,50 @@ public:
 
 		AddCachedText_Trampoline(obj);
 	}
+
+#if HAS_DIRECTX_11
+	DETOUR_TRAMPOLINE_DEF(void, Render_Trampoline, (bool, bool))
+	void Render_Detour(bool postProcessing, bool blind)
+	{
+		if (!postProcessing)
+		{
+			RenderDoc_ScopedEvent e(MQColor(170, 255, 255), L"Render UI");
+			Render_Trampoline(postProcessing, blind);
+		}
+		else
+		{
+			Render_Trampoline(postProcessing, blind);
+		}
+
+		if (!postProcessing)
+		{
+			if (s_gfxEngine)
+			{
+				s_gfxEngine->PostUpdateScene();
+			}
+		
+		}
+	}
+#endif
 };
+
+#if HAS_DIRECTX_11
+class ObjectPreviewView_Hook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(void, Render_Trampoline, ())
+	void Render_Detour()
+	{
+		RenderDoc_ScopedEvent e(MQColor(170, 255, 255), L"ObjectPreviewView::Render");
+
+		s_inObjectPreview = true;
+
+		Render_Trampoline();
+
+		s_inObjectPreview = false;
+	}
+};
+#endif
 
 // Forwards events to ImGui. If ImGui consumes the event, we won't pass it to the game.
 DETOUR_TRAMPOLINE_DEF(LRESULT WINAPI, WndProc_Trampoline, (HWND, UINT, WPARAM, LPARAM))
@@ -422,6 +466,10 @@ void MQGraphicsEngine::UpdateScene()
 {
 	if (!m_deviceAcquired)
 		return;
+	if (s_inObjectPreview)
+		return;
+
+	RenderDoc_ScopedEvent e(MQColor(104, 149, 255), L"MQGraphicsEngine::UpdateScene");
 
 	UpdateScene_Internal();
 }
@@ -623,6 +671,10 @@ void engine::Initialize()
 	EzDetour(CRender__ResetDevice, &CRenderHook::ResetDevice_Detour, &CRenderHook::ResetDevice_Trampoline);
 
 	EzDetour(C2DPrimitiveManager__AddCachedText, &C2DPrimitiveManager_Hook::AddCachedText_Detour, &C2DPrimitiveManager_Hook::AddCachedText_Trampoline);
+#if HAS_DIRECTX_11
+	EzDetour(C2DPrimitiveManager__Render, &C2DPrimitiveManager_Hook::Render_Detour, &C2DPrimitiveManager_Hook::Render_Trampoline);
+	EzDetour(ObjectPreviewView__Render, &ObjectPreviewView_Hook::Render_Detour, &ObjectPreviewView_Hook::Render_Trampoline);
+#endif
 
 #if HAS_DIRECTX_11
 	s_gfxEngine = CreateRendererDX11();
@@ -651,6 +703,10 @@ void engine::Shutdown()
 	RemoveDetour(CParticleSystem__Render);
 	RemoveDetour(CRender__ResetDevice);
 	RemoveDetour(C2DPrimitiveManager__AddCachedText);
+#if HAS_DIRECTX_11
+	RemoveDetour(C2DPrimitiveManager__Render);
+	RemoveDetour(ObjectPreviewView__Render);
+#endif
 }
 
 void engine::OnUpdateFrame()
