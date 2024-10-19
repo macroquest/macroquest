@@ -184,7 +184,7 @@ void RegisterSyntaxProviders(ZepEditor& editor)
     });
     editor.RegisterSyntaxFactory(
         { ".toml" },
-        SyntaxProvider{ "cpp", tSyntaxFactory([](ZepBuffer* pBuffer) {
+        SyntaxProvider{ "toml", tSyntaxFactory([](ZepBuffer* pBuffer) {
             return std::make_shared<ZepBasicSyntax>(*pBuffer, toml_keywords, toml_identifiers, ZepSyntaxFlags::CaseInsensitive);
         })
     });

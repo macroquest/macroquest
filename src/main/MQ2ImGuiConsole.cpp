@@ -560,11 +560,6 @@ public:
 		}
 	}
 
-	virtual void QueueUpdateSyntax(Zep::GlyphIterator startLocation, Zep::GlyphIterator endLocation)
-	{
-
-	}
-
 private:
 	std::vector<SyntaxData> m_syntax;
 	std::shared_ptr<ZepConsoleTheme> m_theme;

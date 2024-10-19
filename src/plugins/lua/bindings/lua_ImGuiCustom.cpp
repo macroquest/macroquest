@@ -14,20 +14,18 @@
 
 #include "pch.h"
 
-#include <mq/imgui/ConsoleWidget.h>
-#include <mq/imgui/ImGuiUtils.h>
-#include <mq/imgui/Widgets.h>
-#include <mq/Plugin.h>
+#include "main/ImGuiZepEditor.h"
+#include "mq/imgui/ConsoleWidget.h"
+#include "mq/imgui/ImGuiUtils.h"
+#include "mq/imgui/Widgets.h"
+#include "mq/Plugin.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
-#include <zep/enums.h>
-
-#include "main/ImGuiZepEditor.h"
 
 #include <string>
+
+#pragma comment(lib, "zep.lib")
 
 namespace mq::lua::bindings {
 

@@ -264,10 +264,8 @@
     <ClInclude Include="include\zep.h" />
     <ClInclude Include="include\zep\buffer.h" />
     <ClInclude Include="include\zep\commands.h" />
-    <ClInclude Include="include\zep\component.h" />
     <ClInclude Include="include\zep\display.h" />
     <ClInclude Include="include\zep\editor.h" />
-    <ClInclude Include="include\zep\enums.h" />
     <ClInclude Include="include\zep\filesystem.h" />
     <ClInclude Include="include\zep\gap_buffer.h" />
     <ClInclude Include="include\zep\glyph_iterator.h" />

@@ -79,8 +79,8 @@ enum class BufferType
 };
 
 // A really big cursor move; which will likely clamp
-// static const iterator MaxCursorMove = iterator(0xFFFFFFF);
-// const long InvalidByteIndex = -1;
+//static const iterator MaxCursorMove = iterator(0xFFFFFFF);
+//const long InvalidByteIndex = -1;
 
 enum class ExpressionType
 {

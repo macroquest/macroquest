@@ -815,22 +815,15 @@ void ZepEditor::SetBufferMode(ZepBuffer& buffer) const
     }
 }
 
-void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, const std::string& syntaxName) const
+void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const
 {
-    size_t dot_pos = syntaxName.find_last_of(".");
-    std::string syntaxExtention;
-
-    if (dot_pos == std::string::npos)
+    for (const auto& [_, provider] : m_mapSyntax)
     {
-        syntaxExtention.append(".");
-    }
-
-    syntaxExtention.append(string_tolower(syntaxName));
-
-    auto itr = m_mapSyntax.find(syntaxExtention);
-    if (itr != m_mapSyntax.end())
-    {
-        buffer.SetSyntaxProvider(itr->second);
+        if (provider.syntaxID == syntaxID)
+        {
+            buffer.SetSyntaxProvider(provider);
+            return;
+        }
     }
 }
 

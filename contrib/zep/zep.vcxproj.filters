@@ -260,12 +260,6 @@
     <ClInclude Include="include\zep\mcommon\math\color.h">
       <Filter>Header Files\mcommon</Filter>
     </ClInclude>
-    <ClInclude Include="include\zep\enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="zep.natvis">

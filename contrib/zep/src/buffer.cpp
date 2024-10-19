@@ -7,7 +7,6 @@
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/filesystem.h"
-#include "zep/syntax.h"
 
 #include "zep/mcommon/file/path.h"
 #include "zep/mcommon/string/stringutils.h"
@@ -659,7 +658,9 @@ void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
 
         m_syntaxProvider = provider;
 
-        m_spSyntax->QueueUpdateSyntax(Begin(), End());
+        // Notify that the whole range of text has changed. This will trigger a
+        // re-parse of the buffer with the new syntax provider.
+        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
     }
 }
 
