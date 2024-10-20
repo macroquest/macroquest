@@ -549,15 +549,28 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 {
 	namespace fs = std::filesystem;
 
+	std::string lua_dir = s_environment.luaDir;
+
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = LuaThread::GetScriptPath(script, s_environment.luaDir);
+	auto script_path = LuaThread::GetScriptPath(script, lua_dir);
 	if (script_path.empty())
 	{
-		return 0;
+		for (const auto& requireDir : s_environment.luaRequirePaths)
+		{
+			script_path = LuaThread::GetScriptPath(script, requireDir);
+			if (!script_path.empty())
+			{
+				lua_dir = requireDir;
+				break;
+			}
+		}
+
+		if (script_path.empty())
+			return 0;
 	}
 
-	auto script_name = LuaThread::GetCanonicalScriptName(script_path, s_environment.luaDir);
+	auto script_name = LuaThread::GetCanonicalScriptName(script_path, lua_dir);
 
 	// methodology for duplicate scripts:
 	//   if a script with the same name is _currently_ running, inform and exit
