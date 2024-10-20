@@ -113,7 +113,6 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui, sol::state_view lua)
 		"text", sol::property(
 			[](mq::imgui::ImGuiZepEditor* pThis) -> std::string { size_t bufferSize = pThis->GetTextLength(); std::string text; text.reserve(bufferSize); pThis->GetText(text); return text; }/* read only */),
 		"LoadContents", [](mq::imgui::ImGuiZepEditor* pThis, std::string_view text) { pThis->SetText(text); },
-		"fontSize", sol::property(&mq::imgui::ImGuiZepEditor::GetFontSize, &mq::imgui::ImGuiZepEditor::SetFontSize),
 		"windowFlags", sol::property(&mq::imgui::ImGuiZepEditor::GetWindowFlags, &mq::imgui::ImGuiZepEditor::SetWindowFlags)
 	);
 

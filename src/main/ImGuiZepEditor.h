@@ -22,12 +22,11 @@
  */
 
 #pragma once
+
 #include "mq/base/Common.h"
+#include "zep/window.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-
-#include "zep/component.h"
 
 // Forward Declares
 namespace Zep
@@ -54,7 +53,7 @@ public:
 
 	MQLIB_OBJECT static std::shared_ptr<ImGuiZepEditor> Create(std::string_view id);
 
-	void SetFont(Zep::ZepTextType, ImFont* pFont, int pixelHeight);
+	void SetFont(Zep::ZepTextType, ImFont* pFont);
 
 	virtual Zep::ZepEditor& GetEditor() const override;
 	virtual void Render(const ImVec2& displaySize = ImVec2());
@@ -65,8 +64,6 @@ public:
 	virtual Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1);
 	virtual void SetText(std::string_view text);
 
-	virtual int GetFontSize() const { return m_fontSize; }
-	virtual void SetFontSize(int size);
 	virtual int GetWindowFlags() const;
 	virtual void SetWindowFlags(int flags) const;
 
@@ -77,7 +74,6 @@ public:
 
 	Zep::ZepBuffer* m_buffer = nullptr;
 	Zep::ZepWindow* m_window = nullptr;
-	int m_fontSize = 13;
 	std::string m_id;
 
 protected:

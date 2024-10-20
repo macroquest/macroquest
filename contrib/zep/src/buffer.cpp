@@ -643,27 +643,6 @@ bool ZepBuffer::Save(int64_t& size)
     return false;
 }
 
-void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
-{
-    if (provider.syntaxID != m_syntaxProvider.syntaxID)
-    {
-        if (provider.factory)
-        {
-            m_spSyntax = provider.factory(this);
-        }
-        else
-        {
-            m_spSyntax.reset();
-        }
-
-        m_syntaxProvider = provider;
-
-        // Notify that the whole range of text has changed. This will trigger a
-        // re-parse of the buffer with the new syntax provider.
-        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
-    }
-}
-
 std::string ZepBuffer::GetBufferText() const
 {
     return GetWorkingBuffer().string();
@@ -957,6 +936,26 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
         return itr.Clamped();
     }
     break;
+    }
+}
+
+void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
+{
+    if (provider.syntaxID != m_syntaxProvider.syntaxID)
+    {
+        if (provider.factory)
+        {
+            m_spSyntax = provider.factory(this);
+        }
+        else
+        {
+            m_spSyntax.reset();
+        }
+
+        m_syntaxProvider = provider;
+
+        // Inform the editor that the syntax has changed
+        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
     }
 }
 

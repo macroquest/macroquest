@@ -1,3 +1,7 @@
+Oct 19, 2024:
+- Fixed some missing console/editor keybinds. Some new functionality includes ctrl+[ +, -, 0 ] to zoom the font.
+- lua: Starting a script will now also search require dirs if script is not found in main lua dir.
+
 Oct 16, 2024:
 - live: Update for live patch
 

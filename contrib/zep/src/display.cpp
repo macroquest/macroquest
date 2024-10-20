@@ -116,7 +116,7 @@ void ZepDisplay::SetLayoutDirty(bool dirty)
 
 void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont)
 {
-    m_fonts[(int)type] = spFont;
+    m_fonts[static_cast<int>(type)] = spFont;
 }
 
 const NVec2f& ZepDisplay::GetPixelScale() const
@@ -184,9 +184,6 @@ void ZepDisplay::Bigger()
             switch ((ZepTextType)i)
             {
             case ZepTextType::Text:
-            case ZepTextType::Heading1:
-            case ZepTextType::Heading2:
-            case ZepTextType::Heading3:
             {
                 auto& textFont = GetFont(ZepTextType(i));
                 textFont.SetPixelHeight((int)std::min((float)ceil(textFont.GetPixelHeight() * 1.05), 800.0f));
@@ -207,9 +204,6 @@ void ZepDisplay::Smaller()
             switch ((ZepTextType)i)
             {
             case ZepTextType::Text:
-            case ZepTextType::Heading1:
-            case ZepTextType::Heading2:
-            case ZepTextType::Heading3:
             {
                 auto& textFont = GetFont(ZepTextType(i));
                 textFont.SetPixelHeight((int)std::max(4.0f, (float)floor(textFont.GetPixelHeight() *.95f)));
@@ -220,5 +214,26 @@ void ZepDisplay::Smaller()
         }
     }
 }
+
+void ZepDisplay::ResetFontScale()
+{
+    for (int i = 0; i < (int)m_fonts.size(); i++)
+    {
+        if (m_fonts[i] != nullptr)
+        {
+            switch ((ZepTextType)i)
+            {
+            case ZepTextType::Text:
+            {
+                auto& textFont = GetFont(ZepTextType(i));
+                textFont.ResetPixelHeight();
+            }
+            default:
+            break;
+            }
+        }
+    }
+}
+
 
 } // namespace Zep

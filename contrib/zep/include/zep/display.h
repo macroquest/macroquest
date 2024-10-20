@@ -25,27 +25,38 @@ enum class ZepTextType
 {
     UI,
     Text,
-    Heading1,
-    Heading2,
-    Heading3,
     Count
 };
 
 class ZepFont
 {
 public:
-    ZepFont(ZepDisplay& display)
+    ZepFont(ZepDisplay& display, int pixelHeight)
         : m_display(display)
+        , m_pixelHeight(pixelHeight)
+        , m_origPixelHeight(pixelHeight)
     {
     }
 
+    virtual ~ZepFont() {}
+
     // Implemented in API specific ways
-    virtual void SetPixelHeight(int height) = 0;
+    virtual void SetPixelHeight(int pixelHeight)
+    {
+        InvalidateCharCache();
+        m_pixelHeight = pixelHeight;
+    }
+
     virtual NVec2f GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const = 0;
 
     virtual int GetPixelHeight() const
     {
         return m_pixelHeight;
+    }
+
+    virtual void ResetPixelHeight()
+    {
+        SetPixelHeight(m_origPixelHeight);
     }
 
     virtual const NVec2f& GetDefaultCharSize();
@@ -56,6 +67,7 @@ public:
 
 protected:
     int m_pixelHeight;
+    const int m_origPixelHeight;
     std::string m_filePath;
     bool m_charCacheDirty = true;
     std::unordered_map<uint32_t, NVec2f> m_charCache;
@@ -92,6 +104,7 @@ public:
 
     void Bigger();
     void Smaller();
+    void ResetFontScale();
 
 protected:
     bool m_bRebuildLayout = false;
@@ -104,7 +117,7 @@ class ZepFontNull : public ZepFont
 {
 public:
     ZepFontNull(ZepDisplay& display)
-        : ZepFont(display)
+        : ZepFont(display, 0)
     {
     }
 
