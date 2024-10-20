@@ -26,6 +26,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "zep.h"
+
 #include <optional>
 #include "sqlite3.h"
 
@@ -593,24 +594,19 @@ public:
 //----------------------------------------------------------------------------
 
 // This is the imgui container for the Zep component.
-struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGuiZepEditor
+struct ImGuiZepConsole : public mq::imgui::ConsoleWidget
 {
-	Zep::ZepBuffer* m_buffer = nullptr;
-	Zep::ZepWindow* m_window = nullptr;
 	bool m_deferredCursorToEnd = false;
 	std::shared_ptr<ZepConsoleTheme> m_theme;
 	std::shared_ptr<ZepConsoleSyntax> m_syntax;
 	int m_maxBufferLines = 10000;
 	bool m_autoScroll = true;
-	std::string m_id;
 
-	ImGuiZepConsole(std::string_view id)
-		: m_id(std::string(id))
+	ImGuiZepConsole(std::string_view id) : mq::imgui::ConsoleWidget(id)
 	{
 		GetEditor().RegisterGlobalMode(std::make_shared<ZepMode_ImGuiConsole>(GetEditor()));
 		GetEditor().SetGlobalMode(ZepMode_ImGuiConsole::StaticName());
 
-		m_window = GetEditor().GetActiveTabWindow()->GetActiveWindow();
 		m_theme = std::make_shared<ZepConsoleTheme>();
 		GetEditor().SetTheme(m_theme);
 
@@ -618,28 +614,21 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 		m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
 
 		GetEditor().RegisterSyntaxFactory(
-			{ "Console" },
+			{ ".Console" },
 			Zep::SyntaxProvider{ "Console", Zep::tSyntaxFactory([this](Zep::ZepBuffer* pBuffer) {
 				return std::make_shared<ZepConsoleSyntax>(*pBuffer, m_theme, m_window);
 			})
 		});
 
-		m_buffer = GetEditor().InitWithText("Console", "");
+		SetSyntaxProvider("Console");
+
 		m_buffer->SetTheme(m_theme);
 		m_window->SetBufferCursor(m_buffer->End());
 		m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
 		m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
 	}
 
-	void Clear() override
-	{
-		m_buffer->Clear();
-	}
-
-	Zep::ZepWindow* GetWindow() const { return m_window; }
-	Zep::ZepBuffer* GetBuffer() const { return m_buffer; }
-
-	Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1)
+	Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1) override
 	{
 		if (color != -1)
 		{
@@ -653,10 +642,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 			syntax->AddAttribute(position, std::move(attribute));
 		}
 
-		Zep::ChangeRecord changeRecord;
-		m_buffer->Insert(position, text, changeRecord);
-
-		return position.Move(static_cast<long>(text.length()));
+		return ImGuiZepEditor::InsertText(position, text, color);
 	}
 
 	void InsertFormattedText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
@@ -856,7 +842,7 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 			m_window->ScrollToBottom();
 		}
 
-		ImGuiZepEditor::Render(m_id.c_str(), displaySize);
+		ImGuiZepEditor::Render(displaySize);
 	}
 
 	void Notify(std::shared_ptr<Zep::ZepMessage> message) override

@@ -23,10 +23,22 @@
 
 #pragma once
 
-#include "zep/display.h"
-#include "zep/editor.h"
+#include "mq/base/Common.h"
+#include "zep/window.h"
 
 #include <imgui/imgui.h>
+
+// Forward Declares
+namespace Zep
+{
+	class ZepEditor;
+	class ZepBuffer;
+	class ZepWindow;
+	class ZepMessage;
+	class GlyphIterator;
+	enum class ZepTextType;
+}
+
 namespace mq::imgui {
 
 //============================================================================
@@ -36,13 +48,33 @@ class ZepEditor_ImGui;
 class ImGuiZepEditor : public Zep::IZepComponent
 {
 public:
-	ImGuiZepEditor();
+	ImGuiZepEditor(std::string_view id);
 	virtual ~ImGuiZepEditor();
+
+	MQLIB_OBJECT static std::shared_ptr<ImGuiZepEditor> Create(std::string_view id);
 
 	void SetFont(Zep::ZepTextType, ImFont* pFont);
 
 	virtual Zep::ZepEditor& GetEditor() const override;
-	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());
+	virtual void Render(const ImVec2& displaySize = ImVec2());
+
+	virtual void Clear();
+	virtual void GetText(std::string& outBuffer) const;
+	virtual size_t GetTextLength() const;
+	virtual Zep::GlyphIterator InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color = -1);
+	virtual void SetText(std::string_view text);
+
+	virtual int GetWindowFlags() const;
+	virtual void SetWindowFlags(int flags) const;
+
+	virtual void SetSyntaxProvider(const char* syntaxName) const;
+
+	Zep::ZepWindow* GetWindow() const { return m_window; }
+	Zep::ZepBuffer* GetBuffer() const { return m_buffer; }
+
+	Zep::ZepBuffer* m_buffer = nullptr;
+	Zep::ZepWindow* m_window = nullptr;
+	std::string m_id;
 
 protected:
 	virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) override;
