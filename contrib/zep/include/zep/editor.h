@@ -414,7 +414,7 @@ public:
     void OnMouseWheel(const NVec2f& mousePos, float scrollAmount);
 
     void SetBufferSyntax(ZepBuffer& buffer) const;
-    void SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID);
+    void SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const;
 
     void SetBufferMode(ZepBuffer& buffer) const;
 

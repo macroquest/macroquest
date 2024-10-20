@@ -864,7 +864,7 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer) const
     }
 }
 
-void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID)
+void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const
 {
     for (const auto& [_, provider] : m_mapSyntax)
     {
