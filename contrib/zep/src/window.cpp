@@ -1172,7 +1172,7 @@ void ZepWindow::DisplayLineNumbers()
             }
             else
             {
-                strNum = std::to_string(lineInfo.bufferLineNumber);
+                strNum = std::to_string(lineInfo.bufferLineNumber + 1);
             }
 
             ZepFont& numFont = display.GetFont(ZepTextType::UI);
