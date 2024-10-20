@@ -815,18 +815,6 @@ void ZepEditor::SetBufferMode(ZepBuffer& buffer) const
     }
 }
 
-void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const
-{
-    for (const auto& [_, provider] : m_mapSyntax)
-    {
-        if (provider.syntaxID == syntaxID)
-        {
-            buffer.SetSyntaxProvider(provider);
-            return;
-        }
-    }
-}
-
 void ZepEditor::SetBufferSyntax(ZepBuffer& buffer) const
 {
     std::string ext;
@@ -872,6 +860,18 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer) const
         else
         {
             buffer.SetSyntaxProvider(SyntaxProvider{});
+        }
+    }
+}
+
+void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const
+{
+    for (const auto& [_, provider] : m_mapSyntax)
+    {
+        if (provider.syntaxID == syntaxID)
+        {
+            buffer.SetSyntaxProvider(provider);
+            return;
         }
     }
 }
