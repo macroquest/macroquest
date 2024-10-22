@@ -110,7 +110,7 @@ public:
 	void InitHeader()
 	{
 		m_parsedHeader.set_length(m_length);
-		m_headerLength = m_parsedHeader.ByteSizeLong();
+		m_headerLength = static_cast<uint32_t>(m_parsedHeader.ByteSizeLong());
 		m_headerLengthNetwork = htonl(m_headerLength);
 
 		AllocateHeader();
@@ -240,14 +240,17 @@ public:
 
 	void Write(peernetwork::Header&& header, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
-		std::unique_lock lock(m_writeMutex);
 		m_outgoing.Push(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+	}
 
-		// kick off the loop if it's not running
-		if (!m_writing)
+	void ProcessWrites()
+	{
+		// kick off the loop if it's not running and there are messages
+		// this function should only ever get called from the ASIO thread
+		// to ensure that we don't have multiple write loops happening at
+		// once
+		if (!m_writing && !m_outgoing.Empty())
 		{
-			// InternalWrite will attempt to lock
-			lock.unlock();
 			InternalWrite(std::error_code());
 		}
 	}
@@ -278,8 +281,10 @@ private:
 		asio::async_read(
 			m_socket,
 			asio::buffer(&m_messageBuffer->HeaderLengthNetwork(), sizeof(uint32_t)),
+			asio::transfer_exactly(sizeof(uint32_t)),
 			[this](const std::error_code& ec, size_t)
 			{
+				SPDLOG_INFO("{}: reading message from socket {}", m_peerPort, m_socket.local_endpoint().port());
 				// TODO: Handle other connection errors with reconnect attempts
 				// TODO: Write a function that handles this the same way every time (error checking)
 				// TODO: check the size of the length also, should be sizeof(uint32_t)
@@ -315,6 +320,7 @@ private:
 			asio::async_read(
 				m_socket,
 				asio::buffer(m_messageBuffer->Header(), m_messageBuffer->HeaderLength()),
+				asio::transfer_exactly(m_messageBuffer->HeaderLength()),
 				[this](const std::error_code& ec, size_t) { ReadHeader(ec); });
 		}
 	}
@@ -333,7 +339,6 @@ private:
 			if (m_messageBuffer->ParsedHeader().has_address())
 			{
 				// this is a redirect
-				// TODO: this should be RPC'able because we can look up the source in the actor infra and respond back to that -- test this assumption
 				// TODO: how does this even work? We don't re-call Read() -- this needs to be thought about... is it even needed?
 				m_messageBuffer->Relay(m_peerPort);
 			}
@@ -342,6 +347,7 @@ private:
 				asio::async_read(
 					m_socket,
 					asio::buffer(m_messageBuffer->Payload(), m_messageBuffer->Length()),
+					asio::transfer_exactly(m_messageBuffer->Length()),
 					[this](const std::error_code& ec, size_t) { ReadPayload(ec); });
 			}
 			else
@@ -384,7 +390,6 @@ private:
 		}
 		else
 		{
-			std::unique_lock lock(m_writeMutex);
 			if (m_outgoing.Empty())
 			{
 				m_writing = false;
@@ -394,8 +399,8 @@ private:
 				m_writing = true;
 				const auto message(m_outgoing.Pop());
 
-				// explicitly unlock before we start the next async_write
-				lock.unlock();
+				SPDLOG_INFO("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
+
 				asio::async_write(
 					m_socket,
 					message->Buffers(),
@@ -417,8 +422,6 @@ private:
 	InternalMessageHandler m_receiveHandler;
 	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
 
-	// we need to make sure async_write doesn't get called while its running
-	std::mutex m_writeMutex;
 	bool m_writing = false;
 };
 
@@ -446,19 +449,16 @@ public:
 		uint16_t port,
 		PeerMessageHandler receiveHandler,
 		OnSessionConnectedHandler connectedHandler,
-		OnSessionDisconnectedHandler disconnectedHandler)
+		OnSessionDisconnectedHandler disconnectedHandler,
+		OnRequestProcessHandler requestProcessHandler)
 		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
 		, m_port(port)
 		, m_uuid(CreateUUID())
 		, m_receiveHandler(std::move(receiveHandler))
 		, m_sessionConnectedHandler(std::move(connectedHandler))
 		, m_sessionDisconnectedHandler(std::move(disconnectedHandler))
-	{
-		SPDLOG_INFO("{}: Initializing peer", port);
-
-		m_acceptor.listen();
-		Accept();
-	}
+		, m_requestProcessHandler(std::move(requestProcessHandler))
+	{}
 
 	~NetworkPeer()
 	{
@@ -477,6 +477,19 @@ public:
 			{
 				try
 				{
+					using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+					fSetThreadDescription SetThreadDescription = nullptr;
+					if (auto kernel = GetModuleHandleA("kernel32.dll"))
+						SetThreadDescription = (fSetThreadDescription)GetProcAddress(kernel, "SetThreadDescription");
+
+					if (SetThreadDescription)
+						SetThreadDescription(GetCurrentThread(), L"Network ASIO");
+
+					SPDLOG_INFO("{}: Initializing peer", m_port);
+
+					m_acceptor.listen();
+					Accept();
+
 					SPDLOG_TRACE("{}: Starting peer thread", m_port);
 					while (m_ioContext.run_one())
 					{
@@ -534,10 +547,12 @@ public:
 		if (auto session = m_connectingSessions.find(address); session != m_connectingSessions.end())
 		{
 			session->second->Write(std::move(header), std::move(payload), length);
+			m_ioContext.post([this] { ProcessWrites(); });
 		}
 		else if (auto session = m_sessions.find(address); session != m_sessions.end())
 		{
 			session->second->Write(std::move(header), std::move(payload), length);
+			m_ioContext.post([this] { ProcessWrites(); });
 		}
 		else
 		{
@@ -562,6 +577,32 @@ public:
 		}
 	}
 
+	// the thread this function runs on is externally controlled because this is where we run the
+	// callbacks provided from the external network construction, so we don't want to use io.post()
+	void Process()
+	{
+		std::unique_lock lock(m_processMutex);
+
+		if (!m_processQueue.empty() || !m_receiveQueue.empty())
+		{
+			std::vector<std::function<void()>> processes;
+			std::swap(processes, m_processQueue);
+
+			std::vector<std::pair<NetworkAddress, NetworkMessagePtr>> receives;
+			std::swap(receives, m_receiveQueue);
+
+			// unlock here so we aren't holding up the ASIO thread
+			lock.unlock();
+
+			// handle any connection bookeeping processes before doing any receiving
+			for (const auto& process : processes)
+				process();
+
+			for (auto& [addr, msg] : receives)
+				m_receiveHandler(addr, std::move(msg));
+		}
+	}
+
 	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
 		for (const auto& [_, session] : m_sessions)
@@ -579,8 +620,9 @@ public:
 	void AddHost(const NetworkAddress& address)
 	{
 		std::unique_lock lock(m_hostMutex);
-		if (m_knownHosts.insert(address).second)
-			Connect(address.IP, address.Port);
+		m_pendingConnects.push_back(address);
+
+		m_ioContext.post([this] { AddConnections(); });
 	}
 
 	void RemoveHost(const NetworkAddress& address)
@@ -637,8 +679,8 @@ private:
 					{
 						auto msg = std::make_unique<peernetwork::NetworkMessage>();
 						msg->ParseFromArray(payload.get(), length);
-						// handler is only called when the message is routed
-						m_receiveHandler(session->KnownAddress(), std::move(msg));
+
+						AddProcess(session->KnownAddress(), std::move(msg));
 						break;
 					}
 					case peernetwork::Leader:
@@ -666,18 +708,18 @@ private:
 			session_it->second->Receive();
 
 			const auto endpoint = session_it->second->Endpoint();
-			SPDLOG_INFO("{}: Adding connection to endpoint {}:{} (total sessions {})",
+			SPDLOG_INFO("{}: Adding connection to endpoint {}:{} (connected sessions {}, connecting sessions {})",
 				m_port, endpoint.address().to_string(), endpoint.port(),
-				m_sessions.size());
+				m_sessions.size(), m_connectingSessions.size());
 
 			peernetwork::Identity id;
 			id.set_uuid(m_uuid);
 			id.set_port(m_port);
 
 			auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
-			id.SerializeToArray(payload.get(), id.ByteSizeLong());
+			id.SerializeToArray(payload.get(), static_cast<uint32_t>(id.ByteSizeLong()));
 
-			Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), id.ByteSizeLong());
+			Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), static_cast<uint32_t>(id.ByteSizeLong()));
 		}
 		else
 		{
@@ -759,7 +801,10 @@ private:
 			}
 
 			m_connectingSessions.erase(peer_it);
-			m_sessionConnectedHandler(known_host);
+			AddProcess([this, known_host = std::move(known_host)]()
+				{
+					m_sessionConnectedHandler(known_host);
+				});
 		}
 		else
 		{
@@ -779,7 +824,10 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				m_sessionDisconnectedHandler(it->first);
+				AddProcess([this, addr = it->first]()
+					{
+						m_sessionDisconnectedHandler(addr);
+					});
 				it = m_closingSessions.erase(it);
 			}
 			else
@@ -801,12 +849,53 @@ private:
 		//SPDLOG_DEBUG("RunOne() pending sessions: {} active sessions: {}", m_pendingSessions.size(), m_sessions.size());
 	}
 
+	void AddConnections()
+	{
+		std::unique_lock lock(m_hostMutex);
+
+		if (!m_pendingConnects.empty())
+		{
+			// note that there is no unlock here because we are adding things to known hosts this entire loop
+			for (const auto& address : m_pendingConnects)
+				if (m_knownHosts.insert(address).second)
+					Connect(address.IP, address.Port);
+
+			m_pendingConnects.clear();
+		}
+	}
+
+	void ProcessWrites()
+	{
+		for (auto& [_, session] : m_connectingSessions)
+			session->ProcessWrites();
+
+		for (auto& [_, session] : m_sessions)
+			session->ProcessWrites();
+	}
+
+	void AddProcess(std::function<void()>&& process)
+	{
+		std::unique_lock lock(m_processMutex);
+		m_processQueue.push_back(std::move(process));
+
+		m_requestProcessHandler();
+	}
+	
+	void AddProcess(const NetworkAddress& address, NetworkMessagePtr message)
+	{
+		std::unique_lock lock(m_processMutex);
+		m_receiveQueue.emplace_back(address, std::move(message));
+
+		m_requestProcessHandler();
+	}
+
 	asio::io_context m_ioContext{};
 	tcp::acceptor m_acceptor;
 
 	const uint16_t m_port;
 	const std::string m_uuid;
 
+	std::vector<NetworkAddress> m_pendingConnects;
 	std::unordered_set<NetworkAddress> m_knownHosts;
 	std::mutex m_hostMutex; // we need to prevent situations where we try to connect to already discovered hosts
 
@@ -823,6 +912,11 @@ private:
 	PeerMessageHandler m_receiveHandler;
 	OnSessionConnectedHandler m_sessionConnectedHandler;
 	OnSessionDisconnectedHandler m_sessionDisconnectedHandler;
+	OnRequestProcessHandler m_requestProcessHandler;
+
+	std::vector<std::function<void()>> m_processQueue;
+	std::vector<std::pair<NetworkAddress, NetworkMessagePtr>> m_receiveQueue;
+	std::mutex m_processMutex;
 };
 
 // map of port -> peer
@@ -854,14 +948,19 @@ NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
 	: m_port(port)
 {}
 
-NetworkPeerAPI NetworkPeerAPI::GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected, OnSessionDisconnectedHandler disconnected)
+NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
+	uint16_t port,
+	PeerMessageHandler receive,
+	OnSessionConnectedHandler connected,
+	OnSessionDisconnectedHandler disconnected,
+	OnRequestProcessHandler process)
 {
 	auto peer_it = s_peers.find(port);
 	if (peer_it == s_peers.end())
 	{
 		// TODO: the receiver needs to forward to internal peers here (the map likely needs to be improved to handle network topography)
 		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
-			port, std::move(receive), std::move(connected), std::move(disconnected))).first;
+			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process))).first;
 
 		peer_it->second->Run();
 	}
@@ -903,6 +1002,13 @@ void NetworkPeerAPI::Broadcast(NetworkMessagePtr message) const
 	{
 		SPDLOG_WARN("{}: Attempting to broadcast message with an uninitialized peer", m_port);
 	}
+}
+
+void mq::NetworkPeerAPI::Process() const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		peer->second->Process();
 }
 
 void NetworkPeerAPI::Shutdown() const

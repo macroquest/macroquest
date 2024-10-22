@@ -60,6 +60,11 @@ void SetRequestFocusCallback(const RequestFocusCallback& requestFocus)
 	s_requestFocusCallback = requestFocus;
 }
 
+void Connection::RequestProcessEvents()
+{
+	m_postOffice->RequestProcessEvents();
+}
+
 // This is the actual pipe connection handler -- it's important that it is separate from the post office
 class PipeEventsHandler final : public NamedPipeEvents
 {
@@ -430,6 +435,11 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		{
 			// let's just always reconnect to disconnected hosts
 			AddHost(address.IP, address.Port);
+		},
+		[this]()
+		{
+			if (s_triggerProcess) (*s_triggerProcess)();
+			RequestProcessEvents();
 		})))
 {}
 
@@ -458,6 +468,11 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 			AddHost(address, port > 0 ? port : default_port);
 		}
 	}
+}
+
+void mq::postoffice::PeerConnection::Process()
+{
+	m_network->Process();
 }
 
 bool PeerConnection::SendMessage(const ActorContainer::Network& peer, MessagePtr message)

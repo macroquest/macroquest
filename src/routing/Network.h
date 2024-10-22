@@ -51,6 +51,7 @@ using PeerMessageHandler = std::function<void(const NetworkAddress&, NetworkMess
 // this is the signature for onconnected callbacks
 using OnSessionConnectedHandler = std::function<void(const NetworkAddress&)>;
 using OnSessionDisconnectedHandler = std::function<void(const NetworkAddress&)>;
+using OnRequestProcessHandler = std::function<void()>;
 
 class NetworkPeerAPI
 {
@@ -64,8 +65,15 @@ public:
 
 	void Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const;
 	void Broadcast(NetworkMessagePtr message) const;
+	void Process() const;
 
-	static NetworkPeerAPI GetOrCreate(uint16_t port, PeerMessageHandler receive, OnSessionConnectedHandler connected, OnSessionDisconnectedHandler disconnected);
+	static NetworkPeerAPI GetOrCreate(
+		uint16_t port,
+		PeerMessageHandler receive,
+		OnSessionConnectedHandler connected,
+		OnSessionDisconnectedHandler disconnected,
+		OnRequestProcessHandler process);
+
 	void Shutdown() const;
 
 	void AddHost(const std::string& address, uint16_t port) const;

@@ -12,14 +12,17 @@
  * GNU General Public License for more details.
  */
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include <windows.h>
 
 #include "routing/PostOffice.h"
+#include "routing/ProtoPipes.h"
 
 #include "loader/PostOffice.h"
-//#include "main/MQPostOffice.h"
+#include "main/MQPostOffice.h"
+
+#include "mq/base/String.h"
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -32,6 +35,18 @@
 
 // stub some things because the local connection takes care of some legacy operations in the launcher that doesn't need testing
 HWND hMainWnd;
+
+// and define/stub things to mock the client
+namespace mq {
+void DoCommand(const char* szLine, bool delayed) {}
+bool InitializeCrashpad() { return true; }
+void InitializeCrashpadPipe(const std::string& pipeName) {}
+mq::postoffice::ActorIdentification::Client GetDefaultClient() { return {}; }
+bool ShouldUpdateIdentity(int GameState, bool& logged_in) { return true; }
+namespace pipeclient {
+void RequestActivateWindow(HWND hWnd, bool sendMessage) {}
+} // namespace pipeclient
+} // namespace mq
 
 struct ImGuiViewport;
 namespace LauncherImGui {
@@ -66,7 +81,7 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 	return std::make_pair(std::string(addr), port);
 }
 
-// this test is low level, and we want to test high level APIs -- if we want the low level tests
+// this test is low level, and we want to test high level APIs
 //void Test()
 //{
 //	const auto peer1 = mq::NetworkPeerAPI::GetOrCreate(7781,
@@ -130,11 +145,15 @@ private:
 
 void TestBasicNetworkPeerSetup()
 {
-	SetPostOfficeConfig(0, PostOfficeConfig{ "7781", 7781, R"(\\.\pipe\mqpipe0)",std::vector{
+	constexpr const char* pipe0 = R"(\\.\pipe\mqpipe0)";
+	constexpr const char* pipe1 = R"(\\.\pipe\mqpipe1)";
+
+	/* launcher post offices */
+	SetPostOfficeConfig(PostOfficeConfig{ 0, "7781", 7781, pipe0, std::vector{
 		NetPeer("127.0.0.1", 8177),
 	}});
 
-	SetPostOfficeConfig(1, PostOfficeConfig{ "8177", 8177, R"(\\.\pipe\mqpipe1)", std::vector{
+	SetPostOfficeConfig(PostOfficeConfig{ 1, "8177", 8177, pipe1, std::vector{
 		NetPeer("127.0.0.1", 7781),
 	}});
 
@@ -143,6 +162,21 @@ void TestBasicNetworkPeerSetup()
 
 	auto dropbox0 = TestDropbox(0, "test7781");
 	auto dropbox1 = TestDropbox(1, "test8177");
+	/* end launcher post offices */
+
+	/* client post offices */
+	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 0, "clientA", pipe0, "accountA", "serverA", "characterA" });
+	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 2, "clientB", pipe0, "accountB", "serverB", "characterB" });
+
+	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 1, "clientC", pipe1, "accountC", "serverC", "characterC" });
+	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 3, "clientD", pipe1, "accountD", "serverD", "characterD" });
+
+	mq::InitializePostOffice(0);
+	mq::InitializePostOffice(2);
+
+	mq::InitializePostOffice(1);
+	mq::InitializePostOffice(3);
+	/* end client post offices */
 
 	// allow both post offices to set up, otherwise messages will just get dropped with no destination
 	std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -154,6 +188,7 @@ void TestBasicNetworkPeerSetup()
 		dropbox1.Post(addr, std::string("This is a test"));
 	}
 
+	//std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	{
 		// this should fail with -4 because there are 2 launchers
@@ -167,6 +202,7 @@ void TestBasicNetworkPeerSetup()
 			});
 	}
 
+	//std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	{
 		// this should succeed
@@ -183,7 +219,11 @@ void TestBasicNetworkPeerSetup()
 			});
 	}
 
+	// make sure our tests are done before continuing to cleanup
 	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	mq::ClearPostOfficeConfigs();
+	mq::ClearPostOffices();
 
 	ClearPostOfficeConfigs();
 	ClearPostOffices();

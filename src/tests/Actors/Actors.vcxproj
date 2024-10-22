@@ -127,7 +127,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;MQ2MAIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQ2Root)include;$(MQ2Root)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\loader\Connection.cpp" />
     <ClCompile Include="..\..\loader\PostOffice.cpp" />
+    <ClCompile Include="..\..\main\MQPostOfficeInternal.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>

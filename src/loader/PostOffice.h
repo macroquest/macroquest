@@ -36,6 +36,7 @@ using RequestFocusCallback = std::function<void(const mq::MQMessageFocusRequest*
 // setting these configs is to allow testing without spoofing config files
 struct PostOfficeConfig
 {
+	uint32_t Index;
 	std::string Name; // useful for debugging
 	std::optional<uint16_t> PeerPort;
 	std::optional<std::string> PipeName;
@@ -43,7 +44,7 @@ struct PostOfficeConfig
 };
 
 const PostOfficeConfig& GetPostOfficeConfig(uint32_t index);
-void SetPostOfficeConfig(uint32_t index, const PostOfficeConfig& config);
+void SetPostOfficeConfig(const PostOfficeConfig& config);
 void DropPostOfficeConfig(uint32_t index);
 void ClearPostOfficeConfigs();
 void ClearPostOffices();
@@ -123,6 +124,19 @@ private:
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
 
+	std::vector<MessagePtr> m_outgoingMessages;
+	std::mutex m_outgoingMutex;
+
+	enum class IdentityAction
+	{
+		Add,
+		MassAdd,
+		Drop,
+		MassDrop
+	};
+	std::vector<std::pair<IdentityAction, ActorIdentification>> m_identityActions;
+	std::mutex m_identityMutex;
+
 	bool m_running = false;
 	std::thread m_thread;
 	std::thread::id m_threadId;
@@ -131,12 +145,23 @@ private:
 	std::mutex m_processMutex;
 	std::condition_variable m_needsProcessing;
 
+	template <size_t I = 0> void StartConnections();
+	template <size_t I = 0> void StopConnections();
 	template <size_t I = 0> void ProcessConnections();
 	template <size_t I = 0> void BroadcastMessage(MessagePtr message);
 	bool SendMessage(const ActorContainer& ident, MessagePtr message);
 	void SendIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void DropIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void RequestIdentities(const ActorContainer& from);
+
+	void ProcessOutgoing();
+	void ProcessOutgoingMessage(MessagePtr);
+
+	void ProcessIdentities();
+	void ProcessAddIdentity(const ActorIdentification& id);
+	void ProcessDropIdentity(const ActorIdentification& id);
+	void ProcessDropContainer(const ActorContainer& container);
+	void ProcessSendIdentities(const ActorContainer& requester);
 };
 
 // ----------------------------- Connection -----------------------------------
@@ -162,7 +187,7 @@ public:
 
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
-	void RequestProcessEvents(); // TODO: the network connection never calls this, does it need to?
+	void RequestProcessEvents();
 
 	LauncherPostOffice* GetPostOffice() const { return m_postOffice; }
 
@@ -221,7 +246,7 @@ public:
 	void AddConfiguredHosts();
 
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
-	void Process() override {}
+	void Process() override;
 
 	bool SendMessage(const ActorContainer::Network& peer, MessagePtr message);
 

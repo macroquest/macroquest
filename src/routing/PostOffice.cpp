@@ -15,7 +15,6 @@
 // Uncomment to see super spammy read/write trace logging
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#define MQLIB_OBJECT
 #include "PostOffice.h"
 
 #include <spdlog/spdlog.h>
@@ -26,6 +25,7 @@ namespace mq::postoffice {
 
 void Mailbox::Deliver(MessagePtr message) const
 {
+	SPDLOG_TRACE("{}: Mailbox delivering message to address {}", m_localAddress, message->address().ShortDebugString());
 	m_receiveQueue.push(std::move(message));
 }
 
@@ -33,6 +33,7 @@ void Mailbox::Process(size_t howMany) const
 {
 	if (howMany > 0 && !m_receiveQueue.empty())
 	{
+		SPDLOG_TRACE("{}: Mailbox processing queue", m_localAddress);
 		m_receive(std::move(m_receiveQueue.front()));
 		m_receiveQueue.pop();
 
@@ -115,7 +116,15 @@ PostOffice::PostOffice(ActorIdentification&& id)
 PostOffice::~PostOffice()
 {
 	for (const auto& [sequenceId, request] : m_rpcRequests)
-		request.callback(MsgError_ConnectionClosed, {});
+	{
+		auto msg = std::make_unique<proto::routing::Envelope>();
+		msg->set_status(MsgError_ConnectionClosed);
+		msg->set_sequence(request.sequenceId);
+		m_id.BuildAddress(*msg->mutable_address());
+		m_id.BuildAddress(*msg->mutable_return_address());
+
+		request.callback(MsgError_ConnectionClosed, std::move(msg));
+	}
 
 	m_rpcRequests.clear();
 
@@ -191,7 +200,7 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 				m_id.BuildAddress(ret);
 				ret.set_mailbox(localAddress);
 
-				SPDLOG_TRACE("{}: Dropbox posting message to address {}", m_id, message->address().ShortDebugString());
+				SPDLOG_TRACE("{}: Dropbox posting message to address {} seq={}", m_id, message->address().ShortDebugString(), message->sequence());
 
 				if (callback != nullptr)
 				{

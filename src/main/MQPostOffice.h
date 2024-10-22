@@ -18,26 +18,45 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
-#include "MQ2MainBase.h"
+#ifndef _WINDEF_
+class HWND__;
+typedef HWND__* HWND;
+#endif
+
+#include <string>
+#include <optional>
 
 namespace mq {
 
-namespace pipeclient {
+struct MQPostOfficeConfig
+{
+	uint32_t Index;
+	std::string Name; // useful for debugging
+	std::optional<std::string> PipeName;
+	std::optional<std::string> AccountOverride;
+	std::optional<std::string> ServerOverride;
+	std::optional<std::string> CharacterOverride;
+};
 
 // setting these configs is to allow testing without spoofing config files
-void SetPostOfficeConfig(uint32_t index, std::string_view pipeName);
+void SetPostOfficeConfig(const MQPostOfficeConfig& config);
 void DropPostOfficeConfig(uint32_t index);
 void ClearPostOfficeConfigs();
 void ClearPostOffices();
-
-void NotifyIsForegroundWindow(bool isForeground);
-void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
-void SendNotification(const std::string& message, const std::string& title);
 
 void InitializePostOffice(uint32_t index = 0);
 void ShutdownPostOffice(uint32_t index = 0);
 void PulsePostOffice(uint32_t index = 0);
 void SetGameStatePostOffice(int GameState, uint32_t index = 0);
+
+namespace pipeclient {
+// this namespace is for interfaces that directly send messages over the pipe, without the
+// need for a post office. The only reason they are here is because the post office handles
+// the pipe connection
+
+void NotifyIsForegroundWindow(bool isForeground);
+void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+void SendNotification(const std::string& message, const std::string& title);
 
 } // namespace pipeclient
 
