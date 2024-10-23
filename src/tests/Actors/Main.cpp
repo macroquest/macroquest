@@ -110,20 +110,24 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 //	std::this_thread::sleep_for(std::chrono::seconds(2));
 //}
 
+template <typename PO>
 class TestDropbox
 {
 public:
-	TestDropbox(uint32_t index, const std::string& name)
+	TestDropbox(uint32_t index, const std::string& name, const std::unordered_map<std::string, int>& responseMap = {})
 		: m_name(name)
-		, m_dropbox(mq::postoffice::GetPostOffice(index).RegisterAddress(name,
+		, m_responseMap(responseMap)
+		, m_dropbox(mq::postoffice::GetPostOffice<PO>(index).RegisterAddress(name,
 			[this](mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("{}: received {}", m_name, message->payload());
+				SPDLOG_TRACE("{}: received {}", m_name, message->payload());
+				m_received.push_back(message->payload());
 
-				if (message->payload() == "Please respond")
+				auto it = m_responseMap.find(message->payload());
+				if (it != m_responseMap.end())
 				{
 					auto response = fmt::format("{}: responding to message {}", m_name, message->payload());
-					PostReply(std::move(message), response, 1);
+					PostReply(std::move(message), response, it->second);
 				}
 			}))
 	{}
@@ -138,12 +142,27 @@ public:
 		m_dropbox.PostReply(std::move(message), data, status);
 	}
 
+	bool HasReceived(const std::string& payload)
+	{
+		return ReceivedCount(payload) > 0;
+	}
+
+	size_t ReceivedCount(const std::string& payload)
+	{
+		return std::count_if(m_received.begin(), m_received.end(),
+			[&payload](const std::string & received)
+			{ return mq::ci_equals(received, payload); });
+	}
+
 private:
 	std::string m_name;
+	std::unordered_map<std::string, int> m_responseMap;
 	mq::postoffice::Dropbox m_dropbox;
+
+	std::vector<std::string> m_received;
 };
 
-void TestBasicNetworkPeerSetup()
+void InitPostOffices()
 {
 	constexpr const char* pipe0 = R"(\\.\pipe\mqpipe0)";
 	constexpr const char* pipe1 = R"(\\.\pipe\mqpipe1)";
@@ -159,10 +178,10 @@ void TestBasicNetworkPeerSetup()
 
 	InitializePostOffice(0);
 	InitializePostOffice(1);
-
-	auto dropbox0 = TestDropbox(0, "test7781");
-	auto dropbox1 = TestDropbox(1, "test8177");
 	/* end launcher post offices */
+
+	// wait here so the pipe connections get made otherwise we'd have to wait 5 seconds for the clients to retry
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	/* client post offices */
 	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 0, "clientA", pipe0, "accountA", "serverA", "characterA" });
@@ -180,7 +199,25 @@ void TestBasicNetworkPeerSetup()
 
 	// allow both post offices to set up, otherwise messages will just get dropped with no destination
 	std::this_thread::sleep_for(std::chrono::seconds(2));
+	SPDLOG_INFO("Post Offices Initialized");
+}
 
+void ShutdownPostOffices()
+{
+	mq::ClearPostOfficeConfigs();
+	mq::ClearPostOffices();
+
+	ClearPostOfficeConfigs();
+	ClearPostOffices();
+	SPDLOG_INFO("Post Offices Shutdown");
+}
+
+void TestLauncherBehavior()
+{
+	auto dropbox0 = TestDropbox<mq::postoffice::LauncherPostOffice>(0, "test7781");
+	auto dropbox1 = TestDropbox<mq::postoffice::LauncherPostOffice>(1, "test8177", {{"Please respond", 1}});
+
+	// basic message routing
 	{
 		mq::proto::routing::Address addr;
 		addr.set_name("launcher");
@@ -188,22 +225,23 @@ void TestBasicNetworkPeerSetup()
 		dropbox1.Post(addr, std::string("This is a test"));
 	}
 
-	//std::this_thread::sleep_for(std::chrono::seconds(2));
-
+	// failed RPC (ambiguous recipient)
+	int failed_status = 0;
 	{
 		// this should fail with -4 because there are 2 launchers
 		mq::proto::routing::Address addr;
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),
-			[](int status, mq::postoffice::MessagePtr message)
+			[&failed_status](int status, mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("Received status {} and response: {}", message->status(), message->payload());
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				failed_status = message->status();
 			});
 	}
 
-	//std::this_thread::sleep_for(std::chrono::seconds(2));
-
+	// successful RPC
+	int success_status = 0;
 	{
 		// this should succeed
 		mq::proto::routing::Address addr;
@@ -213,20 +251,53 @@ void TestBasicNetworkPeerSetup()
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),
-			[](int status, mq::postoffice::MessagePtr message)
+			[&success_status](int status, mq::postoffice::MessagePtr message)
 			{
-				SPDLOG_DEBUG("Received status {} and response: {}", message->status(), message->payload());
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				success_status = message->status();
 			});
 	}
 
-	// make sure our tests are done before continuing to cleanup
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
-	mq::ClearPostOfficeConfigs();
-	mq::ClearPostOffices();
+	if (!dropbox0.HasReceived("This is a test"))
+		SPDLOG_ERROR("TestLauncherBehavior: Failed to send basic message");
 
-	ClearPostOfficeConfigs();
-	ClearPostOffices();
+	if (auto count = dropbox1.ReceivedCount("Please respond"); count != 1)
+		SPDLOG_ERROR("TestLauncherBehavior: Received {} response requests instead of 1", count);
+
+	if (failed_status != -4)
+		SPDLOG_ERROR("TestLauncherBehavior: Received {} status from bad response attempt instead of -4", failed_status);
+
+	if (success_status != 1)
+		SPDLOG_ERROR("TestLauncherBehavior: Received {} status from good response attempt instead of 1", failed_status);
+
+	SPDLOG_INFO("TestLauncherBehavior: Tests Complete");
+}
+
+void TestBasicClientSetup()
+{
+	// pipe0
+	auto dropboxA1 = TestDropbox<mq::MQPostOffice>(0, "A1");
+	auto dropboxB1 = TestDropbox<mq::MQPostOffice>(2, "B1");
+
+	// pipe1
+	auto dropboxC1 = TestDropbox<mq::MQPostOffice>(1, "C1");
+	auto dropboxD1 = TestDropbox<mq::MQPostOffice>(3, "D1");
+
+	// internal route
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("B1");
+		dropboxA1.Post(addr, "This is from A1");
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	if (!dropboxB1.HasReceived("This is from A1"))
+		SPDLOG_ERROR("TestBasicClientSetup: Failed to route internally");
+
+	SPDLOG_INFO("TestBasicClientSetup: Tests Complete");
 }
 
 void InitializeLogging()
@@ -248,9 +319,13 @@ void InitializeLogging()
 int main(int argc, TCHAR* argv[])
 {
 	InitializeLogging();
+	InitPostOffices();
 
 	//Test();
-	TestBasicNetworkPeerSetup();
+	TestLauncherBehavior();
+	//TestBasicClientSetup();
+
+	ShutdownPostOffices();
 
 	return 0;
 }

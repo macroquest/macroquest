@@ -13,7 +13,7 @@
  */
 
 // Uncomment to see super spammy read/write trace logging
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
@@ -225,7 +225,7 @@ private:
 std::string GetPipePath(LauncherPostOffice* postOffice)
 {
 	const auto& config = postOffice->GetConfig();
-	return config.PipeName ? *config.PipeName : mq::MQ_PIPE_SERVER_PATH;
+	return config.PipeName;
 }
 
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
@@ -373,7 +373,7 @@ void LocalConnection::SendForceUnloadAllCommand()
 uint16_t GetPeerPort(LauncherPostOffice* postOffice)
 {
 	const auto config = postOffice->GetConfig();
-	return config.PeerPort ? *config.PeerPort : DEFAULT_NETWORK_PEER_PORT;
+	return config.PeerPort;
 }
 
 PeerConnection::PeerConnection(LauncherPostOffice* postOffice)

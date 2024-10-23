@@ -23,6 +23,9 @@ class HWND__;
 typedef HWND__* HWND;
 #endif
 
+#include "routing/PostOffice.h"
+#include "routing/ProtoPipes.h"
+
 #include <string>
 #include <optional>
 
@@ -30,12 +33,64 @@ namespace mq {
 
 struct MQPostOfficeConfig
 {
-	uint32_t Index;
-	std::string Name; // useful for debugging
-	std::optional<std::string> PipeName;
+	uint32_t Index = 0;
+	std::string Name = "MQPostOffice"; // useful for debugging
+	std::string PipeName = mq::MQ_PIPE_SERVER_PATH;
 	std::optional<std::string> AccountOverride;
 	std::optional<std::string> ServerOverride;
 	std::optional<std::string> CharacterOverride;
+};
+
+// this post office has exactly one connection, the pipe connection that connects to the launcher for routing. With
+// that in mind, this is going to couple the post office and the connection because there's no intention of creating
+// more types of connections in main
+class MQPostOffice : public postoffice::PostOffice
+{
+private:
+
+	std::unordered_multimap<postoffice::ActorContainer, postoffice::ActorIdentification> m_identities;
+
+	class PipeEventsHandler : public NamedPipeEvents
+	{
+	public:
+		PipeEventsHandler(MQPostOffice* postOffice) : m_postOffice(postOffice) {}
+		virtual void OnIncomingMessage(PipeMessagePtr&& message) override;
+		virtual void OnClientConnected() override;
+
+	private:
+		MQPostOffice* m_postOffice;
+	};
+
+public:
+
+	explicit MQPostOffice(const MQPostOfficeConfig& config);
+
+	const MQPostOfficeConfig& GetConfig() const { return m_config; }
+	const std::string& GetName() const { return m_config.Name; }
+
+	std::unordered_map<const std::string, std::unique_ptr<postoffice::Mailbox>>::iterator FindMailbox(
+		const proto::routing::Address& address,
+		const std::unordered_map<const std::string, std::unique_ptr<postoffice::Mailbox>>::iterator& from);
+
+	void RouteMessage(postoffice::MessagePtr message) override;
+
+	void ProcessPipeClient();
+	void NotifyIsForegroundWindow(bool isForeground);
+	void RequestActivateWindow(HWND hWnd, bool sendMessage);
+	void SendNotification(const std::string& message, const std::string& title);
+
+	void SetGameStatePostOffice(int GameState);
+	void Initialize();
+	void Shutdown();
+
+private:
+	MQPostOfficeConfig m_config;
+
+	ProtoPipeClient m_pipeClient;
+	postoffice::Dropbox m_clientDropbox;
+	DWORD m_launcherProcessID;
+
+	static void StopPipeClient();
 };
 
 // setting these configs is to allow testing without spoofing config files

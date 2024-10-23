@@ -18,6 +18,13 @@
 
 #include <chrono>
 
+namespace mq {
+// The name of the named pipe used by the named pipe server to communicate with other clients.
+constexpr const char* MQ_PIPE_SERVER_PATH = R"(\\.\pipe\mqpipe)";
+constexpr uint16_t DEFAULT_NETWORK_PEER_PORT = 7781;
+std::string CreateUUID();
+} // namespace mq
+
 enum class MQRequestMode : uint8_t
 {
 	SimpleMessage   = 0,          // (Default) This is a simple message. There is no reply.

@@ -38,8 +38,8 @@ struct PostOfficeConfig
 {
 	uint32_t Index;
 	std::string Name; // useful for debugging
-	std::optional<uint16_t> PeerPort;
-	std::optional<std::string> PipeName;
+	uint16_t PeerPort = mq::DEFAULT_NETWORK_PEER_PORT;
+	std::string PipeName = mq::MQ_PIPE_SERVER_PATH;
 	std::optional<std::vector<std::pair<std::string, uint16_t>>> Peers;
 };
 
@@ -162,6 +162,8 @@ private:
 	void ProcessDropIdentity(const ActorIdentification& id);
 	void ProcessDropContainer(const ActorContainer& container);
 	void ProcessSendIdentities(const ActorContainer& requester);
+
+	void FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate);
 };
 
 // ----------------------------- Connection -----------------------------------

@@ -13,15 +13,30 @@
  */
 
 // Uncomment to see super spammy read/write trace logging
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
+#pragma comment(lib, "rpcrt4.lib")
 
 #include "PostOffice.h"
 
 #include <spdlog/spdlog.h>
 
-#include <windows.h> // this is needed for GetCurrentProcessId
+#include <rpc.h>
 
-namespace mq::postoffice {
+namespace mq {
+
+std::string CreateUUID()
+{
+	UUID uuid;
+	::UuidCreate(&uuid);
+	char* uuid_str;
+	::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&uuid_str));
+	std::string return_uuid(uuid_str);
+	::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&uuid_str));
+	return return_uuid;
+}
+
+namespace postoffice {
 
 void Mailbox::Deliver(MessagePtr message) const
 {
@@ -252,4 +267,5 @@ void PostOffice::Process(size_t howMany)
 	}
 }
 
-} // namespace mq::postoffice
+} // namespace postoffice
+} // namespace mq

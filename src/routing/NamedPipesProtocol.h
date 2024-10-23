@@ -20,9 +20,6 @@
 
 namespace mq {
 
-// The name of the named pipe used by the named pipe server to communicate with other clients.
-constexpr const char* MQ_PIPE_SERVER_PATH = R"(\\.\pipe\mqpipe)";
-
 enum class MQMessageId : uint16_t
 {
 	MSG_NULL                               = 0,     // An empty message, used for transmitting an acknowledgement response

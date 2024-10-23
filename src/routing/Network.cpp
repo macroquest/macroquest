@@ -15,16 +15,12 @@
 // the number of the day is 7781 and 239.255.77.81
 
 // Uncomment to see super spammy read/write trace logging
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-
-#pragma comment(lib, "rpcrt4.lib")
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include <queue>
 #include <map>
 #include <atomic>
 #include <optional>
-
-#include <rpc.h>
 
 #include <spdlog/spdlog.h>
 
@@ -284,7 +280,7 @@ private:
 			asio::transfer_exactly(sizeof(uint32_t)),
 			[this](const std::error_code& ec, size_t)
 			{
-				SPDLOG_INFO("{}: reading message from socket {}", m_peerPort, m_socket.local_endpoint().port());
+				SPDLOG_TRACE("{}: reading message from socket {}", m_peerPort, m_socket.local_endpoint().port());
 				// TODO: Handle other connection errors with reconnect attempts
 				// TODO: Write a function that handles this the same way every time (error checking)
 				// TODO: check the size of the length also, should be sizeof(uint32_t)
@@ -399,7 +395,7 @@ private:
 				m_writing = true;
 				const auto message(m_outgoing.Pop());
 
-				SPDLOG_INFO("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
+				SPDLOG_TRACE("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
 
 				asio::async_write(
 					m_socket,
@@ -424,17 +420,6 @@ private:
 
 	bool m_writing = false;
 };
-
-static std::string CreateUUID()
-{
-	UUID uuid;
-	::UuidCreate(&uuid);
-	char* uuid_str;
-	::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&uuid_str));
-	std::string return_uuid(uuid_str);
-	::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&uuid_str));
-	return return_uuid;
-}
 
 class NetworkPeer
 {

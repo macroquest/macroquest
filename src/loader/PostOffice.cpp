@@ -13,7 +13,7 @@
  */
 
 // Uncomment to see super spammy read/write trace logging
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
@@ -38,7 +38,7 @@ namespace mq::postoffice {
 
 bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, const ActorIdentification& id)
 {
-	SPDLOG_TRACE("{}: Testing address {} against id {}", GetName(), address.ShortDebugString(), id.ToString());
+	SPDLOG_TRACE("{}: Testing address [{}] against id [{}]", GetName(), address.ShortDebugString(), id.ToString());
 
 	return std::visit(overload{
 		[&address](uint32_t pid)
@@ -52,13 +52,18 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 				(!address.has_peer() && !address.has_pid());
 		}
 		}, id.container.value) && std::visit(overload{
-		[&address](const std::string& name) { return address.has_name() && ci_equals(name, address.name()); },
+		[&address](const std::string& name)
+		{
+			return (address.has_name() && ci_equals(name, address.name())) ||
+				(!address.has_name() && !address.has_client());
+		},
 		[&address](const ActorIdentification::Client& client)
 		{
-			return address.has_client() &&
+			return (address.has_client() &&
 				(!address.client().has_account() || ci_equals(client.account, address.client().account())) &&
 				(!address.client().has_server() || ci_equals(client.server, address.client().server())) &&
-				(!address.client().has_character() || ci_equals(client.character, address.client().character()));
+				(!address.client().has_character() || ci_equals(client.character, address.client().character()))) ||
+				(!address.has_name() && !address.has_client());
 		}
 		}, id.address);
 }
@@ -308,6 +313,35 @@ void LauncherPostOffice::ProcessSendIdentities(const ActorContainer& requester)
 		SendIdentification(requester, client);
 }
 
+void LauncherPostOffice::FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate)
+{
+	std::vector<const ActorIdentification*> identities;
+	for (const auto& [_, identity] : m_identities)
+	{
+		if (predicate(identity))
+			identities.emplace_back(&identity);
+	}
+
+	if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && identities.size() != 1)
+	{
+		if (identities.size() > 1)
+			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
+		else
+			RoutingFailed(MsgError_RoutingFailed, std::move(message), "No recipients match identity");
+	}
+	else if (identities.size() == 1)
+	{
+		// minor optimization, this lets us move
+		auto identity = identities.front();
+		SendMessage(identity->container, FillAddress(std::move(message), *identity));
+	}
+	else
+	{
+		for (auto identity : identities)
+			SendMessage(identity->container, FillAddress(std::make_unique<proto::routing::Envelope>(*message), *identity));
+	}
+}
+
 void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 {
 	// it's safe to assume that any RPC requests will get routed back to the originating connection, so there is no
@@ -340,46 +374,19 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 		else if (address.has_client())
 			*local_address.mutable_client() = address.client();
 
-		if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
-			[&local_address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
-			{ return identity.first.IsLocal() && IsRecipient(local_address, identity.second); }) > 1)
-		{
-			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
-		}
-		else
-		{
-			for (const auto& identity : m_identities)
-			{
-				if (identity.first.IsLocal() && IsRecipient(local_address, identity.second))
-				{
-					// copy here because we could potentially have multiple matches
-					RouteMessage(FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
-				}
-			}
-		}
+		FillAndSend(std::move(message),
+			[&local_address, this](const auto& identity)
+			{ return identity.container.IsLocal() && IsRecipient(local_address, identity); });
 	}
 	else
 	{
 		// This message isn't addressed specifically to a container, so find all identities that
 		// should receive this message and send to each one
 		SPDLOG_TRACE("{}: Routing message to [{}] seq={}", GetName(), address.ShortDebugString(), message->sequence());
-		if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && std::count_if(m_identities.begin(), m_identities.end(),
-			[&address, this](const std::pair<ActorContainer, ActorIdentification>& identity)
-			{ return IsRecipient(address, identity.second); }) > 1)
-		{
-			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
-		}
-		else
-		{
-			for (const auto& identity : m_identities)
-			{
-				if (IsRecipient(address, identity.second))
-				{
-					// copy here because we could potentially have multiple matches
-					RouteMessage(FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
-				}
-			}
-		}
+
+		FillAndSend(std::move(message),
+			[&address, this](const auto& identity)
+			{ return IsRecipient(address, identity); });
 	}
 
 	RequestProcessEvents();

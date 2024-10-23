@@ -65,6 +65,14 @@ struct ActorContainer
 
 			return *this;
 		}
+
+		proto::routing::Peer GetProto() const
+		{
+			proto::routing::Peer p;
+			p.set_ip(IP);
+			p.set_port(Port);
+			return p;
+		}
 	};
 
 	std::variant<uint32_t, Network> value;
@@ -186,6 +194,15 @@ struct ActorIdentification
 
 			return *this;
 		}
+
+		proto::routing::Client GetProto() const
+		{
+			proto::routing::Client c;
+			if (!account.empty()) c.set_account(account);
+			if (!server.empty()) c.set_server(server);
+			if (!character.empty()) c.set_character(character);
+			return c;
+		}
 	};
 
 	/**
@@ -298,23 +315,12 @@ struct ActorIdentification
 
 		std::visit(overload{
 			[&id](uint32_t pid) { id.set_pid(pid); },
-			[&id](const ActorContainer::Network& addr)
-			{
-				proto::routing::Peer* p = id.mutable_peer();
-				p->set_ip(addr.IP);
-				p->set_port(addr.Port);
-			}
+			[&id](const ActorContainer::Network& addr) { *id.mutable_peer() = addr.GetProto(); }
 		}, container.value);
 
 		std::visit(overload{
 			[&id](const std::string& name) { id.set_name(name); },
-			[&id](const Client& cid)
-			{
-				proto::routing::Client* c = id.mutable_client();
-				if (!cid.account.empty()) c->set_account(cid.account);
-				if (!cid.server.empty()) c->set_server(cid.server);
-				if (!cid.character.empty()) c->set_character(cid.character);
-			}
+			[&id](const Client& cid) { *id.mutable_client() = cid.GetProto(); }
 		}, address);
 
 		return id;
