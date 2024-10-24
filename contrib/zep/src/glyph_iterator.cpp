@@ -1,8 +1,8 @@
+#include "pch.h"
 #include "zep/glyph_iterator.h"
 #include "zep/buffer.h"
 
-namespace Zep
-{
+namespace Zep {
 
 GlyphIterator::GlyphIterator(const ZepBuffer* buffer, unsigned long offset)
     : m_pBuffer(buffer)

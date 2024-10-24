@@ -1,7 +1,7 @@
+#include "pch.h"
 #include "zep/commands.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // Delete Range of chars
 ZepCommand_DeleteRange::ZepCommand_DeleteRange(ZepBuffer& buffer, const GlyphIterator& start, const GlyphIterator& end, const GlyphIterator& cursor, const GlyphIterator& cursorAfter)

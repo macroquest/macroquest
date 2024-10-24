@@ -1,13 +1,11 @@
-#include <cassert>
-#include <regex>
-
+#include "pch.h"
 #include "zep/keymap.h"
 #include "zep/mode.h"
-
 #include "zep/mcommon/logger.h"
 
-namespace Zep
-{
+#include <cassert>
+
+namespace Zep {
 
 std::unordered_map<uint32_t, std::string>& GetStringLookup()
 {

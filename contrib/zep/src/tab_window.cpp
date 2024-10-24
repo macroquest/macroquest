@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/tab_window.h"
 #include "zep/buffer.h"
 #include "zep/display.h"
@@ -8,8 +9,7 @@
 #include "zep/mcommon/logger.h"
 
 // A 'window' is like a Vim Tab
-namespace Zep
-{
+namespace Zep {
 
 ZepTabWindow::ZepTabWindow(ZepEditor& editor)
     : ZepComponent(editor)

@@ -1,14 +1,13 @@
+#include "pch.h"
 #include "zep/editor.h"
 #include "zep/theme.h"
 #include "zep/display.h"
 #include "zep/scroller.h"
-
 #include "zep/mcommon/logger.h"
 
 // A scrollbar that is manually drawn and implemented.  This means it is independent of the backend and can be drawn the
 // same in Qt and ImGui
-namespace Zep
-{
+namespace Zep {
 
 Scroller::Scroller(ZepEditor& editor, Region& parent)
     : ZepComponent(editor)

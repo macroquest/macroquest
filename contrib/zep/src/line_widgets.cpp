@@ -1,8 +1,8 @@
+#include "pch.h"
 #include "zep/line_widgets.h"
 #include "zep/display.h"
 
-namespace Zep
-{
+namespace Zep {
 
 NVec2f FloatSlider::GetSize() const
 {

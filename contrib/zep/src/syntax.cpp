@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/syntax.h"
 #include "zep/editor.h"
 #include "zep/syntax_rainbow_brackets.h"
@@ -9,8 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace Zep
-{
+namespace Zep {
 
 ZepBasicSyntax::ZepBasicSyntax(
     ZepBuffer& buffer,

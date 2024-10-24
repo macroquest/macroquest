@@ -1,7 +1,7 @@
+#include "pch.h"
 #include "zep/mcommon/file/path.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // http://stackoverflow.com/a/29221546/18942
 ZepPath path_get_relative(const ZepPath& from, const ZepPath& to)

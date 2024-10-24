@@ -1,14 +1,14 @@
-#include <iterator>
-#include <random>
-
+#include "pch.h"
 #include "zep/editor.h"
 #include "zep/mcommon/animation/timer.h"
 #include "zep/regress.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"
 
-namespace Zep
-{
+#include <iterator>
+#include <random>
+
+namespace Zep {
 
 template <typename Iter, typename RandomGenerator>
 Iter select_randomly(Iter start, Iter end, RandomGenerator& g)

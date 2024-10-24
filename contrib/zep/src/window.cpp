@@ -1,7 +1,4 @@
-#include <cctype>
-#include <cmath>
-#include <sstream>
-
+#include "pch.h"
 #include "zep/buffer.h"
 #include "zep/display.h"
 #include "zep/mode.h"
@@ -15,8 +12,12 @@
 #include "zep/mcommon/string/stringutils.h"
 #include "zep/mcommon/utf8.h"
 
-namespace
-{
+#include <cctype>
+#include <cmath>
+#include <sstream>
+
+namespace {
+
 struct WindowPass
 {
     enum Pass
@@ -29,8 +30,7 @@ struct WindowPass
 } // namespace
 
 // A 'window' is like a vim window; i.e. a region inside a tab
-namespace Zep
-{
+namespace Zep {
 
 const float ScrollBarSize = 17.0f;
 const float UnderlineMargin = 1.0f;

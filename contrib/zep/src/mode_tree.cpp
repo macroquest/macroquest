@@ -1,7 +1,7 @@
+#include "pch.h"
 #include "zep/mode_tree.h"
 
-namespace Zep
-{
+namespace Zep {
 
 ZepTreeNode::ZepTreeNode(const std::string& strName, uint32_t flags)
     : m_strName(strName)

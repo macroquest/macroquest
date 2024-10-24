@@ -1,13 +1,11 @@
+#include "pch.h"
+#include "zep/mcommon/string/stringutils.h"
+
 #include <algorithm>
-#include <cassert>
-#include <cstring>
 #include <locale>
 #include <string>
 
-#include "zep/mcommon/string/stringutils.h"
-
-namespace Zep
-{
+namespace Zep {
 
 std::string string_tolower(const std::string& str)
 {

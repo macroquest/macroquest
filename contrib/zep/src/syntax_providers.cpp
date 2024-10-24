@@ -1,11 +1,11 @@
+#include "pch.h"
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/syntax.h"
 #include "zep/syntax_tree.h"
 #include "zep/syntax_markdown.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // Most of these keyword values taken from : https://github.com/BalazsJako/ImGuiColorTextEdit
 // another great ImGui based text editor.

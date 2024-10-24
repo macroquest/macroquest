@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/syntax_rainbow_brackets.h"
 #include "zep/theme.h"
 
@@ -5,8 +6,7 @@
 #include "zep/mcommon/logger.h"
 
 // A Simple adornment to add rainbow brackets to the syntax
-namespace Zep
-{
+namespace Zep {
 
 ZepSyntaxAdorn_RainbowBrackets::ZepSyntaxAdorn_RainbowBrackets(ZepSyntax& syntax, ZepBuffer& buffer)
     : ZepSyntaxAdorn(syntax, buffer)

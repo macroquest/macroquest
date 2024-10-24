@@ -1,9 +1,9 @@
+#include "pch.h"
 #include "zep/editor.h"
 #include "zep/syntax.h"
 #include "zep/theme.h"
 
-namespace Zep
-{
+namespace Zep {
 
 ZepTheme::ZepTheme()
 {

@@ -1,10 +1,9 @@
+#include "pch.h"
 #include "zep/mode.h"
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/filesystem.h"
 #include "zep/mcommon/logger.h"
-#include "zep/mode_search.h"
-#include "zep/regress.h"
 #include "zep/syntax.h"
 #include "zep/tab_window.h"
 

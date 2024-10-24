@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/mode_search.h"
 #include "zep/filesystem.h"
 #include "zep/tab_window.h"
@@ -5,11 +6,9 @@
 
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/threadutils.h"
-
 #include "zep/mcommon/file/fnmatch.h"
 
-namespace Zep
-{
+namespace Zep {
 
 ZepMode_Search::ZepMode_Search(ZepEditor& editor, ZepWindow& launchWindow, ZepWindow& window, const ZepPath& path)
     : ZepMode(editor)
