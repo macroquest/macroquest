@@ -20,10 +20,6 @@
 #include <memory>
 #include <string_view>
 
-namespace mq {
-	struct ImGuiZepConsole;
-}
-
 namespace mq::imgui {
 
 // Interface to a ImGuiZepConsole, suitable for exposure to plugins.
