@@ -375,6 +375,8 @@ void PipeConnection::SendMessage(PipeMessagePtr&& message)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 
+	SPDLOG_TRACE("{}: Posting message to pipe thread", m_connectionId);
+
 	m_parent->PostToPipeThread([message = message.release(), weakPtr]() mutable
 		{
 			auto msg = std::unique_ptr<PipeMessage>(message);
@@ -424,6 +426,8 @@ void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
 	// this function *must* be called on the named pipe server thread
 	assert(std::this_thread::get_id() == m_parent->pipe_thread_id());
 
+	SPDLOG_TRACE("{}: Sending message across pipe", m_connectionId);
+
 	// If we're not connected anymore, bail out early
 	if (!m_hPipe)
 	{
@@ -447,7 +451,7 @@ void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
 		&& callback != nullptr)
 	{
 		// If we have a callback, create a request object to track the response.
-		RpcRequest request;
+		RpcRequest<PipeMessageResponseCb> request;
 		request.callback = callback;
 		request.sequenceId = message->GetSequenceId();
 		request.sendTime = std::chrono::steady_clock::now();
@@ -631,7 +635,7 @@ void NamedPipeEndpointBase::Start()
 				}
 				catch (const std::exception & error)
 				{
-					SPDLOG_ERROR("{} thread aborted: {}", error.what());
+					SPDLOG_ERROR("{} thread aborted: {}", m_threadName, error.what());
 				}
 			} while (m_running);
 		}
