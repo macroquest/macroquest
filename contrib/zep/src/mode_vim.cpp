@@ -1,15 +1,16 @@
-#include <cctype>
-#include <sstream>
+#include "pch.h"
 
 #include "zep/keymap.h"
 #include "zep/mode_search.h"
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
 #include "zep/theme.h"
-
 #include "zep/mcommon/animation/timer.h"
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
+
+#include <cctype>
+#include <sstream>
 
 // Note:
 // This is a very basic implementation of the common Vim commands that I use: the bare minimum I can live with.
@@ -63,8 +64,7 @@
 // f[char] find on line
 // /[string] find in file, 'n' find next
 
-namespace Zep
-{
+namespace Zep {
 
 ZepMode_Vim::ZepMode_Vim(ZepEditor& editor)
     : ZepMode(editor)

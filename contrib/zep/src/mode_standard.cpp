@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/mode_standard.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"
@@ -22,8 +23,7 @@
 // control+Shift == select word
 // CTRL - CVX (copy paste, cut) + Delete Selection
 
-namespace Zep
-{
+namespace Zep {
 
 ZepMode_Standard::ZepMode_Standard(ZepEditor& editor)
     : ZepMode(editor)

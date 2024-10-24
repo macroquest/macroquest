@@ -1,7 +1,7 @@
+#include "pch.h"
 #include "zep/splits.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // Given a region layout, return the size that we want to use for the stack inside it if fixed.
 float SizeForLayout(RegionLayoutType layout, const NVec2f& v)

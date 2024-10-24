@@ -1,26 +1,18 @@
+#include "pch.h"
 #include "zep/filesystem.h"
 #include "zep/editor.h"
-
-#include <fstream>
-
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
 
+#include <fstream>
+#include <filesystem>
+
 #undef ERROR
 
-#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
-
-// Unix/Clang is behind
-#ifdef __unix__
-#include <experimental/filesystem>
-namespace cpp_fs = std::experimental::filesystem::v1;
-#else
-#include <filesystem>
 namespace cpp_fs = std::filesystem;
-#endif
 
-namespace Zep
-{
+namespace Zep {
+
 ZepFileSystemCPP::ZepFileSystemCPP(const ZepPath& configPath)
 {
     // Use the config path
@@ -248,6 +240,5 @@ ZepPath ZepFileSystemCPP::GetSearchRoot(const ZepPath& start, bool& foundGit) co
     }
     return startPath;
 }
-} // namespace Zep
 
-#endif // CPP_FILESYSTEM
+} // namespace Zep

@@ -1,23 +1,17 @@
+#include "pch.h"
+#include "zep/buffer.h"
+#include "zep/editor.h"
+#include "zep/filesystem.h"
+#include "zep/mcommon/file/path.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <regex>
 
-#include "zep/buffer.h"
-#include "zep/editor.h"
-#include "zep/filesystem.h"
-
-#include "zep/mcommon/file/path.h"
-#include "zep/mcommon/string/stringutils.h"
-
-#include "zep/mcommon/logger.h"
-
-namespace Zep
-{
-
-namespace
-{
+namespace Zep {
+namespace {
 
 // A VIM-like definition of a word.  Actually, in Vim this can be changed, but this editor
 // assumes a word is alphanumeric or underscore for consistency

@@ -1,15 +1,12 @@
+#include "pch.h"
 #include "zep/display.h"
-
 #include "zep/scroller.h"
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/string/stringutils.h"
 
 #define UTF_CPP_CPLUSPLUS 201103L // C++ 11 or later
 #include "zep/mcommon/utf8/unchecked.h"
 
 // A 'window' is like a vim window; i.e. a region inside a tab
-namespace Zep
-{
+namespace Zep {
 
 void ZepFont::InvalidateCharCache()
 {
