@@ -39,15 +39,57 @@ using DropboxDropper = std::function<void(const std::string&)>;
 
 struct ActorContainer
 {
+	struct Process
+	{
+		// PID isn't guaranteed to be unique, so we need to use UUID to disambiguate
+		uint32_t PID;
+		std::string UUID;
+
+		bool operator==(const Process& other) const
+		{
+			return PID == other.PID && UUID == other.UUID;
+		}
+
+		bool operator!=(const Process& other) const
+		{
+			return !(*this == other);
+		}
+
+		Process& operator=(const Process& other)
+		{
+			if (*this != other)
+			{
+				PID = other.PID;
+				UUID = other.UUID;
+			}
+
+			return *this;
+		}
+
+		std::string ToString() const
+		{
+			return fmt::format("{} ({})", PID, UUID);
+		}
+
+		proto::routing::Process GetProto() const
+		{
+			proto::routing::Process p;
+			p.set_pid(PID);
+			p.set_uuid(UUID);
+			return p;
+		}
+	};
+
 	struct Network
 	{
 		std::string IP; // always use IP here, if we ever allow host names, make sure to resolve to IP first
 		uint16_t Port;
+		std::string UUID;
 
 		bool operator==(const Network& other) const
 		{
 			// exact match on IP, can just use string == override
-			return IP == other.IP && Port == other.Port;
+			return IP == other.IP && Port == other.Port && UUID == other.UUID;
 		}
 
 		bool operator!=(const Network& other) const
@@ -61,9 +103,15 @@ struct ActorContainer
 			{
 				IP = other.IP;
 				Port = other.Port;
+				UUID = other.UUID;
 			}
 
 			return *this;
+		}
+
+		std::string ToString() const
+		{
+			return fmt::format("{}:{} ({})", IP, Port, UUID);
 		}
 
 		proto::routing::Peer GetProto() const
@@ -71,54 +119,63 @@ struct ActorContainer
 			proto::routing::Peer p;
 			p.set_ip(IP);
 			p.set_port(Port);
+			p.set_uuid(UUID);
 			return p;
 		}
 	};
 
-	std::variant<uint32_t, Network> value;
+	using Value = std::variant<Process, Network>;
+	Value value;
 
 	template <typename T>
 	explicit ActorContainer(const T& t) : value(t) {}
 
-	static std::variant<uint32_t, Network> GetContainer(const proto::routing::Identification& id) noexcept
+	static Process GetContainer(const proto::routing::Process& process)
+	{
+		return Process{ process.pid(), process.uuid() };
+	}
+
+	static Network GetContainer(const proto::routing::Peer& peer)
+	{
+		return Network{ peer.ip(), static_cast<uint16_t>(peer.port()), peer.uuid() };
+	}
+
+	static Value GetContainer(const proto::routing::Identification& id) noexcept
 	{
 		switch (id.container_case())
 		{
-		case proto::routing::Identification::kPid:
-			return id.pid();
+		case proto::routing::Identification::kProcess:
+			return GetContainer(id.process());
 		case proto::routing::Identification::kPeer:
-			return Network{ id.peer().ip(), static_cast<uint16_t>(id.peer().port()) };
+			return GetContainer(id.peer());
 		default:
-			return 0;
+			return Process{ 0, "" };
 		}
 	}
 
 	explicit ActorContainer(const proto::routing::Identification& id) : value(GetContainer(id)) {}
 
-	static std::variant<uint32_t, Network> GetContainer(const proto::routing::Address& addr) noexcept
+	static Value GetContainer(const proto::routing::Address& addr) noexcept
 	{
-		if (addr.has_pid())
-			return addr.pid();
+		if (addr.has_process())
+			return GetContainer(addr.process());
 
 		if (addr.has_peer())
 			return GetContainer(addr.peer());
 
-		return 0;
+		return Process{ 0, "" };
 	}
 
 	explicit ActorContainer(const proto::routing::Address& addr) : value(GetContainer(addr)) {}
 
-	static Network GetContainer(const proto::routing::Peer& peer)
-	{
-		return Network{ peer.ip(), static_cast<uint16_t>(peer.port()) };
-	}
+	explicit ActorContainer(const proto::routing::Process& process) : value(GetContainer(process)) {}
 
 	explicit ActorContainer(const proto::routing::Peer& peer) : value(GetContainer(peer)) {}
 
 	bool IsLocal() const
 	{
 		return std::visit(overload{
-			[](uint32_t) { return true; },
+			[](const Process&) { return true; },
 			[](const Network&) { return false; }
 			}, value);
 	}
@@ -140,6 +197,14 @@ struct ActorContainer
 		return !(*this == other);
 	}
 
+	std::string GetUUID() const
+	{
+		return std::visit(overload{
+			[](const Process& proc) { return proc.UUID; },
+			[](const Network& addr) { return addr.UUID; }
+		}, value);
+	}
+
 	ActorContainer& operator=(const ActorContainer& other)
 	{
 		if (*this != other)
@@ -151,9 +216,9 @@ struct ActorContainer
 	std::string ToString() const
 	{
 		return std::visit(overload{
-			[](uint32_t v) { return std::to_string(v); },
-			[](const Network& addr) { return fmt::format("{}:{}", addr.IP, addr.Port); }
-			}, value);
+			[](const Process& proc) { return proc.ToString(); },
+			[](const Network& addr) { return addr.ToString(); }
+		}, value);
 	}
 };
 
@@ -195,6 +260,11 @@ struct ActorIdentification
 			return *this;
 		}
 
+		std::string ToString() const
+		{
+			return fmt::format("{} [{}]", character, server);
+		}
+
 		proto::routing::Client GetProto() const
 		{
 			proto::routing::Client c;
@@ -210,10 +280,12 @@ struct ActorIdentification
 	 */
 	ActorContainer container;
 
+	using Value = std::variant<std::string, Client>;
+
 	/**
 	 * the address is how the container will address the individual actor (name or client)
 	 */
-	std::variant<std::string, Client> address;
+	Value address;
 
 	/**
 	 * generic constructor to create a container and address from any parameters that are accepted
@@ -237,7 +309,7 @@ struct ActorIdentification
 	 * @return a constructed variant address using the value from id
 	 */
 	template <typename T>
-	static std::variant<std::string, Client> GetAddress(const T& id)
+	static Value GetAddress(const T& id)
 	{
 		switch (id.address_case())
 		{
@@ -314,7 +386,7 @@ struct ActorIdentification
 		proto::routing::Identification id;
 
 		std::visit(overload{
-			[&id](uint32_t pid) { id.set_pid(pid); },
+			[&id](const ActorContainer::Process& proc) { *id.mutable_process() = proc.GetProto(); },
 			[&id](const ActorContainer::Network& addr) { *id.mutable_peer() = addr.GetProto(); }
 		}, container.value);
 
@@ -332,24 +404,13 @@ struct ActorIdentification
 	proto::routing::Address& BuildAddress(proto::routing::Address& addr) const
 	{
 		std::visit(overload{
-			[&addr](uint32_t pid) { addr.set_pid(pid); },
-			[&addr](const ActorContainer::Network& netaddr)
-			{
-				proto::routing::Peer* p = addr.mutable_peer();
-				p->set_ip(netaddr.IP);
-				p->set_port(netaddr.Port);
-			}
+			[&addr](const ActorContainer::Process& proc) { *addr.mutable_process() = proc.GetProto(); },
+			[&addr](const ActorContainer::Network& netaddr) { *addr.mutable_peer() = netaddr.GetProto(); }
 		}, container.value);
 
 		std::visit(overload{
 			[&addr](const std::string& name) { addr.set_name(name); },
-			[&addr](const Client& cid)
-			{
-				proto::routing::Client* c = addr.mutable_client();
-				if (!cid.account.empty()) c->set_account(cid.account);
-				if (!cid.server.empty()) c->set_server(cid.server);
-				if (!cid.character.empty()) c->set_character(cid.character);
-			}
+			[&addr](const Client& cid) { *addr.mutable_client() = cid.GetProto(); }
 		}, address);
 
 		return addr;
@@ -372,7 +433,7 @@ struct ActorIdentification
 			[this](const std::string&) { return false; },
 			[this, &other](const Client&)
 			{ return std::visit(overload{
-				[this, &other](uint32_t) { return container.value == other.container.value; },
+				[this, &other](const ActorContainer::Process&) { return container.value == other.container.value; },
 				[](const ActorContainer::Network&) { return false; } // we can't assume anything about network here
 			}, container.value) || address == other.address; }
 		}, address);
@@ -387,7 +448,7 @@ struct ActorIdentification
 	{
 		return fmt::format("{} ({})", std::visit(overload{
 			[](const std::string& name) { return name; },
-			[](const Client& client) { return fmt::format("{} [{}]", client.character, client.server); }
+			[](const Client& client) { return client.ToString(); }
 		}, address), container);
 	}
 };
@@ -628,6 +689,13 @@ public:
 	 */
 	void Process(size_t howMany);
 
+	/**
+	 * Get the local post office identification
+	 * 
+	 * @return the actor identification used to address this specific post office
+	 */
+	const ActorIdentification& GetID() { return m_id; }
+
 protected:
 	std::unordered_map<std::string, std::unique_ptr<Mailbox>> m_mailboxes;
 	Dropbox m_dropbox;
@@ -669,13 +737,35 @@ P& GetPostOffice() { return GetPostOffice<P>(I); }
 } // namespace mq::postoffice
 
 /**
+ * hash helper for processes
+ */
+template <> struct std::hash<mq::postoffice::ActorContainer::Process>
+{
+	size_t operator()(const mq::postoffice::ActorContainer::Process& process) const noexcept
+	{
+		return std::hash<uint32_t>{}(process.PID) ^ std::hash<std::string>{}(process.UUID) << 1;
+	}
+};
+
+/**
  * hash helper for networking
  */
 template<> struct std::hash<mq::postoffice::ActorContainer::Network>
 {
 	size_t operator()(const mq::postoffice::ActorContainer::Network& address) const noexcept
 	{
-		return std::hash<std::string>{}(address.IP) ^ std::hash<uint16_t>{}(address.Port) << 1;
+		return std::hash<std::string>{}(address.IP) ^ std::hash<uint16_t>{}(address.Port) ^ std::hash<std::string>{}(address.UUID) << 1;
+	}
+};
+
+/**
+ * hash helper for the actor container
+ */
+template<> struct std::hash<mq::postoffice::ActorContainer>
+{
+	size_t operator()(const mq::postoffice::ActorContainer& container) const noexcept
+	{
+		return std::hash<mq::postoffice::ActorContainer::Value>{}(container.value);
 	}
 };
 
@@ -694,20 +784,11 @@ template<> struct fmt::formatter<mq::postoffice::ActorContainer>
 	auto format(const mq::postoffice::ActorContainer& container, FormatContext& ctx)
 	{
 		return std::visit(mq::postoffice::overload{
-			[&ctx](uint32_t v) { return fmt::format_to(ctx.out(), "{}", v); },
-			[&ctx](const mq::postoffice::ActorContainer::Network& addr) { return fmt::format_to(ctx.out(), "{}:{}", addr.IP, addr.Port); }
+			[&ctx](const mq::postoffice::ActorContainer::Process& proc)
+			{ return fmt::format_to(ctx.out(), proc.ToString()); },
+			[&ctx](const mq::postoffice::ActorContainer::Network& addr)
+			{ return fmt::format_to(ctx.out(), addr.ToString()); }
 		}, container.value);
-	}
-};
-
-/**
- * hash helper for the actor container
- */
-template<> struct std::hash<mq::postoffice::ActorContainer>
-{
-	size_t operator()(const mq::postoffice::ActorContainer& container) const noexcept
-	{
-		return std::hash<std::variant<uint32_t, mq::postoffice::ActorContainer::Network>>{}(container.value);
 	}
 };
 
@@ -730,7 +811,7 @@ template <> struct fmt::formatter<mq::postoffice::ActorIdentification>
 			[&ctx, &ident](const std::string& name)
 			{ return fmt::format_to(ctx.out(), "{} ({})", name, ident.container); },
 			[&ctx, &ident](const Client& client)
-			{ return fmt::format_to(ctx.out(), "{} [{}] ({})", client.character, client.server, ident.container); }
+			{ return fmt::format_to(ctx.out(), "{} ({})", client.ToString(), ident.container); }
 		}, ident.address);
 	}
 };

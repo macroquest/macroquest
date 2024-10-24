@@ -162,6 +162,18 @@ private:
 	std::vector<std::string> m_received;
 };
 
+void PulsePostOffices()
+{
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	for (auto i : { 0, 1, 2, 3 })
+	{
+		mq::PulsePostOffice(i);
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
 void InitPostOffices()
 {
 	constexpr const char* pipe0 = R"(\\.\pipe\mqpipe0)";
@@ -198,7 +210,7 @@ void InitPostOffices()
 	/* end client post offices */
 
 	// allow both post offices to set up, otherwise messages will just get dropped with no destination
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	PulsePostOffices();
 	SPDLOG_INFO("Post Offices Initialized");
 }
 
@@ -292,7 +304,7 @@ void TestBasicClientSetup()
 		dropboxA1.Post(addr, "This is from A1");
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	PulsePostOffices();
 
 	if (!dropboxB1.HasReceived("This is from A1"))
 		SPDLOG_ERROR("TestBasicClientSetup: Failed to route internally");
@@ -323,7 +335,7 @@ int main(int argc, TCHAR* argv[])
 
 	//Test();
 	TestLauncherBehavior();
-	//TestBasicClientSetup();
+	TestBasicClientSetup();
 
 	ShutdownPostOffices();
 

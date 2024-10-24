@@ -57,7 +57,10 @@ struct Peer
  */
 struct Address
 {
-	/** The PID of the target, will be used to disambiguate otherwise identical addresses */
+	/** The UUID of the target, an absolute address location */
+	std::optional<std::string> UUID;
+
+	/** The PID of the target */
 	std::optional<uint32_t> PID;
 
 	/** The network peer of the target */

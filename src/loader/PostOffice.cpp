@@ -40,32 +40,52 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 {
 	SPDLOG_TRACE("{}: Testing address [{}] against id [{}]", GetName(), address.ShortDebugString(), id.ToString());
 
+	std::string uuid;
+	if (address.has_process())
+		uuid = address.process().uuid();
+	else if (address.has_peer())
+		uuid = address.peer().uuid();
+
 	return std::visit(overload{
-		[&address](uint32_t pid)
+		[&address, &uuid](const ActorContainer::Process& proc)
 		{
-			return (address.has_pid() && address.pid() == pid) ||
-				(!address.has_peer() && !address.has_pid());
+			if (!uuid.empty() && proc.UUID != uuid)
+				return false;
+
+			if (!address.has_peer() && !address.has_process())
+				return true;
+
+			return (address.has_process() && address.process().pid() == proc.PID);
 		},
-		[&address](const ActorContainer::Network& network)
+		[&address, &uuid](const ActorContainer::Network& network)
 		{
-			return (address.has_peer() && address.peer().ip() == network.IP && address.peer().port() == network.Port) ||
-				(!address.has_peer() && !address.has_pid());
+			if (!uuid.empty() && network.UUID != uuid)
+				return false;
+
+			if (!address.has_peer() && !address.has_process())
+				return true;
+
+			return (address.has_peer() && address.peer().ip() == network.IP && address.peer().port() == network.Port);
 		}
-		}, id.container.value) && std::visit(overload{
+	}, id.container.value) && std::visit(overload{
 		[&address](const std::string& name)
 		{
-			return (address.has_name() && ci_equals(name, address.name())) ||
-				(!address.has_name() && !address.has_client());
+			if (!address.has_name() && !address.has_client())
+				return true;
+
+			return (address.has_name() && ci_equals(name, address.name()));
 		},
 		[&address](const ActorIdentification::Client& client)
 		{
+			if (!address.has_name() && !address.has_client())
+				return true;
+
 			return (address.has_client() &&
 				(!address.client().has_account() || ci_equals(client.account, address.client().account())) &&
 				(!address.client().has_server() || ci_equals(client.server, address.client().server())) &&
-				(!address.client().has_character() || ci_equals(client.character, address.client().character()))) ||
-				(!address.has_name() && !address.has_client());
+				(!address.client().has_character() || ci_equals(client.character, address.client().character())));
 		}
-		}, id.address);
+	}, id.address);
 }
 
 auto LauncherPostOffice::FindIdentity(
@@ -220,11 +240,9 @@ void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 	// we also need to update all the clients, but only if this was received from a local connection
 	if (id.container.IsLocal())
 	{
-		for (const auto& identity : m_identities)
-		{
-			if (!identity.second.IsDuplicate(id) && !identity.second.IsDuplicate(m_id))
-				SendIdentification(identity.first, id);
-		}
+		for (const auto& [container, identity] : m_identities)
+			if (!identity.IsDuplicate(id) && !identity.IsDuplicate(m_id))
+				SendIdentification(container, id);
 	}
 }
 
@@ -255,8 +273,9 @@ void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 			++ident_it;
 	}
 
-	for (const auto& identity : m_identities)
-		DropIdentification(identity.first, id);
+	for (const auto& [container, identity] : m_identities)
+		if (!identity.IsDuplicate(m_id))
+			DropIdentification(container, id);
 }
 
 void LauncherPostOffice::DropContainer(const ActorContainer& container)
@@ -285,9 +304,10 @@ void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
 
 	m_identities.erase(container);
 
-	for (const auto& [container, _] : m_identities)
-		for (const auto &dropped : to_erase)
-			DropIdentification(container, dropped);
+	for (const auto& [container, identity] : m_identities)
+		if (!identity.IsDuplicate(m_id))
+			for (const auto& dropped : to_erase)
+				DropIdentification(container, dropped);
 }
 
 void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
@@ -354,7 +374,14 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 
 	const auto& address = message->address();
 
-	if (address.has_pid() && address.pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
+	std::string uuid;
+	if (address.has_process())
+		uuid = address.process().uuid();
+	else if (address.has_peer())
+		uuid = address.peer().uuid();
+
+	if ((!uuid.empty() && uuid == m_id.container.GetUUID()) ||
+		uuid.empty() && address.has_process() && address.process().pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
 	{
 		// we are explicitly sending to this launcher, so route entirely internally
 		const auto mailbox = address.has_mailbox() ? address.mailbox() : "post_office";
@@ -363,7 +390,7 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 		// This is already an explicit address, so just package up the envelope into a message and deliver it
 		DeliverTo(mailbox, std::move(message));
 	}
-	else if (address.has_pid() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
+	else if (address.has_process() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
 	{
 		// this message is intended to be routed locally and not relayed to external peers
 		SPDLOG_TRACE("{}: Routing message to local connections ({}) seq={}", GetName(), address.ShortDebugString(), message->sequence());
@@ -422,7 +449,7 @@ void LauncherPostOffice::RequestProcessEvents()
 }
 
 LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
-	: PostOffice(ActorIdentification(GetCurrentProcessId(), "launcher"))
+	: PostOffice(ActorIdentification(ActorContainer::Process{ GetCurrentProcessId(), CreateUUID() }, "launcher"))
 	, m_config(config)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))
@@ -487,7 +514,7 @@ LauncherPostOffice::~LauncherPostOffice()
 }
 
 template <>
-const std::unique_ptr<LocalConnection>& LauncherPostOffice::GetConnection<uint32_t>()
+const std::unique_ptr<LocalConnection>& LauncherPostOffice::GetConnection<ActorContainer::Process>()
 {
 	return m_localConnection;
 }
@@ -606,19 +633,19 @@ postoffice::PostOffice& postoffice::GetPostOffice<postoffice::PostOffice>(uint32
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
 	using namespace postoffice;
-	return GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendSetForegroundWindow(hWnd, processID);
+	return GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
 	using namespace postoffice;
-	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
 	using namespace postoffice;
-	GetPostOffice<LauncherPostOffice>().GetConnection<uint32_t>()->SendForceUnloadAllCommand();
+	GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendForceUnloadAllCommand();
 }
 
 //----------------------------------------------------------------------------

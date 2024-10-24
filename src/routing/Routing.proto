@@ -16,9 +16,15 @@ syntax = "proto3";
 
 package mq.proto.routing;
 
+message Process {
+	uint32 pid = 1;
+	string uuid = 2;
+}
+
 message Peer {
 	string ip = 1;
 	uint32 port = 2;
+	string uuid = 3;
 }
 
 message Client {
@@ -29,7 +35,7 @@ message Client {
 
 message Identification {
 	oneof container {
-		uint32 pid = 1;
+		Process process = 1;
 		Peer peer = 2;
 	}
 
@@ -39,9 +45,14 @@ message Identification {
 	}
 }
 
+// this is exactly the same as Identification with the additon of mailbox
+// but there's no inheritance and it's convenient to keep the call chains
+// short
 message Address {
-	optional uint32 pid = 1;
-	optional Peer peer = 2;
+	oneof container {
+		Process process = 1;
+		Peer peer = 2;
+	}
 
 	oneof address {
 		string name = 3;
@@ -61,7 +72,7 @@ message DropIdentity {
 
 message RequestIdentities {
 	oneof container {
-		uint32 pid = 1;
+		Process process = 1;
 		Peer peer = 2;
 	}
 }

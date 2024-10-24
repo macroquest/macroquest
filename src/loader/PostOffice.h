@@ -27,6 +27,7 @@
 namespace mq {
 struct MQMessageFocusRequest;
 class ProtoPipeServer;
+class PipeConnection;
 class NetworkPeerAPI;
 } // namespace mq
 
@@ -70,7 +71,7 @@ struct ConnectionTypeMap;
 class LocalConnection;
 class PeerConnection;
 
-template <> struct ConnectionTypeMap<uint32_t> { using Type = LocalConnection; };
+template <> struct ConnectionTypeMap<ActorContainer::Process> { using Type = LocalConnection; };
 template <> struct ConnectionTypeMap<ActorContainer::Network> { using Type = PeerConnection; };
 
 class LauncherPostOffice final : public PostOffice
@@ -210,15 +211,15 @@ public:
 	~LocalConnection();
 	void Process() override;
 
-	bool SendMessage(uint32_t pid, MessagePtr message);
+	bool SendMessage(const ActorContainer::Process& process, MessagePtr message);
 
-	void SendIdentification(uint32_t pid, const ActorIdentification& identity) const;
-	void DropIdentification(uint32_t pid, const ActorIdentification& identity) const;
-	void RequestIdentities(uint32_t pid) const;
+	void SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const;
+	void DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const;
+	void RequestIdentities(const ActorContainer::Process& process) const;
 
 	void BroadcastMessage(MessagePtr message) override;
 	void RouteFromPipe(MessagePtr message);
-	void DropProcessId(uint32_t processId) const;
+	void DropProcess(const ActorContainer::Process& process) const;
 
 	void Start() override;
 	void Stop() override;
@@ -228,9 +229,18 @@ public:
 	void SendForceUnloadAllCommand();
 
 	mq::ProtoPipeServer* GetPipeServer() { return m_pipeServer.get(); }
+
+	int GetConnectionID(const std::string& uuid) const;
+	std::string GetConnectionUUID(int connectionID) const;
+	void UpdateConnection(const std::string& uuid, int connectionID);
 	
 private:
+	std::shared_ptr<mq::PipeConnection> GetConnection(const std::string& uuid) const;
+
 	std::unique_ptr<mq::ProtoPipeServer> m_pipeServer;
+	std::unordered_map<std::string, int> m_connections;
+	const std::string m_uuid; // this is the same as the postoffice uuid, memoize for quicker reference
+
 };
 
 class PeerConnection final : public Connection

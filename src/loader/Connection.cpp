@@ -100,8 +100,11 @@ public:
 			if (message->GetHeader()->messageLength > 0)
 			{
 				// if there is a payload, then we are getting a notification of ID
+				auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
+				m_connection->UpdateConnection(id.has_process() ? id.process().uuid() : id.peer().uuid(), message->GetConnectionId());
+
 				// send this to the post office to process in the launcher dropbox
-				m_connection->GetPostOffice()->AddIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
+				m_connection->GetPostOffice()->AddIdentity(ActorIdentification(std::move(id)));
 			}
 			else if (auto pipeServer = m_connection->GetPipeServer())
 			{
@@ -109,7 +112,8 @@ public:
 				{
 					// we are getting a request to send all IDs, do so sequentially and asynchronously
 					// send this to the post office to process in the launcher dropbox
-					m_connection->GetPostOffice()->SendIdentities(ActorContainer(conn->GetProcessId()));
+					auto uuid = m_connection->GetConnectionUUID(message->GetConnectionId());
+					m_connection->GetPostOffice()->SendIdentities(ActorContainer(ActorContainer::Process{ conn->GetProcessId(), uuid }));
 				}
 			}
 
@@ -215,7 +219,9 @@ public:
 
 	void OnConnectionClosed(int connectionId, int processId) override
 	{
-		m_connection->DropProcessId(static_cast<uint32_t>(processId));
+		auto uuid = m_connection->GetConnectionUUID(connectionId);
+		if (!uuid.empty())
+			m_connection->DropProcess(ActorContainer::Process{ static_cast<uint32_t>(processId), uuid });
 	}
 
 private:
@@ -231,6 +237,7 @@ std::string GetPipePath(LauncherPostOffice* postOffice)
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
 	, m_pipeServer(std::make_unique<ProtoPipeServer>(GetPipePath(postOffice).c_str()))
+	, m_uuid(postOffice->GetID().container.GetUUID())
 {
 	m_pipeServer->SetHandler(std::make_shared<PipeEventsHandler>(this));
 }
@@ -243,35 +250,37 @@ void LocalConnection::Process()
 	m_pipeServer->Process();
 }
 
-bool LocalConnection::SendMessage(uint32_t pid, MessagePtr message)
+bool LocalConnection::SendMessage(const ActorContainer::Process& process, MessagePtr message)
 {
 	const auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
 	message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
 
 	auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message->ByteSizeLong());
 
-	if (pid == GetCurrentProcessId())
+	if (process.UUID == m_uuid)
 	{
+		SPDLOG_TRACE("{}: Pipe detected self message, dispatching {} (PID {}) seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
 		// send to self, dispatch directly to the handler
 		m_pipeServer->DispatchMessage(std::move(msg));
 		return true;
 	}
 
-	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	if (const auto& connection = GetConnection(process.UUID))
 	{
 		// found a connection to send it over
+		SPDLOG_TRACE("{}: Pipe found connection, dispatching {} (PID {}) seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
 		connection->SendMessage(std::move(msg));
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to get connection for PID {}, message route failed. seq={}", m_postOffice->GetName(), pid, message->sequence());
+	SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), message route failed. seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
 	return false;
 }
 
-void mq::postoffice::LocalConnection::SendIdentification(uint32_t pid, const ActorIdentification& identity) const
+void mq::postoffice::LocalConnection::SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
 {
-	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	if (const auto& connection = GetConnection(process.UUID))
 	{
 		proto::routing::Identification id = identity.GetProto();
 
@@ -281,12 +290,12 @@ void mq::postoffice::LocalConnection::SendIdentification(uint32_t pid, const Act
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, payload.get(), id.ByteSizeLong()));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for PID {}, identification message failed.", m_postOffice->GetName(), pid);
+		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), identification message failed.", m_postOffice->GetName(), process.UUID, process.PID);
 }
 
-void mq::postoffice::LocalConnection::DropIdentification(uint32_t pid, const ActorIdentification& identity) const
+void mq::postoffice::LocalConnection::DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
 {
-	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	if (const auto& connection = GetConnection(process.UUID))
 	{
 		proto::routing::Identification id = identity.GetProto();
 
@@ -296,17 +305,17 @@ void mq::postoffice::LocalConnection::DropIdentification(uint32_t pid, const Act
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, payload.get(), id.ByteSizeLong()));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for PID {}, drop message failed.", m_postOffice->GetName(), pid);
+		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), drop message failed.", m_postOffice->GetName(), process.UUID, process.PID);
 }
 
-void mq::postoffice::LocalConnection::RequestIdentities(uint32_t pid) const
+void mq::postoffice::LocalConnection::RequestIdentities(const ActorContainer::Process& process) const
 {
-	if (const auto& connection = m_pipeServer->GetConnectionForProcessId(pid))
+	if (const auto& connection = GetConnection(process.UUID))
 	{
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, nullptr, 0));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for PID {}, send request failed.", m_postOffice->GetName(), pid);
+		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), send request failed.", m_postOffice->GetName(), process.UUID, process.PID);
 }
 
 void LocalConnection::BroadcastMessage(MessagePtr message)
@@ -322,9 +331,9 @@ void LocalConnection::RouteFromPipe(MessagePtr message)
 	m_postOffice->RouteFromConnection(std::move(message));
 }
 
-void LocalConnection::DropProcessId(uint32_t processId) const
+void LocalConnection::DropProcess(const ActorContainer::Process& process) const
 {
-	m_postOffice->DropContainer(ActorContainer(processId));
+	m_postOffice->DropContainer(ActorContainer(process));
 }
 
 void mq::postoffice::LocalConnection::Start()
@@ -368,6 +377,43 @@ void LocalConnection::SendForceUnloadAllCommand()
 	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 }
 
+int mq::postoffice::LocalConnection::GetConnectionID(const std::string& uuid) const
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		return it->second;
+
+	return -1;
+}
+
+std::string mq::postoffice::LocalConnection::GetConnectionUUID(int connectionID) const
+{
+	auto it = std::find_if(m_connections.begin(), m_connections.end(),
+		[connectionID](const auto& pair) { return pair.second == connectionID; });
+	if (it != m_connections.end())
+		return it->first;
+
+	return "";
+}
+
+void mq::postoffice::LocalConnection::UpdateConnection(const std::string& uuid, int connectionID)
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		it->second = connectionID;
+	else
+		m_connections.emplace(uuid, connectionID);
+}
+
+std::shared_ptr<mq::PipeConnection> mq::postoffice::LocalConnection::GetConnection(const std::string& uuid) const
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		return m_pipeServer->GetConnection(it->second);
+
+	return nullptr;
+}
+
 // ------------------------ PeerConnection ------------------------------------
 
 uint16_t GetPeerPort(LauncherPostOffice* postOffice)
@@ -384,7 +430,9 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		{
 			using peernetwork::NetworkMessage;
 
-			auto source_addr = ActorContainer::Network{ address.IP, address.Port };
+			auto source_addr = ActorContainer::Network{
+				address.IP, address.Port,
+				ActorContainer(message->add().id()).GetUUID() };
 
 			switch (message->contents_case())
 			{
@@ -406,13 +454,13 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 
 				if (routed->has_return_address())
 				{
-					routed->mutable_return_address()->clear_pid();
+					routed->mutable_return_address()->clear_process();
 					routed->mutable_return_address()->mutable_peer()->set_ip(address.IP);
 					routed->mutable_return_address()->mutable_peer()->set_port(address.Port);
 				}
 
 				// if this message has been routed here, then we need to let the local launcher handle any routing
-				routed->mutable_address()->clear_pid();
+				routed->mutable_address()->clear_process();
 				routed->mutable_address()->mutable_peer()->set_ip("127.0.0.1");
 				routed->mutable_address()->mutable_peer()->set_port(m_network->GetPort());
 

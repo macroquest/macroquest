@@ -78,6 +78,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 		// or it was routed internally after checking to make sure that the destination of the message
 		// was within the client. In either case, we can safely assume that we should route it to an
 		// internal mailbox
+		SPDLOG_TRACE("{}: Received routed message in MQ to=[{}]", m_postOffice->GetName(), address ? address->ShortDebugString() : "no address");
 		if (address && address->has_mailbox())
 		{
 			// we need to loop all mailboxes and deliver to all of them that end with the address
@@ -219,7 +220,7 @@ void MQPostOffice::PipeEventsHandler::OnClientConnected()
 }
 
 MQPostOffice::MQPostOffice(const MQPostOfficeConfig& config)
-	: PostOffice(ActorIdentification(GetCurrentProcessId(), GetCurrentClient(config)))
+	: PostOffice(ActorIdentification(ActorContainer::Process{ GetCurrentProcessId(), CreateUUID() }, GetCurrentClient(config)))
 	, m_config(config)
 	, m_pipeClient{ config.PipeName.c_str() }
 	, m_launcherProcessID(0)
@@ -264,7 +265,7 @@ void MQPostOffice::RouteMessage(MessagePtr message)
 	if (message->has_address())
 	{
 		const auto& address = message->address();
-		if ((address.has_pid() && address.pid() != GetCurrentProcessId()) ||
+		if ((address.has_process() && address.process().pid() != GetCurrentProcessId()) ||
 			address.has_peer() ||
 			address.has_name() ||
 			address.has_client() ||

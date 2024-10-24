@@ -154,8 +154,7 @@ void PostOffice::RouteMessage(const proto::routing::Address& address, const std:
 	auto envelope = std::make_unique<proto::routing::Envelope>();
 	*envelope->mutable_address() = address;
 
-	proto::routing::Address& ret = *envelope->mutable_return_address();
-	ret.set_pid(GetCurrentProcessId());
+	m_id.BuildAddress(*envelope->mutable_return_address());
 
 	envelope->set_payload(data);
 

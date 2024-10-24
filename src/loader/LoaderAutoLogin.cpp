@@ -82,7 +82,7 @@ void Post(uint32_t pid, const proto::login::MessageId& messageId, const std::str
 
 	proto::routing::Address address;
 	if (pid != 0)
-		address.set_pid(pid);
+		address.mutable_process()->set_pid(pid);
 	address.set_mailbox("autologin:autologin");
 
 	s_dropbox.Post(address, message);

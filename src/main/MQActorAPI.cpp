@@ -79,13 +79,20 @@ void MQActorAPI::SendToActor(
 	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
 
 	if (address.PID)
-		addr.set_pid(*address.PID);
+	{
+		addr.mutable_process()->set_pid(*address.PID);
+		if (address.UUID)
+			addr.mutable_process()->set_uuid(*address.UUID);
+	}
 
 	if (address.Peer)
 	{
 		addr.mutable_peer()->set_ip(address.Peer->IP);
 		if (address.Peer->Port)
 			addr.mutable_peer()->set_port(*address.Peer->Port);
+
+		if (address.UUID)
+			addr.mutable_peer()->set_uuid(*address.UUID);
 	}
 
 	if (address.Name)
@@ -124,8 +131,15 @@ void MQActorAPI::SendToActor(
 				if (message->has_return_address())
 				{
 					const auto& s = message->return_address();
+					std::optional<std::string> uuid;
+					if (s.has_process())
+						uuid = s.process().uuid();
+					else if (s.has_peer())
+						uuid = s.peer().uuid();
+
 					sender = postoffice::Address{
-						s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
+						uuid,
+						s.has_process() ? std::make_optional(s.process().pid()) : std::nullopt,
 						s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
 						s.has_name() ? std::make_optional(s.name()) : std::nullopt,
 						s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
@@ -205,8 +219,15 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 			if (message->has_return_address())
 			{
 				proto::routing::Address s = message->return_address();
+				std::optional<std::string> uuid;
+				if (s.has_process())
+					uuid = s.process().uuid();
+				else if (s.has_peer())
+					uuid = s.peer().uuid();
+
 				sender = postoffice::Address{
-					s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
+					uuid,
+					s.has_process() ? std::make_optional(s.process().pid()) : std::nullopt,
 					s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
 					s.has_name() ? std::make_optional(s.name()) : std::nullopt,
 					s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
