@@ -253,7 +253,7 @@ void TestLauncherBehavior()
 	}
 
 	// successful RPC
-	int success_status = 0;
+	int success_status = 2;
 	{
 		// this should succeed
 		mq::proto::routing::Address addr;
@@ -282,7 +282,7 @@ void TestLauncherBehavior()
 		SPDLOG_ERROR("TestLauncherBehavior: Received {} status from bad response attempt instead of -4", failed_status);
 
 	if (success_status != 1)
-		SPDLOG_ERROR("TestLauncherBehavior: Received {} status from good response attempt instead of 1", failed_status);
+		SPDLOG_ERROR("TestLauncherBehavior: Received {} status from good response attempt instead of 1", success_status);
 
 	SPDLOG_INFO("TestLauncherBehavior: Tests Complete");
 }
@@ -290,12 +290,12 @@ void TestLauncherBehavior()
 void TestBasicClientSetup()
 {
 	// pipe0
-	auto dropboxA1 = TestDropbox<mq::MQPostOffice>(0, "A1");
+	auto dropboxA1 = TestDropbox<mq::MQPostOffice>(0, "A1", {{"Please respond", 1}});
 	auto dropboxB1 = TestDropbox<mq::MQPostOffice>(2, "B1");
 
 	// pipe1
 	auto dropboxC1 = TestDropbox<mq::MQPostOffice>(1, "C1");
-	auto dropboxD1 = TestDropbox<mq::MQPostOffice>(3, "D1");
+	auto dropboxD1 = TestDropbox<mq::MQPostOffice>(3, "D1", {{"Please respond", 1}});
 
 	// internal route
 	{
@@ -304,10 +304,95 @@ void TestBasicClientSetup()
 		dropboxA1.Post(addr, "This is from A1");
 	}
 
+	// external route
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("C1");
+		dropboxA1.Post(addr, "This is from A1");
+	}
+
+	// internal failed RPC
+	int failed_status_int = 0;
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("D1");
+		dropboxC1.Post(addr, std::string("Please respond"),
+			[&failed_status_int](int status, mq::postoffice::MessagePtr message)
+			{
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				failed_status_int = message->status();
+			});
+	}
+
+	// external failed RPC
+	int failed_status_ext = 0;
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("A1");
+		dropboxC1.Post(addr, std::string("Please respond"),
+			[&failed_status_ext](int status, mq::postoffice::MessagePtr message)
+			{
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				failed_status_ext = message->status();
+			});
+	}
+
+	// internal successful RPC
+	int success_status_int = 2;
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("D1");
+		addr.mutable_client()->set_character("characterD");
+		dropboxC1.Post(addr, std::string("Please respond"),
+			[&success_status_int](int status, mq::postoffice::MessagePtr message)
+			{
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				success_status_int = message->status();
+			});
+	}
+
+	// external failed RPC
+	int success_status_ext = 2;
+	{
+		mq::proto::routing::Address addr;
+		addr.set_mailbox("A1");
+		addr.mutable_client()->set_character("characterA");
+		dropboxC1.Post(addr, std::string("Please respond"),
+			[&success_status_ext](int status, mq::postoffice::MessagePtr message)
+			{
+				SPDLOG_TRACE("Received status {} and response: {}", message->status(), message->payload());
+				success_status_ext = message->status();
+			});
+	}
+
 	PulsePostOffices();
 
 	if (!dropboxB1.HasReceived("This is from A1"))
 		SPDLOG_ERROR("TestBasicClientSetup: Failed to route internally");
+
+	if (!dropboxC1.HasReceived("This is from A1"))
+		SPDLOG_ERROR("TestBasicClientSetup: Failed to route externally");
+
+	if (auto count = dropboxD1.ReceivedCount("Please respond"); count != 1)
+		SPDLOG_ERROR("TestBasicClientSetup: D1 Received {} response requests instead of 1", count);
+
+	if (auto count = dropboxA1.ReceivedCount("Please respond"); count != 1)
+		SPDLOG_ERROR("TestBasicClientSetup: A1 Received {} response requests instead of 1", count);
+
+	if (failed_status_int != -4)
+		SPDLOG_ERROR("TestBasicClientSetup: C1 Received {} status from bad internal response attempt instead of -4", failed_status_int);
+
+	if (failed_status_ext != -4)
+		SPDLOG_ERROR("TestBasicClientSetup: C1 Received {} status from bad external response attempt instead of -4", failed_status_ext);
+
+	// need another pulse for the response to get sent back
+	PulsePostOffices();
+
+	if (success_status_int != 1)
+		SPDLOG_ERROR("TestBasicClientSetup: C1 Received {} status from good internal response attempt instead of 1", success_status_int);
+
+	if (success_status_ext != 1)
+		SPDLOG_ERROR("TestBasicClientSetup: C1 Received {} status from good external response attempt instead of 1", success_status_ext);
 
 	SPDLOG_INFO("TestBasicClientSetup: Tests Complete");
 }

@@ -205,6 +205,13 @@ struct ActorContainer
 		}, value);
 	}
 
+	template <typename T>
+	bool HasValue(const T& v)
+	{
+		const T* c = std::get_if<T>(&value);
+		return c && *c == v;
+	}
+
 	ActorContainer& operator=(const ActorContainer& other)
 	{
 		if (*this != other)
@@ -437,6 +444,21 @@ struct ActorIdentification
 				[](const ActorContainer::Network&) { return false; } // we can't assume anything about network here
 			}, container.value) || address == other.address; }
 		}, address);
+	}
+
+	/**
+	 * this test the identity for having an address
+	 * 
+	 * @tparam T the type of address
+	 * 
+	 * @param v the value of the address to check against
+	 * @return if this address is the same as the passed value
+	 */
+	template <typename T>
+	bool HasAddress(const T& v) const
+	{
+		const T* c = std::get_if<T>(&address);
+		return c && *c == v;
 	}
 
 	/**

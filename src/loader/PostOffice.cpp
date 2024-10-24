@@ -28,8 +28,6 @@
 
 #include <variant>
 
- // TODO: callbacks can likely be simplified to just making sure we carry the sequence ID back to the source, which will do the callback lookup there
-
 static std::unordered_map<uint32_t, PostOfficeConfig> s_postOfficeConfigs;
 
 void RemovePostOffice(uint32_t index);
@@ -40,12 +38,7 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 {
 	SPDLOG_TRACE("{}: Testing address [{}] against id [{}]", GetName(), address.ShortDebugString(), id.ToString());
 
-	std::string uuid;
-	if (address.has_process())
-		uuid = address.process().uuid();
-	else if (address.has_peer())
-		uuid = address.peer().uuid();
-
+	std::string uuid = GetUUID(address);
 	return std::visit(overload{
 		[&address, &uuid](const ActorContainer::Process& proc)
 		{
@@ -205,6 +198,9 @@ void LauncherPostOffice::ProcessIdentities()
 	}
 }
 
+// It's worthwhile to note for these next few functions that the identity.address == m_id.address
+// check is the detection mechanism for only sending identity updates to peers that can actually
+// use them. The assumption is that all routing peers will have the same name ("launcher" nominally)
 void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 {
 	if (std::this_thread::get_id() == m_threadId)
@@ -224,24 +220,34 @@ void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 
 void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 {
-	// make sure we remove any duplicates without broadcasting
-	for (auto ident_it = m_identities.begin(); ident_it != m_identities.end();)
+	// test for duplicates, update if different
+	bool send_updates = true;
+	auto ident_it = m_identities.find(id.container);
+	if (ident_it != m_identities.end())
 	{
-		if (ident_it->second.IsDuplicate(id))
-			ident_it = m_identities.erase(ident_it);
+		if (ident_it->second != id)
+		{
+			SPDLOG_INFO("{}: Got Updated identification new=[{}] old=[{}]", GetName(), id, ident_it->second);
+			ident_it->second = id;
+		}
 		else
-			++ident_it;
+		{
+			SPDLOG_TRACE("{}: Got duplicate identification from {}, doing nothing", GetName(), id);
+			send_updates = false;
+		}
 	}
-
-	m_identities.emplace(id.container, id);
-	SPDLOG_INFO("{}: Got identification from {}", GetName(), id);
+	else
+	{
+		SPDLOG_INFO("{}: Got New identification from [{}]", GetName(), id);
+		m_identities.emplace(id.container, id);
+	}
 
 	// TODO: this is maybe too aggressive? not sure how else to make identities idempotent
 	// we also need to update all the clients, but only if this was received from a local connection
-	if (id.container.IsLocal())
+	if (send_updates && id.container.IsLocal())
 	{
 		for (const auto& [container, identity] : m_identities)
-			if (!identity.IsDuplicate(id) && !identity.IsDuplicate(m_id))
+			if (identity.address == m_id.address && identity.container != m_id.container && identity.container != id.container)
 				SendIdentification(container, id);
 	}
 }
@@ -274,7 +280,7 @@ void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 	}
 
 	for (const auto& [container, identity] : m_identities)
-		if (!identity.IsDuplicate(m_id))
+		if (identity.address == m_id.address && identity.container != m_id.container)
 			DropIdentification(container, id);
 }
 
@@ -305,7 +311,7 @@ void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
 	m_identities.erase(container);
 
 	for (const auto& [container, identity] : m_identities)
-		if (!identity.IsDuplicate(m_id))
+		if (identity.address == m_id.address && identity.container != m_id.container)
 			for (const auto& dropped : to_erase)
 				DropIdentification(container, dropped);
 }
@@ -374,12 +380,7 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 
 	const auto& address = message->address();
 
-	std::string uuid;
-	if (address.has_process())
-		uuid = address.process().uuid();
-	else if (address.has_peer())
-		uuid = address.peer().uuid();
-
+	std::string uuid = GetUUID(address);
 	if ((!uuid.empty() && uuid == m_id.container.GetUUID()) ||
 		uuid.empty() && address.has_process() && address.process().pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
 	{

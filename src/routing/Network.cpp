@@ -39,8 +39,6 @@
 //	-- need to handle multiple peers trying to assume leadership
 //	-- unknown IPs in not-leaders should all go to leader
 
-// TODO: write networking RPC
-
 using asio::ip::tcp;
 using namespace mq;
 
@@ -281,9 +279,6 @@ private:
 			[this](const std::error_code& ec, size_t)
 			{
 				SPDLOG_TRACE("{}: reading message from socket {}", m_peerPort, m_socket.local_endpoint().port());
-				// TODO: Handle other connection errors with reconnect attempts
-				// TODO: Write a function that handles this the same way every time (error checking)
-				// TODO: check the size of the length also, should be sizeof(uint32_t)
 				if (ec != asio::error::eof && // this is when the connection was closed remotely
 					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
 					ec != asio::error::shut_down) // this is when we shut down the socket locally
@@ -335,7 +330,7 @@ private:
 			if (m_messageBuffer->ParsedHeader().has_address())
 			{
 				// this is a redirect
-				// TODO: how does this even work? We don't re-call Read() -- this needs to be thought about... is it even needed?
+				// TODO: this likely doesn't work, but revisit when adding leader logic
 				m_messageBuffer->Relay(m_peerPort);
 			}
 			if (m_messageBuffer->Length() > 0)
@@ -516,7 +511,7 @@ public:
 			});
 	}
 
-	// TODO: This needs to also handle sending to peers that are leaders for other networks (possibly improve the map?)
+	// TODO: leader logic will need to handle sending to peers that are leaders for other networks
 	void Send(
 		peernetwork::MessageType message_type,
 		const NetworkAddress& address,
@@ -943,7 +938,7 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
 	auto peer_it = s_peers.find(port);
 	if (peer_it == s_peers.end())
 	{
-		// TODO: the receiver needs to forward to internal peers here (the map likely needs to be improved to handle network topography)
+		// TODO: when leader logic is implemented, the relay to other peers would happen as a wrapper to these callbacks
 		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
 			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process))).first;
 

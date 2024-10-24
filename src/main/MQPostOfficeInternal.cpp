@@ -83,7 +83,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 		{
 			// we need to loop all mailboxes and deliver to all of them that end with the address
 			// if this is an RPC message, then we need to ensure that we have only one
-			if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
+			if (envelope->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
 			{
 				auto mailbox = m_postOffice->FindMailbox(*address, m_postOffice->m_mailboxes.begin());
 
@@ -109,48 +109,6 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 			m_postOffice->DeliverTo("pipe_client", std::move(envelope));
 		}
 
-		break;
-	}
-
-	case MQMessageId::MSG_IDENTIFICATION:
-		if (message->GetHeader()->messageLength > 0)
-		{
-			// this is a message from the server to update or add an ID
-			auto id = ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message));
-
-			for (auto it = m_postOffice->m_identities.begin(); it != m_postOffice->m_identities.end();)
-			{
-				if (it->second.IsDuplicate(id))
-					it = m_postOffice->m_identities.erase(it);
-				else
-					++it;
-			}
-
-			m_postOffice->m_identities.emplace(id.container, id);
-			SPDLOG_INFO("Got identification from {}", id);
-
-			// TODO: forward new ID to all mailboxes here
-		}
-		else
-		{
-			// this is a message from the server to identify self (as a handshake)
-			// so resend the init
-			m_postOffice->SetGameStatePostOffice(0);
-		}
-		break;
-
-	case MQMessageId::MSG_DROPPED:
-	{
-		auto id = ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message));
-		for (auto it = m_postOffice->m_identities.begin(); it != m_postOffice->m_identities.end();)
-		{
-			if (it->second == id)
-				it = m_postOffice->m_identities.erase(it);
-			else
-				++it;
-		}
-
-		// TODO: forward the message to all mailboxes
 		break;
 	}
 
@@ -230,10 +188,6 @@ MQPostOffice::MQPostOffice(const MQPostOfficeConfig& config)
 		{
 			// if we've gotten here, then something is delivering a message to this
 			// post office ("pipe_client"), so handle messages directly
-			// TODO: add message handling to request IDs (note that we can't use proto without
-			//       requiring that all plugins start linking the same proto compile, so let's
-			//       try to avoid that with some simple object casts, assuming this will always
-			//       be local.
 		});
 }
 
@@ -265,22 +219,12 @@ void MQPostOffice::RouteMessage(MessagePtr message)
 	if (message->has_address())
 	{
 		const auto& address = message->address();
-		if ((address.has_process() && address.process().pid() != GetCurrentProcessId()) ||
-			address.has_peer() ||
-			address.has_name() ||
-			address.has_client() ||
-			address.has_mailbox())
-		{
-			// we can't assume that even if we match the address (account/server/character) that this
-			// client is the only one that does. We need to route it through the server to ensure that
-			// it gets to all clients that match
+		auto uuid = GetUUID(address);
+		
+		if (uuid.empty() || uuid != m_id.container.GetUUID()) // either ambiguous clients, or explicitly not this client
 			m_pipeClient.SendMessage(std::move(msg));
-		}
-		else
-		{
-			// this is necessarily a message for a local mailbox
+		else // uuid matches this client
 			m_pipeClient.DispatchMessage(std::move(msg));
-		}
 	}
 	else // no address, just dispatch
 	{

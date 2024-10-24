@@ -23,6 +23,18 @@ namespace mq {
 constexpr const char* MQ_PIPE_SERVER_PATH = R"(\\.\pipe\mqpipe)";
 constexpr uint16_t DEFAULT_NETWORK_PEER_PORT = 7781;
 std::string CreateUUID();
+
+template <typename T>
+std::string GetUUID(const T& addr)
+{
+	if (addr.has_process())
+		return addr.process().uuid();
+	
+	if (addr.has_peer())
+		return addr.peer().uuid();
+
+	return "";
+}
 } // namespace mq
 
 enum class MQRequestMode : uint8_t

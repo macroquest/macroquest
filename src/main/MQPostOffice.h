@@ -48,8 +48,6 @@ class MQPostOffice : public postoffice::PostOffice
 {
 private:
 
-	std::unordered_multimap<postoffice::ActorContainer, postoffice::ActorIdentification> m_identities;
-
 	class PipeEventsHandler : public NamedPipeEvents
 	{
 	public:

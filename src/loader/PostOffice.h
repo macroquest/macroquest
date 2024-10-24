@@ -252,7 +252,6 @@ public:
 	PeerConnection& operator=(const PeerConnection&) = delete;
 	PeerConnection& operator=(PeerConnection&&) = delete;
 
-	// TODO: make the port configurable (default to 7781)
 	PeerConnection(LauncherPostOffice* postOffice);
 	~PeerConnection() override;
 	void AddConfiguredHosts();
