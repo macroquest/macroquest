@@ -27,28 +27,47 @@
 #include "zep/editor.h"
 
 #include <imgui/imgui.h>
+#include <memory>
+
+namespace Zep
+{
+	class ZepMessage;
+	class ZepEditor;
+}
+
 namespace mq::imgui {
 
 //============================================================================
 
 class ZepEditor_ImGui;
 
-class ImGuiZepEditor : public Zep::IZepComponent
+class ImGuiZepEditor
 {
 public:
-	ImGuiZepEditor();
+	ImGuiZepEditor(std::string_view id = "");
 	virtual ~ImGuiZepEditor();
 
 	void SetFont(Zep::ZepTextType, ImFont* pFont);
 
-	virtual Zep::ZepEditor& GetEditor() const override;
 	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());
 
+	virtual void Render(const ImVec2& displaySize = ImVec2())
+	{
+		Render(m_id.c_str(), displaySize);
+	}
+
+	Zep::ZepEditor& GetEditor() const;
+
 protected:
-	virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) override;
+	virtual void Notify(const std::shared_ptr<Zep::ZepMessage>& message);
+	virtual void DispatchMouseEvent(const std::shared_ptr<Zep::ZepMessage>& message);
 
 private:
 	ZepEditor_ImGui* m_editor = nullptr;
+	std::string m_id;
+
+	struct EventReceiver;
+	std::unique_ptr<EventReceiver> m_eventReceiver;
 };
 
 

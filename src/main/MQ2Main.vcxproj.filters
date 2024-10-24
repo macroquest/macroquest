@@ -344,9 +344,6 @@
     <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiZepEditor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2WindowInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -524,9 +521,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQVersionInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiZepEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQ2SpellSearch.h">

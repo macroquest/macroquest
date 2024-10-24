@@ -469,23 +469,48 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 
 //----------------------------------------------------------------------------
 
-ImGuiZepEditor::ImGuiZepEditor()
+struct ImGuiZepEditor::EventReceiver : Zep::IZepComponent
+{
+	ImGuiZepEditor* m_editor = nullptr;
+
+	EventReceiver(ImGuiZepEditor* editor)
+		: m_editor(editor)
+	{
+	}
+
+	void Notify(std::shared_ptr<ZepMessage> message) override
+	{
+		m_editor->Notify(message);
+	}
+
+	void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) override
+	{
+		m_editor->DispatchMouseEvent(message);
+	}
+
+	ZepEditor& GetEditor() const override
+	{
+		return m_editor->m_editor->GetEditor();
+	}
+};
+
+
+ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
+	: m_id(id)
 {
 	m_editor = new ZepEditor_ImGui(ZepPath(), ZepEditorFlags::DisableThreads);
-	m_editor->RegisterCallback(this);
+	m_eventReceiver = std::make_unique<EventReceiver>(this);
+	m_editor->RegisterCallback(m_eventReceiver.get());
 	m_editor->SetGlobalMode(ZepMode_Standard::StaticName());
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
 {
-	if (m_editor)
-	{
-		m_editor->UnRegisterCallback(this);
-		delete m_editor;
-	}
+	m_editor->UnRegisterCallback(m_eventReceiver.get());
+	delete m_editor;
 }
 
-void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
+void ImGuiZepEditor::Notify(const std::shared_ptr<Zep::ZepMessage>& message)
 {
 	if (message->messageId == Zep::Msg::GetClipBoard)
 	{
@@ -498,6 +523,10 @@ void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
 		ImGui::SetClipboardText(message->str.c_str());
 		message->handled = true;
 	}
+}
+
+void ImGuiZepEditor::DispatchMouseEvent(const std::shared_ptr<Zep::ZepMessage>& message)
+{
 }
 
 void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont)

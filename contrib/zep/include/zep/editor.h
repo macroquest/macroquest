@@ -99,6 +99,7 @@ enum class Msg
     ConfigChanged,
     ToolTip,
     MouseScroll,
+    HyperlinkClick,
 
     UserEvent = 100,
 };

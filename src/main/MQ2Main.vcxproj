@@ -518,7 +518,6 @@
     <ClCompile Include="ImGuiBackendDX11.cpp" />
     <ClCompile Include="ImGuiBackendDX9.cpp" />
     <ClCompile Include="ImGuiBackendWin32.cpp" />
-    <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
@@ -633,7 +632,6 @@
     <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQCommandAPI.h" />
