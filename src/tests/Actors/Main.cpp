@@ -181,7 +181,6 @@ void InitPostOffices()
 
 	/* launcher post offices */
 	SetPostOfficeConfig(PostOfficeConfig{ 0, "Launcher", 0, pipe0 });
-
 	SetPostOfficeConfig(PostOfficeConfig{ 1, "Launcher", 0, pipe1 });
 
 	uint16_t port0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0).GetPeerPort();
@@ -399,6 +398,47 @@ void TestBasicClientSetup()
 	SPDLOG_INFO("TestBasicClientSetup: Tests Complete");
 }
 
+void TestLargeNetwork()
+{
+	for (uint32_t i = 2; i < 10; ++i)
+		SetPostOfficeConfig(PostOfficeConfig{ i, "Launcher", 0, fmt::format(R"(\\.\pipe\mqpipe{})", i) });
+
+	// this will set up the hosts first
+	std::vector<uint16_t> ports;
+	for (uint32_t i = 0; i < 10; ++i)
+		ports.push_back(mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i).GetPeerPort());
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	for (uint32_t i = 0; i < 10; ++i)
+	{
+		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+		auto i_port = po.GetPeerPort();
+
+		for (auto port : ports)
+		{
+			if (port != i_port)
+				po.AddNetworkHost("127.0.0.1", port);
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+
+	for (uint32_t i = 9; i > 1; --i)
+	{
+		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+		auto port = po.GetPeerPort();
+
+		for (uint32_t j = 0; j < i; ++j)
+			mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(j).RemoveNetworkHost("127.0.0.1", port);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+		po.Shutdown();
+		mq::DropPostOfficeConfig(i);
+	}
+}
+
 void InitializeLogging()
 {
 	// create color multi threaded logger
@@ -423,6 +463,9 @@ int main(int argc, TCHAR* argv[])
 	//Test();
 	TestLauncherBehavior();
 	TestBasicClientSetup();
+	TestLargeNetwork();
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	ShutdownPostOffices();
 

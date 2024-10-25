@@ -103,6 +103,7 @@ public:
 	void RouteFromConnection(MessagePtr message);
 
 	void AddNetworkHost(const std::string& address, uint16_t port) const;
+	void RemoveNetworkHost(const std::string& address, uint16_t port) const;
 	uint16_t GetPeerPort() const;
 
 	void AddIdentity(const ActorIdentification& id);

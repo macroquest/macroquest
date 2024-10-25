@@ -603,7 +603,7 @@ void PeerConnection::Stop()
 
 void PeerConnection::AddHost(const std::string& address, uint16_t port) const
 {
-	m_network->AddHost(address, port);
+	m_network->AddHost(address, port > 0 ? port : DEFAULT_NETWORK_PEER_PORT);
 }
 
 void PeerConnection::RemoveHost(const std::string& address, uint16_t port) const

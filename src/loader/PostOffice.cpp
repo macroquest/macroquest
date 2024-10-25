@@ -425,6 +425,11 @@ void LauncherPostOffice::AddNetworkHost(const std::string& address, uint16_t por
 	m_peerConnection->AddHost(address, port);
 }
 
+void LauncherPostOffice::RemoveNetworkHost(const std::string& address, uint16_t port) const
+{
+	m_peerConnection->RemoveHost(address, port);
+}
+
 uint16_t LauncherPostOffice::GetPeerPort() const
 {
 	return m_peerConnection->GetPort();
@@ -446,7 +451,15 @@ void LauncherPostOffice::Initialize()
 
 void LauncherPostOffice::Shutdown()
 {
+	if (!m_running)
+		return;
+
+	SPDLOG_INFO("{}: Shutting down post office", GetName());
 	m_running = false;
+	m_needsProcessing.notify_one();
+	m_thread.join();
+
+	RemovePostOffice(m_config.Index);
 }
 
 void LauncherPostOffice::RequestProcessEvents()
@@ -522,11 +535,7 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 
 LauncherPostOffice::~LauncherPostOffice()
 {
-	// we don't need to worry about sending messages after we stop because the connections should log
-	// and handle this situation.
-	m_running = false;
-	m_needsProcessing.notify_one();
-	m_thread.join();
+	SPDLOG_INFO("{}: Removing post office", GetName());
 }
 
 template <>
@@ -693,10 +702,14 @@ void ClearPostOfficeConfigs()
 
 void ClearPostOffices()
 {
-	for (auto& [_, post_office] : s_postOffices)
-		post_office.Shutdown();
+	using namespace postoffice;
 
-	s_postOffices.clear();
+	std::vector<uint32_t> indexes;
+	for (const auto& [index, _] : s_postOffices)
+		indexes.push_back(index);
+
+	for (auto index : indexes)
+		GetPostOffice<LauncherPostOffice>(index).Shutdown();
 }
 
 void InitializePostOffice(uint32_t index)
@@ -709,7 +722,6 @@ void ShutdownPostOffice(uint32_t index)
 {
 	using namespace postoffice;
 	GetPostOffice<LauncherPostOffice>(index).Shutdown();
-	s_postOffices.erase(index);
 }
 
 void RemovePostOffice(uint32_t index)

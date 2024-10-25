@@ -212,7 +212,7 @@ public:
 
 			(void)m_socket.shutdown(asio::socket_base::shutdown_both, ec);
 			if (ec)
-				SPDLOG_ERROR("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
+				SPDLOG_WARN("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
 			m_active = false;
 		}
 	}
@@ -245,7 +245,7 @@ public:
 		// once
 		if (!m_writing && !m_outgoing.Empty())
 		{
-			InternalWrite(std::error_code());
+			InternalWrite();
 		}
 	}
 
@@ -265,6 +265,18 @@ public:
 	const std::string& UUID() { return m_peerUuid; }
 
 private:
+	void CloseWithMessage(const std::error_code& ec, std::string_view step)
+	{
+		// see if the EC is a normal operation that shouldn't throw an error message
+		if (ec != asio::error::eof && // this is when the connection was closed remotely
+			ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
+			ec != asio::error::shut_down && // this is when we shut down the socket locally
+			ec != asio::error::connection_aborted) // this is when we shutdown the entire peer
+			SPDLOG_ERROR("{}: {} error {}: {}", m_peerPort, step, ec.value(), ec.message());
+
+		Close();
+	}
+
 	void Read()
 	{
 		// ASIO is designed around either shared pointers or some externally controlled pointer
@@ -279,28 +291,19 @@ private:
 			[this](const std::error_code& ec, size_t)
 			{
 				SPDLOG_TRACE("{}: reading message from socket {}", m_peerPort, m_socket.local_endpoint().port());
-				if (ec != asio::error::eof && // this is when the connection was closed remotely
-					ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
-					ec != asio::error::shut_down) // this is when we shut down the socket locally
-				{
-					m_messageBuffer->HeaderLength() = ntohl(m_messageBuffer->HeaderLengthNetwork());
-					SPDLOG_TRACE("{}: Detected message ({} header length)",
-						m_peerPort, m_messageBuffer->HeaderLength());
-
-					ReadHeaderLength(ec);
-				}
-				else Close();
+				if (!ec)
+					ReadHeader();
+				else
+					CloseWithMessage(ec, "Header length read");
 			});
 	}
 
-	void ReadHeaderLength(const std::error_code& ec)
+	void ReadHeader()
 	{
-		if (ec)
-		{
-			SPDLOG_ERROR("{}: Header length read error {}: {}", m_peerPort, ec.value(), ec.message());
-			Shutdown();
-		}
-		else if (m_messageBuffer->HeaderLength() == 0)
+		m_messageBuffer->HeaderLength() = ntohl(m_messageBuffer->HeaderLengthNetwork());
+		SPDLOG_TRACE("{}: Detected message ({} header length)", m_peerPort, m_messageBuffer->HeaderLength());
+
+		if (m_messageBuffer->HeaderLength() == 0)
 		{
 			SPDLOG_WARN("{}: Got zero length header, dropping message", m_peerPort);
 			Read();
@@ -312,91 +315,85 @@ private:
 				m_socket,
 				asio::buffer(m_messageBuffer->Header(), m_messageBuffer->HeaderLength()),
 				asio::transfer_exactly(m_messageBuffer->HeaderLength()),
-				[this](const std::error_code& ec, size_t) { ReadHeader(ec); });
+				[this](const std::error_code& ec, size_t)
+				{
+					if (!ec)
+						ReadPayload();
+					else
+						CloseWithMessage(ec, "Header read");
+				});
 		}
 	}
 
-	void ReadHeader(const std::error_code& ec)
+	void ReadPayload()
 	{
-		if (ec)
+		m_messageBuffer->Init();
+
+		if (m_messageBuffer->ParsedHeader().has_address())
 		{
-			SPDLOG_ERROR("{}: Header read error {}: {}", m_peerPort, ec.value(), ec.message());
-			Shutdown();
+			// this is a redirect
+			// TODO: this likely doesn't work, but revisit when adding leader logic
+			m_messageBuffer->Relay(m_peerPort);
+		}
+		if (m_messageBuffer->Length() > 0)
+		{
+			asio::async_read(
+				m_socket,
+				asio::buffer(m_messageBuffer->Payload(), m_messageBuffer->Length()),
+				asio::transfer_exactly(m_messageBuffer->Length()),
+				[this](const std::error_code& ec, size_t)
+				{
+					if (!ec)
+						ReceiveMessage();
+					else
+						CloseWithMessage(ec, "Payload read");
+				});
 		}
 		else
 		{
-			m_messageBuffer->Init();
-
-			if (m_messageBuffer->ParsedHeader().has_address())
-			{
-				// this is a redirect
-				// TODO: this likely doesn't work, but revisit when adding leader logic
-				m_messageBuffer->Relay(m_peerPort);
-			}
-			if (m_messageBuffer->Length() > 0)
-			{
-				asio::async_read(
-					m_socket,
-					asio::buffer(m_messageBuffer->Payload(), m_messageBuffer->Length()),
-					asio::transfer_exactly(m_messageBuffer->Length()),
-					[this](const std::error_code& ec, size_t) { ReadPayload(ec); });
-			}
-			else
-			{
-				// if there is no length, no need to read from the wire
-				ReadPayload(ec);
-			}
+			// if there is no length, no need to read from the wire
+			ReceiveMessage();
 		}
 	}
 
-	void ReadPayload(const std::error_code& ec)
+	void ReceiveMessage()
 	{
-		if (ec)
+		SPDLOG_TRACE("{}: Received message from {}:{} ({} bytes)",
+			m_peerPort, m_knownAddress.IP, m_knownAddress.Port, m_messageBuffer->Length());
+
+		if (m_receiveHandler != nullptr)
 		{
-			SPDLOG_ERROR("{}: Payload read error {}: {}", m_peerPort, ec.value(), ec.message());
-			Shutdown();
+			m_messageBuffer->Receive(this, m_receiveHandler);
 		}
 		else
-		{
-			SPDLOG_TRACE("{}: Received message from {}:{} ({} bytes)",
-				m_peerPort, m_knownAddress.IP, m_knownAddress.Port, m_messageBuffer->Length());
+			SPDLOG_ERROR("{}: Receive handler is null in network", m_peerPort);
 
-			if (m_receiveHandler != nullptr)
-			{
-				m_messageBuffer->Receive(this, m_receiveHandler);
-			}
-			else
-				SPDLOG_ERROR("{}: Receive handler is null in network", m_peerPort);
-
-			Read();
-		}
+		Read();
 	}
 
-	void InternalWrite(const std::error_code& ec)
+	void InternalWrite()
 	{
-		if (ec)
+		if (m_outgoing.Empty())
 		{
-			SPDLOG_ERROR("{}: Message write error {}: {}", m_peerPort, ec.value(), ec.message());
-			Shutdown();
+			m_writing = false;
 		}
 		else
 		{
-			if (m_outgoing.Empty())
-			{
-				m_writing = false;
-			}
-			else
-			{
-				m_writing = true;
-				const auto message(m_outgoing.Pop());
+			m_writing = true;
+			const auto message(m_outgoing.Pop());
 
-				SPDLOG_TRACE("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
+			SPDLOG_TRACE("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
 
-				asio::async_write(
-					m_socket,
-					message->Buffers(),
-					[this](const std::error_code& ec, size_t) { InternalWrite(ec); });
-			}
+			asio::async_write(
+				m_socket,
+				message->Buffers(),
+				[this](const std::error_code& ec, size_t)
+				{
+					if (!ec)
+						InternalWrite();
+					else
+						CloseWithMessage(ec, "Message write");
+				});
 		}
 	}
 
@@ -443,12 +440,6 @@ public:
 	~NetworkPeer()
 	{
 		SPDLOG_INFO("{}: Removing peer", m_port);
-
-		if (m_thread.joinable())
-		{
-			m_ioContext.stop();
-			m_thread.join();
-		}
 	}
 
 	void Run()
@@ -471,12 +462,13 @@ public:
 					Accept();
 
 					SPDLOG_TRACE("{}: Starting peer thread", m_port);
-					while (m_ioContext.run_one())
-					{
-						PruneSessions();
-					}
+					m_ioContext.run();
 
 					SPDLOG_TRACE("{}: Peer thread stopping normally", m_port);
+
+					// let the sessions drain
+					while (!m_sessions.empty() || !m_connectingSessions.empty() || !m_closingSessions.empty())
+						PruneSessions();
 				}
 				catch (std::exception& e)
 				{
@@ -503,6 +495,8 @@ public:
 				// pass off the connection to the session, if the session has failed then retry
 				if (!AddSession(ec, std::move(*socket)))
 				{
+					SPDLOG_WARN("{}: Session failed to connect to {}:{}", m_port, address, port);
+
 					// TODO: make retry time configurable
 					timer->expires_from_now(std::chrono::seconds(2));
 					timer->async_wait(
@@ -581,6 +575,8 @@ public:
 			for (auto& [addr, msg] : receives)
 				m_receiveHandler(addr, std::move(msg));
 		}
+
+		m_ioContext.post([this] { PruneSessions(); });
 	}
 
 	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]> payload, uint32_t length)
@@ -615,6 +611,19 @@ public:
 			// This will prune the session gracefully
 			session->second->Shutdown();
 		}
+	}
+
+	void Shutdown()
+	{
+		for (const auto& [_, session] : m_connectingSessions)
+			session->Shutdown();
+
+		for (const auto& [_, session] : m_sessions)
+			session->Shutdown();
+
+		SPDLOG_INFO("{}: Shutting down peer", m_port);
+		m_ioContext.stop();
+		m_thread.join();
 	}
 
 	bool HasHost(const NetworkAddress& address)
@@ -832,6 +841,17 @@ private:
 				++it;
 		}
 
+		for (auto it = m_connectingSessions.begin(); it != m_connectingSessions.end();)
+		{
+			if (!it->second->IsActive())
+			{
+				m_closingSessions.emplace(it->first, std::move(it->second));
+				it = m_connectingSessions.erase(it);
+			}
+			else
+				++it;
+		}
+
 		//SPDLOG_DEBUG("RunOne() pending sessions: {} active sessions: {}", m_pendingSessions.size(), m_sessions.size());
 	}
 
@@ -1005,7 +1025,10 @@ void NetworkPeerAPI::Shutdown() const
 {
 	const auto peer = s_peers.find(m_port);
 	if (peer != s_peers.end())
+	{
+		peer->second->Shutdown();
 		s_peers.erase(peer);
+	}
 }
 
 void NetworkPeerAPI::AddHost(const std::string& address, uint16_t port) const
