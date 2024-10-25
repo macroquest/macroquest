@@ -180,13 +180,15 @@ void InitPostOffices()
 	constexpr const char* pipe1 = R"(\\.\pipe\mqpipe1)";
 
 	/* launcher post offices */
-	SetPostOfficeConfig(PostOfficeConfig{ 0, "7781", 7781, pipe0, std::vector{
-		NetPeer("127.0.0.1", 8177),
-	}});
+	SetPostOfficeConfig(PostOfficeConfig{ 0, "Launcher", 0, pipe0 });
 
-	SetPostOfficeConfig(PostOfficeConfig{ 1, "8177", 8177, pipe1, std::vector{
-		NetPeer("127.0.0.1", 7781),
-	}});
+	SetPostOfficeConfig(PostOfficeConfig{ 1, "Launcher", 0, pipe1 });
+
+	uint16_t port0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0).GetPeerPort();
+	uint16_t port1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).GetPeerPort();
+
+	mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0).AddNetworkHost("127.0.0.1", port1);
+	mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).AddNetworkHost("127.0.0.1", port0);
 
 	InitializePostOffice(0);
 	InitializePostOffice(1);
@@ -259,7 +261,7 @@ void TestLauncherBehavior()
 		mq::proto::routing::Address addr;
 		mq::proto::routing::Peer& peer = *addr.mutable_peer();
 		peer.set_ip("127.0.0.1");
-		peer.set_port(8177);
+		peer.set_port(mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).GetPeerPort());
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),

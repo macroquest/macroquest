@@ -87,7 +87,7 @@ public:
 	~LauncherPostOffice() override;
 
 	const PostOfficeConfig& GetConfig() const { return m_config; }
-	const std::string& GetName() const { return m_config.Name; }
+	const std::string& GetName() const { return m_name; }
 
 	bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
 
@@ -101,6 +101,9 @@ public:
 
 	// This is called when a message is received over a connection (an _inbound_ message)
 	void RouteFromConnection(MessagePtr message);
+
+	void AddNetworkHost(const std::string& address, uint16_t port) const;
+	uint16_t GetPeerPort() const;
 
 	void AddIdentity(const ActorIdentification& id);
 	void DropIdentity(const ActorIdentification& id);
@@ -118,7 +121,8 @@ public:
 	}
 
 private:
-	const PostOfficeConfig m_config;
+	PostOfficeConfig m_config;
+	std::string m_name;
 
 	std::unordered_multimap<ActorContainer, ActorIdentification> m_identities;
 

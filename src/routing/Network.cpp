@@ -432,7 +432,7 @@ public:
 		OnSessionDisconnectedHandler disconnectedHandler,
 		OnRequestProcessHandler requestProcessHandler)
 		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
-		, m_port(port)
+		, m_port(m_acceptor.local_endpoint().port())
 		, m_uuid(CreateUUID())
 		, m_receiveHandler(std::move(receiveHandler))
 		, m_sessionConnectedHandler(std::move(connectedHandler))
@@ -622,6 +622,11 @@ public:
 		return m_knownHosts.find(address) != m_knownHosts.end();
 	}
 
+	uint16_t GetPort()
+	{
+		return m_port;
+	}
+
 private:
 
 	void Accept()
@@ -703,7 +708,8 @@ private:
 		}
 		else
 		{
-			SPDLOG_ERROR("{}: Connection failed with ERR {}: {}", m_port, ec.value(), ec.message());
+			const auto endpoint = socket.local_endpoint();
+			SPDLOG_ERROR("{}: Connection failed to endpoint {}:{} with ERR {}: {}", m_port, endpoint.address().to_string(), endpoint.port(), ec.value(), ec.message());
 			// make sure to close the socket on failure
 			if (socket.is_open()) socket.close();
 		}
@@ -939,10 +945,14 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
 	if (peer_it == s_peers.end())
 	{
 		// TODO: when leader logic is implemented, the relay to other peers would happen as a wrapper to these callbacks
-		peer_it = s_peers.emplace(port, std::make_unique<NetworkPeer>(
-			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process))).first;
+		auto peer = std::make_unique<NetworkPeer>(
+			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process));
+		auto peer_port = peer->GetPort();
+		peer_it = s_peers.emplace(peer_port, std::move(peer)).first;
 
 		peer_it->second->Run();
+
+		return NetworkPeerAPI(peer_port);
 	}
 
 	return NetworkPeerAPI(port);

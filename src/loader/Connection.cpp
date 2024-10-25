@@ -278,7 +278,7 @@ bool LocalConnection::SendMessage(const ActorContainer::Process& process, Messag
 	return false;
 }
 
-void mq::postoffice::LocalConnection::SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
+void LocalConnection::SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
 {
 	if (const auto& connection = GetConnection(process.UUID))
 	{
@@ -293,7 +293,7 @@ void mq::postoffice::LocalConnection::SendIdentification(const ActorContainer::P
 		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), identification message failed.", m_postOffice->GetName(), process.UUID, process.PID);
 }
 
-void mq::postoffice::LocalConnection::DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
+void LocalConnection::DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
 {
 	if (const auto& connection = GetConnection(process.UUID))
 	{
@@ -308,7 +308,7 @@ void mq::postoffice::LocalConnection::DropIdentification(const ActorContainer::P
 		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), drop message failed.", m_postOffice->GetName(), process.UUID, process.PID);
 }
 
-void mq::postoffice::LocalConnection::RequestIdentities(const ActorContainer::Process& process) const
+void LocalConnection::RequestIdentities(const ActorContainer::Process& process) const
 {
 	if (const auto& connection = GetConnection(process.UUID))
 	{
@@ -336,12 +336,12 @@ void LocalConnection::DropProcess(const ActorContainer::Process& process) const
 	m_postOffice->DropContainer(ActorContainer(process));
 }
 
-void mq::postoffice::LocalConnection::Start()
+void LocalConnection::Start()
 {
 	m_pipeServer->Start();
 }
 
-void mq::postoffice::LocalConnection::Stop()
+void LocalConnection::Stop()
 {
 	m_pipeServer->Stop();
 }
@@ -377,7 +377,7 @@ void LocalConnection::SendForceUnloadAllCommand()
 	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 }
 
-int mq::postoffice::LocalConnection::GetConnectionID(const std::string& uuid) const
+int LocalConnection::GetConnectionID(const std::string& uuid) const
 {
 	auto it = m_connections.find(uuid);
 	if (it != m_connections.end())
@@ -386,7 +386,7 @@ int mq::postoffice::LocalConnection::GetConnectionID(const std::string& uuid) co
 	return -1;
 }
 
-std::string mq::postoffice::LocalConnection::GetConnectionUUID(int connectionID) const
+std::string LocalConnection::GetConnectionUUID(int connectionID) const
 {
 	auto it = std::find_if(m_connections.begin(), m_connections.end(),
 		[connectionID](const auto& pair) { return pair.second == connectionID; });
@@ -396,7 +396,7 @@ std::string mq::postoffice::LocalConnection::GetConnectionUUID(int connectionID)
 	return "";
 }
 
-void mq::postoffice::LocalConnection::UpdateConnection(const std::string& uuid, int connectionID)
+void LocalConnection::UpdateConnection(const std::string& uuid, int connectionID)
 {
 	auto it = m_connections.find(uuid);
 	if (it != m_connections.end())
@@ -405,7 +405,7 @@ void mq::postoffice::LocalConnection::UpdateConnection(const std::string& uuid, 
 		m_connections.emplace(uuid, connectionID);
 }
 
-std::shared_ptr<mq::PipeConnection> mq::postoffice::LocalConnection::GetConnection(const std::string& uuid) const
+std::shared_ptr<mq::PipeConnection> LocalConnection::GetConnection(const std::string& uuid) const
 {
 	auto it = m_connections.find(uuid);
 	if (it != m_connections.end())
@@ -495,12 +495,11 @@ PeerConnection::~PeerConnection()
 {
 }
 
-void mq::postoffice::PeerConnection::AddConfiguredHosts()
+void PeerConnection::AddConfiguredHosts()
 {
 	const uint16_t default_port = GetPeerPort(m_postOffice);
 	const auto config = m_postOffice->GetConfig();
 
-	// TODO: add a way to add/remove hosts during runtime
 	if (config.Peers)
 	{
 		for (const auto& [address, port] : *config.Peers)
@@ -518,7 +517,7 @@ void mq::postoffice::PeerConnection::AddConfiguredHosts()
 	}
 }
 
-void mq::postoffice::PeerConnection::Process()
+void PeerConnection::Process()
 {
 	m_network->Process();
 }
@@ -544,7 +543,7 @@ bool PeerConnection::SendMessage(const ActorContainer::Network& peer, MessagePtr
 
 }
 
-void mq::postoffice::PeerConnection::SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
+void PeerConnection::SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
@@ -558,7 +557,7 @@ void mq::postoffice::PeerConnection::SendIdentification(const ActorContainer::Ne
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, identification message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
 }
 
-void mq::postoffice::PeerConnection::DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
+void PeerConnection::DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
@@ -572,7 +571,7 @@ void mq::postoffice::PeerConnection::DropIdentification(const ActorContainer::Ne
 		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, drop message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
 }
 
-void mq::postoffice::PeerConnection::RequestIdentities(const ActorContainer::Network& peer) const
+void PeerConnection::RequestIdentities(const ActorContainer::Network& peer) const
 {
 	if (m_network->HasHost(peer.IP, peer.Port))
 	{
@@ -593,27 +592,27 @@ void PeerConnection::BroadcastMessage(MessagePtr message)
 	m_network->Broadcast(std::move(outbound));
 }
 
-void mq::postoffice::PeerConnection::Start()
+void PeerConnection::Start()
 {
 }
 
-void mq::postoffice::PeerConnection::Stop()
+void PeerConnection::Stop()
 {
 	m_network->Shutdown();
 }
 
-void mq::postoffice::PeerConnection::AddHost(const std::string& address, uint16_t port) const
+void PeerConnection::AddHost(const std::string& address, uint16_t port) const
 {
 	m_network->AddHost(address, port);
 }
 
-void mq::postoffice::PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
+void PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
 {
 	m_network->RemoveHost(address, port);
 	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }));
 }
 
-uint16_t mq::postoffice::PeerConnection::GetPort() const
+uint16_t PeerConnection::GetPort() const
 {
 	return m_network->GetPort();
 }

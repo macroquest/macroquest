@@ -420,6 +420,16 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 	RequestProcessEvents();
 }
 
+void LauncherPostOffice::AddNetworkHost(const std::string& address, uint16_t port) const
+{
+	m_peerConnection->AddHost(address, port);
+}
+
+uint16_t LauncherPostOffice::GetPeerPort() const
+{
+	return m_peerConnection->GetPort();
+}
+
 void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& message)
 {
 	RequestProcessEvents();
@@ -455,6 +465,11 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))
 {
+	m_config.PeerPort = m_peerConnection->GetPort();
+	SPDLOG_INFO("{}: Setting Post Office to use port {}", GetName(), m_config.PeerPort);
+
+	m_name = fmt::format("{} [{}]", m_config.Name, m_config.PeerPort);
+
 	m_thread = std::thread(
 		[this]
 		{
