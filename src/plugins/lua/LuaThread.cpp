@@ -269,17 +269,24 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
-	namespace fs = std::filesystem;
-
 	// filename here is canonical file name, but we need to reconstruct the path
-	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
-	if (script_path.empty())
+	ScriptLocationInfo locationInfo = m_luaEnvironmentSettings->GetScriptLocationInfo(filename);
+	if (!locationInfo.found)
 		return std::nullopt;
 
-	// prefix the package paths with the runDir if it's different than the luaDir
-	std::string runDir = fs::path{ script_path }.parent_path().string();
-	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
+	return StartFile(locationInfo, args);
+}
+
+std::optional<LuaThreadInfo> LuaThread::StartFile(
+	const ScriptLocationInfo& locationInfo, const std::vector<std::string>& args)
+{
+	namespace fs = std::filesystem;
+
+	// Add the current directory if we're using an init.lua
+	if (locationInfo.isUsingInit)
 	{
+		std::string runDir = fs::path{ locationInfo.fullPath }.parent_path().string();
+
 		m_globalState["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
 			fmt::arg("runDir", runDir),
 			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
@@ -289,10 +296,10 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
 	}
 
-	m_name = GetCanonicalScriptName(script_path, m_luaEnvironmentSettings->luaDir);
-	m_path = script_path;
+	m_name = locationInfo.canonicalName;
+	m_path = locationInfo.fullPath;
 
-	auto co = m_coroutine->thread.state().load_file(script_path);
+	auto co = m_coroutine->thread.state().load_file(m_path);
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -407,58 +414,9 @@ sol::thread_status LuaThread::GetThreadStatus() const
 	return m_coroutine->thread.status();
 }
 
-std::string LuaThread::GetScriptPath(std::string_view script, const std::filesystem::path& luaDir)
-{
-	namespace fs = std::filesystem;
-
-	std::error_code ec;
-	const auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
-	const auto lua_path = script_path.parent_path() / (script_path.filename().string() + ".lua");
-
-	if (fs::exists(script_path, ec) && fs::is_directory(script_path, ec) && fs::exists(script_path / "init.lua", ec))
-	{
-		return (script_path / "init.lua").string();
-	}
-	else if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec) && fs::is_directory(lua_path, ec) && fs::exists(lua_path / "init.lua", ec))
-	{
-		return (lua_path / "init.lua").string();
-	}
-	else if (fs::exists(script_path, ec) && !fs::is_directory(script_path, ec))
-	{
-		return script_path.string();
-	}
-	else if (fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
-	{
-		return lua_path.string();
-	}
-
-	LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
-	return {};
-}
-
-std::string LuaThread::GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir)
-{
-	namespace fs = std::filesystem;
-
-	std::error_code ec;
-	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
-
-	auto relative = script_path.lexically_relative(luaDir);
-	if (!relative.empty() && relative.native()[0] != '.')
-		script_path = relative;
-
-	if (ci_equals(script_path.filename().string(), "init.lua"))
-		script_path = script_path.parent_path();
-	else if (script_path.extension() == ".lua")
-		script_path.replace_extension("");
-
-	return mq::replace(script_path.string(), "\\", "/");
-}
-
 void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
 {
-	m_name = GetCanonicalScriptName(m_path, newLuaDir);
-	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
+	UNUSED(newLuaDir);
 }
 
 LuaThread::RunResult LuaThread::RunOnce()
