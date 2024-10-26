@@ -155,7 +155,7 @@ public:
 	void UPCNotificationFlush_Detour()
 	{
 		CEverQuest* eq = (CEverQuest*)this;
-		char szBuf[128] = { 0 };
+		char szBuf[MAX_STRING] = { 0 };
 
 		if (eq->ucNotificationCount > 0)
 		{
