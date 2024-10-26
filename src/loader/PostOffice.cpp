@@ -279,9 +279,12 @@ void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 			++ident_it;
 	}
 
-	for (const auto& [container, identity] : m_identities)
-		if (identity.address == m_id.address && identity.container != m_id.container)
-			DropIdentification(container, id);
+	if (id.container.IsLocal())
+	{
+		for (const auto& [container, identity] : m_identities)
+			if (identity.address == m_id.address && identity.container != m_id.container)
+				DropIdentification(container, id);
+	}
 }
 
 void LauncherPostOffice::DropContainer(const ActorContainer& container)
@@ -303,17 +306,20 @@ void LauncherPostOffice::DropContainer(const ActorContainer& container)
 
 void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
 {
-	std::vector<ActorIdentification> to_erase;
-	const auto range = m_identities.equal_range(container);
-	for (auto it = range.first; it != range.second; ++it)
-		to_erase.emplace_back(std::move(it->second));
+	if (container.IsLocal())
+	{
+		std::vector<ActorIdentification> to_erase;
+		const auto range = m_identities.equal_range(container);
+		for (auto it = range.first; it != range.second; ++it)
+			to_erase.emplace_back(std::move(it->second));
+
+		for (const auto& [container, identity] : m_identities)
+			if (identity.address == m_id.address && identity.container != m_id.container)
+				for (const auto& dropped : to_erase)
+					DropIdentification(container, dropped);
+	}
 
 	m_identities.erase(container);
-
-	for (const auto& [container, identity] : m_identities)
-		if (identity.address == m_id.address && identity.container != m_id.container)
-			for (const auto& dropped : to_erase)
-				DropIdentification(container, dropped);
 }
 
 void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
@@ -335,8 +341,9 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 
 void LauncherPostOffice::ProcessSendIdentities(const ActorContainer& requester)
 {
-	for (const auto& [_, client] : m_identities)
-		SendIdentification(requester, client);
+	for (const auto& [container, client] : m_identities)
+		if (container.IsLocal())
+			SendIdentification(requester, client);
 }
 
 void LauncherPostOffice::FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate)

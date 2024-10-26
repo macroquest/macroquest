@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "routing/PostOffice.h"
+#include "routing/Network.h"
 
 #if defined(SendMessage)
 #undef SendMessage
@@ -238,6 +239,7 @@ public:
 	int GetConnectionID(const std::string& uuid) const;
 	std::string GetConnectionUUID(int connectionID) const;
 	void UpdateConnection(const std::string& uuid, int connectionID);
+	void DropConnection(const std::string& uuid);
 	
 private:
 	std::shared_ptr<mq::PipeConnection> GetConnection(const std::string& uuid) const;
@@ -280,8 +282,14 @@ public:
 
 	uint16_t GetPort() const;
 
+	NetworkAddress GetConnectionAddress(const std::string& uuid) const;
+	std::string GetConnectionUUID(const NetworkAddress& address) const;
+	void UpdateConnection(const std::string& uuid, NetworkAddress address);
+	void DropConnection(const std::string& uuid);
+
 private:
 	std::unique_ptr<mq::NetworkPeerAPI> m_network;
+	std::unordered_map<std::string, NetworkAddress> m_connections;
 };
 
 } // namespace postoffice

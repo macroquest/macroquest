@@ -427,13 +427,6 @@ void TestLargeNetwork()
 	for (uint32_t i = 9; i > 1; --i)
 	{
 		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
-		auto port = po.GetPeerPort();
-
-		for (uint32_t j = 0; j < i; ++j)
-			mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(j).RemoveNetworkHost("127.0.0.1", port);
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
 		po.Shutdown();
 		mq::DropPostOfficeConfig(i);
 	}

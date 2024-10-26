@@ -188,7 +188,9 @@ public:
 		, m_active(true)
 		, m_messageBuffer(std::make_unique<NetworkMessage>())
 		, m_receiveHandler(std::move(receiveHandler))
-	{}
+	{
+		SPDLOG_DEBUG("{}: Session created ({}:{})", m_peerPort, m_address.IP, m_address.Port);
+	}
 
 	NetworkSession() = delete;
 	NetworkSession(const NetworkSession&) = delete;
@@ -219,9 +221,7 @@ public:
 
 	void Close()
 	{
-		if (m_active)
-			m_active = false;
-
+		SPDLOG_DEBUG("{}: Closing session ({}:{}) open={}", m_peerPort, m_address.IP, m_address.Port, m_socket.is_open());
 		if (m_socket.is_open())
 			m_socket.close();
 	}
@@ -234,16 +234,13 @@ public:
 
 	void Write(peernetwork::Header&& header, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
-		m_outgoing.Push(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
-	}
-
-	void ProcessWrites()
-	{
-		// kick off the loop if it's not running and there are messages
 		// this function should only ever get called from the ASIO thread
 		// to ensure that we don't have multiple write loops happening at
 		// once
-		if (!m_writing && !m_outgoing.Empty())
+		m_outgoing.Push(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+
+		// kick off the loop if it's not running and there are messages
+		if (!m_writing)
 		{
 			InternalWrite();
 		}
@@ -462,13 +459,12 @@ public:
 					Accept();
 
 					SPDLOG_TRACE("{}: Starting peer thread", m_port);
-					m_ioContext.run();
+					while (m_ioContext.run_one())
+					{
+						PruneSessions();
+					}
 
 					SPDLOG_TRACE("{}: Peer thread stopping normally", m_port);
-
-					// let the sessions drain
-					while (!m_sessions.empty() || !m_connectingSessions.empty() || !m_closingSessions.empty())
-						PruneSessions();
 				}
 				catch (std::exception& e)
 				{
@@ -505,50 +501,16 @@ public:
 			});
 	}
 
-	// TODO: leader logic will need to handle sending to peers that are leaders for other networks
 	void Send(
 		peernetwork::MessageType message_type,
 		const NetworkAddress& address,
 		std::unique_ptr<uint8_t[]> payload,
 		uint32_t length)
 	{
-		peernetwork::Header header;
-		header.set_type(message_type);
+		std::unique_lock lock(m_processMutex);
 
-		SPDLOG_TRACE("{}: Sending message to {}:{} ({} bytes)",
-			m_port, address.IP, address.Port, length);
-
-		if (auto session = m_connectingSessions.find(address); session != m_connectingSessions.end())
-		{
-			session->second->Write(std::move(header), std::move(payload), length);
-			m_ioContext.post([this] { ProcessWrites(); });
-		}
-		else if (auto session = m_sessions.find(address); session != m_sessions.end())
-		{
-			session->second->Write(std::move(header), std::move(payload), length);
-			m_ioContext.post([this] { ProcessWrites(); });
-		}
-		else
-		{
-			if (m_leaderAddress)
-			{
-				auto session = m_sessions.find(*m_leaderAddress);
-				if (session != m_sessions.end() && session->second)
-				{
-					header.set_address(address.IP);
-					header.set_port(address.Port);
-					session->second->Write(std::move(header), std::move(payload), length);
-				}
-				else
-				{
-					SPDLOG_WARN("{}: Attempted to send message to unknown leader: {}:{}", m_port, m_leaderAddress->IP, m_leaderAddress->Port);
-				}
-			}
-			else
-			{
-				SPDLOG_WARN("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
-			}
-		}
+		m_writeQueue.emplace_back(message_type, address, std::move(payload), length);
+		m_ioContext.post([this] { ProcessWrites(); });
 	}
 
 	// the thread this function runs on is externally controlled because this is where we run the
@@ -575,22 +537,14 @@ public:
 			for (auto& [addr, msg] : receives)
 				m_receiveHandler(addr, std::move(msg));
 		}
-
-		m_ioContext.post([this] { PruneSessions(); });
 	}
 
 	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
-		for (const auto& [_, session] : m_sessions)
-		{
-			peernetwork::Header header;
-			header.set_type(message_type);
+		std::unique_lock lock(m_processMutex);
 
-			auto payload_copy = std::make_unique<uint8_t[]>(length);
-			memcpy(payload_copy.get(), payload.get(), length);
-
-			session->Write(std::move(header), std::move(payload_copy), length);
-		}
+		m_broadcastQueue.emplace_back(message_type, std::move(payload), length);
+		m_ioContext.post([this] { ProcessBroadcasts(); });
 	}
 
 	void AddHost(const NetworkAddress& address)
@@ -605,23 +559,33 @@ public:
 	{
 		std::unique_lock lock(m_hostMutex);
 		m_knownHosts.erase(address);
-		const auto session = m_sessions.find(address);
-		if (session != m_sessions.end())
-		{
-			// This will prune the session gracefully
-			session->second->Shutdown();
-		}
+		m_ioContext.post([this, address]
+			{
+				const auto session = m_sessions.find(address);
+				if (session != m_sessions.end())
+				{
+					// This will prune the session gracefully
+					session->second->Shutdown();
+				}
+			});
 	}
 
 	void Shutdown()
 	{
-		for (const auto& [_, session] : m_connectingSessions)
-			session->Shutdown();
+		m_ioContext.post([this]
+			{
+				for (const auto& [_, session] : m_connectingSessions)
+					session->Shutdown();
+			});
 
-		for (const auto& [_, session] : m_sessions)
-			session->Shutdown();
+		m_ioContext.post([this]
+			{
+				for (const auto& [_, session] : m_sessions)
+					session->Shutdown();
+			});
 
 		SPDLOG_INFO("{}: Shutting down peer", m_port);
+		while (!m_sessions.empty() || !m_connectingSessions.empty() || !m_closingSessions.empty());
 		m_ioContext.stop();
 		m_thread.join();
 	}
@@ -694,8 +658,9 @@ private:
 					}
 				});
 
+			auto connecting_addr = session->Address();
 			auto [session_it, _] = m_connectingSessions.emplace(
-				session->Address(),
+				connecting_addr,
 				std::move(session)
 			);
 
@@ -793,13 +758,13 @@ private:
 			{
 				// this is normal operation -- just put the session into the map
 				m_sessions.emplace(known_host, std::move(peer_it->second));
+				AddProcess([this, known_host = std::move(known_host)]()
+					{
+						m_sessionConnectedHandler(known_host);
+					});
 			}
 
 			m_connectingSessions.erase(peer_it);
-			AddProcess([this, known_host = std::move(known_host)]()
-				{
-					m_sessionConnectedHandler(known_host);
-				});
 		}
 		else
 		{
@@ -819,10 +784,12 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
+				m_knownHosts.erase(it->first);
 				AddProcess([this, addr = it->first]()
 					{
 						m_sessionDisconnectedHandler(addr);
 					});
+
 				it = m_closingSessions.erase(it);
 			}
 			else
@@ -832,7 +799,17 @@ private:
 		// clear out any sessions that are no longer active
 		for (auto it = m_sessions.begin(); it != m_sessions.end();)
 		{
-			if (!it->second->IsActive())
+			if (!it->second->IsOpen())
+			{
+				m_knownHosts.erase(it->first);
+				AddProcess([this, addr = it->first]()
+					{
+						m_sessionDisconnectedHandler(addr);
+					});
+
+				it = m_sessions.erase(it);
+			}
+			else if (!it->second->IsActive())
 			{
 				m_closingSessions.emplace(it->first, std::move(it->second));
 				it = m_sessions.erase(it);
@@ -843,7 +820,17 @@ private:
 
 		for (auto it = m_connectingSessions.begin(); it != m_connectingSessions.end();)
 		{
-			if (!it->second->IsActive())
+			if (!it->second->IsOpen())
+			{
+				m_knownHosts.erase(it->first);
+				AddProcess([this, addr = it->first]()
+					{
+						m_sessionDisconnectedHandler(addr);
+					});
+
+				it = m_connectingSessions.erase(it);
+			}
+			else if (!it->second->IsActive())
 			{
 				m_closingSessions.emplace(it->first, std::move(it->second));
 				it = m_connectingSessions.erase(it);
@@ -870,13 +857,84 @@ private:
 		}
 	}
 
+	// TODO: leader logic will need to handle sending to peers that are leaders for other networks
 	void ProcessWrites()
 	{
-		for (auto& [_, session] : m_connectingSessions)
-			session->ProcessWrites();
+		std::unique_lock lock(m_processMutex);
 
-		for (auto& [_, session] : m_sessions)
-			session->ProcessWrites();
+		if (!m_writeQueue.empty())
+		{
+			std::vector<std::tuple<peernetwork::MessageType, NetworkAddress, std::unique_ptr<uint8_t[]>, uint32_t>> writes;
+			std::swap(writes, m_writeQueue);
+
+			lock.unlock();
+
+			for (auto& [message_type, address, payload, length] : writes)
+			{
+				peernetwork::Header header;
+				header.set_type(message_type);
+
+				SPDLOG_TRACE("{}: Sending message to {}:{} ({} bytes)",
+					m_port, address.IP, address.Port, length);
+
+				if (auto session = m_connectingSessions.find(address); session != m_connectingSessions.end())
+				{
+					session->second->Write(std::move(header), std::move(payload), length);
+				}
+				else if (auto session = m_sessions.find(address); session != m_sessions.end())
+				{
+					session->second->Write(std::move(header), std::move(payload), length);
+				}
+				else
+				{
+					if (m_leaderAddress)
+					{
+						auto session = m_sessions.find(*m_leaderAddress);
+						if (session != m_sessions.end() && session->second)
+						{
+							header.set_address(address.IP);
+							header.set_port(address.Port);
+							session->second->Write(std::move(header), std::move(payload), length);
+						}
+						else
+						{
+							SPDLOG_WARN("{}: Attempted to send message to unknown leader: {}:{}", m_port, m_leaderAddress->IP, m_leaderAddress->Port);
+						}
+					}
+					else
+					{
+						SPDLOG_WARN("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
+					}
+				}
+			}
+		}
+	}
+
+	void ProcessBroadcasts()
+	{
+		std::unique_lock lock(m_processMutex);
+
+		if (!m_broadcastQueue.empty())
+		{
+			std::vector<std::tuple<peernetwork::MessageType, std::unique_ptr<uint8_t[]>, uint32_t>> broadcasts;
+			std::swap(broadcasts, m_broadcastQueue);
+
+			lock.unlock();
+
+			for (auto& [message_type, payload, length] : broadcasts)
+			{
+				for (const auto& [_, session] : m_sessions)
+				{
+					peernetwork::Header header;
+					header.set_type(message_type);
+
+					auto payload_copy = std::make_unique<uint8_t[]>(length);
+					memcpy(payload_copy.get(), payload.get(), length);
+
+					session->Write(std::move(header), std::move(payload_copy), length);
+				}
+			}
+		}
 	}
 
 	void AddProcess(std::function<void()>&& process)
@@ -922,6 +980,8 @@ private:
 
 	std::vector<std::function<void()>> m_processQueue;
 	std::vector<std::pair<NetworkAddress, NetworkMessagePtr>> m_receiveQueue;
+	std::vector<std::tuple<peernetwork::MessageType, NetworkAddress, std::unique_ptr<uint8_t[]>, uint32_t>> m_writeQueue;
+	std::vector<std::tuple<peernetwork::MessageType, std::unique_ptr<uint8_t[]>, uint32_t>> m_broadcastQueue;
 	std::mutex m_processMutex;
 };
 

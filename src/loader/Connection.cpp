@@ -101,7 +101,7 @@ public:
 			{
 				// if there is a payload, then we are getting a notification of ID
 				auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-				m_connection->UpdateConnection(id.has_process() ? id.process().uuid() : id.peer().uuid(), message->GetConnectionId());
+				m_connection->UpdateConnection(GetUUID(id), message->GetConnectionId());
 
 				// send this to the post office to process in the launcher dropbox
 				m_connection->GetPostOffice()->AddIdentity(ActorIdentification(std::move(id)));
@@ -120,8 +120,12 @@ public:
 			break;
 
 		case mq::MQMessageId::MSG_DROPPED:
-			m_connection->GetPostOffice()->DropIdentity(ActorIdentification(ProtoMessage::Parse<proto::routing::Identification>(message)));
+		{
+			auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
+			m_connection->DropConnection(GetUUID(id));
+			m_connection->GetPostOffice()->DropIdentity(ActorIdentification(std::move(id)));
 			break;
+		}
 
 		case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
 			break;
@@ -220,8 +224,8 @@ public:
 	void OnConnectionClosed(int connectionId, int processId) override
 	{
 		auto uuid = m_connection->GetConnectionUUID(connectionId);
-		if (!uuid.empty())
-			m_connection->DropProcess(ActorContainer::Process{ static_cast<uint32_t>(processId), uuid });
+		m_connection->DropConnection(uuid);
+		m_connection->DropProcess(ActorContainer::Process{ static_cast<uint32_t>(processId), uuid });
 	}
 
 private:
@@ -405,6 +409,13 @@ void LocalConnection::UpdateConnection(const std::string& uuid, int connectionID
 		m_connections.emplace(uuid, connectionID);
 }
 
+void LocalConnection::DropConnection(const std::string& uuid)
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		m_connections.erase(it);
+}
+
 std::shared_ptr<mq::PipeConnection> LocalConnection::GetConnection(const std::string& uuid) const
 {
 	auto it = m_connections.find(uuid);
@@ -437,10 +448,12 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 			switch (message->contents_case())
 			{
 			case NetworkMessage::kAdd:
+				UpdateConnection(GetUUID(message->add().id()), NetworkAddress{ source_addr.IP, source_addr.Port });
 				m_postOffice->AddIdentity(ActorIdentification(
 					std::move(source_addr), ActorIdentification::GetAddress(message->add().id())));
 				break;
 			case NetworkMessage::kDrop:
+				DropConnection(GetUUID(message->add().id()));
 				m_postOffice->DropIdentity(ActorIdentification(
 					std::move(source_addr), ActorIdentification::GetAddress(message->drop().id())));
 				break;
@@ -481,8 +494,12 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		},
 		[this](const NetworkAddress& address)
 		{
+			auto uuid = GetConnectionUUID(address);
+			DropConnection(uuid);
 			// let's just always reconnect to disconnected hosts
-			AddHost(address.IP, address.Port);
+			// TODO: graceful reconnection (in network, probably need to return connect result in some way instead of auto-retrying)
+			//AddHost(address.IP, address.Port);
+			m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address.IP, address.Port, uuid }));
 		},
 		[this]()
 		{
@@ -615,5 +632,40 @@ void PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
 uint16_t PeerConnection::GetPort() const
 {
 	return m_network->GetPort();
+}
+
+NetworkAddress PeerConnection::GetConnectionAddress(const std::string& uuid) const
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		return it->second;
+
+	return NetworkAddress{};
+}
+
+std::string PeerConnection::GetConnectionUUID(const NetworkAddress& address) const
+{
+	auto it = std::find_if(m_connections.begin(), m_connections.end(),
+		[&address](const auto& pair) { return pair.second == address; });
+	if (it != m_connections.end())
+		return it->first;
+
+	return "";
+}
+
+void mq::postoffice::PeerConnection::UpdateConnection(const std::string& uuid, NetworkAddress address)
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		it->second = std::move(address);
+	else
+		m_connections.emplace(uuid, std::move(address));
+}
+
+void mq::postoffice::PeerConnection::DropConnection(const std::string& uuid)
+{
+	auto it = m_connections.find(uuid);
+	if (it != m_connections.end())
+		m_connections.erase(it);
 }
 
