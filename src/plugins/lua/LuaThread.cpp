@@ -170,6 +170,9 @@ void LuaThread::InjectMQNamespace()
 
 void LuaThread::Exit(LuaThreadExitReason reason)
 {
+	if (m_exitReason != LuaThreadExitReason::Unspecified || !IsValid())
+		return;
+
 	m_exitReason = reason;
 	YieldAt(0);
 
