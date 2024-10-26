@@ -1337,8 +1337,8 @@ std::string LuaEnvironmentSettings::GetScriptPath(std::string_view script) const
 
 	for (const std::string& searchPath : luaRequirePaths)
 	{
-		if (GetScriptPath(script, searchPath, info));
-		return info.fullPath;
+		if (GetScriptPath(script, searchPath, info))
+			return info.fullPath;
 	}
 
 	return {};
