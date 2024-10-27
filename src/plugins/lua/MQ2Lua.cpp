@@ -1286,14 +1286,39 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		m_initialized = true;
 	}
 
+	std::error_code ec;
+
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?\\init.lua;{luaDir}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
-		fmt::arg("luaDir", luaDir),
-		fmt::arg("moduleDir", moduleDir),
-		fmt::arg("jitVersion", m_jitversion),
-		fmt::arg("luaVersion", m_version),
-		fmt::arg("additionalPaths", luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";"),
-		fmt::arg("originalPath", m_packagePath));
+	{
+		std::vector<std::string> formattedRequirePaths = {
+			"{luaDir}\\?\\init.lua",
+			"{luaDir}\\?.lua",
+			"{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?.lua",
+			"{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua",
+			"{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua",
+			"{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua",
+		};
+		for (const std::string& searchPath : luaRequirePaths)
+		{
+			if (searchPath.find("?") == std::string::npos)
+			{
+				formattedRequirePaths.push_back(fmt::format("{}\\?\\init.lua", searchPath));
+				formattedRequirePaths.push_back(fmt::format("{}\\?.lua", searchPath));
+			}
+			else
+			{
+				formattedRequirePaths.push_back(searchPath);
+			}
+		}
+		formattedRequirePaths.push_back("{originalPath}");
+
+		sv["package"]["path"] = fmt::format(join(formattedRequirePaths, ";"),
+			fmt::arg("luaDir", luaDir),
+			fmt::arg("moduleDir", moduleDir),
+			fmt::arg("jitVersion", m_jitversion),
+			fmt::arg("luaVersion", m_version),
+			fmt::arg("originalPath", m_packagePath));
+	}
 
 	sv["package"]["cpath"] = fmt::format("{moduleDir}\\{jitVersion}\\luarocks\\lib\\lua\\{luaVersion}\\?.dll;{dllPaths}{originalPath}",
 		fmt::arg("moduleDir", moduleDir),
