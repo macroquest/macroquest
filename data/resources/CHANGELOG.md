@@ -1,3 +1,9 @@
+Oct 24, 2024:
+- Fix new spawns getting mq captions applied when mqcaptions are disabled
+- Fix crash that could occur when using /lua stop in some circumstances (#906)
+- Fix crash when joining too many chat channels
+- Add parameter to mq/eval script to pass an expression to evaluate
+
 Oct 19, 2024:
 - Fixed some missing console/editor keybinds. Some new functionality includes ctrl+[ +, -, 0 ] to zoom the font.
 - lua: Starting a script will now also search require dirs if script is not found in main lua dir.
