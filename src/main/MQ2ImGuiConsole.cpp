@@ -1114,7 +1114,7 @@ void ShutdownImGuiConsole()
 
 DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
 {
-	ImU32 col = GetColorForChatColor(color).ToABGR();
+	MQColor col = GetColorForChatColor(color);
 
 	if (gMQConsole)
 		gMQConsole->AddWriteChatColorLog(line, col, true);
