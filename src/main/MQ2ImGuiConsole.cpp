@@ -607,12 +607,6 @@ struct ImGuiZepConsole : public mq::imgui::ConsoleWidget, public mq::imgui::ImGu
 	ImGuiZepConsole(std::string_view id)
 		: m_id(std::string(id))
 	{
-		SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-		SetFont(Zep::ZepTextType::Text, mq::imgui::ConsoleFont, 13);
-		SetFont(Zep::ZepTextType::Heading1, mq::imgui::DefaultFont, 28);
-		SetFont(Zep::ZepTextType::Heading2, mq::imgui::DefaultFont, 14);
-		SetFont(Zep::ZepTextType::Heading3, mq::imgui::DefaultFont, 20);
-
 		GetEditor().RegisterGlobalMode(std::make_shared<ZepMode_ImGuiConsole>(GetEditor()));
 		GetEditor().SetGlobalMode(ZepMode_ImGuiConsole::StaticName());
 

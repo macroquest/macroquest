@@ -980,6 +980,9 @@ bool ZepMode::GetCommand(CommandContext& context)
     case id_FontSmaller:
         GetEditor().GetDisplay().Smaller();
         return true;
+    case id_FontReset:
+        GetEditor().GetDisplay().ResetFontScale();
+        return true;
 
     // Moving between splits
     case id_MotionDownSplit:

@@ -39,7 +39,7 @@ MQLIB_API void RenderDoc_SetMarker(MQColor color, const wchar_t* name);
 
 #else
 
-inline void RenderDoc_BeginEvent(MQColor color, const char* name) {}
+inline void RenderDoc_BeginEvent(MQColor color, const wchar_t* name) {}
 inline void RenderDoc_EndEvent() {}
 
 struct RenderDoc_ScopedEvent
@@ -47,7 +47,7 @@ struct RenderDoc_ScopedEvent
 	RenderDoc_ScopedEvent(MQColor color, const wchar_t* name) {}
 };
 
-inline void RenderDoc_SetMarker(MQColor color, const char* name) {}
+inline void RenderDoc_SetMarker(MQColor color, const wchar_t* name) {}
 
 #endif // _DEBUG
 

@@ -1906,8 +1906,8 @@ public:
 				if (!m_textEditor)
 				{
 					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>();
-					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont, 16);
+					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont);
+					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont);
 
 					m_textEditor->GetEditor().SetGlobalMode(Zep::ZepMode_Standard::StaticName());
 					m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->SetWindowFlags(

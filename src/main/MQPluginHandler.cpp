@@ -999,14 +999,7 @@ void PluginsAddSpawn(PlayerClient* pNewSpawn)
 	if (!s_pluginsInitialized)
 		return;
 
-	int BodyType = GetBodyType(pNewSpawn);
-	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->GetRace(), BodyType);
-
-	if (GetGameState() > GAMESTATE_CHARSELECT)
-		SetNameSpriteState(pNewSpawn, true);
-
-	if (GetBodyTypeDesc(BodyType)[0] == '*')
-		WriteChatf("Spawn '%s' has unknown bodytype %d", pNewSpawn->Name, BodyType);
+	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->GetRace());
 
 	ForEachModule([pNewSpawn](const MQModule* module)
 		{

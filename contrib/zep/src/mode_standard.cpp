@@ -88,6 +88,7 @@ void ZepMode_Standard::Init()
 
     keymap_add(keyMaps, { "<C-=>" }, id_FontBigger);
     keymap_add(keyMaps, { "<C-->" }, id_FontSmaller);
+    keymap_add(keyMaps, { "<C-0>" }, id_FontReset);
 
     keymap_add(keyMaps, { "<C-Up>" }, id_ViewLineBackward);
     keymap_add(keyMaps, { "<C-Down>" }, id_ViewLineForward);

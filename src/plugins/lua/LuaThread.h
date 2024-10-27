@@ -142,6 +142,7 @@ public:
 	void EnableImGui();
 	void EnableEvents();
 
+	std::optional<LuaThreadInfo> StartFile(const ScriptLocationInfo& locationInfo, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
@@ -169,8 +170,6 @@ public:
 	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
 	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
 
-	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
-	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
 	// TLOs
