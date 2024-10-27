@@ -105,7 +105,6 @@ MQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
 MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 /* SPAWN HANDLING */
-MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
 

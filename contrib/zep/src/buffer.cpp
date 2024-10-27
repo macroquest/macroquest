@@ -939,6 +939,26 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
     }
 }
 
+void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
+{
+    if (provider.syntaxID != m_syntaxProvider.syntaxID)
+    {
+        if (provider.factory)
+        {
+            m_spSyntax = provider.factory(this);
+        }
+        else
+        {
+            m_spSyntax.reset();
+        }
+
+        m_syntaxProvider = provider;
+
+        // Inform the editor that the syntax has changed
+        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
+    }
+}
+
 std::string ZepBuffer::GetBufferText(const GlyphIterator& start, const GlyphIterator& end) const
 {
     return std::string(m_workingBuffer.begin() + start.Index(), m_workingBuffer.begin() + end.Index());

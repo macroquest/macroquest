@@ -23,6 +23,7 @@
 
 #include "pch.h"
 #include "ImGuiZepEditor.h"
+#include "imgui/ImGuiUtils.h"
 
 #include "zep/display.h"
 #include "zep/editor.h"
@@ -63,46 +64,33 @@ inline ImVec2 toImVec2Adjusted(const Zep::NVec2f& im, const Zep::NVec2f& rel)
 class ZepFont_ImGui : public Zep::ZepFont
 {
 public:
-	ZepFont_ImGui(Zep::ZepDisplay& display, ImFont* pFont, int pixelHeight);
+	ZepFont_ImGui(ZepDisplay& display, ImFont* pFont)
+		: ZepFont(display, static_cast<int>(pFont->FontSize))
+		, m_pFont(pFont)
+	{
+	}
 
-	virtual void SetPixelHeight(int pixelHeight) override;
-	virtual Zep::NVec2f GetTextSize(const uint8_t* begin, const uint8_t* end = nullptr) const override;
+	Zep::NVec2f GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd) const override
+	{
+		// This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
+		// need as we draw one character at a time...
+		const float font_size = m_pFont->FontSize;
+		ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
+		if (text_size.x == 0.0)
+		{
+			// Make invalid characters a default fixed_size
+			const char chDefault = 'A';
+			text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
+		}
+
+		return toNVec2f(text_size);
+	}
 
 	ImFont* GetImFont() const { return m_pFont; }
 
 private:
 	ImFont* m_pFont = nullptr;
-	float m_fontScale = 1.0f;
 };
-
-ZepFont_ImGui::ZepFont_ImGui(ZepDisplay& display, ImFont* pFont, int pixelHeight)
-	: ZepFont(display)
-	, m_pFont(pFont)
-{
-	SetPixelHeight(pixelHeight);
-}
-
-void ZepFont_ImGui::SetPixelHeight(int pixelHeight)
-{
-	InvalidateCharCache();
-	m_pixelHeight = pixelHeight;
-}
-
-NVec2f ZepFont_ImGui::GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd) const
-{
-	// This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
-	// need as we draw one character at a time...
-	const float font_size = m_pFont->FontSize;
-	ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
-	if (text_size.x == 0.0)
-	{
-		// Make invalid characters a default fixed_size
-		const char chDefault = 'A';
-		text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
-	}
-
-	return toNVec2f(text_size);
-}
 
 //----------------------------------------------------------------------------
 
@@ -213,14 +201,28 @@ void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
 
 ZepFont& ZepEditor_ImGui::GetFont(ZepTextType type)
 {
-	if (m_fonts[(int)type] == nullptr)
+	const int fontType = static_cast<int>(type);
+	ZepFont* font = m_fonts[fontType].get();
+
+	if (font == nullptr)
 	{
-		m_fonts[(int)type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetIO().Fonts[0].Fonts[0], int(16.0f * GetPixelScale().y));
+		switch (type)
+		{
+		case Zep::ZepTextType::Text:
+			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont);
+			break;
+
+		case Zep::ZepTextType::UI:
+		default:
+			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::DefaultFont);
+			break;
+		}
+
+		font = m_fonts[fontType].get();
 	}
 
-	return *m_fonts[(int)type];
+	return *font;
 }
-
 
 void ZepEditor_ImGui::HandleInput()
 {
@@ -325,6 +327,92 @@ void ZepEditor_ImGui::HandleMouseInput()
 	//    ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 }
 
+struct ZepImGuiKeyMap
+{
+	ImGuiKey imguiKey;
+	uint32_t zepKey;
+};
+
+static ZepImGuiKeyMap s_zepSpecialKeyMap[] = {
+	{ ImGuiKey_Enter,          Zep::ExtKeys::RETURN },
+	{ ImGuiKey_Escape,         Zep::ExtKeys::ESCAPE },
+	{ ImGuiKey_Backspace,      Zep::ExtKeys::BACKSPACE },
+	{ ImGuiKey_LeftArrow,      Zep::ExtKeys::LEFT },
+	{ ImGuiKey_RightArrow,     Zep::ExtKeys::RIGHT },
+	{ ImGuiKey_UpArrow,        Zep::ExtKeys::UP },
+	{ ImGuiKey_DownArrow,      Zep::ExtKeys::DOWN },
+	{ ImGuiKey_Tab,            Zep::ExtKeys::TAB },
+	{ ImGuiKey_Delete,         Zep::ExtKeys::DEL },
+	{ ImGuiKey_Home,           Zep::ExtKeys::HOME },
+	{ ImGuiKey_End,            Zep::ExtKeys::END },
+	{ ImGuiKey_PageDown,       Zep::ExtKeys::PAGEDOWN },
+	{ ImGuiKey_PageUp,         Zep::ExtKeys::PAGEUP },
+	{ ImGuiKey_F1,             Zep::ExtKeys::F1 },
+	{ ImGuiKey_F2,             Zep::ExtKeys::F2 },
+	{ ImGuiKey_F3,             Zep::ExtKeys::F3 },
+	{ ImGuiKey_F4,             Zep::ExtKeys::F4 },
+	{ ImGuiKey_F5,             Zep::ExtKeys::F5 },
+	{ ImGuiKey_F6,             Zep::ExtKeys::F6 },
+	{ ImGuiKey_F7,             Zep::ExtKeys::F7 },
+	{ ImGuiKey_F8,             Zep::ExtKeys::F8 },
+	{ ImGuiKey_F9,             Zep::ExtKeys::F9 },
+	{ ImGuiKey_F10,            Zep::ExtKeys::F10 },
+	{ ImGuiKey_F11,            Zep::ExtKeys::F11 },
+	{ ImGuiKey_F12,            Zep::ExtKeys::F12 },
+};
+
+static ZepImGuiKeyMap s_zepPrintableKeyMap[] = {
+	{ ImGuiKey_Space,          ' ' },
+	{ ImGuiKey_0,              '0' },
+	{ ImGuiKey_1,              '1' },
+	{ ImGuiKey_2,              '2' },
+	{ ImGuiKey_3,              '3' },
+	{ ImGuiKey_4,              '4' },
+	{ ImGuiKey_5,              '5' },
+	{ ImGuiKey_6,              '6' },
+	{ ImGuiKey_7,              '7' },
+	{ ImGuiKey_8,              '8' },
+	{ ImGuiKey_9,              '9' },
+	{ ImGuiKey_A,              'a' },
+	{ ImGuiKey_B,              'b' },
+	{ ImGuiKey_C,              'c' },
+	{ ImGuiKey_D,              'd' },
+	{ ImGuiKey_E,              'e' },
+	{ ImGuiKey_F,              'f' },
+	{ ImGuiKey_G,              'g' },
+	{ ImGuiKey_H,              'h' },
+	{ ImGuiKey_I,              'i' },
+	{ ImGuiKey_J,              'j' },
+	{ ImGuiKey_K,              'k' },
+	{ ImGuiKey_L,              'l' },
+	{ ImGuiKey_M,              'm' },
+	{ ImGuiKey_N,              'n' },
+	{ ImGuiKey_O,              'o' },
+	{ ImGuiKey_P,              'p' },
+	{ ImGuiKey_Q,              'q' },
+	{ ImGuiKey_R,              'r' },
+	{ ImGuiKey_S,              's' },
+	{ ImGuiKey_T,              't' },
+	{ ImGuiKey_U,              'u' },
+	{ ImGuiKey_V,              'v' },
+	{ ImGuiKey_W,              'w' },
+	{ ImGuiKey_X,              'x' },
+	{ ImGuiKey_Y,              'y' },
+	{ ImGuiKey_Z,              'z' },
+	{ ImGuiKey_Apostrophe,     '\'' },
+	{ ImGuiKey_Comma,          ',' },
+	{ ImGuiKey_Minus,          '-' },
+	{ ImGuiKey_Period,         '.' },
+	{ ImGuiKey_Slash,          '/' },
+	{ ImGuiKey_Semicolon,      ';' },
+	{ ImGuiKey_Equal,          '=' },
+	{ ImGuiKey_LeftBracket,    '[' },
+	{ ImGuiKey_Backslash,      '\\' },
+	{ ImGuiKey_RightBracket,   ']' },
+	{ ImGuiKey_GraveAccent,    '`' },
+};
+
+
 void ZepEditor_ImGui::HandleKeyboardInput()
 {
 	auto& io = ImGui::GetIO();
@@ -345,78 +433,22 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 	auto pWindow = GetActiveTabWindow()->GetActiveWindow();
 	const auto& buffer = pWindow->GetBuffer();
 
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
+	for (const auto [imguiKey, zepKey] : s_zepSpecialKeyMap)
 	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::TAB, mod);
-		return;
-	}
-	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::ESCAPE, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::RETURN, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::DEL, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Home)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::HOME, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_End)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::END, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::BACKSPACE, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::RIGHT, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::LEFT, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::UP, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::DOWN, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::PAGEDOWN, mod);
-		return;
-	}
-	else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp)))
-	{
-		buffer.GetMode()->AddKeyPress(ExtKeys::PAGEUP, mod);
-		return;
-	}
-	else if (io.KeyCtrl)
-	{
-		for (int ch = 'A'; ch <= 'Z'; ch++)
+		if (ImGui::IsKeyPressed(imguiKey))
 		{
-			if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ch)))
+			buffer.GetMode()->AddKeyPress(zepKey, mod);
+			return;
+		}
+	}
+
+	if (io.KeyCtrl)
+	{
+		for (const auto [imguiKey, zepKey] : s_zepPrintableKeyMap)
+		{
+			if (ImGui::IsKeyPressed(imguiKey))
 			{
-				buffer.GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
+				buffer.GetMode()->AddKeyPress(zepKey, mod);
 				handled = true;
 			}
 		}
@@ -468,9 +500,9 @@ void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
 	}
 }
 
-void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont, int pixelHeight)
+void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont)
 {
-	m_editor->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_editor, pFont, pixelHeight));
+	m_editor->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_editor, pFont));
 }
 
 ZepEditor& ImGuiZepEditor::GetEditor() const

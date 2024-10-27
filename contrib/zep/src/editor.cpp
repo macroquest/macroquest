@@ -864,6 +864,18 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer) const
     }
 }
 
+void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) const
+{
+    for (const auto& [_, provider] : m_mapSyntax)
+    {
+        if (provider.syntaxID == syntaxID)
+        {
+            buffer.SetSyntaxProvider(provider);
+            return;
+        }
+    }
+}
+
 void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider provider)
 {
     for (auto& m : mappings)
