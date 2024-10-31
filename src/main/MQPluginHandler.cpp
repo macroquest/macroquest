@@ -162,6 +162,7 @@ void ShutdownInternalModules()
 
 static void PluginsLoadPlugin(const char* Name);
 static void PluginsUnloadPlugin(const char* Name);
+static void PluginsCleanupPlugin(const char* Name);
 
 //----------------------------------------------------------------------------
 
@@ -508,6 +509,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	pPlugin->LoadPlugin        = (fMQLoadPlugin)GetProcAddress(pPlugin->hModule, "OnLoadPlugin");
 	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnUnloadPlugin");
 	pPlugin->GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(pPlugin->hModule, "GetPluginInterface");
+	pPlugin->CleanupPlugin     = (fMQCleanupPlugin)GetProcAddress(pPlugin->hModule, "OnCleanupPlugin");
 
 	float* ftmp = (float*)GetProcAddress(pPlugin->hModule, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -637,6 +639,9 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 	ShutdownPlugin(rec);
 
 	// Cleanup
+	// Allow other plugins to cleanup resources after plugin shutdown but before the dll is freed
+	PluginsCleanupPlugin(pPlugin->szFilename);
+
 	if (FreeLibrary(pPlugin->hModule))
 	{
 		if (IsInModuleList(pPlugin->szFilename))
@@ -1225,6 +1230,28 @@ static void PluginsUnloadPlugin(const char* Name)
 			if (mod->UnloadPlugin)
 			{
 				mod->UnloadPlugin(Name);
+			}
+		});
+}
+
+static void PluginsCleanupPlugin(const char* Name)
+{
+	PluginDebug("PluginsCleanupPlugin(%s)", Name);
+
+	ForEachPlugin([Name](const MQPlugin* plugin)
+		{
+			if (plugin->CleanupPlugin)
+			{
+				DebugSpew("%s->CleanupPlugin(%s)", plugin->szFilename, Name);
+				plugin->CleanupPlugin(Name);
+			}
+		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->CleanupPlugin)
+			{
+				mod->CleanupPlugin(Name);
 			}
 		});
 }

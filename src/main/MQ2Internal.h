@@ -379,6 +379,7 @@ struct MQModule
 	fMQUnloadPlugin      UnloadPlugin = 0;
 	fMQCleanUI           CleanUI = 0;
 	fMQReloadUI          ReloadUI = 0;
+	fMQCleanupPlugin     CleanupPlugin = 0;
 
 	bool                 loaded = false;
 	bool                 manualUnload = false;
