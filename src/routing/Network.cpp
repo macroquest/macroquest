@@ -841,7 +841,19 @@ private:
 
 		m_duplicateSessions.erase(std::remove_if(m_duplicateSessions.begin(), m_duplicateSessions.end(),
 			[](std::unique_ptr<NetworkSession>& session)
-			{ return !session->IsOpen(); }),
+			{
+				if (session->IsOpen())
+				{
+					if (session->IsActive())
+						session->Shutdown();
+					else
+						session->Close();
+
+					return false;
+				}
+
+				return true;
+			}),
 			m_duplicateSessions.end());
 
 		for (auto it = m_closingSessions.begin(); it != m_closingSessions.end();)
@@ -852,7 +864,14 @@ private:
 				it = m_closingSessions.erase(it);
 			}
 			else
+			{
+				if (it->second->IsActive())
+					it->second->Shutdown();
+				else
+					it->second->Close();
+
 				++it;
+			}
 		}
 
 		// clear out any sessions that are no longer active

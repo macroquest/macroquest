@@ -510,70 +510,104 @@ void PeerConnection::Process()
 	m_network->Process();
 }
 
+// TODO: remove the gets here -- send to network by UUID
 bool PeerConnection::SendMessage(const ActorContainer& peer, MessagePtr message)
 {
-	auto p = std::get<ActorContainer::Network>(peer.value);
-	// the network library handles routing of any address (we can't short circuit local IP
-	// detection because it needs knowledge of the network)
-	if (m_network->HasHost(p.IP, p.Port))
-	{
-		// the network has the host (we do this in order to provide routing errors)
-		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-		outbound->set_routed(message->SerializeAsString());
+	return std::visit(overload{
+		[this, message = std::move(message)](const ActorContainer::Network& p) mutable
+		{
+			// the network library handles routing of any address (we can't short circuit local IP
+			// detection because it needs knowledge of the network)
+			if (m_network->HasHost(p.IP, p.Port))
+			{
+				// the network has the host (we do this in order to provide routing errors)
+				auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+				outbound->set_routed(message->SerializeAsString());
 
-		m_network->Send(p.IP, p.Port, std::move(outbound));
+				m_network->Send(p.IP, p.Port, std::move(outbound));
 
-		return true;
-	}
+				return true;
+			}
 
-	SPDLOG_WARN("{}: Unable to find peer for address {}, message route failed. seq={}", m_postOffice->GetName(), peer, message->sequence());
-	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
-	return false;
-
+			SPDLOG_WARN("{}: Unable to find peer for address {}, message route failed. seq={}", m_postOffice->GetName(), p.ToString(), message->sequence());
+			m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find peer");
+			return false;
+		},
+		[this, message = std::move(message)](const ActorContainer::Process& p) mutable
+		{
+			SPDLOG_WARN("{}: Attempted to send a message to process {} over the network connection. seq={}", m_postOffice->GetName(), p.ToString(), message->sequence());
+			m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Incorrect connection type");
+			return false;
+		}
+	}, peer.value);
 }
 
 void PeerConnection::SendIdentification(const ActorContainer& peer, const ActorIdentification& identity) const
 {
-	auto p = std::get<ActorContainer::Network>(peer.value);
-	if (m_network->HasHost(p.IP, p.Port))
-	{
-		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-		proto::routing::AddIdentity& add = *outbound->mutable_add();
-		*add.mutable_id() = identity.GetProto();
+	std::visit(overload{
+		[this, &identity](const ActorContainer::Network& p)
+		{
+			if (m_network->HasHost(p.IP, p.Port))
+			{
+				auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+				proto::routing::AddIdentity& add = *outbound->mutable_add();
+				*add.mutable_id() = identity.GetProto();
 
-		m_network->Send(p.IP, p.Port, std::move(outbound));
-	}
-	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}, identification message failed.", m_postOffice->GetName(), peer);
+				m_network->Send(p.IP, p.Port, std::move(outbound));
+			}
+			else
+				SPDLOG_WARN("{}: Unable to find peer for address {}, identification message failed.", m_postOffice->GetName(), p.ToString());
+		},
+		[this, &identity](const ActorContainer::Process& p)
+		{
+			SPDLOG_WARN("{}: Attempted to send a message to process {}, identification message failed.", m_postOffice->GetName(), p.ToString());
+		}
+	}, peer.value);
 }
 
 void PeerConnection::DropIdentification(const ActorContainer& peer, const ActorIdentification& identity) const
 {
-	auto p = std::get<ActorContainer::Network>(peer.value);
-	if (m_network->HasHost(p.IP, p.Port))
-	{
-		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-		proto::routing::DropIdentity& drop = *outbound->mutable_drop();
-		*drop.mutable_id() = identity.GetProto();
+	std::visit(overload{
+		[this, &identity](const ActorContainer::Network& p)
+		{
+			if (m_network->HasHost(p.IP, p.Port))
+			{
+				auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+				proto::routing::DropIdentity& drop = *outbound->mutable_drop();
+				*drop.mutable_id() = identity.GetProto();
 
-		m_network->Send(p.IP, p.Port, std::move(outbound));
-	}
-	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}, drop message failed.", m_postOffice->GetName(), peer);
+				m_network->Send(p.IP, p.Port, std::move(outbound));
+			}
+			else
+				SPDLOG_WARN("{}: Unable to find peer for address {}, drop message failed.", m_postOffice->GetName(), p.ToString());
+		},
+		[this, &identity](const ActorContainer::Process& p)
+		{
+			SPDLOG_WARN("{}: Attempted to send a message to process {}, drop message failed.", m_postOffice->GetName(), p.ToString());
+		}
+	}, peer.value);
 }
 
 void PeerConnection::RequestIdentities(const ActorContainer& peer) const
 {
-	auto p = std::get<ActorContainer::Network>(peer.value);
-	if (m_network->HasHost(p.IP, p.Port))
-	{
-		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
-		proto::routing::RequestIdentities& req = *outbound->mutable_request();
+	std::visit(overload{
+		[this](const ActorContainer::Network& p)
+		{
+			if (m_network->HasHost(p.IP, p.Port))
+			{
+				auto outbound = std::make_unique<peernetwork::NetworkMessage>();
+				proto::routing::RequestIdentities& req = *outbound->mutable_request();
 
-		m_network->Send(p.IP, p.Port, std::move(outbound));
-	}
-	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}, send request failed.", m_postOffice->GetName(), peer);
+				m_network->Send(p.IP, p.Port, std::move(outbound));
+			}
+			else
+				SPDLOG_WARN("{}: Unable to find peer for address {}, send request failed.", m_postOffice->GetName(), p.ToString());
+		},
+		[this](const ActorContainer::Process& p)
+		{
+			SPDLOG_WARN("{}: Attempted to send a message to process {}, send request failed.", m_postOffice->GetName(), p.ToString());
+		}
+	}, peer.value);
 }
 
 void PeerConnection::BroadcastMessage(MessagePtr message)
