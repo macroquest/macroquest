@@ -189,7 +189,7 @@ public:
 		, m_messageBuffer(std::make_unique<NetworkMessage>())
 		, m_receiveHandler(std::move(receiveHandler))
 	{
-		SPDLOG_DEBUG("{}: Session created ({}:{})", m_peerPort, m_address.IP, m_address.Port);
+		SPDLOG_TRACE("{}: Session created ({}:{})", m_peerPort, m_knownAddress.IP, m_knownAddress.Port);
 	}
 
 	NetworkSession() = delete;
@@ -200,16 +200,21 @@ public:
 
 	~NetworkSession()
 	{
-		SPDLOG_DEBUG("{}: Session destroyed ({}:{})", m_peerPort, m_address.IP, m_address.Port);
+		SPDLOG_TRACE("{}: Session destroyed {}:{} ({}:{})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.IP, m_knownAddress.Port);
 
-		Close();
+		// this should have already shut down gracefully but in the case we had an issue then call cancel to force it to close
+		if (m_socket.is_open())
+		{
+			SPDLOG_WARN("{}: session did not close gracefully, canceling the socket {}:{} ({})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.Port);
+			m_socket.cancel();
+		}
 	}
 
 	void Shutdown()
 	{
 		if (m_active)
 		{
-			SPDLOG_DEBUG("{}: Shutting down connection ({}:{})", m_peerPort, m_address.IP, m_address.Port);
+			SPDLOG_TRACE("{}: Shutting down connection {}:{} ({}:{})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.IP, m_knownAddress.Port);
 			std::error_code ec;
 
 			(void)m_socket.shutdown(asio::socket_base::shutdown_both, ec);
@@ -221,28 +226,37 @@ public:
 
 	void Close()
 	{
-		SPDLOG_DEBUG("{}: Closing session ({}:{}) open={}", m_peerPort, m_address.IP, m_address.Port, m_socket.is_open());
-		if (m_socket.is_open())
-			m_socket.close();
+		if (m_socket.is_open() && !m_reading && !m_writing)
+		{
+			std::error_code ec;
+			m_socket.close(ec);
+			if (ec)
+				SPDLOG_WARN("{}: Received error when closing down socket {}: {}", m_peerPort, ec.value(), ec.message());
+		}
 	}
 
 	void Receive()
 	{
 		SPDLOG_TRACE("{}: Session receiving", m_peerPort);
+		m_reading = true; // we only start reading once, set it here
 		Read();
 	}
 
 	void Write(peernetwork::Header&& header, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
-		// this function should only ever get called from the ASIO thread
-		// to ensure that we don't have multiple write loops happening at
-		// once
-		m_outgoing.Push(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
-
-		// kick off the loop if it's not running and there are messages
-		if (!m_writing)
+		// don't start writes on sessions that are closing down
+		if (m_active)
 		{
-			InternalWrite();
+			// this function should only ever get called from the ASIO thread
+			// to ensure that we don't have multiple write loops happening at
+			// once
+			m_outgoing.Push(std::make_unique<NetworkMessage>(std::move(header), std::move(payload), length));
+
+			// kick off the loop if it's not running and there are messages
+			if (!m_writing)
+			{
+				InternalWrite();
+			}
 		}
 	}
 
@@ -291,7 +305,10 @@ private:
 				if (!ec)
 					ReadHeader();
 				else
+				{
+					m_reading = false;
 					CloseWithMessage(ec, "Header length read");
+				}
 			});
 	}
 
@@ -317,7 +334,10 @@ private:
 					if (!ec)
 						ReadPayload();
 					else
+					{
+						m_reading = false;
 						CloseWithMessage(ec, "Header read");
+					}
 				});
 		}
 	}
@@ -343,7 +363,10 @@ private:
 					if (!ec)
 						ReceiveMessage();
 					else
+					{
+						m_reading = false;
 						CloseWithMessage(ec, "Payload read");
+					}
 				});
 		}
 		else
@@ -389,7 +412,10 @@ private:
 					if (!ec)
 						InternalWrite();
 					else
+					{
+						m_writing = false;
 						CloseWithMessage(ec, "Message write");
+					}
 				});
 		}
 	}
@@ -408,6 +434,7 @@ private:
 	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
 
 	bool m_writing = false;
+	bool m_reading = false;
 };
 
 class NetworkPeer
@@ -436,69 +463,53 @@ public:
 
 	~NetworkPeer()
 	{
-		SPDLOG_INFO("{}: Removing peer", m_port);
+		SPDLOG_TRACE("{}: Removing peer", m_port);
 	}
 
 	void Run()
 	{
-		m_thread = std::thread([this]()
-			{
-				try
+		bool running = false;
+		if (m_running.compare_exchange_weak(running, true))
+		{
+			m_thread = std::thread([this]()
 				{
-					using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
-					fSetThreadDescription SetThreadDescription = nullptr;
-					if (auto kernel = GetModuleHandleA("kernel32.dll"))
-						SetThreadDescription = (fSetThreadDescription)GetProcAddress(kernel, "SetThreadDescription");
-
-					if (SetThreadDescription)
-						SetThreadDescription(GetCurrentThread(), L"Network ASIO");
-
-					SPDLOG_INFO("{}: Initializing peer", m_port);
-
-					m_acceptor.listen();
-					Accept();
-
-					SPDLOG_TRACE("{}: Starting peer thread", m_port);
-					while (m_ioContext.run_one())
+					try
 					{
-						PruneSessions();
+						using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+						fSetThreadDescription SetThreadDescription = nullptr;
+						if (auto kernel = GetModuleHandleA("kernel32.dll"))
+							SetThreadDescription = (fSetThreadDescription)GetProcAddress(kernel, "SetThreadDescription");
+
+						if (SetThreadDescription)
+							SetThreadDescription(GetCurrentThread(), L"Network ASIO");
+
+						SPDLOG_TRACE("{}: Initializing peer", m_port);
+
+						m_acceptor.listen();
+						Accept();
+
+						SPDLOG_TRACE("{}: Starting peer thread", m_port);
+						while (m_ioContext.run_one())
+						{
+							PruneSessions();
+						}
+
+						SPDLOG_TRACE("{}: Peer thread stopping normally", m_port);
 					}
+					catch (std::exception& e)
+					{
+						m_running = false;
 
-					SPDLOG_TRACE("{}: Peer thread stopping normally", m_port);
-				}
-				catch (std::exception& e)
-				{
-					SPDLOG_ERROR("{}: Peer failed with exception {}", m_port, e.what());
-				}
-			});
-	}
+						// we can be indelicate here since everything has already failed
+						m_acceptor.cancel();
+						DrainSessions();
 
-	void Connect(const std::string& address, uint16_t port)
-	{
-		auto socket = std::make_shared<tcp::socket>(m_acceptor.get_executor());
-		auto timer = std::make_shared<asio::steady_timer>(m_ioContext);
-		const tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
-
-		socket->async_connect(
-			endpoint,
-			[this, address, port, socket, timer](const std::error_code& ec)
-			{
-				SPDLOG_TRACE("{}: Connect attempt with local endpoint {}:{} and remote endpoint {}:{}",
-					m_port,
-					socket->local_endpoint().address().to_string(), socket->local_endpoint().port(),
-					socket->remote_endpoint().address().to_string(), socket->remote_endpoint().port());
-
-				// pass off the connection to the session, if the session has failed then retry
-				if (!AddSession(ec, std::move(*socket)))
-				{
-					SPDLOG_WARN("{}: Session failed to connect to {}:{}", m_port, address, port);
-
-					// TODO: make retry time configurable
-					timer->expires_from_now(std::chrono::seconds(2));
-					timer->async_wait(
-						[this, address, port](const std::error_code& ec) { Connect(address, port); });
-				}
-			});
+						SPDLOG_ERROR("{}: Peer failed with exception {}", m_port, e.what());
+					}
+				});
+		}
+		else
+			SPDLOG_WARN("{}: Attempted to run the peer thread while it was already running", m_port);
 	}
 
 	void Send(
@@ -507,10 +518,13 @@ public:
 		std::unique_ptr<uint8_t[]> payload,
 		uint32_t length)
 	{
-		std::unique_lock lock(m_processMutex);
+		if (m_running)
+		{
+			std::unique_lock lock(m_processMutex);
 
-		m_writeQueue.emplace_back(message_type, address, std::move(payload), length);
-		m_ioContext.post([this] { ProcessWrites(); });
+			m_writeQueue.emplace_back(message_type, address, std::move(payload), length);
+			m_ioContext.post([this] { ProcessWrites(); });
+		}
 	}
 
 	// the thread this function runs on is externally controlled because this is where we run the
@@ -519,7 +533,7 @@ public:
 	{
 		std::unique_lock lock(m_processMutex);
 
-		if (!m_processQueue.empty() || !m_receiveQueue.empty())
+		if (m_running && (!m_processQueue.empty() || !m_receiveQueue.empty()))
 		{
 			std::vector<std::function<void()>> processes;
 			std::swap(processes, m_processQueue);
@@ -541,18 +555,24 @@ public:
 
 	void Broadcast(peernetwork::MessageType message_type, std::unique_ptr<uint8_t[]> payload, uint32_t length)
 	{
-		std::unique_lock lock(m_processMutex);
+		if (m_running)
+		{
+			std::unique_lock lock(m_processMutex);
 
-		m_broadcastQueue.emplace_back(message_type, std::move(payload), length);
-		m_ioContext.post([this] { ProcessBroadcasts(); });
+			m_broadcastQueue.emplace_back(message_type, std::move(payload), length);
+			m_ioContext.post([this] { ProcessBroadcasts(); });
+		}
 	}
 
 	void AddHost(const NetworkAddress& address)
 	{
-		std::unique_lock lock(m_hostMutex);
-		m_pendingConnects.push_back(address);
+		if (m_running)
+		{
+			std::unique_lock lock(m_hostMutex);
+			m_pendingConnects.push_back(address);
 
-		m_ioContext.post([this] { AddConnections(); });
+			m_ioContext.post([this] { AddConnections(); });
+		}
 	}
 
 	void RemoveHost(const NetworkAddress& address)
@@ -572,27 +592,24 @@ public:
 
 	void Shutdown()
 	{
-		m_ioContext.post([this]
-			{
-				for (const auto& [_, session] : m_connectingSessions)
-					session->Shutdown();
-			});
+		bool running = true;
+		if (m_running.compare_exchange_weak(running, false))
+		{
+			SPDLOG_TRACE("{}: Shutting down peer", m_port);
+			// the acceptor needs to be signaled immediately to close or it could accept a connection after m_running
+			// is set to false, causing the session to never drain
+			m_acceptor.close();
+			m_ioContext.post([this] { DrainSessions(); });
+		}
+		else
+			SPDLOG_WARN("{}: Attempting to shutdown an inactive peer", m_port);
 
-		m_ioContext.post([this]
-			{
-				for (const auto& [_, session] : m_sessions)
-					session->Shutdown();
-			});
-
-		SPDLOG_INFO("{}: Shutting down peer", m_port);
-		while (!m_sessions.empty() || !m_connectingSessions.empty() || !m_closingSessions.empty());
-		m_ioContext.stop();
 		m_thread.join();
 	}
 
 	bool HasHost(const NetworkAddress& address)
 	{
-		return m_knownHosts.find(address) != m_knownHosts.end();
+		return m_running && m_knownHosts.find(address) != m_knownHosts.end();
 	}
 
 	uint16_t GetPort()
@@ -602,34 +619,80 @@ public:
 
 private:
 
+	void Connect(const std::string& address, uint16_t port)
+	{
+		auto socket = std::make_shared<tcp::socket>(m_acceptor.get_executor());
+		const tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
+
+		socket->async_connect(
+			endpoint,
+			[this, address, port, socket](const std::error_code& ec)
+			{
+				if (m_running && !ec)
+				{
+					SPDLOG_TRACE("{}: Connect attempt with local endpoint {}:{} and remote endpoint {}:{}",
+						m_port,
+						socket->local_endpoint().address().to_string(), socket->local_endpoint().port(),
+						socket->remote_endpoint().address().to_string(), socket->remote_endpoint().port());
+
+					// pass off the connection to the session
+					AddSession(std::move(*socket));
+				}
+				else
+				{
+					// connection refused is when the peer is not available, don't throw an error for that
+					if (m_running && ec != asio::error::connection_refused)
+						SPDLOG_ERROR("{}: Connect failed with ERR {}: {}", m_port, ec.value(), ec.message());
+
+					// make sure to close the socket on failure
+					if (socket->is_open()) socket->close();
+
+					// if the session has failed then let the user handle it
+					m_sessionDisconnectedHandler(NetworkAddress{ address, port });
+				}
+			});
+	}
+
 	void Accept()
 	{
 		m_acceptor.async_accept(
 			[this](const std::error_code& ec, tcp::socket socket)
 			{
-				SPDLOG_TRACE("{}: Accepting connection with local endpoint {}:{} and remote endpoint {}:{}",
-					m_port,
-					socket.local_endpoint().address().to_string(), socket.local_endpoint().port(),
-					socket.remote_endpoint().address().to_string(), socket.remote_endpoint().port());
+				if (m_running && !ec)
+				{
+					SPDLOG_TRACE("{}: Accepting connection with local endpoint {}:{} and remote endpoint {}:{}",
+						m_port,
+						socket.local_endpoint().address().to_string(), socket.local_endpoint().port(),
+						socket.remote_endpoint().address().to_string(), socket.remote_endpoint().port());
 
-				// pass off the connection to the session
-				AddSession(ec, std::move(socket));
+					// pass off the connection to the session
+					AddSession(std::move(socket));
 
-				// we always want to continue to listen, regardless of the condition of the session spawned
-				Accept();
+					// we always want to continue to listen, regardless of the condition of the session spawned
+					Accept();
+				}
+				else
+				{
+					// operation_aborted comes from closing the acceptor, we don't want to error for that
+					if (m_running && ec != asio::error::operation_aborted)
+						SPDLOG_ERROR("{}: Accept failed with ERR {}: {}", m_port, ec.value(), ec.message());
+
+					// make sure to close the socket on failure
+					if (socket.is_open()) socket.close();
+				}
 			});
 	}
 
-	bool AddSession(const std::error_code& ec, tcp::socket&& socket)
+	void AddSession(tcp::socket&& socket)
 	{
-		if (!ec)
-		{
-			auto session = std::make_unique<NetworkSession>(m_port, std::move(socket),
-				[this](
-					const peernetwork::Header& header,
-					NetworkSession* session,
-					std::unique_ptr<uint8_t[]>&& payload,
-					uint32_t length)
+		auto session = std::make_unique<NetworkSession>(m_port, std::move(socket),
+			[this](
+				const peernetwork::Header& header,
+				NetworkSession* session,
+				std::unique_ptr<uint8_t[]>&& payload,
+				uint32_t length)
+			{
+				if (m_running)
 				{
 					switch (header.type())
 					{
@@ -656,39 +719,30 @@ private:
 						SPDLOG_WARN("{}: Got unreconized header type {}", m_port, static_cast<uint32_t>(header.type()));
 						break;
 					}
-				});
+				}
+			});
 
-			auto connecting_addr = session->Address();
-			auto [session_it, _] = m_connectingSessions.emplace(
-				connecting_addr,
-				std::move(session)
-			);
+		auto connecting_addr = session->Address();
+		auto [session_it, _] = m_connectingSessions.emplace(
+			connecting_addr,
+			std::move(session)
+		);
 
-			session_it->second->Receive();
+		session_it->second->Receive();
 
-			const auto endpoint = session_it->second->Endpoint();
-			SPDLOG_INFO("{}: Adding connection to endpoint {}:{} (connected sessions {}, connecting sessions {})",
-				m_port, endpoint.address().to_string(), endpoint.port(),
-				m_sessions.size(), m_connectingSessions.size());
+		const auto endpoint = session_it->second->Endpoint();
+		SPDLOG_TRACE("{}: Adding connection to endpoint {}:{} (connected sessions {}, connecting sessions {})",
+			m_port, endpoint.address().to_string(), endpoint.port(),
+			m_sessions.size(), m_connectingSessions.size());
 
-			peernetwork::Identity id;
-			id.set_uuid(m_uuid);
-			id.set_port(m_port);
+		peernetwork::Identity id;
+		id.set_uuid(m_uuid);
+		id.set_port(m_port);
 
-			auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
-			id.SerializeToArray(payload.get(), static_cast<uint32_t>(id.ByteSizeLong()));
+		auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
+		id.SerializeToArray(payload.get(), static_cast<uint32_t>(id.ByteSizeLong()));
 
-			Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), static_cast<uint32_t>(id.ByteSizeLong()));
-		}
-		else
-		{
-			const auto endpoint = socket.local_endpoint();
-			SPDLOG_ERROR("{}: Connection failed to endpoint {}:{} with ERR {}: {}", m_port, endpoint.address().to_string(), endpoint.port(), ec.value(), ec.message());
-			// make sure to close the socket on failure
-			if (socket.is_open()) socket.close();
-		}
-
-		return !ec;
+		Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), static_cast<uint32_t>(id.ByteSizeLong()));
 	}
 
 	void ResolveHandshake(const NetworkAddress& fromAddress, const std::string& peerUuid, uint16_t peerPort)
@@ -750,7 +804,7 @@ private:
 				}
 
 				// we've either swapped into peer_it->second or it's the one we wanted to remove
-				SPDLOG_INFO("{}: Duplicate connection found, removing {}:{}", m_port, peer_it->second->Address().IP, peer_it->second->Address().Port);
+				SPDLOG_TRACE("{}: Duplicate connection found, removing {}:{} ({})", m_port, peer_it->second->Address().IP, peer_it->second->Address().Port, peerPort);
 				peer_it->second->Shutdown();
 				m_duplicateSessions.emplace_back(std::move(peer_it->second));
 			}
@@ -758,13 +812,13 @@ private:
 			{
 				// this is normal operation -- just put the session into the map
 				m_sessions.emplace(known_host, std::move(peer_it->second));
-				AddProcess([this, known_host = std::move(known_host)]()
-					{
-						m_sessionConnectedHandler(known_host);
-					});
 			}
 
 			m_connectingSessions.erase(peer_it);
+			AddProcess([this, known_host = std::move(known_host)]()
+				{
+					m_sessionConnectedHandler(known_host);
+				});
 		}
 		else
 		{
@@ -775,6 +829,16 @@ private:
 
 	void PruneSessions()
 	{
+		auto do_disco = [this](NetworkAddress addr)
+			{
+				{
+					std::unique_lock lock(m_hostMutex);
+					m_knownHosts.erase(addr);
+				}
+
+				AddProcess([this, addr = std::move(addr)] { m_sessionDisconnectedHandler(addr); });
+			};
+
 		m_duplicateSessions.erase(std::remove_if(m_duplicateSessions.begin(), m_duplicateSessions.end(),
 			[](std::unique_ptr<NetworkSession>& session)
 			{ return !session->IsOpen(); }),
@@ -784,12 +848,7 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				m_knownHosts.erase(it->first);
-				AddProcess([this, addr = it->first]()
-					{
-						m_sessionDisconnectedHandler(addr);
-					});
-
+				do_disco(it->first);
 				it = m_closingSessions.erase(it);
 			}
 			else
@@ -801,12 +860,7 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				m_knownHosts.erase(it->first);
-				AddProcess([this, addr = it->first]()
-					{
-						m_sessionDisconnectedHandler(addr);
-					});
-
+				do_disco(it->first);
 				it = m_sessions.erase(it);
 			}
 			else if (!it->second->IsActive())
@@ -822,12 +876,7 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				m_knownHosts.erase(it->first);
-				AddProcess([this, addr = it->first]()
-					{
-						m_sessionDisconnectedHandler(addr);
-					});
-
+				do_disco(it->first);
 				it = m_connectingSessions.erase(it);
 			}
 			else if (!it->second->IsActive())
@@ -840,6 +889,25 @@ private:
 		}
 
 		//SPDLOG_DEBUG("RunOne() pending sessions: {} active sessions: {}", m_pendingSessions.size(), m_sessions.size());
+	}
+
+	void DrainSessions()
+	{
+		if (!m_sessions.empty() || !m_connectingSessions.empty() || !m_closingSessions.empty() || !m_duplicateSessions.empty())
+		{
+			for (const auto& [_, session] : m_connectingSessions)
+				session->Shutdown();
+
+			for (const auto& [_, session] : m_sessions)
+				session->Shutdown();
+
+			PruneSessions();
+			auto timer = asio::steady_timer(m_ioContext);
+			timer.expires_from_now(std::chrono::milliseconds(50));
+			timer.async_wait([this](const std::error_code&) { DrainSessions(); });
+		}
+		else
+			m_ioContext.stop();
 	}
 
 	void AddConnections()
@@ -955,6 +1023,7 @@ private:
 
 	asio::io_context m_ioContext{};
 	tcp::acceptor m_acceptor;
+	std::atomic_bool m_running{ false };
 
 	const uint16_t m_port;
 	const std::string m_uuid;

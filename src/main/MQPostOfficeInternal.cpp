@@ -144,7 +144,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 			const MQMessageProcessLoadedResponse* response = message->get<MQMessageProcessLoadedResponse>();
 			m_postOffice->m_launcherProcessID = response->processId;
 
-			SPDLOG_DEBUG("Launcher process ID: {}", m_postOffice->m_launcherProcessID);
+			SPDLOG_TRACE("Launcher process ID: {}", m_postOffice->m_launcherProcessID);
 		}
 		break;
 	}
@@ -164,7 +164,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 
 void MQPostOffice::PipeEventsHandler::OnClientConnected()
 {
-	SPDLOG_DEBUG("{}: Connection to named pipe created, Sending process loaded message.", m_postOffice->GetName());
+	SPDLOG_TRACE("{}: Connection to named pipe created, Sending process loaded message.", m_postOffice->GetName());
 
 	MQMessageProcessLoadedFromMQ msg;
 	msg.processId = GetCurrentProcessId();
@@ -178,7 +178,7 @@ void MQPostOffice::PipeEventsHandler::OnClientConnected()
 }
 
 MQPostOffice::MQPostOffice(const MQPostOfficeConfig& config)
-	: PostOffice(ActorIdentification(ActorContainer::Process{ GetCurrentProcessId(), CreateUUID() }, GetCurrentClient(config)))
+	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::Process{ GetCurrentProcessId() }, CreateUUID()), GetCurrentClient(config)))
 	, m_config(config)
 	, m_pipeClient{ config.PipeName.c_str() }
 	, m_launcherProcessID(0)
@@ -219,9 +219,9 @@ void MQPostOffice::RouteMessage(MessagePtr message)
 	if (message->has_address())
 	{
 		const auto& address = message->address();
-		auto uuid = GetUUID(address);
+		auto uuid = address.uuid();
 		
-		if (uuid.empty() || uuid != m_id.container.GetUUID()) // either ambiguous clients, or explicitly not this client
+		if (uuid.empty() || uuid != m_id.container.uuid) // either ambiguous clients, or explicitly not this client
 			m_pipeClient.SendMessage(std::move(msg));
 		else // uuid matches this client
 			m_pipeClient.DispatchMessage(std::move(msg));

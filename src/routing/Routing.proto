@@ -18,13 +18,11 @@ package mq.proto.routing;
 
 message Process {
 	uint32 pid = 1;
-	string uuid = 2;
 }
 
 message Peer {
 	string ip = 1;
 	uint32 port = 2;
-	string uuid = 3;
 }
 
 message Client {
@@ -38,6 +36,8 @@ message Identification {
 		Process process = 1;
 		Peer peer = 2;
 	}
+
+	string uuid = 3;
 
 	oneof address {
 		string name = 11;
@@ -60,6 +60,7 @@ message Address {
 	}
 
 	optional string mailbox = 6;
+	optional string uuid = 7;
 }
 
 message AddIdentity {
@@ -75,6 +76,8 @@ message RequestIdentities {
 		Process process = 1;
 		Peer peer = 2;
 	}
+
+	string uuid = 3;
 }
 
 message Envelope {

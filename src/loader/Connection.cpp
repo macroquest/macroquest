@@ -31,13 +31,6 @@
 
 using namespace mq::postoffice;
 
-static std::optional<std::string> s_iniLocation;
-
-void SetPostOfficeIni(std::string_view ini)
-{
-	s_iniLocation = ini;
-}
-
 // -------------------------- LocalConnection ---------------------------------
 
 // pipe specific statics
@@ -101,7 +94,7 @@ public:
 			{
 				// if there is a payload, then we are getting a notification of ID
 				auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-				m_connection->UpdateConnection(GetUUID(id), message->GetConnectionId());
+				m_connection->UpdateConnection(id.uuid(), message->GetConnectionId());
 
 				// send this to the post office to process in the launcher dropbox
 				m_connection->GetPostOffice()->AddIdentity(ActorIdentification(std::move(id)));
@@ -110,10 +103,13 @@ public:
 			{
 				if (const auto& conn = pipeServer->GetConnection(message->GetConnectionId()))
 				{
+					// TODO: This technically isn't correct because it doesn't use the information contained in the
+					// proto -- this should have a message ID
+
 					// we are getting a request to send all IDs, do so sequentially and asynchronously
 					// send this to the post office to process in the launcher dropbox
 					auto uuid = m_connection->GetConnectionUUID(message->GetConnectionId());
-					m_connection->GetPostOffice()->SendIdentities(ActorContainer(ActorContainer::Process{ conn->GetProcessId(), uuid }));
+					m_connection->GetPostOffice()->SendIdentities(ActorContainer(ActorContainer::Process{ conn->GetProcessId() }, uuid));
 				}
 			}
 
@@ -122,7 +118,7 @@ public:
 		case mq::MQMessageId::MSG_DROPPED:
 		{
 			auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-			m_connection->DropConnection(GetUUID(id));
+			m_connection->DropConnection(id.uuid());
 			m_connection->GetPostOffice()->DropIdentity(ActorIdentification(std::move(id)));
 			break;
 		}
@@ -225,7 +221,7 @@ public:
 	{
 		auto uuid = m_connection->GetConnectionUUID(connectionId);
 		m_connection->DropConnection(uuid);
-		m_connection->DropProcess(ActorContainer::Process{ static_cast<uint32_t>(processId), uuid });
+		m_connection->DropProcess(ActorContainer(ActorContainer::Process{ static_cast<uint32_t>(processId) }, uuid));
 	}
 
 private:
@@ -241,7 +237,7 @@ std::string GetPipePath(LauncherPostOffice* postOffice)
 LocalConnection::LocalConnection(LauncherPostOffice* postOffice)
 	: Connection(postOffice)
 	, m_pipeServer(std::make_unique<ProtoPipeServer>(GetPipePath(postOffice).c_str()))
-	, m_uuid(postOffice->GetID().container.GetUUID())
+	, m_uuid(postOffice->GetID().container.uuid)
 {
 	m_pipeServer->SetHandler(std::make_shared<PipeEventsHandler>(this));
 }
@@ -254,39 +250,39 @@ void LocalConnection::Process()
 	m_pipeServer->Process();
 }
 
-bool LocalConnection::SendMessage(const ActorContainer::Process& process, MessagePtr message)
+bool LocalConnection::SendMessage(const ActorContainer& process, MessagePtr message)
 {
 	const auto payload = std::make_unique<uint8_t[]>(message->ByteSizeLong());
 	message->SerializeToArray(payload.get(), static_cast<int>(message->ByteSizeLong()));
 
 	auto msg = std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, payload.get(), message->ByteSizeLong());
 
-	if (process.UUID == m_uuid)
+	if (process.uuid == m_uuid)
 	{
-		SPDLOG_TRACE("{}: Pipe detected self message, dispatching {} (PID {}) seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
+		SPDLOG_TRACE("{}: Pipe detected self message, dispatching {} seq={}", m_postOffice->GetName(), process, message->sequence());
 		// send to self, dispatch directly to the handler
 		m_pipeServer->DispatchMessage(std::move(msg));
 		return true;
 	}
 
-	if (const auto& connection = GetConnection(process.UUID))
+	if (const auto& connection = GetConnection(process.uuid))
 	{
 		// found a connection to send it over
-		SPDLOG_TRACE("{}: Pipe found connection, dispatching {} (PID {}) seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
+		SPDLOG_TRACE("{}: Pipe found connection, dispatching {} seq={}", m_postOffice->GetName(), process, message->sequence());
 		connection->SendMessage(std::move(msg));
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), message route failed. seq={}", m_postOffice->GetName(), process.UUID, process.PID, message->sequence());
+	SPDLOG_WARN("{}: Unable to get connection for {}, message route failed. seq={}", m_postOffice->GetName(), process, message->sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
 	return false;
 }
 
-void LocalConnection::SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
+void LocalConnection::SendIdentification(const ActorContainer& process, const ActorIdentification& identity) const
 {
-	if (const auto& connection = GetConnection(process.UUID))
+	if (const auto& connection = GetConnection(process.uuid))
 	{
-		proto::routing::Identification id = identity.GetProto();
+		auto id = identity.GetProto();
 
 		const auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
 		id.SerializeToArray(payload.get(), static_cast<int>(id.ByteSizeLong()));
@@ -294,14 +290,14 @@ void LocalConnection::SendIdentification(const ActorContainer::Process& process,
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, payload.get(), id.ByteSizeLong()));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), identification message failed.", m_postOffice->GetName(), process.UUID, process.PID);
+		SPDLOG_WARN("{}: Unable to get connection for {}, identification message failed.", m_postOffice->GetName(), process);
 }
 
-void LocalConnection::DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const
+void LocalConnection::DropIdentification(const ActorContainer& process, const ActorIdentification& identity) const
 {
-	if (const auto& connection = GetConnection(process.UUID))
+	if (const auto& connection = GetConnection(process.uuid))
 	{
-		proto::routing::Identification id = identity.GetProto();
+		auto id = identity.GetProto();
 
 		const auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
 		id.SerializeToArray(payload.get(), static_cast<int>(id.ByteSizeLong()));
@@ -309,17 +305,17 @@ void LocalConnection::DropIdentification(const ActorContainer::Process& process,
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, payload.get(), id.ByteSizeLong()));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), drop message failed.", m_postOffice->GetName(), process.UUID, process.PID);
+		SPDLOG_WARN("{}: Unable to get connection for {}, drop message failed.", m_postOffice->GetName(), process);
 }
 
-void LocalConnection::RequestIdentities(const ActorContainer::Process& process) const
+void LocalConnection::RequestIdentities(const ActorContainer& process) const
 {
-	if (const auto& connection = GetConnection(process.UUID))
+	if (const auto& connection = GetConnection(process.uuid))
 	{
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_IDENTIFICATION, nullptr, 0));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to get connection for {} (PID {}), send request failed.", m_postOffice->GetName(), process.UUID, process.PID);
+		SPDLOG_WARN("{}: Unable to get connection for {}, send request failed.", m_postOffice->GetName(), process);
 }
 
 void LocalConnection::BroadcastMessage(MessagePtr message)
@@ -335,9 +331,9 @@ void LocalConnection::RouteFromPipe(MessagePtr message)
 	m_postOffice->RouteFromConnection(std::move(message));
 }
 
-void LocalConnection::DropProcess(const ActorContainer::Process& process) const
+void LocalConnection::DropProcess(const ActorContainer& process) const
 {
-	m_postOffice->DropContainer(ActorContainer(process));
+	m_postOffice->DropContainer(process);
 }
 
 void LocalConnection::Start()
@@ -371,13 +367,13 @@ bool LocalConnection::SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 
 void LocalConnection::SendUnloadAllCommand()
 {
-	SPDLOG_DEBUG("{}: Requesting to unload all instances", m_postOffice->GetName());
+	SPDLOG_INFO("{}: Requesting to unload all instances", m_postOffice->GetName());
 	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
 }
 
 void LocalConnection::SendForceUnloadAllCommand()
 {
-	SPDLOG_DEBUG("{}: Requesting to FORCE unload all instances", m_postOffice->GetName());
+	SPDLOG_INFO("{}: Requesting to FORCE unload all instances", m_postOffice->GetName());
 	m_pipeServer->BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 }
 
@@ -441,24 +437,24 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		{
 			using peernetwork::NetworkMessage;
 
-			auto source_addr = ActorContainer::Network{
-				address.IP, address.Port,
-				ActorContainer(message->add().id()).GetUUID() };
+			auto source_addr = ActorContainer::Network{ address.IP, address.Port };
 
 			switch (message->contents_case())
 			{
 			case NetworkMessage::kAdd:
-				UpdateConnection(GetUUID(message->add().id()), NetworkAddress{ source_addr.IP, source_addr.Port });
+				UpdateConnection(message->add().id().uuid(), NetworkAddress{source_addr.IP, source_addr.Port});
 				m_postOffice->AddIdentity(ActorIdentification(
-					std::move(source_addr), ActorIdentification::GetAddress(message->add().id())));
+					ActorContainer(std::move(source_addr), message->add().id().uuid()),
+					ActorIdentification::GetAddress(message->add().id())));
 				break;
 			case NetworkMessage::kDrop:
-				DropConnection(GetUUID(message->add().id()));
+				DropConnection(message->add().id().uuid());
 				m_postOffice->DropIdentity(ActorIdentification(
-					std::move(source_addr), ActorIdentification::GetAddress(message->drop().id())));
+					ActorContainer(std::move(source_addr), message->drop().id().uuid()),
+					ActorIdentification::GetAddress(message->drop().id())));
 				break;
 			case NetworkMessage::kRequest:
-				m_postOffice->SendIdentities(ActorContainer(source_addr));
+				m_postOffice->SendIdentities(ActorContainer(std::move(source_addr), message->request().uuid()));
 				break;
 			case NetworkMessage::kRouted:
 			{
@@ -490,16 +486,13 @@ PeerConnection::PeerConnection(LauncherPostOffice* postOffice)
 		[this](const NetworkAddress& address)
 		{
 			// once the connect attempt is successful, send all known identities to the remote to sync
-			m_postOffice->SendIdentities(ActorContainer(ActorContainer::Network{ address.IP, address.Port }));
+			m_postOffice->SendIdentities(ActorContainer(ActorContainer::Network{ address.IP, address.Port }, ""));
 		},
 		[this](const NetworkAddress& address)
 		{
 			auto uuid = GetConnectionUUID(address);
 			DropConnection(uuid);
-			// let's just always reconnect to disconnected hosts
-			// TODO: graceful reconnection (in network, probably need to return connect result in some way instead of auto-retrying)
-			//AddHost(address.IP, address.Port);
-			m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address.IP, address.Port, uuid }));
+			m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address.IP, address.Port }, uuid));
 		},
 		[this]()
 		{
@@ -512,93 +505,75 @@ PeerConnection::~PeerConnection()
 {
 }
 
-void PeerConnection::AddConfiguredHosts()
-{
-	const uint16_t default_port = GetPeerPort(m_postOffice);
-	const auto config = m_postOffice->GetConfig();
-
-	if (config.Peers)
-	{
-		for (const auto& [address, port] : *config.Peers)
-		{
-			AddHost(address, port > 0 ? port : default_port);
-		}
-	}
-	else if (s_iniLocation)
-	{
-		for (const auto& [address, port_raw] : GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
-		{
-			const uint16_t port = static_cast<uint16_t>(GetUIntFromString(port_raw, 0));
-			AddHost(address, port > 0 ? port : default_port);
-		}
-	}
-}
-
 void PeerConnection::Process()
 {
 	m_network->Process();
 }
 
-bool PeerConnection::SendMessage(const ActorContainer::Network& peer, MessagePtr message)
+bool PeerConnection::SendMessage(const ActorContainer& peer, MessagePtr message)
 {
+	auto p = std::get<ActorContainer::Network>(peer.value);
 	// the network library handles routing of any address (we can't short circuit local IP
 	// detection because it needs knowledge of the network)
-	if (m_network->HasHost(peer.IP, peer.Port))
+	if (m_network->HasHost(p.IP, p.Port))
 	{
 		// the network has the host (we do this in order to provide routing errors)
 		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
 		outbound->set_routed(message->SerializeAsString());
 
-		m_network->Send(peer.IP, peer.Port, std::move(outbound));
+		m_network->Send(p.IP, p.Port, std::move(outbound));
 
 		return true;
 	}
 
-	SPDLOG_WARN("{}: Unable to find peer for address {}:{}, message route failed. seq={}", m_postOffice->GetName(), peer.IP, peer.Port, message->sequence());
+	SPDLOG_WARN("{}: Unable to find peer for address {}, message route failed. seq={}", m_postOffice->GetName(), peer, message->sequence());
 	m_postOffice->RoutingFailed(MsgError_NoConnection, std::move(message), "Could not find connection");
 	return false;
 
 }
 
-void PeerConnection::SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
+void PeerConnection::SendIdentification(const ActorContainer& peer, const ActorIdentification& identity) const
 {
-	if (m_network->HasHost(peer.IP, peer.Port))
+	auto p = std::get<ActorContainer::Network>(peer.value);
+	if (m_network->HasHost(p.IP, p.Port))
 	{
 		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
 		proto::routing::AddIdentity& add = *outbound->mutable_add();
 		*add.mutable_id() = identity.GetProto();
 
-		m_network->Send(peer.IP, peer.Port, std::move(outbound));
+		m_network->Send(p.IP, p.Port, std::move(outbound));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, identification message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+		SPDLOG_WARN("{}: Unable to find peer for address {}, identification message failed.", m_postOffice->GetName(), peer);
 }
 
-void PeerConnection::DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const
+void PeerConnection::DropIdentification(const ActorContainer& peer, const ActorIdentification& identity) const
 {
-	if (m_network->HasHost(peer.IP, peer.Port))
+	auto p = std::get<ActorContainer::Network>(peer.value);
+	if (m_network->HasHost(p.IP, p.Port))
 	{
 		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
 		proto::routing::DropIdentity& drop = *outbound->mutable_drop();
 		*drop.mutable_id() = identity.GetProto();
 
-		m_network->Send(peer.IP, peer.Port, std::move(outbound));
+		m_network->Send(p.IP, p.Port, std::move(outbound));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, drop message failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+		SPDLOG_WARN("{}: Unable to find peer for address {}, drop message failed.", m_postOffice->GetName(), peer);
 }
 
-void PeerConnection::RequestIdentities(const ActorContainer::Network& peer) const
+void PeerConnection::RequestIdentities(const ActorContainer& peer) const
 {
-	if (m_network->HasHost(peer.IP, peer.Port))
+	auto p = std::get<ActorContainer::Network>(peer.value);
+	if (m_network->HasHost(p.IP, p.Port))
 	{
 		auto outbound = std::make_unique<peernetwork::NetworkMessage>();
 		proto::routing::RequestIdentities& req = *outbound->mutable_request();
 
-		m_network->Send(peer.IP, peer.Port, std::move(outbound));
+		m_network->Send(p.IP, p.Port, std::move(outbound));
 	}
 	else
-		SPDLOG_WARN("{}: Unable to find peer for address {}:{}, send request failed.", m_postOffice->GetName(), peer.IP, peer.Port);
+		SPDLOG_WARN("{}: Unable to find peer for address {}, send request failed.", m_postOffice->GetName(), peer);
 }
 
 void PeerConnection::BroadcastMessage(MessagePtr message)
@@ -626,7 +601,7 @@ void PeerConnection::AddHost(const std::string& address, uint16_t port) const
 void PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
 {
 	m_network->RemoveHost(address, port);
-	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }));
+	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }, ""));
 }
 
 uint16_t PeerConnection::GetPort() const

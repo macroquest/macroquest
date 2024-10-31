@@ -92,6 +92,7 @@ private:
 };
 
 // setting these configs is to allow testing without spoofing config files
+MQPostOfficeConfig GetPostOfficeConfig(uint32_t index);
 void SetPostOfficeConfig(const MQPostOfficeConfig& config);
 void DropPostOfficeConfig(uint32_t index);
 void ClearPostOfficeConfigs();

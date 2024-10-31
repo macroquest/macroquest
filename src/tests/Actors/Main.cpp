@@ -400,17 +400,19 @@ void TestBasicClientSetup()
 
 void TestLargeNetwork()
 {
-	for (uint32_t i = 2; i < 10; ++i)
+	constexpr uint32_t n_network = 10;
+
+	for (uint32_t i = 2; i < n_network; ++i)
 		SetPostOfficeConfig(PostOfficeConfig{ i, "Launcher", 0, fmt::format(R"(\\.\pipe\mqpipe{})", i) });
 
 	// this will set up the hosts first
 	std::vector<uint16_t> ports;
-	for (uint32_t i = 0; i < 10; ++i)
+	for (uint32_t i = 0; i < n_network; ++i)
 		ports.push_back(mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i).GetPeerPort());
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
-	for (uint32_t i = 0; i < 10; ++i)
+	for (uint32_t i = 0; i < n_network; ++i)
 	{
 		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
 		auto i_port = po.GetPeerPort();
@@ -420,16 +422,41 @@ void TestLargeNetwork()
 			if (port != i_port)
 				po.AddNetworkHost("127.0.0.1", port);
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
-	for (uint32_t i = 9; i > 1; --i)
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	for (uint32_t i = 0; i < n_network; ++i)
 	{
 		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
-		po.Shutdown();
-		mq::DropPostOfficeConfig(i);
+		// test the number of identities to ensure that all clients connected
+		if (po.GetIdentityCount() != n_network + 4)
+			SPDLOG_ERROR("TestLargeNetwork: {} had {} identities instead of {}", po.GetPeerPort(), po.GetIdentityCount(), n_network + 4);
 	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	for (uint32_t i = n_network - 1; i > 1; --i)
+	{
+		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+
+		po.Shutdown();
+		DropPostOfficeConfig(i);
+	}
+
+	// this just resets the persistent PO's
+	auto& po0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0);
+	auto& po1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1);
+	for (auto port : ports)
+	{
+		if (port != po0.GetPeerPort() && port != po1.GetPeerPort())
+		{
+			po0.RemoveNetworkHost("127.0.0.1", port);
+			po1.RemoveNetworkHost("127.0.0.1", port);
+		}
+	}
+
+	SPDLOG_INFO("TestLargeNetwork: Tests Complete");
 }
 
 void InitializeLogging()
@@ -454,6 +481,7 @@ int main(int argc, TCHAR* argv[])
 	InitPostOffices();
 
 	//Test();
+
 	TestLauncherBehavior();
 	TestBasicClientSetup();
 	TestLargeNetwork();

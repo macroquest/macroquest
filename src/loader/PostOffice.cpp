@@ -30,6 +30,13 @@
 
 static std::unordered_map<uint32_t, PostOfficeConfig> s_postOfficeConfigs;
 
+static std::optional<std::string> s_iniLocation;
+
+void SetPostOfficeIni(std::string_view ini)
+{
+	s_iniLocation = ini;
+}
+
 void RemovePostOffice(uint32_t index);
 
 namespace mq::postoffice {
@@ -38,11 +45,11 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 {
 	SPDLOG_TRACE("{}: Testing address [{}] against id [{}]", GetName(), address.ShortDebugString(), id.ToString());
 
-	std::string uuid = GetUUID(address);
+	std::string uuid = address.uuid();
 	return std::visit(overload{
-		[&address, &uuid](const ActorContainer::Process& proc)
+		[&address, &uuid, &c = id.container](const ActorContainer::Process& proc)
 		{
-			if (!uuid.empty() && proc.UUID != uuid)
+			if (!uuid.empty() && c.uuid != uuid)
 				return false;
 
 			if (!address.has_peer() && !address.has_process())
@@ -50,9 +57,9 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 
 			return (address.has_process() && address.process().pid() == proc.PID);
 		},
-		[&address, &uuid](const ActorContainer::Network& network)
+		[&address, &uuid, &c = id.container](const ActorContainer::Network& network)
 		{
-			if (!uuid.empty() && network.UUID != uuid)
+			if (!uuid.empty() && c.uuid != uuid)
 				return false;
 
 			if (!address.has_peer() && !address.has_process())
@@ -83,10 +90,10 @@ bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, con
 
 auto LauncherPostOffice::FindIdentity(
 	const proto::routing::Address& address,
-	const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from)
+	const std::unordered_map<std::string, ActorIdentification>::iterator& from)
 {
 	return std::find_if(from, m_identities.end(),
-		[&address, this](const std::pair<ActorContainer, ActorIdentification>& pair)
+		[&address, this](const std::pair<std::string, ActorIdentification>& pair)
 		{ return IsRecipient(address, pair.second); });
 }
 
@@ -134,7 +141,7 @@ void LauncherPostOffice::ProcessOutgoing()
 
 void LauncherPostOffice::ProcessOutgoingMessage(MessagePtr message)
 {
-	SPDLOG_TRACE("{}: Routing message to {} seq={}", GetName(), message->address().ShortDebugString(), message->sequence());
+	SPDLOG_TRACE("{}: Routing message to=[{}] seq={}", GetName(), message->address().ShortDebugString(), message->sequence());
 
 	// if we have a PID here, we could still have multiple names on the same PID, so we can't
 	// avoid the loop
@@ -147,16 +154,16 @@ void LauncherPostOffice::ProcessOutgoingMessage(MessagePtr message)
 		else if (FindIdentity(message->address(), std::next(identity)) != m_identities.end())
 			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
 		else
-			SendMessage(identity->first, std::move(message));
+			SendMessage(identity->second.container, std::move(message));
 	}
 	else
 	{
 		// we don't have a PID or a name and this is not an RPC, so we will send this message to 
 		// all clients that match the address -- it's important to copy these messages
-		for (const auto& identity : m_identities)
+		for (const auto& [_, identity] : m_identities)
 		{
-			if (IsRecipient(message->address(), identity.second))
-				SendMessage(identity.first, FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity.second));
+			if (IsRecipient(message->address(), identity))
+				SendMessage(identity.container, FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity));
 		}
 	}
 }
@@ -203,6 +210,7 @@ void LauncherPostOffice::ProcessIdentities()
 // use them. The assumption is that all routing peers will have the same name ("launcher" nominally)
 void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 {
+	SPDLOG_TRACE("{}: Requesting Add Identity {}", GetName(), id);
 	if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessAddIdentity(id);
@@ -220,14 +228,15 @@ void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 
 void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 {
+	SPDLOG_TRACE("{}: Processing Add Identity {}", GetName(), id);
 	// test for duplicates, update if different
 	bool send_updates = true;
-	auto ident_it = m_identities.find(id.container);
+	auto ident_it = m_identities.find(id.container.uuid);
 	if (ident_it != m_identities.end())
 	{
 		if (ident_it->second != id)
 		{
-			SPDLOG_INFO("{}: Got Updated identification new=[{}] old=[{}]", GetName(), id, ident_it->second);
+			SPDLOG_TRACE("{}: Got Updated identification new=[{}] old=[{}]", GetName(), id, ident_it->second);
 			ident_it->second = id;
 		}
 		else
@@ -238,23 +247,27 @@ void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 	}
 	else
 	{
-		SPDLOG_INFO("{}: Got New identification from [{}]", GetName(), id);
-		m_identities.emplace(id.container, id);
+		SPDLOG_TRACE("{}: Got New identification from [{}]", GetName(), id);
+		m_identities.emplace(id.container.uuid, id);
 	}
 
-	// TODO: this is maybe too aggressive? not sure how else to make identities idempotent
-	// we also need to update all the clients, but only if this was received from a local connection
 	if (send_updates && id.container.IsLocal())
 	{
-		for (const auto& [container, identity] : m_identities)
-			if (identity.address == m_id.address && identity.container != m_id.container && identity.container != id.container)
-				SendIdentification(container, id);
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid && uuid != id.container.uuid)
+				SendIdentification(identity.container, id);
 	}
 }
 
 void LauncherPostOffice::DropIdentity(const ActorIdentification& id)
 {
-	if (std::this_thread::get_id() == m_threadId)
+	SPDLOG_TRACE("{}: Requesting Drop Identity {}", GetName(), id);
+	if (id.address == m_id.address)
+	{
+		// if this is dropping another launcher, then everything it routes also needs to be dropped
+		DropContainer(id.container);
+	}
+	else if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessDropIdentity(id);
 	}
@@ -271,6 +284,7 @@ void LauncherPostOffice::DropIdentity(const ActorIdentification& id)
 
 void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 {
+	SPDLOG_TRACE("{}: Processing Drop Identity {}", GetName(), id);
 	for (auto ident_it = m_identities.begin(); ident_it != m_identities.end();)
 	{
 		if (ident_it->second.IsDuplicate(id))
@@ -281,14 +295,15 @@ void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 
 	if (id.container.IsLocal())
 	{
-		for (const auto& [container, identity] : m_identities)
-			if (identity.address == m_id.address && identity.container != m_id.container)
-				DropIdentification(container, id);
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid)
+				DropIdentification(identity.container, id);
 	}
 }
 
 void LauncherPostOffice::DropContainer(const ActorContainer& container)
 {
+	SPDLOG_TRACE("{}: Requesting Drop Container {}", GetName(), container);
 	if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessDropContainer(container);
@@ -306,24 +321,41 @@ void LauncherPostOffice::DropContainer(const ActorContainer& container)
 
 void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
 {
+	SPDLOG_TRACE("{}: Processing Drop Container {}", GetName(), container);
 	if (container.IsLocal())
 	{
 		std::vector<ActorIdentification> to_erase;
-		const auto range = m_identities.equal_range(container);
-		for (auto it = range.first; it != range.second; ++it)
-			to_erase.emplace_back(std::move(it->second));
+		auto it = std::find_if(m_identities.begin(), m_identities.end(),
+			[&container](const std::pair<std::string, ActorIdentification>& pair)
+			{ return pair.second.container.IsIn(container); });
 
-		for (const auto& [container, identity] : m_identities)
-			if (identity.address == m_id.address && identity.container != m_id.container)
+		while (it != m_identities.end())
+		{
+			to_erase.emplace_back(std::move(it->second));
+			it = std::find_if(m_identities.erase(it), m_identities.end(),
+				[&container](const std::pair<std::string, ActorIdentification>& pair)
+				{ return pair.second.container.IsIn(container); });
+		}
+
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid)
 				for (const auto& dropped : to_erase)
-					DropIdentification(container, dropped);
+					DropIdentification(identity.container, dropped);
 	}
 
-	m_identities.erase(container);
+	std::visit(overload{
+		[this](const ActorContainer::Process&) {},
+		[this](const ActorContainer::Network& net)
+		{
+			std::unique_lock lock(m_processMutex);
+			m_reconnectingHosts.emplace_back(NetworkAddress{net.IP, net.Port});
+		}
+	}, container.value);
 }
 
 void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 {
+	SPDLOG_TRACE("{}: Requesting Send Identities from {}", GetName(), requester);
 	if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessSendIdentities(requester);
@@ -341,9 +373,28 @@ void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
 
 void LauncherPostOffice::ProcessSendIdentities(const ActorContainer& requester)
 {
-	for (const auto& [container, client] : m_identities)
-		if (container.IsLocal())
+	SPDLOG_TRACE("{}: Processing Send Identities from {}", GetName(), requester);
+	for (const auto& [_, client] : m_identities)
+		if (client.container.IsLocal())
 			SendIdentification(requester, client);
+}
+
+void LauncherPostOffice::ProcessReconnects()
+{
+	std::unique_lock lock(m_processMutex);
+
+	if (!m_reconnectingHosts.empty())
+	{
+		std::vector<NetworkAddress> hosts;
+		std::swap(hosts, m_reconnectingHosts);
+
+		lock.unlock();
+
+		for (const auto& host : hosts)
+		{
+			AddNetworkHost(host.IP, host.Port);
+		}
+	}
 }
 
 void LauncherPostOffice::FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate)
@@ -387,8 +438,8 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 
 	const auto& address = message->address();
 
-	std::string uuid = GetUUID(address);
-	if ((!uuid.empty() && uuid == m_id.container.GetUUID()) ||
+	std::string uuid = address.uuid();
+	if ((!uuid.empty() && uuid == m_id.container.uuid) ||
 		uuid.empty() && address.has_process() && address.process().pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
 	{
 		// we are explicitly sending to this launcher, so route entirely internally
@@ -437,9 +488,32 @@ void LauncherPostOffice::RemoveNetworkHost(const std::string& address, uint16_t 
 	m_peerConnection->RemoveHost(address, port);
 }
 
+void LauncherPostOffice::AddConfiguredHosts()
+{
+	// it does not make sense for this port to be 0 since we are trying to connect to a peer with
+	// a live port, so assume 0 means connect to the same port as this
+	const uint16_t default_port = GetPeerPort();
+
+	if (m_config.Peers)
+	{
+		for (const auto& [address, port] : *m_config.Peers)
+		{
+			AddNetworkHost(address, port > 0 ? port : default_port);
+		}
+	}
+	else if (s_iniLocation)
+	{
+		for (const auto& [address, port_raw] : GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
+		{
+			const uint16_t port = static_cast<uint16_t>(GetUIntFromString(port_raw, 0));
+			AddNetworkHost(address, port > 0 ? port : default_port);
+		}
+	}
+}
+
 uint16_t LauncherPostOffice::GetPeerPort() const
 {
-	return m_peerConnection->GetPort();
+	return m_config.PeerPort;
 }
 
 void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& message)
@@ -447,13 +521,18 @@ void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& 
 	RequestProcessEvents();
 }
 
+uint32_t LauncherPostOffice::GetIdentityCount()
+{
+	return m_identities.size();
+}
+
 void LauncherPostOffice::Initialize()
 {
 	// request IDs from all pre-existing connections
 	// we could theoretically just ask a single peer but this will guarantee we have all
 	// potential addresses
-	for (const auto& [container, id] : m_identities)
-		if (!m_id.IsDuplicate(id)) RequestIdentities(container);
+	for (const auto& [_, id] : m_identities)
+		if (!m_id.IsDuplicate(id)) RequestIdentities(id.container);
 }
 
 void LauncherPostOffice::Shutdown()
@@ -480,22 +559,22 @@ void LauncherPostOffice::RequestProcessEvents()
 }
 
 LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
-	: PostOffice(ActorIdentification(ActorContainer::Process{ GetCurrentProcessId(), CreateUUID() }, "launcher"))
+	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::Process{ GetCurrentProcessId() }, CreateUUID()), "launcher"))
 	, m_config(config)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))
 {
 	m_config.PeerPort = m_peerConnection->GetPort();
-	SPDLOG_INFO("{}: Setting Post Office to use port {}", GetName(), m_config.PeerPort);
+	SPDLOG_INFO("{}: Starting Post Office on pipe {} and port {}", GetName(), m_config.PipeName, m_config.PeerPort);
 
 	m_name = fmt::format("{} [{}]", m_config.Name, m_config.PeerPort);
 
 	m_thread = std::thread(
 		[this]
 		{
-			m_identities.emplace(m_id.container, m_id);
+			m_identities.emplace(m_id.container.uuid, m_id);
 
-			m_peerConnection->AddConfiguredHosts();
+			AddConfiguredHosts();
 
 			using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
 			fSetThreadDescription SetThreadDescription = nullptr;
@@ -514,7 +593,9 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 			{
 				{
 					std::unique_lock<std::mutex> lock(m_processMutex);
-					m_needsProcessing.wait(lock, [this] { return  m_hasMessages || !m_running; });
+					m_needsProcessing.wait_for(lock,
+						std::chrono::seconds(m_config.HeartbeatSeconds),
+						[this] { return m_hasMessages || !m_running; });
 					
 					// set this before we process to allow for processes to request additional processing
 					m_hasMessages = false;
@@ -532,6 +613,8 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 				// of the connection
 				ProcessConnections(); // handles all incoming messages from connections
 
+				ProcessReconnects();
+
 				Process(10); // processes the messages waiting in the internal dropbox (shouldn't happen often)
 			} while (m_running);
 
@@ -542,7 +625,7 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 
 LauncherPostOffice::~LauncherPostOffice()
 {
-	SPDLOG_INFO("{}: Removing post office", GetName());
+	SPDLOG_TRACE("{}: Removing post office", GetName());
 }
 
 template <>
@@ -605,36 +688,36 @@ void LauncherPostOffice::BroadcastMessage(MessagePtr message)
 bool LauncherPostOffice::SendMessage(const ActorContainer& ident, MessagePtr message)
 {
 	SPDLOG_TRACE("{}: Sending message to {} seq={}", GetName(), ident, message->sequence());
-	return std::visit([this, message = std::move(message)](const auto& c) mutable
+	return std::visit([this, message = std::move(message), &ident](const auto& c) mutable
 		{
-			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(c, std::move(message));
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(ident, std::move(message));
 		}, ident.value);
 }
 
 void LauncherPostOffice::SendIdentification(const ActorContainer& target, const ActorIdentification& id)
 {
 	SPDLOG_TRACE("{}: Sending identification {} to {}", GetName(), id, target);
-	return std::visit([this, &id](const auto& c) mutable
+	return std::visit([this, &id, &target](const auto& c) mutable
 		{
-			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendIdentification(c, id);
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendIdentification(target, id);
 		}, target.value);
 }
 
 void LauncherPostOffice::DropIdentification(const ActorContainer& target, const ActorIdentification& id)
 {
 	SPDLOG_TRACE("{}: Dropping identification {} from {}", GetName(), id, target);
-	return std::visit([this, &id](const auto& c) mutable
+	return std::visit([this, &id, &target](const auto& c) mutable
 		{
-			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->DropIdentification(c, id);
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->DropIdentification(target, id);
 		}, target.value);
 }
 
 void LauncherPostOffice::RequestIdentities(const ActorContainer& from)
 {
 	SPDLOG_TRACE("{}: Requesting identities from {}", GetName(), from);
-	return std::visit([this](const auto& c) mutable
+	return std::visit([this, &from](const auto& c) mutable
 		{
-			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->RequestIdentities(c);
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->RequestIdentities(from);
 		}, from.value);
 }
 

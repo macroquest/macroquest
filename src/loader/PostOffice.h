@@ -38,11 +38,12 @@ using RequestFocusCallback = std::function<void(const mq::MQMessageFocusRequest*
 // setting these configs is to allow testing without spoofing config files
 struct PostOfficeConfig
 {
-	uint32_t Index;
-	std::string Name; // useful for debugging
+	uint32_t Index = 0;
+	std::string Name = "PostOffice"; // useful for debugging
 	uint16_t PeerPort = mq::DEFAULT_NETWORK_PEER_PORT;
 	std::string PipeName = mq::MQ_PIPE_SERVER_PATH;
 	std::optional<std::vector<std::pair<std::string, uint16_t>>> Peers;
+	uint16_t HeartbeatSeconds = 2;
 };
 
 const PostOfficeConfig& GetPostOfficeConfig(uint32_t index);
@@ -94,7 +95,7 @@ public:
 
 	auto FindIdentity(
 		const proto::routing::Address& address,
-		const std::unordered_multimap<ActorContainer, ActorIdentification>::iterator& from);
+		const std::unordered_map<std::string, ActorIdentification>::iterator& from);
 
 	// This is called when a dropbox registered to this pipe server attempts to send a message (an _outbound_ message)
 	void RouteMessage(MessagePtr message) override;
@@ -112,6 +113,9 @@ public:
 	void DropContainer(const ActorContainer& container);
 	void SendIdentities(const ActorContainer& requester);
 
+	// add this for testing
+	uint32_t GetIdentityCount();
+
 	void Initialize();
 	void Shutdown();
 	void RequestProcessEvents();
@@ -126,10 +130,12 @@ private:
 	PostOfficeConfig m_config;
 	std::string m_name;
 
-	std::unordered_multimap<ActorContainer, ActorIdentification> m_identities;
+	std::unordered_map<std::string, ActorIdentification> m_identities;
 
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
+
+	std::vector<NetworkAddress> m_reconnectingHosts;
 
 	std::vector<MessagePtr> m_outgoingMessages;
 	std::mutex m_outgoingMutex;
@@ -170,7 +176,10 @@ private:
 	void ProcessDropContainer(const ActorContainer& container);
 	void ProcessSendIdentities(const ActorContainer& requester);
 
+	void ProcessReconnects();
+
 	void FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate);
+	void AddConfiguredHosts();
 };
 
 // ----------------------------- Connection -----------------------------------
@@ -192,7 +201,12 @@ public:
 
 	virtual void Process() = 0;
 
+	virtual bool SendMessage(const ActorContainer& process, MessagePtr message) = 0;
 	virtual void BroadcastMessage(MessagePtr message) = 0;
+
+	virtual void SendIdentification(const ActorContainer& process, const ActorIdentification& identity) const = 0;
+	virtual void DropIdentification(const ActorContainer& process, const ActorIdentification& identity) const = 0;
+	virtual void RequestIdentities(const ActorContainer& process) const = 0;
 
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
@@ -217,15 +231,15 @@ public:
 	~LocalConnection();
 	void Process() override;
 
-	bool SendMessage(const ActorContainer::Process& process, MessagePtr message);
+	bool SendMessage(const ActorContainer& process, MessagePtr message) override;
 
-	void SendIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const;
-	void DropIdentification(const ActorContainer::Process& process, const ActorIdentification& identity) const;
-	void RequestIdentities(const ActorContainer::Process& process) const;
+	void SendIdentification(const ActorContainer& process, const ActorIdentification& identity) const override;
+	void DropIdentification(const ActorContainer& process, const ActorIdentification& identity) const override;
+	void RequestIdentities(const ActorContainer& process) const override;
 
 	void BroadcastMessage(MessagePtr message) override;
 	void RouteFromPipe(MessagePtr message);
-	void DropProcess(const ActorContainer::Process& process) const;
+	void DropProcess(const ActorContainer& process) const;
 
 	void Start() override;
 	void Stop() override;
@@ -261,16 +275,15 @@ public:
 
 	PeerConnection(LauncherPostOffice* postOffice);
 	~PeerConnection() override;
-	void AddConfiguredHosts();
 
 	// This does nothing now, but if we ever have timed maintenance tasks, they would go here
 	void Process() override;
 
-	bool SendMessage(const ActorContainer::Network& peer, MessagePtr message);
+	bool SendMessage(const ActorContainer& peer, MessagePtr message) override;
 
-	void SendIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
-	void DropIdentification(const ActorContainer::Network& peer, const ActorIdentification& identity) const;
-	void RequestIdentities(const ActorContainer::Network& peer) const;
+	void SendIdentification(const ActorContainer& peer, const ActorIdentification& identity) const override;
+	void DropIdentification(const ActorContainer& peer, const ActorIdentification& identity) const override;
+	void RequestIdentities(const ActorContainer& peer) const override;
 
 	void BroadcastMessage(MessagePtr message) override;
 
