@@ -27,8 +27,6 @@
 #include "zep/editor.h"
 
 #include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-
 namespace mq::imgui {
 
 //============================================================================
@@ -41,7 +39,7 @@ public:
 	ImGuiZepEditor();
 	virtual ~ImGuiZepEditor();
 
-	void SetFont(Zep::ZepTextType, ImFont* pFont, int pixelHeight);
+	void SetFont(Zep::ZepTextType, ImFont* pFont);
 
 	virtual Zep::ZepEditor& GetEditor() const override;
 	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());

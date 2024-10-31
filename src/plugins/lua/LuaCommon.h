@@ -50,6 +50,15 @@ namespace bindings {
 }
 using bindings::lua_join;
 
+struct ScriptLocationInfo
+{
+	std::string fullPath;
+	std::string_view foundSearchPath;
+	std::string canonicalName;
+	bool found = false;
+	bool isUsingInit = false;
+};
+
 class LuaEnvironmentSettings
 {
 public:
@@ -58,10 +67,22 @@ public:
 
 	void ConfigureLuaState(sol::state_view sv);
 
+	ScriptLocationInfo GetScriptLocationInfo(std::string_view script) const;
+
+	std::string GetScriptPath(std::string_view script) const;
+	bool IsSearchPath(std::string_view searchPath) const;
+
+	static std::string GetCanonicalScriptName(std::string_view script, std::string_view searchPath,
+		bool isUsingInit = false);
+
 	std::string luaDir;
 	std::string moduleDir;
 	std::vector<std::string> luaRequirePaths;
 	std::vector<std::string> dllRequirePaths;
+
+private:
+	bool GetScriptLocationInfo(std::string_view script, const std::string& searchDir, ScriptLocationInfo& info) const;
+	bool GetScriptPath(std::string_view script, const std::string& searchDir, ScriptLocationInfo& info) const;
 
 private:
 	bool m_initialized = false;

@@ -148,8 +148,6 @@ static void LoadRenderDoc()
 	s_renderDocInitialized = true;
 }
 
-#ifdef _DEBUG
-
 void RenderDoc_BeginEvent(MQColor color, const char* name)
 {
 	if (s_renderDocEnabled)
@@ -159,6 +157,8 @@ void RenderDoc_BeginEvent(MQColor color, const char* name)
 		D3DPERF_BeginEvent(color.ToARGB(), wName.c_str());
 	}
 }
+
+#ifdef _DEBUG
 
 void RenderDoc_BeginEvent(MQColor color, const wchar_t* name)
 {
@@ -514,6 +514,12 @@ static void RenderDoc_Shutdown()
 }
 
 #else // HAS_DIRECTX_11
+
+#ifdef _DEBUG
+void RenderDoc_BeginEvent(MQColor color, const wchar_t* name) {}
+void RenderDoc_EndEvent() {}
+void RenderDoc_SetMarker(MQColor color, const wchar_t* name) {}
+#endif
 
 void RenderDoc_Startup()
 {

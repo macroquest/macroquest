@@ -182,22 +182,7 @@ public:
         m_spSyntax = syntax;
     }
 
-    void SetSyntaxProvider(SyntaxProvider provider)
-    {
-        if (provider.syntaxID != m_syntaxProvider.syntaxID)
-        {
-            if (provider.factory)
-            {
-                m_spSyntax = provider.factory(this);
-            }
-            else
-            {
-                m_spSyntax.reset();
-            }
-
-            m_syntaxProvider = provider;
-        }
-    }
+    void SetSyntaxProvider(SyntaxProvider provider);
 
     ZepSyntax* GetSyntax() const
     {
