@@ -50,6 +50,7 @@ using fMQMacroStop           = void(*)(const char*);
 using fMQLoadPlugin          = void(*)(const char*);
 using fMQUnloadPlugin        = void(*)(const char*);
 using fMQGetPluginInterface  = PluginInterface* (*)();
+using fMQPostUnloadPlugin    = void(*)(const char*);
 
 /**
  * Structure representing a loaded plugin.
@@ -83,6 +84,7 @@ struct MQPlugin
 	fMQLoadPlugin        LoadPlugin = nullptr;
 	fMQUnloadPlugin      UnloadPlugin = nullptr;
 	fMQGetPluginInterface GetPluginInterface = nullptr;
+	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
 
 	MQPlugin*            pLast = nullptr;
 	MQPlugin*            pNext = nullptr;

@@ -285,11 +285,12 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 {
 	namespace fs = std::filesystem;
 
-	// Add the current directory if we're using an init.lua
-	if (locationInfo.isUsingInit)
-	{
-		std::string runDir = fs::path{ locationInfo.fullPath }.parent_path().string();
+	// Add the current directory as highest priority search path (unless its the luadir, which is already
+	// the highest priority search path)
+	std::string runDir = fs::path{ locationInfo.fullPath }.parent_path().string();
 
+	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
+	{
 		m_globalState["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
 			fmt::arg("runDir", runDir),
 			fmt::arg("existingPath", m_globalState["package"]["path"].get<std::string_view>()));
