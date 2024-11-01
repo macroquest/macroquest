@@ -400,7 +400,7 @@ void TestBasicClientSetup()
 
 void TestLargeNetwork()
 {
-	constexpr uint32_t n_network = 10;
+	constexpr uint32_t n_network = 100;
 
 	for (uint32_t i = 2; i < n_network; ++i)
 		SetPostOfficeConfig(PostOfficeConfig{ i, "Launcher", 0, fmt::format(R"(\\.\pipe\mqpipe{})", i) });
@@ -424,7 +424,7 @@ void TestLargeNetwork()
 		}
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(std::max(2, static_cast<int>(n_network * n_network / 400))));
 
 	for (uint32_t i = 0; i < n_network; ++i)
 	{

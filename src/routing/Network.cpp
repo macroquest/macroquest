@@ -722,12 +722,9 @@ private:
 				}
 			});
 
+		// this is a multimap so we will always insert here
 		auto connecting_addr = session->Address();
-		auto [session_it, _] = m_connectingSessions.emplace(
-			connecting_addr,
-			std::move(session)
-		);
-
+		auto session_it = m_connectingSessions.emplace(connecting_addr, std::move(session));
 		session_it->second->Receive();
 
 		const auto endpoint = session_it->second->Endpoint();
@@ -752,10 +749,16 @@ private:
 		// we have to map the session to the _remote_ port, and we need to deterministically choose which
 		// shared session is the correct one
 
-		SPDLOG_TRACE("{}: Received a handshake from {}:{} ({})", m_port, fromAddress.IP, peerPort, peerUuid);
+		SPDLOG_TRACE("{}: Received a handshake from {}:{} ({}) [{}]", m_port, fromAddress.IP, fromAddress.Port, peerPort, peerUuid);
+		auto s = m_connectingSessions.equal_range(fromAddress);
+
 		// the session we receive the handshake from should always be stored in this map
+		// we can also have a situation where we connect and accept from the same peer without getting a handshake
+		// in between, so we need to make sure we're selecting the correct peer for this handshake (which will later
+		// deduplicate) -- we need to do this to ensure that this peer and the remote peer are in synced states
+		// furthermore, since the keys are identical (and the remote will provide the same UUID), it doesn't actually
+		// matter _which_ duplicate we pick here, so we can just find the first one
 		auto peer_it = m_connectingSessions.find(fromAddress);
-		// we need to find the session with the remote endpoint that matches 
 		if (peer_it != m_connectingSessions.end())
 		{
 			NetworkAddress known_host{ fromAddress.IP, peerPort }; // this is the address we want to expose (with the configured port)
@@ -822,7 +825,7 @@ private:
 		}
 		else
 		{
-			// we should be guaranteed that the session exists because this message is the result of an active session
+			// This can happen with congested network traffic, we end up receiving the same handshake twice (TCP is at-least-once)
 			SPDLOG_WARN("{}: Got handshake from unknown session: {}:{} (peerPort: {})", m_port, fromAddress.IP, fromAddress.Port, peerPort);
 		}
 	}
@@ -1053,7 +1056,7 @@ private:
 
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_sessions;
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_closingSessions;
-	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
+	std::unordered_multimap<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
 
 	// TODO: need to revisit the leader logic
