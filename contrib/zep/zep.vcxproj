@@ -183,8 +183,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\zep\ImGuiZepConsole.h" />
-    <ClInclude Include="..\..\src\zep\ImGuiZepEditor.h" />
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepConsole.h" />
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepEditor.h" />
     <ClInclude Include="include\zep.h" />
     <ClInclude Include="include\zep\buffer.h" />
     <ClInclude Include="include\zep\commands.h" />

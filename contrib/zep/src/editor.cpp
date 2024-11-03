@@ -312,7 +312,7 @@ void ZepEditor::RemoveBuffer(ZepBuffer* pBuffer)
     }
 }
 
-ZepBuffer* ZepEditor::GetEmptyBuffer(const std::string& name, uint32_t fileFlags)
+ZepBuffer* ZepEditor::GetEmptyBuffer(std::string_view name, uint32_t fileFlags)
 {
     auto pBuffer = CreateNewBuffer(name);
     pBuffer->SetFileFlags(fileFlags);
@@ -420,7 +420,7 @@ void ZepEditor::Reset()
 }
 
 // TODO fix for directory startup; it won't work
-ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str, bool setWorkingDir)
+ZepBuffer* ZepEditor::InitWithFileOrDir(std::string_view str, bool setWorkingDir)
 {
     ZepPath startPath(str);
 
@@ -462,7 +462,7 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str, bool setWorkingD
     return pFileBuffer;
 }
 
-ZepBuffer* ZepEditor::InitWithText(const std::string& strName, std::string_view strText)
+ZepBuffer* ZepEditor::InitWithText(std::string_view strName, std::string_view strText)
 {
     auto pTab = EnsureTab();
 
@@ -857,7 +857,7 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer) const
         }
         else
         {
-            buffer.SetSyntaxProvider(SyntaxProvider{});
+            buffer.SetSyntaxProvider(nullptr);
         }
     }
 }
@@ -866,7 +866,7 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) co
 {
     for (const auto& [_, provider] : m_mapSyntax)
     {
-        if (provider.syntaxID == syntaxID)
+        if (provider->syntaxID == syntaxID)
         {
             buffer.SetSyntaxProvider(provider);
             return;
@@ -876,10 +876,36 @@ void ZepEditor::SetBufferSyntax(ZepBuffer& buffer, std::string_view syntaxID) co
 
 void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider provider)
 {
+    std::shared_ptr<SyntaxProvider> p = std::make_shared<SyntaxProvider>(provider);
+
     for (auto& m : mappings)
     {
-        m_mapSyntax[string_tolower(m)] = provider;
+        m_mapSyntax[string_tolower(m)] = p;
     }
+}
+
+std::shared_ptr<SyntaxProvider> ZepEditor::GetSyntaxProviderByID(std::string_view syntaxID) const
+{
+    for (const auto& [_, provider] : m_mapSyntax)
+    {
+        if (provider->syntaxID == syntaxID)
+        {
+            return provider;
+        }
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<SyntaxProvider> ZepEditor::GetSyntaxProviderByExtension(std::string_view extension) const
+{
+    auto itr = m_mapSyntax.find(string_tolower(std::string(extension)));
+    if (itr != m_mapSyntax.end())
+    {
+        return itr->second;
+    }
+
+    return nullptr;
 }
 
 // Inform clients of an event in the buffer

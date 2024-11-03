@@ -77,8 +77,8 @@ enum
 enum class ZepMouseButton
 {
     Left,
-    Middle,
     Right,
+    Middle,
     Button4,
     Button5,
     Unknown
@@ -196,6 +196,7 @@ using tSyntaxFactory = std::function<std::shared_ptr<ZepSyntax>(ZepBuffer*)>;
 struct SyntaxProvider
 {
     std::string syntaxID;
+    std::string name = "Plaintext";
     tSyntaxFactory factory = nullptr;
 };
 
@@ -286,8 +287,8 @@ public:
     void RequestQuit();
 
     void Reset();
-    ZepBuffer* InitWithFileOrDir(const std::string& str, bool setWorkingDir = false);
-    ZepBuffer* InitWithText(const std::string& strName, std::string_view strText);
+    ZepBuffer* InitWithFileOrDir(std::string_view str, bool setWorkingDir = false);
+    ZepBuffer* InitWithText(std::string_view strName, std::string_view strText);
 
     ZepMode* GetGlobalMode();
     void RegisterGlobalMode(std::shared_ptr<ZepMode> spMode);
@@ -305,6 +306,9 @@ public:
     void Display();
 
     void RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider factory);
+    std::shared_ptr<SyntaxProvider> GetSyntaxProviderByID(std::string_view syntaxID) const;
+    std::shared_ptr<SyntaxProvider> GetSyntaxProviderByExtension(std::string_view extension) const;
+
     bool Broadcast(std::shared_ptr<ZepMessage> payload);
     void DispatchMouseEvent(std::shared_ptr<ZepMessage> message);
     const NVec2f& GetMousePos() const { return m_mousePos; }
@@ -322,7 +326,7 @@ public:
     ZepBuffer* GetMRUBuffer() const;
     void SaveBuffer(ZepBuffer& buffer);
     ZepBuffer* GetFileBuffer(const ZepPath& filePath, uint32_t fileFlags = 0, bool create = true);
-    ZepBuffer* GetEmptyBuffer(const std::string& name, uint32_t fileFlags = 0);
+    ZepBuffer* GetEmptyBuffer(std::string_view name, uint32_t fileFlags = 0);
     void RemoveBuffer(ZepBuffer* pBuffer);
     std::vector<ZepWindow*> FindBufferWindows(const ZepBuffer* pBuffer) const;
 
@@ -455,7 +459,7 @@ private:
     mutable tRegisters m_registers;
 
     std::shared_ptr<ZepTheme> m_spTheme;
-    std::map<std::string, SyntaxProvider> m_mapSyntax;
+    std::map<std::string, std::shared_ptr<SyntaxProvider>> m_mapSyntax;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;

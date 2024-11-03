@@ -35,11 +35,34 @@ namespace Zep
 	class ZepEditor;
 }
 
-namespace mq::imgui {
+namespace mq {
 
 //============================================================================
 
 class ZepEditor_ImGui;
+
+inline Zep::NVec2f toNVec2f(const ImVec2& im)
+{
+	return Zep::NVec2f(im.x, im.y);
+}
+inline ImVec2 toImVec2(const Zep::NVec2f& im)
+{
+	return ImVec2(im.x, im.y);
+}
+inline ImVec2 toImVec2(const Zep::NVec2i& im)
+{
+	return ImVec2(static_cast<float>(im.x), static_cast<float>(im.y));
+}
+
+inline Zep::NVec2f toNVec2fAdjusted(const ImVec2& im, const Zep::NVec2f& rel)
+{
+	return Zep::NVec2f(im.x + rel.x, im.y + rel.y);
+}
+
+inline ImVec2 toImVec2Adjusted(const Zep::NVec2f& im, const Zep::NVec2f& rel)
+{
+	return ImVec2(im.x + rel.x, im.y + rel.y);
+}
 
 class ImGuiZepEditor
 {
@@ -57,18 +80,37 @@ public:
 	}
 
 	Zep::ZepEditor& GetEditor() const;
+	Zep::ZepWindow& GetWindow() const { return *m_window; }
+
+	std::shared_ptr<Zep::ZepBuffer> InitWithFile(std::string_view file);
+	std::shared_ptr<Zep::ZepBuffer> InitWithText(std::string_view name, std::string_view text);
+	std::shared_ptr<Zep::ZepBuffer> CreateFileBuffer(std::string_view file, uint32_t bufferFlags = 0, bool createIfNotExists = true);
+	std::shared_ptr<Zep::ZepBuffer> CreateEmptyBuffer(std::string_view name, uint32_t bufferFlags = 0);
+	std::shared_ptr<Zep::ZepBuffer> GetActiveBuffer() const;
+	void SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
+	void RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
+
+	Zep::GlyphIterator Begin() const;
+	Zep::GlyphIterator End() const;
+
+	uint32_t GetWindowFlags() const;
+	void SetWindowFlags(uint32_t flags);
+	void ToggleFlag(uint32_t flag);
 
 protected:
 	virtual void Notify(const std::shared_ptr<Zep::ZepMessage>& message);
 	virtual void DispatchMouseEvent(const std::shared_ptr<Zep::ZepMessage>& message);
 
-private:
 	ZepEditor_ImGui* m_editor = nullptr;
+	Zep::ZepWindow* m_window = nullptr;
+
+	const bool m_wordWrap = true; // Word-wrap disabled doesn't work properly.
+
+private:
 	std::string m_id;
 
 	struct EventReceiver;
 	std::unique_ptr<EventReceiver> m_eventReceiver;
 };
 
-
-} // namespace mq::imgui
+} // namespace mq

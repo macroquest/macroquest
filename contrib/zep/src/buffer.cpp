@@ -604,18 +604,7 @@ bool ZepBuffer::Save(int64_t& size)
         return false;
     }
 
-    auto str = GetWorkingBuffer().string();
-
-    // Put back /r/n if necessary while writing the file
-    // At the moment, Zep removes /r/n and just uses /n while modifying text.
-    // It replaces the /r on files that had it afterwards
-    // Alternatively we could manage them 'in place', but that would make parsing more complex.
-    // And then what do you do if there are 2 different styles in the file.
-    if (m_fileFlags & FileFlags::StrippedCR)
-    {
-        // TODO: faster way to replace newlines
-        string_replace_in_place(str, "\n", "\r\n");
-    }
+    auto str = GetText();
 
     // Remove the appended 0 if necessary
     size = (int64_t)str.size();
@@ -624,9 +613,9 @@ bool ZepBuffer::Save(int64_t& size)
         size--;
     }
 
-    if (size <= 0)
+    if (size < 0)
     {
-        return true;
+        size = 0;
     }
 
     if (GetEditor().GetFileSystem().Write(m_filePath, &str[0], (size_t)size))
@@ -637,9 +626,68 @@ bool ZepBuffer::Save(int64_t& size)
     return false;
 }
 
-std::string ZepBuffer::GetBufferText() const
+std::string ZepBuffer::GetText() const
 {
-    return GetWorkingBuffer().string();
+    // Put back /r/n if necessary while writing the file
+    // At the moment, Zep removes /r/n and just uses /n while modifying text.
+    // It replaces the /r on files that had it afterwards
+    // Alternatively we could manage them 'in place', but that would make parsing more complex.
+    // And then what do you do if there are 2 different styles in the file.
+
+    bool convertCR = (m_fileFlags & FileFlags::StrippedCR) != 0;
+
+    const GapBuffer<uint8_t>& buffer = GetWorkingBuffer();
+    std::string str;
+
+    if (convertCR)
+    {
+        str.resize(m_workingBuffer.size() + m_lineEnds.size());
+        size_t pos = 0;
+
+        if (buffer.m_pGapStart - buffer.m_pStart)
+        {
+            for (auto p = buffer.m_pStart; p < buffer.m_pGapStart; p++)
+            {
+                if (*p == '\n')
+                {
+                    str[pos++] = '\r';
+                }
+
+                str[pos++] = *p;
+            }
+        }
+
+        if (buffer.m_pEnd - buffer.m_pGapEnd)
+        {
+            for (auto p = buffer.m_pGapEnd; p < buffer.m_pEnd; p++)
+            {
+                if (*p == '\n')
+                {
+                    str[pos++] = '\r';
+                }
+
+                str[pos++] = *p;
+            }
+        }
+
+        str.resize(pos);
+    }
+    else
+    {
+        str.reserve(m_workingBuffer.size());
+        if (buffer.m_pGapStart - buffer.m_pStart)
+        {
+            str.append(reinterpret_cast<const char*>(buffer.m_pStart),
+                static_cast<GapBuffer<uint8_t>::size_type>(buffer.m_pGapStart - buffer.m_pStart));
+        }
+        if (buffer.m_pEnd - buffer.m_pGapEnd)
+        {
+            str.append(reinterpret_cast<const char*>(buffer.m_pGapEnd),
+                static_cast<GapBuffer<uint8_t>::size_type>(buffer.m_pEnd - buffer.m_pGapEnd));
+        }
+    }
+
+    return str;
 }
 
 std::string ZepBuffer::GetDisplayName() const
@@ -933,24 +981,36 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
     }
 }
 
-void ZepBuffer::SetSyntaxProvider(SyntaxProvider provider)
+void ZepBuffer::SetSyntaxProvider(std::shared_ptr<SyntaxProvider> provider)
 {
-    if (provider.syntaxID != m_syntaxProvider.syntaxID)
+    if (std::string_view(provider ? provider->syntaxID : "")
+        != std::string_view(m_syntaxProvider ? m_syntaxProvider->syntaxID : ""))
     {
-        if (provider.factory)
+        if (provider && provider->factory)
         {
-            m_spSyntax = provider.factory(this);
+            m_spSyntax = provider->factory(this);
+            m_syntaxProvider = provider;
         }
         else
         {
             m_spSyntax.reset();
+            m_syntaxProvider.reset();
         }
-
-        m_syntaxProvider = provider;
 
         // Inform the editor that the syntax has changed
         GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
     }
+}
+
+const std::string& ZepBuffer::GetSyntaxID() const
+{
+    static std::string empty;
+    return m_syntaxProvider ? m_syntaxProvider->syntaxID : empty;
+}
+
+void ZepBuffer::SetSyntaxID(std::string_view syntaxID)
+{
+    GetEditor().SetBufferSyntax(*this, syntaxID);
 }
 
 std::string ZepBuffer::GetBufferText(const GlyphIterator& start, const GlyphIterator& end) const

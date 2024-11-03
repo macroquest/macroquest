@@ -22,14 +22,12 @@
  */
 
 #include "pch.h"
-#include "ImGuiZepConsole.h"
-#include "imgui/ImGuiUtils.h"
+#include "mq/zep/ImGuiZepConsole.h"
 
 #include "zep/display.h"
 #include "zep/editor.h"
 #include "zep/mode.h"
 #include "zep/mode_standard.h"
-#include "zep/tab_window.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -307,58 +305,371 @@ static constexpr ImU32 str_to_col(std::string_view str)
 	return IM_COL32(r, g, b, 255);
 }
 
-static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, std::vector<ImU32>& colorStack,
-	ImU32 defaultColor)
+//============================================================================
+
+class ZepMode_ImGuiConsole : public Zep::ZepMode_Standard
+{
+public:
+	using ZepMode_Standard::ZepMode_Standard;
+
+	virtual Zep::CursorType GetCursorType() const override { return Zep::CursorType::None; }
+
+	static const char* StaticName()
+	{
+		return "Console";
+	}
+
+	virtual const char* Name() const override
+	{
+		return StaticName();
+	}
+};
+
+ImGuiZepConsoleStyle::ImGuiZepConsoleStyle()
+{
+	colors[ImGuiZepConsoleCol_Text] = ImGuiZepConsole::DEFAULT_COLOR.ToImU32();
+	colors[ImGuiZepConsoleCol_Link] = s_defaultLinkColor;
+	colors[ImGuiZepConsoleCol_LinkHover] = s_defaultLinkColorHover;
+}
+
+//============================================================================
+
+ImGuiZepConsole::ImGuiZepConsole(std::string_view id)
+	: ImGuiZepEditor(id)
+{
+	auto& editor = GetEditor();
+
+	editor.RegisterGlobalMode(std::make_shared<ZepMode_ImGuiConsole>(editor));
+	editor.SetGlobalMode(ZepMode_ImGuiConsole::StaticName());
+
+	m_theme = std::make_shared<ImGuiZepConsoleTheme>();
+	editor.SetTheme(m_theme);
+
+	EditorConfig& config = editor.GetConfig();
+	config.showLineNumbers = false;
+	config.style = Zep::EditorStyle::Minimal;
+
+	editor.RegisterSyntaxFactory(
+		{ "Console" },
+		Zep::SyntaxProvider{
+			"Console", "Console",
+			Zep::tSyntaxFactory([this](Zep::ZepBuffer* buffer) {
+				return std::make_shared<ImGuiZepConsoleSyntax>(*buffer, m_theme, m_window);
+			})
+		});
+
+	m_buffer = editor.InitWithText("Console", "");
+	m_buffer->SetTheme(m_theme);
+	m_window->SetBufferCursor(m_buffer->End());
+	m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
+	m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
+}
+
+ImGuiZepConsole::~ImGuiZepConsole()
+{
+}
+
+void ImGuiZepConsole::SetDelegate(std::shared_ptr<ImGuiZepConsoleDelegate> delegate)
+{
+	m_delegate = std::move(delegate);
+}
+
+void ImGuiZepConsole::Render(const char* id, const ImVec2& displaySize)
+{
+	if (m_deferredCursorToEnd)
+	{
+		m_window->ScrollToBottom();
+	}
+
+	ImGuiZepEditor::Render(id, displaySize);
+
+	// Check if auto scroll is enabled and if the end cursor has moved.
+	int cursorIndex = static_cast<int>(m_buffer->End().Index());
+
+	if (m_autoScroll && (cursorIndex != m_lastCursorIndex))
+	{
+		if (m_lastCursorAtEnd || m_deferredCursorToEnd)
+		{
+			m_window->ScrollToBottom();
+		}
+	}
+
+	m_lastCursorAtEnd = m_window->IsAtBottom();
+	m_lastCursorIndex = cursorIndex;
+	m_deferredCursorToEnd = false;
+}
+
+Zep::GlyphIterator ImGuiZepConsole::InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color /* = 0 */)
+{
+	if (color != 0)
+	{
+		ZepTextAttribute attribute;
+		attribute.startIndex = 0;
+		attribute.endIndex = static_cast<int>(text.length());
+		attribute.attribute.type = ZepAttribute::Type::Color;
+		attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
+
+		ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
+		syntax->AddAttribute(position, std::move(attribute));
+	}
+
+	Zep::ChangeRecord changeRecord;
+	m_buffer->Insert(position, text, changeRecord);
+
+	return position.Move(static_cast<long>(text.length()));
+}
+
+Zep::GlyphIterator ImGuiZepConsole::InsertHyperlink(Zep::GlyphIterator position, std::string_view text,
+	std::string hyperlinkData, ImU32 color /* = 0 */, ImU32 hoverColor /* = 0 */)
+{
+	ZepTextAttribute attribute;
+	attribute.startIndex = 0;
+	attribute.endIndex = static_cast<int>(text.length());
+	attribute.attribute.type = ZepAttribute::Type::Hyperlink;
+	attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{
+		std::move(hyperlinkData),
+		color != 0 ? color : m_style.colors[ImGuiZepConsoleCol_Link],
+		hoverColor != 0 ? hoverColor : m_style.colors[ImGuiZepConsoleCol_LinkHover]
+	};
+
+	ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
+	syntax->AddAttribute(position, std::move(attribute));
+
+	Zep::ChangeRecord changeRecord;
+	m_buffer->Insert(position, text, changeRecord);
+
+	return position.Move(static_cast<long>(text.length()));
+}
+
+Zep::GlyphIterator ImGuiZepConsole::InsertHyperlink(Zep::GlyphIterator position, std::string_view text,
+	const ZepAttribute::HyperlinkAttributeData& attributeData)
+{
+	ZepTextAttribute attribute;
+	attribute.startIndex = 0;
+	attribute.endIndex = static_cast<int>(text.length());
+	attribute.attribute.type = ZepAttribute::Type::Hyperlink;
+	attribute.attribute.data = attributeData;
+
+	ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
+	syntax->AddAttribute(position, std::move(attribute));
+
+	Zep::ChangeRecord changeRecord;
+	m_buffer->Insert(position, text, changeRecord);
+
+	return position.Move(static_cast<long>(text.length()));
+}
+
+Zep::GlyphIterator ImGuiZepConsole::InsertAttributedText(Zep::GlyphIterator position, std::string_view text,
+	ZepTextAttribute attribute)
+{
+	ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
+	syntax->AddAttribute(position, std::move(attribute));
+
+	Zep::ChangeRecord changeRecord;
+	m_buffer->Insert(position, text, changeRecord);
+
+	return position.Move(static_cast<long>(text.length()));
+}
+
+void ImGuiZepConsole::Notify(const std::shared_ptr<Zep::ZepMessage>& message)
+{
+	if (message->messageId == Zep::Msg::HyperlinkClick)
+	{
+		if (m_delegate)
+		{
+			m_delegate->OnHyperlinkClicked(this, message->button, message->modifiers, message->str, message->clicks);
+		}
+	}
+	else
+	{
+		ImGuiZepEditor::Notify(message);
+	}
+}
+
+void ImGuiZepConsole::AppendText(std::string_view text, MQColor defaultColor, bool appendNewLine)
+{
+	std::string_view lineView = text;
+	int pushed = 0;
+
+	if (defaultColor.ToARGB() != 0)
+	{
+		// Skip pushing if its already set as the current color.
+		ImU32 color = defaultColor.ToImU32();
+		if (color != m_style.colors[ImGuiZepConsoleCol_Text])
+		{
+			PushStyleColor(ImGuiZepConsoleCol_Text, color);
+			++pushed;
+		}
+	}
+
+	while (!lineView.empty())
+	{
+		auto colorPos = lineView.find("\a");
+
+		// this is everything before the color code.
+		auto beforeColor = lineView.substr(0, colorPos);
+		if (!beforeColor.empty())
+		{
+			InsertFormattedText(m_buffer->End(), beforeColor, m_style.colors[ImGuiZepConsoleCol_Text]);
+		}
+
+		// did we find a color?
+		if (colorPos == std::string_view::npos)
+			break;
+
+		lineView = lineView.substr(colorPos);
+
+		std::string_view nextSegment = ParseColorTags(lineView, pushed);
+	
+		// Parse the color and get the next segment. We pass in the
+		// default color to handle \ax properly
+
+		if (nextSegment.empty())
+			break;
+
+		lineView = nextSegment;
+	}
+
+	if (appendNewLine)
+		InsertText(m_buffer->End(), "\n");
+
+	PopStyleColor(pushed);
+	PruneBuffer();
+
+	if (m_lastCursorAtEnd && m_autoScroll)
+	{
+		m_deferredCursorToEnd = true;
+	}
+}
+
+void ImGuiZepConsole::Clear()
+{
+	m_buffer->Clear();
+}
+
+bool ImGuiZepConsole::IsCursorAtEnd() const
+{
+	return m_window->IsAtBottom();
+}
+
+void ImGuiZepConsole::PruneBuffer()
+{
+	int lineCount = m_buffer->GetLineCount();
+	if (lineCount > m_maxBufferLines + 1)
+	{
+		int linesToDelete = lineCount - (m_maxBufferLines + 1);
+
+		Zep::ByteRange range;
+		if (m_buffer->GetLineOffsets(linesToDelete, range))
+		{
+			Zep::GlyphIterator end(m_buffer, range.first);
+
+			Zep::ChangeRecord changeRecord;
+			m_buffer->Delete(m_buffer->Begin(), end, changeRecord);
+		}
+	}
+}
+
+float ImGuiZepConsole::GetOpacity() const
+{
+	return m_theme->GetOpacity();
+}
+
+void ImGuiZepConsole::SetOpacity(float opacity)
+{
+	m_theme->SetOpacity(opacity);
+}
+
+
+void ImGuiZepConsole::InsertFormattedText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
+{
+	if (!m_delegate || !m_delegate->OnInsertFormattedText(this, position, text, color))
+	{
+		InsertText(position, text, color);
+	}
+}
+
+void ImGuiZepConsole::PushStyleColor(ImGuiZepConsoleCol idx, ImU32 col)
+{
+	ImGuiZepConsoleColorMod backup;
+	backup.Col = idx;
+	backup.BackupValue = m_style.colors[idx];
+	m_colorStack.push_back(backup);
+	m_style.colors[idx] = col;
+}
+
+void ImGuiZepConsole::PushStyleColor(ImGuiZepConsoleCol idx, MQColor col)
+{
+	ImGuiZepConsoleColorMod backup;
+	backup.Col = idx;
+	backup.BackupValue = m_style.colors[idx];
+	m_colorStack.push_back(backup);
+	m_style.colors[idx] = col.ToImU32();
+}
+
+void ImGuiZepConsole::PushStyleColor(ImGuiZepConsoleCol idx, const ImVec4& col)
+{
+	ImGuiZepConsoleColorMod backup;
+	backup.Col = idx;
+	backup.BackupValue = m_style.colors[idx];
+	m_colorStack.push_back(backup);
+	m_style.colors[idx] = ImGui::ColorConvertFloat4ToU32(col);
+}
+
+void ImGuiZepConsole::PopStyleColor(int count)
+{
+	IM_ASSERT_USER_ERROR(count <= m_colorStack.size(), "You can't pop more modifiers than have been pushed!");
+	while (count > 0)
+	{
+		ImGuiZepConsoleColorMod& backup = m_colorStack.back();
+		m_style.colors[backup.Col] = backup.BackupValue;
+		m_colorStack.pop_back();
+		--count;
+	}
+}
+
+std::string_view ImGuiZepConsole::ParseColorTags(std::string_view line, int& pushed)
 {
 	size_t length = line.length();
 	const char* pos = line.data();
 	const char* end = line.data() + length;
 
-	ImU32 color = defaultColor;
-
 	// skip over the \a
 	if (*(pos++) != '\a')
-		return { {}, color };
+		return {};
 
-	if (pos == end) return { {}, color };
-
-	bool dark = false;
+	if (pos == end) return {};
 
 	// clear
 	if (*pos == 'x')
 	{
 		pos++;
 
-		if (!colorStack.empty())
+		if (pushed > 0)
 		{
-			colorStack.pop_back();
+			PopStyleColor(1);
+			--pushed;
 		}
 
-		if (!colorStack.empty())
-		{
-			color = colorStack.back();
-		}
-		else
-		{
-			color = defaultColor;
-		}
-
-		return { std::string_view{ pos, (size_t)(end - pos) }, color };
+		return std::string_view{ pos, (size_t)(end - pos) };
 	}
+
+	bool dark = false;
 
 	// custom color
 	if (*pos == '#')
 	{
 		// we need 7 to do anything (6 for hex code and 1 for #)
-		if (end - pos < 7) return { {}, color };
+		if (end - pos < 7) return {};
 		std::string_view colorCode{ pos, 7 };
 
 		// convert hex to color
-		color = str_to_col(colorCode);
-		colorStack.push_back(color);
+		ImU32 color = str_to_col(colorCode);
+		PushStyleColor(ImGuiZepConsoleCol_Text, color);
+		++pushed;
 
 		pos += 7;
-		return { std::string_view{ pos, (size_t)(end - pos) }, color };
+		return std::string_view{ pos, (size_t)(end - pos) };
 	}
 
 	// darken
@@ -367,16 +678,17 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 		dark = true;
 		pos++;
 
-		if (pos == end) return { {}, color };
+		if (pos == end) return {};
 	}
 
+	ImU32 color = 0;
 	switch (*pos)
 	{
 	case 'y': // yellow (green/red)
 		if (dark)
-			color = 0xff009999;
+			color = MQColor(153, 153, 0).ToImU32();
 		else
-			color = 0xff00ffff;
+			color = MQColor(255, 255, 0).ToImU32();
 		break;
 	case 'o': // orange (green/red)
 		if (dark)
@@ -431,234 +743,15 @@ static std::pair<std::string_view, ImU32> ParseColorTags(std::string_view line, 
 		break;
 	}
 	pos++;
-	colorStack.push_back(color);
 
-	return { { pos, (size_t)(end - pos) }, color };
-}
-
-//============================================================================
-
-class ZepMode_ImGuiConsole : public Zep::ZepMode_Standard
-{
-public:
-	using ZepMode_Standard::ZepMode_Standard;
-
-	virtual Zep::CursorType GetCursorType() const override { return Zep::CursorType::None; }
-
-	static const char* StaticName()
+	if (color != 0)
 	{
-		return "Console";
+		PushStyleColor(ImGuiZepConsoleCol_Text, color);
+		++pushed;
 	}
 
-	virtual const char* Name() const override
-	{
-		return StaticName();
-	}
-};
-
-//============================================================================
-
-ImGuiZepConsole::ImGuiZepConsole(std::string_view id)
-	: ImGuiZepEditor(id)
-{
-	auto& editor = GetEditor();
-
-	editor.RegisterGlobalMode(std::make_shared<ZepMode_ImGuiConsole>(editor));
-	editor.SetGlobalMode(ZepMode_ImGuiConsole::StaticName());
-
-	m_window = editor.GetActiveTabWindow()->GetActiveWindow();
-	m_window->SetWindowFlags(Zep::WindowFlags::WrapText);
-	m_theme = std::make_shared<ImGuiZepConsoleTheme>();
-	editor.SetTheme(m_theme);
-
-	editor.GetConfig().style = Zep::EditorStyle::Minimal;
-
-	editor.RegisterSyntaxFactory(
-		{ "Console" },
-		Zep::SyntaxProvider{
-			"Console",
-			Zep::tSyntaxFactory([this](Zep::ZepBuffer* buffer) {
-				return std::make_shared<ImGuiZepConsoleSyntax>(*buffer, m_theme, m_window);
-			})
-		});
-
-	m_buffer = editor.InitWithText("Console", "");
-	m_buffer->SetTheme(m_theme);
-	m_window->SetBufferCursor(m_buffer->End());
-	m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
-	m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
+	return { pos, (size_t)(end - pos) };
 }
-
-ImGuiZepConsole::~ImGuiZepConsole()
-{
-}
-
-void ImGuiZepConsole::SetDelegate(std::shared_ptr<ImGuiZepConsoleDelegate> delegate)
-{
-	m_delegate = std::move(delegate);
-}
-
-void ImGuiZepConsole::Render(const ImVec2& displaySize)
-{
-	if (m_deferredCursorToEnd)
-	{
-		m_deferredCursorToEnd = false;
-		m_window->ScrollToBottom();
-	}
-
-	ImGuiZepEditor::Render(displaySize);
-}
-
-Zep::GlyphIterator ImGuiZepConsole::InsertText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
-{
-	if (color != -1)
-	{
-		ZepTextAttribute attribute;
-		attribute.startIndex = 0;
-		attribute.endIndex = static_cast<int>(text.length());
-		attribute.attribute.type = ZepAttribute::Type::Color;
-		attribute.attribute.data = ZepAttribute::ColorAttributeData{ color };
-
-		ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
-		syntax->AddAttribute(position, std::move(attribute));
-	}
-
-	Zep::ChangeRecord changeRecord;
-	m_buffer->Insert(position, text, changeRecord);
-
-	return position.Move(static_cast<long>(text.length()));
-}
-
-Zep::GlyphIterator ImGuiZepConsole::InsertHyperlink(Zep::GlyphIterator position, std::string_view text,
-	std::string hyperlinkData, uint32_t color, uint32_t hoverColor)
-{
-	ZepTextAttribute attribute;
-	attribute.startIndex = 0;
-	attribute.endIndex = static_cast<int>(text.length());
-	attribute.attribute.type = ZepAttribute::Type::Hyperlink;
-	attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ std::move(hyperlinkData), color, hoverColor };
-
-	ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_buffer->GetSyntax());
-	syntax->AddAttribute(position, std::move(attribute));
-
-	Zep::ChangeRecord changeRecord;
-	m_buffer->Insert(position, text, changeRecord);
-
-	return position.Move(static_cast<long>(text.length()));
-}
-
-void ImGuiZepConsole::Notify(const std::shared_ptr<Zep::ZepMessage>& message)
-{
-	if (message->messageId == Zep::Msg::HyperlinkClick)
-	{
-		if (m_delegate)
-		{
-			m_delegate->OnHyperlinkClicked(this, message->button, message->modifiers, message->str, message->clicks);
-		}
-	}
-	else
-	{
-		ImGuiZepEditor::Notify(message);
-	}
-}
-
-void ImGuiZepConsole::AppendText(std::string_view text, MQColor defaultColor, bool appendNewLine)
-{
-	Zep::GlyphIterator cursor = m_window->GetBufferCursor();
-	bool cursorAtEnd = m_window->IsAtBottom();
-
-	std::string_view lineView = text;
-	ImU32 currentColor = defaultColor.ToImU32();
-
-	std::vector<ImU32> colorStack;
-
-	while (!lineView.empty())
-	{
-		auto colorPos = lineView.find("\a");
-
-		// this is everything before the color code.
-		auto beforeColor = lineView.substr(0, colorPos);
-		if (!beforeColor.empty())
-		{
-			InsertFormattedText(m_buffer->End(), beforeColor, currentColor);
-		}
-
-		// did we find a color?
-		if (colorPos == std::string_view::npos)
-			break;
-
-		lineView = lineView.substr(colorPos);
-
-		auto [nextSegment, nextColor] = ParseColorTags(lineView, colorStack, defaultColor.ToImU32());
-		// Parse the color and get the next segment. We pass in the
-		// default color to handle \ax properly
-
-		if (nextSegment.empty())
-			break;
-
-		currentColor = nextColor;
-		lineView = nextSegment;
-	}
-
-	if (appendNewLine)
-		InsertText(m_buffer->End(), "\n");
-
-	PruneBuffer();
-
-	if (cursorAtEnd)
-	{
-		TriggerAutoScroll();
-	}
-}
-
-void ImGuiZepConsole::Clear()
-{
-	m_buffer->Clear();
-}
-
-bool ImGuiZepConsole::IsCursorAtEnd() const
-{
-	return m_window->IsAtBottom();
-}
-
-void ImGuiZepConsole::PruneBuffer()
-{
-	int lineCount = m_buffer->GetLineCount();
-	if (lineCount > m_maxBufferLines + 1)
-	{
-		int linesToDelete = lineCount - (m_maxBufferLines + 1);
-
-		Zep::ByteRange range;
-		if (m_buffer->GetLineOffsets(linesToDelete, range))
-		{
-			Zep::GlyphIterator end(m_buffer, range.first);
-
-			Zep::ChangeRecord changeRecord;
-			m_buffer->Delete(m_buffer->Begin(), end, changeRecord);
-		}
-	}
-}
-
-float ImGuiZepConsole::GetOpacity() const
-{
-	return m_theme->GetOpacity();
-}
-
-void ImGuiZepConsole::SetOpacity(float opacity)
-{
-	m_theme->SetOpacity(opacity);
-}
-
-
-void ImGuiZepConsole::InsertFormattedText(Zep::GlyphIterator position, std::string_view text, ImU32 color)
-{
-	if (!m_delegate || !m_delegate->OnInsertFormattedText(this, position, text, color))
-	{
-		InsertText(position, text, color);
-	}
-}
-
-
 
 //============================================================================
 } // namespace mq

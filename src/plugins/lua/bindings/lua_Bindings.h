@@ -25,6 +25,7 @@ sol::table RegisterBindings_ImGui(sol::state_view sv);
 void RegisterBindings_Bit32(sol::state_view sv);
 
 sol::table RegisterBindings_ImPlot(sol::this_state L);
+sol::table RegisterBindings_Zep(sol::this_state L);
 
 void RegisterBindings_MQMacroData(sol::table& lua);
 void InitializeBindings_MQMacroData();

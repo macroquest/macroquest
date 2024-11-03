@@ -15,6 +15,7 @@
 #include <cctype>
 #include <cmath>
 #include <sstream>
+#include <fmt/format.h>
 
 namespace {
 
@@ -138,15 +139,11 @@ void ZepWindow::UpdateAirline()
         m_airline.leftBoxes.clear();
         m_airline.rightBoxes.clear();
 
-        if (IsActiveWindow())
+        if (m_displayMode == DisplayMode::Vim && IsActiveWindow())
         {
             m_airline.leftBoxes.push_back(AirBox{ GetBuffer().GetMode()->Name(), FilterActiveColor(m_pBuffer->GetTheme().GetColor(ThemeColor::Mode)) });
             switch (GetBuffer().GetMode()->GetEditorMode())
             {
-                /*case EditorMode::Hidden:
-            m_airline.leftBoxes.push_back(AirBox{ "HIDDEN", m_pBuffer->GetTheme().GetColor(ThemeColor::HiddenText) });
-            break;
-            */
             default:
                 break;
             case EditorMode::Insert:
@@ -164,10 +161,19 @@ void ZepWindow::UpdateAirline()
 
         auto cursor = BufferToDisplay();
         m_airline.leftBoxes.push_back(AirBox{ m_pBuffer->GetDisplayName(), FilterActiveColor(m_pBuffer->GetTheme().GetColor(ThemeColor::AirlineBackground)) });
-        m_airline.leftBoxes.push_back(AirBox{ std::to_string(cursor.x) + ":" + std::to_string(cursor.y), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+
+        if (m_displayMode == DisplayMode::Vim && m_pBuffer->GetMode()->GetCursorType() != CursorType::None)
+        {
+            m_airline.leftBoxes.push_back(AirBox{ std::to_string(cursor.x) + ":" + std::to_string(cursor.y), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+        }
+        else
+        {
+            m_airline.rightBoxes.push_back(
+                AirBox{ fmt::format("{}:{}", cursor.x + 1, cursor.y + 1), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+        }
 
 #ifdef _DEBUG
-        m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetDisplay().GetPixelScale().x) + "," + std::to_string(GetEditor().GetDisplay().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
+        //m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetDisplay().GetPixelScale().x) + "," + std::to_string(GetEditor().GetDisplay().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
 #endif
 
         auto extra = GetBuffer().GetMode()->GetAirlines(*this);

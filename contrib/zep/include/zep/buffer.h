@@ -12,6 +12,7 @@
 #include "zep/range_markers.h"
 
 #include <functional>
+#include <memory>
 #include <set>
 #include <variant>
 
@@ -43,8 +44,9 @@ enum : uint32_t
 
 namespace FileFlags
 {
-enum : uint32_t
+enum Enum : uint32_t
 {
+    None = 0,
     StrippedCR = (1 << 0),
     TerminatedWithZero = (1 << 1),
     ReadOnly = (1 << 2),
@@ -111,7 +113,7 @@ struct ChangeRecord
 };
 
 using fnKeyNotifier = std::function<bool(uint32_t key, uint32_t modifier)>;
-class ZepBuffer : public ZepComponent
+class ZepBuffer : public ZepComponent, public std::enable_shared_from_this<ZepBuffer>
 {
 public:
     ZepBuffer(ZepEditor& editor, const std::string& strName);
@@ -120,6 +122,7 @@ public:
 
     void Clear();
     void SetText(std::string_view text, bool initFromFile = false);
+    std::string GetText() const;
     void Load(const ZepPath& path);
     bool Save(int64_t& size);
 
@@ -182,12 +185,15 @@ public:
         m_spSyntax = syntax;
     }
 
-    void SetSyntaxProvider(SyntaxProvider provider);
+    void SetSyntaxProvider(std::shared_ptr<SyntaxProvider> provider);
 
     ZepSyntax* GetSyntax() const
     {
         return m_spSyntax.get();
     }
+
+    void SetSyntaxID(std::string_view syntaxID);
+    const std::string& GetSyntaxID() const;
 
     const std::string& GetName() const
     {
@@ -246,8 +252,6 @@ public:
     GlyphRange GetExpression(ExpressionType type, const GlyphIterator location, const std::vector<char>& beginExpression, const std::vector<char>& endExpression) const;
     std::string GetBufferText(const GlyphIterator& start, const GlyphIterator& end) const;
 
-    std::string GetBufferText() const;
-
     void SetPostKeyNotifier(fnKeyNotifier notifier);
     fnKeyNotifier GetPostKeyNotifier() const;
 
@@ -281,7 +285,7 @@ private:
     // Syntax and theme
     std::shared_ptr<ZepSyntax> m_spSyntax;
     std::shared_ptr<ZepTheme> m_spOverrideTheme;
-    SyntaxProvider m_syntaxProvider;
+    std::shared_ptr<SyntaxProvider> m_syntaxProvider;
 
     // Selections
     GlyphRange m_selection;

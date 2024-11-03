@@ -22,14 +22,17 @@
     <Filter Include="Header Files\zep">
       <UniqueIdentifier>{1ff7a728-1607-490a-95cf-28759e3a6653}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\imgui">
-      <UniqueIdentifier>{bb40859b-6c6c-4ba9-af38-915a4fc16091}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\zep">
       <UniqueIdentifier>{c99b09a6-5a39-4da7-bf89-cdf1e24ec7e4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\imgui">
       <UniqueIdentifier>{90aa2191-5b47-408c-a311-0eca64b7535e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq">
+      <UniqueIdentifier>{bb40859b-6c6c-4ba9-af38-915a4fc16091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\zep">
+      <UniqueIdentifier>{ce24e7be-a9d0-447a-89bb-5f1070d93e69}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -278,14 +281,14 @@
     <ClInclude Include="include\zep\zep_config.h">
       <Filter>Header Files\zep</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\zep\ImGuiZepEditor.h">
-      <Filter>Header Files\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files\zep</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\zep\ImGuiZepConsole.h">
-      <Filter>Header Files\imgui</Filter>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepConsole.h">
+      <Filter>Header Files\mq\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepEditor.h">
+      <Filter>Header Files\mq\zep</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

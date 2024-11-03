@@ -22,8 +22,8 @@
  */
 
 #include "pch.h"
-#include "ImGuiZepEditor.h"
-#include "imgui/ImGuiUtils.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "mq/imgui/ImGuiUtils.h"
 
 #include "zep/display.h"
 #include "zep/editor.h"
@@ -36,28 +36,7 @@
 
 using namespace Zep;
 
-namespace mq::imgui {
-
-//----------------------------------------------------------------------------
-
-inline Zep::NVec2f toNVec2f(const ImVec2& im)
-{
-	return Zep::NVec2f(im.x, im.y);
-}
-inline ImVec2 toImVec2(const Zep::NVec2f& im)
-{
-	return ImVec2(im.x, im.y);
-}
-
-inline Zep::NVec2f toNVec2fAdjusted(const ImVec2& im, const Zep::NVec2f& rel)
-{
-	return Zep::NVec2f(im.x + rel.x, im.y + rel.y);
-}
-
-inline ImVec2 toImVec2Adjusted(const Zep::NVec2f& im, const Zep::NVec2f& rel)
-{
-	return ImVec2(im.x + rel.x, im.y + rel.y);
-}
+namespace mq {
 
 //----------------------------------------------------------------------------
 
@@ -214,7 +193,7 @@ ZepFont& ZepEditor_ImGui::GetFont(ZepTextType type)
 
 		case Zep::ZepTextType::UI:
 		default:
-			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::DefaultFont);
+			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont);
 			break;
 		}
 
@@ -502,6 +481,13 @@ ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
 	m_eventReceiver = std::make_unique<EventReceiver>(this);
 	m_editor->RegisterCallback(m_eventReceiver.get());
 	m_editor->SetGlobalMode(ZepMode_Standard::StaticName());
+
+	EditorConfig& config = m_editor->GetConfig();
+	config.showLineNumbers = true;
+	config.style = Zep::EditorStyle::Normal;
+
+	m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
+	SetWindowFlags(Zep::WindowFlags::WrapText);
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
@@ -539,6 +525,55 @@ ZepEditor& ImGuiZepEditor::GetEditor() const
 	return *m_editor;
 }
 
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::InitWithFile(std::string_view file)
+{
+	return m_editor->InitWithFileOrDir(file, false)->shared_from_this();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::InitWithText(std::string_view name, std::string_view text)
+{
+	return m_editor->InitWithText(name, text)->shared_from_this();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateFileBuffer(std::string_view file, uint32_t bufferFlags, bool create)
+{
+	return m_editor->GetFileBuffer(file, bufferFlags, create)->shared_from_this();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateEmptyBuffer(std::string_view name, uint32_t bufferFlags)
+{
+	return m_editor->GetEmptyBuffer(name, bufferFlags)->shared_from_this();
+}
+
+Zep::GlyphIterator ImGuiZepEditor::Begin() const
+{
+	return m_window->GetBuffer().Begin();
+}
+
+Zep::GlyphIterator ImGuiZepEditor::End() const
+{
+	return m_window->GetBuffer().End();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::GetActiveBuffer() const
+{
+	return m_window->GetBuffer().shared_from_this();
+}
+
+void ImGuiZepEditor::SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
+{
+	// Passed by raw pointer. Assumes that buffer is already owned by this editor.
+	m_window->SetBuffer(buffer.get());
+}
+
+void ImGuiZepEditor::RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
+{
+	// Passed by raw pointer. Assumes that this buffer is already owned by this editor.
+	m_editor->RemoveBuffer(buffer.get());
+
+	buffer->Clear();
+}
+
 void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 {
 	ImVec2 actualSize = ImGui::GetContentRegionAvail();
@@ -572,4 +607,28 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 	ImGui::EndChild();
 }
 
-} // namespace mq::imgui
+void ImGuiZepEditor::SetWindowFlags(uint32_t flags)
+{
+	if (m_wordWrap)
+		flags |= Zep::WindowFlags::WrapText;
+
+	m_window->SetWindowFlags(flags);
+
+	EditorConfig& config = m_editor->GetConfig();
+	config.autoHideCommandRegion = (flags & Zep::WindowFlags::ShowAirLine) == 0;
+}
+
+uint32_t ImGuiZepEditor::GetWindowFlags() const
+{
+	return m_window->GetWindowFlags();
+}
+
+void ImGuiZepEditor::ToggleFlag(uint32_t flag)
+{
+	if (!m_wordWrap)
+		flag &= ~Zep::WindowFlags::WrapText;
+
+	m_window->ToggleFlag(flag);
+}
+
+} // namespace mq

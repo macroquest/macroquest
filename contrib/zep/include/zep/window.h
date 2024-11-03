@@ -83,7 +83,7 @@ enum class DisplayMode
 
 namespace WindowFlags
 {
-    enum
+    enum Enum
     {
         None                   = 0,
         ShowWhiteSpace         = 0x0001,

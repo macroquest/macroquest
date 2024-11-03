@@ -17,8 +17,9 @@
 #include "MQ2DeveloperTools.h"
 #include "MQ2ImGuiTools.h"
 #include "ImGuiManager.h"
-#include "zep/ImGuiZepEditor.h"
-#include "zep/ImGuiZepConsole.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "mq/zep/ImGuiZepConsole.h"
+#include "mq/imgui/MQConsoleDelegate.h"
 #include "zep.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
@@ -92,125 +93,138 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 
 //----------------------------------------------------------------------------
 
-class MQConsoleDelegate : public ImGuiZepConsoleDelegate
+bool MQConsoleDelegate::OnHyperlinkClicked(ImGuiZepConsole* console, Zep::ZepMouseButton button,
+	uint32_t modifiers, const std::string& hyperlinkData, int hyperlinkId)
+{
+	TextTagInfo tagInfo = ExtractLink(hyperlinkData);
+
+	if (tagInfo.tagCode == ETAG_INVALID)
+		return false;
+
+	ExecuteTextLink(tagInfo);
+	return true;
+}
+
+bool MQConsoleDelegate::OnInsertFormattedText(ImGuiZepConsole* console, Zep::GlyphIterator position,
+	std::string_view text, ImU32 color)
+{
+	// Parse hyperlink data
+	static TextTagInfo textTagInfo[MAX_EXTRACT_LINKS];
+	size_t linkCount = eqlib::ExtractLinks(text, textTagInfo, MAX_EXTRACT_LINKS);
+
+	if (linkCount > 0)
+	{
+		// Insert text in segments, broken up by the links.
+		size_t segPos = 0;
+
+		for (size_t curTag = 0; curTag < linkCount; ++curTag)
+		{
+			TextTagInfo& tagInfo = textTagInfo[curTag];
+
+			// Get text before.
+			std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data() - segPos);
+			if (!curSeg.empty())
+			{
+				position = console->InsertText(position, curSeg, color);
+				segPos += curSeg.length();
+			}
+
+			// Insert hyperlink.
+			InsertHyperlink(console, position, tagInfo);
+			position = position.Move(static_cast<long>(tagInfo.text.length()));
+			segPos = tagInfo.link.data() - text.data() + tagInfo.link.size();
+		}
+
+		// If there is anything at the end, do that too.
+		std::string_view endSeg = text.substr(segPos);
+		if (!endSeg.empty())
+		{
+			position = console->InsertText(position, endSeg, color);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+void MQConsoleDelegate::InsertHyperlink(ImGuiZepConsole* console, Zep::GlyphIterator position, const TextTagInfo& tagInfo)
+{
+	auto& style = console->GetStyle();
+
+	uint32_t color = style.colors[ImGuiZepConsoleCol_Link];
+	uint32_t hoverColor = style.colors[ImGuiZepConsoleCol_LinkHover];
+
+	switch (tagInfo.tagCode)
+	{
+	case ETAG_SPELL:
+	case ETAG_ITEM:
+		color = GetColorForChatColor(s_userColorItemLink).ToABGR();
+		break;
+	case ETAG_PLAYER:
+		color = s_linkColorPlayer;
+		hoverColor = s_linkHoverColorPlayer;
+		break;
+	case ETAG_SPAM:
+		color = s_linkColorSpam;
+		hoverColor = s_linkHoverColorSpam;
+		break;
+	case ETAG_ACHIEVEMENT:
+		color = GetColorForChatColor(s_userColorAchievementLink).ToABGR();
+		break;
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
+	case ETAG_DIALOG_RESPONSE:
+		color = GetColorForChatColor(s_userColorDialogLink).ToABGR();
+		break;
+	case ETAG_COMMAND:
+		color = GetColorForChatColor(s_userColorCommandLink).ToABGR();
+		break;
+	case ETAG_FACTION:
+		color = GetColorForChatColor(s_userColorFactionLink).ToABGR();
+		break;
+#endif
+	default:
+		break;
+	}
+
+	console->InsertHyperlink(position, tagInfo.text, std::string(tagInfo.link), color, hoverColor);
+}
+
+namespace imgui
+{
+	std::shared_ptr<ConsoleWidget> ConsoleWidget::Create(std::string_view id)
+	{
+		auto console = std::make_shared<ConsoleWidget>(id);
+		console->SetDelegate(std::make_shared<MQConsoleDelegate>());
+		return console;
+	}
+}
+
+class MQMainConsoleDelegate : public MQConsoleDelegate
 {
 public:
-	virtual void OnHyperlinkClicked(ImGuiZepConsole* console, Zep::ZepMouseButton button, uint32_t modifiers,
+	bool OnHyperlinkClicked(ImGuiZepConsole* console, Zep::ZepMouseButton button, uint32_t modifiers,
 		const std::string& hyperlinkData, int hyperlinkId) override
 	{
 		if (starts_with(hyperlinkData, "testlink:"))
 		{
-			std::string text = fmt::format("Clicked hyperlink: {}\n", std::string_view{ hyperlinkData }.substr(9));
+			std::string text = fmt::format("Clicked hyperlink: {}", std::string_view{ hyperlinkData }.substr(9));
 
 			console->AppendText(text, MQColor(255, 255, 0), true);
 		}
 		else
 		{
-			TextTagInfo tagInfo = ExtractLink(hyperlinkData);
+			if (MQConsoleDelegate::OnHyperlinkClicked(console, button, modifiers, hyperlinkData, hyperlinkId))
+				return true;
 
-			if (!ExecuteTextLink(tagInfo))
-			{
-				console->AppendText(fmt::format("Clicked link: {}\n", hyperlinkData));
-			}
-		}
-	}
-
-	virtual bool OnInsertFormattedText(ImGuiZepConsole* console, Zep::GlyphIterator position, std::string_view text,
-		ImU32 color) override
-	{
-		// Parse hyperlink data
-		static TextTagInfo textTagInfo[MAX_EXTRACT_LINKS];
-		size_t linkCount = eqlib::ExtractLinks(text, textTagInfo, MAX_EXTRACT_LINKS);
-
-		if (linkCount > 0)
-		{
-			// Insert text in segments, broken up by the links.
-			size_t segPos = 0;
-
-			for (size_t curTag = 0; curTag < linkCount; ++curTag)
-			{
-				TextTagInfo& tagInfo = textTagInfo[curTag];
-
-				// Get text before.
-				std::string_view curSeg = text.substr(segPos, tagInfo.link.data() - text.data() - segPos);
-				if (!curSeg.empty())
-				{
-					position = console->InsertText(position, curSeg, color);
-					segPos += curSeg.length();
-				}
-
-				// Insert hyperlink.
-				InsertHyperlink(console, position, tagInfo);
-				position = position.Move(static_cast<long>(tagInfo.text.length()));
-				segPos = tagInfo.link.data() - text.data() + tagInfo.link.size();
-			}
-
-			// If there is anything at the end, do that too.
-			std::string_view endSeg = text.substr(segPos);
-			if (!endSeg.empty())
-			{
-				position = console->InsertText(position, endSeg, color);
-			}
-
-			return true;
+			console->AppendText(fmt::format("Clicked link: {}", hyperlinkData));
 		}
 
-		return false;
-	}
-
-private:
-	void InsertHyperlink(ImGuiZepConsole* console, Zep::GlyphIterator position, const TextTagInfo& tagInfo)
-	{
-		uint32_t color = s_linkColorDefault;
-		uint32_t hoverColor = s_linkHoverColorDefault;
-
-		switch (tagInfo.tagCode)
-		{
-		case ETAG_SPELL:
-		case ETAG_ITEM:
-			color = GetColorForChatColor(s_userColorItemLink).ToABGR();
-			break;
-		case ETAG_PLAYER:
-			color = s_linkColorPlayer;
-			hoverColor = s_linkHoverColorPlayer;
-			break;
-		case ETAG_SPAM:
-			color = s_linkColorSpam;
-			hoverColor = s_linkHoverColorSpam;
-			break;
-		case ETAG_ACHIEVEMENT:
-			color = GetColorForChatColor(s_userColorAchievementLink).ToABGR();
-			break;
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF + 1)
-		case ETAG_DIALOG_RESPONSE:
-			color = GetColorForChatColor(s_userColorDialogLink).ToABGR();
-			break;
-		case ETAG_COMMAND:
-			color = GetColorForChatColor(s_userColorCommandLink).ToABGR();
-			break;
-		case ETAG_FACTION:
-			color = GetColorForChatColor(s_userColorFactionLink).ToABGR();
-			break;
-#endif
-		default:
-			break;
-		}
-
-		console->InsertHyperlink(position, tagInfo.text, std::string(tagInfo.link), color, hoverColor);
+		return true;
 	}
 };
 
 #pragma endregion
-
-namespace imgui
-{
-	std::shared_ptr<mq::imgui::ConsoleWidget> ConsoleWidget::Create(std::string_view id)
-	{
-		auto console = std::make_shared<ImGuiZepConsole>(id);
-		console->SetDelegate(std::make_shared<MQConsoleDelegate>());
-		return console;
-	}
-}
 
 std::vector<std::string> InitConsoleDatabase(sqlite3*& db, int process_id)
 {
@@ -369,7 +383,7 @@ public:
 	{
 		ZeroMemory(m_inputBuffer, lengthof(m_inputBuffer));
 		m_zepConsole = std::make_unique<ImGuiZepConsole>("##ZepConsole");
-		m_zepConsole->SetDelegate(std::make_shared<MQConsoleDelegate>());
+		m_zepConsole->SetDelegate(std::make_shared<MQMainConsoleDelegate>());
 
 		m_localEcho = GetPrivateProfileBool("Console", "LocalEcho", m_localEcho, internal_paths::MQini);
 
@@ -410,7 +424,7 @@ public:
 		AddLog(s_defaultColor.ToImU32(), std::move(fmt), args...);
 	}
 
-	void AddWriteChatColorLog(const char* line, MQColor defaultColor = s_defaultColor, bool newline = false)
+	void AddWriteChatColorLog(const char* line, MQColor defaultColor, bool newline = false)
 	{
 		m_zepConsole->AppendText(line, defaultColor, newline);
 	}
@@ -740,30 +754,12 @@ public:
 
 	void DoHyperlinkTest()
 	{
-		bool cursorAtEnd = m_zepConsole->GetWindow()->IsAtBottom();
-
 		static int hyperlinkNum = 1;
 		std::string text = fmt::format("This is hyperlink {}", hyperlinkNum++);
 
-		ZepTextAttribute attribute;
-		attribute.startIndex = 0;
-		attribute.endIndex = static_cast<int>(text.length());
-		attribute.attribute.type = ZepAttribute::Type::Hyperlink;
-		attribute.attribute.data = ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) };
-
-		// Append to end of buffer
-		Zep::GlyphIterator position = m_zepConsole->GetBuffer()->End();
-
-		ImGuiZepConsoleSyntax* syntax = static_cast<ImGuiZepConsoleSyntax*>(m_zepConsole->GetBuffer()->GetSyntax());
-		syntax->AddAttribute(position, std::move(attribute));
-
-		Zep::ChangeRecord changeRecord;
-		m_zepConsole->GetBuffer()->Insert(position, text + "\n", changeRecord);
-
-		if (cursorAtEnd)
-		{
-			m_zepConsole->TriggerAutoScroll();
-		}
+		m_zepConsole->InsertHyperlink(m_zepConsole->GetActiveBuffer()->End(), text,
+			ZepAttribute::HyperlinkAttributeData{ fmt::format("testlink:{}'s data", text) });
+		m_zepConsole->InsertText(m_zepConsole->GetActiveBuffer()->End(), "\n");
 	}
 
 	bool GetLocalEcho() const { return m_localEcho; }
@@ -833,7 +829,6 @@ static void MakeColorGradient(float frequency1, float frequency2, float frequenc
 
 		std::string test = fmt::format("\a#{:06x}x", (color & 0xffffff));
 		strcat_s(szBuffer, test.c_str());
-		//gImGuiConsole->AddWriteChatColorLog(test.c_str());
 
 		if (i % 50 == 0)
 		{

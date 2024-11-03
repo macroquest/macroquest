@@ -142,6 +142,7 @@
     <ClCompile Include="bindings\lua_ImPlot.cpp" />
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQMacroData.cpp" />
+    <ClCompile Include="bindings\lua_Zep.cpp" />
     <ClCompile Include="LuaActor.cpp" />
     <ClCompile Include="LuaCoroutine.cpp" />
     <ClCompile Include="LuaEvent.cpp" />
