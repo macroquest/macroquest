@@ -223,7 +223,7 @@ void EmuSetCpuAffinity()
 		int cores = SystemInfo.dwNumberOfProcessors;
 		intptr_t m = 0;
 
-		if (cores >= sizeof(DWORD_PTR))
+		if (cores >= sizeof(DWORD_PTR) * 8)
 		{
 			// If we have more cores than bits in the mask, we can't set affinity.
 			// This is a limitation of the API.
