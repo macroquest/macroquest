@@ -33,7 +33,38 @@
 
 namespace mq::lua::bindings {
 
+//============================================================================
+
 class LuaZepConsole;
+class LuaZepEditor;
+
+//============================================================================
+
+class LuaZepEditor : public ImGuiZepEditor
+{
+public:
+	using ImGuiZepEditor::ImGuiZepEditor;
+
+	sol::table GetSyntaxProviders(sol::this_state L)
+	{
+		sol::state_view state(L);
+
+		sol::table syntaxProviders = state.create_table();
+		for (auto& [key, value] : GetEditor().GetSyntaxProviders())
+		{
+			syntaxProviders.add(
+				state.create_table_with(
+					"id", key,
+					"name", value->name
+				)
+			);
+		}
+
+		return syntaxProviders;
+	}
+};
+
+//============================================================================
 
 class LuaZepConsoleDelegate : public MQConsoleDelegate
 {
@@ -123,6 +154,8 @@ bool LuaZepConsoleDelegate::OnHyperlinkClicked(ImGuiZepConsole* console, Zep::Ze
 	return m_pConsole->OnHyperlinkClicked(button, modifiers, hyperlinkData, hyperlinkId);
 }
 
+//============================================================================
+
 sol::table RegisterBindings_Zep(sol::this_state L)
 {
 	// The creation of this namespace is gated by the ImGui namespace.
@@ -192,6 +225,12 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"Load"                     , [](ZepBuffer* pThis, std::string_view file) { pThis->Load(file); },
 		"Save"                     , [](ZepBuffer* pThis) { int64_t size = 0; bool success = pThis->Save(size); return std::make_tuple(success, size); },
 
+		// Flags
+		"HasFlag"                  , &ZepBuffer::HasFileFlags,
+		"ToggleFlag"               , &ZepBuffer::ToggleFileFlag,
+		"SetFlags"                 , &ZepBuffer::SetFileFlags,
+		"ClearFlags"               , &ZepBuffer::ClearFileFlags,
+
 		"Find"                     , [](ZepBuffer* pThis, GlyphIterator start, std::string_view text) { pThis->Find(start, (uint8_t*)text.data(), (uint8_t*)(text.data() + text.size())); }
 
 	);
@@ -218,39 +257,38 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"PeekClamped"              , [](GlyphIterator* pThis, int count, std::optional<int> clamp) { return pThis->PeekLineClamped(count, static_cast<LineLocation>(clamp.value_or(0))); },
 		"Clamped"                  , &GlyphIterator::Clamped
 	);
-
-	using mq::ImGuiZepEditor;
 	
-	Z.new_usertype<ImGuiZepEditor>(
-		"Editor"                   , sol::constructors<ImGuiZepEditor(), ImGuiZepEditor(std::string_view)>(),
+	Z.new_usertype<LuaZepEditor>(
+		"Editor"                   , sol::constructors<LuaZepEditor(), LuaZepEditor(std::string_view)>(),
 
 		"Render"                   , sol::overload(
-			[](ImGuiZepEditor* pThis, std::optional<ImVec2> displaySize) { pThis->Render(displaySize.value_or(ImVec2())); },
-			[](ImGuiZepEditor* pThis, const char* id, std::optional<ImVec2> displaySize) { pThis->Render(id, displaySize.value_or(ImVec2())); }),
+			[](LuaZepEditor* pThis, std::optional<ImVec2> displaySize) { pThis->Render(displaySize.value_or(ImVec2())); },
+			[](LuaZepEditor* pThis, const char* id, std::optional<ImVec2> displaySize) { pThis->Render(id, displaySize.value_or(ImVec2())); }),
 
 		// Flags
-		"windowFlags"              , sol::property(&ImGuiZepEditor::GetWindowFlags, &ImGuiZepEditor::SetWindowFlags),
-		"ToggleFlag"               , &ImGuiZepEditor::ToggleFlag,
+		"windowFlags"              , sol::property(&LuaZepEditor::GetWindowFlags, &ImGuiZepEditor::SetWindowFlags),
+		"ToggleFlag"               , &LuaZepEditor::ToggleFlag,
 
 		// Buffers
-		"activeBuffer"             , sol::property(&ImGuiZepEditor::GetActiveBuffer, &ImGuiZepEditor::SetActiveBuffer),
-		"buffers"                  , sol::readonly_property([](ImGuiZepEditor* pThis) { return sol::as_table(pThis->GetEditor().GetBuffers()); }),
-		"InitWithFile"             , &ImGuiZepEditor::InitWithFile,
-		"InitWithText"             , &ImGuiZepEditor::InitWithText,
-		"CreateFileBuffer"         , [](ImGuiZepEditor* pThis, std::string_view file) { return pThis->CreateFileBuffer(file); },
-		"CreateEmptyBuffer"        , [](ImGuiZepEditor* pThis, std::string_view name) { return pThis->CreateEmptyBuffer(name); },
-		"RemoveBuffer"             , &ImGuiZepEditor::RemoveBuffer,
+		"activeBuffer"             , sol::property(&LuaZepEditor::GetActiveBuffer, &ImGuiZepEditor::SetActiveBuffer),
+		"buffers"                  , sol::readonly_property([](LuaZepEditor* pThis) { return sol::as_table(pThis->GetEditor().GetBuffers()); }),
+		"InitWithFile"             , &LuaZepEditor::InitWithFile,
+		"InitWithText"             , &LuaZepEditor::InitWithText,
+		"CreateFileBuffer"         , [](LuaZepEditor* pThis, std::string_view file) { return pThis->CreateFileBuffer(file); },
+		"CreateEmptyBuffer"        , [](LuaZepEditor* pThis, std::string_view name) { return pThis->CreateEmptyBuffer(name); },
+		"RemoveBuffer"             , &LuaZepEditor::RemoveBuffer,
 
 		// Cursor
-		"beginPos"                 , sol::readonly_property(&ImGuiZepEditor::Begin),
-		"endPos"                   , sol::readonly_property(&ImGuiZepEditor::End),
-		"cursor"                   , sol::property([](ImGuiZepEditor* pThis) { return pThis->GetWindow().GetBufferCursor(); },
-			                                       [](ImGuiZepEditor* pThis, GlyphIterator location) { pThis->GetWindow().SetBufferCursor(location); }),
-		"cursorPos"                , sol::readonly_property([](ImGuiZepEditor* pThis) { return mq::toImVec2(pThis->GetWindow().BufferToDisplay()); }),
-		"mouseCursor"              , sol::readonly_property([](ImGuiZepEditor* pThis) { return pThis->GetWindow().GetMouseCursor(); })
-	);
+		"beginPos"                 , sol::readonly_property(&LuaZepEditor::Begin),
+		"endPos"                   , sol::readonly_property(&LuaZepEditor::End),
+		"cursor"                   , sol::property([](LuaZepEditor* pThis) { return pThis->GetWindow().GetBufferCursor(); },
+			                                       [](LuaZepEditor* pThis, GlyphIterator location) { pThis->GetWindow().SetBufferCursor(location); }),
+		"cursorPos"                , sol::readonly_property([](LuaZepEditor* pThis) { return mq::toImVec2(pThis->GetWindow().BufferToDisplay()); }),
+		"mouseCursor"              , sol::readonly_property([](LuaZepEditor* pThis) { return pThis->GetWindow().GetMouseCursor(); }),
 
-	using mq::ImGuiZepConsole;
+		// Misc
+		"GetSyntaxProviders"       , &LuaZepEditor::GetSyntaxProviders
+	);
 
 	// Console is a specialized editor
 	Z.new_usertype<LuaZepConsole>(

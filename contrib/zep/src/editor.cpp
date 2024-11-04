@@ -657,7 +657,7 @@ ZepTabWindow* ZepEditor::AddTabWindow()
     m_tabWindows.push_back(pTabWindow);
     m_pActiveTabWindow = pTabWindow;
 
-    auto pEmpty = GetEmptyBuffer("[No ExCommandName]", FileFlags::DefaultBuffer);
+    auto pEmpty = GetEmptyBuffer("[Default]", FileFlags::DefaultBuffer);
     pTabWindow->AddWindow(pEmpty, nullptr, RegionLayoutType::HBox);
 
     return pTabWindow;
@@ -882,6 +882,8 @@ void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string>& mappings, 
     {
         m_mapSyntax[string_tolower(m)] = p;
     }
+
+    m_mapSyntaxProviders[provider.syntaxID] = p;
 }
 
 std::shared_ptr<SyntaxProvider> ZepEditor::GetSyntaxProviderByID(std::string_view syntaxID) const

@@ -60,7 +60,7 @@ struct Region;
 #define ZEP_UNUSED(var) (void)var;
 
 // Helpers
-inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) ? true : false); }
+inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) == value); }
 inline uint32_t ZSetFlags(const uint32_t& flags, uint32_t value, bool set = true) { if (set) { return flags | value; } else return flags; }
 inline uint32_t ZClearFlags(const uint32_t& flags, uint32_t value) { return flags & ~value; }
 
@@ -308,6 +308,7 @@ public:
     void RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider factory);
     std::shared_ptr<SyntaxProvider> GetSyntaxProviderByID(std::string_view syntaxID) const;
     std::shared_ptr<SyntaxProvider> GetSyntaxProviderByExtension(std::string_view extension) const;
+    const std::map<std::string, std::shared_ptr<SyntaxProvider>>& GetSyntaxProviders() const { return m_mapSyntaxProviders; }
 
     bool Broadcast(std::shared_ptr<ZepMessage> payload);
     void DispatchMouseEvent(std::shared_ptr<ZepMessage> message);
@@ -460,6 +461,7 @@ private:
 
     std::shared_ptr<ZepTheme> m_spTheme;
     std::map<std::string, std::shared_ptr<SyntaxProvider>> m_mapSyntax;
+    std::map<std::string, std::shared_ptr<SyntaxProvider>> m_mapSyntaxProviders;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;

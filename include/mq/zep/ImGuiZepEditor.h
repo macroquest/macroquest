@@ -88,7 +88,7 @@ public:
 	std::shared_ptr<Zep::ZepBuffer> CreateEmptyBuffer(std::string_view name, uint32_t bufferFlags = 0);
 	std::shared_ptr<Zep::ZepBuffer> GetActiveBuffer() const;
 	void SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
-	void RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
+	bool RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
 
 	Zep::GlyphIterator Begin() const;
 	Zep::GlyphIterator End() const;

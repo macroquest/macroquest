@@ -192,6 +192,11 @@ void RegisterSyntaxProviders(ZepEditor& editor)
             return std::make_shared<ZepSyntax_Markdown>(*pBuffer, markdown_keywords, markdown_identifiers, ZepSyntaxFlags::CaseInsensitive);
         })
     });
+
+    editor.RegisterSyntaxFactory(
+        { ".txt" },
+        SyntaxProvider{"", "Plaintext", tSyntaxFactory([](ZepBuffer*) { return nullptr; })}
+    );
 }
 
 } // namespace Zep

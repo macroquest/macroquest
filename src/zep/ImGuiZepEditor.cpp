@@ -485,9 +485,11 @@ ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
 	EditorConfig& config = m_editor->GetConfig();
 	config.showLineNumbers = true;
 	config.style = Zep::EditorStyle::Normal;
+	config.autoHideCommandRegion = false;
 
 	m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
-	SetWindowFlags(Zep::WindowFlags::WrapText);
+	SetWindowFlags(Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::ShowIndicators
+		| Zep::WindowFlags::ShowAirLine);
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
@@ -566,12 +568,18 @@ void ImGuiZepEditor::SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buff
 	m_window->SetBuffer(buffer.get());
 }
 
-void ImGuiZepEditor::RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
+bool ImGuiZepEditor::RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
 {
+	// Cannot remove the last buffer
+	auto& buffers = m_editor->GetBuffers();
+	if (buffers.size() == 1 && buffers[0] == buffer)
+		return false;
+
 	// Passed by raw pointer. Assumes that this buffer is already owned by this editor.
 	m_editor->RemoveBuffer(buffer.get());
 
 	buffer->Clear();
+	return true;
 }
 
 void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)

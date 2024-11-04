@@ -348,6 +348,7 @@ ImGuiZepConsole::ImGuiZepConsole(std::string_view id)
 	EditorConfig& config = editor.GetConfig();
 	config.showLineNumbers = false;
 	config.style = Zep::EditorStyle::Minimal;
+	config.autoHideCommandRegion = true;
 
 	editor.RegisterSyntaxFactory(
 		{ "Console" },
@@ -361,7 +362,8 @@ ImGuiZepConsole::ImGuiZepConsole(std::string_view id)
 	m_buffer = editor.InitWithText("Console", "");
 	m_buffer->SetTheme(m_theme);
 	m_window->SetBufferCursor(m_buffer->End());
-	m_window->ToggleFlag(Zep::WindowFlags::HideTrailingNewline);
+	m_window->SetWindowFlags(Zep::WindowFlags::HideTrailingNewline | Zep::WindowFlags::WrapText);
+	m_window->SetCursorVisibleLines(0);
 	m_buffer->SetFileFlags(Zep::FileFlags::ReadOnly | Zep::FileFlags::CrudeUtf8Vaidate);
 }
 
