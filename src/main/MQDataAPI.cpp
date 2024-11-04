@@ -107,8 +107,9 @@ void InvalidateObservedEQObject(void* Object)
 
 	for (const auto& weak : s_objectMap)
 	{
-		if (*weak.lock() == Object)
-			weak.lock()->Invalidate();
+		if (auto ptr = weak.lock())
+			if (*ptr == Object)
+				ptr->Invalidate();
 	}
 }
 
