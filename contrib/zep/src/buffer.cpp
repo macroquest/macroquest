@@ -687,6 +687,11 @@ std::string ZepBuffer::GetText() const
         }
     }
 
+    if (m_fileFlags & FileFlags::TerminatedWithZero)
+    {
+        str.pop_back();
+    }
+
     return str;
 }
 
@@ -997,8 +1002,11 @@ void ZepBuffer::SetSyntaxProvider(std::shared_ptr<SyntaxProvider> provider)
             m_syntaxProvider.reset();
         }
 
-        // Inform the editor that the syntax has changed
-        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
+        if (Begin() != End())
+        {
+            // Inform the editor that the syntax has changed
+            GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, Begin(), End()));
+        }
     }
 }
 
