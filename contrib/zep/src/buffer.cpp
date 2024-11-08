@@ -528,6 +528,108 @@ GlyphIterator ZepBuffer::FindMatchingParen(GlyphIterator bufferCursor) const
     return GlyphIterator();
 }
 
+std::pair<GlyphIterator, GlyphIterator> ZepBuffer::FindMatchingPair(GlyphIterator start, uint8_t ch) const
+{
+    std::string delims;
+    switch (ch)
+    {
+    case '(':
+    case ')':
+        delims = "()";
+        break;
+    case '[':
+    case ']':
+        delims = "[]";
+        break;
+    case '{':
+    case '}':
+        delims = "{}";
+        break;
+    default:
+        // Matching same char at both ends
+        delims = std::string(2, ch);
+        break;
+    }
+
+    std::pair<GlyphIterator, GlyphIterator> ret;
+
+    auto search = [&](GlyphIterator loc, Direction dir)
+    {
+        int openCount = 1;
+        for (;;)
+        {
+            // Find the previous open for the current delim type
+            int newIndex;
+            loc = FindFirstCharOf(loc, delims, newIndex, dir);
+
+            // Fell off beginning, no find
+            if (newIndex < 0)
+            {
+                return GlyphIterator();
+            }
+
+            if (dir == Direction::Forward)
+            {
+                newIndex = 1 - newIndex;
+            }
+
+            // Match immediately for ""
+            if (delims[0] == delims[1])
+            {
+                newIndex = 0;
+            }
+
+            // Found another opener
+            if (newIndex == 0)
+            {
+                openCount--;
+                if (openCount == 0)
+                {
+                    // Found opening
+                    return loc;
+                }
+            }
+            // Found a closer
+            else if (newIndex == 1)
+            {
+                openCount++;
+            }
+
+            if (dir == Direction::Forward)
+            {
+                if (loc == End())
+                {
+                    return GlyphIterator();
+                }
+                loc++;
+            }
+            else
+            {
+                if (loc == Begin())
+                {
+                    return GlyphIterator();
+                }
+                loc--;
+            }
+        }
+    };
+
+    // If on the end bracket, start before it.
+    if (start.Char() == delims[1] && delims[0] != delims[1])
+    {
+        start--;
+    }
+
+    // Search for the begin
+    ret.first = search(start, Direction::Backward);
+    if (ret.first.Valid() && ret.first != End())
+    {
+        // Search for the end
+        ret.second = search(ret.first + 1, Direction::Forward);
+    }
+    return ret;
+}
+
 GlyphIterator ZepBuffer::WordMotion(GlyphIterator start, uint32_t searchType, Direction dir) const
 {
     auto IsWord = searchType == SearchType::Word ? IsWordChar : IsWORDChar;
@@ -1800,7 +1902,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange&
     auto spMarker = std::make_shared<RangeMarker>(*this);
     spMarker->SetRange(ByteRange(range.first.Index(), range.second.Index()));
     spMarker->SetBackgroundColor(ThemeColor::FlashColor);
-    spMarker->displayType = RangeMarkerDisplayType::Timed |RangeMarkerDisplayType::Background;
+    spMarker->displayType = RangeMarkerDisplayType::Timed | RangeMarkerDisplayType::Background;
     spMarker->markerType = RangeMarkerType::Mark;
     spMarker->duration = seconds;
     spMarker->flashType = flashType;
