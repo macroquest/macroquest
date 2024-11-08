@@ -128,8 +128,10 @@ DECLARE_COMMANDID(MotionUpSplit)
 DECLARE_COMMANDID(MotionDownSplit)
 
 DECLARE_COMMANDID(MotionLineEnd)
+DECLARE_COMMANDID(MotionLineBeyondEnd)
 DECLARE_COMMANDID(MotionLineBegin)
 DECLARE_COMMANDID(MotionLineFirstChar)
+DECLARE_COMMANDID(MotionLineHomeToggle)
 
 DECLARE_COMMANDID(MotionDown)
 DECLARE_COMMANDID(MotionUp)
@@ -173,8 +175,6 @@ DECLARE_COMMANDID(MotionStandardPageBackward)
 DECLARE_COMMANDID(MotionStandardLeftWord)
 DECLARE_COMMANDID(MotionStandardRightWord)
 
-DECLARE_COMMANDID(MotionStandardLineBegin)
-DECLARE_COMMANDID(MotionStandardLineEnd)
 DECLARE_COMMANDID(MotionStandardGotoBeginningSelect)
 DECLARE_COMMANDID(MotionStandardGotoEndSelect)
 
@@ -188,6 +188,7 @@ DECLARE_COMMANDID(MotionStandardPageForwardSelect)
 DECLARE_COMMANDID(MotionStandardLeftWordSelect)
 DECLARE_COMMANDID(MotionStandardRightWordSelect)
 
+DECLARE_COMMANDID(MotionStandardHomeToggleSelect)
 DECLARE_COMMANDID(MotionStandardLineBeginSelect)
 DECLARE_COMMANDID(MotionStandardLineEndSelect)
 
