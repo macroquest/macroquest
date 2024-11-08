@@ -40,6 +40,12 @@ namespace mq {
 
 //----------------------------------------------------------------------------
 
+static ImU32 GetStyleModulatedColor(ZepColor color)
+{
+	color.a = static_cast<uint8_t>(color.a * ImGui::GetStyle().Alpha);
+	return color.ToPackedABGR();
+}
+
 class ZepFont_ImGui : public Zep::ZepFont
 {
 public:
@@ -132,48 +138,55 @@ void ZepEditor_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	{
 		text_end = text_begin + strlen((const char*)text_begin);
 	}
+
+	ImU32 color = GetStyleModulatedColor(col);
+
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), color, (const char*)text_begin, (const char*)text_end);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), color, (const char*)text_begin, (const char*)text_end);
 		drawList->PopClipRect();
 	}
 }
 
-void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const
+void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor col, float width) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImU32 color = GetStyleModulatedColor(col);
 
 	// Background rect for numbers
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
+		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color, width);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
+		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color, width);
 		drawList->PopClipRect();
 	}
 }
 
-void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
+void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor col) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImU32 color = GetStyleModulatedColor(col);
 
 	// Background rect for numbers
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
+		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
+		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color);
 		drawList->PopClipRect();
 	}
 }
