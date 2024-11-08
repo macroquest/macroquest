@@ -383,7 +383,10 @@ GlyphIterator ZepBuffer::FindOnLineMotion(GlyphIterator start, const uint8_t* pC
 
     if (dir == Direction::Forward)
     {
+        // Ignore char under cursor, as behavior
         SkipOne(IsMatch, start, dir);
+
+        // Find to the end of the line.
         Skip(NotMatchNotEnd, start, dir);
     }
     else
@@ -397,6 +400,132 @@ GlyphIterator ZepBuffer::FindOnLineMotion(GlyphIterator start, const uint8_t* pC
         return start;
     }
     return entry;
+}
+
+// Only works on searches of ascii characters (but navigates unicode buffer); useful for some vim operations
+// Returns the index of the first found char and its location
+GlyphIterator ZepBuffer::FindFirstCharOf(GlyphIterator start, std::string_view chars, int32_t& found_index, Direction dir) const
+{
+    GlyphIterator itr = start;
+
+    if (!itr.Valid())
+    {
+        found_index = -1;
+        return itr;
+    }
+
+    for (;;)
+    {
+        for (int i = 0; i < chars.length(); i++)
+        {
+            if (itr.Char() == chars[i])
+            {
+                found_index = i;
+                return itr;
+            }
+        }
+
+        if (dir == Direction::Forward)
+        {
+            if (itr == End())
+            {
+                break;
+            }
+            itr++;
+        }
+        else if (dir == Direction::Backward)
+        {
+            if (itr == Begin())
+            {
+                break;
+            }
+            itr--;
+        }
+    }
+
+    found_index = -1;
+    return itr;
+}
+
+GlyphIterator ZepBuffer::FindMatchingParen(GlyphIterator bufferCursor) const
+{
+    int32_t findIndex = 0;
+    std::string_view delims = "\n(){}[]";
+    Direction dir = Direction::Forward;
+
+    GlyphIterator loc = FindFirstCharOf(bufferCursor, delims, findIndex, dir);
+
+    if (findIndex > 0)
+    {
+        // Make a new end location
+        auto end_loc = loc;
+
+        std::string closing;
+        std::string opening = std::string(1, delims[findIndex]);
+
+        // opening bracket
+        if (findIndex & 0x1)
+        {
+            end_loc++;
+            closing = delims[findIndex + 1];
+        }
+        else
+        {
+            end_loc--;
+            closing = delims[findIndex - 1];
+            dir = Direction::Backward;
+        }
+        std::string openClose = opening + closing;
+
+        // Track open/close braket pairs
+        int closingCount = 1;
+
+        for (;;)
+        {
+            // Find the next open or close of the current delim type
+            int newIndex;
+            end_loc = FindFirstCharOf(end_loc, openClose, newIndex, dir);
+
+            // Fell off, no find
+            if (newIndex < 0)
+            {
+                break;
+            }
+
+            // Found another opener/no good
+            if (newIndex == 0)
+            {
+                closingCount++;
+            }
+            // Found a closer
+            else if (newIndex == 1)
+            {
+                closingCount--;
+                if (closingCount == 0)
+                {
+                    return end_loc;
+                }
+            }
+
+            if (dir == Direction::Forward)
+            {
+                if (end_loc == End())
+                {
+                    break;
+                }
+                end_loc++;
+            }
+            else
+            {
+                if (end_loc == Begin())
+                {
+                    break;
+                }
+                end_loc--;
+            }
+        }
+    }
+    return GlyphIterator();
 }
 
 GlyphIterator ZepBuffer::WordMotion(GlyphIterator start, uint32_t searchType, Direction dir) const

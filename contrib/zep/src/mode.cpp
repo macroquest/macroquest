@@ -1874,6 +1874,92 @@ bool ZepMode::GetCommand(CommandContext& context)
         case id_FindNext:
             GetCurrentWindow()->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t*)m_lastFind.c_str(), m_lastFindDirection));
             return true;
+        case id_FindNextDelimiter:
+        {
+            // Rules:
+            // 1. Find the first delimeter that matches an 'opening' such as '(', jump to the matching pair ')'
+            // 2. If that fails, look backwards for a closing delimiter, such as ')' and find the opening '('
+            // 3. If that fails, look backwards for an opening and finish
+            // All operations do the first search on the current line, as in vim.
+            int32_t findIndex = 0;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                std::string_view start_delims;
+                std::string_view end_delims;
+                Direction dir;
+
+                // Forward or inside
+                if (pass == 0)
+                {
+                    dir = Direction::Forward;
+                    start_delims = "\n({[";
+                    end_delims = ")}]";
+                }
+                else
+                {
+                    dir = Direction::Backward;
+                    start_delims = "\n)}]";
+                    end_delims = "({[";
+                }
+
+                GlyphIterator loc = context.buffer.FindFirstCharOf(bufferCursor, start_delims, findIndex, dir);
+                if (findIndex > 0)
+                {
+                    // Ignore the first \n in the delim list
+                    findIndex--;
+
+                    // Make a new end location
+                    auto end_loc = loc;
+
+                    // Track open/close braket pairs
+                    int closingCount = 1;
+                    while (closingCount > 0)
+                    {
+                        // Skip to next
+                        dir == Direction::Forward ? end_loc++ : end_loc--;
+
+                        // Find the next open or close of the current delim type
+                        int newIndex;
+                        std::string find(std::string(1, start_delims[findIndex + 1]) + end_delims[findIndex]);
+                        end_loc = context.buffer.FindFirstCharOf(end_loc, find, newIndex, dir);
+
+                        // Fell off, no find
+                        if (newIndex < 0)
+                        {
+                            break;
+                        }
+
+                        // Found another opener/no good
+                        if (newIndex == 0)
+                        {
+                            closingCount++;
+                        }
+                        // Found a closer
+                        else if (newIndex == 1)
+                        {
+                            closingCount--;
+                        }
+                    }
+
+                    // Matched a pair, jump
+                    if (closingCount == 0)
+                    {
+                        GetCurrentWindow()->SetBufferCursor(end_loc);
+                        return true;
+                    }
+                }
+            }
+
+            // Situation: In the middle of a pair of delimiters, after all searches have failed.
+            // Bounce back to the beginning one on the line if found
+            auto start_loc = context.buffer.FindFirstCharOf(bufferCursor, "\n({[", findIndex, Direction::Backward);
+            if (findIndex > 0)
+            {
+                GetCurrentWindow()->SetBufferCursor(start_loc);
+                return true;
+            }
+            return false;
+        }
         case id_Append:
             // Cursor append
             cursorItr.MoveClamped(1, LineLocation::LineCRBegin);
@@ -2768,6 +2854,7 @@ void ZepMode::AddSearchKeyMaps()
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "f<.>" }, id_Find);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "F<.>" }, id_FindBackwards);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { ";" }, id_FindNext);
+    AddKeyMapWithCountRegisters({ &m_normalMap }, { "%" }, id_FindNextDelimiter);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "n" }, id_MotionNextSearch);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "N" }, id_MotionPreviousSearch);
     keymap_add({ &m_normalMap }, { "<F8>" }, id_MotionNextMarker);
