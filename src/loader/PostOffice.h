@@ -17,6 +17,7 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <chrono>
 
 #include "routing/PostOffice.h"
 #include "routing/Network.h"
@@ -34,6 +35,10 @@ class NetworkPeerAPI;
 
 using GetCrashpadPipe = std::function<std::string()>;
 using RequestFocusCallback = std::function<void(const mq::MQMessageFocusRequest*)>;
+
+// ImGui
+void InitializePostOfficeImgui();
+void ShutdownPostOfficeImgui();
 
 // setting these configs is to allow testing without spoofing config files
 struct PostOfficeConfig
@@ -76,6 +81,13 @@ class PeerConnection;
 template <> struct ConnectionTypeMap<ActorContainer::Process> { using Type = LocalConnection; };
 template <> struct ConnectionTypeMap<ActorContainer::Network> { using Type = PeerConnection; };
 
+struct ActorStats
+{
+	ActorIdentification Identity;
+	std::vector<std::chrono::system_clock::time_point> Received;
+	std::vector<std::chrono::system_clock::time_point> Sent;
+};
+
 class LauncherPostOffice final : public PostOffice
 {
 public:
@@ -115,6 +127,9 @@ public:
 
 	// add this for testing
 	uint32_t GetIdentityCount();
+	std::vector<const ActorStats*> GetStats(); // uuid is internal, so just turn this into a vector to return it
+	void SetStatLookback(uint32_t seconds) { m_statsLookbackSeconds = seconds; }
+	uint32_t GetStatLookback() { return m_statsLookbackSeconds; }
 
 	void Initialize();
 	void Shutdown();
@@ -158,6 +173,10 @@ private:
 	std::mutex m_processMutex;
 	std::condition_variable m_needsProcessing;
 
+	// maintain some statistics for displaying
+	std::unordered_map<std::string, ActorStats> m_stats;
+	uint32_t m_statsLookbackSeconds = 60;
+
 	template <size_t I = 0> void StartConnections();
 	template <size_t I = 0> void StopConnections();
 	template <size_t I = 0> void ProcessConnections();
@@ -166,6 +185,9 @@ private:
 	void SendIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void DropIdentification(const ActorContainer& target, const ActorIdentification& id);
 	void RequestIdentities(const ActorContainer& from);
+
+	void AddSendStat(const std::string& uuid);
+	void AddReceiveStat(const std::string& uuid);
 
 	void ProcessOutgoing();
 	void ProcessOutgoingMessage(MessagePtr);

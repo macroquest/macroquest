@@ -246,6 +246,11 @@ struct ActorContainer
 		return GetProto(p);
 	}
 
+	std::string ToStringLite() const
+	{
+		return std::visit([this](const auto& v) { return fmt::format("{}", v.ToString()); }, value);
+	}
+
 	std::string ToString() const
 	{
 		return std::visit([this](const auto& v) { return fmt::format("{} ({})", v.ToString(), uuid); }, value);
@@ -484,9 +489,22 @@ struct ActorIdentification
 	}
 
 	/**
-	 * string creation helper
+	 * string creation helper without uuid
 	 *
 	 * @return a string of format "address (container)"
+	 */
+	std::string ToStringLite() const
+	{
+		return fmt::format("{} ({})", std::visit(overload{
+			[](const std::string& name) { return name; },
+			[](const Client& client) { return client.ToString(); }
+		}, address), container.ToStringLite());
+	}
+
+	/**
+	 * string creation helper with uuid
+	 *
+	 * @return a string of format "address (container (uuid))"
 	 */
 	std::string ToString() const
 	{

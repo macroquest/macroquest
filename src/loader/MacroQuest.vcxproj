@@ -81,6 +81,9 @@
     <Link>
       <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>$(TargetPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -135,6 +138,7 @@
     <ClCompile Include="imgui_backend\imgui_impl_win32.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
     <ClCompile Include="PostOffice.cpp" />
+    <ClCompile Include="PostOfficeImGui.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="RemoteOps.cpp" />

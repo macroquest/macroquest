@@ -237,6 +237,13 @@ void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 		if (ident_it->second != id)
 		{
 			SPDLOG_TRACE("{}: Got Updated identification new=[{}] old=[{}]", GetName(), id, ident_it->second);
+
+			auto stat_it = m_stats.find(id.container.uuid);
+			if (stat_it == m_stats.end())
+				m_stats.emplace(id.container.uuid, ActorStats{ id });
+			else
+				stat_it->second.Identity = id;
+
 			ident_it->second = id;
 		}
 		else
@@ -248,6 +255,7 @@ void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 	else
 	{
 		SPDLOG_TRACE("{}: Got New identification from [{}]", GetName(), id);
+		m_stats.emplace(id.container.uuid, ActorStats{ id });
 		m_identities.emplace(id.container.uuid, id);
 	}
 
@@ -436,6 +444,9 @@ void LauncherPostOffice::RouteFromConnection(MessagePtr message)
 	SPDLOG_TRACE("{}: Routing received message: to=[{}] from=[{}] seq={}", GetName(),
 		message->address().ShortDebugString(), message->return_address().ShortDebugString(), message->sequence());
 
+	if (message->has_return_address() && message->return_address().has_uuid())
+		AddReceiveStat(message->return_address().uuid());
+
 	const auto& address = message->address();
 
 	std::string uuid = address.uuid();
@@ -526,6 +537,30 @@ uint32_t LauncherPostOffice::GetIdentityCount()
 	return m_identities.size();
 }
 
+std::vector<const ActorStats*> LauncherPostOffice::GetStats()
+{
+	auto now = std::chrono::system_clock::now();
+	auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+
+	std::vector<const ActorStats*> stats;
+	stats.reserve(m_stats.size());
+
+	for (auto& [_, stat] : m_stats)
+	{
+		stat.Sent.erase(std::remove_if(stat.Sent.begin(), stat.Sent.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat.Sent.end());
+
+		stat.Received.erase(std::remove_if(stat.Received.begin(), stat.Received.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat.Received.end());
+
+		stats.push_back(&stat);
+	}
+
+	return stats;
+}
+
 void LauncherPostOffice::Initialize()
 {
 	// request IDs from all pre-existing connections
@@ -572,6 +607,7 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 	m_thread = std::thread(
 		[this]
 		{
+			m_stats.emplace(m_id.container.uuid, ActorStats{ m_id });
 			m_identities.emplace(m_id.container.uuid, m_id);
 
 			AddConfiguredHosts();
@@ -588,6 +624,8 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 			m_threadId = std::this_thread::get_id();
 
 			StartConnections();
+
+			InitializePostOfficeImgui();
 
 			do
 			{
@@ -617,6 +655,8 @@ LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
 
 				Process(10); // processes the messages waiting in the internal dropbox (shouldn't happen often)
 			} while (m_running);
+
+			ShutdownPostOfficeImgui();
 
 			StopConnections();
 		}
@@ -676,6 +716,9 @@ void LauncherPostOffice::ProcessConnections()
 template <size_t I>
 void LauncherPostOffice::BroadcastMessage(MessagePtr message)
 {
+	for (const auto& [uuid, _] : m_identities)
+		AddSendStat(uuid);
+
 	using V = std::remove_const_t<decltype(ActorContainer::value)>;
 	if constexpr (I < std::variant_size_v<V>)
 	{
@@ -688,6 +731,7 @@ void LauncherPostOffice::BroadcastMessage(MessagePtr message)
 bool LauncherPostOffice::SendMessage(const ActorContainer& ident, MessagePtr message)
 {
 	SPDLOG_TRACE("{}: Sending message to {} seq={}", GetName(), ident, message->sequence());
+	AddSendStat(ident.uuid);
 	return std::visit([this, message = std::move(message), &ident](const auto& c) mutable
 		{
 			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(ident, std::move(message));
@@ -719,6 +763,56 @@ void LauncherPostOffice::RequestIdentities(const ActorContainer& from)
 		{
 			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->RequestIdentities(from);
 		}, from.value);
+}
+
+void LauncherPostOffice::AddSendStat(const std::string& uuid)
+{
+	auto stat_it = m_stats.find(uuid);
+	if (stat_it == m_stats.end())
+	{
+		auto id_it = m_identities.find(uuid);
+		if (id_it != m_identities.end())
+		{
+			auto [result, _] = m_stats.emplace(uuid, ActorStats{ id_it->second });
+			stat_it = result;
+		}
+	}
+
+	if (stat_it != m_stats.end())
+	{
+		auto now = std::chrono::system_clock::now();
+		stat_it->second.Sent.emplace_back(now);
+
+		auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+		stat_it->second.Sent.erase(std::remove_if(stat_it->second.Sent.begin(), stat_it->second.Sent.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat_it->second.Sent.end());
+	}
+}
+
+void LauncherPostOffice::AddReceiveStat(const std::string& uuid)
+{
+	auto stat_it = m_stats.find(uuid);
+	if (stat_it == m_stats.end())
+	{
+		auto id_it = m_identities.find(uuid);
+		if (id_it != m_identities.end())
+		{
+			auto [result, _] = m_stats.emplace(uuid, ActorStats{ id_it->second });
+			stat_it = result;
+		}
+	}
+
+	if (stat_it != m_stats.end())
+	{
+		auto now = std::chrono::system_clock::now();
+		stat_it->second.Received.emplace_back(now);
+
+		auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+		stat_it->second.Received.erase(std::remove_if(stat_it->second.Received.begin(), stat_it->second.Received.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat_it->second.Received.end());
+	}
 }
 
 } // namespace mq::postoffice

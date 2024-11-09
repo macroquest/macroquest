@@ -53,6 +53,9 @@ namespace LauncherImGui {
 	void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title) {}
 }
 
+void InitializePostOfficeImgui() {}
+void ShutdownPostOfficeImgui() {}
+
 // mirrors the implementation in mq2main. This could possibly be shared code
 // between them.
 namespace internal_paths
