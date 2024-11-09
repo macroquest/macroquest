@@ -1,3 +1,6 @@
+Nov 8, 2024:
+- live: Update for live patch
+
 Oct 24, 2024:
 - Fix new spawns getting mq captions applied when mqcaptions are disabled
 - Fix crash that could occur when using /lua stop in some circumstances (#906)
