@@ -230,9 +230,10 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"ToggleFlag"               , &ZepBuffer::ToggleFileFlag,
 		"SetFlags"                 , &ZepBuffer::SetFileFlags,
 		"ClearFlags"               , &ZepBuffer::ClearFileFlags,
+		"dirty"                    , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::Dirty); }, [](ZepBuffer* pThis, bool dirty) { pThis->SetFileFlags(Zep::FileFlags::Dirty, dirty); }),
+		"readonly"                 , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::ReadOnly); }, [](ZepBuffer* pThis, bool readOnly) { pThis->SetFileFlags(Zep::FileFlags::ReadOnly, readOnly); }),
 
 		"Find"                     , [](ZepBuffer* pThis, GlyphIterator start, std::string_view text) { pThis->Find(start, (uint8_t*)text.data(), (uint8_t*)(text.data() + text.size())); }
-
 	);
 
 	Z.new_usertype<GlyphIterator>(
@@ -272,10 +273,8 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		// Buffers
 		"activeBuffer"             , sol::property(&LuaZepEditor::GetActiveBuffer, &ImGuiZepEditor::SetActiveBuffer),
 		"buffers"                  , sol::readonly_property([](LuaZepEditor* pThis) { return sol::as_table(pThis->GetEditor().GetBuffers()); }),
-		"InitWithFile"             , &LuaZepEditor::InitWithFile,
-		"InitWithText"             , &LuaZepEditor::InitWithText,
 		"CreateFileBuffer"         , [](LuaZepEditor* pThis, std::string_view file) { return pThis->CreateFileBuffer(file); },
-		"CreateEmptyBuffer"        , [](LuaZepEditor* pThis, std::string_view name) { return pThis->CreateEmptyBuffer(name); },
+		"CreateBuffer"             , [](LuaZepEditor* pThis, std::string_view name, std::optional<std::string_view> text) { return pThis->CreateBuffer(name, text.value_or("")); },
 		"RemoveBuffer"             , &LuaZepEditor::RemoveBuffer,
 
 		// Cursor
@@ -287,7 +286,7 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"mouseCursor"              , sol::readonly_property([](LuaZepEditor* pThis) { return pThis->GetWindow().GetMouseCursor(); }),
 
 		// Misc
-		"GetSyntaxProviders"       , &LuaZepEditor::GetSyntaxProviders
+		"GetSyntaxList"            , &LuaZepEditor::GetSyntaxProviders
 	);
 
 	// Console is a specialized editor

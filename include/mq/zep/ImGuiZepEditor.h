@@ -82,10 +82,8 @@ public:
 	Zep::ZepEditor& GetEditor() const;
 	Zep::ZepWindow& GetWindow() const { return *m_window; }
 
-	std::shared_ptr<Zep::ZepBuffer> InitWithFile(std::string_view file);
-	std::shared_ptr<Zep::ZepBuffer> InitWithText(std::string_view name, std::string_view text);
-	std::shared_ptr<Zep::ZepBuffer> CreateFileBuffer(std::string_view file, uint32_t bufferFlags = 0, bool createIfNotExists = true);
-	std::shared_ptr<Zep::ZepBuffer> CreateEmptyBuffer(std::string_view name, uint32_t bufferFlags = 0);
+	std::shared_ptr<Zep::ZepBuffer> CreateFileBuffer(std::string_view file);
+	std::shared_ptr<Zep::ZepBuffer> CreateBuffer(std::string_view name, std::string_view text);
 	std::shared_ptr<Zep::ZepBuffer> GetActiveBuffer() const;
 	void SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);
 	bool RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer);

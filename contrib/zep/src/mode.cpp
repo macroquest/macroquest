@@ -155,8 +155,6 @@ ZepMode::~ZepMode()
 
 ZepWindow* ZepMode::GetCurrentWindow() const
 {
-    // Mode begin should always set this and we should always have a valid window associated with the mode
-    assert(m_pCurrentWindow != nullptr);
     return m_pCurrentWindow;
 }
 

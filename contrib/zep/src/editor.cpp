@@ -118,8 +118,6 @@ void ZepEditor::Init()
     m_indexer = std::make_shared<Indexer>(*this);
     m_indexer->StartIndexing();
 #endif
-
-    Reset();
 }
 
 ZepEditor::~ZepEditor()
@@ -734,8 +732,6 @@ void ZepEditor::RemoveTabWindow(ZepTabWindow* pTabWindow)
     {
         m_pActiveTabWindow = nullptr;
 
-        // Reset the window state, but request a quit
-        Reset();
         RequestQuit();
     }
     else

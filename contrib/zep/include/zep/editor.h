@@ -443,6 +443,9 @@ public:
 
     ZepBuffer* GetBufferFromHandle(uint64_t handle);
 
+    // Ensure there is a valid tab window and return it
+    ZepTabWindow* EnsureTab();
+
 private:
     void Init();
 
@@ -452,9 +455,6 @@ private:
 
     void InitBuffer(ZepBuffer& buffer);
     void InitDataGrid(ZepBuffer& buffer, const NVec2i& dimensions);
-
-    // Ensure there is a valid tab window and return it
-    ZepTabWindow* EnsureTab();
 
 private:
     ZepDisplay* m_pDisplay = nullptr;
