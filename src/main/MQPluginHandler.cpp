@@ -476,7 +476,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	rec.instance = pPlugin;
 	rec.handle = CreatePluginHandle();
 	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
-	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginName) };
+	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginPath) };
 	pPlugin->hModule           = hModule.release();
 
 	s_pluginHandleMap.emplace(rec.handle.pluginID, rec.instance);
