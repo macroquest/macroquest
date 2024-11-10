@@ -835,21 +835,9 @@ bool ZepBuffer::Save(int64_t& size)
         return false;
     }
 
-    auto str = GetText();
+    std::string str = GetText();
 
-    // Remove the appended 0 if necessary
-    size = (int64_t)str.size();
-    if (m_fileFlags & FileFlags::TerminatedWithZero)
-    {
-        size--;
-    }
-
-    if (size < 0)
-    {
-        size = 0;
-    }
-
-    if (GetEditor().GetFileSystem().Write(m_filePath, &str[0], (size_t)size))
+    if (GetEditor().GetFileSystem().Write(m_filePath, str.data(), str.size()))
     {
         m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
         return true;
@@ -918,7 +906,7 @@ std::string ZepBuffer::GetText() const
         }
     }
 
-    if (m_fileFlags & FileFlags::TerminatedWithZero)
+    if (m_fileFlags & FileFlags::TerminatedWithZero && !str.empty())
     {
         str.pop_back();
     }
