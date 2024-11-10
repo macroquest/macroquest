@@ -422,39 +422,39 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 		mod |= ModifierKey::Shift;
 	}
 
-	auto pWindow = GetActiveTabWindow()->GetActiveWindow();
-	const auto& buffer = pWindow->GetBuffer();
-
-	for (const auto [imguiKey, zepKey] : s_zepSpecialKeyMap)
+	if (ZepBuffer* pBuffer = GetActiveBuffer())
 	{
-		if (ImGui::IsKeyPressed(imguiKey))
-		{
-			buffer.GetMode()->AddKeyPress(zepKey, mod);
-			return;
-		}
-	}
-
-	if (io.KeyCtrl)
-	{
-		for (const auto [imguiKey, zepKey] : s_zepPrintableKeyMap)
+		for (const auto [imguiKey, zepKey] : s_zepSpecialKeyMap)
 		{
 			if (ImGui::IsKeyPressed(imguiKey))
 			{
-				buffer.GetMode()->AddKeyPress(zepKey, mod);
-				handled = true;
+				pBuffer->GetMode()->AddKeyPress(zepKey, mod);
+				return;
 			}
 		}
-	}
 
-	if (!handled)
-	{
-		for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
+		if (io.KeyCtrl)
 		{
-			// Ignore '\r' - sometimes ImGui generates it!
-			if (io.InputQueueCharacters[n] == '\r')
-				continue;
+			for (const auto [imguiKey, zepKey] : s_zepPrintableKeyMap)
+			{
+				if (ImGui::IsKeyPressed(imguiKey))
+				{
+					pBuffer->GetMode()->AddKeyPress(zepKey, mod);
+					handled = true;
+				}
+			}
+		}
 
-			buffer.GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
+		if (!handled)
+		{
+			for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
+			{
+				// Ignore '\r' - sometimes ImGui generates it!
+				if (io.InputQueueCharacters[n] == '\r')
+					continue;
+
+				pBuffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
+			}
 		}
 	}
 }
@@ -500,7 +500,10 @@ ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
 	config.style = Zep::EditorStyle::Normal;
 	config.autoHideCommandRegion = false;
 
-	m_window = m_editor->GetActiveTabWindow()->GetActiveWindow();
+	// Create default tab/window
+	m_editor->EnsureTab();
+
+	m_window = m_editor->GetActiveWindow();
 	SetWindowFlags(Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::ShowIndicators
 		| Zep::WindowFlags::ShowAirLine);
 }
@@ -540,45 +543,74 @@ ZepEditor& ImGuiZepEditor::GetEditor() const
 	return *m_editor;
 }
 
-std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::InitWithFile(std::string_view file)
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateFileBuffer(std::string_view file)
 {
-	return m_editor->InitWithFileOrDir(file, false)->shared_from_this();
+	ZepBuffer* pBuffer = m_editor->GetFileBuffer(file, 0, true);
+
+	// Replace the default buffer if it is still present.
+	ZepTabWindow* pTabs = m_editor->EnsureTab();
+	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
+	{
+		pDefaultWindow->SetBuffer(pBuffer);
+	}
+	
+	return pBuffer->shared_from_this();
 }
 
-std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::InitWithText(std::string_view name, std::string_view text)
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateBuffer(std::string_view name, std::string_view text)
 {
-	return m_editor->InitWithText(name, text)->shared_from_this();
-}
+	ZepBuffer* pBuffer = m_editor->GetEmptyBuffer(name);
+	if (!text.empty())
+	{
+		pBuffer->SetText(text, true);
+	}
 
-std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateFileBuffer(std::string_view file, uint32_t bufferFlags, bool create)
-{
-	return m_editor->GetFileBuffer(file, bufferFlags, create)->shared_from_this();
-}
-
-std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateEmptyBuffer(std::string_view name, uint32_t bufferFlags)
-{
-	return m_editor->GetEmptyBuffer(name, bufferFlags)->shared_from_this();
+	// Replace the default buffer if it is still present.
+	ZepTabWindow* pTabs = m_editor->EnsureTab();
+	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
+	{
+		pDefaultWindow->SetBuffer(pBuffer);
+	}
+	
+	return pBuffer->shared_from_this();
 }
 
 Zep::GlyphIterator ImGuiZepEditor::Begin() const
 {
-	return m_window->GetBuffer().Begin();
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->Begin();
+	}
+	
+	return GlyphIterator();
 }
 
 Zep::GlyphIterator ImGuiZepEditor::End() const
 {
-	return m_window->GetBuffer().End();
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->End();
+	}
+
+	return GlyphIterator();
 }
 
 std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::GetActiveBuffer() const
 {
-	return m_window->GetBuffer().shared_from_this();
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->shared_from_this();
+	}
+
+	return nullptr;
 }
 
 void ImGuiZepEditor::SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
 {
-	// Passed by raw pointer. Assumes that buffer is already owned by this editor.
-	m_window->SetBuffer(buffer.get());
+	if (buffer)
+	{
+		m_editor->EnsureWindow(buffer.get());
+	}
 }
 
 bool ImGuiZepEditor::RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)

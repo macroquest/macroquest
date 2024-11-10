@@ -319,6 +319,19 @@ ZepBuffer* ZepEditor::GetEmptyBuffer(std::string_view name, uint32_t fileFlags)
     return pBuffer;
 }
 
+ZepBuffer* ZepEditor::FindFileBuffer(const ZepPath& filePath)
+{
+    for (auto& pBuffer : m_buffers)
+    {
+        if (GetFileSystem().Equivalent(pBuffer->GetFilePath(), filePath))
+        {
+            return pBuffer.get();
+        }
+    }
+
+    return nullptr;
+}
+
 ZepBuffer* ZepEditor::GetFileBuffer(const ZepPath& filePath, uint32_t fileFlags, bool create)
 {
     auto path = GetFileSystem().Exists(filePath) ? GetFileSystem().Canonical(filePath) : filePath;
@@ -346,6 +359,40 @@ ZepBuffer* ZepEditor::GetFileBuffer(const ZepPath& filePath, uint32_t fileFlags,
     pBuffer->SetFileFlags(fileFlags);
 
     return pBuffer;
+}
+
+ZepBuffer* ZepEditor::GetActiveBuffer() const
+{
+    if (ZepWindow* pWindow = GetActiveWindow())
+    {
+        // A window always has ab associated buffer
+        return &pWindow->GetBuffer();
+    }
+
+    return nullptr;
+}
+
+ZepWindow* ZepEditor::EnsureWindow(ZepBuffer* buffer)
+{
+    std::vector<ZepWindow*> windows = FindBufferWindows(buffer);
+
+    if (!windows.empty())
+    {
+        return windows[0];
+    }
+
+    ZepTabWindow* pTabWindow = EnsureTab();
+    return pTabWindow->AddWindow(buffer);
+}
+
+ZepWindow* ZepEditor::GetActiveWindow() const
+{
+    if (ZepTabWindow* pTabWindow = GetActiveTabWindow())
+    {
+        return pTabWindow->GetActiveWindow();
+    }
+
+    return nullptr;
 }
 
 ZepWindow* ZepEditor::AddTree()
@@ -413,10 +460,9 @@ ZepTabWindow* ZepEditor::EnsureTab()
     return m_tabWindows[0];
 }
 
-// Reset editor to start state; with a single tab, a single window and an empty unmodified buffer
+// Nothing here currently; we used to create a default tab, now we don't. It is up to the client
 void ZepEditor::Reset()
 {
-    EnsureTab();
 }
 
 // TODO fix for directory startup; it won't work
