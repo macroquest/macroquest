@@ -22,8 +22,8 @@
  */
 
 #include "pch.h"
-#include "ImGuiZepEditor.h"
-#include "imgui/ImGuiUtils.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "mq/imgui/ImGuiUtils.h"
 
 #include "zep/display.h"
 #include "zep/editor.h"
@@ -36,30 +36,15 @@
 
 using namespace Zep;
 
-namespace mq::imgui {
+namespace mq {
 
 //----------------------------------------------------------------------------
 
-inline Zep::NVec2f toNVec2f(const ImVec2& im)
+static ImU32 GetStyleModulatedColor(ZepColor color)
 {
-	return Zep::NVec2f(im.x, im.y);
+	color.a = static_cast<uint8_t>(color.a * ImGui::GetStyle().Alpha);
+	return color.ToPackedABGR();
 }
-inline ImVec2 toImVec2(const Zep::NVec2f& im)
-{
-	return ImVec2(im.x, im.y);
-}
-
-inline Zep::NVec2f toNVec2fAdjusted(const ImVec2& im, const Zep::NVec2f& rel)
-{
-	return Zep::NVec2f(im.x + rel.x, im.y + rel.y);
-}
-
-inline ImVec2 toImVec2Adjusted(const Zep::NVec2f& im, const Zep::NVec2f& rel)
-{
-	return ImVec2(im.x + rel.x, im.y + rel.y);
-}
-
-//----------------------------------------------------------------------------
 
 class ZepFont_ImGui : public Zep::ZepFont
 {
@@ -153,48 +138,55 @@ void ZepEditor_ImGui::DrawChars(ZepFont& font, const NVec2f& pos, ZepColor col,
 	{
 		text_end = text_begin + strlen((const char*)text_begin);
 	}
+
+	ImU32 color = GetStyleModulatedColor(col);
+
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), color, (const char*)text_begin, (const char*)text_end);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), col.ToPackedABGR(), (const char*)text_begin, (const char*)text_end);
+		drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2Adjusted(pos, m_screenPos), color, (const char*)text_begin, (const char*)text_end);
 		drawList->PopClipRect();
 	}
 }
 
-void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor color, float width) const
+void ZepEditor_ImGui::DrawLine(const NVec2f& start, const NVec2f& end, ZepColor col, float width) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImU32 color = GetStyleModulatedColor(col);
 
 	// Background rect for numbers
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
+		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color, width);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color.ToPackedABGR(), width);
+		drawList->AddLine(toImVec2Adjusted(start, m_screenPos), toImVec2Adjusted(end, m_screenPos), color, width);
 		drawList->PopClipRect();
 	}
 }
 
-void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor color) const
+void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor col) const
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImU32 color = GetStyleModulatedColor(col);
 
 	// Background rect for numbers
 	if (m_clipRect.Width() == 0)
 	{
-		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
+		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color);
 	}
 	else
 	{
 		drawList->PushClipRect(toImVec2Adjusted(m_clipRect.topLeftPx, m_screenPos), toImVec2Adjusted(m_clipRect.bottomRightPx, m_screenPos), true);
-		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color.ToPackedABGR());
+		drawList->AddRectFilled(toImVec2Adjusted(rc.topLeftPx, m_screenPos), toImVec2Adjusted(rc.bottomRightPx, m_screenPos), color);
 		drawList->PopClipRect();
 	}
 }
@@ -214,7 +206,7 @@ ZepFont& ZepEditor_ImGui::GetFont(ZepTextType type)
 
 		case Zep::ZepTextType::UI:
 		default:
-			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::DefaultFont);
+			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont);
 			break;
 		}
 
@@ -430,67 +422,132 @@ void ZepEditor_ImGui::HandleKeyboardInput()
 		mod |= ModifierKey::Shift;
 	}
 
-	auto pWindow = GetActiveTabWindow()->GetActiveWindow();
-	const auto& buffer = pWindow->GetBuffer();
-
-	for (const auto [imguiKey, zepKey] : s_zepSpecialKeyMap)
+	if (ZepBuffer* pBuffer = GetActiveBuffer())
 	{
-		if (ImGui::IsKeyPressed(imguiKey))
-		{
-			buffer.GetMode()->AddKeyPress(zepKey, mod);
-			return;
-		}
-	}
-
-	if (io.KeyCtrl)
-	{
-		for (const auto [imguiKey, zepKey] : s_zepPrintableKeyMap)
+		for (const auto [imguiKey, zepKey] : s_zepSpecialKeyMap)
 		{
 			if (ImGui::IsKeyPressed(imguiKey))
 			{
-				buffer.GetMode()->AddKeyPress(zepKey, mod);
-				handled = true;
+				pBuffer->GetMode()->AddKeyPress(zepKey, mod);
+				return;
 			}
 		}
-	}
 
-	if (!handled)
-	{
-		for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
+		if (io.KeyCtrl)
 		{
-			// Ignore '\r' - sometimes ImGui generates it!
-			if (io.InputQueueCharacters[n] == '\r')
-				continue;
+			for (const auto [imguiKey, zepKey] : s_zepPrintableKeyMap)
+			{
+				if (ImGui::IsKeyPressed(imguiKey))
+				{
+					pBuffer->GetMode()->AddKeyPress(zepKey, mod);
+					handled = true;
+				}
+			}
+		}
 
-			buffer.GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
+		if (!handled)
+		{
+			for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
+			{
+				// Ignore '\r' - sometimes ImGui generates it!
+				if (io.InputQueueCharacters[n] == '\r')
+					continue;
+
+				pBuffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
+			}
 		}
 	}
 }
 
 //----------------------------------------------------------------------------
 
-ImGuiZepEditor::ImGuiZepEditor()
+struct ImGuiZepEditor::EventReceiver : Zep::IZepComponent
+{
+	ImGuiZepEditor* m_editor = nullptr;
+
+	EventReceiver(ImGuiZepEditor* editor)
+		: m_editor(editor)
+	{
+	}
+
+	void Notify(std::shared_ptr<ZepMessage> message) override
+	{
+		m_editor->Notify(message);
+	}
+
+	void DispatchMouseEvent(std::shared_ptr<ZepMessage> message) override
+	{
+		m_editor->DispatchMouseEvent(message);
+	}
+
+	ZepEditor& GetEditor() const override
+	{
+		return m_editor->m_editor->GetEditor();
+	}
+};
+
+
+ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
+	: m_id(id)
 {
 	m_editor = new ZepEditor_ImGui(ZepPath(), ZepEditorFlags::DisableThreads);
-	m_editor->RegisterCallback(this);
+	m_eventReceiver = std::make_unique<EventReceiver>(this);
+	m_editor->RegisterCallback(m_eventReceiver.get());
 	m_editor->SetGlobalMode(ZepMode_Standard::StaticName());
+
+	EditorConfig& config = m_editor->GetConfig();
+	config.showLineNumbers = true;
+	config.style = Zep::EditorStyle::Normal;
+	config.autoHideCommandRegion = true;
+
+	// Create default tab/window
+	m_editor->EnsureTab();
+
+	m_window = m_editor->GetActiveWindow();
+	SetWindowFlags(Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::ShowIndicators);
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
 {
-	if (m_editor)
-	{
-		m_editor->UnRegisterCallback(this);
-		delete m_editor;
-	}
+	m_editor->UnRegisterCallback(m_eventReceiver.get());
+	delete m_editor;
 }
 
-void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
+void ImGuiZepEditor::Notify(const std::shared_ptr<Zep::ZepMessage>& message)
 {
 	if (message->messageId == Zep::Msg::GetClipBoard)
 	{
-		const char* clipboard = ImGui::GetClipboardText();
-		message->str = clipboard ? clipboard : "";
+		if (const char* clipboard = ImGui::GetClipboardText())
+		{
+			// In-place Replace \r\n line endings with \n as this is what Zep expects.
+			std::string text = clipboard;
+
+			int found = 0;
+			for (size_t src = 0, dst = 0; src < text.length(); ++src, ++dst)
+			{
+				if (src < text.length() - 1)
+				{
+					if (text[src] == '\r' && text[src + 1] == '\n')
+					{
+						src++;
+						found++;
+					}
+				}
+
+				if (src != dst)
+					text[dst] = text[src];
+			}
+
+			if (found > 0)
+				text.resize(text.length() - found);
+
+			message->str = std::move(text);
+		}
+		else
+		{
+			message->str = "";
+		}
+
 		message->handled = true;
 	}
 	else if (message->messageId == Zep::Msg::SetClipBoard)
@@ -498,6 +555,10 @@ void ImGuiZepEditor::Notify(std::shared_ptr<Zep::ZepMessage> message)
 		ImGui::SetClipboardText(message->str.c_str());
 		message->handled = true;
 	}
+}
+
+void ImGuiZepEditor::DispatchMouseEvent(const std::shared_ptr<Zep::ZepMessage>& message)
+{
 }
 
 void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont)
@@ -508,6 +569,90 @@ void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont)
 ZepEditor& ImGuiZepEditor::GetEditor() const
 {
 	return *m_editor;
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateFileBuffer(std::string_view file)
+{
+	ZepBuffer* pBuffer = m_editor->GetFileBuffer(file, 0, true);
+
+	// Replace the default buffer if it is still present.
+	ZepTabWindow* pTabs = m_editor->EnsureTab();
+	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
+	{
+		pDefaultWindow->SetBuffer(pBuffer);
+	}
+	
+	return pBuffer->shared_from_this();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateBuffer(std::string_view name, std::string_view text)
+{
+	ZepBuffer* pBuffer = m_editor->GetEmptyBuffer(name);
+	if (!text.empty())
+	{
+		pBuffer->SetText(text, true);
+	}
+
+	// Replace the default buffer if it is still present.
+	ZepTabWindow* pTabs = m_editor->EnsureTab();
+	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
+	{
+		pDefaultWindow->SetBuffer(pBuffer);
+	}
+	
+	return pBuffer->shared_from_this();
+}
+
+Zep::GlyphIterator ImGuiZepEditor::Begin() const
+{
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->Begin();
+	}
+	
+	return GlyphIterator();
+}
+
+Zep::GlyphIterator ImGuiZepEditor::End() const
+{
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->End();
+	}
+
+	return GlyphIterator();
+}
+
+std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::GetActiveBuffer() const
+{
+	if (ZepBuffer* pBuffer = m_editor->GetActiveBuffer())
+	{
+		return pBuffer->shared_from_this();
+	}
+
+	return nullptr;
+}
+
+void ImGuiZepEditor::SetActiveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
+{
+	if (buffer)
+	{
+		m_editor->EnsureWindow(buffer.get());
+	}
+}
+
+bool ImGuiZepEditor::RemoveBuffer(const std::shared_ptr<Zep::ZepBuffer>& buffer)
+{
+	// Cannot remove the last buffer
+	auto& buffers = m_editor->GetBuffers();
+	if (buffers.size() == 1 && buffers[0] == buffer)
+		return false;
+
+	// Passed by raw pointer. Assumes that this buffer is already owned by this editor.
+	m_editor->RemoveBuffer(buffer.get());
+
+	buffer->Clear();
+	return true;
 }
 
 void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
@@ -543,4 +688,25 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 	ImGui::EndChild();
 }
 
-} // namespace mq::imgui
+void ImGuiZepEditor::SetWindowFlags(uint32_t flags)
+{
+	if (m_wordWrap)
+		flags |= Zep::WindowFlags::WrapText;
+
+	m_window->SetWindowFlags(flags);
+}
+
+uint32_t ImGuiZepEditor::GetWindowFlags() const
+{
+	return m_window->GetWindowFlags();
+}
+
+void ImGuiZepEditor::ToggleFlag(uint32_t flag)
+{
+	if (!m_wordWrap)
+		flag &= ~Zep::WindowFlags::WrapText;
+
+	m_window->ToggleFlag(flag);
+}
+
+} // namespace mq

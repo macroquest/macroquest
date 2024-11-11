@@ -25,6 +25,15 @@
     <Filter Include="Source Files\zep">
       <UniqueIdentifier>{c99b09a6-5a39-4da7-bf89-cdf1e24ec7e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{90aa2191-5b47-408c-a311-0eca64b7535e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq">
+      <UniqueIdentifier>{bb40859b-6c6c-4ba9-af38-915a4fc16091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\zep">
+      <UniqueIdentifier>{ce24e7be-a9d0-447a-89bb-5f1070d93e69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\mcommon\animation\timer.cpp">
@@ -114,8 +123,14 @@
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\zep</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\zep\ImGuiZepEditor.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\zep\ImGuiZepConsole.cpp">
+      <Filter>Source Files\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -268,6 +283,12 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepConsole.h">
+      <Filter>Header Files\mq\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepEditor.h">
+      <Filter>Header Files\mq\zep</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

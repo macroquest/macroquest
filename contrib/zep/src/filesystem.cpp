@@ -218,7 +218,17 @@ ZepPath ZepFileSystemCPP::GetSearchRoot(const ZepPath& start, bool& foundGit) co
 
                 testPath = testPath.parent_path();
             }
+
+            // Didn't find a sensible search root, so start at the parent folder of the start path if it is a file
+            if (!IsDirectory(startPath))
+            {
+                if (IsDirectory(startPath.parent_path()))
+                {
+                    return startPath.parent_path();
+                }
+            }
         }
+
         return startPath;
     };
 

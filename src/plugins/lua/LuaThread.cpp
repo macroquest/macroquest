@@ -234,6 +234,12 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		return 1;
 	}
 
+	if (pkg == "Zep")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
+		return 1;
+	}
+
 	return 0;
 }
 
