@@ -18,10 +18,10 @@ local syntaxList = {}
 local function GUI()
     if editor == nil then
         editor = zep.Editor.new('##Editor')
-        local newBuffer = editor:InitWithText("Buffer 1", "")
+        local newBuffer = editor:CreateBuffer("Buffer 1")
         bufferNumber = 2
         table.insert(bufferTable, newBuffer)
-        syntaxList = editor:GetSyntaxProviders()
+        syntaxList = editor:GetSyntaxList()
     end
 
     local flags = ImGuiWindowFlags.MenuBar
@@ -84,6 +84,9 @@ local function GUI()
             end
             if imgui.MenuItem('Show Line Background', nil, bit32.band(editor.windowFlags, zep.WindowFlags.ShowLineBackground) ~= 0, true) then
                 editor:ToggleFlag(zep.WindowFlags.ShowLineBackground)
+            end
+            if imgui.MenuItem('Show Airline', nil, bit32.band(editor.windowFlags, zep.WindowFlags.ShowAirLine) ~= 0, true) then
+                editor:ToggleFlag(zep.WindowFlags.ShowAirLine)
             end
 
             imgui.EndMenu()

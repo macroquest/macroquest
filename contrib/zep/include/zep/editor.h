@@ -398,6 +398,7 @@ public:
     {
         return m_commandLines;
     }
+    bool HasCommandText() const;
 
     void UpdateWindowState();
 

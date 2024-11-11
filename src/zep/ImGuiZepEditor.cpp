@@ -498,14 +498,13 @@ ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
 	EditorConfig& config = m_editor->GetConfig();
 	config.showLineNumbers = true;
 	config.style = Zep::EditorStyle::Normal;
-	config.autoHideCommandRegion = false;
+	config.autoHideCommandRegion = true;
 
 	// Create default tab/window
 	m_editor->EnsureTab();
 
 	m_window = m_editor->GetActiveWindow();
-	SetWindowFlags(Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::ShowIndicators
-		| Zep::WindowFlags::ShowAirLine);
+	SetWindowFlags(Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers | Zep::WindowFlags::ShowIndicators);
 }
 
 ImGuiZepEditor::~ImGuiZepEditor()
@@ -666,9 +665,6 @@ void ImGuiZepEditor::SetWindowFlags(uint32_t flags)
 		flags |= Zep::WindowFlags::WrapText;
 
 	m_window->SetWindowFlags(flags);
-
-	EditorConfig& config = m_editor->GetConfig();
-	config.autoHideCommandRegion = (flags & Zep::WindowFlags::ShowAirLine) == 0;
 }
 
 uint32_t ImGuiZepEditor::GetWindowFlags() const

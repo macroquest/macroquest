@@ -105,14 +105,14 @@ void ZepEditor::Init()
 
     m_tabRegion = std::make_shared<Region>();
     m_tabRegion->layoutType = RegionLayoutType::HBox;
-    //m_tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
+    m_tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
 
     m_tabContentRegion = std::make_shared<Region>();
     m_commandRegion = std::make_shared<Region>();
 
-    //m_editorRegion->children.push_back(m_tabRegion);
+    m_editorRegion->children.push_back(m_tabRegion);
     m_editorRegion->children.push_back(m_tabContentRegion);
-    //m_editorRegion->children.push_back(m_commandRegion);
+    m_editorRegion->children.push_back(m_commandRegion);
 
 #ifdef IMPLEMENTED_INDEXER
     m_indexer = std::make_shared<Indexer>(*this);
@@ -1149,6 +1149,19 @@ std::string ZepEditor::GetCommandText() const
     return str.str();
 }
 
+bool ZepEditor::HasCommandText() const
+{
+    if (m_commandLines.size() > 1)
+        return true;
+
+    if (!m_commandLines.empty())
+    {
+        return !m_commandLines[0].empty();
+    }
+
+    return false;
+}
+
 void ZepEditor::SetCommandText(const std::string& strCommand)
 {
     m_commandLines = string_split(strCommand, "\n\r");
@@ -1190,20 +1203,29 @@ bool ZepEditor::GetCursorBlinkState() const
 
 void ZepEditor::SetDisplayRegionSize(const NVec2f& regionSize)
 {
-    m_editorRegion->rect.topLeftPx = NVec2f();
-    m_editorRegion->rect.bottomRightPx = regionSize;
-    UpdateSize();
+    NRectf rect{ NVec2f(), regionSize };
+    if (rect != m_editorRegion->rect)
+    {
+        m_editorRegion->rect = rect;
+        UpdateSize();
+    }
 }
 
 void ZepEditor::UpdateSize()
 {
     auto& uiFont = m_pDisplay->GetFont(ZepTextType::UI);
     auto commandCount = GetCommandLines().size();
-    const float commandSize = uiFont.GetPixelHeight() * commandCount + DPI_X(textBorder) * 2.0f;
-    auto displaySize = m_editorRegion->rect.Size();
 
     // Regions
-    m_commandRegion->fixed_size = NVec2f(0.0f, commandSize);
+    if (!GetConfig().autoHideCommandRegion || HasCommandText())
+    {
+        const float commandSize = uiFont.GetPixelHeight() * commandCount + DPI_X(textBorder) * 2.0f;
+        m_commandRegion->fixed_size = NVec2f(0.0f, commandSize);
+    }
+    else
+    {
+        m_commandRegion->fixed_size = NVec2f(0.0f);
+    }
     m_commandRegion->flags = RegionFlags::Fixed;
 
     // Add tabs for extra windows
@@ -1258,7 +1280,7 @@ void ZepEditor::Display()
     }
 
     // Background rect for CommandLine
-    if (!GetCommandText().empty() || (GetConfig().autoHideCommandRegion == false))
+    if (HasCommandText() || !GetConfig().autoHideCommandRegion)
     {
         m_pDisplay->DrawRectFilled(m_commandRegion->rect, GetTheme().GetColor(ThemeColor::Background));
     }

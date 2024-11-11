@@ -199,6 +199,7 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		{ "ShowIndicators"         , WindowFlags::ShowIndicators },
 		{ "ShowLineBackground"     , WindowFlags::ShowLineBackground },
 		{ "ShowWrappedLineNumbers" , WindowFlags::ShowWrappedLineNumbers },
+		{ "ShowAirLine"            , WindowFlags::ShowAirLine },
 	});
 
 	Z.new_enum<ImGuiZepConsoleCol_>(
@@ -258,7 +259,7 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"PeekClamped"              , [](GlyphIterator* pThis, int count, std::optional<int> clamp) { return pThis->PeekLineClamped(count, static_cast<LineLocation>(clamp.value_or(0))); },
 		"Clamped"                  , &GlyphIterator::Clamped
 	);
-	
+
 	Z.new_usertype<LuaZepEditor>(
 		"Editor"                   , sol::constructors<LuaZepEditor(), LuaZepEditor(std::string_view)>(),
 

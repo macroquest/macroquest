@@ -1992,7 +1992,7 @@ void ZepWindow::Display()
 
     display.SetClipRect(NRectf{});
 
-    if (!GetEditor().GetCommandText().empty() || (GetEditor().GetConfig().autoHideCommandRegion == false))
+    if (ZTestFlags(GetWindowFlags(), WindowFlags::ShowAirLine))
     {
         auto modeAirlines = GetBuffer().GetMode()->GetAirlines(*this);
 
