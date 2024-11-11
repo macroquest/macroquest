@@ -1111,7 +1111,7 @@ void ZepEditor::SetRegister(const char reg, const char* pszText)
     }
 }
 
-Register& ZepEditor::GetRegister(const std::string& reg)
+const Register& ZepEditor::GetRegister(const std::string& reg)
 {
     if (reg == "+" || reg == "*")
     {
@@ -1120,7 +1120,7 @@ Register& ZepEditor::GetRegister(const std::string& reg)
     return m_registers[reg];
 }
 
-Register& ZepEditor::GetRegister(const char reg)
+const Register& ZepEditor::GetRegister(const char reg)
 {
     if (reg == '+' || reg == '*')
     {
