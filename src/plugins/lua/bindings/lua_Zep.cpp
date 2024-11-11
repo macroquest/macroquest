@@ -229,10 +229,10 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		// Flags
 		"HasFlag"                  , &ZepBuffer::HasFileFlags,
 		"ToggleFlag"               , &ZepBuffer::ToggleFileFlag,
-		"SetFlags"                 , &ZepBuffer::SetFileFlags,
+		"SetFlags"                 , [](ZepBuffer* pThis, uint32_t flags, std::optional<bool> set_) { bool set = set_.value_or(true); set ? pThis->SetFileFlags(flags) : pThis->ClearFileFlags(flags); },
 		"ClearFlags"               , &ZepBuffer::ClearFileFlags,
-		"dirty"                    , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::Dirty); }, [](ZepBuffer* pThis, bool dirty) { pThis->SetFileFlags(Zep::FileFlags::Dirty, dirty); }),
-		"readonly"                 , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::ReadOnly); }, [](ZepBuffer* pThis, bool readOnly) { pThis->SetFileFlags(Zep::FileFlags::ReadOnly, readOnly); }),
+		"dirty"                    , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::Dirty); }, [](ZepBuffer* pThis, bool dirty) { dirty ? pThis->SetFileFlags(Zep::FileFlags::Dirty) : pThis->ClearFileFlags(Zep::FileFlags::Dirty); }),
+		"readonly"                 , sol::property([](ZepBuffer* pThis) { return pThis->HasFileFlags(Zep::FileFlags::ReadOnly); }, [](ZepBuffer* pThis, bool readOnly) { readOnly ? pThis->SetFileFlags(Zep::FileFlags::ReadOnly) : pThis->ClearFileFlags(Zep::FileFlags::ReadOnly); }),
 
 		"Find"                     , [](ZepBuffer* pThis, GlyphIterator start, std::string_view text) { pThis->Find(start, (uint8_t*)text.data(), (uint8_t*)(text.data() + text.size())); }
 	);
