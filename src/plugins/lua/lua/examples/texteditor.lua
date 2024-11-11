@@ -1,3 +1,6 @@
+-- This is an example of how to use the Zep editor in lua. This demo is not feature complete
+-- and some functionality is not implemented yet.
+
 local mq                = require('mq')
 local imgui             = require('ImGui')
 local zep               = require('Zep')
@@ -123,7 +126,7 @@ local function GUI()
             if not show then removeBufferIndex = i end
         end
         if imgui.TabItemButton('+') then
-            local newBuffer = editor:CreateEmptyBuffer(string.format("Buffer %d", bufferNumber))
+            local newBuffer = editor:CreateBuffer(string.format("Buffer %d", bufferNumber))
             bufferNumber = bufferNumber + 1
             table.insert(bufferTable, newBuffer)
         end
