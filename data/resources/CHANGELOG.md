@@ -1,3 +1,7 @@
+Nov 10, 2024:
+- lua: New Zep text editor and console widgets are now integrated. (See the updated console and texteditor
+  lua example in the lua/examples folder)
+
 Nov 8, 2024:
 - live: Update for live patch
 
