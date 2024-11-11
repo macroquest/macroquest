@@ -15,15 +15,15 @@
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
 
-#include "ImGuiZepEditor.h"
 
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/ImGuiMemoryEditor.h"
-#include "zep.h"
 
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "zep/window.h"
 
 #include "eqlib/eqstd/unordered_map.h"
 #include "eqlib/eqstd/string.h"
@@ -1854,7 +1854,7 @@ public:
 	{
 	}
 
-	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
+	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other) noexcept
 		: m_storage(other.m_storage)
 		, m_stringName(std::move(other.m_stringName))
 		, m_textEditor(std::move(other.m_textEditor))
@@ -1868,7 +1868,7 @@ public:
 	{
 	}
 
-	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other)
+	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other) noexcept
 	{
 		m_storage = other.m_storage;
 		m_stringName = std::move(other.m_stringName);
@@ -1902,27 +1902,18 @@ public:
 			}
 			else
 			{
-				// TODO: Refactor into general purpose editor control
 				if (!m_textEditor)
 				{
-					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>();
-					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont);
-					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont);
+					m_textEditor = std::make_unique<mq::ImGuiZepEditor>("##StringEditor");
+					m_textEditor->SetWindowFlags(Zep::WindowFlags::ShowLineNumbers);
 
-					m_textEditor->GetEditor().SetGlobalMode(Zep::ZepMode_Standard::StaticName());
-					m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->SetWindowFlags(
-						Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers);
-					m_textEditor->GetEditor().GetConfig().style = Zep::EditorStyle::Normal;
-
-					std::string s = "";
-					std::string_view sv = m_storage.GetStringView();
-
-					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", sv);
+					m_textEditor->GetEditor().InitWithText(m_stringName, m_storage.GetStringView());
 				}
 
-				m_textEditor->Render("##StringEditor", ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
-				auto& buffer = m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-				if (buffer.HasFileFlags(Zep::FileFlags::Dirty))
+				m_textEditor->Render(ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
+
+				auto buffer = m_textEditor->GetActiveBuffer();
+				if (buffer->HasFileFlags(Zep::FileFlags::Dirty))
 				{
 					m_changed = true;
 				}
@@ -1930,9 +1921,9 @@ public:
 				if (ImGui::Button("Save"))
 				{
 					m_changed = false;
-					m_storage.Assign(buffer.GetBufferText());
+					m_storage.Assign(buffer->GetText());
 
-					buffer.ClearFileFlags(Zep::FileFlags::Dirty);
+					buffer->ClearFileFlags(Zep::FileFlags::Dirty);
 				}
 
 				ImGui::SameLine();
@@ -1950,7 +1941,7 @@ public:
 
 	StringStorage m_storage;
 	std::string m_stringName;
-	std::unique_ptr<imgui::ImGuiZepEditor> m_textEditor;
+	std::unique_ptr<ImGuiZepEditor> m_textEditor;
 	bool m_closeRequested = false;
 	bool m_changed = false;
 	bool m_requestFocus = false;

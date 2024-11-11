@@ -1,3 +1,10 @@
+Nov 10, 2024:
+- lua: New Zep text editor and console widgets are now integrated. (See the updated console and texteditor
+  lua example in the lua/examples folder)
+
+Nov 8, 2024:
+- live: Update for live patch
+
 Oct 24, 2024:
 - Fix new spawns getting mq captions applied when mqcaptions are disabled
 - Fix crash that could occur when using /lua stop in some circumstances (#906)

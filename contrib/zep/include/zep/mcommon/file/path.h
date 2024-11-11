@@ -7,15 +7,21 @@
 #include <sstream>
 #include <fstream>
 
-namespace Zep
-{
+namespace Zep {
 
-typedef std::chrono::system_clock::time_point file_time_type;
+using file_time_type = std::chrono::system_clock::time_point;
+
 class ZepPath
 {
 public:
-    typedef std::vector<std::string>::const_iterator const_iterator;
-    ZepPath(const std::string& strPath = std::string())
+    using const_iterator = std::vector<std::string>::const_iterator;
+
+    ZepPath(std::string_view strPath = {})
+        : m_strPath(strPath)
+    {
+    }
+
+    ZepPath(const std::string& strPath)
         : m_strPath(strPath)
     {
     }

@@ -1,7 +1,4 @@
-#include <cctype>
-#include <cmath>
-#include <sstream>
-
+#include "pch.h"
 #include "zep/buffer.h"
 #include "zep/display.h"
 #include "zep/mode.h"
@@ -15,8 +12,14 @@
 #include "zep/mcommon/string/stringutils.h"
 #include "zep/mcommon/utf8.h"
 
-namespace
-{
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <sstream>
+#include <fmt/format.h>
+
+namespace {
+
 struct WindowPass
 {
     enum Pass
@@ -29,8 +32,7 @@ struct WindowPass
 } // namespace
 
 // A 'window' is like a vim window; i.e. a region inside a tab
-namespace Zep
-{
+namespace Zep {
 
 const float ScrollBarSize = 17.0f;
 const float UnderlineMargin = 1.0f;
@@ -138,15 +140,11 @@ void ZepWindow::UpdateAirline()
         m_airline.leftBoxes.clear();
         m_airline.rightBoxes.clear();
 
-        if (IsActiveWindow())
+        if (m_displayMode == DisplayMode::Vim && IsActiveWindow())
         {
             m_airline.leftBoxes.push_back(AirBox{ GetBuffer().GetMode()->Name(), FilterActiveColor(m_pBuffer->GetTheme().GetColor(ThemeColor::Mode)) });
             switch (GetBuffer().GetMode()->GetEditorMode())
             {
-                /*case EditorMode::Hidden:
-            m_airline.leftBoxes.push_back(AirBox{ "HIDDEN", m_pBuffer->GetTheme().GetColor(ThemeColor::HiddenText) });
-            break;
-            */
             default:
                 break;
             case EditorMode::Insert:
@@ -164,10 +162,19 @@ void ZepWindow::UpdateAirline()
 
         auto cursor = BufferToDisplay();
         m_airline.leftBoxes.push_back(AirBox{ m_pBuffer->GetDisplayName(), FilterActiveColor(m_pBuffer->GetTheme().GetColor(ThemeColor::AirlineBackground)) });
-        m_airline.leftBoxes.push_back(AirBox{ std::to_string(cursor.x) + ":" + std::to_string(cursor.y), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+
+        if (m_displayMode == DisplayMode::Vim && m_pBuffer->GetMode()->GetCursorType() != CursorType::None)
+        {
+            m_airline.leftBoxes.push_back(AirBox{ std::to_string(cursor.x) + ":" + std::to_string(cursor.y), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+        }
+        else
+        {
+            m_airline.rightBoxes.push_back(
+                AirBox{ fmt::format("{}:{}", cursor.x + 1, cursor.y + 1), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
+        }
 
 #ifdef _DEBUG
-        m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetDisplay().GetPixelScale().x) + "," + std::to_string(GetEditor().GetDisplay().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
+        //m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetDisplay().GetPixelScale().x) + "," + std::to_string(GetEditor().GetDisplay().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
 #endif
 
         auto extra = GetBuffer().GetMode()->GetAirlines(*this);
@@ -307,32 +314,16 @@ void ZepWindow::EnsureCursorVisible()
     GlyphIterator loc = m_bufferCursor;
     for (auto& line : m_windowLines)
     {
-        if (line->lineByteRange.ContainsLocation(loc.Index()))
+        if (line->lineByteRange.first <= loc.Index() && line->lineByteRange.second > loc.Index())
         {
-            int cursorLine = line->spanLineIndex;
+            auto cursorLine = line->spanLineIndex;
             if (cursorLine < m_visibleLineIndices.x)
             {
-                int toLine = m_visibleLineIndices.x;
-#if 0 // FIXME
-
-                // If the line isn't fully visible, use the following line.
-                if (!IsLineFullyVisible(toLine))
-                    ++toLine;
-#endif
-
-                MoveCursorY(std::abs(toLine - cursorLine));
+                MoveCursorY(std::abs(m_visibleLineIndices.x - cursorLine));
             }
             else if (cursorLine >= m_visibleLineIndices.y)
             {
-                int toLine = m_visibleLineIndices.y - 1;
-#if 0 // FIXME
-
-                // If the line isn't fully visible, use the previous line.
-                if (!IsLineFullyVisible(toLine))
-                    --toLine;
-#endif
-
-                MoveCursorY(toLine - cursorLine);
+                MoveCursorY((long(m_visibleLineIndices.y) - cursorLine) - 1);
             }
             m_cursorMoved = false;
             return;
@@ -373,8 +364,10 @@ void ZepWindow::AdjustScroll(float delta)
     auto old_offset = m_textOffsetPx;
     m_textOffsetPx += delta;
 
-    m_textOffsetPx = std::min(m_textOffsetPx, m_textSizePx.y - m_textRegion->rect.Height());
-    m_textOffsetPx = std::max(0.f, m_textOffsetPx);
+    float upperBound = m_textSizePx.y - m_textRegion->rect.Height();
+    float lowerBound = 0.0f;
+
+    m_textOffsetPx = std::max(lowerBound, std::min(m_textOffsetPx, upperBound));
 
     if (old_offset != m_textOffsetPx)
     {
@@ -403,19 +396,19 @@ void ZepWindow::ScrollToCursor()
     }
 
     auto lineMargins = DPI_VEC2(GetEditor().GetConfig().lineMargins);
-    auto two_lines = (GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() * 2); // +(lineMargins.x + lineMargins.y) * 2;
+    auto visible_lines = (GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() * m_cursorVisibleLines);
     auto& cursorLine = GetCursorLineInfo(BufferToDisplay().y);
 
     float scrollDelta = 0;
 
     // If the buffer is beyond two lines above the cursor position, move it back by the difference
-    if (m_textOffsetPx > (cursorLine.yOffsetPx/* - two_lines*/))
+    if (m_textOffsetPx > (cursorLine.yOffsetPx - visible_lines))
     {
-        scrollDelta = -(m_textOffsetPx - (cursorLine.yOffsetPx/* - two_lines*/));
+        scrollDelta = -(m_textOffsetPx - (cursorLine.yOffsetPx - visible_lines));
     }
-    else if ((m_textOffsetPx + m_textRegion->rect.Height()/* - two_lines*/) < cursorLine.yOffsetPx)
+    else if ((m_textOffsetPx + m_textRegion->rect.Height() - visible_lines) < cursorLine.yOffsetPx)
     {
-        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height()/* - two_lines*/);
+        scrollDelta = cursorLine.yOffsetPx - (m_textOffsetPx + m_textRegion->rect.Height() - visible_lines);
     }
 
     AdjustScroll(scrollDelta);
@@ -1999,7 +1992,7 @@ void ZepWindow::Display()
 
     display.SetClipRect(NRectf{});
 
-    if (!GetEditor().GetCommandText().empty() || (GetEditor().GetConfig().autoHideCommandRegion == false))
+    if (ZTestFlags(GetWindowFlags(), WindowFlags::ShowAirLine))
     {
         auto modeAirlines = GetBuffer().GetMode()->GetAirlines(*this);
 

@@ -1,15 +1,14 @@
+#include "pch.h"
 #include "zep/mcommon/file/fnmatch.h"
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
 #include "zep/mcommon/threadutils.h"
+#include "zep/mcommon/file/cpptoml.h"
 
 #include "zep/filesystem.h"
 #include "zep/indexer.h"
 
-#include "zep/mcommon/file/cpptoml.h"
-
-namespace Zep
-{
+namespace Zep {
 
 enum TypeName
 {

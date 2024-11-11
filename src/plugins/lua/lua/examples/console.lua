@@ -1,10 +1,11 @@
 local mq = require('mq')
 local imgui = require('ImGui')
+local zep = require('Zep')
 
 local openGUI = true
 local shouldDrawGUI = true
 
----@type ConsoleWidget
+---@type Zep.Console
 local console = nil
 local localEcho = false
 local resetPosition = false
@@ -34,7 +35,17 @@ end
 
 local GUI = function()
     if console == nil then
-        console = imgui.ConsoleWidget.new("##Console")
+        console = zep.Console.new("##Console")
+
+        console.eventCallback = function(type, data)
+            if type == 'link' then
+                -- We can change the color of text by using Push/Pop instead of passing a color to the AppendText call
+                console:PushStyleColor(zep.ConsoleCol.Text, IM_COL32(255, 255, 0))
+                console:AppendText("Message: %s => %d %d %s", type, data.button, data.modifiers, data.data)
+                console:PopStyleColor()
+                return true
+            end
+        end
     end
 
     local flags = ImGuiWindowFlags.MenuBar
@@ -86,6 +97,14 @@ local GUI = function()
 
                 if imgui.MenuItem('Color Test 2') then
                     MakeColorGradient(0.3, 0.3, 0.3, 0, 2, 4, 128, 127, 50)
+                end
+
+                if imgui.MenuItem('Insert Hyperlink') then
+                    console:PushStyleColor(zep.ConsoleCol.Link, IM_COL32(255, 0, 0))
+                    console:PushStyleColor(zep.ConsoleCol.LinkHover, IM_COL32(0, 0, 192))
+                    console:PushStyleColor(zep.ConsoleCol.Text, IM_COL32(0, 255, 0))
+                    console:AppendHyperlink("LINKDATA", "Link Text"):AppendText(" <-- red link with blue hover")
+                    console:PopStyleColor(3)
                 end
 
                 imgui.EndMenu()

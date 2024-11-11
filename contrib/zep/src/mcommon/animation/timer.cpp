@@ -1,11 +1,10 @@
-#include <chrono> // Timing
-#include <iomanip>
+#include "pch.h"
 #include "zep/mcommon/logger.h"
-
 #include "zep/mcommon/animation/timer.h"
 
-namespace Zep
-{
+#include <chrono> // Timing
+
+namespace Zep {
 
 struct TimedSection
 {
