@@ -517,8 +517,37 @@ void ImGuiZepEditor::Notify(const std::shared_ptr<Zep::ZepMessage>& message)
 {
 	if (message->messageId == Zep::Msg::GetClipBoard)
 	{
-		const char* clipboard = ImGui::GetClipboardText();
-		message->str = clipboard ? clipboard : "";
+		if (const char* clipboard = ImGui::GetClipboardText())
+		{
+			// In-place Replace \r\n line endings with \n as this is what Zep expects.
+			std::string text = clipboard;
+
+			int found = 0;
+			for (size_t src = 0, dst = 0; src < text.length(); ++src, ++dst)
+			{
+				if (src < text.length() - 1)
+				{
+					if (text[src] == '\r' && text[src + 1] == '\n')
+					{
+						src++;
+						found++;
+					}
+				}
+
+				if (src != dst)
+					text[dst] = text[src];
+			}
+
+			if (found > 0)
+				text.resize(text.length() - found);
+
+			message->str = std::move(text);
+		}
+		else
+		{
+			message->str = "";
+		}
+
 		message->handled = true;
 	}
 	else if (message->messageId == Zep::Msg::SetClipBoard)
