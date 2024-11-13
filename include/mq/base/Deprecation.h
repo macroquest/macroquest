@@ -18,7 +18,7 @@
 #undef (DEPRECATE)
 #endif
 
-#if defined(COMMENT_UPDATER)
+#if defined(COMMENT_UPDATER) || defined(__clang__)
 #define DEPRECATE(x)
 #else
 #define DEPRECATE(x) [[deprecated(x)]]
