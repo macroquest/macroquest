@@ -221,10 +221,11 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"syntax"                   , sol::property(&ZepBuffer::GetSyntaxID, &ZepBuffer::SetSyntaxID),
 		"name"                     , sol::readonly_property(&ZepBuffer::GetName),
 		"displayName"              , sol::readonly_property(&ZepBuffer::GetDisplayName),
-		"filePath"                 , sol::property([](ZepBuffer* pThis) { return pThis->GetFilePath().string(); }, &ZepBuffer::SetFilePath),
+		"filePath"                 , sol::property([](ZepBuffer* pThis) { return pThis->GetFilePath().string(); }, [](ZepBuffer* pThis, std::string_view filePath) { pThis->SetFilePath(filePath); }),
 		"fileExtension"            , sol::readonly_property(&ZepBuffer::GetFileExtension),
 		"Load"                     , [](ZepBuffer* pThis, std::string_view file) { pThis->Load(file); },
-		"Save"                     , [](ZepBuffer* pThis) { int64_t size = 0; bool success = pThis->Save(size); return std::make_tuple(success, size); },
+		"Save"                     , [](ZepBuffer* pThis) { int64_t size = 0; return pThis->Save(size); },
+		"SaveAs"                   , [](ZepBuffer* pThis, std::string_view filePath) { pThis->SetFilePath(filePath); int64_t size = 0; return pThis->Save(size); },
 
 		// Flags
 		"HasFlag"                  , &ZepBuffer::HasFileFlags,
