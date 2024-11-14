@@ -154,6 +154,22 @@ bool LuaZepConsoleDelegate::OnHyperlinkClicked(ImGuiZepConsole* console, Zep::Ze
 	return m_pConsole->OnHyperlinkClicked(button, modifiers, hyperlinkData, hyperlinkId);
 }
 
+sol::table LuaGetThemeNames(sol::this_state L)
+{
+	sol::state_view state(L);
+	sol::table themes = state.create_table();
+
+	for (const auto& theme : Zep::GetThemeNames())
+	{
+		sol::table t = state.create_table();
+		t["name"] = theme.name;
+		t["id"] = static_cast<int>(theme.type);
+
+		themes.add(t);
+	}
+	return themes;
+}
+
 //============================================================================
 
 sol::table RegisterBindings_Zep(sol::this_state L)
@@ -279,6 +295,10 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"CreateBuffer"             , [](LuaZepEditor* pThis, std::string_view name, std::optional<std::string_view> text) { return pThis->CreateBuffer(name, text.value_or("")); },
 		"RemoveBuffer"             , &LuaZepEditor::RemoveBuffer,
 
+		// Theme
+		"theme"                    , sol::property([](LuaZepEditor* pThis) { return pThis->GetEditor().GetTheme().GetThemeType(); },
+			                                       [](LuaZepEditor* pThis, int theme) { pThis->GetEditor().GetTheme().SetThemeType(static_cast<Zep::ThemeType>(theme)); }),
+
 		// Cursor
 		"beginPos"                 , sol::readonly_property(&LuaZepEditor::Begin),
 		"endPos"                   , sol::readonly_property(&LuaZepEditor::End),
@@ -362,6 +382,8 @@ sol::table RegisterBindings_Zep(sol::this_state L)
 		"PopStyleColor",
 			[](LuaZepConsole* pThis, std::optional<int> count) { pThis->PopStyleColor(count.value_or(1)); }
 	);
+
+	Z.set_function("GetThemes", LuaGetThemeNames);
 
 	return Z;
 }

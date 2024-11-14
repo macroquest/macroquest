@@ -499,6 +499,7 @@ ImGuiZepEditor::ImGuiZepEditor(std::string_view id /* = "" */)
 	config.showLineNumbers = true;
 	config.style = Zep::EditorStyle::Normal;
 	config.autoHideCommandRegion = true;
+	m_editor->GetTheme().SetThemeType(Zep::ThemeType::VSCodeDefault);
 
 	// Create default tab/window
 	m_editor->EnsureTab();
