@@ -225,6 +225,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			{
 			case SpellMethods::Inspect:
 			{
+#if defined(CSpellDisplayManager__ShowSpell_x)
+				if (pSpellDisplayManager)
+					pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, SpellDisplayType_SpellBookWnd);
+#else
 				char buffer[512] = { 0 };
 				if (Index[0])
 					FormatSpellLink(buffer, 512, pSpell, Index);
@@ -232,6 +236,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 					FormatSpellLink(buffer, 512, pSpell);
 				TextTagInfo info = ExtractLink(buffer);
 				ExecuteTextLink(info);
+#endif
 				return true;
 			}
 			default:
@@ -1123,7 +1128,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				continue;
 
 			auto pFoundSpell = GetSpellByID(pAbility->SpellID);
-			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup)
+			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup && pSpell->Category == pFoundSpell->Category && pSpell->Subcategory == pFoundSpell->Subcategory)
 			{
 				Dest.Ptr = pFoundSpell;
 				return true;

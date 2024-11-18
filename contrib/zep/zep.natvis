@@ -4,12 +4,41 @@
 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
-<Type Name="Zep::GlyphIterator">
-	<DisplayString>{{ index={m_index} }}</DisplayString>
-</Type>
+    <Type Name="Zep::GlyphIterator">
+        <DisplayString>{{ index={m_index} }}</DisplayString>
+    </Type>
 
-<Type Name="Zep::GlyphRange">
-	<DisplayString>{{ first={first.m_index} second={second.m_index} }}</DisplayString>
-</Type>
+    <Type Name="Zep::GlyphRange">
+        <DisplayString>{{ first={first.m_index} second={second.m_index} }}</DisplayString>
+    </Type>
+
+    <Type Name="GapBuffer&lt;*&gt;">
+        <Intrinsic Name="frontSize" Expression="m_pGapStart - m_pStart" />
+        <Intrinsic Name="backSize" Expression="m_pEnd - m_pGapEnd" />
+        <DisplayString>GapBuffer {{ length={frontSize()+backSize()} }}</DisplayString>
+        <Expand>
+            <Item Name="[size]" ExcludeView="simple">frontSize() + backSize()</Item>
+            <Item Name="[front]">m_pStart,[frontSize()]</Item>
+            <Item Name="[back]">m_pGapEnd,[backSize()]</Item>
+            <Item Name="[gapPos]">m_pGapStart - m_pStart</Item>
+        </Expand>
+    </Type>
+
+    <Type Name="GapBuffer&lt;*&gt;::const_iterator">
+        <Intrinsic Name="frontSize" Expression="buffer.m_pGapStart - buffer.m_pStart" />
+        <Intrinsic Name="backSize" Expression="buffer.m_pEnd - buffer.m_pGapEnd" />
+
+        <DisplayString Condition="p == frontSize() + backSize()">{{ index={p} (end) }}</DisplayString>
+        <DisplayString Condition="p &lt; frontSize()">{{ index={p} front ptr={buffer.m_pStart+p,[frontSize() - p]} }}</DisplayString>
+        <DisplayString Condition="p &gt;= frontSize() &amp;&amp; p &lt; (frontSize() + backSize())">{{ index={p} back ptr={buffer.m_pGapEnd+(p-frontSize()),[backSize() - (p-frontSize())]} }}</DisplayString>
+        <Expand>
+            <Synthetic Name="[ptr]" Condition="p &lt; (buffer.m_pGapStart - buffer.m_pStart)">
+                <DisplayString>front</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[ptr]" Condition="p &gt; (buffer.m_pGapStart - buffer.m_pStart)">
+                <DisplayString>back</DisplayString>
+            </Synthetic>
+        </Expand>
+    </Type>
 
 </AutoVisualizer>

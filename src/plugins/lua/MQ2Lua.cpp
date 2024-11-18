@@ -43,6 +43,7 @@ PreSetup("MQ2Lua");
 PLUGIN_VERSION(0.1);
 
 using namespace std::chrono_literals;
+namespace fs = std::filesystem;
 
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
@@ -547,32 +548,30 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
-	namespace fs = std::filesystem;
-
 	// Need to do this first to get the script path and compare paths instead of just the names
 	// since there are multiple valid ways to name the same script
-	auto script_path = LuaThread::GetScriptPath(script, s_environment.luaDir);
-	if (script_path.empty())
+	ScriptLocationInfo locationInfo = s_environment.GetScriptLocationInfo(script);
+	if (!locationInfo.found)
 	{
+		LuaError("Cannot find lua script matching \"%s\".", script.c_str());
 		return 0;
 	}
-
-	auto script_name = LuaThread::GetCanonicalScriptName(script_path, s_environment.luaDir);
 
 	// methodology for duplicate scripts:
 	//   if a script with the same name is _currently_ running, inform and exit
 	//   if a script with the same name _has previously_ run, drop from infoMap and run
 	//   otherwise, run script as normal
 	auto info_it = std::find_if(s_infoMap.begin(), s_infoMap.end(),
-		[&script_name](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
+		[&locationInfo](const std::pair<uint32_t, mq::lua::LuaThreadInfo>& kv)
 		{
-			return ci_equals(kv.second.name, script_name);
+			return ci_equals(kv.second.name, locationInfo.canonicalName);
 		});
 
 	if (info_it != s_infoMap.end() && info_it->second.status != LuaThreadStatus::Exited)
 	{
 		// script is currently running, inform and exit
-		WriteChatStatus("Lua script %s is already running, not starting another instance.", script_name.c_str());
+		WriteChatStatus("Lua script '%s' is already running, not starting another instance.",
+			locationInfo.canonicalName.c_str());
 		return 0;
 	}
 
@@ -588,10 +587,9 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	entry->EnableImGui();
 	s_pending.push_back(entry);
 
-	WriteChatStatus("Running lua script '%s' with PID %d", script_name.c_str(), entry->GetPID());
+	WriteChatStatus("Running lua script '%s' with PID %d", locationInfo.canonicalName.c_str(), entry->GetPID());
 
-	std::optional<LuaThreadInfo> result = entry->StartFile(script_path, args);
-	if (result)
+	if (std::optional<LuaThreadInfo> result = entry->StartFile(locationInfo, args))
 	{
 		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
@@ -654,14 +652,33 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		uint32_t pid = GetIntFromString(*script, 0UL);
 		if (pid > 0UL)
 		{
+			// Find by PID
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
 				[&pid](const std::shared_ptr<LuaThread>& thread) { return thread->GetPID() == pid; });
 		}
 		else
 		{
-			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
+			// Find By Canonical Name
 			thread_it = std::find_if(s_running.begin(), s_running.end(),
-				[&script_name](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), script_name); });
+				[&script](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), *script); });
+
+			if (thread_it == s_running.end())
+			{
+				// Try to find this script
+				ScriptLocationInfo info = s_environment.GetScriptLocationInfo(*script);
+				if (info.found)
+				{
+					thread_it = std::find_if(s_running.begin(), s_running.end(),
+						[&info](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), info.canonicalName); });
+				}
+				else
+				{
+					std::string canonicalName = LuaEnvironmentSettings::GetCanonicalScriptName(*script, s_environment.luaDir);
+
+					thread_it = std::find_if(s_running.begin(), s_running.end(),
+						[&canonicalName](const std::shared_ptr<LuaThread>& thread) { return ci_equals(thread->GetName(), canonicalName); });
+				}
+			}
 		}
 
 		if (thread_it != s_running.end())
@@ -675,8 +692,7 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		}
 		else
 		{
-			std::string script_name = LuaThread::GetCanonicalScriptName(*script, s_environment.luaDir);
-			WriteChatStatus("No lua script '%s' to end", script_name.c_str());
+			WriteChatStatus("No lua script matching \"%s\" was found", script->c_str());
 		}
 	}
 	else
@@ -1270,14 +1286,39 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		m_initialized = true;
 	}
 
+	std::error_code ec;
+
 	// always search the local dir first, then luarocks in modules, then anything specified by the user, then the default paths
-	sv["package"]["path"] = fmt::format("{luaDir}\\?\\init.lua;{luaDir}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua;{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua;{additionalPaths}{originalPath}",
-		fmt::arg("luaDir", luaDir),
-		fmt::arg("moduleDir", moduleDir),
-		fmt::arg("jitVersion", m_jitversion),
-		fmt::arg("luaVersion", m_version),
-		fmt::arg("additionalPaths", luaRequirePaths.empty() ? "" : join(luaRequirePaths, ";") + ";"),
-		fmt::arg("originalPath", m_packagePath));
+	{
+		std::vector<std::string> formattedRequirePaths = {
+			"{luaDir}\\?\\init.lua",
+			"{luaDir}\\?.lua",
+			"{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?.lua",
+			"{moduleDir}\\{jitVersion}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua",
+			"{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?.lua",
+			"{moduleDir}\\luarocks\\share\\lua\\{luaVersion}\\?\\init.lua",
+		};
+		for (const std::string& searchPath : luaRequirePaths)
+		{
+			if (searchPath.find("?") == std::string::npos)
+			{
+				formattedRequirePaths.push_back(fmt::format("{}\\?\\init.lua", searchPath));
+				formattedRequirePaths.push_back(fmt::format("{}\\?.lua", searchPath));
+			}
+			else
+			{
+				formattedRequirePaths.push_back(searchPath);
+			}
+		}
+		formattedRequirePaths.push_back("{originalPath}");
+
+		sv["package"]["path"] = fmt::format(join(formattedRequirePaths, ";"),
+			fmt::arg("luaDir", luaDir),
+			fmt::arg("moduleDir", moduleDir),
+			fmt::arg("jitVersion", m_jitversion),
+			fmt::arg("luaVersion", m_version),
+			fmt::arg("originalPath", m_packagePath));
+	}
 
 	sv["package"]["cpath"] = fmt::format("{moduleDir}\\{jitVersion}\\luarocks\\lib\\lua\\{luaVersion}\\?.dll;{dllPaths}{originalPath}",
 		fmt::arg("moduleDir", moduleDir),
@@ -1285,6 +1326,133 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		fmt::arg("luaVersion", m_version),
 		fmt::arg("dllPaths", dllRequirePaths.empty() ? "" : join(dllRequirePaths, ";") + ";"),
 		fmt::arg("originalPath", m_packageCPath));
+}
+
+ScriptLocationInfo LuaEnvironmentSettings::GetScriptLocationInfo(std::string_view script) const
+{
+	ScriptLocationInfo info;
+
+	if (GetScriptLocationInfo(script, luaDir, info))
+		return info;
+
+	for (const std::string& searchPath : luaRequirePaths)
+	{
+		if (GetScriptLocationInfo(script, searchPath, info))
+			return info;
+	}
+
+	return info;
+}
+
+bool LuaEnvironmentSettings::GetScriptLocationInfo(std::string_view script, const std::string& searchDir,
+	ScriptLocationInfo& info) const
+{
+	if (!GetScriptPath(script, searchDir, info))
+		return false;
+
+	info.canonicalName = GetCanonicalScriptName(info.fullPath, searchDir, info.isUsingInit);
+	return true;
+}
+
+std::string LuaEnvironmentSettings::GetScriptPath(std::string_view script) const
+{
+	ScriptLocationInfo info;
+	if (GetScriptPath(script, luaDir, info))
+		return info.fullPath;
+
+	for (const std::string& searchPath : luaRequirePaths)
+	{
+		if (GetScriptPath(script, searchPath, info))
+			return info.fullPath;
+	}
+
+	return {};
+}
+
+bool LuaEnvironmentSettings::GetScriptPath(std::string_view script, const std::string& searchDir,
+	ScriptLocationInfo& info) const
+{
+	std::error_code ec;
+
+	const auto script_path = fs::absolute(fs::path(searchDir) / script, ec).lexically_normal();
+	const auto lua_path = script_path.parent_path() / (script_path.filename().string() + ".lua");
+
+	if (fs::exists(script_path, ec) && fs::is_directory(script_path, ec) && fs::exists(script_path / "init.lua", ec))
+	{
+		info.fullPath = (script_path / "init.lua").string();
+		info.foundSearchPath = searchDir;
+		info.found = true;
+		info.isUsingInit = true;
+		return true;
+	}
+
+	if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec) && fs::is_directory(lua_path, ec) && fs::exists(lua_path / "init.lua", ec))
+	{
+		info.fullPath = (lua_path / "init.lua").string();
+		info.foundSearchPath = searchDir;
+		info.found = true;
+		info.isUsingInit = true;
+		return true;
+	}
+
+	if (fs::exists(script_path, ec) && !fs::is_directory(script_path, ec))
+	{
+		info.fullPath = script_path.string();
+		info.foundSearchPath = searchDir;
+		info.found = true;
+		info.isUsingInit = false;
+		return true;
+	}
+
+	if (fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
+	{
+		info.fullPath = lua_path.string();
+		info.foundSearchPath = searchDir;
+		info.found = true;
+		info.isUsingInit = false;
+		return true;
+	}
+
+	return false;
+}
+
+std::string LuaEnvironmentSettings::GetCanonicalScriptName(std::string_view script, std::string_view searchPath,
+	bool isUsingInit /* = false */)
+{
+	auto script_path = fs::path(script);
+
+	// attempt to make it relative to the search directory that we were found in.
+	auto relative = script_path.lexically_relative(searchPath);
+	if (!relative.empty() && relative.native()[0] != '.')
+		script_path = relative;
+
+	// Strip init.lua
+	if (isUsingInit || ci_equals(script_path.filename().string(), "init.lua"))
+		script_path = script_path.parent_path();
+
+	// Strip lua extension
+	else if (script_path.extension() == ".lua")
+		script_path.replace_extension("");
+
+	// Use forward slashes
+	return mq::replace(script_path.string(), "\\", "/");
+}
+
+bool LuaEnvironmentSettings::IsSearchPath(std::string_view script) const
+{
+	fs::path script_path(script);
+	std::error_code ec;
+
+	if (fs::equivalent(script_path, luaDir, ec))
+		return true;
+
+	for (const std::string& searchPath : luaRequirePaths)
+	{
+		if (fs::equivalent(script_path, searchPath, ec))
+			return true;
+	}
+
+	return false;
 }
 
 #pragma endregion
@@ -1756,6 +1924,46 @@ PLUGIN_API void OnPulse()
 			last_check_time = now_time;
 		}
 	}
+}
+
+PLUGIN_API void OnAddSpawn(PlayerClient* spawn)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->AddSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->AddSpawn(spawn);
+}
+
+PLUGIN_API void OnRemoveSpawn(PlayerClient* spawn)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->RemoveSpawn(spawn);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveSpawn(spawn);
+}
+
+PLUGIN_API void OnAddGroundItem(EQGroundItem* item)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->AddGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->AddGroundItem(item);
+}
+
+PLUGIN_API void OnRemoveGroundItem(EQGroundItem* item)
+{
+	using namespace mq::lua;
+	for (const auto& thread : s_running)
+		thread->RemoveGroundItem(item);
+
+	for (const auto& thread : s_pending)
+		thread->RemoveGroundItem(item);
 }
 
 PLUGIN_API void OnUpdateImGui()

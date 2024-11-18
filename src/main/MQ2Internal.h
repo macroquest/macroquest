@@ -377,6 +377,9 @@ struct MQModule
 	fMQEndZone           EndZone = 0;
 	fMQLoadPlugin        LoadPlugin = 0;
 	fMQUnloadPlugin      UnloadPlugin = 0;
+	fMQCleanUI           CleanUI = 0;
+	fMQReloadUI          ReloadUI = 0;
+	fMQPostUnloadPlugin  OnPostUnloadPlugin = 0;
 
 	bool                 loaded = false;
 	bool                 manualUnload = false;

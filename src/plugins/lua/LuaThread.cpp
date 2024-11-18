@@ -19,6 +19,7 @@
 #include "LuaImGui.h"
 #include "LuaActor.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
 #include <luajit.h>
@@ -169,6 +170,9 @@ void LuaThread::InjectMQNamespace()
 
 void LuaThread::Exit(LuaThreadExitReason reason)
 {
+	if (m_exitReason != LuaThreadExitReason::Unspecified || !IsValid())
+		return;
+
 	m_exitReason = reason;
 	YieldAt(0);
 
@@ -230,6 +234,12 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		return 1;
 	}
 
+	if (pkg == "Zep")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -268,15 +278,23 @@ sol::thread LuaThread::GetLuaThread() const
 std::optional<LuaThreadInfo> LuaThread::StartFile(
 	std::string_view filename, const std::vector<std::string>& args)
 {
-	namespace fs = std::filesystem;
-
 	// filename here is canonical file name, but we need to reconstruct the path
-	auto script_path = GetScriptPath(filename, m_luaEnvironmentSettings->luaDir);
-	if (script_path.empty())
+	ScriptLocationInfo locationInfo = m_luaEnvironmentSettings->GetScriptLocationInfo(filename);
+	if (!locationInfo.found)
 		return std::nullopt;
 
-	// prefix the package paths with the runDir if it's different than the luaDir
-	std::string runDir = fs::path{ script_path }.parent_path().string();
+	return StartFile(locationInfo, args);
+}
+
+std::optional<LuaThreadInfo> LuaThread::StartFile(
+	const ScriptLocationInfo& locationInfo, const std::vector<std::string>& args)
+{
+	namespace fs = std::filesystem;
+
+	// Add the current directory as highest priority search path (unless its the luadir, which is already
+	// the highest priority search path)
+	std::string runDir = fs::path{ locationInfo.fullPath }.parent_path().string();
+
 	if (!runDir.empty() && fs::path{ runDir }.compare(m_luaEnvironmentSettings->luaDir) != 0)
 	{
 		m_globalState["package"]["path"] = fmt::format("{runDir}\\?\\init.lua;{runDir}\\?.lua;{existingPath}",
@@ -288,10 +306,10 @@ std::optional<LuaThreadInfo> LuaThread::StartFile(
 			fmt::arg("existingPath", m_globalState["package"]["cpath"].get<std::string_view>()));
 	}
 
-	m_name = GetCanonicalScriptName(script_path, m_luaEnvironmentSettings->luaDir);
-	m_path = script_path;
+	m_name = locationInfo.canonicalName;
+	m_path = locationInfo.fullPath;
 
-	auto co = m_coroutine->thread.state().load_file(script_path);
+	auto co = m_coroutine->thread.state().load_file(m_path);
 	if (!co.valid())
 	{
 		sol::error err = co;
@@ -406,58 +424,9 @@ sol::thread_status LuaThread::GetThreadStatus() const
 	return m_coroutine->thread.status();
 }
 
-std::string LuaThread::GetScriptPath(std::string_view script, const std::filesystem::path& luaDir)
-{
-	namespace fs = std::filesystem;
-
-	std::error_code ec;
-	const auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
-	const auto lua_path = script_path.parent_path() / (script_path.filename().string() + ".lua");
-
-	if (fs::exists(script_path, ec) && fs::is_directory(script_path, ec) && fs::exists(script_path / "init.lua", ec))
-	{
-		return (script_path / "init.lua").string();
-	}
-	else if (!fs::exists(script_path, ec) && fs::exists(lua_path, ec) && fs::is_directory(lua_path, ec) && fs::exists(lua_path / "init.lua", ec))
-	{
-		return (lua_path / "init.lua").string();
-	}
-	else if (fs::exists(script_path, ec) && !fs::is_directory(script_path, ec))
-	{
-		return script_path.string();
-	}
-	else if (fs::exists(lua_path, ec) && !fs::is_directory(lua_path, ec))
-	{
-		return lua_path.string();
-	}
-
-	LuaError("Cannot find %.*s in the filesystem.", script.size(), script.data());
-	return {};
-}
-
-std::string LuaThread::GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir)
-{
-	namespace fs = std::filesystem;
-
-	std::error_code ec;
-	auto script_path = fs::absolute(luaDir / script, ec).lexically_normal();
-
-	auto relative = script_path.lexically_relative(luaDir);
-	if (!relative.empty() && relative.native()[0] != '.')
-		script_path = relative;
-
-	if (ci_equals(script_path.filename().string(), "init.lua"))
-		script_path = script_path.parent_path();
-	else if (script_path.extension() == ".lua")
-		script_path.replace_extension("");
-
-	return mq::replace(script_path.string(), "\\", "/");
-}
-
 void LuaThread::UpdateLuaDir(const std::filesystem::path& newLuaDir)
 {
-	m_name = GetCanonicalScriptName(m_path, newLuaDir);
-	m_luaEnvironmentSettings->luaDir = newLuaDir.string();
+	UNUSED(newLuaDir);
 }
 
 LuaThread::RunResult LuaThread::RunOnce()
@@ -656,5 +625,78 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 }
 
 //============================================================================
+
+sol::table LuaThread::GetSpawnTable()
+{
+	if (m_spawnTable == sol::nil)
+	{
+		m_spawnTable = m_globalState.create_named_table("__spawns");
+
+		if (pSpawnManager != nullptr)
+		{
+			auto spawn = pSpawnManager->FirstSpawn;
+
+			while (spawn != nullptr)
+			{
+				m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+				spawn = spawn->GetNext();
+			}
+		}
+	}
+
+	return m_spawnTable;
+}
+
+void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
+	{
+		m_spawnTable[spawn->SpawnID] = bindings::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
+	}
+}
+
+void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_spawnTable != sol::nil)
+	{
+		m_spawnTable[spawn->SpawnID] = sol::nil;
+	}
+}
+
+sol::table LuaThread::GetGroundItemTable()
+{
+	if (m_groundItemTable == sol::nil)
+	{
+		m_groundItemTable = m_globalState.create_named_table("__groundItems");
+
+		if (pItemList != nullptr)
+		{
+			auto item = pItemList->Top;
+			while (item != nullptr)
+			{
+				m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+				item = item->pNext;
+			}
+		}
+	}
+
+	return m_groundItemTable;
+}
+
+void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
+	{
+		m_groundItemTable[item->DropID] = bindings::lua_MQTypeVar(datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(item)));
+	}
+}
+
+void LuaThread::RemoveGroundItem(eqlib::EQGroundItem* item)
+{
+	if (m_coroutine->coroutine.status() == sol::call_status::yielded && m_groundItemTable != sol::nil)
+	{
+		m_groundItemTable[item->DropID] = sol::nil;
+	}
+}
 
 } // namespace mq::lua

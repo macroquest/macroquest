@@ -19,6 +19,7 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQDetourAPI.h"
+#include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
@@ -107,6 +108,9 @@ MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
 MQModule* GetPostOfficeModule();
+#if IS_EMU_CLIENT
+MQModule* GetEmuExtensionsModule();
+#endif
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -192,6 +196,8 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 
 			mq::internal_paths::MQRoot = szFilename;
 			g_Loaded = true;
+
+			RenderDoc_Startup();
 
 			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
 		}
@@ -611,7 +617,6 @@ void DoMainThreadInitialization()
 	InitializeStringDB();
 
 	InitializeChatHook();
-	InitializeMQ2CrashHandler();
 	InitializeAnonymizer();
 	InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
@@ -623,6 +628,9 @@ void DoMainThreadInitialization()
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
 	AddInternalModule(GetPostOfficeModule());
+#if IS_EMU_CLIENT
+	AddInternalModule(GetEmuExtensionsModule());
+#endif
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializePlugins();
@@ -750,7 +758,7 @@ bool MQ2Initialize()
 	}
 
 	InitializeLogging();
-	InitializeCrashHandler();
+	CrashHandler_Startup();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
 
@@ -809,17 +817,16 @@ void MQ2Shutdown()
 	OutputDebugString("MQ2Shutdown Called");
 
 	ShutdownCachedBuffs();
-	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMQ2CrashHandler();
 	ShutdownAnonymizer();
 	ShutdownPlugins();
 	ShutdownFailedPlugins();
+	ShutdownInternalModules();
 	ImGuiManager_Shutdown();
 	GraphicsResources_Shutdown();
 	ShutdownStringDB();

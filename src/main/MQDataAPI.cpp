@@ -18,6 +18,9 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 
+#include "CrashHandler.h"
+#include "mq/base/ScopeExit.h"
+
 namespace mq {
 
 std::vector<std::weak_ptr<MQTransient>> s_objectMap;
@@ -25,6 +28,7 @@ std::mutex s_objectMapMutex;
 uint32_t bmParseMacroData;
 
 static void SetGameStateDataAPI(int);
+static void OnPulseDataAPI();
 static void UnloadPluginDataAPI(const char*);
 
 static MQModule s_DataAPIModule = {
@@ -32,7 +36,7 @@ static MQModule s_DataAPIModule = {
 	false,                          // CanUnload
 	nullptr,
 	nullptr,
-	nullptr,
+	OnPulseDataAPI,
 	SetGameStateDataAPI,
 	nullptr,
 	nullptr,
@@ -71,23 +75,26 @@ static void PruneObservedEQObjects()
 		std::end(s_objectMap));
 }
 
+static void OnPulseDataAPI()
+{
+	const auto now = std::chrono::steady_clock::now();
+	static std::chrono::steady_clock::time_point next_check = now + std::chrono::seconds(30);
+
+	if (now > next_check)
+	{
+		next_check = now + std::chrono::seconds(30);
+		PruneObservedEQObjects();
+	}
+}
+
 static void SetGameStateDataAPI(int)
 {
 	PruneObservedEQObjects();
-
-	std::scoped_lock lock(s_objectMapMutex);
-
-	for (const auto& weak : s_objectMap)
-	{
-		weak.lock()->Invalidate();
-	}
 }
 
 // don't need a dropper because it will remove itself once the shared_ptr destroys itself
 void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object)
 {
-	PruneObservedEQObjects();
-
 	std::scoped_lock lock(s_objectMapMutex);
 
 	s_objectMap.emplace_back(Object);
@@ -96,14 +103,13 @@ void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object)
 // but we do need an invalidation method, which takes a void pointer because all we need to care about is the address of the object being invalidated
 void InvalidateObservedEQObject(void* Object)
 {
-	PruneObservedEQObjects();
-
 	std::scoped_lock lock(s_objectMapMutex);
 
 	for (const auto& weak : s_objectMap)
 	{
-		if (*weak.lock() == Object)
-			weak.lock()->Invalidate();
+		if (auto ptr = weak.lock())
+			if (*ptr == Object)
+				ptr->Invalidate();
 	}
 }
 
@@ -1426,6 +1432,8 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
 	return strReturn;
 }
 
+static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize);
+
 /**
  * @fn ParseMacroData
  *
@@ -1453,6 +1461,15 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce, Mod
  *                                            left to parse
  */
 bool ParseMacroData(char* szOriginal, size_t BufferSize)
+{
+	// Update crash state with last known string in case something goes wrong
+	CrashHandler_SetLastMacroData(szOriginal);
+	SCOPE_EXIT(CrashHandler_SetLastMacroData(nullptr));
+
+	return ParseMacroDataImpl(szOriginal, BufferSize);
+}
+
+static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 {
 	MQScopedBenchmark bm(bmParseMacroData);
 
@@ -1554,7 +1571,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 			goto pmdbottom;
 		}
 
-		if (ParseMacroData(szCurrent, sizeof(szCurrent)))
+		if (ParseMacroDataImpl(szCurrent, sizeof(szCurrent)))
 		{
 			size_t NewLength = strlen(szCurrent);
 			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
@@ -1614,7 +1631,7 @@ bool ParseMacroData(char* szOriginal, size_t BufferSize)
 
 	if (Changed)
 	{
-		while (ParseMacroData(szOriginal, BufferSize)) {}
+		while (ParseMacroDataImpl(szOriginal, BufferSize)) {}
 	}
 
 	return Changed;

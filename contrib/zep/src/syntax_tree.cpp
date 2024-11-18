@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/syntax_tree.h"
 #include "zep/editor.h"
 #include "zep/theme.h"
@@ -8,8 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace Zep
-{
+namespace Zep {
 
 ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer& buffer,
     const std::unordered_set<std::string>& keywords,

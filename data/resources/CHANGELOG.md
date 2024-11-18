@@ -1,8 +1,44 @@
+Nov 17, 2024:
+- lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
+  This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
+
+Nov 10, 2024:
+- lua: New Zep text editor and console widgets are now integrated. (See the updated console and texteditor
+  lua example in the lua/examples folder)
+
+Nov 8, 2024:
+- live: Update for live patch
+
+Oct 24, 2024:
+- Fix new spawns getting mq captions applied when mqcaptions are disabled
+- Fix crash that could occur when using /lua stop in some circumstances (#906)
+- Fix crash when joining too many chat channels
+- Add parameter to mq/eval script to pass an expression to evaluate
+
+Oct 19, 2024:
+- Fixed some missing console/editor keybinds. Some new functionality includes ctrl+[ +, -, 0 ] to zoom the font.
+- lua: Starting a script will now also search require dirs if script is not found in main lua dir.
+
+Oct 16, 2024:
+- live: Update for live patch
+
+Oct 15, 2024:
+- test: Update for test patch
+
+Sep 30, 2024:
+- test: Update for test patch
+
 Sep 18, 2024:
 - live: Update for live patch
 
 Sep 12, 2024:
 - test: Update for test patch
+
+Sep 7, 2024:
+- emu: Fix bug that kept OnBeginZone events to fire. This fix will
+  resolve severael bugs, including nav not stopping when zoning.
+- emu: Added new Emu Extensions section in settings, with new option
+  to automatically set cpu affinity. This is on by default.
 
 Sep 5, 2024:
 - lua: events can now preserve links:
@@ -39,6 +75,12 @@ July 7, 2024:
 - Add new HotButton window type: ${Window[HotButtonWnd2/HB_Button6].HotButton}
 - See docs at: https://docs.macroquest.org/reference/data-types/datatype-hotbuttonwindow/
 - Me.CombatState no longer depends on the player window being visible (#123).
+
+July 5, 2024:
+- emu: Fix RaidMember accessors (#685), (#861)
+
+July 4, 2024:
+- emu: Fix Spell.Inspect (#831).
 
 July 3, 2024:
 - Fix EverQuest.Ping, add EverQuest.ConnectionStrength - these are the value from the net meter.

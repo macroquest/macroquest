@@ -510,6 +510,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="emu\EmuExtensions.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="GraphicsEngineDX11.cpp" />
     <ClCompile Include="GraphicsEngineDX9.cpp" />
@@ -517,7 +518,6 @@
     <ClCompile Include="ImGuiBackendDX11.cpp" />
     <ClCompile Include="ImGuiBackendDX9.cpp" />
     <ClCompile Include="ImGuiBackendWin32.cpp" />
-    <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
@@ -537,7 +537,7 @@
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2ImGuiTools.cpp" />
     <ClCompile Include="MQ2GroundSpawns.cpp" />
-    <ClCompile Include="MQ2ImGuiConsole.cpp" />
+    <ClCompile Include="MQImGuiConsole.cpp" />
     <ClCompile Include="MQImguiWidgets.cpp" />
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
@@ -555,6 +555,7 @@
     <ClCompile Include="MQ2Windows.cpp" />
     <ClCompile Include="MQAchievements.cpp" />
     <ClCompile Include="MQInventory.cpp" />
+    <ClCompile Include="MQRenderDoc.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -567,6 +568,7 @@
     <ClInclude Include="..\..\contrib\args\args.hxx" />
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
+    <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
     <ClInclude Include="..\..\include\extras\wil\Constants.h" />
     <ClInclude Include="..\..\include\moveitem.h" />
@@ -581,6 +583,7 @@
     <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
     <ClInclude Include="..\..\include\mq\api\Main.h" />
     <ClInclude Include="..\..\include\mq\api\PluginAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\RenderDoc.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\api\Textures.h" />
@@ -592,6 +595,7 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />
@@ -600,6 +604,7 @@
     <ClInclude Include="..\..\include\mq\base\WString.h" />
     <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
+    <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
@@ -623,11 +628,11 @@
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClCompile Include="ImGuiManager.cpp" />
+    <ClInclude Include="emu\EmuExtensions.h" />
     <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQCommandAPI.h" />
@@ -647,6 +652,7 @@
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQDetourAPI.h" />
     <ClInclude Include="MQPluginHandler.h" />
+    <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="MQPostOffice.h" />

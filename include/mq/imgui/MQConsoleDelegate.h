@@ -23,35 +23,27 @@
 
 #pragma once
 
-#include "zep/display.h"
-#include "zep/editor.h"
+#include "mq/zep/ImGuiZepConsole.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+namespace eqlib
+{
+	struct TextTagInfo;
+}
 
-namespace mq::imgui {
+namespace mq {
 
-//============================================================================
-
-class ZepEditor_ImGui;
-
-class ImGuiZepEditor : public Zep::IZepComponent
+// This delegate extends the default delegate by adding support for EQ chat links.
+class MQConsoleDelegate : public ImGuiZepConsoleDelegate
 {
 public:
-	ImGuiZepEditor();
-	virtual ~ImGuiZepEditor();
+	MQLIB_OBJECT virtual bool OnHyperlinkClicked(ImGuiZepConsole* console, Zep::ZepMouseButton button, uint32_t modifiers,
+		const std::string& hyperlinkData, int hyperlinkId) override;
 
-	void SetFont(Zep::ZepTextType, ImFont* pFont, int pixelHeight);
-
-	virtual Zep::ZepEditor& GetEditor() const override;
-	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());
-
-protected:
-	virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) override;
+	MQLIB_OBJECT virtual bool OnInsertFormattedText(ImGuiZepConsole* console, Zep::GlyphIterator position,
+		std::string_view text, ImU32 color) override;
 
 private:
-	ZepEditor_ImGui* m_editor = nullptr;
+	void InsertHyperlink(ImGuiZepConsole* console, Zep::GlyphIterator position, const eqlib::TextTagInfo& tagInfo);
 };
 
-
-} // namespace mq::imgui
+} // namespace mq

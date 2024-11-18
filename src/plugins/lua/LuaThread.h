@@ -26,6 +26,11 @@
 #include <chrono>
 #include <stack>
 
+namespace eqlib {
+	class PlayerClient;
+	class EQGroundItem;
+}
+
 namespace mq {
 	struct MQPlugin;
 }
@@ -137,6 +142,7 @@ public:
 	void EnableImGui();
 	void EnableEvents();
 
+	std::optional<LuaThreadInfo> StartFile(const ScriptLocationInfo& locationInfo, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
@@ -164,8 +170,6 @@ public:
 	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
 	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
 
-	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
-	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
 
 	// TLOs
@@ -189,6 +193,14 @@ public:
 	void AddNamedDependency(const std::string& name) {
 		m_namedDependencies.insert(name);
 	}
+
+	sol::table GetSpawnTable();
+	void AddSpawn(eqlib::PlayerClient* spawn);
+	void RemoveSpawn(eqlib::PlayerClient* spawn);
+
+	sol::table GetGroundItemTable();
+	void AddGroundItem(eqlib::EQGroundItem* item);
+	void RemoveGroundItem(eqlib::EQGroundItem* item);
 
 private:
 	RunResult RunOnce();
@@ -233,6 +245,10 @@ private:
 
 	// datatypes
 	ci_unordered::set<std::string> m_registeredTLOs;
+
+	// memoized table references
+	sol::table m_spawnTable = sol::nil;
+	sol::table m_groundItemTable = sol::nil;
 };
 
 //============================================================================

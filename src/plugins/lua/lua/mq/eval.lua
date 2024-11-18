@@ -7,6 +7,11 @@ local openGUI = true
 local shouldDrawGUI = true
 
 local inputs = {}
+local arguments = { ... }
+
+if #arguments > 0 then
+    table.insert(inputs, table.concat(arguments, ' '))
+end
 
 local function drawControlButtons()
     if imgui.Button('Add') then

@@ -19,8 +19,12 @@
 
 namespace mq {
 
+#if defined(_M_AMD64)
 // 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
 constexpr uint32_t DETOUR_BYTES_COUNT = 20;
+#else
+constexpr uint32_t DETOUR_BYTES_COUNT = 12;
+#endif
 
 // this defines a trampoline for the user, based on the detour signature
 #define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes)                              \

@@ -40,95 +40,9 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 //============================================================================
 
-#pragma region MQ Data Bindings
-
-static sol::table lua_getAllSpawns(sol::this_state L)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::unsafe_function> predicate)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pSpawnManager && predicate)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		const auto& predicate_value = predicate.value();
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			if (predicate_value(lua_spawn))
-				table.add(std::move(lua_spawn));
-
-			spawn = spawn->GetNext();
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getAllGroundItems(sol::this_state L)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pItemList)
-	{
-		auto pGroundItem = pItemList->Top;
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			table.add(std::move(lua_ground));
-
-			pGroundItem = pGroundItem->pNext;
-		}
-	}
-
-	return table;
-}
-
-static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::unsafe_function> predicate)
-{
-	auto table = sol::state_view(L).create_table();
-
-	if (pItemList && predicate)
-	{
-		auto pGroundItem = pItemList->Top;
-		const auto& predicate_value = predicate.value();
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			if (predicate_value(lua_ground))
-				table.add(std::move(lua_ground));
-
-			pGroundItem = pGroundItem->pNext;
-		}
-	}
-
-	return table;
-}
-
-#pragma endregion
-
 #pragma region Text Links
 
-sol::table lua_ExtractLinks(sol::this_state L, std::string_view str)
+static sol::table lua_ExtractLinks(sol::this_state L, std::string_view str)
 {
 	auto table = sol::state_view(L).create_table();
 
@@ -143,7 +57,7 @@ sol::table lua_ExtractLinks(sol::this_state L, std::string_view str)
 	return table;
 }
 
-std::string lua_FormatDialogLink(std::string_view keyword, sol::optional<std::string_view> text)
+static std::string lua_FormatDialogLink(std::string_view keyword, sol::optional<std::string_view> text)
 {
 	char buffer[MAX_STRING];
 	FormatDialogLink(buffer, MAX_STRING, keyword, text.has_value() ? text.value() : std::string_view());
@@ -151,7 +65,7 @@ std::string lua_FormatDialogLink(std::string_view keyword, sol::optional<std::st
 	return buffer;
 }
 
-std::string lua_FormatItemLink(sol::this_state L, const lua_MQTypeVar& typeVar)
+static std::string lua_FormatItemLink(sol::this_state L, const lua_MQTypeVar& typeVar)
 {
 	MQTypeVar var = typeVar.EvaluateMember();
 
@@ -168,7 +82,7 @@ std::string lua_FormatItemLink(sol::this_state L, const lua_MQTypeVar& typeVar)
 	return buffer;
 }
 
-std::string lua_FormatSpellLink(sol::this_state L, const lua_MQTypeVar& typeVar, sol::optional<const char*> nameOverride)
+static std::string lua_FormatSpellLink(sol::this_state L, const lua_MQTypeVar& typeVar, sol::optional<const char*> nameOverride)
 {
 	MQTypeVar var = typeVar.EvaluateMember();
 
@@ -185,7 +99,7 @@ std::string lua_FormatSpellLink(sol::this_state L, const lua_MQTypeVar& typeVar,
 	return buffer;
 }
 
-std::string lua_FormatAchievementLink(sol::this_state L, const lua_MQTypeVar& typeVar, std::string_view playerName)
+static std::string lua_FormatAchievementLink(sol::this_state L, const lua_MQTypeVar& typeVar, std::string_view playerName)
 {
 	MQTypeVar var = typeVar.EvaluateMember();
 
@@ -202,7 +116,7 @@ std::string lua_FormatAchievementLink(sol::this_state L, const lua_MQTypeVar& ty
 	return buffer;
 }
 
-sol::optional<DialogLinkInfo> lua_ParseDialogLink(std::string_view str)
+static sol::optional<DialogLinkInfo> lua_ParseDialogLink(std::string_view str)
 {
 	DialogLinkInfo linkInfo;
 
@@ -212,7 +126,7 @@ sol::optional<DialogLinkInfo> lua_ParseDialogLink(std::string_view str)
 	return {};
 }
 
-sol::optional<ItemLinkInfo> lua_ParseItemLink(std::string_view str)
+static sol::optional<ItemLinkInfo> lua_ParseItemLink(std::string_view str)
 {
 	ItemLinkInfo linkInfo;
 
@@ -222,7 +136,7 @@ sol::optional<ItemLinkInfo> lua_ParseItemLink(std::string_view str)
 	return {};
 }
 
-sol::optional<SpellLinkInfo> lua_ParseSpellLink(std::string_view str)
+static sol::optional<SpellLinkInfo> lua_ParseSpellLink(std::string_view str)
 {
 	SpellLinkInfo linkInfo;
 
@@ -232,12 +146,90 @@ sol::optional<SpellLinkInfo> lua_ParseSpellLink(std::string_view str)
 	return {};
 }
 
-std::string lua_StripTextLinks(std::string_view str)
+static std::string lua_StripTextLinks(std::string_view str)
 {
 	CXStr text(str);
 
 	text = CleanItemTags(text);
 	return std::string{ text };
+}
+
+static sol::table lua_getAllSpawns(sol::this_state L)
+{
+	sol::table allSpawns = sol::state_view(L).create_table();
+
+	if (auto thisThread = LuaThread::get_from(L))
+	{
+		sol::table spawnTable = thisThread->GetSpawnTable();
+
+		for (const auto& [_, value] : spawnTable)
+		{
+			allSpawns.add(value);
+		}
+	}
+
+	return allSpawns;
+}
+
+static sol::table lua_getFilteredspawns(sol::this_state L, sol::optional<sol::unsafe_function> predicate_)
+{
+	sol::table filteredSpawns = sol::state_view(L).create_table();
+	auto thisThread = LuaThread::get_from(L);
+
+	if (thisThread && predicate_.has_value())
+	{
+		sol::table spawnTable = thisThread->GetSpawnTable();
+		const sol::unsafe_function& predicate = predicate_.value();
+
+		for (const auto& [_, value] : spawnTable)
+		{
+			if (predicate(value))
+			{
+				filteredSpawns.add(value);
+			}
+		}
+	}
+
+	return filteredSpawns;
+}
+
+static sol::table lua_getAllGroundItems(sol::this_state L)
+{
+	sol::table allGroundItems = sol::state_view(L).create_table();
+
+	if (auto thisThread = LuaThread::get_from(L))
+	{
+		sol::table groundItemTable = thisThread->GetGroundItemTable();
+
+		for (const auto& [_, value] : groundItemTable)
+		{
+			allGroundItems.add(value);
+		}
+	}
+
+	return allGroundItems;
+}
+
+static sol::table lua_getFilteredGroundItems(sol::this_state L, sol::unsafe_function predicate_)
+{
+	sol::table filteredGroundItems = sol::state_view(L).create_table();
+	auto thisThread = LuaThread::get_from(L);
+
+	if (thisThread && predicate_.valid())
+	{
+		sol::table groundItemTable = thisThread->GetGroundItemTable();
+		const sol::unsafe_function& predicate = predicate_;
+
+		for (const auto& [_, value] : groundItemTable)
+		{
+			if (predicate(value))
+			{
+				filteredGroundItems.add(value);
+			}
+		}
+	}
+
+	return filteredGroundItems;
 }
 
 #pragma endregion
@@ -327,10 +319,11 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 
 	//----------------------------------------------------------------------------
 	// Direct Data Bindings
-	mq.set_function("getAllSpawns", &lua_getAllSpawns);
-	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
-	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
-	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
+
+	mq.set("getAllSpawns", lua_getAllSpawns);
+	mq.set_function("getFilteredSpawns", lua_getFilteredspawns);
+	mq.set_function("getAllGroundItems", lua_getAllGroundItems);
+	mq.set_function("getFilteredGroundItems", lua_getFilteredGroundItems);
 }
 
 } // namespace mq::lua::bindings

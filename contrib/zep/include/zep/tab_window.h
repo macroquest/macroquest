@@ -31,6 +31,8 @@ public:
 
     ZepWindow* DoMotion(WindowMotion motion);
     ZepWindow* AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent = nullptr, RegionLayoutType layoutType = RegionLayoutType::HBox);
+    ZepWindow* GetDefaultWindow() const;
+
     void RemoveWindow(ZepWindow* pWindow);
     //void WalkRegions();
     void SetActiveWindow(ZepWindow* pBuffer);

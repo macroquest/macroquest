@@ -20,7 +20,8 @@
 #include "imgui/ImGuiUtils.h"
 #include "MQ2DeveloperTools.h"
 
-#include <mq/utils/Args.h>
+#include "mq/api/RenderDoc.h"
+#include "mq/utils/Args.h"
 
 #include <cstdint>
 #include <chrono>
@@ -298,7 +299,9 @@ public:
 				*g_bRenderSceneCalled = TRUE;
 
 			if (IsTieUiToSimulation())
+			{
 				RenderBlind_Trampoline();
+			}
 		}
 	}
 
@@ -395,7 +398,17 @@ public:
 		// This will only be true if we the frame limiter is disabled, but there are side effects to do the simulation step later
 		if (ShouldDoRealRenderWorld())
 		{
+			DoRealRender_World();
+		}
+	}
+
+	void DoRealRender_World()
+	{
+		RenderDoc_ScopedEvent e(MQColor(170, 255, 255), L"RealRender_World");
+
+		{
 			MQScopedBenchmark bm(bmRealRenderWorld);
+
 			RealRender_World_Trampoline();
 		}
 	}
@@ -578,10 +591,9 @@ public:
 		// always perform the real world update, the limiting here happens in the sleep later in this function
 		{
 			// Measure how long it takes to do a realrender
-			MQScopedBenchmark bm(bmRealRenderWorld);
 			RecordSimulationSample();
 
-			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
+			pDisplay.get_as<CDisplayHook>()->DoRealRender_World();
 
 			if (GetTieUiToSimulation())
 				CXWndManagerHook::CallDrawWindows();

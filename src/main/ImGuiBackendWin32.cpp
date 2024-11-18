@@ -840,6 +840,15 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		return 0;
 
 	case WM_CHAR:
+		switch (wParam)
+		{
+		case 0x08: // backspace
+		case 0x09: // tab
+		case 0x0a: // linefeed
+		case 0x0d: // carriage return
+		case 0x1b: // escape 
+			return 0;
+		}
 		if (::IsWindowUnicode(hwnd))
 		{
 			// You can also use ToAscii()+GetKeyboardState() to retrieve characters.

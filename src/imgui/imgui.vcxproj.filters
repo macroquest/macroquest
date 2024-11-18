@@ -34,6 +34,12 @@
     <Filter Include="Header Files\dirent">
       <UniqueIdentifier>{2a385d9a-ec88-499a-ae7c-05883d9b126e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mq">
+      <UniqueIdentifier>{4bf71c8e-4bf4-4b14-9e10-f0dc87520948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\imgui">
+      <UniqueIdentifier>{3d599319-7261-47b0-b492-554b8d84df98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -43,9 +49,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiTreePanelWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\imgui\imconfig.h">
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\imgui\imgui_user.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiUtils.h">
+      <Filter>Header Files\mq\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

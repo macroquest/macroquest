@@ -23,7 +23,8 @@ static void Spawns_Initialize();
 static void Spawns_Shutdown();
 static void Spawns_Pulse();
 static void Spawns_BeginZone();
-static void Spawns_SpawnRemoved(SPAWNINFO* pSpawn);
+static void Spawns_SpawnAdded(PlayerClient* pSpawn);
+static void Spawns_SpawnRemoved(PlayerClient* pSpawn);
 
 static MQModule gSpawnsModule = {
 	"Spawns",                     // Name
@@ -35,7 +36,7 @@ static MQModule gSpawnsModule = {
 	nullptr,                      // UpdateImGui
 	nullptr,                      // Zoned
 	nullptr,                      // WriteChatColor
-	nullptr,                      // SpawnAdded
+	Spawns_SpawnAdded,            // SpawnAdded
 	Spawns_SpawnRemoved,          // SpawnRemoved
 	Spawns_BeginZone,             // BeginZone
 };
@@ -46,6 +47,9 @@ std::vector<MQSpawnArrayItem> gSpawnsArray;
 
 // Our last known combat state
 static ECombatState s_combatState = eCombatState_Standing;
+
+static void UpdateNameSpriteTint(PlayerClient* pSpawn);
+static bool UpdateNameSpriteState(PlayerClient* pSpawn, bool apply);
 
 #pragma region Combat State Calculation
 //----------------------------------------------------------------------------
@@ -116,7 +120,7 @@ ECombatState GetCombatState()
 // caption color code
 //----------------------------------------------------------------------------
 
-static SPAWNINFO* pNamingSpawn = nullptr;
+static PlayerClient* pNamingSpawn = nullptr;
 
 static int gMaxSpawnCaptions = 35;
 static bool gMQCaptions = true;
@@ -208,7 +212,7 @@ static CAPTIONCOLOR CaptionColors[] =
 };
 
 
-static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
+static void CaptionCmd(PlayerClient*, const char* szLine)
 {
 	char Arg1[MAX_STRING] = { 0 };
 	GetArg(Arg1, szLine, 1);
@@ -337,7 +341,7 @@ static void CaptionCmd(SPAWNINFO* pChar, char* szLine)
 	WriteChatf("\ay%s\ax caption set.", Arg1);
 }
 
-static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
+static void CaptionColorCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -422,8 +426,6 @@ static void CaptionColorCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void SetNameSpriteTint(SPAWNINFO* pSpawn);
-
 static unsigned int lastRemovedSpawnID = 0;
 
 class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
@@ -459,7 +461,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, DestroyAllPlayers_Trampoline, ())
 		void DestroyAllPlayers_Detour()
 	{
-		SPAWNINFO* pSpawn = FirstSpawn;
+		PlayerClient* pSpawn = FirstSpawn;
 		while (pSpawn)
 		{
 			PluginsRemoveSpawn(pSpawn);
@@ -516,6 +518,11 @@ public:
 		return 1;
 	}
 
+	static int SetNameSpriteState(PlayerClient* pSpawn, bool show)
+	{
+		return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(show);
+	}
+
 	DETOUR_TRAMPOLINE_DEF(bool, SetNameSpriteTint_Trampoline, ())
 	bool SetNameSpriteTint_Detour()
 	{
@@ -526,7 +533,7 @@ public:
 	}
 };
 
-static void SetNameSpriteTint(SPAWNINFO* pSpawn)
+static void UpdateNameSpriteTint(PlayerClient* pSpawn)
 {
 	if (!gMQCaptions)
 		return;
@@ -621,7 +628,7 @@ static void SetNameSpriteTint(SPAWNINFO* pSpawn)
 		pSpawn->GetActor()->SetStringSpriteTint((RGB*)&NewColor);
 }
 
-static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
+static bool SetCaption(PlayerClient* pSpawn, const char* CaptionString)
 {
 	if (CaptionString[0])
 	{
@@ -645,12 +652,11 @@ static bool SetCaption(SPAWNINFO* pSpawn, const char* CaptionString)
 	return false;
 }
 
-bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
+static bool UpdateNameSpriteState(PlayerClient* pSpawn, bool apply)
 {
-	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
-	if (!Show || !gMQCaptions)
+	if (!apply || !gMQCaptions)
 	{
-		return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
+		return PlayerClientHook::SetNameSpriteState(pSpawn, apply) != 0;
 	}
 
 	if (!pSpawn->GetActor() || !pSpawn->GetActor()->IsBoneSet(0))
@@ -698,7 +704,7 @@ bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show)
 		break;
 	}
 
-	return reinterpret_cast<PlayerClientHook*>(pSpawn)->SetNameSpriteState_Trampoline(Show) != 0;
+	return PlayerClientHook::SetNameSpriteState(pSpawn, apply) != 0;
 }
 
 static void UpdateSpawnCaptions()
@@ -709,14 +715,14 @@ static void UpdateSpawnCaptions()
 	int count = 0;
 	for (const MQSpawnArrayItem& item : gSpawnsArray)
 	{
-		SPAWNINFO* pSpawn = item.GetSpawn();
+		PlayerClient* pSpawn = item.GetSpawn();
 
 		if (!pSpawn || pSpawn == pTarget)
 			continue;
 
-		if (SetNameSpriteState(pSpawn, true))
+		if (UpdateNameSpriteState(pSpawn, true))
 		{
-			SetNameSpriteTint(pSpawn);
+			UpdateNameSpriteTint(pSpawn);
 			++count;
 		}
 
@@ -911,7 +917,7 @@ void UpdateMQ2SpawnSort()
 	// we need to make sure the spawn manager is valid here because this can get called from login pulse before the spawn manager is valid
 	if (pSpawnManager)
 	{
-		SPAWNINFO* pSpawn = pSpawnManager->FirstSpawn;
+		PlayerClient* pSpawn = pSpawnManager->FirstSpawn;
 		while (pSpawn)
 		{
 			float distSq = GetDistanceSquared(myX, myY, pSpawn->X, pSpawn->Y);
@@ -929,7 +935,7 @@ void UpdateMQ2SpawnSort()
 	ExitMQ2Benchmark(bmUpdateSpawnSort);
 }
 
-bool IsTargetable(SPAWNINFO* pSpawn)
+bool IsTargetable(PlayerClient* pSpawn)
 {
 	return pSpawn && pSpawn->IsTargetable();
 }
@@ -1070,7 +1076,7 @@ static void Spawns_Pulse()
 		{
 			if (pSpawnTarget != pTarget)
 			{
-				SetNameSpriteState(pSpawnTarget, false);
+				UpdateNameSpriteState(pSpawnTarget, false);
 			}
 		}
 
@@ -1089,7 +1095,7 @@ static void Spawns_Pulse()
 	{
 		LastTarget = pTarget->SpawnID;
 		pTarget.get_as<PlayerClientHook>()->SetNameSpriteTint_Trampoline();
-		SetNameSpriteState(pTarget, true);
+		UpdateNameSpriteState(pTarget, true);
 	}
 
 	ProcessPendingGroundItems();
@@ -1100,7 +1106,15 @@ static void Spawns_BeginZone()
 	gSpawnsArray.clear();
 }
 
-static void Spawns_SpawnRemoved(SPAWNINFO* pSpawn)
+void Spawns_SpawnAdded(PlayerClient* pNewSpawn)
+{
+	if (!gMQCaptions)
+		return;
+
+	UpdateNameSpriteState(pNewSpawn, true);
+}
+
+static void Spawns_SpawnRemoved(PlayerClient* pSpawn)
 {
 	if (gSpawnsArray.empty())
 		return;
