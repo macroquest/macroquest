@@ -1,3 +1,7 @@
+Nov 17, 2024:
+- lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
+  This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
+
 Nov 10, 2024:
 - lua: New Zep text editor and console widgets are now integrated. (See the updated console and texteditor
   lua example in the lua/examples folder)

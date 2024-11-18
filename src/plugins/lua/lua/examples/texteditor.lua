@@ -17,6 +17,7 @@ local resetPosition = false
 local bufferNumber = 1
 local bufferTable = {}
 local syntaxList = {}
+local themeList = zep.GetThemes()
 
 local function GUI()
     if editor == nil then
@@ -72,6 +73,17 @@ local function GUI()
                 end
                 imgui.EndMenu()
             end
+
+            if imgui.BeginMenu('Themes') then
+                local currentTheme = editor.theme
+                for _, value in ipairs(themeList) do
+                    if imgui.MenuItem(value.name, nil, currentTheme == value.id) then
+                        editor.theme = value.id
+                    end
+                end
+                imgui.EndMenu()
+            end
+
             imgui.EndMenu()
         end
 
