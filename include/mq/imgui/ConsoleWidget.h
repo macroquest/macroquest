@@ -14,45 +14,18 @@
 
 #pragma once
 
-#include "mq/base/Common.h"
-#include "mq/base/Color.h"
-
-#include <memory>
-#include <string_view>
-
-namespace mq {
-	struct ImGuiZepConsole;
-}
+#include "mq/zep/ImGuiZepConsole.h"
 
 namespace mq::imgui {
 
-// Interface to a ImGuiZepConsole, suitable for exposure to plugins.
-
-class ConsoleWidget
+// ConsoleWidget has been migrated to ImGuiZepConsole. This specialization simply installs the
+// MQConsoleDelegate into a fresh instance of the ImGuiZepConsole.
+class ConsoleWidget : public mq::ImGuiZepConsole
 {
 public:
-	static inline const MQColor DEFAULT_COLOR = MQColor(240, 240, 240, 255);
+	using mq::ImGuiZepConsole::ImGuiZepConsole;
 
-	MQLIB_OBJECT static  std::shared_ptr<ConsoleWidget> Create(std::string_view id);
-	virtual ~ConsoleWidget() {};
-
-	virtual void Render(const ImVec2& displaySize = ImVec2()) = 0;
-
-	virtual void Clear() = 0;
-	virtual void AppendText(std::string_view text, MQColor defaultColor = DEFAULT_COLOR,
-		bool appendNewLine = false) = 0;
-
-	virtual bool IsCursorAtEnd() const = 0;
-	virtual void ScrollToBottom() = 0;
-
-	virtual bool GetAutoScroll() const = 0;
-	virtual void SetAutoScroll(bool autoScroll) = 0;
-
-	virtual int GetMaxBufferLines() const = 0;
-	virtual void SetMaxBufferLines(int maxBufferLines) = 0;
-
-	virtual float GetOpacity() const = 0;
-	virtual void SetOpacity(float opacity) = 0;
+	MQLIB_OBJECT static std::shared_ptr<ConsoleWidget> Create(std::string_view id);
 };
 
 } // namespace mq::imgui

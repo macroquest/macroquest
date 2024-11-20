@@ -817,7 +817,6 @@ void MQ2Shutdown()
 	OutputDebugString("MQ2Shutdown Called");
 
 	ShutdownCachedBuffs();
-	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
 	ShutdownChatHook();
@@ -827,6 +826,7 @@ void MQ2Shutdown()
 	ShutdownAnonymizer();
 	ShutdownPlugins();
 	ShutdownFailedPlugins();
+	ShutdownInternalModules();
 	ImGuiManager_Shutdown();
 	GraphicsResources_Shutdown();
 	ShutdownStringDB();

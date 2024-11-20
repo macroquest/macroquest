@@ -480,6 +480,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 			return std::make_tuple(open.has_value() ? open_ : show, show);
 		});
 	ImGui.set_function("EndTabItem", &ImGui::EndTabItem);
+	ImGui.set_function("TabItemButton", [](const char* label, std::optional<int> flags) { return ImGui::TabItemButton(label, flags.value_or(0)); });
 	ImGui.set_function("SetTabItemClosed", &ImGui::SetTabItemClosed);
 	#pragma endregion
 

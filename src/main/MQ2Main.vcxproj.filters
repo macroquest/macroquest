@@ -332,7 +332,7 @@
     <ClCompile Include="MQ2FrameLimiter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImGuiConsole.cpp">
+    <ClCompile Include="MQImGuiConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2ImGuiTools.cpp">
@@ -343,9 +343,6 @@
     </ClCompile>
     <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiZepEditor.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2WindowInspector.cpp">
       <Filter>Source Files</Filter>
@@ -526,9 +523,6 @@
     <ClInclude Include="MQVersionInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImGuiZepEditor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2SpellSearch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -694,16 +688,14 @@
     <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h">
       <Filter>Header Files\contrib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="..\MacroQuest.natvis">
-      <Filter>Resource Files</Filter>
-    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\data\resources\ItemDB.txt">
@@ -722,5 +714,8 @@
     <NASM Include="AssemblyFunctions64.asm">
       <Filter>Source Files</Filter>
     </NASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\MacroQuest.natvis" />
   </ItemGroup>
 </Project>

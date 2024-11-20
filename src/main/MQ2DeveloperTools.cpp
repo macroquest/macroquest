@@ -4599,9 +4599,7 @@ public:
 			}
 		}
 
-		ImPlot::SetNextAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextAxisLimits(ImAxis_Y1, 0, 20, ImGuiCond_Once);
-		ImPlot::SetNextAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+
 
 		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
@@ -4609,13 +4607,16 @@ public:
 			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y3, "Frames Per Second", ImPlotAxisFlags_LockMin | ImPlotAxisFlags_Opposite);
-
+			ImPlot::SetupAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 40, ImGuiCond_Appearing);
+			ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y3, 0, 60, ImGuiCond_Appearing);
 			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
-
 				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
 					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}

@@ -2,10 +2,8 @@
 
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 #include "buffer.h"
-#include "zep/mcommon/utf8/unchecked.h"
 
 namespace Zep
 {
@@ -83,7 +81,7 @@ enum class DisplayMode
 
 namespace WindowFlags
 {
-    enum
+    enum Enum
     {
         None                   = 0,
         ShowWhiteSpace         = 0x0001,
@@ -171,6 +169,7 @@ public:
     void AdjustScroll(float delta);
     void ScrollByLine(int lines, bool ensureVisible = true);
     void ScrollToBottom();
+    void SetCursorVisibleLines(int visibleAmount) { m_cursorVisibleLines = visibleAmount; }
 
     bool IsAtBottom() const;
 
@@ -272,6 +271,7 @@ private:
     // Cursor
     GlyphIterator m_bufferCursor;                   // Location in buffer coordinates.  Each window has a different buffer cursor
     long m_lastCursorColumn = 0;                    // The last cursor column (could be removed and recalculated)
+    int m_cursorVisibleLines = 1;
 
     // Visual stuff
     DisplayMode m_displayMode = DisplayMode::Normal;

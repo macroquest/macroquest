@@ -1,10 +1,9 @@
+#include "pch.h"
 #include "zep/mode.h"
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/filesystem.h"
 #include "zep/mcommon/logger.h"
-#include "zep/mode_search.h"
-#include "zep/regress.h"
 #include "zep/syntax.h"
 #include "zep/tab_window.h"
 
@@ -112,38 +111,34 @@ void CommandContext::UpdateRegisters()
 void CommandContext::GetCommandRegisters()
 {
     // No specified register, so use the default
-    if (keymap.RegisterName() == 0)
+    if (keymap.RegisterName() != 0)
     {
-        keymap.captureRegisters.push_back('"');
-        keymap.captureRegisters.push_back('*');
-        keymap.captureRegisters.push_back('+');
-    }
-
-    if (keymap.RegisterName() == '_')
-    {
-        std::stack<char> temp;
-        registers.swap(temp);
-    }
-    else
-    {
-        registers.push(keymap.RegisterName());
-
-        char reg = keymap.RegisterName();
-
-        // Demote capitals to lower registers when pasting (all both)
-        if (reg >= 'A' && reg <= 'Z')
+        if (keymap.RegisterName() == '_')
         {
-            reg = (char)std::tolower((char)reg);
+            std::stack<char> temp;
+            registers.swap(temp);
         }
-
-        if (owner.GetEditor().GetRegisters().find(std::string({ reg })) != owner.GetEditor().GetRegisters().end())
+        else
         {
-            pRegister = &owner.GetEditor().GetRegister(reg);
+            registers.push(keymap.RegisterName());
+
+            char reg = keymap.RegisterName();
+
+            // Demote capitals to lower registers when pasting (all both)
+            if (reg >= 'A' && reg <= 'Z')
+            {
+                reg = (char)std::tolower((char)reg);
+            }
+
+            if (owner.GetEditor().GetRegisters().find(std::string({ reg })) != owner.GetEditor().GetRegisters().end())
+            {
+                pRegister = &owner.GetEditor().GetRegister(reg);
+            }
         }
     }
 
     // Default register
-    if (pRegister->text.empty())
+    if (!pRegister || pRegister->text.empty())
     {
         pRegister = &owner.GetEditor().GetRegister('"');
     }
@@ -160,8 +155,6 @@ ZepMode::~ZepMode()
 
 ZepWindow* ZepMode::GetCurrentWindow() const
 {
-    // Mode begin should always set this and we should always have a valid window associated with the mode
-    assert(m_pCurrentWindow != nullptr);
     return m_pCurrentWindow;
 }
 
@@ -488,10 +481,13 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys)
     // We convert CTRL + f to a string: "<C-f>"
     HandleMappedInput(ConvertInputToMapString(key, modifierKeys));
 
-    auto notifier = m_pCurrentWindow->GetBuffer().GetPostKeyNotifier();
-    if (notifier != nullptr)
+    if (m_pCurrentWindow)
     {
-        notifier(key, modifierKeys);
+        auto notifier = m_pCurrentWindow->GetBuffer().GetPostKeyNotifier();
+        if (notifier != nullptr)
+        {
+            notifier(key, modifierKeys);
+        }
     }
 
     timer_restart(m_lastKeyPressTimer);
@@ -596,6 +592,7 @@ void ZepMode::HandleMappedInput(const std::string& input)
         if (spContext->commandResult.spCommand)
         {
             // If not in insert mode, begin the group, because we have started a new operation
+            // i.e. one group before adding characters and typing stuff.
             if (m_currentMode != EditorMode::Insert || ZTestFlags(spContext->commandResult.flags, CommandResultFlags::BeginUndoGroup))
             {
                 AddCommand(std::make_shared<ZepCommand_GroupMarker>(spContext->buffer));
@@ -606,6 +603,7 @@ void ZepMode::HandleMappedInput(const std::string& input)
             else
             {
                 // In insert mode keep the text for the dot command.  An insert adds a command too!
+                // Accumulate
                 m_dotCommand += input;
             }
 
@@ -1013,12 +1011,26 @@ bool ZepMode::GetCommand(CommandContext& context)
     case id_MotionLineEnd:
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineLastNonCR));
         return true;
+    case id_MotionLineBeyondEnd:
+        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
+        return true;
     case id_MotionLineBegin:
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
         return true;
     case id_MotionLineFirstChar:
         GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar));
         return true;
+    case id_MotionLineHomeToggle:
+    {
+        GlyphIterator newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar);
+        if (bufferCursor == newCursorPos)
+        {
+            newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin);
+        }
+
+        GetCurrentWindow()->SetBufferCursor(newCursorPos);
+        return true;
+    }
 
     // Moving between tabs
     case id_PreviousTabWindow:
@@ -1137,12 +1149,24 @@ bool ZepMode::GetCommand(CommandContext& context)
         UpdateVisualSelection();
         return true;
     }
-    case id_MotionStandardLineBegin:
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
+    case id_MotionStandardHomeToggleSelect:
+    {
+        context.commandResult.modeSwitch = EditorMode::Visual;
+        if (m_currentMode != EditorMode::Visual)
+        {
+            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+        }
+
+        GlyphIterator newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar);
+        if (bufferCursor == newCursorPos)
+        {
+            newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin);
+        }
+
+        GetCurrentWindow()->SetBufferCursor(newCursorPos);
+        UpdateVisualSelection();
         return true;
-    case id_MotionStandardLineEnd:
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
-        return true;
+    }
     case id_MotionStandardLineBeginSelect:
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual)
@@ -1555,6 +1579,8 @@ bool ZepMode::GetCommand(CommandContext& context)
         }
         case id_StandardPaste:
         {
+            GetEditor().ReadClipboard();
+
             context.pRegister = &GetEditor().GetRegister(DefaultMode() == EditorMode::Insert ? '*' : '"');
 
             if (context.currentMode == EditorMode::Visual)
@@ -1577,6 +1603,8 @@ bool ZepMode::GetCommand(CommandContext& context)
         }
         case id_PasteAfter:
         {
+            GetEditor().ReadClipboard();
+
             if (!context.pRegister->text.empty())
             {
                 // Already in visual mode, so replace the selection
@@ -1807,6 +1835,53 @@ bool ZepMode::GetCommand(CommandContext& context)
                 context.commandResult.modeSwitch = EditorMode::Insert;
             }
             break;
+        case id_ChangeIn:
+            if (!context.keymap.captureChars.empty())
+            {
+                auto range = buffer.FindMatchingPair(bufferCursor, context.keymap.captureChars[0]);
+                if (range.first.Valid() && range.second.Valid())
+                {
+                    if ((range.first + 1) == range.second)
+                    {
+                        // A closed pair (); so insert between them
+                        GetCurrentWindow()->SetBufferCursor(range.first + 1);
+                        context.commandResult.modeSwitch = EditorMode::Insert;
+                        return true;
+                    }
+                    else
+                    {
+                        GlyphIterator lineEnd = context.buffer.GetLinePos(range.first, LineLocation::LineCRBegin);
+                        if (lineEnd.Valid() && lineEnd < range.second)
+                        {
+                            GlyphIterator lineStart = context.buffer.GetLinePos(range.first, LineLocation::LineBegin);
+                            auto offsetStart = (range.first.Index() - lineStart.Index());
+
+                            // If change in a pair of delimeters that are on seperate lines, then
+                            // we remove everything and replace with 2 CRs and an indent based on the start bracket
+                            // Since Zep doesn't auto indent, this is the best we can do for now.
+                            context.replaceRangeMode = ReplaceRangeMode::Replace;
+                            context.op = CommandOperation::Replace;
+
+                            auto offsetText = std::string(offsetStart + 4, ' ');
+                            auto offsetBracket = std::string(offsetStart, ' ');
+                            context.tempReg.text = std::string("\n") + offsetText + "\n" + offsetBracket;
+                            context.pRegister = &context.tempReg;
+                            context.beginRange = range.first + 1;
+                            context.endRange = range.second;
+                            context.cursorAfterOverride = range.first + (long)offsetText.length() + 2;
+                            context.commandResult.modeSwitch = EditorMode::Insert;
+                        }
+                        else
+                        {
+                            context.beginRange = range.first + 1; // returned range is inclusive
+                            context.endRange = range.second;
+                            context.op = CommandOperation::Delete;
+                            context.commandResult.modeSwitch = EditorMode::Insert;
+                        }
+                    }
+                }
+            }
+            break;
         case id_SubstituteLine:
             // Delete whole line and go to insert mode
             context.beginRange = context.buffer.GetLinePos(context.bufferCursor, LineLocation::LineBegin);
@@ -1849,6 +1924,92 @@ bool ZepMode::GetCommand(CommandContext& context)
         case id_FindNext:
             GetCurrentWindow()->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t*)m_lastFind.c_str(), m_lastFindDirection));
             return true;
+        case id_FindNextDelimiter:
+        {
+            // Rules:
+            // 1. Find the first delimeter that matches an 'opening' such as '(', jump to the matching pair ')'
+            // 2. If that fails, look backwards for a closing delimiter, such as ')' and find the opening '('
+            // 3. If that fails, look backwards for an opening and finish
+            // All operations do the first search on the current line, as in vim.
+            int32_t findIndex = 0;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                std::string_view start_delims;
+                std::string_view end_delims;
+                Direction dir;
+
+                // Forward or inside
+                if (pass == 0)
+                {
+                    dir = Direction::Forward;
+                    start_delims = "\n({[";
+                    end_delims = ")}]";
+                }
+                else
+                {
+                    dir = Direction::Backward;
+                    start_delims = "\n)}]";
+                    end_delims = "({[";
+                }
+
+                GlyphIterator loc = context.buffer.FindFirstCharOf(bufferCursor, start_delims, findIndex, dir);
+                if (findIndex > 0)
+                {
+                    // Ignore the first \n in the delim list
+                    findIndex--;
+
+                    // Make a new end location
+                    auto end_loc = loc;
+
+                    // Track open/close braket pairs
+                    int closingCount = 1;
+                    while (closingCount > 0)
+                    {
+                        // Skip to next
+                        dir == Direction::Forward ? end_loc++ : end_loc--;
+
+                        // Find the next open or close of the current delim type
+                        int newIndex;
+                        std::string find(std::string(1, start_delims[findIndex + 1]) + end_delims[findIndex]);
+                        end_loc = context.buffer.FindFirstCharOf(end_loc, find, newIndex, dir);
+
+                        // Fell off, no find
+                        if (newIndex < 0)
+                        {
+                            break;
+                        }
+
+                        // Found another opener/no good
+                        if (newIndex == 0)
+                        {
+                            closingCount++;
+                        }
+                        // Found a closer
+                        else if (newIndex == 1)
+                        {
+                            closingCount--;
+                        }
+                    }
+
+                    // Matched a pair, jump
+                    if (closingCount == 0)
+                    {
+                        GetCurrentWindow()->SetBufferCursor(end_loc);
+                        return true;
+                    }
+                }
+            }
+
+            // Situation: In the middle of a pair of delimiters, after all searches have failed.
+            // Bounce back to the beginning one on the line if found
+            auto start_loc = context.buffer.FindFirstCharOf(bufferCursor, "\n({[", findIndex, Direction::Backward);
+            if (findIndex > 0)
+            {
+                GetCurrentWindow()->SetBufferCursor(start_loc);
+                return true;
+            }
+            return false;
+        }
         case id_Append:
             // Cursor append
             cursorItr.MoveClamped(1, LineLocation::LineCRBegin);
@@ -2706,9 +2867,9 @@ void ZepMode::AddNavigationKeyMaps(bool allowInVisualMode)
     AddKeyMapWithCountRegisters(navigationMaps, { "G" }, id_MotionGotoLine);
 
     // Line Motions
-    AddKeyMapWithCountRegisters(navigationMaps, { "$" }, id_MotionLineEnd);
+    AddKeyMapWithCountRegisters(navigationMaps, { "$", "<End>" }, id_MotionLineEnd);
     AddKeyMapWithCountRegisters(navigationMaps, { "^" }, id_MotionLineFirstChar);
-    keymap_add(navigationMaps, { "0" }, id_MotionLineBegin);
+    keymap_add(navigationMaps, { "0", "<Home>" }, id_MotionLineBegin);
 
     // Word motions
     AddKeyMapWithCountRegisters(navigationMaps, { "w" }, id_MotionWord);
@@ -2732,6 +2893,9 @@ void ZepMode::AddNavigationKeyMaps(bool allowInVisualMode)
     keymap_add({ &m_insertMap }, { "<Up>" }, id_MotionUp);
     keymap_add({ &m_insertMap }, { "<Right>" }, id_MotionRight);
     keymap_add({ &m_insertMap }, { "<Left>" }, id_MotionLeft);
+
+    keymap_add({ &m_insertMap }, { "<End>" }, id_MotionLineBeyondEnd);
+    keymap_add({ &m_insertMap }, { "<Home>" }, id_MotionLineBegin);
 }
 
 void ZepMode::AddSearchKeyMaps()
@@ -2740,6 +2904,7 @@ void ZepMode::AddSearchKeyMaps()
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "f<.>" }, id_Find);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "F<.>" }, id_FindBackwards);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { ";" }, id_FindNext);
+    AddKeyMapWithCountRegisters({ &m_normalMap }, { "%" }, id_FindNextDelimiter);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "n" }, id_MotionNextSearch);
     AddKeyMapWithCountRegisters({ &m_normalMap }, { "N" }, id_MotionPreviousSearch);
     keymap_add({ &m_normalMap }, { "<F8>" }, id_MotionNextMarker);

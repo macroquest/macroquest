@@ -518,7 +518,6 @@
     <ClCompile Include="ImGuiBackendDX11.cpp" />
     <ClCompile Include="ImGuiBackendDX9.cpp" />
     <ClCompile Include="ImGuiBackendWin32.cpp" />
-    <ClCompile Include="ImGuiZepEditor.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
@@ -538,7 +537,7 @@
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2ImGuiTools.cpp" />
     <ClCompile Include="MQ2GroundSpawns.cpp" />
-    <ClCompile Include="MQ2ImGuiConsole.cpp" />
+    <ClCompile Include="MQImGuiConsole.cpp" />
     <ClCompile Include="MQImguiWidgets.cpp" />
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
@@ -605,6 +604,7 @@
     <ClInclude Include="..\..\include\mq\base\WString.h" />
     <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
+    <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
@@ -633,7 +633,6 @@
     <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQCommandAPI.h" />

@@ -48,8 +48,6 @@ public:
 	void RemoveActor(
 		postoffice::Dropbox*& dropbox,
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
-
-	void OnUnloadPlugin(MQPlugin* plugin);
 };
 
 extern MQActorAPI* pActorAPI;

@@ -23,7 +23,7 @@
 namespace mq {
 using namespace postoffice;
 
-static void UnloadPluginActorAPI(const char*);
+static void OnPostUnloadPluginActorAPI(const char*);
 
 static MQModule s_ActorAPIModule = {
 	"ActorAPI",                      // Name
@@ -40,7 +40,10 @@ static MQModule s_ActorAPIModule = {
 	nullptr,                         // BeginZone
 	nullptr,                         // EndZone
 	nullptr,                         // LoadPlugin
-	UnloadPluginActorAPI,            // UnloadPlugin
+	nullptr,                         // UnloadPlugin
+	nullptr,                         // CleanUI
+	nullptr,                         // ReloadUI
+	OnPostUnloadPluginActorAPI,      // OnPostUnloadPlugin
 };
 MQModule* GetActorAPIModule() { return &s_ActorAPIModule; }
 MQActorAPI* pActorAPI = nullptr;
@@ -50,17 +53,15 @@ std::unordered_map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>>
 // this is to allow for replies while not exposing message internals to the API
 std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
-static void UnloadPluginActorAPI(const char* pluginName)
+static void OnPostUnloadPluginActorAPI(const char* pluginName)
 {
 	MQPlugin* plugin = GetPlugin(pluginName);
-	if (plugin != nullptr && pActorAPI != nullptr)
-	{
-		pActorAPI->OnUnloadPlugin(plugin);
-	}
-
 	auto it = s_dropboxes.find(plugin);
 	if (it != s_dropboxes.end())
 	{
+		for (auto& dropbox : it->second)
+			dropbox->Remove();
+
 		it->second.clear();
 		s_dropboxes.erase(it);
 	}
@@ -249,10 +250,6 @@ void MQActorAPI::RemoveActor(
 
 		dropbox = nullptr;
 	}
-}
-
-void MQActorAPI::OnUnloadPlugin(MQPlugin* plugin)
-{
 }
 
 } // namespace mq

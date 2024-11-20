@@ -532,6 +532,72 @@ public:
         return *GetGaplessPtr(pos);
     }
 
+    bool starts_with(T* pStart, T* pEnd, const T* s_begin, const T* s_end) const
+    {
+        assert(pEnd <= m_pEnd);
+        assert(pStart <= pEnd);
+
+        auto pCurrent = s_begin;
+
+        // Scan current string
+        while (pCurrent != s_end && pStart != pEnd)
+        {
+            if (*pCurrent != *pStart)
+                return false;
+
+            ++pCurrent;
+            ++pStart;
+
+            // Skip the gap
+            if (pStart >= m_pGapStart && pStart < m_pGapEnd)
+                pStart = m_pGapEnd;
+        }
+
+        assert(pStart <= pEnd);
+
+        return pCurrent == s_end;
+    }
+
+    T* find(T* pStart, T* pEnd, const T* s_begin, const T* s_end) const
+    {
+        assert(pEnd <= m_pEnd);
+        assert(pStart <= pEnd);
+
+        while (pStart < pEnd)
+        {
+            // Skip the gap
+            if (pStart >= m_pGapStart && pStart < m_pGapEnd)
+                pStart = m_pGapEnd;
+
+            auto pNext = pStart;
+            auto pCurrent = s_begin;
+
+            // Scan current string
+            while (pCurrent != s_end && pNext != pEnd)
+            {
+                if (*pCurrent != *pNext)
+                    break;
+
+                ++pCurrent;
+                ++pNext;
+
+                // Skip the gap
+                if (pNext >= m_pGapStart && pNext < m_pGapEnd)
+                    pNext = m_pGapEnd;
+            }
+
+            if (pCurrent == s_end)
+                return pStart;
+            if (pNext == pEnd)
+                break;
+
+            ++pStart;
+        }
+
+        assert(pStart <= pEnd);
+        return pEnd;
+    }
+
     // Here we split the find into 2 seperate searches; because we can be smart and search
     // either side of the gap.  This is more efficient that using an iterator which will keep
     // checking for the gap and trying to jump it
@@ -676,6 +742,56 @@ public:
         if (itr == last)
             itr = end();
         return itr;
+    }
+
+    iterator find(iterator first, iterator last, T* s, size_type count)
+    {
+        T* pVal = find(GetGaplessPtr(first.p), GetGaplessPtr(last.p), s, s + count);
+        auto itr = iterator(*this, GetGaplessOffset(pVal));
+        // Return invalid if we walkted to the end without finding
+        if (itr == last)
+            itr = end();
+        return itr;
+    }
+
+    const_iterator find(const_iterator first, const_iterator last, T* s, size_type count) const
+    {
+        T* pVal = find(GetGaplessPtr(first.p), GetGaplessPtr(last.p), s, s + count);
+        auto itr = const_iterator(*this, GetGaplessOffset(pVal));
+        // Return invalid if we walkted to the end without finding
+        if (itr == last)
+            itr = end();
+        return itr;
+    }
+
+    iterator find(iterator first, iterator last, std::string_view s)
+    {
+        const T* ptr = reinterpret_cast<const T*>(s.data());
+        T* pVal = find(GetGaplessPtr(first.p), GetGaplessPtr(last.p), ptr, ptr + s.length());
+        auto itr = iterator(*this, GetGaplessOffset(pVal));
+        // Return invalid if we walkted to the end without finding
+        if (itr == last)
+            itr = end();
+        return itr;
+    }
+
+    const_iterator find(const_iterator first, const_iterator last, std::string_view s) const
+    {
+        const T* ptr = reinterpret_cast<const T*>(s.data());
+        T* pVal = find(GetGaplessPtr(first.p), GetGaplessPtr(last.p), ptr, ptr + s.length());
+        return const_iterator(*this, GetGaplessOffset(pVal));
+    }
+
+    bool starts_with(iterator first, iterator last, std::string_view s)
+    {
+        const T* ptr = reinterpret_cast<const T*>(s.data());
+        return starts_with(GetGaplessPtr(first.p), GetGaplessPtr(last.p), ptr, ptr + s.length());
+    }
+
+    bool starts_with(const_iterator first, const_iterator last, std::string_view s) const
+    {
+        const T* ptr = reinterpret_cast<const T*>(s.data());
+        return starts_with(GetGaplessPtr(first.p), GetGaplessPtr(last.p), ptr, ptr + s.length());
     }
 
 private:

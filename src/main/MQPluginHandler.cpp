@@ -162,6 +162,7 @@ void ShutdownInternalModules()
 
 static void PluginsLoadPlugin(const char* Name);
 static void PluginsUnloadPlugin(const char* Name);
+static void PluginsPostUnloadPlugin(const char* Name);
 
 //----------------------------------------------------------------------------
 
@@ -475,7 +476,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	rec.instance = pPlugin;
 	rec.handle = CreatePluginHandle();
 	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
-	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginName) };
+	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginPath) };
 	pPlugin->hModule           = hModule.release();
 
 	s_pluginHandleMap.emplace(rec.handle.pluginID, rec.instance);
@@ -508,6 +509,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	pPlugin->LoadPlugin        = (fMQLoadPlugin)GetProcAddress(pPlugin->hModule, "OnLoadPlugin");
 	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnUnloadPlugin");
 	pPlugin->GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(pPlugin->hModule, "GetPluginInterface");
+	pPlugin->OnPostUnloadPlugin = (fMQPostUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnPostUnloadPlugin");
 
 	float* ftmp = (float*)GetProcAddress(pPlugin->hModule, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -575,6 +577,9 @@ static void ShutdownPlugin(const PluginInfoRec& rec)
 	// call Plugin:Shutdown
 	if (pPlugin->Shutdown)
 		pPlugin->Shutdown();
+
+	// Allow other plugins to cleanup resources after plugin shutdown but before the dll is freed
+	PluginsPostUnloadPlugin(pPlugin->szFilename);
 
 	// Perform any additional de-registration as required
 	pCommandAPI->OnPluginUnloaded(pPlugin, rec.handle);
@@ -1225,6 +1230,28 @@ static void PluginsUnloadPlugin(const char* Name)
 			if (mod->UnloadPlugin)
 			{
 				mod->UnloadPlugin(Name);
+			}
+		});
+}
+
+static void PluginsPostUnloadPlugin(const char* Name)
+{
+	PluginDebug("PluginsPostUnloadPlugin(%s)", Name);
+
+	ForEachPlugin([Name](const MQPlugin* plugin)
+		{
+			if (plugin->OnPostUnloadPlugin)
+			{
+				DebugSpew("%s->OnPostUnloadPlugin(%s)", plugin->szFilename, Name);
+				plugin->OnPostUnloadPlugin(Name);
+			}
+		});
+
+	ForEachModule([Name](const MQModule* mod)
+		{
+			if (mod->OnPostUnloadPlugin)
+			{
+				mod->OnPostUnloadPlugin(Name);
 			}
 		});
 }
