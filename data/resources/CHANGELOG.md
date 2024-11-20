@@ -1,3 +1,6 @@
+Nov 20, 2024:
+- test: Update for test patch
+
 Nov 17, 2024:
 - lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
   This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
