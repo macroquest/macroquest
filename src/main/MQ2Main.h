@@ -489,7 +489,7 @@ MQLIB_API int         GetWorldState();
 MQLIB_API float       GetMeleeRange(PlayerClient*, PlayerClient*);
 MQLIB_API uint32_t    GetSpellGemTimer(int nGem);
 MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
-MQLIB_API bool        HasExpansion(int nExpansion);
+MQLIB_API bool        HasExpansion(int64_t nExpansion);
 MQLIB_API void        ListMercAltAbilities();
 MQLIB_API ItemClient*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 MQLIB_API ItemContainer* GetItemContainerByType(ItemContainerInstance type);
