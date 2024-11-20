@@ -5093,7 +5093,7 @@ void UseAbility(const char* sAbility)
 
 // Function to check if the account has a given expansion enabled.
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
-bool HasExpansion(int nExpansion)
+bool HasExpansion(int64_t nExpansion)
 {
 	return pLocalPC && (pLocalPC->ExpansionFlags & nExpansion) != 0;
 }
