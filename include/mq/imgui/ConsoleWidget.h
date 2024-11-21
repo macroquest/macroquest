@@ -15,6 +15,7 @@
 #pragma once
 
 #include "mq/zep/ImGuiZepConsole.h"
+#include "mq/imgui/MQConsoleDelegate.h"
 
 namespace mq::imgui {
 
@@ -25,7 +26,12 @@ class ConsoleWidget : public mq::ImGuiZepConsole
 public:
 	using mq::ImGuiZepConsole::ImGuiZepConsole;
 
-	MQLIB_OBJECT static std::shared_ptr<ConsoleWidget> Create(std::string_view id);
+	static std::shared_ptr<ConsoleWidget> Create(std::string_view id)
+	{
+		auto console = std::make_shared<ConsoleWidget>(id);
+		console->SetDelegate(std::make_shared<MQConsoleDelegate>());
+		return console;
+	}
 };
 
 } // namespace mq::imgui

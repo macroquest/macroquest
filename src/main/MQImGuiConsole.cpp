@@ -190,16 +190,6 @@ void MQConsoleDelegate::InsertHyperlink(ImGuiZepConsole* console, Zep::GlyphIter
 	console->InsertHyperlink(position, tagInfo.text, std::string(tagInfo.link), color, hoverColor);
 }
 
-namespace imgui
-{
-	std::shared_ptr<ConsoleWidget> ConsoleWidget::Create(std::string_view id)
-	{
-		auto console = std::make_shared<ConsoleWidget>(id);
-		console->SetDelegate(std::make_shared<MQConsoleDelegate>());
-		return console;
-	}
-}
-
 class MQMainConsoleDelegate : public MQConsoleDelegate
 {
 public:
