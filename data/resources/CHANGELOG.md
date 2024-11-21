@@ -1,3 +1,6 @@
+Nove 21, 2024:
+- Fix a couple crashes
+
 Nov 20, 2024:
 - live: Update for live patch
 - test: Update for test patch
