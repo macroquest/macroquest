@@ -1,3 +1,14 @@
+Nove 21, 2024:
+- Fix a couple crashes
+
+Nov 20, 2024:
+- live: Update for live patch
+- test: Update for test patch
+
+Note to plugin authors: the name labels of CGiveWnd and CTradeWnd changed from CLabel to CStmlWnd
+For compatibility between versions of the client, a new GetText() method is added to both to get
+the widget's text.
+
 Nov 17, 2024:
 - lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
   This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
@@ -8,6 +19,9 @@ Nov 10, 2024:
 
 Nov 8, 2024:
 - live: Update for live patch
+
+Oct 30, 2024:
+- test: Update for test patch
 
 Oct 24, 2024:
 - Fix new spawns getting mq captions applied when mqcaptions are disabled
