@@ -76,10 +76,15 @@
 
 #elif IS_EMU_CLIENT
 
+#if IS_32BIT_CLIENT
 #if defined(_M_AMD64)
 #error Emulator Build is only for x86
 #endif
 #pragma message("Building MacroQuest for EMULATOR (x86)")
+#else
+#pragma message("Building MacroQuest for EMULATOR (x64)")
+#endif
+
 #define MacroQuestWinClassName "__MacroQuestTray(EQEmu)"
 #define MacroQuestWinName "MacroQuest(EQEmu)"
 

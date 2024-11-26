@@ -18,10 +18,13 @@
 
 #if IS_EMU_CLIENT
 
-#define EMU_CONSTANT_AFFINITY_ENABLED 1
+// CPU Affinity was fixed in modern client
+#define EMU_CONSTANT_AFFINITY_ENABLED IS_EXPANSION_LEVEL(EXPANSION_LEVEL_LS)
 
-#define EMU_SPELL_LINKS_ENABLED 0
+// Spell Links didn't existin the ROF client
+#define EMU_SPELL_LINKS_ENABLED IS_EXPANSION_LEVEL_AT_MOST(EXPANSION_LEVEL_ROF)
 
-#define EMU_FIX_EXCEPTION_HANDLER_ENABLED 1
+// 64bit exception handler fixed this. (Not sure which client)
+#define EMU_FIX_EXCEPTION_HANDLER_ENABLED IS_32BIT_CLIENT
 
 #endif // IS_EMU_CLIENT
