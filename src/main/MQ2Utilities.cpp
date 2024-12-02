@@ -5196,13 +5196,17 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
+#if HAS_ACTIVATED_KEYRING
+	case eItemContainerActivatedKeyRingItems:
+		return &pLocalPC->ActivatedKeyRingItems;
+#endif
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // not exactly sure when this was added.
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;
 #endif
 #if HAS_DRAGON_HOARD
 	case eItemContainerDragonHoard:
-		return &pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
+		return pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
 #endif
 #if HAS_TRADESKILL_DEPOT
 	case eItemContainerTradeskillDepot:

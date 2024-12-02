@@ -420,6 +420,11 @@ public:
 			ImGui::Text("Teleportation Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eTeleportationItem]);
 			break;
 #endif
+#if HAS_ACTIVATED_KEYRING
+		case eItemContainerActivatedKeyRingItems:
+			ImGui::Text("Activated Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eActivatedItem]);
+			break;
+#endif
 #endif
 
 		// This case is just to remove warnings when all above cases are gated
