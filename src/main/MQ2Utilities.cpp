@@ -1316,6 +1316,8 @@ void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value,
 	if (const char* ptr = pCDBStr->GetString(value, type))
 	{
 		const std::string currency = to_lower_copy(ptr);
+		if (currency.empty())
+			return;
 		cache[currency] = value;
 		cache[remove_chars(currency, chars_to_remove)] = value;
 	}
