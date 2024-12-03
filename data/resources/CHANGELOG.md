@@ -1,3 +1,6 @@
+Dec 3, 2024:
+- live: Update for TOB expansion patch
+
 Dec 1, 2024:
 - test: Update for TOB expansion patch
 
