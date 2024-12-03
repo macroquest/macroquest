@@ -3743,8 +3743,11 @@ void UseItemCmd(PlayerClient* pChar, const char* szLine)
 		case eItemContainerMountKeyRingItems: keyRingType = eMount; break;
 		case eItemContainerIllusionKeyRingItems: keyRingType = eIllusion; break;
 		case eItemContainerFamiliarKeyRingItems: keyRingType = eFamiliar; break;
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+#if HAS_TELEPORTATION_KEYRING
 		case eItemContainerTeleportationKeyRingItems: keyRingType = eTeleportationItem; break;
+#endif
+#if HAS_ACTIVATED_KEYRING
+		case eItemContainerActivatedKeyRingItems: keyRingType = eActivatedItem; break;
 #endif
 		default: return;
 		}
