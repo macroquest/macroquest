@@ -709,6 +709,9 @@
     <None Include="..\..\LICENSE.md">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\data\resources\Zones.ini">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <NASM Include="AssemblyFunctions64.asm">

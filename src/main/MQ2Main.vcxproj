@@ -686,6 +686,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\data\resources\CHANGELOG.md" />
+    <None Include="..\..\data\resources\Zones.ini" />
     <None Include="..\..\LICENSE.md" />
   </ItemGroup>
   <ItemGroup>
