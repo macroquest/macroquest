@@ -5198,7 +5198,7 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 	case eItemContainerActivatedKeyRingItems:
 		return &pLocalPC->ActivatedKeyRingItems;
 #endif

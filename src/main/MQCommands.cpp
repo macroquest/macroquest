@@ -3746,7 +3746,7 @@ void UseItemCmd(PlayerClient* pChar, const char* szLine)
 #if HAS_TELEPORTATION_KEYRING
 		case eItemContainerTeleportationKeyRingItems: keyRingType = eTeleportationItem; break;
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 		case eItemContainerActivatedKeyRingItems: keyRingType = eActivatedItem; break;
 #endif
 		default: return;
