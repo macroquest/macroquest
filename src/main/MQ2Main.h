@@ -220,9 +220,8 @@ MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
 MQLIB_API int GetFamiliarCount();
 MQLIB_API int GetHeroForgeCount();
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 MQLIB_API int GetTeleportationItemCount();
-#endif
+MQLIB_API int GetActivatedItemCount();
 
 MQLIB_API bool IsActiveAA(const char* pSpellName);
 MQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type);
