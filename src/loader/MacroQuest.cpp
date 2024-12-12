@@ -42,6 +42,12 @@
 #include <shellapi.h>
 #include <fcntl.h>
 
+#include <mq/utils/Naming.h>
+#include <mq/utils/OS.h>
+#include <mq/base/BuildInfo.h>
+
+#include "routing/NamedPipesProtocol.h"
+
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
@@ -1520,7 +1526,22 @@ int WINAPI CALLBACK WinMain(
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
-	InitializeNamedPipeServer();
+	SetPostOfficeIni(internal_paths::MQini);
+	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
+	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+		{
+			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			{
+				SetFocusWindowPID(request->processId, request->state);
+			}
+			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			{
+				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
+			}
+		});
+	// TODO: this can probably be removed?
+	//SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
+	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();
 
@@ -1616,7 +1637,7 @@ int WINAPI CALLBACK WinMain(
 
 	ShutdownAutoLogin();
 	ShutdownInjector();
-	ShutdownNamedPipeServer();
+	ShutdownPostOffice();
 	StopProcessMonitor();
 	if (injectOnce)
 		UpdateShowConsole(false, false);

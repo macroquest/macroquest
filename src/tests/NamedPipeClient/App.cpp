@@ -31,7 +31,7 @@ int main(int argc, TCHAR* argv[])
 {
 	spdlog::set_level(spdlog::level::trace);
 
-	mq::NamedPipeClient client(mq::MQ2_PIPE_SERVER_PATH);
+	mq::NamedPipeClient client(mq::MQ_PIPE_SERVER_PATH);
 	client.Start();
 
 	while (!client.IsConnected())
