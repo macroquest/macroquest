@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1366,19 +1366,15 @@ static char* GetStatShortName(int StatType, char(&szBuffer)[Size])
 	return szBuffer;
 }
 
-template <unsigned int Size>
+template <size_t Size>
 static char* GetFactionName(int FactionID, char(&szBuffer)[Size])
 {
-	if ((size_t)FactionID < MAX_FACTIONNAMES)
-	{
-		strcat_s(szBuffer, Size, szFactionNames[FactionID]);
-	}
-	else
-	{
-		char szTemp[MAX_STRING] = { 0 };
-		sprintf_s(szTemp, "Unknown Faction[%d]", FactionID);
-		strcat_s(szBuffer, Size, szTemp);
-	}
+	char szTemp[MAX_STRING] = { 0 };
+	eqlib::GetFactionName(FactionID, szTemp, MAX_STRING);
+
+	strcat_s(szBuffer, "(");
+	strcat_s(szBuffer, szTemp);
+	strcat_s(szBuffer, ")");
 
 	return szBuffer;
 }
@@ -3673,8 +3669,9 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 
 	switch (eSPA)
 	{
-	case SPA_MOVEMENT_RATE: // Movement Rate
-		// below 0 means its a snare above its runspeed increase...
+	case SPA_HP: // HP regen or DoT, below 0 means its a DoT or lich-like spell
+	case SPA_MANA: // Mana regen or drain, below 0 means its draining mana
+	case SPA_MOVEMENT_RATE: // Movement Rate, below 0 means its a snare above its runspeed increase
 		return (!bIncrease && base < 0) || (bIncrease && base > 0);
 
 	case SPA_HASTE: // Melee Speed
@@ -4181,7 +4178,7 @@ bool RemovePetBuffByName(std::string_view buffName)
 	return false;
 }
 
-void RemoveBuff(SPAWNINFO* pChar, char* szLine)
+void RemoveBuff(PlayerClient* pChar, const char* szLine)
 {
 	char szCmd[MAX_STRING] = { 0 };
 	GetMaybeQuotedArg(szCmd, MAX_STRING, szLine, 1);
@@ -4209,7 +4206,7 @@ void RemoveBuff(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void RemovePetBuff(SPAWNINFO* pChar, char* szLine)
+void RemovePetBuff(PlayerClient* pChar, const char* szLine)
 {
 	if (!pPetInfoWnd || !szLine || szLine[0] == '\0')
 		return;

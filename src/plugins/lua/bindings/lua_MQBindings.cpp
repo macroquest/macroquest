@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -61,8 +61,14 @@ static uint64_t lua_gettime(sol::this_state s)
 	return t.count();
 }
 
-static std::string lua_Parse(const char* text)
+static std::string lua_Parse(sol::this_state s, const char* text)
 {
+	if (text == nullptr)
+	{
+		luaL_argerror(s, 1, "Expected string, got nil");
+		return {};
+	}
+
 	char buffer[MAX_STRING] = { 0 };
 	strncpy_s(buffer, text, sizeof(buffer));
 	auto old_parser = std::exchange(gParserVersion, 2);
@@ -98,7 +104,10 @@ static void lua_delay(sol::object delayObj, std::optional<sol::object> condition
 
 		if (auto co_ptr = thread_ptr->GetCurrentCoroutine())
 		{
+			const bool toggled = luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_OFF) == 1;
 			co_ptr->Delay(delayObj, conditionObj, s);
+			if (toggled)
+				luaJIT_setmode(s, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON);
 		}
 	}
 }
@@ -240,7 +249,8 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 	}
 }
 
-static bool lua_addevent(std::string_view name, std::string_view expression, sol::function function, sol::this_state s)
+static bool lua_addevent(std::string_view name, std::string_view expression, sol::function function,
+	sol::optional<sol::table> options, sol::this_state s)
 {
 	if (function == sol::nil)
 	{
@@ -251,7 +261,7 @@ static bool lua_addevent(std::string_view name, std::string_view expression, sol
 	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
 	{
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
-			return events->AddEvent(name, expression, function);
+			return events->AddEvent(name, expression, function, options);
 	}
 
 	return false;
@@ -356,21 +366,53 @@ static void serialize(sol::object obj, int prefix_count, fmt::appender& appender
 	{
 	case sol::type::string:
 	{
-		auto str = obj.as<std::string>();
-		for (size_t pos = str.find("'"); pos != std::string::npos; pos = str.find("'", pos))
+		const char* str = obj.as<const char*>();
+		size_t length = strlen(str);
+
+		*appender++ = '\'';
+		for (size_t pos = 0; pos < length; ++pos)
 		{
-			str.replace(pos, 1, "\\'");
-			pos += 2;
+			char c = str[pos];
+			switch (c)
+			{
+			case '\\':
+				*appender++ = '\\';
+				*appender++ = '\\';
+				break;
+			case '\'':
+				*appender++ = '\\';
+				*appender++ = '\'';
+				break;
+			case '\r':
+				*appender++ = '\\';
+				*appender++ = 'r';
+				break;
+			case '\n':
+				*appender++ = '\\';
+				*appender++ = 'n';
+				break;
+			case '\t':
+				*appender++ = '\\';
+				*appender++ = 't';
+				break;
+
+			default:
+				*appender++ = c;
+				break;
+			}
 		}
-		fmt::format_to(appender, "'{}'", str);
+		*appender++ = '\'';
 		return;
 	}
 	case sol::type::number:
-		if (obj.is<int>())
+	{
+		double number = obj.as<double>();
+		if (std::floor(number) == number)
 			fmt::format_to(appender, "{}", obj.as<int64_t>());
 		else
 			fmt::format_to(appender, "{}", obj.as<double>());
 		return;
+	}
 	case sol::type::boolean:
 		fmt::format_to(appender, "{}", obj.as<bool>());
 		return;
@@ -442,6 +484,30 @@ static void lua_pickle(sol::this_state L, std::string_view file_path, sol::table
 	}
 }
 
+static sol::object lua_unpickle(sol::this_state L, std::string_view file_path)
+{
+	sol::state_view lua(L);
+	std::filesystem::path path = std::filesystem::path{ gPathConfig } / file_path;
+
+	try
+	{
+		sol::protected_function_result result = lua.do_file(path.string());
+		if (!result.valid())
+		{
+			sol::error err = result;
+			LuaError("Failed to execute file %.*s with error: %s", file_path.size(), file_path.data(), err.what());
+			return sol::make_object(lua, sol::nil);
+		}
+
+		return sol::make_object(lua, result);
+	}
+	catch (std::exception& e)
+	{
+		LuaError("Exception occurred while unpickling file %.*s: %s", file_path.size(), file_path.data(), e.what());
+		return sol::make_object(lua, sol::nil);
+	}
+}
+
 #pragma endregion
 
 //============================================================================
@@ -456,8 +522,9 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 	// utility bindings
 	mq.set_function("join",                      &lua_join);
 	mq.set_function("gettime",                   &lua_gettime);
-	mq.set("parse",                              &lua_Parse);
+	mq.set_function("parse",                     &lua_Parse);
 	mq.set_function("pickle",                    &lua_pickle);
+	mq.set_function("unpickle",                  &lua_unpickle);
 
 	mq.set_function("NumericLimits_Float",       [](){ return std::make_pair(FLT_MIN, FLT_MAX); });
 

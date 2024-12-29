@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,12 +16,12 @@
 
 #include <mq/Plugin.h>
 
-#include "login/Login.h"
 #include "MQ2AutoLogin.h"
+#include "login/Login.h"
+#include "login/AutoLogin.h"
 
-#include <imgui.h>
-#include <imgui_stdlib.h>
-#include <imgui_internal.h>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui/ImGuiUtils.h"
 
 #include <map>
@@ -38,9 +38,9 @@ PreSetup("MQ2AutoLogin");
 
 constexpr int STEP_DELAY = 1000;
 
-fs::path CustomIni;
-uint64_t ReenableTime = 0;
-postoffice::DropboxAPI s_autologinDropbox;
+static uint64_t s_reenableTime = 0;
+static postoffice::DropboxAPI s_autologinDropbox;
+static uintptr_t s_joinServer = 0;
 
 class LoginProfileType : public MQ2Type
 {
@@ -53,7 +53,8 @@ public:
 		Profile,
 		Account,
 		Class,
-		Level
+		Level,
+		CustomCharacterIni,
 	};
 
 	LoginProfileType() : MQ2Type("LoginProfile")
@@ -65,6 +66,7 @@ public:
 		ScopedTypeMember(LoginProfileMembers, Account);
 		ScopedTypeMember(LoginProfileMembers, Class);
 		ScopedTypeMember(LoginProfileMembers, Level);
+		ScopedTypeMember(LoginProfileMembers, CustomCharacterIni);
 	}
 
 	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override
@@ -73,7 +75,7 @@ public:
 		if (!pMember)
 			return false;
 
-		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		std::shared_ptr<ProfileRecord> record = Login::get_current_record();
 		if (!record)
 			return false;
 
@@ -122,6 +124,11 @@ public:
 			Dest.Int = record->characterLevel;
 			Dest.Type = mq::datatypes::pIntType;
 			return true;
+		case LoginProfileMembers::CustomCharacterIni:
+			strcpy_s(DataTypeTemp, record->customClientIni ? record->customClientIni->c_str() : "");
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = mq::datatypes::pStringType;
+			return true;
 		}
 
 		return false;
@@ -129,7 +136,7 @@ public:
 
 	bool ToString(MQVarPtr VarPtr, char* Destination) override
 	{
-		std::shared_ptr<ProfileRecord> record = Login::get_last_record();
+		std::shared_ptr<ProfileRecord> record = Login::get_current_record();
 		if (!record)
 			return false;
 
@@ -217,39 +224,84 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 	s_autologinDropbox.Post(address, message);
 }
 
-// Notify on load/unload _only_ happens with the profile method, so we can reuse that proto
-// This can be revisited later when we think a little bit about autologin
-void NotifyCharacterLoad(const char* Profile, const char* Account, const char* Server, const char* Character)
+void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
 {
-	proto::login::ProfileMethod profile;
-	profile.set_profile(Profile);
-	profile.set_account(Account);
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+	auto& record = *ptr;
 
-	Post(proto::login::ProfileLoaded, profile);
+	// Fill in the profile first.
+	if (!record.profileName.empty())
+	{
+		login::db::ReadProfile(record);
+	}
+	else if (!record.serverName.empty() && !record.characterName.empty())
+	{
+		login::db::ReadCharacter(record);
+	}
+
+	proto::login::NotifyLoadedMissive loaded;
+	loaded.set_pid(GetCurrentProcessId());
+
+	if (!record.profileName.empty())
+	{
+		proto::login::ProfileMethod& profile = *loaded.mutable_profile();
+
+		SerializeProfile(record, profile);
+	}
+	else
+	{
+		proto::login::DirectMethod& direct = *loaded.mutable_direct();
+
+		SerializeProfile(record, direct);
+	}
+
+	Post(proto::login::ProfileLoaded, loaded);
 }
 
-void NotifyCharacterUnload(const char* Profile, const char* Account, const char* Server, const char* Character)
+void NotifyCharacterUnload()
 {
-	proto::login::ProfileMethod profile;
-	profile.set_profile(Profile);
-	profile.set_account(Account);
-	proto::login::LoginTarget& target = *profile.mutable_target();
-	target.set_server(Server);
-	target.set_character(Character);
+	proto::login::StopInstanceMissive stop;
+	stop.set_pid(GetCurrentProcessId());
 
-	Post(proto::login::ProfileUnloaded, profile);
+	Post(proto::login::ProfileUnloaded, stop);
 }
 
-void NotifyCharacterUpdate(int Class, int Level)
+void Login::SetProfileRecord(const std::shared_ptr<ProfileRecord>& ptr, bool setCurrent)
+{
+	if (m_record == ptr)
+		return;
+
+	m_record = ptr;
+
+	// We don't remove the character info if this is cleared
+	if (m_record)
+	{
+		// Don't set current record while we're camping, because it can be canceled.
+		if (Login::last_state() != LoginState::InGame && Login::last_state() != LoginState::InGameCamping)
+		{
+			set_current_record(m_record);
+		}
+	}
+}
+
+void NotifyCharacterUpdate(int Class, int Level, const char* Server, const char* Character)
 {
 	proto::login::CharacterInfoMissive info;
 	info.set_class_(Class);
 	info.set_level(Level);
+	info.set_server(Server);
+	info.set_character(Character);
 
 	Post(proto::login::ProfileCharInfo, info);
+}
+
+void LoginServerSelect(const char* Login, const char* Pass)
+{
+	proto::login::StartInstanceMissive start;
+	proto::login::DirectMethod& method = *start.mutable_direct();
+	method.set_login(Login);
+	method.set_password(Pass);
+
+	Post(proto::login::StartInstance, start);
 }
 
 void LoginServer(const char* Login, const char* Pass, const char* Server)
@@ -289,24 +341,38 @@ void LoginProfile(const char* Profile, const char* Server, const char* Character
 	Post(proto::login::StartInstance, start);
 }
 
-void PerformSwitch(const std::string& ServerName, const std::string& CharacterName)
+ProfileRecord GetCharacterProfile(const char* serverName, const char* szCharacter)
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
-
-	if (GetGameState() == GAMESTATE_INGAME)
+	// Check if a profile exists matching this character name on the same server and profile.
+	if (std::shared_ptr<ProfileRecord> record = Login::get_current_record())
 	{
-		if (pLocalPlayer != nullptr && pLocalPlayer->StandState == STANDSTATE_FEIGN)
-		{
-			// using DoMappable here doesn't create enough of a delay for camp to work
-			EzCommand("/stand");
-		}
+		auto profiles = login::db::GetProfiles(record->profileName);
 
-		EzCommand("/camp fast");
+		for (auto& profile : profiles)
+		{
+			if (ci_equals(profile.characterName, szCharacter)
+				&& ci_equals(profile.serverName, serverName)
+				&& ci_equals(profile.accountName, record->accountName))
+			{
+				return profile;
+			}
+		}
 	}
 
-	Login::dispatch(SetLoginInformation(ServerName, CharacterName));
+	ProfileRecord record;
+	record.serverName = to_lower_copy(serverName);
+	record.characterName = to_lower_copy(szCharacter);
 
-	NotifyCharacterLoad(Login::profile(), Login::account(), Login::server(), Login::character());
+	return record;
+}
+
+// Returns the profile name if we found one.
+std::string SwitchCharacterProfile(const char* serverName, const char* szCharacter)
+{
+	ProfileRecord rec = GetCharacterProfile(serverName, szCharacter);
+
+	Login::dispatch(SetLoginProfile(rec));
+	return rec.profileName;
 }
 
 void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
@@ -323,29 +389,45 @@ void Cmd_SwitchServer(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
+#if IS_EMU_CLIENT
+	auto server_names = login::db::ListServers().vector();
+
 	// this is just a validity check, that's the only reason we have that set of server names
-	if (GetServerIDFromServerName(szServer) == ServerID::Invalid && GetPrivateProfileString("Servers", szServer, "", INIFileName).empty())
+	if (std::find_if(begin(server_names), end(server_names), [&szServer](std::string_view s) { return ci_equals(s, szServer); }) == server_names.end())
 	{
-		WriteChatf("Invalid server name \ag%s\ax.  Valid server names are:", szServer);
+		WriteChatf("\ar[AutoLogin]\ax Invalid server name \ag%s\ax. Valid server names are:", szServer);
+		WriteChatColor(join(server_names, ", ").c_str());
+	}
+#else
+	// this is just a validity check, that's the only reason we have that set of server names
+	if (GetServerIDFromServerName(szServer) == ServerID::Invalid)
+	{
+		WriteChatf("\ar[AutoLogin]\ax Invalid server name \ag%s\ax. Valid server names are:", szServer);
 
 		std::vector<std::string_view> server_names;
 		std::transform(std::begin(eqlib::ServerIDArray), std::end(eqlib::ServerIDArray),
 			std::back_inserter(server_names), [](const ServerID id) { return GetServerNameFromServerID(id); });
-		std::vector<std::string> custom_server_names = GetPrivateProfileKeys("Servers", INIFileName);
 
-		server_names.insert(server_names.end(), custom_server_names.cbegin(), custom_server_names.cend());
 		WriteChatColor(join(server_names, ", ").c_str());
 	}
+#endif
 	else if (GetGameState() == GAMESTATE_INGAME && pChar
 		&& ci_equals(GetServerShortName(), szServer)
 		&& ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		WriteChatf("\ayYou're already logged into '%s' on '%s'\ax", szCharacter, szServer);
+		WriteChatf("\ay[AutoLogin]\ax You're already logged into '%s' on '%s'\ax", szCharacter, szServer);
 	}
 	else
 	{
-		PerformSwitch(szServer, szCharacter);
-		WriteChatf("Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter); !profileName.empty())
+		{
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax on server \ag%s\ax with profile \ay%s\ax.",
+				szCharacter, szServer, profileName.c_str());
+		}
+		else
+		{
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax on server \ag%s\ax.", szCharacter, szServer);
+		}
 	}
 }
 
@@ -357,17 +439,25 @@ void Cmd_SwitchCharacter(SPAWNINFO* pChar, char* szLine)
 		return;
 	}
 
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
+	char szCharacter[MAX_STRING] = { 0 };
+	GetArg(szCharacter, szLine, 1);
 
-	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szArg1))
+	if (GetGameState() == GAMESTATE_INGAME && pChar && ci_equals(pChar->DisplayedName, szCharacter))
 	{
-		WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
+		WriteChatf("\ay[AutoLogin]\ax You're already logged onto '%s'\ax", szCharacter);
 	}
 	else
 	{
-		PerformSwitch(GetServerShortName(), szArg1);
-		WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szArg1);
+		const char* szServer = GetServerShortName();
+		if (std::string profileName = SwitchCharacterProfile(szServer, szCharacter); !profileName.empty())
+		{
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax with profile \ay%s\ax.",
+				szCharacter, profileName.c_str());
+		}
+		else
+		{
+			WriteChatf("\ag[AutoLogin]\ax Switching to \ag%s\ax.", szCharacter);
+		}
 	}
 }
 
@@ -399,22 +489,19 @@ void Cmd_Relog(SPAWNINFO* pChar, char* szLine)
 
 	if (n)
 	{
-		ReenableTime = MQGetTickCount64() + n;
+		s_reenableTime = MQGetTickCount64() + n;
 	}
 
-	if (ReenableTime)
-		ReenableTime += 30000; // add 30 seconds for camp time
+	if (s_reenableTime)
+		s_reenableTime += 30000; // add 30 seconds for camp time
 
 	if (GetGameState() == GAMESTATE_INGAME && pLocalPlayer && GetServerShortName()[0] != 0)
 	{
-		PerformSwitch(GetServerShortName(), pLocalPlayer->DisplayedName);
+		SwitchCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName);
+
 		// TODO:  After std::chrono change, update this to actual time.  It will currently show whatever multiple arguments the user typed in.
-		WriteChatf("Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
+		WriteChatf("\ag[AutoLogin]\ax Relog into \ag%s\ax on server \ag%s\ax will activate after %s.",
 			pLocalPlayer->DisplayedName, GetServerShortName(), szLine);
-	}
-	else
-	{
-		WriteChatf("\arError:\ax /relog could not get your server or character name.");
 	}
 }
 
@@ -429,19 +516,18 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	auto record = ProfileRecord::FromString(szLine);
 	if (!record.profileName.empty() && !record.serverName.empty() && !record.characterName.empty())
 	{
-		record = ProfileRecord::FromINI(
-			record.profileName,
-			fmt::format("{}:{}_Blob", record.serverName, record.characterName),
-			INIFileName);
-
 		LoginProfile(
 			record.profileName.c_str(),
 			record.serverName.c_str(),
 			record.characterName.c_str());
 	}
-	else if (!record.serverName.empty() && !record.accountName.empty() && !record.accountPassword.empty())
+	else if (!record.accountName.empty() && !record.accountPassword.empty())
 	{
-		if (record.characterName.empty())
+		if (record.serverName.empty())
+			LoginServerSelect(
+				record.accountName.c_str(),
+				record.accountPassword.c_str());
+		else if (record.characterName.empty())
 			LoginServer(
 				record.accountName.c_str(),
 				record.accountPassword.c_str(),
@@ -455,24 +541,7 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!record.serverName.empty() && !record.characterName.empty())
 	{
-		// we have a server and a character, we need to find the first entry in the ini where these match (regardless of profile)
-		char buff[MAX_STRING] = { 0 };
-		int buff_size = GetPrivateProfileSectionNames(buff, MAX_STRING, INIFileName);
-		std::string buff_str = std::string(buff, buff_size);
-
-		auto sections = split(buff_str, '\0');
-
-		for (const auto& section : sections)
-		{
-			auto blobKey = fmt::format("{}:{}_Blob", record.serverName, record.characterName);
-			std::string blob = GetPrivateProfileString(section.c_str(), blobKey, "", INIFileName);
-
-			if (!blob.empty())
-			{
-				record = ProfileRecord::FromINI(section.c_str(), blobKey, INIFileName);
-				break;
-			}
-		}
+		login::db::ReadFullProfile(record);
 
 		if (!record.profileName.empty())
 			LoginProfile(
@@ -480,42 +549,33 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 				record.serverName.c_str(),
 				record.characterName.c_str());
 		else
-			WriteChatf("Could not find %s:%s in your autologin ini", record.serverName.c_str(), record.characterName.c_str());
+			WriteChatf("Could not find %s:%s in your autologin db", record.serverName.c_str(), record.characterName.c_str());
+	}
+	else if (!record.profileName.empty())
+	{
+		login::db::ReadFirstProfile(record);
+		LoginProfile(
+			record.profileName.c_str(),
+			record.serverName.c_str(),
+			record.characterName.c_str());
 	}
 	else
 	{
-		WriteChatf("\ayUsage:\ax /loginchar [profile_server:character|server:character|server^login^character^password|server^login^password]");
+		WriteChatf("\ayUsage:\ax /loginchar [profile|profile_server:character|server:character|server^login^character^password|server^login^password]");
 	}
 }
 
 DETOUR_TRAMPOLINE_DEF(DWORD WINAPI, GetPrivateProfileStringA_Trampoline, (LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR))
 
-void SetupCustomIni()
-{
-	if (!CustomIni.empty())
-		return;
-
-	if (const char* pLogin = GetLoginName())
-	{
-		char CustomPath[MAX_STRING] = { 0 };
-		GetPrivateProfileStringA_Trampoline(pLogin, "CustomClientIni", nullptr, CustomPath, MAX_STRING, INIFileName);
-
-		// If a relative path is specified, need to prepend it with current path, which is the EQ directory
-		CustomIni = fs::path{ CustomPath };
-		if (CustomIni.is_relative())
-			CustomIni = fs::current_path() / CustomIni;
-	}
-}
-
 DWORD WINAPI GetPrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName)
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni.string().c_str());
+			return GetPrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, CustomIni->c_str());
 		}
 	}
 
@@ -527,11 +587,11 @@ BOOL WINAPI WritePrivateProfileStringA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni.string().c_str());
+			return WritePrivateProfileStringA_Trampoline(lpAppName, lpKeyName, lpString, CustomIni->c_str());
 		}
 	}
 
@@ -543,11 +603,11 @@ UINT WINAPI GetPrivateProfileIntA_Detour(LPCSTR lpAppName, LPCSTR lpKeyName, INT
 {
 	if (lpFileName)
 	{
-		SetupCustomIni();
+		const auto& CustomIni = Login::custom_ini();
 
-		if (!CustomIni.empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
+		if (CustomIni && !CustomIni->empty() && ci_find_substr(lpFileName, "eqclient.ini") != -1)
 		{
-			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni.string().c_str());
+			return GetPrivateProfileIntA_Tramp(lpAppName, lpKeyName, nDefault, CustomIni->c_str());
 		}
 	}
 
@@ -584,99 +644,331 @@ void AutoLoginDebug(std::string_view svLogMessage, const bool bDebugOn /* = AUTO
 			DebugSpewAlways(strLogMessage.c_str());
 			fprintf(fLog, "%s\n", strLogMessage.c_str());
 			fclose(fLog);
+
+			WriteChatf("\ay[AutoLogin]\ax %.*s", svLogMessage.size(), svLogMessage.data());
 		}
 	}
 }
 
-void ReadINI()
+void ReadSettings()
 {
-	std::string path = GetPrivateProfileString("Settings", "IniLocation", "", INIFileName);
-	if (!path.empty())
-	{
-		strcpy_s(INIFileName, path.c_str());
-	}
-
 	AUTOLOGIN_DBG = GetPrivateProfileBool("Settings", "Debug", AUTOLOGIN_DBG, INIFileName);
+	if (const auto debug = login::db::ReadSetting("debug"))
+		AUTOLOGIN_DBG = GetBoolFromString(*debug, AUTOLOGIN_DBG);
 
-	Login::m_settings.NotifyOnServerUp = static_cast<Login::Settings::ServerUpNotification>(GetPrivateProfileInt("Settings", "NotifyOnServerUp", 0, INIFileName));
-	Login::m_settings.KickActiveCharacter = GetPrivateProfileBool("Settings", "KickActiveCharacter", true, INIFileName);
-	Login::m_settings.EndAfterSelect = GetPrivateProfileBool("Settings", "EndAfterCharSelect", false, INIFileName);
-	Login::m_settings.CharSelectDelay = GetPrivateProfileInt("Settings", "CharSelectDelay", 3, INIFileName);
-	Login::m_settings.ConnectRetries = GetPrivateProfileInt("Settings", "ConnectRetries", 0, INIFileName);
+	if (const auto kick_active = login::db::ReadSetting("kick_active"))
+		Login::m_settings.KickActiveCharacter = GetBoolFromString(*kick_active, Login::m_settings.KickActiveCharacter);
 
-	if (gbWriteAllConfig)
-	{
-		WritePrivateProfileInt("Settings", "NotifyOnServerUp", static_cast<int>(Login::m_settings.NotifyOnServerUp), INIFileName);
-		WritePrivateProfileBool("Settings", "KickActiveCharacter", Login::m_settings.KickActiveCharacter, INIFileName);
-		WritePrivateProfileBool("Settings", "EndAfterSelect", Login::m_settings.EndAfterSelect, INIFileName);
-		WritePrivateProfileInt("Settings", "CharSelectDelay", Login::m_settings.CharSelectDelay, INIFileName);
-		WritePrivateProfileInt("Settings", "ConnectRetries", Login::m_settings.ConnectRetries, INIFileName);
-	}
+	if (const auto end_after_select = login::db::ReadSetting("end_after_select"))
+		Login::m_settings.EndAfterSelect = GetBoolFromString(*end_after_select, Login::m_settings.EndAfterSelect);
 
-	bool bUseMQ2Login = GetPrivateProfileBool("Settings", "UseMQ2Login", false, INIFileName);
-	bool bUseStationNamesInsteadOfSessions = GetPrivateProfileBool("Settings", "UseStationNamesInsteadOfSessions", false, INIFileName);
-	if (bUseMQ2Login)
-		Login::m_settings.LoginType = Login::Settings::Type::Profile;
-	else if (bUseStationNamesInsteadOfSessions)
-		Login::m_settings.LoginType = Login::Settings::Type::StationNames;
-	else
-		Login::m_settings.LoginType = Login::Settings::Type::Sessions;
+	if (const auto char_select_delay = login::db::ReadSetting("char_select_delay"))
+		Login::m_settings.CharSelectDelay = GetIntFromString(*char_select_delay, Login::m_settings.CharSelectDelay);
+
+	if (const auto connect_retries = login::db::ReadSetting("login_connect_retries"))
+		Login::m_settings.ConnectRetries = GetIntFromString(*connect_retries, Login::m_settings.ConnectRetries);
 }
 
 void LoginReset()
 {
 	AutoLoginDebug("LoginReset()");
-	ReadINI();
+	ReadSettings();
+}
+
+class LoginServer_Hook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(unsigned int, JoinServer_Trampoline, (int, void*, int))
+	unsigned int JoinServer_Detour(int serverID, void* userdata, int timeoutseconds)
+	{
+		// if someone uses the everquest patcher instead of launching with the patchme option,
+		// Account isn't correct and Password is empty, so make sure to test for an empty
+		// Password downstream
+		Login::m_currentLogin.Account = g_pLoginClient->LoginName;
+		Login::m_currentLogin.Password = g_pLoginClient->Password;
+
+		Login::m_currentLogin.ServerName =
+			[serverID = static_cast<ServerID>(serverID)]() -> std::string
+			{
+				for (const auto server : g_pLoginClient->ServerList)
+					if (server->ID == serverID)
+						return server->ServerName.c_str();
+
+				return {};
+			}();
+
+		return JoinServer_Trampoline(serverID, userdata, timeoutseconds);
+	}
+};
+
+static bool DoesProfileMatchCurrentSession(const ProfileRecord& record)
+{
+	return ci_equals(record.characterName, pLocalPlayer->DisplayedName)
+		&& ci_equals(record.serverName, GetServerShortName())
+		&& (record.accountName.empty() || ci_equals(record.accountName, GetLoginName()));
+}
+
+PLUGIN_API void SetGameState(int GameState)
+{
+	// this works because we will always have a gamestate change after loading or unloading eqmain
+	// GAMESTATE_PRECHARSELECT when transitioning from character select to server select, and
+	// GAMESTATE_CHARSELECT when transitioning to character select from server select
+	if (s_joinServer != EQMain__LoginServerAPI__JoinServer)
+	{
+		if (s_joinServer != 0)
+			RemoveDetour(s_joinServer);
+
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+
+		if (s_joinServer != 0)
+			EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
+	}
+
+	if (GameState == GAMESTATE_CHARSELECT)
+	{
+		Login::clear_current_window();
+
+		// at character select now, if we have a memoized long name let's update the db for the server name pairing
+		if (!Login::m_currentLogin.ServerName.empty())
+			login::db::CreateOrUpdateServer(GetServerShortName(), Login::m_currentLogin.ServerName);
+
+		// grab the option to automatically create entries
+		static auto do_detect = login::db::CacheSetting<bool>("detect_info", true, GetBoolFromString);
+
+		// if we don't have a password it means our account is not reliable.
+		if (do_detect.Read() && !Login::m_currentLogin.Account.empty() && !Login::m_currentLogin.Password.empty())
+		{
+			ProfileRecord profile;
+			profile.accountName = Login::m_currentLogin.Account;
+			to_lower(profile.accountName);
+			profile.accountPassword = Login::m_currentLogin.Password;
+
+			if (Login::m_lastAccount.empty())
+			{
+				Login::m_lastAccount = Login::m_currentLogin.Account;
+			}
+
+			char path[MAX_PATH] = { 0 };
+			GetModuleFileName(nullptr, path, MAX_PATH);
+			const std::filesystem::path fs_path(path);
+
+			if (const auto server_type = login::db::GetServerTypeFromPath(fs_path.parent_path().string()))
+				profile.serverType = *server_type;
+			else
+				profile.serverType = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+
+			to_lower(profile.serverType);
+
+			login::db::CreateAccount(profile);
+
+			profile.serverName = GetServerShortName();
+			for (const auto& char_info : pEverQuest->charSelectPlayerArray)
+			{
+				profile.characterName = char_info.Name;
+				to_lower(profile.characterName);
+
+				// we don't want to completely overwrite an existing character (mostly for the visibility flag)
+				// so ensure that we are only updating the things that we actually detected
+				ProfileRecord existing;
+				existing.characterName = profile.characterName;
+				existing.serverName = profile.serverName;
+				if (login::db::ReadCharacter(existing))
+				{
+					if (!ci_equals(existing.accountName, profile.accountName) || !ci_equals(existing.serverType, profile.serverType))
+					{
+						existing.accountName = profile.accountName;
+						existing.serverType = profile.serverType;
+						login::db::UpdateCharacter(existing.serverName, existing.characterName, existing);
+					}
+				}
+				else
+				{
+					login::db::CreateCharacter(profile);
+				}
+
+				// ClassInfo[0] is empty, don't persist that or any non-class
+				if (char_info.Class > 0 && char_info.Class <= MAX_PLAYER_CLASSES)
+				{
+					profile.characterClass = ClassInfo[char_info.Class].UCShortName;
+					to_upper(profile.characterClass);
+					profile.characterLevel = static_cast<int>(char_info.Level);
+					login::db::CreatePersona(profile);
+				}
+			}
+		}
+
+		Login::m_currentLogin.reset();
+	}
+
+	if (GameState == GAMESTATE_INGAME )
+	{
+		if (const std::shared_ptr<ProfileRecord>& currentRecord = Login::get_current_record())
+		{
+			// If we manage to get into the game on a different character than what we had started our profile
+			// with, switch profiles.
+			if (!DoesProfileMatchCurrentSession(*currentRecord))
+			{
+				Login::set_current_record(
+					std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
+			}
+			else
+			{
+				NotifyCharacterLoad(currentRecord);
+			}
+		}
+		else
+		{
+			Login::set_current_record(
+				std::make_shared<ProfileRecord>(GetCharacterProfile(GetServerShortName(), pLocalPlayer->DisplayedName)));
+		}
+	}
+
+	Login::dispatch(ChangeGameState(GameState));
+}
+
+static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
+{
+	if (message->Payload)
+	{
+		proto::login::LoginMessage loginMessage;
+		loginMessage.ParseFromString(*message->Payload);
+
+		switch (loginMessage.id())
+		{
+		case proto::login::Identify:
+			// We don't actually care about the payload here, we just want to send our data.
+			if (auto profile = Login::get_current_record())
+				NotifyCharacterLoad(profile);
+			break;
+
+		case proto::login::ApplyProfile:
+			if (loginMessage.has_payload())
+			{
+				proto::login::ApplyProfileMissive payload;
+				payload.ParseFromString(loginMessage.payload());
+
+				ProfileRecord record = ParseProfileFromMessage(payload);
+
+				char profileStr[256] = { 0 };
+				if (!record.profileName.empty())
+					sprintf_s(profileStr, "%s: %s (%s)", record.profileName.c_str(), record.characterName.c_str(), record.serverName.c_str());
+				else
+					sprintf_s(profileStr, "%s (%s)", record.characterName.c_str(), record.serverName.c_str());
+
+				if (!record.hotkey.empty())
+				{
+					strcat_s(profileStr, " hotkey: ");
+					strcat_s(profileStr, record.hotkey.c_str());
+				}
+
+				if (payload.do_login())
+				{
+					WriteChatf("\ag[AutoLogin]\ax Received command to begin loading character: %s", profileStr);
+
+					Login::dispatch(SetLoginProfile(record));
+				}
+				else
+				{
+					// Not performing a login, so just check that the character/server match and
+					// apply the rest.
+					if (!pLocalPlayer || DoesProfileMatchCurrentSession(record))
+					{
+						WriteChatf("\ag[AutoLogin]\ax Received new profile assignment: %s", profileStr);
+
+						Login::set_current_record(std::make_shared<ProfileRecord>(record));
+					}
+					else
+					{
+						WriteChatf("\ar[AutoLogin]\ax Received new profile assignment that doesn't match current character: %s", profileStr);
+					}
+				}
+			}
+			break;
+
+		default: break;
+		}
+	}
 }
 
 PLUGIN_API void InitializePlugin()
 {
 	pAutoLoginType = new MQ2AutoLoginType;
 	pLoginProfileType = new LoginProfileType;
-	AddMQ2Data("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
+	AddTopLevelObject("AutoLogin", MQ2AutoLoginType::dataAutoLogin);
+
+	if (!login::db::InitDatabase((fs::path(gPathConfig) / "login.db").string()))
+	{
+		WriteChatf("\ar[AutoLogin]\ax Could not load autologin database, Autologin functionality will be disabled");
+	}
 
 	Login::set_initial_state();
-	ReadINI();
+	ReadSettings();
 
 	AddCommand("/switchserver", Cmd_SwitchServer);
 	AddCommand("/switchcharacter", Cmd_SwitchCharacter);
 	AddCommand("/relog", Cmd_Relog, false, true, true);
 	AddCommand("/loginchar", Cmd_Loginchar);
 
-	if (GetPrivateProfileBool("Settings", "EnableCustomClientIni", false, INIFileName))
+	if (EQMain__LoginServerAPI__JoinServer != 0)
 	{
-		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
-		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
-
-		uintptr_t pfnGetPrivateProfileStringA = (uintptr_t) & ::GetPrivateProfileStringA;
-		EzDetour(pfnGetPrivateProfileStringA, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Trampoline);
-
-		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t) & ::WritePrivateProfileStringA;
-		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
-
-		if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-		{
-			SetupCustomIni();
-		}
+		// we have eqmain offset, save the offset because it gets cleared before we can unset the detour
+		s_joinServer = EQMain__LoginServerAPI__JoinServer;
+		EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
 	}
 
-	ReenableTime = MQGetTickCount64() + STEP_DELAY;
+	if (const auto custom_client_ini = login::db::ReadSetting("custom_client_ini");
+		custom_client_ini && GetBoolFromString(*custom_client_ini, false))
+	{
+		uintptr_t pfnGetPrivateProfileIntA = (uintptr_t)&::GetPrivateProfileIntA;
+		EzDetour(pfnGetPrivateProfileIntA, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp);
 
-	s_autologinDropbox = postoffice::AddActor("autologin",
-		[](const std::shared_ptr<postoffice::Message>& message)
+		uintptr_t pfnGetPrivateProfileStringA = (uintptr_t)&::GetPrivateProfileStringA;
+		EzDetour(pfnGetPrivateProfileStringA, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Trampoline);
+
+		uintptr_t pfnWritePrivateProfileStringA = (uintptr_t)&::WritePrivateProfileStringA;
+		EzDetour(pfnWritePrivateProfileStringA, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Trampoline);
+	}
+
+	s_reenableTime = MQGetTickCount64() + STEP_DELAY;
+
+	// create a server type for this build if it doesn't already exist (to ensure that automatic character creation works)
+	std::string server_type = GetBuildTargetName(static_cast<BuildTarget>(gBuild));
+	to_lower(server_type);
+	if (!login::db::GetPathFromServerType(server_type))
+	{
+		char path[MAX_PATH] = { 0 };
+		GetModuleFileName(nullptr, path, MAX_PATH);
+		const std::filesystem::path fs_path(path);
+
+		login::db::CreateOrUpdateServerType(server_type, fs_path.parent_path().string());
+	}
+
+	s_autologinDropbox = postoffice::AddActor("autologin", HandleMessage);
+
+	LoadCharacterCallback = [](const ProfileRecord& record, bool)
 		{
-			// autologin doesn't actually take message inputs yet...
-		});
+			ProfileRecord copy(record);
+			copy.accountPassword = login::db::ReadPassword(record.accountName, record.serverType).value_or("");
+
+			Login::dispatch(SetLoginProfile(copy));
+		};
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
-	NotifyCharacterUnload(Login::profile(), Login::account(), Login::server(), Login::character());
+	NotifyCharacterUnload();
 
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
 	RemoveCommand("/loginchar");
+
+	if (s_joinServer != 0)
+	{
+		// if this is set, then we have the detour set
+		RemoveDetour(s_joinServer);
+		s_joinServer = 0;
+	}
 
 	uintptr_t pfnGetPrivateProfileIntA = (uintptr_t) & ::GetPrivateProfileIntA;
 	RemoveDetour(pfnGetPrivateProfileIntA);
@@ -688,11 +980,13 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(pfnWritePrivateProfileStringA);
 
 	LoginReset();
-	RemoveMQ2Data("AutoLogin");
+	RemoveTopLevelObject("AutoLogin");
 	delete pAutoLoginType;
 	delete pLoginProfileType;
 
 	s_autologinDropbox.Remove();
+
+	login::db::ShutdownDatabase();
 }
 
 void SendWndNotification(CXWnd* pWnd, CXWnd* sender, uint32_t msg, void* data)
@@ -819,38 +1113,62 @@ PLUGIN_API void OnPulse()
 	{
 		s_lastCharacterClass = pLocalPlayer->GetClass();
 		s_lastCharacterLevel = pLocalPlayer->Level;
-		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel);
+		NotifyCharacterUpdate(s_lastCharacterClass, s_lastCharacterLevel, GetServerShortName(), pLocalPlayer->DisplayedName);
 	}
 
 	if (gbInForeground && GetAsyncKeyState(VK_HOME) & 1)
 		Login::dispatch(UnpauseLogin(true));
 	else if (gbInForeground && GetAsyncKeyState(VK_END) & 1)
 		Login::dispatch(PauseLogin(true));
-	else if (GetGameState() == GAMESTATE_INGAME && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_INGAME)
 	{
-		Login::dispatch(LoginStateSensor(LoginState::InGame, nullptr));
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
-	}
-	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > ReenableTime)
-	{
-		auto pWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
-		if (pWnd != nullptr && pWnd->IsVisible() == 1)
+		if (pEverQuestInfo->ExitCounter != Login::m_campTimer)
 		{
-			auto pStmlWnd = GetChildWindow<CStmlWnd>(pWnd, "cd_textoutput");
-
-			if (pStmlWnd && GetSTMLText(pStmlWnd).find("Do you accept these rules?") != CXStr::npos)
+			Login::dispatch(SetCampTimer(pEverQuestInfo->ExitCounter));
+		}
+	}
+	else if (GetGameState() == GAMESTATE_CHARSELECT && MQGetTickCount64() > s_reenableTime)
+	{
+		CSidlScreenWnd* pConfirmationWnd = GetWindow<CSidlScreenWnd>("ConfirmationDialogBox");
+		if (pConfirmationWnd != nullptr && pConfirmationWnd->IsVisible())
+		{
+			if (CStmlWnd* pStmlWnd = GetChildWindow<CStmlWnd>(pConfirmationWnd, "CD_TextOutput"))
 			{
-				if (auto pYes = GetChildWindow<CButtonWnd>(pWnd, "cd_yes_button"))
-					SendWndNotification(pYes, pYes, XWM_LCLICK);
+				static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
+					// Greetings Norrathian, by creating a new character and playing on Rizlona you agree to
+					// abide by the server specific rules and regulations in addition to the previously
+					// agreed upon terms of service and EULA. (everquest.com/TLP2020) Do you accept these rules?
+					{ "Do you accept these rules?",
+					  "CD_Yes_Button", },
+
+					// It took %1 seconds to load your characters, it is possible one or more failed to load.
+					// Please contact Customer Service if one of your characters is missing.
+					{ "Please contact Customer Service if one of your characters is missing.",
+					  "CD_OK_Button", },
+				};
+
+				CXStr messageText = GetSTMLText(pStmlWnd);
+
+				for (auto [message, buttonName] : PromptWindows)
+				{
+					if (ci_find_substr(messageText, message) != -1)
+					{
+						if (CButtonWnd* pButton = GetChildWindow<CButtonWnd>(pConfirmationWnd, buttonName))
+						{
+							SendWndNotification(pButton, pButton, XWM_LCLICK);
+						}
+					}
+				}
 			}
 		}
-		else if (CXWnd* pWnd = GetWindow("CLW_CharactersScreen"))
-			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pWnd));
+		else if (CXWnd* pCharsWnd = GetWindow("CLW_CharactersScreen"))
+			Login::dispatch(LoginStateSensor(LoginState::CharacterSelect, pCharsWnd));
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
-	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && MQGetTickCount64() > ReenableTime)
+	else if (GetGameState() == GAMESTATE_PRECHARSELECT && g_pLoginClient && (MQGetTickCount64() > s_reenableTime || Login::m_skipNextDelay))
 	{
+		Login::m_skipNextDelay = false;
 		// pair of WindowNames / ButtonNames
 		static const std::vector<std::pair<const char*, const char*>> PromptWindows = {
 			{ "OrderWindow",          "Order_DeclineButton" },
@@ -892,27 +1210,154 @@ PLUGIN_API void OnPulse()
 				Login::dispatch(LoginStateSensor(LoginState::ServerSelect, pServerWnd));
 		}
 
-		ReenableTime = MQGetTickCount64() + STEP_DELAY;
+		s_reenableTime = MQGetTickCount64() + STEP_DELAY;
 	}
 }
 
-static bool bShowAutoLoginOverlay = true;
-static bool bShowOverlayDebugInfo = false;
-
-template <typename T>
-static bool RadioButton(const char* label, T* v, T v_button)
-{
-	const bool pressed = ImGui::RadioButton(label, *v == v_button);
-	if (pressed)
-		*v = v_button;
-	return pressed;
-}
+static bool s_showAutoLoginOverlay = true;
+static bool s_showOverlayDebugInfo = false;
+static bool s_showServerList = false;
 
 static bool InputInt(const char* label, int* v, int step = 1, int step_fast = 10, ImGuiInputTextFlags flags = 0)
 {
-    return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
+	return ImGui::InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step>0 ? &step : NULL), (void*)(step_fast>0 ? &step_fast : NULL), "%d", flags);
 }
 
+static void DisplayProfileInfo(const std::shared_ptr<ProfileRecord>& profile, bool allowClear)
+{
+	if (profile)
+	{
+		float width = ImGui::GetContentRegionAvail().x - (ImGui::GetStyle().FramePadding.x * 2);
+
+		auto show_buttons = [allowClear, &profile]()
+			{
+				bool hovered = false;
+				if (allowClear)
+				{
+					ImGui::SameLine();
+
+					if (ImGui::SmallButton(ICON_MD_CLEAR))
+					{
+						Login::clear_current_record();
+					}
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+					{
+						ImGui::SetTooltip(
+							"Clear the currently loaded profile. This will\n"
+							"also detach the session from the current hotkey (if any)."
+						);
+						hovered = true;
+					}
+
+					ImGui::SameLine();
+
+					if (ImGui::SmallButton(ICON_MD_REDO))
+					{
+						Login::dispatch(SetLoginProfile(*profile));
+					}
+
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_DelayNone))
+					{
+						ImGui::SetTooltip(
+							"Re-run autologin on this profile"
+						);
+						hovered = true;
+					}
+				}
+
+				return hovered;
+			};
+
+		bool hovered = false;
+
+		ImVec2 posMin = ImGui::GetCursorScreenPos();
+
+		if (!profile->profileName.empty())
+		{
+			ImGui::TextUnformatted("Profile: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->profileName.c_str());
+			hovered = show_buttons();
+
+			ImGui::TextUnformatted("Character: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
+		}
+		else if (!profile->characterName.empty())
+		{
+			ImGui::TextUnformatted("Character: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s (%s)", profile->characterName.c_str(), profile->serverName.c_str());
+			hovered = show_buttons();
+		}
+		else if (!profile->serverName.empty() || !profile->accountName.empty())
+		{
+			if (!profile->serverName.empty())
+			{
+				ImGui::TextUnformatted("Server: ");
+				ImGui::SameLine(0, 0);
+				ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+				hovered = show_buttons();
+			}
+
+			ImGui::TextUnformatted("Account: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->accountName.c_str());
+
+			if (profile->serverName.empty())
+				hovered = show_buttons();
+		}
+
+		ImVec2 posMax = ImGui::GetCursorScreenPos();
+		posMax.x = ImGui::GetCurrentWindow()->DC.CursorPosPrevLine.x;
+
+		if (!hovered && ImGui::IsMouseHoveringRect(posMin, posMax))
+		{
+			if (ImGui::BeginTooltip())
+			{
+				if (!profile->profileName.empty())
+				{
+					ImGui::TextUnformatted("Profile: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->profileName.c_str());
+				}
+
+				if (!profile->characterName.empty())
+				{
+					ImGui::TextUnformatted("Character: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->characterName.c_str());
+				}
+
+				if (!profile->serverName.empty())
+				{
+					ImGui::TextUnformatted("Server: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->serverName.c_str());
+				}
+
+				if (!profile->accountName.empty())
+				{
+					ImGui::TextUnformatted("Account: ");
+					ImGui::SameLine(0, 0);
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "%s", profile->accountName.c_str());
+				}
+
+				ImGui::EndTooltip();
+			}
+		}
+
+		if (!profile->hotkey.empty())
+		{
+			ImGui::TextUnformatted("HotKey: ");
+			ImGui::SameLine(0, 0);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", profile->hotkey.c_str());
+		}
+
+		ImGui::Spacing();
+	}
+}
 
 static void ShowAutoLoginOverlay(bool* p_open)
 {
@@ -920,6 +1365,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 	int gameState = GetGameState();
 	int corner = (gameState == GAMESTATE_CHARSELECT ? 1 : 0); // 0 = top left, 1 = top right, 2 = bottom left, 3 = bottom right
+	if (gameState == GAMESTATE_INGAME)
+		corner = -1;
 	ImGuiIO& io = ImGui::GetIO();
 
 	if (corner != -1)
@@ -930,23 +1377,14 @@ static void ShowAutoLoginOverlay(bool* p_open)
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 		ImGui::SetNextWindowViewport(viewport->ID);
 	}
-	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT ? .85f : .35f); // Transparent background
+
+	ImGui::SetNextWindowSizeConstraints(ImVec2(250, 0), ImVec2(FLT_MAX, FLT_MAX));
+	ImGui::SetNextWindowBgAlpha(gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_INGAME ? .85f : .35f); // Transparent background
 	if (ImGui::Begin("AutoLogin Status", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoBringToFrontOnFocus  | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 	{
 		ImGui::PushFont(imgui::LargeTextFont);
 		ImGui::TextColored(ImColor(52, 152, 219), "AutoLogin Status");
 		ImGui::PopFont();
-		ImGui::Separator();
-
-		ImGui::Text("Login Method:");
-		ImGui::SameLine(0, 4.0f);
-		if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-			ImGui::Text("Login Profiles");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::StationNames)
-			ImGui::Text("Station Names");
-		else if (Login::m_settings.LoginType == Login::Settings::Type::Sessions)
-			ImGui::Text("Sessions");
-
 		ImGui::Separator();
 
 		bool bAutoLoginEnabled = !Login::paused();
@@ -961,29 +1399,36 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			else
 				ImGui::TextColored(ImColor(255, 255, 0), "paused");
 
-			ImGui::Text("Server: %s", Login::server());
-			ImGui::Text("Character: %s", Login::character());
+			DisplayProfileInfo(Login::get_record(), false);
 
-			if (Login::m_settings.LoginType == Login::Settings::Type::Profile)
-				ImGui::Text("Profile: %s", Login::profile());
+			if (!Login::get_record() || Login::get_record()->accountPassword.empty() && Login::last_state() == LoginState::Connect)
+			{
+				float green = (50 - abs(50 - (ImGui::GetFrameCount() % 100))) / 100.0f;
 
-			if (strlen(Login::hotkey()) > 0)
-				ImGui::Text("HotKey: %s", Login::hotkey());
+				ImGui::TextColored(ImVec4(1.0f, green, 0.0f, 1.0f), "Missing Password (login manually to fix)");
+			}
 
 			if (bAutoLoginEnabled)
 			{
-				if (ImGui::Button("Pause"))
+				if (ImGui::Button(ICON_MD_PAUSE " Pause", ImVec2(85.0f, 0.0f)))
 					Login::dispatch(PauseLogin());
 			}
 			else
 			{
-				if (ImGui::Button("Resume"))
+				if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume", ImVec2(85.0f, 0.0f)))
 					Login::dispatch(UnpauseLogin());
 			}
 
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
+
+			ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.f, 0.6f, 0.6f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(0.f, 0.7f, 0.7f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(0.f, 0.8f, 0.8f));
+
+			if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(85.0f, 0.0f)))
 				Login::dispatch(StopLogin());
+
+			ImGui::PopStyleColor(3);
 		}
 		else
 		{
@@ -991,81 +1436,80 @@ static void ShowAutoLoginOverlay(bool* p_open)
 			ImGui::SameLine(0, 4.0f);
 			ImGui::TextColored(ImColor(255, 0, 0), "inactive");
 
+			DisplayProfileInfo(Login::get_current_record(), true);
+
 			if (ImGui::Button("Select Profile"))
 			{
-				Login::profiles() = LoadAutoLoginProfiles(INIFileName);
 				ImGui::OpenPopup("ProfileSelector");
 			}
 
+			ImGui::SameLine();
+
+			if (ImGui::Button("Select Character"))
+			{
+				ImGui::OpenPopup("CharacterSelector");
+			}
+
+			ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
 			if (ImGui::BeginPopup("ProfileSelector"))
 			{
-#if 0
-				if (ImGui::MenuItem("Manual Login..."))
-				{
-					// TODO: Display a prompt to enter the info directly.
-				}
+				ShowProfilesMenu(false);
 
-				if (ImGui::MenuItem("Create New Profile..."))
-				{
-					// TODO: Display a prompt to create a new profile
-				}
+				ImGui::EndPopup();
+			}
 
-				ImGui::Separator();
-#endif
-
-				if (Login::profiles().empty())
-				{
-					ImGui::MenuItem("No Profiles (go create one!)", nullptr, false, false);
-				}
-				else
-				{
-					for (const ProfileGroup& pg : Login::profiles())
-					{
-						if (ImGui::BeginMenu(pg.profileName.c_str()))
-						{
-							for (const ProfileRecord& record : pg.records)
-							{
-								char buffer[256] = { 0 };
-								record.FormatTo(buffer, 256);
-
-								if (ImGui::MenuItem(buffer))
-								{
-									Login::m_settings.LoginType = Login::Settings::Type::Profile;
-									Login::dispatch(SetLoginProfile(record));
-								}
-							}
-
-							ImGui::EndMenu();
-						}
-					}
-				}
-
+			ImGui::SetNextWindowSizeConstraints(ImVec2(120, 0), ImVec2(FLT_MAX, FLT_MAX));
+			if (ImGui::BeginPopup("CharacterSelector"))
+			{
+				ShowCharactersMenu();
 
 				ImGui::EndPopup();
 			}
 		}
 
-		if (Login::m_settings.ConnectRetries > 0)
+		switch (Login::last_state())
 		{
-			ImGui::Text("Retries: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
+		case LoginState::Connect:
+		case LoginState::ConnectConfirm:
+			if (Login::m_settings.ConnectRetries > 0 && Login::retries() > 0)
+			{
+				ImGui::Text("Attempts: %d/%d", Login::retries(), Login::m_settings.ConnectRetries);
+			}
+			break;
+
+		case LoginState::InGameCamping:
+			if (pEverQuestInfo->ExitCounter != 0 && Login::get_record())
+			{
+				int counter = static_cast<int>(pEverQuestInfo->ExitCounter - EQGetTime());
+				if (counter > 0)
+				{
+					std::chrono::milliseconds ms{ counter };
+
+					ImGui::Text("Waiting to camp in %d seconds...", std::chrono::duration_cast<std::chrono::seconds>(ms).count());
+				}
+			}
+			break;
+
+		default: break;
 		}
 
 		ImGui::Spacing();
+
 		if (ImGui::CollapsingHeader("Settings"))
 		{
 			ImGui::Checkbox("Kick Active Character", &Login::m_settings.KickActiveCharacter);
-			ImGui::Checkbox("End After Select", &Login::m_settings.EndAfterSelect);
-			InputInt("Connect Retries", &Login::m_settings.ConnectRetries);
+			ImGui::Checkbox("End After Character Select", &Login::m_settings.EndAfterSelect);
 
-			ImGui::Separator();
-			ImGui::Text("Server Up Notification:");
-			RadioButton("None", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::None); ImGui::SameLine();
-			RadioButton("Email", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Email); ImGui::SameLine();
-			RadioButton("Beeps", &Login::m_settings.NotifyOnServerUp, Login::Settings::ServerUpNotification::Beeps);
+			ImGui::SetNextItemWidth(100.f);
+			if (InputInt("Connect Retries", &Login::m_settings.ConnectRetries))
+			{
+				login::db::WriteSetting("login_connect_retries", std::to_string(Login::m_settings.ConnectRetries), "Number of times to attempt to reconnect, 0 for infinite");
+			}
 
 			ImGui::Separator();
 			ImGui::Text("State Variables:");
 			ImGui::Text("Delay Time: %llu", Login::delay_time() > MQGetTickCount64() ? Login::delay_time() - MQGetTickCount64() : 0ULL);
+			ImGui::Text("Last Account: %s", Login::last_account().c_str());
 			ImGui::Text("Last State:"); ImGui::SameLine();
 			switch (Login::last_state())
 			{
@@ -1078,11 +1522,13 @@ static void ShowAutoLoginOverlay(bool* p_open)
 				case LoginState::ServerSelectDown: ImGui::Text("ServerSelectDown"); break;
 				case LoginState::CharacterSelect: ImGui::Text("CharacterSelect"); break;
 				case LoginState::InGame: ImGui::Text("InGame"); break;
+				case LoginState::InGameCamping: ImGui::Text("InGameCamping"); break;
 				default: ImGui::Text(""); break;
 			}
+
 			if (Login::current_window() != nullptr && Login::current_window()->GetXMLData() != nullptr)
 			{
-				ImGui::Text("Current Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
+				ImGui::Text("Window: %s", Login::current_window()->GetXMLData()->Name.c_str());
 			}
 
 			ImGui::Separator();
@@ -1091,7 +1537,8 @@ static void ShowAutoLoginOverlay(bool* p_open)
 
 		if (ImGui::BeginPopupContextWindow())
 		{
-			ImGui::MenuItem("Show Debug Info", nullptr, &bShowOverlayDebugInfo);
+			ImGui::MenuItem("Show Debug Info", nullptr, &s_showOverlayDebugInfo);
+			ImGui::MenuItem("Show Server List", nullptr, &s_showServerList);
 			ImGui::Separator();
 			if (p_open && ImGui::MenuItem("Close")) *p_open = false;
 			ImGui::EndPopup();
@@ -1100,13 +1547,82 @@ static void ShowAutoLoginOverlay(bool* p_open)
 	ImGui::End();
 }
 
+static void ShowServerList(bool* p_open)
+{
+	if (!g_pLoginClient )
+		return;
+
+	if (ImGui::Begin("Server List", p_open, 0))
+	{
+		auto& serverList = g_pLoginClient->ServerList;
+
+		if (ImGui::BeginTable("##ServerList", 7, ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable))
+		{
+			ImGui::TableSetupColumn("Name");
+			ImGui::TableSetupColumn("Flags");
+			ImGui::TableSetupColumn("RuleSet");
+			ImGui::TableSetupColumn("Desc");
+			ImGui::TableSetupColumn("Status");
+			ImGui::TableSetupColumn("Expansion");
+			ImGui::TableSetupColumn("TrueBox");
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+
+			for (EQLS::EQClientServerData* server : serverList)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->ServerName.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%08x", server->Flags);
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->RuleSet.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->Description.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%08x", server->StatusFlags);
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", server->Expansion > 0 && server->Expansion <= NUM_EXPANSIONS ? szExpansions[server->Expansion - 1] : "");
+
+				ImGui::TableNextColumn();
+				if (server->TrueBoxStatus == 0)
+					ImGui::TextUnformatted("No");
+				else if (server->TrueBoxStatus == 1)
+					ImGui::TextUnformatted("Yes");
+				else if (server->TrueBoxStatus >= 2)
+					ImGui::Text("Relaxed (%d)", server->TrueBoxStatus);
+			}
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::End();
+}
+
 PLUGIN_API void OnUpdateImGui()
 {
 	int gameState = GetGameState();
 
 	// Only show autologin overlay during character select or login
-	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT)
+	if (gameState == GAMESTATE_CHARSELECT || gameState == GAMESTATE_PRECHARSELECT
+		|| (gameState == GAMESTATE_INGAME && Login::get_record() != nullptr))
 	{
-		ShowAutoLoginOverlay(&bShowAutoLoginOverlay);
+		ShowAutoLoginOverlay(&s_showAutoLoginOverlay);
 	}
+
+	if (gameState == GAMESTATE_PRECHARSELECT && s_showServerList)
+	{
+		ShowServerList(&s_showServerList);
+	}
+}
+
+PLUGIN_API void OnCleanUI()
+{
+	Login::clear_current_window();
 }

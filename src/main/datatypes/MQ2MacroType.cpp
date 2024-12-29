@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -263,7 +263,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			strcpy_s(szIndex, &pBracket[1]);
 		}
 
-		MQDataVar* pVar = FindMQ2DataVariable(szName);
+		MQDataVar* pVar = FindMacroVariable(szName);
 		if (!pVar)
 		{
 			return false;

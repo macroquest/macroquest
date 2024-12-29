@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -28,7 +28,7 @@ namespace mq {
 static void Items_Initialize();
 static void Items_Shutdown();
 static void Items_Pulse();
-static void Items_SetGameState(DWORD gameState);
+static void Items_SetGameState(int gameState);
 static void Items_UpdateImGui();
 
 static MQModule gItemsModule = {
@@ -58,8 +58,11 @@ int GetKeyRingCount(KeyRingType keyRingType)
 	case eIllusion:
 	case eFamiliar:
 	case eHeroForge:
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+#if HAS_TELEPORTATION_KEYRING
 	case eTeleportationItem:
+#endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+	case eActivatedItem:
 #endif
 		break;
 	default: return 0;
@@ -72,9 +75,23 @@ int GetMountCount() { return GetKeyRingCount(eMount); }
 int GetIllusionCount() { return GetKeyRingCount(eIllusion); }
 int GetFamiliarCount() { return GetKeyRingCount(eFamiliar); }
 int GetHeroForgeCount() { return GetKeyRingCount(eHeroForge); }
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
-int GetTeleportationItemCount() { return GetKeyRingCount(eTeleportationItem); }
+int GetTeleportationItemCount()
+{
+#if HAS_TELEPORTATION_KEYRING
+	return GetKeyRingCount(eTeleportationItem);
+#else
+	return 0;
 #endif
+}
+
+int GetActivatedItemCount()
+{
+#if HAS_ACTIVATED_ITEM_KEYRING
+	return GetKeyRingCount(eActivatedItem);
+#else
+	return 0;
+#endif
+}
 
 static bool gbDidUpdateKeyRing = false;
 static uint64_t gLastKeyRingUpdate = 0;
@@ -420,6 +437,11 @@ public:
 			ImGui::Text("Teleportation Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eTeleportationItem]);
 			break;
 #endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+		case eItemContainerActivatedKeyRingItems:
+			ImGui::Text("Activated Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eActivatedItem]);
+			break;
+#endif
 #endif
 
 		// This case is just to remove warnings when all above cases are gated
@@ -571,7 +593,7 @@ static void Items_Pulse()
 #endif // HAS_KEYRING_WINDOW
 }
 
-static void Items_SetGameState(DWORD gameState)
+static void Items_SetGameState(int gameState)
 {
 #if HAS_KEYRING_WINDOW
 	if (gameState == GAMESTATE_INGAME)

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -28,6 +28,7 @@ enum class EverQuestMembers
 	MouseX,
 	MouseY,
 	Ping,
+	ConnectionStrength,
 	LClickedObject,
 	WinTitle,
 	PID,
@@ -91,6 +92,7 @@ MQ2EverQuestType::MQ2EverQuestType() : MQ2Type("everquest")
 	ScopedTypeMember(EverQuestMembers, MaxFPS);
 	ScopedTypeMember(EverQuestMembers, MaxBGFPS);
 	ScopedTypeMember(EverQuestMembers, UiScale);
+	ScopedTypeMember(EverQuestMembers, ConnectionStrength);
 }
 
 bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -178,9 +180,15 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::Ping:
-		Dest.DWord = pConnection->Last;
+		Dest.DWord = pConnection ? pConnection->GetAveragePing() : 0;
 		Dest.Type = pIntType;
 		return true;
+
+	case EverQuestMembers::ConnectionStrength:
+		Dest.Float = pConnection ? (pConnection->GetConnectionStrength() * 100.f) : 0.0f;
+		Dest.Type = pFloatType;
+		return true;
+
 
 	case EverQuestMembers::ChatChannels:
 		Dest.DWord = 0;

@@ -19,6 +19,12 @@
 #include <stdexcept>
 
 #include "imgui.h"
+#include "eqlib/BuildType.h"
+
+#if HAS_DIRECTX_11
+#include <d3d11.h>
+#endif
+#include <type_traits>
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
@@ -154,3 +160,160 @@ namespace ImGui
     void MyFunction(const char* name, MyMatrix44* mtx);
 }
 */
+
+namespace eqlib
+{
+    class CEQGBitmap;
+}
+
+#if HAS_DIRECTX_11
+
+namespace eqlib
+{
+    inline namespace DX9Wrapper {
+        namespace DX11 {
+            class TextureImpl;
+        }
+    }
+
+    using Direct3DTexture9 = DX9Wrapper::DX11::TextureImpl;
+}
+
+class ImGuiTextureObject
+{
+public:
+    ImGuiTextureObject() = default;
+
+    ImGuiTextureObject(void* value)
+        : value(reinterpret_cast<uintptr_t>(value))
+    {}
+
+    ImGuiTextureObject(ID3D11ShaderResourceView* shaderResourceView)
+        : value(reinterpret_cast<uintptr_t>(shaderResourceView))
+    {}
+
+    ImGuiTextureObject(nullptr_t)
+        : value(0)
+    {}
+
+    ImGuiTextureObject(const eqlib::CEQGBitmap* bitmap)
+    {
+        SetBitmap(bitmap);
+    }
+
+    ImGuiTextureObject(const eqlib::Direct3DTexture9* texture)
+    {
+        SetTexture(texture);
+    }
+
+    ImGuiTextureObject(const ImGuiTextureObject& other)
+        : value(other.value)
+    {}
+
+    ImGuiTextureObject(int value)
+        : value(value)
+    {
+        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
+    }
+
+    ImGuiTextureObject(intptr_t value)
+        : value(value)
+    {
+    }
+
+    ImGuiTextureObject& operator=(const ImGuiTextureObject& other)
+    {
+        value = other.value;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(int value)
+    {
+        IM_ASSERT_USER_ERROR(value == 0, "Only valid integer value to assign is 0. Prefer using nullptr");
+        this->value = value;
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(const eqlib::CEQGBitmap* bitmap)
+    {
+        SetBitmap(bitmap);
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(const eqlib::Direct3DTexture9* texture)
+    {
+        SetTexture(texture);
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(ID3D11ShaderResourceView* shaderResourceView)
+    {
+        SetPointer(shaderResourceView);
+
+        return *this;
+    }
+
+    ImGuiTextureObject& operator=(void* value)
+    {
+        SetPointer(value);
+
+        return *this;
+    }
+
+    bool IsBitmap() const { return (value & 0xC000000000000000) == 0x8000000000000000; }
+    bool IsTexture() const { return (value & 0xC000000000000000) == 0xC000000000000000; }
+    bool IsSRV() const { return (value & 0xC000000000000000) == 0x0000000000000000; }
+
+    const eqlib::CEQGBitmap* GetBitmap() const
+    {
+        return IsBitmap() ? static_cast<const eqlib::CEQGBitmap*>(GetPointer()) : nullptr;
+    }
+    ID3D11ShaderResourceView* GetShaderResourceView() const
+    {
+        return IsSRV() ? static_cast<ID3D11ShaderResourceView*>(GetPointer()) : nullptr;
+    }
+    eqlib::Direct3DTexture9* GetTexture() const
+    {
+        return IsTexture() ? static_cast<eqlib::Direct3DTexture9*>(GetPointer()) : nullptr;
+    }
+
+    operator intptr_t() const { return reinterpret_cast<intptr_t>(GetPointer()); }
+    operator ID3D11ShaderResourceView*() const { return GetShaderResourceView(); }
+
+    bool operator==(nullptr_t) const { return value == 0; }
+    bool operator!=(nullptr_t) const { return value != 0; }
+
+    void* GetPointer() const
+    {
+        return reinterpret_cast<void*>(value & ~0xC000000000000000);
+    }
+
+private:
+    void SetBitmap(const eqlib::CEQGBitmap* bitmap)
+    {
+        value = reinterpret_cast<uintptr_t>(bitmap) | 0x8000000000000000;
+    }
+
+    void SetTexture(const eqlib::Direct3DTexture9* texture)
+    {
+        value = reinterpret_cast<uintptr_t>(texture) | 0xC000000000000000;
+    }
+
+    void SetPointer(void* pointer)
+    {
+        value = reinterpret_cast<uintptr_t>(pointer);
+    }
+
+    uintptr_t value;
+};
+
+inline bool operator==(const ImGuiTextureObject& a, const ImGuiTextureObject& b) { return a.GetPointer() == b.GetPointer(); }
+inline bool operator!=(const ImGuiTextureObject& a, const ImGuiTextureObject& b) { return a.GetPointer() != b.GetPointer(); }
+
+#define ImTextureID ImGuiTextureObject
+
+#endif // HAS_DIRECTX_11

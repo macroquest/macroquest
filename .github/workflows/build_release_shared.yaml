@@ -1,0 +1,660 @@
+name: Build Shared
+
+on:
+  workflow_call:
+    inputs:
+      client_target:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      client_target:
+        required: true
+        type: choice
+        options:
+        - live
+        - test
+        - emu
+
+env:
+  platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
+
+jobs:
+  build:
+    if: github.repository == 'macroquest/macroquest'
+    runs-on: [fast, self-hosted, Windows, X64]
+    steps:
+      - name: Install and cache PowerShell modules
+        uses: potatoqualitee/psmodulecache@v6.2
+        with:
+          modules-to-cache: powershell-yaml
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Reset eqlib
+        run: git -C src/eqlib reset --hard
+        continue-on-error: true
+
+      - name: Update builtin submodules
+        run: git submodule update --init --recursive --depth=1
+
+      - name: Get extra plugins from docs site
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/macroquest/docs/master/main/plugin-quick-list.md" -OutFile "plugin-quick-list.md"
+
+      - name: Checkout plugins that work on all clients
+        shell: pwsh
+        run: |
+          $start = Select-String -Path plugin-quick-list.md -Pattern "^# All" -CaseSensitive
+          $end = Select-String -Path plugin-quick-list.md -Pattern "^(#|``)" -CaseSensitive | Where-Object { $_.LineNumber -gt $start.LineNumber } | Select-Object -First 1
+          $content = Get-Content plugin-quick-list.md | Select-Object -Index ($start.LineNumber..($end.LineNumber - 2))
+          $content | ForEach-Object {
+            $cmd = $_.Trim()
+            if ($cmd.StartsWith("git clone")) {
+              Invoke-Expression $cmd
+            }
+          }
+
+      - name: Checkout plugins that work on Live/Test clients
+        #if: ${{ inputs.client_target == 'live' || inputs.client_target == 'test' }}
+        shell: pwsh
+        run: |
+          $start = Select-String -Path plugin-quick-list.md -Pattern "^# Live/Test only" -CaseSensitive
+          $end = Select-String -Path plugin-quick-list.md -Pattern "^(#|``)" | Where-Object { $_.LineNumber -gt $start.LineNumber } | Select-Object -First 1
+          $content = Get-Content plugin-quick-list.md | Select-Object -Index ($start.LineNumber..($end.LineNumber - 2))
+          $content | ForEach-Object {
+            $cmd = $_.Trim()
+            if ($cmd.StartsWith("git clone")) {
+              Invoke-Expression $cmd
+            }
+          }
+
+      - name: Checkout plugins that work on Emu clients
+        #if: ${{ inputs.client_target == 'emu' }}
+        shell: pwsh
+        run: |
+          $start = Select-String -Path plugin-quick-list.md -Pattern "^# Emu only" -CaseSensitive
+          $end = Select-String -Path plugin-quick-list.md -Pattern "^(#|``)" | Where-Object { $_.LineNumber -gt $start.LineNumber } | Select-Object -First 1
+          $content = Get-Content plugin-quick-list.md | Select-Object -Index ($start.LineNumber..($end.LineNumber - 2))
+          $content | ForEach-Object {
+            $cmd = $_.Trim()
+            if ($cmd.StartsWith("git clone")) {
+              $cmd = $cmd -replace "git clone", "git clone --depth=1"
+              Invoke-Expression $cmd
+            }
+          }
+
+      - name: Update Plugin Submodules
+        shell: pwsh
+        run: |
+          Get-ChildItem plugins -Directory | ForEach-Object { Write-Host "$($_.Name)"; git -C "$($_.FullName)" submodule update --init --recursive --depth=1 }
+
+      - name: Get SLN file from docs site
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/macroquest/docs/master/uploads/MacroQuestCustom.sln" -OutFile "src/MacroQuestCustom.sln"
+
+      - name: Get crashpad.h
+        shell: pwsh
+        run: |
+          $headers = @{
+            Authorization = "token ${{ secrets.MQGITBOT_AUTH }}"
+            Accept = "application/vnd.github.v3.raw"
+          }
+          Invoke-WebRequest -Uri ${{ vars.CUSTOM_CRASHPAD_URL }} -Headers $headers -OutFile "include/config/crashpad.h"
+
+      - name: Set Versioning for MQMain
+        shell: pwsh
+        run: |
+          $versionFile = "src/main/MQVersionInfo.h"
+          $versionInfo = Get-Content $versionFile
+          $versionInfo = $versionInfo -replace '#define MQMAIN_VERSION_BUILD (\d+)', "#define MQMAIN_VERSION_BUILD ${{ github.run_number }}"
+          $versionInfo = $versionInfo -replace '#define MQMAIN_GIT_HASH "(.*)"', "#define MQMAIN_GIT_HASH `"$(git rev-parse --short HEAD)`""
+          $versionInfo | Set-Content $versionFile
+
+      - name: Set Versioning for eqlib
+        shell: pwsh
+        run: |
+          $versionFile = "src/eqlib/eqlibVersionInfo.h"
+          $versionInfo = Get-Content $versionFile
+          $versionInfo = $versionInfo -replace '#define EQLIB_GIT_HASH "(.*)"', "#define EQLIB_GIT_HASH `"$eqlibCommitHash`""
+          $versionInfo | Set-Content $versionFile
+
+      - name: Customize Loader Update URL
+        shell: pwsh
+        run: |
+          $CurrentVersionURL = "https://raw.githubusercontent.com/macroquest/MQCurrentVersions/${{ inputs.client_target }}/CurrentVersion.txt"
+          $resourceFilePath = "src/loader/resource.h"
+          $resourceFile = Get-Content $resourceFilePath
+          if ($resourceFile -match "#define MQ_UPDATE_URL") {
+            $resourceFile -replace '#define MQ_UPDATE_URL (.*)', "#define MQ_UPDATE_URL `"$CurrentVersionURL`""
+          } else {
+            $resourceFile = $resourceFile + "`n#define MQ_UPDATE_URL `"$CurrentVersionURL`""
+          }
+          $resourceFile | Set-Content $resourceFilePath
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: |
+          nuget restore src/MacroQuestCustom.sln
+
+      - name: Handle vcpkg Cache
+        if: false # Disabled for build server speed improvements
+        uses: actions/cache@v4
+        with:
+          path: |
+            contrib/vcpkg/buildtrees
+            contrib/vcpkg/downloads
+            contrib/vcpkg/installed
+            contrib/vcpkg/packages
+            contrib/vcpkg/vcpkg.exe
+            contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ env.platform }}-
+            ${{ runner.os }}-vcpkg-
+
+      - name: Build ${{ env.platform }} Release for ${{ inputs.client_target }}
+        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }}
+
+      - name: Create Symbols Archive
+        run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb
+
+      - name: Upload Symbols Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ inputs.client_target }}
+          path: build/bin/MacroQuest-Symbols.zip
+
+      - name: Remove Build Artifacts
+        shell: pwsh
+        run: |
+          Remove-Item -Force build/bin/MacroQuest-Symbols.zip
+          Get-ChildItem build/bin/Release -Include *.pdb -Recurse | Remove-Item -Force
+          Get-ChildItem build/bin/Release -Include *.lib -Recurse | Remove-Item -Force
+          Get-ChildItem build/bin/Release -Include *.exp -Recurse | Remove-Item -Force
+
+      - name: Sign Code
+        shell: pwsh
+        run: |
+          $SignCert = "build/bin/signcert.pfx"
+          [IO.File]::WriteAllBytes($SignCert, [Convert]::FromBase64String("${{ secrets.SIGNCERT }}"))
+          $FileList = Get-ChildItem -Path "build/bin/release" -Recurse -Include *.exe, *.dll | Where-Object { $_.Name -ne "D3DX9_43.dll" }
+          $signtool = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter signtool.exe | Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
+          ForEach ($file in $FileList) {
+            & $signtool sign /fd SHA256 /f "$SignCert" /p "${{ secrets.SIGNCERT_PASS }}" /t http://timestamp.digicert.com "$file" | Out-Null
+          }
+          Remove-Item -Force build/bin/signcert.pfx
+
+      - name: Create MacroQuest Archive
+        shell: pwsh
+        run: |
+          Push-Location build/bin/Release
+          7z a -tzip -r ../MacroQuest.zip *
+          Pop-Location
+
+      - name: Get Version Information
+        shell: pwsh
+        run: echo "MQVERSION_INFO=$((Get-Item build/bin/release/MQ2Main.dll).VersionInfo.FileVersion)" >> $env:GITHUB_ENV
+
+      - name: Restore Last Changelog
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/build/changelog/CHANGELOG.md
+          key: changelog-${{ env.platform }}-${{ inputs.client_target }}-${{ github.run_id }}
+          restore-keys: |
+            changelog-${{ env.platform }}-${{ inputs.client_target }}
+
+      - name: Diff Changelog
+        id: diff_changelog
+        shell: pwsh
+        run: |
+          $ReleaseDescription = "Automated release for ${{ inputs.client_target }}"
+          if (Test-Path "${{ github.workspace }}/build/changelog/CHANGELOG.md")
+          {
+            $FileDiff = (Compare-Object (Get-Content "${{ github.workspace }}/data/resources/CHANGELOG.md") (Get-Content "${{ github.workspace }}/build/changelog/CHANGELOG.md"))
+            if ($FileDiff.Count -gt 0)
+            {
+                if ($FileDiff[0].SideIndicator -eq '<=')
+                {
+                    $ReleaseDescription = "Change Log:`r`n-----------`r`n"
+                    $ReleaseDescription += $FileDiff.InputObject -join "`r`n`r`n"
+                }
+            }
+          }
+          else
+          {
+            New-Item -Path "${{ github.workspace }}/build/changelog" -ItemType Directory -ErrorAction SilentlyContinue
+          }
+          Copy-Item -Path "${{ github.workspace }}/data/resources/CHANGELOG.md" -Destination "${{ github.workspace }}/build/changelog/CHANGELOG.md" -Force
+          Remove-Item -Force "${{ github.workspace }}/build/ReleaseNotes.md" -ErrorAction SilentlyContinue
+          $ReleaseDescription | Out-File "${{ github.workspace }}/build/ReleaseNotes.md"
+
+      - name: Remove Release 'rel-${{ inputs.client_target }}'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
+        run: |
+          $output = gh release delete rel-${{ inputs.client_target }} --yes 2>&1
+          if (!$? -And -Not($output -like "*release not found*")) {
+            throw $output
+          }
+          exit 0
+
+      - name: Create Release for ${{ inputs.client_target }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
+        run: |
+          gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes-file "${{ github.workspace }}/build/ReleaseNotes.md" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
+
+      - name: Update Published Version Information
+        shell: pwsh
+        run: |
+          $versionDir = "${{ github.workspace }}/build/MQCurrentVersions"
+          git clone "https://x-access-token:${{ secrets.MQGITBOT_AUTH }}@github.com/MacroQuest/MQCurrentVersions.git" "$versionDir"
+          git -C "$versionDir" config user.email "mqgitbot@gmail.com"
+          git -C "$versionDir" config user.name "MQGitBot"
+          git -C "$versionDir" checkout ${{ inputs.client_target }}
+          $branch_name = git -C "$versionDir" rev-parse --abbrev-ref HEAD
+          if ($branch_name -ne "${{ inputs.client_target }}") {
+            throw "Failed to checkout branch ${{ inputs.client_target }}"
+          }
+          Set-Content -NoNewLine -Path "$versionDir/CurrentVersion.txt" -Value $env:MQVERSION_INFO
+          git -C "$versionDir" add CurrentVersion.txt
+          git -C "$versionDir" commit -m "Update ${{ inputs.client_target }} version to $($env:MQVERSION_INFO)"
+          git -C "$versionDir" push
+
+      - name: Send Discord Notice
+        run: |
+          [System.Collections.ArrayList]$embedArray = @()
+          $embedObject = [PSCustomObject]@{
+              color = "4289797"
+              title = "New MacroQuest (${{ inputs.client_target }}) Build $($env:MQVERSION_INFO)"
+              description = "Build has been uploaded to: https://github.com/macroquest/macroquest/releases/tag/$($env:GITHUB_REF_NAME)"
+          }
+          $embedArray.Add($embedObject) | Out-Null
+          $discordPayload = [PSCustomObject]@{
+              embeds = $embedArray
+          } | ConvertTo-Json
+          Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
+        continue-on-error: true
+
+      - name: Handle LuaRocks Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/Lua
+          key: ${{ runner.os }}-luarocks-${{ env.platform }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-luarocks-${{ env.platform }}-
+            ${{ runner.os }}-luarocks-
+
+      - name: Update LuaRocks binaries
+        shell: pwsh
+        run: |
+          $debug = $true
+          $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
+          $LuaRocksDir = "$LuaCloneDir\LuaRocks"
+          $GitFolder = "${{ github.workspace }}\build\Lua\LuaRockServer"
+          $LuaRockServer = "$GitFolder"
+          $LuaRockServerRoot = "$LuaRockServer"
+          $LuaYaml = "$LuaRockServerRoot\mq_luarocks.yaml"
+          $GitURL = "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/luarocks.git"
+          $Platform = "$(if ($${{ inputs.client_target == 'emu' }}) {"x86"} else {"x64"})"
+          $env:LUAROCKS_CONFIG = "$LuaRocksDir\luarocks_working_config_$($Platform).cfg"
+          $systreeNode = "\$Platform"
+          $vcpkg_mq = "${{ github.workspace }}\tools\build_scripts\vcpkg_mq.ps1"
+
+          $luajit = "${{ github.workspace }}\contrib\vcpkg\installed\$($Platform)-windows-static\tools\luajit.exe"
+
+          # Create Lua folder if it does not exist:
+          New-Item -Path "${{ github.workspace }}/build/Lua" -ItemType Directory -ErrorAction SilentlyContinue
+
+          If (-NOT (Test-Path $LuaCloneDir -PathType Container)) {
+            git clone "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/${{ vars.LUAROCKS_INSTALL_REPO }}.git" "$LuaCloneDir"
+          } else {
+            git -C "$LuaCloneDir" pull
+          }
+
+          $in_config = Get-Content "$LuaRocksDir\luarocks_config_$($Platform).cfg"
+          $out_config = $in_config -replace "LUA_REPLACE_PATH_FSLASH", "$($LuaRocksDir -replace '\\', '/')"
+          $out_config = $out_config -replace "LUA_REPLACE_PATH_BSLASH", "$($LuaRocksDir -replace '\\', '\\')"
+          $out_config = $out_config -replace "MQROOT_REPLACE_PATH_FSLASH", "$(`"${{ github.workspace }}`" -replace '\\', '/')"
+          $out_config = $out_config -replace "MQROOT_REPLACE_PATH_BSLASH", "$(`"${{ github.workspace }}`" -replace '\\', '\\')"
+          Set-Content -Path "$($env:LUAROCKS_CONFIG)" -Value $out_config
+
+          # Newer versions of vcpkg move the path
+          if (-Not (Test-Path $luajit -PathType Leaf)) {
+            # Update the path to the new location
+            $luajit = $luajit -replace "tools\\luajit.exe", "tools\\luajit\\luajit.exe"
+          }
+
+          $env:LUAROCKS_LJLOC = Split-Path -Path $luajit
+
+          $luajitOutput = (& $luajit -v)
+          $luajitVersion = ($luajitOutput.Split(' '))[1]
+          if ($luajitVersion -eq "") {
+            Write-Error "LuaRocks failed, luajit version get failed"
+            exit 1
+          }
+
+          $env:LUAROCKS_LJVER = $luajitVersion
+          $LuaRockServer = "$LuaRockServerRoot\$luajitVersion"
+
+          $gitQuiet = " --quiet "
+          if ($debug) {
+            $gitQuiet = " "
+          }
+
+          $luarocksQuiet = ""
+          if ($debug) {
+            $luarocksQuiet = " --verbose"
+          }
+
+          if (-NOT (Test-Path $GitFolder -PathType Container)) {
+            $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
+            # Write-Debug "Running: $cmd"
+            Invoke-Expression $cmd
+          } else {
+            $cmd = "git -C `"$GitFolder`" pull$gitQuiet --rebase"
+            # Write-Debug "Running: $cmd"
+            Invoke-Expression $cmd
+            if (-NOT ($LASTEXITCODE -eq 0)) {
+              # Write-Debug "Pull failed, removing folder: $GitFolder"
+              Remove-Item -Path $GitFolder -Force -Recurse
+              $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
+              # Write-Debug "Running: $cmd"
+              Invoke-Expression $cmd
+            }
+          }
+
+          # Remove the old vcpkg_mq.txt so all output is from this script
+          if (Test-Path $LuaRocksDir/vcpkg_mq.txt -PathType Leaf) {
+            Remove-Item -Force -Path $LuaRocksDir/vcpkg_mq.txt
+          }
+
+          if (-NOT (Test-Path $LuaRockServer -PathType Container)) {
+            New-Item -Path $LuaRockServer -ItemType Directory -Force
+          }
+
+          [string[]]$fileContent = Get-Content $LuaYaml
+          $content = ''
+          foreach ($line in $fileContent) { $content = $content + "`n" + $line }
+          $yaml = ConvertFrom-YAML $content
+
+          if ($yaml -And ($yaml.Count -gt 0)) {
+              If (-NOT (Test-Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1" -PathType Leaf)) {
+                New-Item -Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1" -ItemType Directory -Force
+              }
+
+              # Load vcvars for luarocks
+              $vcvars_txt = "${{ github.workspace }}\build\vcvars.txt"
+              $architecture = "$(if ($${{ inputs.client_target == 'emu' }}) {"x64_x86"} else {"x64"})"
+              & cmd.exe /c "call `"$($env:ProgramFiles)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat`" $architecture && set > `"$vcvars_txt`""
+              Get-Content $vcvars_txt | ForEach-Object {
+                if ($_ -match "^(.*?)=(.*)$") {
+                  Set-Content "env:\$($matches[1])" "$($matches[2])"
+                }
+              }
+              Remove-Item -Path $vcvars_txt
+
+              Set-Location $LuaRocksDir
+
+              $updateManifest = $false
+              ForEach ($LuaRock in $yaml.Keys) {
+                  $LuaSearchOutput = .\luarocks search $LuaRock
+                  if (!$?) {
+                      Write-Error "LuaRocks failed, search failed"
+                      exit 1
+                  }
+                $VersionSearch = ''
+                $CorrectSection = $false
+                $LuaSearchOutput | ForEach-Object {
+                    if ([string]::IsNullOrWhiteSpace($VersionSearch)) {
+                        if ($CorrectSection) {
+                            if ($_ -match "(src)") {
+                                $VersionSearch = $_.Split("(")[0].Trim()
+                            }
+                        } elseif ($_.Trim() -eq "$LuaRock")  {
+                            $CorrectSection = $true
+                        }
+                    }
+                }
+
+                $UpstreamLuaSearchOutput = .\luarocks search --only-server "https://luarocks.org/" $LuaRock
+                if (!$?) {
+                    Write-Error "luarocks upstream search failed"
+                    exit 1
+                }
+
+                $UpstreamVersionSearch = ''
+                $CorrectSection = $false
+                $UpstreamLuaSearchOutput | ForEach-Object {
+                    if ([string]::IsNullOrWhiteSpace($UpstreamVersionSearch)) {
+                        if ($CorrectSection) {
+                            if ($_ -match "(src)") {
+                                $UpstreamVersionSearch = $_.Split("(")[0].Trim()
+                            }
+                        } elseif ($_.Trim() -eq "$LuaRock")  {
+                            $CorrectSection = $true
+                        }
+                    }
+                }
+
+                $LuaListOutput = .\luarocks list $LuaRock
+                if (!$?) {
+                    Write-Error "luarocks list failed"
+                    exit 1
+                }
+                $VersionList = ''
+                $CorrectSection = $false
+                $LuaListOutput | ForEach-Object {
+                    if ([string]::IsNullOrWhiteSpace($VersionList)) {
+                        if ($CorrectSection) {
+                            if ($_ -match "(installed)") {
+                                $VersionList = $_.Split("(")[0].Trim()
+                            }
+                        } elseif ($_.Trim() -eq "$LuaRock")  {
+                            $CorrectSection = $true
+                        }
+                    }
+                }
+
+                if (-NOT ($VersionSearch -eq $UpstreamVersionSearch)) {
+                    #TODO: Send to Discord
+                    Write-Warning "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
+                }
+
+                $installModule = $false
+                if (-NOT ($VersionList -eq $VersionSearch)) {
+                    # Write-Debug "Installing $LuaRock because current version [$VersionList] does not match latest version [$VersionSearch]"
+                    $installModule = $true
+                }
+
+                if (-NOT $installModule) {
+                    if ($yaml[$LuaRock].files.Count -gt 0) {
+                        $yaml[$LuaRock].files | ForEach-Object {
+                            $requiredFilePath = "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)"
+                            if (-NOT (Test-Path $requiredFilePath -PathType Leaf)) {
+                                # Write-Debug "Installing $LuaRock because required file does not exist: $requiredFilePath"
+                                $installModule = $true
+                            }
+                        }
+                    }
+                }
+
+                if ($installModule -Or (Get-ChildItem -File $LuaRockServer -Filter $LuaRock*.rock).Count -lt 1) {
+                    if (-Not $installModule)
+                    {
+                        # Write-Debug "Installing $LuaRock because the rock is missing from $LuaRockServer"
+                    }
+                    Write-Host "**** Installing $LuaRock ****"
+                    # Write-Debug "Checking Dependencies"
+                    if ($yaml[$LuaRock].external_deps.Count -gt 0) {
+                        $yaml[$LuaRock].external_deps | ForEach-Object {
+                            $_ | Out-File $LuaRocksDir/vcpkg_mq.txt
+                        }
+                        # Write-Debug "Running vcpkg_mq for dependencies..."
+                        & "$vcpkg_mq" -ProjectName LuaRocks -ProjectDirectory "$LuaRocksDir" -MQRoot "${{ github.workspace }}" -Platform $Platform -Toolchain v143
+                        # Write-Debug "Done Running vcpkg_mq"
+                    } else {
+                        # Write-Debug "No dependencies needed"
+                    }
+                    $cmd = ".\luarocks install $LuaRock$luarocksQuiet"
+                    # Write-Debug "Performing Install: $cmd"
+                    $LuaInstallOutput = Invoke-Expression $cmd
+                    $LuaInstallOutput = $LuaInstallOutput -join "`r`n"
+                    if (!$?) {
+                        Write-Error "FAILED: $cmd"
+                        # Write-Debug -Message $LuaInstallOutput
+                    } else {
+                        if (-NOT ($LuaInstallOutput -match "is now installed in")) {
+                            Write-Error "Failed to install $LuaRock"
+                            # Write-Debug $LuaInstallOutput
+                        } else {
+                            $filesGood = $true
+                            if ($yaml[$LuaRock].files.Count -gt 0) {
+                                $yaml[$LuaRock].files | ForEach-Object {
+                                    if (-NOT (Test-Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)" -PathType Leaf)) {
+                                        $filesGood = $false
+                                        Write-Error "LuaRocks error:  $LuaRock missing file $_"
+                                        # Write-Debug $LuaInstallOutput
+                                    }
+                                }
+                            } elseif ($yaml[$LuaRock].lua_only -eq $true) {
+                                # Nothing else to check since this is pure lua.
+                            } elseif ((Get-ChildItem -File $LuaRockServer -Filter $LuaRock*.rock).Count -lt 1) {
+                                $filesGood = $false
+                                Write-Error "LuaRocks error:  $LuaRock had no files and is missing rock."
+                                # Write-Debug -Message $LuaInstallOutput
+                            }
+                            if ($filesGood) {
+                                Set-Location $LuaRockServer
+                                $LuaPackOutput = (& "$LuaRocksDir\luarocks" pack $LuaRock)
+                                Set-Location $LuaRocksDir
+                                $updateManifest = $true
+                            }
+                        }
+                    }
+                }
+            }
+
+            Write-Host "**** Updating RockServer ****"
+            Get-ChildItem -File $LuaRockServer -Filter *.rock | ForEach-Object {
+                $foundMatch = $false
+                $rockFileName = $_.Name
+                $rockFilePath = $_.FullName
+                ForEach ($LuaRock in $yaml.Keys) {
+                    if ($rockFileName -match $LuaRock) {
+                        $foundMatch = $true
+                    }
+                }
+
+                if (-NOT $foundMatch) {
+                    Write-Host "**** Removing: $rockFileName ****"
+                    Remove-Item -Path $rockFilePath -Force
+                    $updateManifest = $true
+                }
+            }
+            if ($updateManifest) {
+                Write-Host "**** Updating RockServer Manifest ****"
+                git -C "$LuaRockServerRoot" config user.name "MQGitBot"
+                git -C "$LuaRockServerRoot" config user.email "mqgitbot@gmail.com"
+                $LuaManifestOutput = ./luarocks-admin make-manifest $LuaRockServer
+                if (!$?) {
+                    Write-Error "Failed Updating Manifest: $LuaManifestOutput"
+                } else {
+                    $gitStatusOutput = git -C "$LuaRockServerRoot" status --porcelain
+                                          # untracked files exist                            # uncommitted changes exist
+                    if(($gitStatusOutput | Where-Object {$_ -match '^\?\?'}) -Or ($gitStatusOutput | Where-Object {$_ -notmatch '^\?\?'})) {
+                        $gitOutput = git -C "$LuaRockServerRoot" add "$LuaRockServerRoot"
+                        if (!$?) {
+                            Write-Error "LuaRocks could not add $LuaRockServerRoot -- $gitOutput"
+                        } else {
+                            $gitOutput = git -C "$LuaRockServerRoot" commit -m "Automatic update of LuaRocks $Platform"
+                            if (!$?) {
+                                Write-Error "LuaRocks could not commit changes -- $gitOutput"
+                            } else {
+                                $cmd = "git -C `"$LuaRockServerRoot`" push$gitQuiet"
+                                $cmd = $cmd.Trim()
+                                # Write-Debug "Running: $cmd"
+                                $gitOutput = Invoke-Expression $cmd
+                                if (!$?) {
+                                    Write-Error "LuaRocks could not push changes -- $gitOutput"
+                                }
+                            }
+                        }
+                    } else {
+                        # tree is clean
+                        Write-Error "LuaRocks expected dirty tree, but nothing to commit"
+                    }
+                }
+            }
+          }
+
+  update_symbols:
+    if: github.repository == 'macroquest/macroquest'
+    needs: build
+    runs-on: [symbol, self-hosted, Windows, X64]
+    steps:
+      - name: Download Symbols Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: symbols-${{ inputs.client_target }}
+          path: ${{ github.workspace }}
+
+      - name: Unzip Symbols
+        shell: pwsh
+        run: |
+          $zip = "${{ github.workspace }}\MacroQuest-Symbols.zip"
+          $dest = "${{ github.workspace }}\MacroQuest-Symbols"
+          if (Test-Path -Path $dest) {
+            Get-ChildItem $dest -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue -Recurse
+            Remove-Item $dest -Force -Recurse
+          }
+          New-Item -ItemType Directory -Path $dest
+          Expand-Archive -Path $zip -DestinationPath $dest
+
+      - name: Update Symbol Server
+        shell: pwsh
+        run: |
+          $ProjectTitle = $($env:GITHUB_REPOSITORY).Split("/")[1]
+          $SymbolDir = "${{ secrets.SYMBOL_SRV_PATH }}"
+          $ReleasePath = "${{ github.workspace }}\MacroQuest-Symbols"
+          $symstore = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter symstore.exe | Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
+          $LASTEXITCODE = 0
+          & $symstore add /r /f "$ReleasePath\*.dll" /s $SymbolDir /t "$ProjectTitle" /compress | Out-Null
+          & $symstore add /r /f "$ReleasePath\*.exe" /s $SymbolDir /t "$ProjectTitle" /compress | Out-Null
+          & $symstore add /r /f "$ReleasePath\*.pdb" /s $SymbolDir /t "$ProjectTitle" /compress | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to update symbol server"
+          }
+          $agestore = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter agestore.exe | Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
+          & $agestore $SymbolDir /days=60 /s /y  | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to age symbol server"
+          }
+
+      - name: Remove Symbols
+        shell: pwsh
+        run: |
+          $dest = "${{ github.workspace }}\MacroQuest-Symbols"
+          if (Test-Path -Path $dest) {
+            Get-ChildItem $dest -Recurse | Remove-Item -Force -ErrorAction SilentlyContinue -Recurse
+            Remove-Item $dest -Force -Recurse
+          }
+          $dest = "${{ github.workspace }}\MacroQuest-Symbols.zip"
+          if (Test-Path -Path $dest) {
+            Remove-Item -Path $dest -Force
+          }
+

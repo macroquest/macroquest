@@ -54,3 +54,6 @@ src/MacroQuest*.sln
 
 # ignore generated protobuf files
 *.pb.*
+
+# ignore resharper files
+*.DotSettings.user

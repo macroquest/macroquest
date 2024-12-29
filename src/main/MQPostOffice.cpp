@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -28,7 +28,7 @@ namespace pipeclient {
 static void InitializePostOffice();
 static void ShutdownPostOffice();
 static void PulsePostOffice();
-static void SetGameStatePostOffice(DWORD);
+static void SetGameStatePostOffice(int);
 }
 
 static MQModule s_PostOfficeModule = {
@@ -77,30 +77,30 @@ private:
 			case MQMessageId::MSG_ROUTE:
 			{
 				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				const auto& address = envelope.address();
+				auto address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
 				// was within the client. In either case, we can safely assume that we should route it to an
 				// internal mailbox
-				if (address.has_mailbox() && !ci_equals(address.mailbox(), "pipe_client"))
+				if (address && address->has_mailbox())
 				{
 					// we need to loop all mailboxes and deliver to all of them that end with the address
 					// if this is an RPC message, then we need to ensure that we have only one
 					if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
 					{
-						auto mailbox = m_postOffice->FindMailbox(address, m_postOffice->m_mailboxes.begin());
+						auto mailbox = m_postOffice->FindMailbox(*address, m_postOffice->m_mailboxes.begin());
 
 						if (mailbox == m_postOffice->m_mailboxes.end()) // no addresses
 							RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
-						else if (m_postOffice->FindMailbox(address, std::next(mailbox)) != m_postOffice->m_mailboxes.end()) // multiple addresses
+						else if (m_postOffice->FindMailbox(*address, std::next(mailbox)) != m_postOffice->m_mailboxes.end()) // multiple addresses
 							RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
 						else // we have exactly one recipient, this is valid
-							m_postOffice->DeliverTo(address.mailbox(), std::move(message));
+							m_postOffice->DeliverTo(address->mailbox(), std::move(message));
 					}
 					else
 					{
 						// in any other case, just route the message
-						m_postOffice->DeliverTo(address.mailbox(), std::move(message));
+						m_postOffice->DeliverTo(address->mailbox(), std::move(message));
 					}
 				}
 				else
@@ -181,11 +181,11 @@ private:
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_UNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload", true);
+				DoCommand("/unload", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD:
-				HideDoCommand(pLocalPlayer, "/unload force", true);
+				DoCommand("/unload force", true);
 				break;
 
 			case MQMessageId::MSG_MAIN_PROCESS_LOADED: {
@@ -272,6 +272,9 @@ public:
 		const proto::routing::Address& address,
 		const std::unordered_map<const std::string, std::unique_ptr<postoffice::Mailbox>>::iterator& from)
 	{
+		if (!address.has_mailbox())
+			return m_mailboxes.end();
+
 		return std::find_if(from, m_mailboxes.end(),
 			[&address](const std::pair<const std::string, std::unique_ptr<postoffice::Mailbox>>& pair)
 			{ return ci_ends_with(pair.first, address.mailbox()); });
@@ -312,33 +315,29 @@ public:
 					else
 						m_pipeClient.SendMessageWithResponse(std::move(message), callback);
 				}
-				else if (address.has_pid() && address.pid() == GetCurrentProcessId() && address.has_mailbox())
+				else if (address.has_pid() && address.pid() == GetCurrentProcessId() && callback != nullptr)
 				{
-					if (callback == nullptr)
-						DeliverTo(address.mailbox(), std::move(message));
-					else
-					{
-						auto mailbox = FindMailbox(address, m_mailboxes.begin());
+					// special handling for local RPC messages
+					auto mailbox = FindMailbox(address, m_mailboxes.begin());
 
-						// need to set the request mode here to ensure that failed messages get returned
-						message->SetRequestMode(MQRequestMode::CallAndResponse);
+					// need to set the request mode here to ensure that failed messages get returned
+					message->SetRequestMode(MQRequestMode::CallAndResponse);
 
-						if (mailbox == m_mailboxes.end()) // no addresses
-							RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
-						else if (FindMailbox(address, std::next(mailbox)) != m_mailboxes.end()) // multiple addresses
-							RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
-						else // we have exactly one recipient, this is valid
-							m_pipeClient.SendMessageWithResponse(std::move(message), callback);
-					}
+					if (mailbox == m_mailboxes.end()) // no addresses
+						RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+					else if (FindMailbox(address, std::next(mailbox)) != m_mailboxes.end()) // multiple addresses
+						RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+					else // we have exactly one recipient, this is valid
+						m_pipeClient.SendMessageWithResponse(std::move(message), callback);
 				}
-				else // address.has_pid() && address.pid() == GetCurrentProcessId()
+				else // address.has_pid() && address.pid() == GetCurrentProcessId() && callback == nullptr
 				{
-					DeliverTo("pipe_client", std::move(message));
+					m_pipeClient.DispatchMessage(std::move(message));
 				}
 			}
-			else
+			else // no address, just dispatch
 			{
-				DeliverTo("pipe_client", std::move(message));
+				m_pipeClient.DispatchMessage(std::move(message));
 			}
 		}
 		else
@@ -391,7 +390,20 @@ public:
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
-	void SetGameStatePostOffice(DWORD GameState)
+	void SendNotification(const std::string& message, const std::string& title)
+	{
+		if (m_pipeClient.IsConnected())
+		{
+			proto::routing::Notification notification;
+			notification.set_title(title);
+			if (!message.empty())
+				notification.set_message(message);
+
+			m_pipeClient.SendProtoMessage(MQMessageId::MSG_MAIN_TRAY_NOTIFY, notification);
+		}
+	}
+
+	void SetGameStatePostOffice(int GameState)
 	{
 		static bool logged_in = false;
 
@@ -482,6 +494,11 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage)
 	static_cast<MQPostOffice&>(GetPostOffice()).RequestActivateWindow(hWnd, sendMessage);
 }
 
+void SendNotification(const std::string& message, const std::string& title)
+{
+	static_cast<MQPostOffice&>(GetPostOffice()).SendNotification(message, title);
+}
+
 void InitializePostOffice()
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
@@ -497,7 +514,7 @@ void PulsePostOffice()
 	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
 }
 
-void SetGameStatePostOffice(DWORD GameState)
+void SetGameStatePostOffice(int GameState)
 {
 	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
 }

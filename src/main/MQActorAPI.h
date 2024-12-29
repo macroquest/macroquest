@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -13,6 +13,10 @@
  */
 
 #pragma once
+
+#ifndef MQ2MAIN_EXPORTS
+#error This header should only be included from the MQ2Main project
+#endif
 
 #include "mq/base/Common.h"
 #include "mq/api/ActorAPI.h"
@@ -27,25 +31,23 @@ public:
 		const postoffice::Address& address,
 		const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	void ReplyToActor(
 		postoffice::Dropbox* dropbox,
 		const std::shared_ptr<postoffice::Message>& message,
 		const std::string& data,
 		uint8_t status,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	postoffice::Dropbox* AddActor(
 		const char* localAddress,
 		postoffice::ReceiveCallbackAPI&& receive,
-		MQPlugin* owner = nullptr);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	void RemoveActor(
 		postoffice::Dropbox*& dropbox,
-		MQPlugin* owner = nullptr);
-
-	void OnUnloadPlugin(MQPlugin* plugin);
+		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 };
 
 extern MQActorAPI* pActorAPI;

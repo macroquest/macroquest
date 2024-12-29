@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -40,88 +40,196 @@ static std::unique_ptr<CTextureAnimation> FindTextureAnimation(std::string_view 
 
 //============================================================================
 
-#pragma region MQ Data Bindings
+#pragma region Text Links
 
-static sol::table lua_getAllSpawns(sol::this_state L)
+static sol::table lua_ExtractLinks(sol::this_state L, std::string_view str)
 {
 	auto table = sol::state_view(L).create_table();
 
-	if (pSpawnManager)
-	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			table.add(std::move(lua_spawn));
+	TextTagInfo tags[MAX_EXTRACT_LINKS];
+	size_t numTags = ExtractLinks(str, tags, MAX_EXTRACT_LINKS);
 
-			spawn = spawn->GetNext();
-		}
+	for (size_t i = 0; i < numTags; ++i)
+	{
+		table.add(std::move(tags[i]));
 	}
 
 	return table;
 }
 
-static sol::table lua_getFilteredSpawns(sol::this_state L, std::optional<sol::function> predicate)
+static std::string lua_FormatDialogLink(std::string_view keyword, sol::optional<std::string_view> text)
 {
-	auto table = sol::state_view(L).create_table();
+	char buffer[MAX_STRING];
+	FormatDialogLink(buffer, MAX_STRING, keyword, text.has_value() ? text.value() : std::string_view());
 
-	if (pSpawnManager && predicate)
+	return buffer;
+}
+
+static std::string lua_FormatItemLink(sol::this_state L, const lua_MQTypeVar& typeVar)
+{
+	MQTypeVar var = typeVar.EvaluateMember();
+
+	if (var.Type != datatypes::pItemType)
+		luaL_error(L, "Expected an item type var");
+
+	ItemPtr pItem = datatypes::pItemType->GetItem(var);
+	if (pItem == nullptr)
+		luaL_error(L, "Expected item, got nil");
+
+	char buffer[MAX_STRING];
+	FormatItemLink(buffer, MAX_STRING, pItem.get());
+
+	return buffer;
+}
+
+static std::string lua_FormatSpellLink(sol::this_state L, const lua_MQTypeVar& typeVar, sol::optional<const char*> nameOverride)
+{
+	MQTypeVar var = typeVar.EvaluateMember();
+
+	if (var.Type != datatypes::pSpellType)
+		luaL_error(L, "Expected a spell type var");
+
+	EQ_Spell* pSpell = datatypes::MQ2SpellType::GetSpell(var);
+	if (pSpell == nullptr)
+		luaL_error(L, "Expected spell, got nil");
+
+	char buffer[MAX_STRING];
+	FormatSpellLink(buffer, MAX_STRING, pSpell, nameOverride.value_or(nullptr));
+
+	return buffer;
+}
+
+static std::string lua_FormatAchievementLink(sol::this_state L, const lua_MQTypeVar& typeVar, std::string_view playerName)
+{
+	MQTypeVar var = typeVar.EvaluateMember();
+
+	if (var.Type != datatypes::pAchievementType)
+		luaL_error(L, "Expected an achievement type var");
+
+	const Achievement* pAchievement = datatypes::MQ2AchievementType::GetAchievement(var);
+	if (pAchievement == nullptr)
+		luaL_error(L, "Expected achievement, got nil");
+
+	char buffer[MAX_STRING];
+	FormatAchievementLink(buffer, MAX_STRING, pAchievement, playerName);
+
+	return buffer;
+}
+
+static sol::optional<DialogLinkInfo> lua_ParseDialogLink(std::string_view str)
+{
+	DialogLinkInfo linkInfo;
+
+	if (ParseDialogLink(str, linkInfo))
+		return linkInfo;
+
+	return {};
+}
+
+static sol::optional<ItemLinkInfo> lua_ParseItemLink(std::string_view str)
+{
+	ItemLinkInfo linkInfo;
+
+	if (ParseItemLink(str, linkInfo))
+		return linkInfo;
+
+	return {};
+}
+
+static sol::optional<SpellLinkInfo> lua_ParseSpellLink(std::string_view str)
+{
+	SpellLinkInfo linkInfo;
+
+	if (ParseSpellLink(str, linkInfo))
+		return linkInfo;
+
+	return {};
+}
+
+static std::string lua_StripTextLinks(std::string_view str)
+{
+	CXStr text(str);
+
+	text = CleanItemTags(text);
+	return std::string{ text };
+}
+
+static sol::table lua_getAllSpawns(sol::this_state L)
+{
+	sol::table allSpawns = sol::state_view(L).create_table();
+
+	if (auto thisThread = LuaThread::get_from(L))
 	{
-		auto spawn = pSpawnManager->FirstSpawn;
-		const auto& predicate_value = predicate.value();
-		while (spawn != nullptr)
-		{
-			auto lua_spawn = lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(spawn));
-			if (predicate_value(lua_spawn))
-				table.add(std::move(lua_spawn));
+		sol::table spawnTable = thisThread->GetSpawnTable();
 
-			spawn = spawn->GetNext();
+		for (const auto& [_, value] : spawnTable)
+		{
+			allSpawns.add(value);
 		}
 	}
 
-	return table;
+	return allSpawns;
+}
+
+static sol::table lua_getFilteredspawns(sol::this_state L, sol::optional<sol::unsafe_function> predicate_)
+{
+	sol::table filteredSpawns = sol::state_view(L).create_table();
+	auto thisThread = LuaThread::get_from(L);
+
+	if (thisThread && predicate_.has_value())
+	{
+		sol::table spawnTable = thisThread->GetSpawnTable();
+		const sol::unsafe_function& predicate = predicate_.value();
+
+		for (const auto& [_, value] : spawnTable)
+		{
+			if (predicate(value))
+			{
+				filteredSpawns.add(value);
+			}
+		}
+	}
+
+	return filteredSpawns;
 }
 
 static sol::table lua_getAllGroundItems(sol::this_state L)
 {
-	auto table = sol::state_view(L).create_table();
+	sol::table allGroundItems = sol::state_view(L).create_table();
 
-	if (pItemList)
+	if (auto thisThread = LuaThread::get_from(L))
 	{
-		auto pGroundItem = pItemList->Top;
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			table.add(std::move(lua_ground));
+		sol::table groundItemTable = thisThread->GetGroundItemTable();
 
-			pGroundItem = pGroundItem->pNext;
+		for (const auto& [_, value] : groundItemTable)
+		{
+			allGroundItems.add(value);
 		}
 	}
 
-	return table;
+	return allGroundItems;
 }
 
-static sol::table lua_getFilteredGroundItems(sol::this_state L, std::optional<sol::function> predicate)
+static sol::table lua_getFilteredGroundItems(sol::this_state L, sol::unsafe_function predicate_)
 {
-	auto table = sol::state_view(L).create_table();
+	sol::table filteredGroundItems = sol::state_view(L).create_table();
+	auto thisThread = LuaThread::get_from(L);
 
-	if (pItemList && predicate)
+	if (thisThread && predicate_.valid())
 	{
-		auto pGroundItem = pItemList->Top;
-		const auto& predicate_value = predicate.value();
-		while (pGroundItem != nullptr)
-		{
-			auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
-			auto lua_ground = lua_MQTypeVar(groundTypeVar);
-			if (predicate_value(lua_ground))
-				table.add(std::move(lua_ground));
+		sol::table groundItemTable = thisThread->GetGroundItemTable();
+		const sol::unsafe_function& predicate = predicate_;
 
-			pGroundItem = pGroundItem->pNext;
+		for (const auto& [_, value] : groundItemTable)
+		{
+			if (predicate(value))
+			{
+				filteredGroundItems.add(value);
+			}
 		}
 	}
 
-	return table;
+	return filteredGroundItems;
 }
 
 #pragma endregion
@@ -156,11 +264,66 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 		});
 
 	//----------------------------------------------------------------------------
+	// Chat links
+	mq.set_function("ExtractLinks"        , &lua_ExtractLinks);
+	mq.set_function("ExecuteTextLink"     , &eqlib::ExecuteTextLink);
+	mq.set_function("FormatAchievementLink", &lua_FormatAchievementLink);
+	mq.set_function("FormatDialogLink"    , &lua_FormatDialogLink);
+	mq.set_function("FormatItemLink"      , &lua_FormatItemLink);
+	mq.set_function("FormatSpellLink"     , &lua_FormatSpellLink);
+	mq.set_function("ParseDialogLink"     , &lua_ParseDialogLink);
+	mq.set_function("ParseItemLink"       , &lua_ParseItemLink);
+	mq.set_function("ParseSpellLink"      , &lua_ParseSpellLink);
+	mq.set_function("StripTextLinks"      , &lua_StripTextLinks);
+
+	mq.new_usertype<TextTagInfo>(
+		"TextTagInfo"                     , sol::no_constructor,
+		"type"                            , sol::readonly(&TextTagInfo::tagCode),
+		"link"                            , sol::readonly(&TextTagInfo::link),
+		"text"                            , sol::readonly(&TextTagInfo::text));
+
+	mq.new_enum("LinkTypes",
+		"Item"                            , ETAG_ITEM,
+		"Player"                          , ETAG_PLAYER,
+		"Spam"                            , ETAG_SPAM,
+		"Achievement"                     , ETAG_ACHIEVEMENT,
+		"Dialog"                          , ETAG_DIALOG_RESPONSE,
+		"Command"                         , ETAG_COMMAND,
+		"Spell"                           , ETAG_SPELL,
+		"Faction"                         , ETAG_FACTION,
+		"Invalid"                         , ETAG_INVALID);
+
+	mq.new_usertype<DialogLinkInfo>(
+		"DialogLinkInfo"                  , sol::no_constructor,
+		"keyword"                         , sol::readonly(&DialogLinkInfo::keyword),
+		"text"                            , sol::readonly(&DialogLinkInfo::text));
+	mq.new_usertype<ItemLinkInfo>(
+		"ItemLinkInfo"                    , sol::no_constructor,
+		"itemID"                          , sol::readonly(&ItemLinkInfo::itemID),
+		"sockets"                         , [](ItemLinkInfo* pThis) { return &pThis->sockets; },
+		"socketLuck"                      , [](ItemLinkInfo* pThis) { return &pThis->socketLuck; },
+		"isEvolving"                      , sol::readonly(&ItemLinkInfo::isEvolving),
+		"evolutionGroup"                  , sol::readonly(&ItemLinkInfo::evolutionGroup),
+		"evolutionLevel"                  , sol::readonly(&ItemLinkInfo::evolutionLevel),
+		"ornamentationIconID"             , sol::readonly(&ItemLinkInfo::ornamentationIconID),
+		"luck"                            , sol::readonly(&ItemLinkInfo::luck),
+		"itemHash"                        , sol::readonly(&ItemLinkInfo::itemHash),
+		"itemName"                        , sol::readonly(&ItemLinkInfo::itemName),
+		"IsSocketed"                      , &ItemLinkInfo::IsSocketed);
+	mq.new_usertype<SpellLinkInfo>(
+		"SpellLinkInfo"                   , sol::no_constructor,
+		"spellID"                         , sol::readonly(&SpellLinkInfo::spellID),
+		"spellName"                       , sol::readonly(&SpellLinkInfo::spellName));
+
+	mq.set("MAX_AUG_SOCKETS"              , MAX_AUG_SOCKETS);
+
+	//----------------------------------------------------------------------------
 	// Direct Data Bindings
-	mq.set_function("getAllSpawns", &lua_getAllSpawns);
-	mq.set_function("getFilteredSpawns", &lua_getFilteredSpawns);
-	mq.set_function("getAllGroundItems", &lua_getAllGroundItems);
-	mq.set_function("getFilteredGroundItems", &lua_getFilteredGroundItems);
+
+	mq.set("getAllSpawns", lua_getAllSpawns);
+	mq.set_function("getFilteredSpawns", lua_getFilteredspawns);
+	mq.set_function("getAllGroundItems", lua_getAllGroundItems);
+	mq.set_function("getFilteredGroundItems", lua_getFilteredGroundItems);
 }
 
 } // namespace mq::lua::bindings

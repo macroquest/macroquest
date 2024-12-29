@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -12,10 +12,19 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "ProcessMonitor.h"
-#include "Crashpad.h"
-#include "PostOffice.h"
+#include "loader/MacroQuest.h"
+#include "loader/ProcessMonitor.h"
+#include "loader/Crashpad.h"
+#include "loader/PostOffice.h"
+#include "loader/ImGui.h"
+#include "loader/LoaderAutoLogin.h"
+#include "login/AutoLogin.h"
+#include "imgui/fonts/IconsFontAwesome.h"
+#include "imgui/ImGuiUtils.h"
+#include "mq/utils/Naming.h"
+#include "mq/utils/OS.h"
+#include "mq/base/BuildInfo.h"
+#include "mq/base/Logging.h"
 
 #include "resource.h"
 
@@ -28,16 +37,10 @@
 #include <extras/wil/Constants.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
-
 #include <filesystem>
 #include <tuple>
-
 #include <shellapi.h>
 #include <fcntl.h>
-
-#include <mq/utils/Naming.h>
-#include <mq/utils/OS.h>
-#include <mq/base/BuildInfo.h>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
@@ -48,15 +51,18 @@
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 
+namespace LauncherImGui {
+	bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
+}
+
 HWND hMainWnd;
 
 PROCESS_INFORMATION pInfo = { 0 };
 STARTUPINFO sInfo = { 0 };
-HDC dc = { 0 };
-NOTIFYICONDATA NID;
+NOTIFYICONDATA NID = { 0 };
 PAINTSTRUCT PS;
 
-char gszMQVersion[64] = { 0 };
+std::string ServerType;
 char WinDir[_MAX_PATH] = { 0 };
 
 uint32_t gNextWindowHotKey = 0;
@@ -65,8 +71,6 @@ uint32_t gBossModeHotKey = 0;
 
 bool gbAllEQWindowsHidden = false;
 DWORD gLastEQGameSwitchedTo = 0;
-bool gbMinimized = false;
-HMENU hMenu = nullptr;
 HINSTANCE g_hInst = nullptr;
 
 char gszWinClassName[64] = { 0 };
@@ -82,6 +86,17 @@ bool gCrashPadInitialized = false;
 
 std::map<std::tuple<uint16_t, uint16_t>, HWND> hotkeyMap;
 uint32_t gFocusProcessID = 0;
+
+static std::set<uint32_t> s_processIds;
+
+static uint32_t s_taskbarRestart = 0;
+
+// Log cleanup settings
+static uint32_t s_logCleanupMaxCount = 200;         // Default to only keeping a max of 200 log files
+static uint32_t s_logCleanupMaxAgeDays = 14;        // Default to 14 days before deleting log files
+static uint32_t s_logFileCleanupIntervalMins = 360; // Default to 6 hours between cleanings
+
+static std::chrono::steady_clock::time_point s_lastLogFileCleanupRun;
 
 //----------------------------------------------------------------------------
 
@@ -145,58 +160,370 @@ void ShowConsole()
 
 void UpdateShowConsole(bool showConsole, bool updateIni)
 {
-	if (showConsole == gbConsoleVisible)
-		return;
-
-	HMENU hSubMenu = GetSubMenu(hMenu, 0);
-	MENUITEMINFOA mi = { sizeof(MENUITEMINFOA) };
-	mi.fMask = MIIM_STATE;
-
-	if (showConsole)
+	if (showConsole != gbConsoleVisible)
 	{
-		mi.fState = MF_CHECKED;
-		ShowConsole();
+		if (showConsole)
+			ShowConsole();
+		else
+			HideConsole();
+
+		gbConsoleVisible = showConsole;
+
+		if (updateIni)
+			WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
 	}
-	else
+}
+
+static void PerformLoggingCleanup()
+{
+	fs::path loggingPath = internal_paths::Logs;
+
+	const auto durationCutoff = s_logCleanupMaxAgeDays * 24h;
+	const size_t countCutoff = s_logCleanupMaxCount;
+
+	static bool firstTime = true;
+
+	try
 	{
-		mi.fState = MF_UNCHECKED;
-		HideConsole();
+		fs::directory_iterator dirIter(loggingPath);
+		fs::directory_iterator dirIterEnd;
+
+		using file_clock = fs::file_time_type::clock;
+
+		struct DirEntry
+		{
+			fs::path fileName;
+			file_clock::time_point modifiedTime;
+
+			DirEntry(const fs::path& fileName_, const file_clock::time_point& modifiedTime_)
+				: fileName(fileName_), modifiedTime(modifiedTime_) {}
+			DirEntry() = default;
+		};
+
+		std::vector<DirEntry> dirItems;
+		std::vector<DirEntry> removeItems;
+		auto file_time_now = file_clock::now();
+		std::error_code ec;
+
+		for (; dirIter != dirIterEnd; ++dirIter)
+		{
+			const auto& dirEntry = *dirIter;
+
+			if (!dirEntry.is_regular_file(ec) || !ci_equals(dirEntry.path().extension().string(), ".log"))
+			{
+				continue;
+			}
+
+			// Check last modified time. If it is too old we purge.
+			auto file_time = fs::last_write_time(dirEntry.path(), ec);
+
+			if (s_logCleanupMaxAgeDays > 0 && file_time_now - file_time > durationCutoff)
+			{
+				removeItems.emplace_back(dirEntry.path(), file_time);
+			}
+			else
+			{
+				dirItems.emplace_back(dirEntry.path(), file_time);
+			}
+		}
+
+		// Check if we need to remove log files based on total number remaining
+		if (countCutoff > 0 && dirItems.size() > countCutoff)
+		{
+			// Sort by modified time descending.
+			std::sort(std::begin(dirItems), std::end(dirItems), [&](const DirEntry& a, const DirEntry& b)
+				{
+					return a.modifiedTime > b.modifiedTime;
+				});
+
+			std::copy_n(std::begin(dirItems), dirItems.size() - countCutoff, std::back_inserter(removeItems));
+		}
+
+		if (firstTime)
+		{
+			SPDLOG_INFO("Performing log file cleanup, found {} files to remove.", removeItems.size());
+		}
+
+		// Delete the entries selected for deletion
+		for (const DirEntry& entry : removeItems)
+		{
+			try
+			{
+				SPDLOG_INFO("Removed {}", entry.fileName.string());
+				fs::remove(entry.fileName);
+			}
+			catch (const std::exception& ex)
+			{
+				SPDLOG_WARN("Failed to remove log file: {} ({})", entry.fileName.string(), ex.what());
+			}
+		}
+	}
+	catch (const std::exception& exc)
+	{
+		SPDLOG_WARN("Exception occurred while performing log file cleanup: {}", exc.what());
 	}
 
-	gbConsoleVisible = showConsole;
+	firstTime = false;
+}
 
-	SetMenuItemInfo(hSubMenu, ID_ADVANCED_TOGGLECONSOLE, FALSE, &mi);
+static void CheckPruneLogging()
+{
+	using namespace std::chrono;
 
-	if (updateIni)
+	if (s_logFileCleanupIntervalMins > 0)
 	{
-		WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
+		auto now = steady_clock::now();
+		if (now - s_lastLogFileCleanupRun > minutes(s_logFileCleanupIntervalMins))
+		{
+			s_lastLogFileCleanupRun = now;
+
+			PerformLoggingCleanup();
+		}
 	}
 }
 
 void InitializeLogging()
 {
-	fs::path loggingPath = internal_paths::Logs;
-	std::string filename = (loggingPath / fmt::format("MacroQuest-Launcher-{}.log",
-		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
-			std::chrono::system_clock::now())))).string();
-
 	// create color multi threaded logger
-
 	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
+	spdlog::set_default_logger(logger);
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+
 	if (IsDebuggerPresent())
 	{
 		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
 	}
 
-	auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
-	logger->sinks().push_back(fileSink);
+	fmt::memory_buffer filename;
+	auto out = fmt::format_to(fmt::appender(filename),
+		"{}\\{}", internal_paths::Logs, mq::CreateLogFilename("MacroQuest-Launcher"));
+	*out = 0;
 
-	spdlog::set_default_logger(logger);
-	fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
-	spdlog::flush_on(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::trace);
+	try
+	{
+		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
+		fileSink->set_pattern("%^%L %Y-%m-%d %T.%f%$ [%n] %v (%@)");
+
+		logger->sinks().push_back(fileSink);
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		// Failed to create log file. How would we report this so early?
+		SPDLOG_WARN("Failed to create file logger: {}, ex: {}", std::string_view(filename.data(), filename.size()), ex.what());
+	}
 
 	SPDLOG_DEBUG("Logging Initialized");
+}
+
+void ShowLoggingSettings()
+{
+	if (ImGui::Button("Open Logs Folder"))
+	{
+		ShellExecuteA(nullptr, "explore", internal_paths::Logs.c_str(), nullptr, nullptr, SW_SHOW);
+	}
+
+	ImGui::NewLine();
+
+	ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("Logging Cleanup");
+	ImGui::PopFont();
+	ImGui::Separator();
+
+	ImGui::TextWrapped("Logging cleanup will automatically delete old log files in the logs folder to avoid consuming excessive amounts of disk space.");
+	ImGui::NewLine();
+
+	using namespace std::chrono;
+
+	using days = std::chrono::duration<int, std::ratio<1440 * 60>>;       // 1440 minutes in a day
+	using weeks = std::chrono::duration<int, std::ratio<1440 * 60 * 7>>;
+	using years = std::chrono::duration<int, std::ratio<1440 * 60 * 365>>;
+
+	// Cleanup interval
+	{
+		static uint32_t lastLogFileCleanupIntervalMins = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if  (lastLogFileCleanupIntervalMins != s_logFileCleanupIntervalMins || !init)
+		{
+			lastLogFileCleanupIntervalMins = s_logFileCleanupIntervalMins;
+			init = true;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastLogFileCleanupIntervalMins <= 0)
+			{
+				fmt::format_to(fmt::appender(buffer), "Never");
+				*buf = 0;
+			}
+			else
+			{
+				// Define durations for days, hours, and minutes
+				auto minutes_duration = minutes(lastLogFileCleanupIntervalMins);
+				auto hours_duration = duration_cast<hours>(minutes_duration);
+				auto days_duration = duration_cast<days>(hours_duration);
+
+				// Calculate remaining hours and minutes
+				hours_duration -= days_duration;
+				minutes_duration -= hours_duration;
+				minutes_duration -= duration_cast<minutes>(days_duration);
+
+				if (days_duration.count() > 0) {
+					fmt::format_to(buf, "{} day{}", days_duration.count(), days_duration.count() != 1 ? "s " : "");
+					if (hours_duration.count() > 0 || minutes_duration.count() > 0) {
+						*buf = ' ';
+					}
+				}
+				if (hours_duration.count() > 0) {
+					fmt::format_to(buf, "{} hour{}", hours_duration.count(), hours_duration.count() != 1 ? "s " : "");
+					if (minutes_duration.count() > 0) {
+						*buf = ' ';
+					}
+				}
+				if (minutes_duration.count() > 0) {
+					fmt::format_to(buf, "{} minute{}", minutes_duration.count(), minutes_duration.count() != 1 ? "s" : "");
+				}
+
+				*buf = 0;
+			}
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 1440; // 1 day
+
+		ImGui::SetNextItemWidth(200);
+
+		if (ImGui::SliderScalar("Cleanup Frequency", ImGuiDataType_U32, &s_logFileCleanupIntervalMins, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"How often logging cleanup runs.\n\n"
+			"Log file cleanup will occur on startup and then whenever this amount\n"
+			"of time passes while the application is running.\n\n"
+			"Set this to 0 to disable.");
+	}
+
+	// Log cleanup max days
+	{
+		static uint32_t lastMaxAgeDays = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if (lastMaxAgeDays != s_logCleanupMaxAgeDays || !init)
+		{
+			init = true;
+			lastMaxAgeDays = s_logCleanupMaxAgeDays;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastMaxAgeDays == 0)
+			{
+				fmt::format_to(buf, "Disabled");
+			}
+			else
+			{
+				// Define durations for days, hours, and minutes
+				auto days_duration = days(lastMaxAgeDays);
+				auto years_duration = duration_cast<years>(days_duration); // 365 days in a year
+				auto weeks_duration = duration_cast<weeks>(days_duration - years_duration); // 7 days in a week
+
+				// Calculate remaining hours and minutes
+				auto remaining_days_duration = days_duration - years_duration - weeks_duration;
+
+				if (years_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} year{}", years_duration.count(), years_duration.count() != 1 ? "s" : "");
+					if (weeks_duration.count() > 0 || remaining_days_duration.count() > 0)
+					{
+						*buf = ' ';
+					}
+				}
+
+				if (weeks_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} week{}", weeks_duration.count(), weeks_duration.count() != 1 ? "s" : "");
+					if (days_duration.count() > 0)
+					{
+						*buf = ' ';
+					}
+				}
+
+				if (remaining_days_duration.count() > 0)
+				{
+					fmt::format_to(buf, "{} day{}", remaining_days_duration.count(), remaining_days_duration.count() != 1 ? "s" : "");
+				}
+			}
+			*buf = 0;
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 365; // 1 year
+
+		ImGui::SetNextItemWidth(200);
+
+		if (ImGui::SliderScalar("How long to keep log files", ImGuiDataType_U32, &s_logCleanupMaxAgeDays, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat | ImGuiSliderFlags_Logarithmic))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"Deletes log files that are older than this amount of time.\n\n"
+			"Set this to 0 to disable deleting files by age.");
+	}
+
+	// Log clean max count
+	{
+		//s_logCleanupMaxCount
+
+		static uint32_t lastMaxCount = 0;
+		static fmt::memory_buffer buffer;
+		static bool init = false;
+
+		if (lastMaxCount != s_logCleanupMaxCount || !init)
+		{
+			init = true;
+			lastMaxCount = s_logCleanupMaxCount;
+
+			buffer.clear();
+			auto buf = fmt::appender(buffer);
+
+			if (lastMaxCount == 0)
+			{
+				fmt::format_to(buf, "Disabled");
+			}
+			else
+			{
+				fmt::format_to(buf, "{}", lastMaxCount);
+			}
+			*buf = 0;
+		}
+
+		constexpr uint32_t minValue = 0;
+		constexpr uint32_t maxValue = 10000;
+
+		ImGui::SetNextItemWidth(200);
+		if (ImGui::SliderScalar("How many log files to keep", ImGuiDataType_U32, &s_logCleanupMaxCount, &minValue, &maxValue, buffer.data(),
+			ImGuiSliderFlags_NoRoundToFormat))
+		{
+			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+		}
+		ImGui::SameLine();
+		mq::imgui::HelpMarker(
+			"Deletes old log files until only this amount remain.\n\n"
+			"Set to 0 to disable this deleting by count.");
+	}
+
+	if (ImGui::Button("Run Cleanup Now"))
+	{
+		PerformLoggingCleanup();
+	}
 }
 
 #pragma endregion
@@ -318,6 +645,18 @@ void SetForegroundWindowInternal(HWND hWnd)
 			ShowWindow(hWnd, SW_RESTORE);
 		}
 	}
+}
+
+void OnProcessAdded(uint32_t processId)
+{
+	s_processIds.insert(processId);
+	Inject(processId);
+}
+
+void OnProcessRemoved(uint32_t processId)
+{
+	AutoLoginRemoveProcess(processId);
+	s_processIds.erase(processId);
 }
 
 LRESULT HandleHotkey(WPARAM wParam, LPARAM lParam)
@@ -614,38 +953,237 @@ void CheckAppCompat(bool alwaysDisplay = false)
 	}
 }
 
-void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 {
-	char lpModulePath[_MAX_PATH] = { 0 };
-	GetCurrentDirectory(_MAX_PATH, lpModulePath);
+	if (LauncherImGui::HandleWndProc(hWnd, MSG, wParam, lParam))
+		return true;
 
-	switch (wParam)
+	switch (MSG)
 	{
-	case ID_ADVANCED_TOGGLECONSOLE:
-		UpdateShowConsole(!gbConsoleVisible, true);
+	case WM_HOTKEY:
+		return HandleHotkey(wParam, lParam);
+
+	case WM_WINDOWPOSCHANGING:
+		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
 
-	case ID_MENU_WEBSITE:
-		ShellExecute(hWnd, "open", "https://macroquest.org", nullptr, lpModulePath, SW_SHOW);
+	case WM_SIZE:
+		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
 		break;
 
-	case ID_MENU_FORUMS:
-		ShellExecute(hWnd, "open", "https://macroquest.org/phpBB3", nullptr, lpModulePath, SW_SHOW);
+	case WM_SYSCOMMAND:
+		switch (LOWORD(wParam)) // We capture the 'X' button
+		{
+		case SC_CLOSE:
+			Shell_NotifyIcon(NIM_ADD, &NID);
+			return 0;
+
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		}
 		break;
 
-	case ID_MQSITES_WIKI:
-		ShellExecute(hWnd, "open", "https://docs.macroquest.org", nullptr, lpModulePath, SW_SHOW);
+	case WM_USER_PROCESS_ADDED:
+		OnProcessAdded(static_cast<uint32_t>(wParam));
 		break;
 
-	case ID_MQSITES_GITHUB:
-		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest", nullptr, lpModulePath, SW_SHOW);
+	case WM_USER_PROCESS_REMOVED:
+		OnProcessRemoved(static_cast<uint32_t>(wParam));
 		break;
 
-	case ID_MQSITES_ISSUETRACKER:
-		ShellExecute(hWnd, "open", "https://github.com/macroquest/macroquest/issues", nullptr, lpModulePath, SW_SHOW);
+	case WM_USER_HOTKEY_ADD:
+	{
+		uint16_t modkey = static_cast<uint16_t>(wParam);
+		uint16_t hotkey = static_cast<uint16_t>(lParam);
+		RegisterHotKey(hMainWnd, MAKELONG(modkey, hotkey), modkey, hotkey);
 		break;
+	}
 
-	case ID_MENU_CHANGELOG: {
+	case WM_USER_HOTKEY_REMOVE:
+	{
+		uint16_t modkey = static_cast<uint16_t>(wParam);
+		uint16_t hotkey = static_cast<uint16_t>(lParam);
+		UnregisterHotKey(hMainWnd, MAKELONG(modkey, hotkey));
+		break;
+	}
+
+	default:
+		if (MSG == NID.uCallbackMessage) // This is where we get our SysTray Icon notifications.
+		{
+			switch (lParam)
+			{
+			case WM_LBUTTONUP:
+				LauncherImGui::OpenMainWindow();
+				break;
+
+			case WM_RBUTTONUP:
+				LauncherImGui::OpenContextMenu();
+				break;
+			}
+			break;
+		}
+		if (MSG == s_taskbarRestart)
+		{
+			Shell_NotifyIcon(NIM_ADD, &NID);
+		}
+	}
+
+	return DefWindowProc(hWnd, MSG, wParam, lParam);
+}
+
+static void AddUnderline(ImColor color)
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.f);
+}
+
+static void DrawTextLink(const std::string& label, const std::string& url)
+{
+	ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+	ImGui::Text(label.c_str());
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOW);
+		}
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		ImGui::SetTooltip(ICON_FA_LINK " Open in default browser\n%s", url.c_str());
+	}
+	else
+	{
+		AddUnderline(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+	}
+}
+
+void ShowMacroQuestInfo()
+{
+	ImGui::Spacing();
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("MacroQuest Useful Links");
+	if (mq::imgui::LargeTextFont != nullptr) ImGui::PopFont();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	ImGui::Bullet(); DrawTextLink("MacroQuest Website", "https://macroquest.org");
+	ImGui::Bullet(); DrawTextLink("MacroQuest Documentation", "https://docs.macroquest.org/");
+	ImGui::Bullet(); DrawTextLink("MacroQuest on GitHub", "https://github.com/macroquest/macroquest");
+}
+
+struct PidInfo
+{
+	const LoginInstance* inst;
+	const std::string* key;
+	bool running = false;
+};
+
+
+void ShowProcessInfo()
+{
+	auto& loadedInstances = GetLoadedInstances();
+
+	std::map<uint32_t, PidInfo> pidInstances;
+
+	for (uint32_t pid : s_processIds)
+	{
+		pidInstances[pid] = { nullptr, nullptr, true };
+	}
+
+	for (auto& [key, inst] : loadedInstances)
+	{
+		pidInstances[inst.PID] = { &inst, &key, pidInstances[inst.PID].running };
+	}
+
+	if (ImGui::BeginTable("##ProcessList", 7, ImGuiTableFlags_Resizable))
+	{
+		ImGui::TableSetupColumn("PID", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Running", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Server", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Character", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Profile Grp", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupColumn("Hotkey", ImGuiTableColumnFlags_WidthFixed);
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableHeadersRow();
+
+		for (auto& [pid, info] : pidInstances)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", pid);
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", info.running ? "Yes" : "No");
+
+			ImGui::TableNextColumn();
+			ImGui::Text("%s", info.key ? info.key->c_str() : "(none)");
+
+			if (info.inst)
+			{
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Server.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Character.c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->ProfileGroup.value_or("").c_str());
+
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", info.inst->Hotkey.value_or("").c_str());
+			}
+		}
+
+		ImGui::EndTable();
+	}
+}
+
+void ShowMacroQuestMenu()
+{
+	if (ImGui::BeginMenu("Open Folder"))
+	{
+		if (ImGui::MenuItem("MacroQuest Root"))
+			ShellExecuteA(nullptr, "explore", internal_paths::MQRoot.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Config"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Config.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Macros"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Macros.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Resources"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Resources.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Logs"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Logs.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Crash Dumps"))
+			ShellExecuteA(nullptr, "explore", internal_paths::CrashDumps.c_str(), nullptr, nullptr, SW_SHOW);
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu("MQ Sites"))
+	{
+		if (ImGui::MenuItem("GitHub"))
+			ShellExecuteA(nullptr, "open", "https://github.com/macroquest/macroquest", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Issue Tracker"))
+			ShellExecuteA(nullptr, "open", "https://github.com/macroquest/macroquest/issues", nullptr, nullptr, SW_SHOW);
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Website"))
+			ShellExecuteA(nullptr, "open", "https://macroquest.org", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Forums"))
+			ShellExecuteA(nullptr, "open", "https://macroquest.org/phpBB3", nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Wiki"))
+			ShellExecuteA(nullptr, "open", "https://docs.macroquest.org", nullptr, nullptr, SW_SHOW);
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::MenuItem("Change Log"))
+	{
 		// NOTE: This change log search logic is duplicated in the news feed in MQ2Main.cpp
 		// This is one of the few places we want to hardcode the path since if the user redirects their resources we would not have distributed that file and they would always have old news.
 		const std::filesystem::path pathMQRootChangeLog = std::filesystem::path(internal_paths::MQRoot) / "resources" / "CHANGELOG.md";
@@ -665,198 +1203,63 @@ void HandleCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 		if (exists(pathChangeLog))
 		{
-			ShellExecute(hWnd, "open", pathChangeLog.string().c_str(), nullptr, lpModulePath, SW_SHOW);
+			ShellExecuteA(nullptr, "open", pathChangeLog.string().c_str(), nullptr, nullptr, SW_SHOW);
 		}
 		else
 		{
-			const std::string strMessage = "Could not find CHANGELOG.md: " + pathChangeLog.string();
-			MessageBox(nullptr, strMessage.c_str(), "MacroQuest", MB_OK);
+			LauncherImGui::OpenMessageBox(nullptr, fmt::format("Could not find CHANGELOG.md: {}", pathChangeLog.string()), "View Changelog");
 		}
-		break;
 	}
 
-	case ID_FILE_OPENFOLDERMQ2:
-		ShellExecute(hWnd, "explore", internal_paths::MQRoot.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
+	if (ImGui::MenuItem("INI File"))
+		ShellExecuteA(nullptr, "open", internal_paths::MQini.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
+}
 
-	case ID_FILE_OPENFOLDERCONFIG:
-		ShellExecute(hWnd, "explore", internal_paths::Config.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERMACROS:
-		ShellExecute(hWnd, "explore", internal_paths::Macros.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERRESOURCES:
-		ShellExecute(hWnd, "explore", internal_paths::Resources.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERLOGS:
-		ShellExecute(hWnd, "explore", internal_paths::Logs.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_FILE_OPENFOLDERCRASHDUMPS:
-		ShellExecute(hWnd, "explore", internal_paths::CrashDumps.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_MENU_INI:
-		ShellExecute(hWnd, "open", internal_paths::MQini.c_str(), nullptr, lpModulePath, SW_SHOW);
-		break;
-
-	case ID_STARTEQBCS:
+void ShowEQBCMenu()
+{
+	if (ImGui::MenuItem("Start EQBC Server"))
+	{
 		if (IsProcessRunning("eqbcs.exe"))
 		{
-			ThreadedMessage("EQBCS is already running.", MB_OK | MB_ICONWARNING);
+			LauncherImGui::OpenMessageBox(nullptr, "EQBCS is already running.", "EQBCS Launcher");
 		}
 		else
 		{
-			std::string strCommandLine = fmt::format("{}\\eqbcs.exe", lpModulePath);
+			std::string strCommandLine = fmt::format("{}\\eqbcs.exe", internal_paths::MQRoot);
 			std::error_code ec;
 			if (std::filesystem::exists(strCommandLine, ec))
 			{
-				ShellExecute(hWnd, "open", strCommandLine.c_str(), nullptr, lpModulePath, SW_SHOW);
+				ShellExecuteA(nullptr, "open", strCommandLine.c_str(), nullptr, internal_paths::MQRoot.c_str(), SW_SHOW);
 			}
 			else
 			{
-				ThreadedMessage(fmt::format("EQBCS could not be found: {}", strCommandLine), MB_OK | MB_ICONWARNING);
+				LauncherImGui::OpenMessageBox(nullptr, fmt::format("EQBCS could not be found: {}", strCommandLine), "EQBCS Launcher");
 			}
 		}
-		break;
-
-	case ID_MENU_EXIT:
-		PostQuitMessage(0);
-		break;
-
-	case ID_FILE_REFRESH:
-		RefreshInjections();
-		break;
-
-	case ID_FORCEUNLOADOFALLMQ2:
-		SendForceUnloadAllCommand();
-		break;
-
-	case ID_UNLOADALLMQ:
-		SendUnloadAllCommand();
-		break;
-
-	case ID_MENU_CHECKAPPCOMPAT:
-	{
-		CheckAppCompat(true);
-		break;
-	}
-
-#ifdef MQ_UPDATE_URL
-	case ID_MENU_CHECKFORUPDATES:
-	{
-		CheckMQ2MainUpdate(true);
-		break;
-	}
-#endif
-
-	default:
-		SPDLOG_INFO("Unhandled WM_COMMAND: {}", wParam);
 	}
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
+void ShowAdvancedMenu()
 {
-	LRESULT autoLoginResult = 0;
-	if (HandleAutoLoginWindowMessage(hWnd, MSG, wParam, lParam, &autoLoginResult))
-		return autoLoginResult;
-
-	switch (MSG)
+	if (ImGui::BeginMenu("Advanced"))
 	{
-	case WM_HOTKEY:
-		return HandleHotkey(wParam, lParam);
+		if (ImGui::MenuItem("Toggle Debug Console"))
+			UpdateShowConsole(!gbConsoleVisible, true);
 
-	case WM_PAINT:
-		BeginPaint(hWnd, &PS);
-		dc = PS.hdc;
-		EndPaint(hWnd, &PS);
-		break;
+		if (ImGui::MenuItem("Unload All Instances"))
+			SendUnloadAllCommand();
 
-	case WM_COMMAND:
-		HandleCommand(hWnd, wParam, lParam);
-		break;
+		if (ImGui::MenuItem("Unload All Instances (Forced)"))
+			SendForceUnloadAllCommand();
 
-	case WM_WINDOWPOSCHANGING:
-		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
-		break;
+		if (ImGui::MenuItem("Check App Compatibility"))
+			CheckAppCompat(true);
 
-	case WM_SIZE:
-		if (wParam == SIZE_MINIMIZED)
-			gbMinimized = true;
-		ShowWindow(hWnd, SW_HIDE); // Hide our window just after the minimize is done.
-		Shell_NotifyIcon(NIM_ADD, &NID); //Add the systray icon.
-		break;
-
-	case WM_SYSCOMMAND:
-		switch (LOWORD(wParam)) // We capture the 'X' button
-		{
-		case SC_CLOSE:
-			gbMinimized = false;
-			ShowWindow(hWnd, SW_HIDE);
-			Shell_NotifyIcon(NIM_ADD, &NID);
-			return 0;
-
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
-		}
-		break;
-
-	case WM_USER_PROCESS_ADDED:
-	case WM_USER_PROCESS_REMOVED: {
-		DWORD processId = (DWORD)wParam;
-		if (MSG == WM_USER_PROCESS_ADDED)
-		{
-			Inject(processId, 1s);
-		}
-		else
-		{
-			AutoLoginRemoveProcess(processId);
-		}
-		break;
+		ImGui::EndMenu();
 	}
 
-	case WM_USER_CALLBACK:
-		ProcessPipeServer();
-		break;
-
-	default:
-		if (MSG == NID.uCallbackMessage) // This is where we get our SysTray Icon notifications.
-		{
-			POINT mp;
-
-			switch (lParam)
-			{
-			case WM_LBUTTONDBLCLK:
-			{
-				char lpModulePath[_MAX_PATH] = { 0 };
-				GetCurrentDirectory(_MAX_PATH, lpModulePath);
-				ShellExecute(hWnd, "open", "https://macroquest.org", nullptr, lpModulePath, SW_SHOW);
-				break;
-			}
-
-			case WM_RBUTTONUP:
-				GetCursorPos(&mp);
-				SetForegroundWindow(hWnd);
-				TrackPopupMenu(GetSubMenu(hMenu, 0),
-					TPM_LEFTBUTTON | TPM_RECURSE,
-					mp.x,
-					mp.y,
-					0,
-					hWnd,
-					nullptr);
-
-				PostMessage(hWnd, WM_NULL, 0, 0);
-				break;
-			}
-			break;
-		}
-	}
-
-	return DefWindowProc(hWnd, MSG, wParam, lParam);
+	if (ImGui::MenuItem("Refresh Injections"))
+		RefreshInjections();
 }
 
 void InitializeWindows()
@@ -880,8 +1283,6 @@ void InitializeWindows()
 
 	::SendMessageA(hMainWnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadIconA(g_hInst, MAKEINTRESOURCE(IDI_ICON1)));
 
-	hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_MENU1));
-
 	NID.cbSize = sizeof(NID);
 	NID.hIcon = LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ICON1));
 	NID.uCallbackMessage = WM_USER_SHELLNOTIFY_CALLBACK;
@@ -889,6 +1290,13 @@ void InitializeWindows()
 	NID.uID = WM_USER_SYSTRAY;
 	NID.uFlags = NIF_TIP | NIF_ICON | NIF_MESSAGE;
 	Shell_NotifyIcon(NIM_ADD, &NID);
+
+	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
+
+	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
+	LauncherImGui::AddMainPanel("Logging", ShowLoggingSettings);
+	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
+	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
 }
 
 class MQ2ProcessMonitorEvents : public ProcessMonitorEvents
@@ -903,7 +1311,7 @@ public:
 	virtual void HandleProcessDestruction(uint32_t processId) override
 	{
 		SPDLOG_DEBUG("Process closed: {}", processId);
-		SendMessageA(hMainWnd, WM_USER_PROCESS_REMOVED, processId, 0);
+		::SendMessageA(hMainWnd, WM_USER_PROCESS_REMOVED, processId, 0);
 	}
 };
 
@@ -925,20 +1333,25 @@ void InitializeVersionInfo()
 		SPDLOG_WARN("Failed to get version from MQ2Main at startup. This may cause issues later");
 		return;
 	}
-	strcpy_s(gszMQVersion, szVersion);
 
-	sprintf_s(gszMQVersion, "%s (%s)", gszMQVersion, GetBuildTargetName(*reinterpret_cast<BuildTarget*>(GetProcAddress(hModule.get(), "gBuild"))));
+	ServerType = GetBuildTargetName(
+		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
 
-	sprintf_s(NID.szTip, "%s [%s]", gszWinName, gszMQVersion);
+	fmt::format_to(NID.szTip, "{} [{} ({})]\0", gszWinName, szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
-	Shell_NotifyIcon(NIM_MODIFY, &NID);
+
+	to_lower(ServerType);
 }
 
 // ***************************************************************************
 // Function:    WinMain
 // Description: EXE entry point
 // ***************************************************************************
-int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int WINAPI CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nShowCmd)
 {
 	g_hInst = hInstance;
 
@@ -990,6 +1403,7 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 		// Only need this if we're not already the spawned process
 		else if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
+			SPDLOG_INFO("I am a spawned process");
 			spawnedProcess = true;
 		}
 	}
@@ -1053,6 +1467,8 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 			STARTUPINFO si = {};
 			wil::unique_process_information pi;
 
+			SPDLOG_INFO("Relaunching as spawned process");
+
 			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
 					&fullCommandLine[0], // Command line to run
 					nullptr,             // Process Attributes - handle not inheritable
@@ -1089,21 +1505,30 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
 	HWND hWndRunning = FindWindow(gszWinClassName, gszWinName);
 	if (hWndRunning != nullptr)
+	{
+		SPDLOG_INFO("Closing because another window of class \"{}\" is open", gszWinClassName);
 		return 0;
+	}
 
 	const std::string cycleNextWindowKey = GetPrivateProfileString("MacroQuest", "CycleNextWindow", "", internal_paths::MQini);
 	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
 	const std::string bossModeKey = GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
 
+	s_logCleanupMaxCount = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+	s_logCleanupMaxAgeDays = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+	s_logFileCleanupIntervalMins = GetPrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+
+	// Update version information shown in the system tray tooltip
+	InitializeVersionInfo();
 	InitializeNamedPipeServer();
 	InitializeWindows();
 	InitializeAutoLogin();
 
+	auto pids = GetAllEqGameSessions();
+	s_processIds = { begin(pids), end(pids) };
+
 	auto pMonitorEvents = std::make_unique<MQ2ProcessMonitorEvents>();
 	StartProcessMonitor(pMonitorEvents.get());
-
-	// Update version information shown in the system tray tooltip
-	InitializeVersionInfo();
 
 	// Handle global hotkeys
 	uint16_t modkey = 0;
@@ -1149,35 +1574,43 @@ int WINAPI CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR 
 	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
 		CheckAppCompat();
 
+	// EQBC menu
+	LauncherImGui::AddContextGroup("EQBC", ShowEQBCMenu);
+
+	// advanced menu items
+	LauncherImGui::AddContextGroup("##Advanced Menu Items", ShowAdvancedMenu);
+
 	SPDLOG_INFO("Waiting for events...");
 
 	MSG msg;
-	BOOL bRet;
-	while ((bRet = GetMessage(&msg, nullptr, 0, 0)) != 0)
-	{
-		if (bRet == -1)
+	LauncherImGui::Run(
+		[&msg]()
 		{
-			break;
-		}
-		else
-		{
-			if (msg.message == WM_QUIT)
-				break;
+			ProcessPendingLogins();
+			CheckPruneLogging();
 
-			if (!IsDialogMessage(hEditProfileWnd, &msg))
+			if (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 			{
-				TranslateMessage(&msg);
-				DispatchMessageA(&msg);
+				switch (msg.message)
+				{
+				case WM_QUIT:
+					return false;
+				default:
+					TranslateMessage(&msg);
+					DispatchMessageA(&msg);
+					return true;
+				}
 			}
-		}
-	}
+
+			return true;
+		});
 
 	SPDLOG_INFO("Shutting down...");
 
 	// Shutdown
-	UnregisterHotKey(hMainWnd, 1);
-	UnregisterHotKey(hMainWnd, 2);
-	UnregisterHotKey(hMainWnd, 3);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_PREVIOUS);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_NEXT);
+	UnregisterHotKey(hMainWnd, HOTKEY_EQWIN_BOSSKEY);
 	UnregisterGlobalHotkey(hMainWnd);
 	Shell_NotifyIcon(NIM_DELETE, &NID);
 
@@ -1208,7 +1641,7 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey)
 		}
 
 		// we don't have a valid window, so let's drop the hotkey
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_ADD, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 
@@ -1224,12 +1657,12 @@ void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString)
 	if (wnd_it != hotkeyMap.end())
 	{
 		// the hotkey already exists, so drop it and replace it with the new one
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 
 	hotkeyMap[std::make_pair(modkey, hotkey)] = hWnd;
-	RegisterHotKey(hMainWnd, MAKELONG(modkey, hotkey), modkey, hotkey);
+	SendMessageA(hMainWnd, WM_USER_HOTKEY_ADD, modkey, hotkey);
 }
 
 void UnregisterGlobalHotkey(std::string_view hotkeyString)
@@ -1240,7 +1673,7 @@ void UnregisterGlobalHotkey(std::string_view hotkeyString)
 	auto wnd_it = hotkeyMap.find(std::make_pair(modkey, hotkey));
 	if (wnd_it != hotkeyMap.end())
 	{
-		UnregisterHotKey(wnd_it->second, MAKELONG(modkey, hotkey));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, modkey, hotkey);
 		hotkeyMap.erase(wnd_it);
 	}
 }
@@ -1253,7 +1686,12 @@ void UnregisterGlobalHotkey(HWND hWnd)
 		});
 	if (wnd_it != hotkeyMap.end())
 	{
-		UnregisterHotKey(wnd_it->second, MAKELONG(std::get<0>(wnd_it->first), std::get<1>(wnd_it->first)));
+		SendMessageA(hMainWnd, WM_USER_HOTKEY_REMOVE, std::get<0>(wnd_it->first), std::get<1>(wnd_it->first));
 		hotkeyMap.erase(wnd_it);
 	}
+}
+
+std::string_view GetServerType()
+{
+	return ServerType;
 }

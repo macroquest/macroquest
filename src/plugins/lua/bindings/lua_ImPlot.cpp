@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -907,7 +907,6 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	));
 	ImPlot.set_function("PopStyleColor", [](std::optional<int> count) { ImPlot::PopStyleColor(count.value_or(1)); });
 	ImPlot.set_function("PushStyleVar", sol::overload(
-		[](int idx, int val) { ImPlot::PushStyleVar(idx, val); },
 		[](int idx, float val) { ImPlot::PushStyleVar(idx, val); },
 		[](int idx, float valX, float valY) { ImPlot::PushStyleVar(idx, { valX, valY }); },
 		[](int idx, const ImVec2& val) { ImPlot::PushStyleVar(idx, val); }

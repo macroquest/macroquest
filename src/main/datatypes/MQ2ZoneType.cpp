@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -129,13 +129,14 @@ bool MQ2ZoneType::dataZone(const char* szIndex, MQTypeVar& Ret)
 
 				if (nIndex < MAX_ZONES)
 				{
-					Ret.Ptr = pWorldData->ZoneArray[nIndex];
+					pZone = pWorldData->ZoneArray[nIndex];
 					Ret.Type = pZoneType;
 				}
 
-				if (!Ret.Ptr)
+				if (!pZone)
 					return false;
 
+				Ret.Ptr = pZone;
 				return true;
 			}
 		}

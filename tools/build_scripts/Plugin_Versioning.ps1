@@ -22,11 +22,15 @@ if ($CPPFile.count -eq 1 -and $ResFile.count -eq 1) {
 
     If ($Version) {
         $VersionCommas = $Version -replace '\.', ','
-        (Get-Content $ResFile.FullName) | ForEach-Object {
+        $OriginalFile = Get-Content $ResFile.FullName
+        $NewFile = $OriginalFile | ForEach-Object {
             $_ -replace 'FILEVERSION (.*)', "FILEVERSION $VersionCommas" `
             -replace 'PRODUCTVERSION (.*)', "PRODUCTVERSION $VersionCommas" `
             -replace 'VALUE "FileVersion", (.*)', "VALUE `"FileVersion`", `"$Version`"" `
             -replace 'VALUE "ProductVersion", (.*)', "VALUE `"ProductVersion`", `"$Version`""
-        } | Set-Content $ResFile.FullName
+        }
+        if ($OriginalFile -ne $NewFile) {
+            $NewFile | Set-Content $ResFile.FullName
+        }
     }
 }

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -422,9 +422,14 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 #pragma endregion
 
 	#pragma region Tables
-	ImGui.set_function("BeginTable", [](const char* str_id, int column, std::optional<int> flags, std::optional<ImVec2> outer_size, std::optional<float> inner_width) {
-		return ImGui::BeginTable(str_id, column, flags.value_or(0), outer_size.value_or(ImVec2(0, 0)), inner_width.value_or(0.0f));
-		});
+	ImGui.set_function("BeginTable", sol::overload(
+		[](const char* str_id, int column, std::optional<int> flags, std::optional<ImVec2> outer_size, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags.value_or(0), outer_size.value_or(ImVec2(0, 0)), inner_width.value_or(0.0f));
+		},
+		[](const char* str_id, int column, int flags, float outer_size_x, float outer_size_y, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags, ImVec2(outer_size_x, outer_size_y), inner_width.value_or(0.0f));
+		}
+	));
 	ImGui.set_function("EndTable", &ImGui::EndTable);
 	ImGui.set_function("TableNextRow", [](std::optional<int> flags, std::optional<float> min_row_height) { ImGui::TableNextRow(flags.value_or(0), min_row_height.value_or(0.0f)); });
 	ImGui.set_function("TableNextColumn", &ImGui::TableNextColumn);
@@ -444,9 +449,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("TableGetColumnFlags", [](std::optional<int> column_n) { return ImGui::TableGetColumnFlags(column_n.value_or(-1)); });
 	ImGui.set_function("TableSetColumnEnabled", [](int column_n, bool v) { ImGui::TableSetColumnEnabled(column_n, v); });
 	ImGui.set_function("TableSetBgColor", sol::overload(
-		[](int target, ImU32 color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, color, column_n.value_or(-1)); },
 		[](int target, const ImVec4& color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32(color), column_n.value_or(-1)); },
-		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); }
+		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); },
+		[](int target, ImU32 color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, color, column_n.value_or(-1)); }
 	));
 
 	ImGui.set_function("TableGetColumnIsVisible", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsVisible) != 0; });
@@ -475,6 +480,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 			return std::make_tuple(open.has_value() ? open_ : show, show);
 		});
 	ImGui.set_function("EndTabItem", &ImGui::EndTabItem);
+	ImGui.set_function("TabItemButton", [](const char* label, std::optional<int> flags) { return ImGui::TabItemButton(label, flags.value_or(0)); });
 	ImGui.set_function("SetTabItemClosed", &ImGui::SetTabItemClosed);
 	#pragma endregion
 

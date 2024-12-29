@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DataTypes.h"
+#include "MQDataAPI.h"
 
 namespace mq::datatypes {
 
@@ -271,6 +272,7 @@ bool CDataArray::GetElement(char* Index, MQTypeVar& Dest)
 #include "MQIniType.cpp"
 #include "MQInventoryType.cpp"
 #include "MQCursorAttachmentType.cpp"
+#include "MQSocialType.cpp"
 
 #if HAS_ADVANCED_LOOT
 #include "MQ2AdvLootType.cpp"

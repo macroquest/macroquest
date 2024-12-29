@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,15 +15,15 @@
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
 
-#include "ImGuiZepEditor.h"
 
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/ImGuiMemoryEditor.h"
-#include "zep.h"
 
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "zep/window.h"
 
 #include "eqlib/eqstd/unordered_map.h"
 #include "eqlib/eqstd/string.h"
@@ -42,6 +42,9 @@ static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWind
 
 static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const CXStr& string);
 static void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* string);
+
+static void DeveloperTools_WindowInspector_ViewString(std::string_view name, const SoeUtil::String& string);
+static void DeveloperTools_WindowInspector_EditString(std::string_view name, SoeUtil::String* string);
 
 static void DeveloperTools_windowInspector_SetHoveredWindow(CXWnd* pWnd);
 
@@ -194,7 +197,7 @@ static void ColumnValue(const char* fmt, va_list args)
 		const char* str = va_arg(args, const char*);
 
 		if (IsEmptyValue(str))
-			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), str);
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "%s", str);
 		else
 			ImGui::Text("%s", str);
 	}
@@ -231,7 +234,7 @@ static bool ColumnLinkValue(const char* str_id, MQColor color, const char* fmt, 
 
 static void ColumnNumber(const char* Label, int* number)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
 	ImGui::SetNextItemWidth(-1);
@@ -244,7 +247,7 @@ static void ColumnNumber(const char* Label, int* number)
 
 static void ColumnText(const char* Label, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -257,7 +260,7 @@ static void ColumnText(const char* Label, const char* fmt, ...)
 
 static void ColumnTextType(const char* Label, const char* Type, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -272,7 +275,7 @@ static void ColumnTextType(const char* Label, const char* Type, const char* fmt,
 
 static bool ColumnLinkTextType(const char* Label, const char* str_id, const char* Type, const char* fmt, ...)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -290,7 +293,7 @@ static bool ColumnLinkTextType(const char* Label, const char* str_id, const char
 static bool ColumnCheckBox(const char* Label, bool* value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::Checkbox("", value); ImGui::PopID();
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
@@ -300,7 +303,7 @@ static bool ColumnCheckBox(const char* Label, bool* value)
 static bool ColumnCheckBox(const char* Label, bool value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value2 = value;
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value2); ImGui::PopID();
@@ -314,7 +317,7 @@ template <typename T>
 static bool ColummCheckBox(const char* Label, T* ptr, bool (T::* getter)(), void (T::* setter)(bool))
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value = ptr->getter();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
@@ -328,7 +331,7 @@ static bool ColummCheckBox(const char* Label, T* ptr, bool (T::* getter)(), void
 static bool ColummCheckBox(const char* Label, bool (* getter)(), void (* setter)(bool))
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	bool value = getter();
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.6f);
 	ImGui::PushID(Label); result = ImGui::Checkbox("", &value); ImGui::PopID();
@@ -342,7 +345,7 @@ static bool ColummCheckBox(const char* Label, bool (* getter)(), void (* setter)
 static bool ColumnCheckBoxFlags(const char* Label, unsigned int* flags, unsigned int flags_value)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label); result = ImGui::CheckboxFlags("", flags, flags_value); ImGui::PopID();
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
@@ -353,7 +356,7 @@ template <typename Rep, typename Period>
 static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds ms, std::chrono::duration<Rep, Period> epoch)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label);
 	if (ms.count() > 0)
 	{
@@ -362,7 +365,7 @@ static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds 
 		char szTemp[32] = { 0 };
 		fmt::format_to(szTemp, "{:%H:%M:%S}", ms);
 
-		ImGui::Text(szTemp);
+		ImGui::TextUnformatted(szTemp);
 	}
 	else
 	{
@@ -377,7 +380,7 @@ static bool ColumnElapsedTimestamp(const char* Label, std::chrono::milliseconds 
 static bool ColumnElapsedTimestamp(const char* Label, int32_t ms)
 {
 	bool result = false;
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	ImGui::PushID(Label);
 	if (ms != 0)
 	{
@@ -391,7 +394,7 @@ static bool ColumnElapsedTimestamp(const char* Label, int32_t ms)
 			strcat_s(szTemp, " ago");
 		}
 
-		ImGui::Text(szTemp);
+		ImGui::TextUnformatted(szTemp);
 	}
 	else
 	{
@@ -435,7 +438,7 @@ static bool ColumnTreeNodeType(const char* Label, const char* Type, const char* 
 
 static bool ColumnTreeNodeType2(const void* Id, const char* Label, const char* Type, const char* fmt, ...)
 {
-	bool result = ImGui::TreeNode(Id, Label); ImGui::TableNextColumn();
+	bool result = ImGui::TreeNode(Id, "%s", Label); ImGui::TableNextColumn();
 
 	va_list args;
 	va_start(args, fmt);
@@ -537,10 +540,9 @@ inline bool InputColorRef(const char* label, COLORREF& color)
 
 inline void ColumnCXStr(const char* Label, CXStr* str)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
-	//ImGui::SetNextItemWidth(22);
 	bool view = ImGui::Button(ICON_FA_PENCIL);
 	ImGui::PopID();
 	if (view)
@@ -561,14 +563,18 @@ inline void ColumnCXStr(const char* Label, CXStr* str)
 	ImGui::TableNextColumn();
 }
 
+inline void ColumnString(const char* label, CXStr* str)
+{
+	ColumnCXStr(label, str);
+}
+
 inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = true)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (expandable)
 	{
 		ImGui::PushID(Label);
-		//ImGui::SetNextItemWidth(22);
 		bool view = ImGui::Button(ICON_FA_EYE);
 		ImGui::PopID();
 		if (view)
@@ -590,9 +596,67 @@ inline void ColumnCXStr(const char* Label, const CXStr& str, bool expandable = t
 	ImGui::TableNextColumn();
 }
 
+inline void ColumnString(const char* label, const CXStr& str, bool expandable = true)
+{
+	ColumnCXStr(label, str, expandable);
+}
+
+inline void ColumnString(const char* Label, SoeUtil::String* str)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	ImGui::PushID(Label);
+	bool view = ImGui::Button(ICON_FA_PENCIL);
+	ImGui::PopID();
+	if (view)
+	{
+		DeveloperTools_WindowInspector_EditString(Label, str);
+	}
+	ImGui::SameLine();
+
+	if (str->empty())
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+	else
+		ImGui::Text("%s", str->c_str());
+
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "SoeUtil::String");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
+inline void ColumnString(const char* Label, const SoeUtil::String& str, bool expandable = true)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	if (expandable)
+	{
+		ImGui::PushID(Label);
+		bool view = ImGui::Button(ICON_FA_EYE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_ViewString(Label, str);
+		}
+		ImGui::SameLine();
+	}
+
+	if (str.empty())
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(empty)");
+	else
+		ImGui::Text("%s", str.c_str());
+
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "SoeUtil::String");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+
 inline void ColumnCXSize(const char* Label, const CXSize& size)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ w=%d, h=%d }", size.cx, size.cy); ImGui::TableNextColumn();
 
@@ -603,7 +667,7 @@ inline void ColumnCXSize(const char* Label, const CXSize& size)
 
 inline void ColumnCXRect(const char* Label, const CXRect& rect)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%d, y=%d, w=%d, h=%d }", rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); ImGui::TableNextColumn();
 
@@ -683,7 +747,7 @@ inline bool ColumnCXRect(const char* Label, CXRect* rect)
 
 inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%d, y=%d }", point.x, point.y); ImGui::TableNextColumn();
 
@@ -694,7 +758,7 @@ inline void ColumnCXPoint(const char* Label, const CXPoint& point)
 
 inline void ColumnCVector3(const char* Label, const CVector3& point)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::Text("{ x=%.2f, y=%.2f, z=%.2f }", point.X, point.Y, point.Z); ImGui::TableNextColumn();
 
@@ -706,7 +770,7 @@ inline void ColumnCVector3(const char* Label, const CVector3& point)
 
 inline void ColumnColor(const char* Label, MQColor color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -724,7 +788,7 @@ inline void ColumnColor(const char* Label, MQColor color)
 
 inline void ColumnColor(const char* Label, const COLORREF& color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -742,7 +806,7 @@ inline void ColumnColor(const char* Label, const COLORREF& color)
 
 inline void ColumnColor(const char* Label, COLORREF* color)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	//ImGui::ColorButton(id, ImGui::ColorConvertU32ToFloat4(color),
 	//ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFlags flags = 0, ImVec2 size = ImVec2(0, 0));
@@ -763,7 +827,7 @@ inline void ColumnColor(const char* Label, COLORREF* color)
 template <typename T>
 static bool ColumnColor(const char* Label, T* ptr, COLORREF(T::* getter)() const, void (T::* setter)(COLORREF))
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	ImGui::PushID(Label);
 	ImColor colors = MQColor{ MQColor::format_argb, (ptr->*getter)()}.ToImColor();
@@ -797,7 +861,7 @@ inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
 {
 	bool changed = false;
 	// Label
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	// Font ComboBox
 	if (pWndMgr)
@@ -837,7 +901,7 @@ inline bool ColumnFont(const char* Label, CTextureFont** ppFont)
 
 void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* pAnim)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (!pAnim)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -855,9 +919,9 @@ void ColumnTextureAnimationPreview(const char* Label, const CTextureAnimation* p
 
 bool ColumnTextureInfoPreview(const char* Label, const CUITextureInfo& textureInfo, const CXRect& rect = CXRect(0, 0, -1, -1))
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
-	bool result = imgui::DrawUITexture(textureInfo, rect, CXSize(), true);
+	bool result = imgui::DrawUITexture(textureInfo, CXSize(), rect, true);
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 	return result;
@@ -1373,7 +1437,7 @@ void DisplayTextObject(const char* label, CTextObjectInterface* pTextObjectInter
 
 void ColumnWindow(const char* Label, CXWnd* window)
 {
-	TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 
 	if (!window)
 		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
@@ -1407,6 +1471,45 @@ void ColumnWindow(const char* Label, CXWnd* window)
 	ImGui::TableNextRow();
 	ImGui::TableNextColumn();
 }
+
+#if HAS_GAMEFACE_UI
+void ColumnWindow(const char* Label, eqlib::eqmain::CXWnd* window)
+{
+	TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
+
+	if (!window)
+		ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "(null)");
+	else
+	{
+		ImGui::PushID(window);
+		//ImGui::SetNextItemWidth(21);
+		bool view = ImGui::Button(ICON_FA_EXTERNAL_LINK_SQUARE);
+		ImGui::PopID();
+		if (view)
+		{
+			DeveloperTools_WindowInspector_Show(reinterpret_cast<CXWnd*>(window));
+		}
+
+		ImGui::SameLine();
+
+		CXStr name = window->GetXMLName();
+		if (name.empty())
+			ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .75f), "(Unnamed)");
+		else
+			ImGui::Text("%s", name.c_str());
+
+		if (ImGui::IsItemHovered())
+		{
+			DeveloperTools_windowInspector_SetHoveredWindow(reinterpret_cast<CXWnd*>(window));
+		}
+	}
+	ImGui::TableNextColumn();
+
+	ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "CXWnd");
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn();
+}
+#endif // HAS_GAMEFACE_UI
 
 void ColumnItemContainerInstance(const char* Label, ItemContainerInstance instance)
 {
@@ -1461,7 +1564,7 @@ bool ColumnEQZoneIndex(const char* Label, EQZoneIndex zoneId, bool treeNode = fa
 	}
 	else
 	{
-		TreeAdvanceToLabelPos(); ImGui::Text(Label); ImGui::TableNextColumn();
+		TreeAdvanceToLabelPos(); ImGui::TextUnformatted(Label); ImGui::TableNextColumn();
 	}
 
 	EQZoneInfo* pZoneInfo = pWorldData->GetZone(zoneId);
@@ -1590,29 +1693,171 @@ public:
 #pragma endregion
 #pragma region Property Viewer - String Viewer
 
+struct StringStorage
+{
+public:
+	StringStorage(const CXStr& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const SoeUtil::String& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const std::string& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(const eqstd::string& str)
+		: m_storage(str)
+		, m_mutable(false)
+	{
+	}
+
+	StringStorage(CXStr* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(SoeUtil::String* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(std::string* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	StringStorage(eqstd::string* str)
+		: m_storage(str)
+		, m_mutable(true)
+	{
+	}
+
+	bool IsMutable() const { return m_mutable; }
+
+private:
+	template <typename T>
+	static std::string_view read_string_view(T* ptr)
+	{
+		if (ptr)
+			return std::string_view(*ptr);
+
+		return {};
+	}
+
+	template <typename T>
+	static std::string_view read_string_view(const T& str)
+	{
+		return std::string_view(str);
+	}
+
+	template <typename T>
+	static void write_string_view(T* ptr, std::string_view sv)
+	{
+		if (ptr)
+			*ptr = sv;
+	}
+
+	template <typename T>
+	static void write_string_view(const T&, std::string_view) 
+	{
+		// Its immutable
+	}
+
+public:
+	std::string_view GetStringView() const
+	{
+		return std::visit([](const auto& str) -> std::string_view
+			{ return read_string_view(str); }, m_storage);
+	}
+
+	void Assign(std::string_view sv)
+	{
+		if (m_mutable)
+			std::visit([&sv](auto& str) { write_string_view(str, sv); }, m_storage);
+	}
+
+	using Storage = std::variant<
+		CXStr,
+		SoeUtil::String,
+		std::string,
+		eqstd::string,
+		CXStr*,
+		SoeUtil::String*,
+		std::string*,
+		eqstd::string*
+	>;
+
+	Storage m_storage;
+	bool m_mutable;
+};
+
 class ImGuiWindowStringEditor
 {
 public:
 	ImGuiWindowStringEditor(std::string_view name, const CXStr& readOnlyString)
-		: m_string(nullptr)
-		, m_readOnlyString(readOnlyString)
+		: m_storage(readOnlyString)
 		, m_stringName(name)
-		, m_readOnly(true)
 	{
 	}
 
 	ImGuiWindowStringEditor(std::string_view name, CXStr* mutableString)
-		: m_string(mutableString)
+		: m_storage(mutableString)
 		, m_stringName(name)
 	{
 	}
 
-	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other)
-		: m_string(other.m_string)
-		, m_readOnlyString(other.m_readOnlyString)
+	ImGuiWindowStringEditor(std::string_view name, const SoeUtil::String& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, SoeUtil::String* mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, const std::string& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, std::string* mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, const eqstd::string& readOnlyString)
+		: m_storage(readOnlyString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(std::string_view name, eqstd::string* mutableString)
+		: m_storage(mutableString)
+		, m_stringName(name)
+	{
+	}
+
+	ImGuiWindowStringEditor(ImGuiWindowStringEditor&& other) noexcept
+		: m_storage(other.m_storage)
 		, m_stringName(std::move(other.m_stringName))
 		, m_textEditor(std::move(other.m_textEditor))
-		, m_readOnly(other.m_readOnly)
 		, m_closeRequested(other.m_closeRequested)
 		, m_changed(other.m_changed)
 		, m_requestFocus(other.m_requestFocus)
@@ -1623,11 +1868,9 @@ public:
 	{
 	}
 
-	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other)
+	ImGuiWindowStringEditor& operator=(ImGuiWindowStringEditor&& other) noexcept
 	{
-		m_readOnly = other.m_readOnly;
-		m_string = other.m_string;
-		m_readOnlyString = std::move(other.m_readOnlyString);
+		m_storage = other.m_storage;
 		m_stringName = std::move(other.m_stringName);
 		m_closeRequested = other.m_closeRequested;
 		m_textEditor = std::move(other.m_textEditor);
@@ -1635,6 +1878,8 @@ public:
 		m_requestFocus = other.m_requestFocus;
 		return *this;
 	}
+
+	bool IsMutable() const { return m_storage.IsMutable(); }
 
 	void Render(bool* open)
 	{
@@ -1649,32 +1894,26 @@ public:
 		{
 			ImGui::SetNextItemWidth(-1.0f);
 
-			if (m_readOnly)
+			if (!m_storage.IsMutable())
 			{
-				ImGui::TextWrapped(m_readOnlyString.c_str());
+				std::string_view sv = m_storage.GetStringView();
+
+				ImGui::TextWrapped("%.*s", static_cast<uint32_t>(sv.length()), sv.data());
 			}
 			else
 			{
-				// TODO: Refactor into general purpose editor control
 				if (!m_textEditor)
 				{
-					m_textEditor = std::make_unique<imgui::ImGuiZepEditor>();
-					m_textEditor->SetFont(Zep::ZepTextType::UI, mq::imgui::DefaultFont, 16);
-					m_textEditor->SetFont(Zep::ZepTextType::Text, mq::imgui::DefaultFont, 16);
+					m_textEditor = std::make_unique<mq::ImGuiZepEditor>("##StringEditor");
+					m_textEditor->SetWindowFlags(Zep::WindowFlags::ShowLineNumbers);
 
-					m_textEditor->GetEditor().SetGlobalMode(Zep::ZepMode_Standard::StaticName());
-					m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->SetWindowFlags(
-						Zep::WindowFlags::WrapText | Zep::WindowFlags::ShowLineNumbers);
-					m_textEditor->GetEditor().GetConfig().style = Zep::EditorStyle::Normal;
-
-					std::string s = "";
-
-					Zep::ZepBuffer* buffer = m_textEditor->GetEditor().InitWithText("", *m_string);
+					m_textEditor->GetEditor().InitWithText(m_stringName, m_storage.GetStringView());
 				}
 
-				m_textEditor->Render("##StringEditor", ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
-				auto& buffer = m_textEditor->GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-				if (buffer.HasFileFlags(Zep::FileFlags::Dirty))
+				m_textEditor->Render(ImVec2(0, ImGui::GetContentRegionAvail().y - 26));
+
+				auto buffer = m_textEditor->GetActiveBuffer();
+				if (buffer->HasFileFlags(Zep::FileFlags::Dirty))
 				{
 					m_changed = true;
 				}
@@ -1682,9 +1921,9 @@ public:
 				if (ImGui::Button("Save"))
 				{
 					m_changed = false;
-					m_string->assign(buffer.GetBufferText());
+					m_storage.Assign(buffer->GetText());
 
-					buffer.ClearFileFlags(Zep::FileFlags::Dirty);
+					buffer->ClearFileFlags(Zep::FileFlags::Dirty);
 				}
 
 				ImGui::SameLine();
@@ -1700,11 +1939,9 @@ public:
 		ImGui::End();
 	}
 
-	CXStr* m_string;
-	CXStr m_readOnlyString;
+	StringStorage m_storage;
 	std::string m_stringName;
-	std::unique_ptr<imgui::ImGuiZepEditor> m_textEditor;
-	bool m_readOnly = false;
+	std::unique_ptr<ImGuiZepEditor> m_textEditor;
 	bool m_closeRequested = false;
 	bool m_changed = false;
 	bool m_requestFocus = false;
@@ -1836,18 +2073,8 @@ public:
 
 	void AddStringEditor(ImGuiWindowStringEditor editor)
 	{
-		// Look for matching string already...
-		for (auto& ed : m_stringEditors)
-		{
-			if (ed.m_string == editor.m_string)
-			{
-				ed.m_requestFocus = true;
-				return;
-			}
-		}
-
 		editor.m_stringName = fmt::format("String {}: {} - {}",
-			editor.m_readOnly ? "Viewer" : "Editor", m_windowDisplayName, editor.m_stringName);
+			!editor.IsMutable() ? "Viewer" : "Editor", m_windowDisplayName, editor.m_stringName);
 		m_stringEditors.push_back(std::move(editor));
 		editor.m_requestFocus = true;
 	}
@@ -1865,6 +2092,16 @@ public:
 		m_table.Reset();
 		if (!m_table.Begin())
 			return;
+
+#if HAS_GAMEFACE_UI
+		if (GetGameState() == GAMESTATE_PRECHARSELECT)
+		{
+			// Trying to support all of this just for login is nuts.
+			DisplayCXWndProperties(reinterpret_cast<eqlib::eqmain::CXWnd*>(m_window));
+			m_table.End();
+			return;
+		}
+#endif
 
 		switch (m_window->GetType())
 		{
@@ -2041,6 +2278,40 @@ public:
 		}
 	}
 
+#if HAS_GAMEFACE_UI
+	void DisplayCXMLDataProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
+	{
+		CXMLData* pXMLData = pWnd->GetXMLData();
+		if (!pXMLData) return;
+
+		if (BeginColorSection("XML Properties", open))
+		{
+			// Type
+			ColumnText("Type", "%s (%d)", pXMLData->TypeName.c_str(), pXMLData->Type);
+
+			if (!pXMLData->ScreenID.empty())
+			{
+				// ScreenID
+				ColumnText("Screen ID", "%s", pXMLData->ScreenID.c_str());
+			}
+
+			if (!pXMLData->Name.empty() && pXMLData->Name != pXMLData->ScreenID)
+			{
+				// Name
+				ColumnText("Name", "%s", pXMLData->Name.c_str());
+			}
+
+			if (pSidlMgr)
+			{
+				if (CScreenPieceTemplate* pTemplate = pSidlMgr->FindScreenPieceTemplate(pWnd->GetXMLIndex()))
+				{
+					DisplayDynamicTemplateExpand("Template", pTemplate);
+				}
+			}
+		}
+	}
+#endif // HAS_GAMEFACE_UI
+
 	void DisplayCXWndProperties(CXWnd* pWnd, bool open = true)
 	{
 		DisplayCXMLDataProperties(pWnd, open);
@@ -2165,10 +2436,6 @@ public:
 				ColumnCXSize("Min size", pWnd->MinClientSize);
 				ColumnCXSize("Max size", pWnd->MaxClientSize);
 
-				// escape-to-close
-				ColumnCheckBox("Escapable", &pWnd->CloseOnESC);
-				ColumnCheckBox("Escapable locked", &pWnd->bEscapableLocked);
-
 				ColumnText("Horizontal scroll", "{ pos=%d, max=%d }", pWnd->HScrollPos, pWnd->HScrollMax);
 				ColumnText("Vertical scroll", "{ pos=%d, max=%d }", pWnd->VScrollPos, pWnd->VScrollMax);
 
@@ -2217,14 +2484,26 @@ public:
 				}
 
 				ColumnText("Valid", pWnd->ValidCXWnd ? "true" : "false");
+
 				ColumnCheckBox("Unlockable", &pWnd->Unlockable);
-				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
 				ColumnCheckBox("Locked", &pWnd->Locked);
+
+				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
 				ColumnCheckBox("Clip to parent", &pWnd->bClipToParent);
-				ColumnCheckBox("Clickable", &pWnd->Clickable);
-				ColumnCheckBox("Click through", &pWnd->bClickThrough);
-				ColumnCheckBox("Show click through menu item", &pWnd->bShowClickThroughMenuItem);
 				ColumnCheckBox("Active", &pWnd->bActive);
+
+				ColumnCheckBox("Escapable", &pWnd->bEscapable);
+				ColumnCheckBox("Escapable locked", &pWnd->bEscapableLocked);
+
+				ColumnCheckBox("Show Border MenuItem Enabled", &pWnd->bEnableShowBorder);
+				ColumnCheckBox("Show Border", &pWnd->bShowBorder);
+
+				ColumnCheckBox("Click Through", &pWnd->bClickThrough);
+				ColumnCheckBox("Click Through (to background)", &pWnd->bClickThroughToBackground);
+				ColumnCheckBox("Click Through Menu Status", &pWnd->bClickThroughMenuItemStatus);
+				ColumnCheckBox("Click Through Menu Enabled", &pWnd->bShowClickThroughMenuItem);
+
+				ColumnCheckBox("Capture Events from Title", &pWnd->bCaptureTitle);
 
 				//ColumnText("Resizable mask", "0x%08x", pWnd->bResizableMask);
 				//ColumnCheckBox("Border", &pWnd->bBorder);
@@ -2265,6 +2544,157 @@ public:
 	}
 
 #if HAS_GAMEFACE_UI
+	void DisplayCXWndProperties(eqlib::eqmain::CXWnd* pWnd, bool open = true)
+	{
+		DisplayCXMLDataProperties(pWnd, open);
+
+		// Add CXWnd specific details here
+		if (BeginColorSection("CXWnd Properties", open))
+		{
+			DisplayDrawTemplate("Template", pWnd->DrawTemplate);
+
+			std::vector<int> runtimeTypeInts;
+			for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				runtimeTypeInts.push_back(pWnd->RuntimeTypes[i]);
+			std::string runtimeTypes = fmt::format("[{}]", fmt::join(runtimeTypeInts, ", "));
+
+			if (ColumnTreeNodeType2(&pWnd->RuntimeTypes, "Runtime Types", "ArrayClass2<int>", "%s", runtimeTypes.c_str()))
+			{
+				for (int i = 0; i < pWnd->RuntimeTypes.GetLength(); ++i)
+				{
+					char szLabel[10] = { 0 };
+					fmt::format_to(szLabel, "#{}", i + 1);
+					ColumnText(szLabel, "%s (%d)",
+						EWndRuntimeTypeToString(static_cast<EWndRuntimeType>(pWnd->RuntimeTypes[i])),
+						pWnd->RuntimeTypes[i]);
+				}
+
+				ImGui::TreePop();
+			}
+
+			CXRect positionRect = pWnd->Location;
+			if (ColumnCXRect("Position", &positionRect))
+			{
+				if (positionRect != pWnd->Location)
+					pWnd->Move(positionRect);
+			}
+
+			ColumnCXRect("Client rect", pWnd->ClientRect);
+			ColumnCXStr("Text", &pWnd->WindowText);
+			ColumnCXStr("Tooltip", &pWnd->Tooltip);
+			ColumnWindow("Parent", pWnd->ParentWindow);
+
+			// Style
+			if (ColumnTreeNode("Style", "0x%08x", pWnd->WindowStyle))
+			{
+				ColumnCheckBoxFlags("Vertical Scroll", &pWnd->WindowStyle, CWS_VSCROLL);
+				ColumnCheckBoxFlags("Horizontal Scroll", &pWnd->WindowStyle, CWS_HSCROLL);
+				ColumnCheckBoxFlags("Title Bar", &pWnd->WindowStyle, CWS_TITLE);
+				ColumnCheckBoxFlags("Close Box", &pWnd->WindowStyle, CWS_CLOSE);
+				ColumnCheckBoxFlags("Tile Box", &pWnd->WindowStyle, CWS_TILEBOX);
+				ColumnCheckBoxFlags("Minimize Box", &pWnd->WindowStyle, CWS_MINIMIZE);
+				ColumnCheckBoxFlags("Border", &pWnd->WindowStyle, CWS_BORDER);
+				ColumnCheckBoxFlags("Relative Rect", &pWnd->WindowStyle, CWS_RELATIVERECT);
+				ColumnCheckBoxFlags("Vertical Auto Stretch", &pWnd->WindowStyle, CWS_AUTOSTRETCHV);
+				ColumnCheckBoxFlags("Horizontal Auto Stretch", &pWnd->WindowStyle, CWS_AUTOSTRETCH);
+				ColumnCheckBoxFlags("Resizable", &pWnd->WindowStyle, CWS_RESIZEALL);
+				ColumnCheckBoxFlags("Transparent", &pWnd->WindowStyle, CWS_TRANSPARENT);
+				ColumnCheckBoxFlags("Use My Alpha", &pWnd->WindowStyle, CWS_USEMYALPHA);
+				ColumnCheckBoxFlags("Docking Enabled", &pWnd->WindowStyle, CWS_DOCKING);
+				ColumnCheckBoxFlags("Immediate Tooltip", &pWnd->WindowStyle, CWS_TOOLTIP_NODELAY);
+				ColumnCheckBoxFlags("Frame", &pWnd->WindowStyle, CWS_FRAMEWND);
+				ColumnCheckBoxFlags("No Hit Test", &pWnd->WindowStyle, CWS_NOHITTEST);
+				ColumnCheckBoxFlags("QMark Box", &pWnd->WindowStyle, CWS_QMARK);
+				ColumnCheckBoxFlags("Disable Move", &pWnd->WindowStyle, CWS_NOMOVABLE);
+				ColumnCheckBoxFlags("Maximize Box", &pWnd->WindowStyle, CWS_MAXIMIZE);
+				ColumnCheckBoxFlags("Vertical Auto Scroll", &pWnd->WindowStyle, CWS_AUTOVSCROLL);
+				ColumnCheckBoxFlags("Horizontal Auto Scroll", &pWnd->WindowStyle, CWS_AUTOHSCROLL);
+				ColumnCheckBoxFlags("Client Movable", &pWnd->WindowStyle, CWS_CLIENTMOVABLE);
+				ColumnCheckBoxFlags("Transparent Control", &pWnd->WindowStyle, CWS_TRANSPARENTCONTROL);
+
+				ImGui::TreePop();
+			}
+
+			bool show = pWnd->dShow;
+			if (ColumnCheckBox("Visible", &show))
+			{
+				if (show)
+					pWnd->Activate();
+				else
+					pWnd->Deactivate();
+			}
+			ColumnCheckBox("Enabled", &pWnd->Enabled);
+
+			CTextureFont* pFont = pWnd->pFont;
+			ColumnFont("Font", &pFont);
+
+			if (ColumnTreeNode("Details", ""))
+			{
+				DisplayDynamicTemplateExpand("TitlePiece 1", pWnd->TitlePiece);
+				DisplayDynamicTemplateExpand("TitlePiece 2", pWnd->TitlePiece2);
+				DisplayTextObject("Text object", pWnd->pTextObject);
+				DisplayTextObject("Tooltip text object", pWnd->pTipTextObject);
+				ColumnText("Z layer", "%d", pWnd->ZLayer);
+
+				DisplayTextureAnimation("Icon", pWnd->IconTextureAnim);
+				ColumnCXRect("Icon rect", pWnd->IconRect);
+
+				ColumnCheckBox("Minimized", &pWnd->Minimized);
+				ColumnCheckBox("Maximized", &pWnd->bMaximized);
+				ColumnCheckBox("Maximizable", &pWnd->bMaximizable);
+				ColumnCheckBox("Tiled", &pWnd->bTiled);
+				ColumnCheckBox("Action", &pWnd->bAction);
+				ColumnCheckBox("Bring to top when clicked", &pWnd->bBringToTopWhenClicked);
+				ColumnCheckBox("Mouse over", &pWnd->MouseOver);
+
+				// Background
+				ColumnText("Background type", XWndBackgroundTypeToString(static_cast<XWndBackgroundType>(pWnd->BGType)));
+				ColumnText("Background draw type", XWndBackgroundDrawTypeToString(static_cast<XWndBackgroundDrawType>(pWnd->BackgroundDrawType)));
+				ColumnColor("Normal color", &pWnd->CRNormal);
+				ColumnColor("Background color", &pWnd->BGColor);
+				ColumnColor<eqlib::eqmain::CXWnd>("Disabled background color", pWnd,
+					&eqlib::eqmain::CXWnd::GetDisabledBackground, &eqlib::eqmain::CXWnd::SetDisabledBackground);
+
+				ColumnCXStr("XML Tooltip", pWnd->XMLToolTip);
+
+				// size
+				ColumnCXSize("Min size", pWnd->MinClientSize);
+				ColumnCXSize("Max size", pWnd->MaxClientSize);
+
+				ColumnText("Horizontal scroll", "{ pos=%d, max=%d }", pWnd->HScrollPos, pWnd->HScrollMax);
+				ColumnText("Vertical scroll", "{ pos=%d, max=%d }", pWnd->VScrollPos, pWnd->VScrollMax);
+
+				ColumnCheckBox("Use in horizontal layout", &pWnd->bUseInLayoutHorizontal);
+				ColumnCheckBox("Use in vertical layout", &pWnd->bUseInLayoutVertical);
+				ColumnText("Anchors", "{ top=%d, right=%d, bottom=%d, left=%d }", pWnd->bTopAnchoredToTop, pWnd->bRightAnchoredToLeft, pWnd->bBottomAnchoredToTop, pWnd->bLeftAnchoredToLeft);
+				ColumnText("Offsets", "{ top=%d, right=%d, bottom=%d, left=%d", pWnd->TopOffset, pWnd->RightOffset, pWnd->BottomOffset, pWnd->LeftOffset);
+
+				// Alpha
+				ColumnCheckBox("Fade enabled", &pWnd->Fades);
+				ColumnText("Current fade alpha", "%d", pWnd->FadeAlpha);
+				ColumnText("Current max alpha", "%d", pWnd->Alpha);
+
+				// Mouse over / fading stuff
+				ColumnCheckBox("Faded", &pWnd->Faded);
+				ColumnText("Last time mouse over", "%d", pWnd->LastTimeMouseOver);
+				ColumnText("Fade delay", "%d", pWnd->FadeDelay);
+				ColumnText("Fade duration", "%d", pWnd->FadeDuration);
+				ColumnText("Fade to alpha", "%d", pWnd->FadeToAlpha);
+
+				ColumnText("Valid", pWnd->ValidCXWnd ? "true" : "false");
+
+				ColumnCheckBox("Unlockable", &pWnd->Unlockable);
+				ColumnCheckBox("Locked", &pWnd->Locked);
+
+				ColumnCheckBox("Keep on screen", &pWnd->bKeepOnScreen);
+				ColumnCheckBox("Clip to parent", &pWnd->bClipToParent);
+				ColumnCheckBox("Active", &pWnd->bActive);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	void DisplayUIComponent(const char* label, UIComponent* component)
 	{
 		if (ColumnTreeNodeType(label, component->GetTypeName().c_str(), ""))
@@ -2424,7 +2854,7 @@ public:
 
 	void DisplayCSpellGemWndProperties(CSpellGemWnd* pWnd, bool open = true)
 	{
-		DisplayCXWndProperties(pWnd, false);
+		DisplayCButtonWndProperties(static_cast<CButtonWnd*>(m_window), false);
 
 		if (BeginColorSection("CSpellGemWnd Properties", open))
 		{
@@ -2432,6 +2862,31 @@ public:
 
 			DisplayTextureAnimation("Spell icon texture", pWnd->SpellIconTexture);
 			DisplayTextureAnimation("Custom icon texture", pWnd->CustomIconTexture);
+			ColumnCheckBox("Checked", &pWnd->bChecked);
+
+			size_t numTints = lengthof(pWnd->SpellGemTintArray);
+			if (ColumnTreeNodeType("SpellGemTintArray", "MQColor[]", "%d", numTints))
+			{
+				char label[16] = { 0 };
+
+				for (size_t i = 0; i < numTints; ++i)
+				{
+					sprintf_s(label, "%zd", i);
+					ColumnColor(label, MQColor(pWnd->SpellGemTintArray[i]));
+				}
+
+				ImGui::TreePop();
+			}
+
+			pWnd->bChecked = static_cast<CButtonWnd*>(pWnd)->bChecked;
+
+			// Draw the spell gem
+			TreeAdvanceToLabelPos(); ImGui::TextUnformatted("Spell Gem"); ImGui::TableNextColumn();
+			mq::imgui::SpellGem("##InspectorSpellGem", pWnd, ImGuiSpellGemFlags_AllowAll);
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
 		}
 	}
 
@@ -2508,7 +2963,7 @@ public:
 			ColumnText("Button index", "%d", pWnd->ButtonIndex);
 			ColumnText("Timer", "%d", std::max<int>(0, pWnd->Timer - pDisplay->TimeStamp));
 			DisplayTextureAnimation("Decal icon", pWnd->DecalIcon);
-			ColumnText("Button type", "%d", pWnd->LastButtonType); // TODO: translate enum
+			ColumnText("Button type", "%s (%d)", HotButtonTypeToString(pWnd->LastButtonType), pWnd->LastButtonType);
 			ColumnText("Button slot", "%d", pWnd->LastButtonSlot);
 			ColumnText("Button page", "%d", (int)pWnd->LastButtonPage);
 			ColumnText("Item Guid", "%s", pWnd->LastItemGuid.guid);
@@ -2527,6 +2982,25 @@ public:
 			ColumnCXSize("Base decal size", pWnd->BaseDecalSize);
 			ColumnCXSize("Base inv button size", pWnd->BaseInvButtonSize);
 			ColumnCXSize("Base spell button size", pWnd->BaseSpellButtonSize);
+
+			const HotButtonData& data = pEverQuestInfo->hotButtons[pWnd->BarIndex][pEverQuestInfo->hotBank[pWnd->BarIndex]][pWnd->ButtonIndex];
+
+			if (ColumnTreeNodeType("HotButton Data", "HotButtonData", "%s", data.Label[0] ? data.Label : data.ItemName))
+			{
+				ColumnItem("Item", data.Item);
+				ColumnText("ItemGuid", "%s", data.ItemGuid.guid);
+				ColumnText("Label", "%s", data.Label);
+				ColumnText("Item Name", data.ItemName);
+				ColumnText("Item ID", "%d", data.ItemId);
+				ColumnTextType("Icon Type", "eIconCacheType", "%s (%d)", IconCacheTypeToString(static_cast<eIconCacheType>(data.IconType)), data.IconType);
+				ColumnText("Icon Slot", "%d", data.IconSlot);
+				ColumnText("Icon ID", "%d", data.IconId);
+				ColumnText("Slot", "%d", data.Slot);
+				ColumnTextType("Type", "HotButtonTypes", "%s (%d)", HotButtonTypeToString(static_cast<HotButtonTypes>(data.Type)), (int)data.Type);
+				ColumnCheckBox("Item Valid", data.ItemValid);
+
+				ImGui::TreePop();
+			}
 		}
 	}
 
@@ -2572,20 +3046,22 @@ public:
 		if (BeginColorSection("CPageWndProperties", open))
 		{
 			ColumnCXStr("Tab Text", pWnd->TabText);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnCXStr("Original Tab Text", pWnd->OrigTabText);
+#endif
 			ColumnColor("Tab Color", pWnd->CRTabText);
 			ColumnColor("Tab Color (Active)", pWnd->CRTabTextActive);
 			DisplayTextureAnimation("Tab Icon", pWnd->pTATabIcon, true);
 			DisplayTextureAnimation("Tab Icon (Active)", pWnd->pTATabIconActive, true);
-
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBM)
 			ColumnColor("Flash Highlight Color", pWnd->CRHighlightFlashColor);
-
 
 			ColumnElapsedTimestamp("Last Flash Time", std::chrono::milliseconds(pWnd->LastFlashTime),
 				std::chrono::system_clock::now().time_since_epoch());
 
 			ColumnCheckBox("Flash On Message", pWnd->bHighlightOnNewMessages);
 			ColumnCheckBox("Flashing", &pWnd->bFlashing);
+#endif
 		}
 	}
 
@@ -3641,6 +4117,7 @@ static void RegisterWindowPropertyViewer(const char* windowName, const WindowPro
 static void DisplayCustomWindowPropertyViewer(CSidlScreenWnd* pWindow, ImGuiWindowPropertyViewer* viewer)
 {
 	if (!pWindow) return;
+	if (!pWindow->SidlPiece) return;
 
 	std::string_view windowName = pWindow->SidlPiece->strName;
 
@@ -3684,6 +4161,27 @@ static void WindowProperties_ItemDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGu
 	ColumnText("Tab Count", "%d", pWindow->TabCount);
 
 	ColumnText("Window Index", "%d", pWindow->ItemWndIndex);
+}
+
+// Property Viewer for SpellDisplayWindow
+static void WindowProperties_SpellDisplayWindow(CSidlScreenWnd* pSidlWindow, ImGuiWindowPropertyViewer* viewer)
+{
+	CSpellDisplayWnd* pWindow = static_cast<CSpellDisplayWnd*>(pSidlWindow);
+
+	ColumnText("Spell ID", "%d", pWindow->SpellID);
+	ColumnText("Window ID", "%d", pWindow->WindowID);
+	ColumnString("Title Text", &pWindow->TitleText);
+	ColumnString("Description Text", &pWindow->DescriptionText);
+#if IS_LIVE_CLIENT
+	ColumnString("Caster Name", &pWindow->CasterName);
+#endif
+	DisplayTextureAnimation("Spell Icon", pWindow->ptaBuffIcons);
+	DisplayTextureAnimation("Drag Icon", pWindow->ptaDragIcons);
+	ColumnText("Display Type", "%d", pWindow->SpellDisplayType);
+	ColumnElapsedTimestamp("Last Update Time", pWindow->LastUpdateTime - EQGetTime());
+#if IS_LIVE_CLIENT
+	ColumnText("Unknown", "%d", pWindow->Unknown);
+#endif
 }
 
 // Property Viewer for Buffwindow
@@ -3771,8 +4269,10 @@ static void WindowProperty_CursorAttachment(CSidlScreenWnd* pSidlWindow, ImGuiWi
 	{
 		DisplayDynamicTemplateExpand("Background", pCursorAttachment->pBGStaticAnim, "CStaticAnimationTemplate*");
 		DisplayDynamicTemplateExpand("Overlay", pCursorAttachment->pOverlayStaticAnim, "CStaticAnimationTemplate*");
-		DisplayTextObject("Text Object", pCursorAttachment->pTextObjectInterface);
-		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObjectInterface);
+		DisplayTextObject("Text Object", pCursorAttachment->pTextObject);
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TBL)
+		DisplayTextObject("Button Text Object", pCursorAttachment->pButtonTextObject);
+#endif
 		ColumnText("Text Font Style", "%d", pCursorAttachment->TextFontStyle);
 	}
 
@@ -4161,6 +4661,7 @@ void DeveloperTools_WindowInspector_Initialize()
 	RegisterWindowPropertyViewer("FindLocationWnd", WindowProperties_FindLocationWnd);
 	RegisterWindowPropertyViewer("ItemDisplayWindow", WindowProperties_ItemDisplayWindow);
 	RegisterWindowPropertyViewer("ShortDurationBuffWindow", WindowProperties_BuffWindow);
+	RegisterWindowPropertyViewer("SpellDisplayWindow", WindowProperties_SpellDisplayWindow);
 #if HAS_TRADESKILL_DEPOT
 	RegisterWindowPropertyViewer("TradeskillDepotWnd", WindowProperties_TradeskillDepotWnd);
 #endif
@@ -4174,7 +4675,7 @@ void DeveloperTools_WindowInspector_Shutdown()
 	delete s_windowInspector; s_windowInspector = nullptr;
 }
 
-void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState)
+void DeveloperTools_WindowInspector_SetGameState(int gameState)
 {
 	s_windowInspector->Reset();
 }
@@ -4196,6 +4697,25 @@ void DeveloperTools_WindowInspector_EditString(std::string_view name, CXStr* str
 
 	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
 }
+
+void DeveloperTools_WindowInspector_ViewString(std::string_view name, const SoeUtil::String& string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
+}
+
+void DeveloperTools_WindowInspector_EditString(std::string_view name, SoeUtil::String* string)
+{
+	ImGuiWindowPropertyViewer* currentPropertyViewer = ImGuiWindowPropertyViewer::GetCurrentViewer();
+	if (!currentPropertyViewer)
+		return;
+
+	currentPropertyViewer->AddStringEditor(ImGuiWindowStringEditor(name, string));
+}
+
 
 //----------------------------------------------------------------------------
 

@@ -1,8 +1,8 @@
 ---
 name: Bug report
 about: Create a report to help us find and fix bugs
-title: "[BUG]"
 labels: bug
+title: ''
 assignees: ''
 
 ---
@@ -24,9 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **MQ Version**
-- [ ] Live
-- [ ] Test
-- [ ] Emu (ROF2)
+List which versions of MQ this applies to (live, test, emu, etc)
 
 **Additional context**
 Add any other context about the problem here.

@@ -12,10 +12,10 @@
  * GNU General Public License for more details.
  */
 
-#include "MacroQuest.h"
-#include "PostOffice.h"
-#include "Crashpad.h"
-
+#include "loader/MacroQuest.h"
+#include "loader/PostOffice.h"
+#include "loader/Crashpad.h"
+#include "loader/LoaderAutoLogin.h"
 #include "routing/PostOffice.h"
 
 #include <date/date.h>
@@ -23,7 +23,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+#include <shellapi.h>
+
+#include "ImGui.h"
 
 
 using namespace postoffice;
@@ -40,8 +42,13 @@ private:
 
 	std::unordered_map<uint32_t, ClientIdentification> m_identities;
 	ci_unordered::map<std::string, uint32_t> m_names;
-	bool m_processing = false;
-	bool m_needsProcessing = false;
+	bool m_running = false;
+	std::thread m_thread;
+	std::thread::id m_threadId;
+
+	bool m_hasMessages = false;
+	std::mutex m_processMutex;
+	std::condition_variable m_needsProcessing;
 
 	class PipeEventsHandler : public NamedPipeEvents
 	{
@@ -65,14 +72,44 @@ private:
 			}
 
 			case mq::MQMessageId::MSG_ROUTE:
-				// all we have to do here is route, this is the same as if an internal mailbox is
-				// attempting to route a message
-				m_postOffice->RouteMessage(std::move(message));
+			{
+				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+				const auto& address = envelope.address();
+				if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
+				{
+					auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
+						{
+							RoutingFailed(envelope, status, std::move(message), nullptr);
+						};
+
+					if (address.has_mailbox())
+					{
+						// this is a local message
+						m_postOffice->DeliverTo(address.mailbox(), std::move(message), routing_failed);
+					}
+					else
+					{
+						// This is a failsafe action, we shouldn't expect to be here often. For this code to
+						// be reached, we would have to have a client that packages a message in an envelope
+						// that is intended to be parsed directly by the server and not routed anywhere (so
+						// no mailbox routing information is included), rather than just send the message
+						m_postOffice->DeliverTo("pipe_server", std::move(message), routing_failed);
+					}
+				}
+				else
+				{
+					// all we have to do here is route, this is the same as if an internal mailbox is
+					// attempting to route a message
+					m_postOffice->RouteMessage(std::move(message));
+				}
 				break;
+			}
 
 			case mq::MQMessageId::MSG_IDENTIFICATION:
 				if (message->GetHeader()->messageLength > 0)
 				{
+					bool added = false;
+
 					// if there is a payload, then we are getting a notification of ID
 					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
 					if (id.has_name())
@@ -82,12 +119,13 @@ private:
 					}
 					else
 					{
-						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
+						auto result = m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
 							id.pid(),
 							id.has_account() ? id.account() : "",
 							id.has_server() ? id.server() : "",
 							id.has_character() ? id.character() : ""
-							});
+						});
+						added = result.second;
 
 						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
 						SPDLOG_INFO("Got identification from {}", id.pid());
@@ -95,6 +133,12 @@ private:
 
 					// we also need to update all the clients
 					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
+
+					if (added)
+					{
+						proto::login::IdentifyMissive announce;
+						Post(id.pid(), proto::login::Identify, announce);
+					}
 				}
 				else
 				{
@@ -162,13 +206,74 @@ private:
 				break;
 			}
 
+			case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				if (notification.has_message())
+					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
+				else
+					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
+			}
+
+			case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
+			{
+				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
+				NOTIFYICONDATA notify;
+				notify.cbSize = sizeof(NOTIFYICONDATA);
+				notify.uID = WM_USER_SYSTRAY;
+				notify.hWnd = hMainWnd;
+				notify.uFlags = NIF_INFO;
+
+				strcpy_s(notify.szInfoTitle, notification.title().c_str());
+				if (notification.has_message())
+					strcpy_s(notify.szInfo, notification.message().c_str());
+				else
+					strcpy_s(notify.szInfo, notification.title().c_str());
+
+				if (notification.has_level())
+				{
+					switch (notification.level())
+					{
+					case proto::routing::NotifyLevel::Info:
+						notify.dwInfoFlags = NIIF_INFO;
+						break;
+					case proto::routing::NotifyLevel::Warning:
+						notify.dwInfoFlags = NIIF_WARNING;
+						break;
+					case proto::routing::NotifyLevel::Error:
+						notify.dwInfoFlags = NIIF_ERROR;
+						break;
+					default:
+						notify.dwInfoFlags = NIIF_INFO;
+						break;
+					}
+				}
+				else
+					notify.dwInfoFlags = NIIF_INFO;
+
+				Shell_NotifyIcon(NIM_MODIFY, &notify);
+				break;
+			}
+
 			default: break;
 			}
+
+			{
+				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+				m_postOffice->m_hasMessages = true;
+			}
+
+			m_postOffice->m_needsProcessing.notify_one();
 		}
 
 		virtual void OnRequestProcessEvents() override
 		{
-			PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
+			{
+				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
+				m_postOffice->m_hasMessages = true;
+			}
+
+			m_postOffice->m_needsProcessing.notify_one();
 		}
 
 		virtual void OnIncomingConnection(int connectionId, int processid) override
@@ -233,8 +338,9 @@ private:
 				if (!ident_it->second.character.empty())
 					id.set_character(ident_it->second.character);
 
-						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
+				// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
+				SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
+
 				broadcast(std::move(id));
 
 				m_postOffice->m_identities.erase(ident_it);
@@ -247,7 +353,9 @@ private:
 
 public:
 	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
-	{}
+	{
+		m_names.emplace("launcher", GetCurrentProcessId());
+	}
 
 	static void RoutingFailed(
 		const proto::routing::Envelope& envelope,
@@ -290,20 +398,47 @@ public:
 		else // routing will fail here if there are too many recipients
 		{
 			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-			auto identity = FindIdentity(envelope.address(), m_identities.begin());
+			const auto& address = envelope.address();
 
-			if (identity == m_identities.end())
-				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
-			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
-				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+			auto routing_failed = [&envelope, callback](int status, PipeMessagePtr&& message)
+				{
+					RoutingFailed(envelope, status, std::move(message), callback);
+				};
+
+			auto single_send = [callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+				{
+					connection->SendMessageWithResponse(std::move(message), callback);
+				};
+
+			if (address.has_pid())
+			{
+				SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
+			}
+			else if (address.has_name())
+			{
+				auto pid_it = m_names.find(address.name());
+				if (pid_it == m_names.end())
+				{
+					routing_failed(MsgError_RoutingFailed, std::move(message));
+				}
+				else
+				{
+					SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
+				}
+			}
 			else
 			{
-				message->SetRequestMode(MQRequestMode::CallAndResponse);
-				SendMessageToPID(identity->first, std::move(message),
-					[callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
-					{ connection->SendMessageWithResponse(std::move(message), callback); },
-					[&envelope, callback](int status, PipeMessagePtr&& message)
-					{ RoutingFailed(envelope, status, std::move(message), callback); });
+				auto identity = FindIdentity(envelope.address(), m_identities.begin());
+
+				if (identity == m_identities.end())
+					RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+				else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
+					RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+				else
+				{
+					message->SetRequestMode(MQRequestMode::CallAndResponse);
+					SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
+				}
 			}
 		}
 	}
@@ -313,7 +448,7 @@ public:
 	{
 		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
-		auto routing_failed = [&envelope, this](int status, PipeMessagePtr&& message)
+		auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
 			{
 				RoutingFailed(envelope, status, std::move(message), nullptr);
 			};
@@ -323,12 +458,12 @@ public:
 				connection->SendMessage(std::move(message));
 			};
 
-		if (address.has_pid() && address.pid() != GetCurrentProcessId())
+		if (address.has_pid())
 		{
 			// a PID is necessarily a singular identifier, avoid the loop
 			SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
 		}
-		else if (address.has_name() && !ci_equals(address.name(), "launcher"))
+		else if (address.has_name())
 		{
 			// a name is also a singular identifier, avoid the loop here too
 			// route the message to a registered (named) client
@@ -342,24 +477,9 @@ public:
 				SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
 			}
 		}
-		else if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
-		{
-			if (address.has_mailbox())
-			{
-				// this is a local message
-				DeliverTo(address.mailbox(), std::move(message), routing_failed);
-			}
-			else
-			{
-				// This is a failsafe action, we shouldn't expect to be here often. For this code to
-				// be reached, we would have to have a client that packages a message in an envelope
-				// that is intended to be parsed directly by the server and not routed anywhere (so
-				// no mailbox routing information is included), rather than just send the message
-				DeliverTo("pipe_server", std::move(message), routing_failed);
-			}
-		}
 		else if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
 		{
+			// ensure that we have a singular target for an RPC message
 			auto identity = FindIdentity(envelope.address(), m_identities.begin());
 
 			if (identity == m_identities.end())
@@ -384,28 +504,6 @@ public:
 						routing_failed);
 				}
 			}
-		}
-	}
-
-	void ProcessPipeServer()
-	{
-		if (m_processing)
-		{
-			m_needsProcessing = true;
-			return;
-		}
-
-		m_processing = true;
-
-		m_pipeServer.Process();
-		Process(10);
-
-		m_processing = false;
-
-		if (m_needsProcessing)
-		{
-			m_needsProcessing = false;
-			PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0);
 		}
 	}
 
@@ -440,10 +538,58 @@ public:
 		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
 	}
 
+	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override
+	{
+		{
+			std::lock_guard<std::mutex> lock(m_processMutex);
+			m_hasMessages = true;
+		}
+
+		m_needsProcessing.notify_one();
+	}
+
 	void Initialize()
 	{
 		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
-		m_pipeServer.Start();
+		m_thread = std::thread(
+			[this]
+			{
+
+				using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+				auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandle("kernel32.dll"), "SetThreadDescription");
+				if (SetThreadDescription)
+					SetThreadDescription(GetCurrentThread(), L"PostOffice");
+
+				m_running = true;
+				m_threadId = std::this_thread::get_id();
+				m_pipeServer.Start();
+				 
+				do
+				{
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
+					}
+
+					if (!m_running)
+						break;
+
+					m_pipeServer.Process();
+
+					// OnIncomingMessage is only called from this thread. If we ever have another source of messages
+					// (ie, network messages) then we will need to be careful about making sure Deliver and Process
+					// are always called from the same thread to avoid race conditions
+					Process(10);
+
+					{
+						std::unique_lock<std::mutex> lock(m_processMutex);
+						m_hasMessages = false;
+					}
+				} while (m_running);
+
+				m_pipeServer.Stop();
+			}
+		);
 
 		m_serverDropbox = RegisterAddress("pipe_server",
 			[this](ProtoMessagePtr&& message)
@@ -465,7 +611,9 @@ public:
 
 		// we don't need to worry about sending messages after we stop because the pipe client will log
 		// and handle this situation.
-		m_pipeServer.Stop();
+		m_running = false;
+		m_needsProcessing.notify_one();
+		m_thread.join();
 	}
 
 private:
@@ -478,22 +626,24 @@ private:
 		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr&&)> send,
 		const std::function<void(int, PipeMessagePtr&&)>& failed)
 	{
-		auto connection = m_pipeServer.GetConnectionForProcessId(pid);
-		if (connection != nullptr)
+		if (pid == GetCurrentProcessId())
 		{
-			send(connection, std::move(message));
+			// send to self, dispatch directly to the handler
+			m_pipeServer.DispatchMessage(std::move(message));
+			return true;
 		}
-		else
+		else if (auto connection = m_pipeServer.GetConnectionForProcessId(pid))
 		{
-			SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
-			failed(MsgError_NoConnection, std::move(message));
+			// found a connection to send it over
+			send(connection, std::move(message));
+			return true;
 		}
 
-		return connection != nullptr;
+		SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
+		failed(MsgError_NoConnection, std::move(message));
+		return false;
 	}
 };
-
-std::unique_ptr<LauncherPostOffice> s_postOffice;
 
 PostOffice& postoffice::GetPostOffice()
 {
@@ -518,11 +668,6 @@ void SendUnloadAllCommand()
 void SendForceUnloadAllCommand()
 {
 	static_cast<LauncherPostOffice&>(GetPostOffice()).SendForceUnloadAllCommand();
-}
-
-void ProcessPipeServer()
-{
-	static_cast<LauncherPostOffice&>(GetPostOffice()).ProcessPipeServer();
 }
 
 void InitializeNamedPipeServer()

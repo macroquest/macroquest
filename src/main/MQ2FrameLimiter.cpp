@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,10 +16,12 @@
 #include "MQ2Main.h"
 
 #include "ImGuiBackend.h"
+#include "ImGuiManager.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2DeveloperTools.h"
 
-#include <mq/utils/Args.h>
+#include "mq/api/RenderDoc.h"
+#include "mq/utils/Args.h"
 
 #include <cstdint>
 #include <chrono>
@@ -215,6 +217,43 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, DrawWindows_Trampoline, ())
 	void DrawWindows_Detour()
 	{
+		static bool lastHide = false;
+
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			--gDrawWindowFrameSkipCount;
+		}
+
+		if (pCursorAttachment)
+		{
+			if (gbHideCursorAttachment)
+			{
+				CXPoint pos = pCursorAttachment->Location.TopLeft();
+
+				if (pos.x < 90000)
+				{
+					pCursorAttachment->Move(CXPoint(pos.x + 90000, pos.y + 90000));
+				}
+			}
+			else if (lastHide && !gbHideCursorAttachment)
+			{
+				if (pCursorAttachment->Location.left > 80000)
+				{
+					CXPoint pos = pCursorAttachment->Location.TopLeft();
+
+					pCursorAttachment->Move(CXPoint(pos.x - 90000, pos.y - 90000));
+				}
+			}
+
+			lastHide = gbHideCursorAttachment;
+		}
+
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			DrawWindows_Trampoline();
+			return;
+		}
+
 		if (!IsLimiterEnabled())
 		{
 			// this is a pass through if we have the frame limiter off
@@ -224,6 +263,11 @@ public:
 
 	static void CallDrawWindows()
 	{
+		if (gDrawWindowFrameSkipCount >= 0)
+		{
+			return;
+		}
+
 		if (pWndMgr && (pScreenMode == nullptr || *pScreenMode != 3))
 		{
 			pWndMgr.get_as<CXWndManagerHook>()->DrawWindows_Trampoline();
@@ -255,7 +299,9 @@ public:
 				*g_bRenderSceneCalled = TRUE;
 
 			if (IsTieUiToSimulation())
+			{
 				RenderBlind_Trampoline();
+			}
 		}
 	}
 
@@ -352,7 +398,17 @@ public:
 		// This will only be true if we the frame limiter is disabled, but there are side effects to do the simulation step later
 		if (ShouldDoRealRenderWorld())
 		{
+			DoRealRender_World();
+		}
+	}
+
+	void DoRealRender_World()
+	{
+		RenderDoc_ScopedEvent e(MQColor(170, 255, 255), L"RealRender_World");
+
+		{
 			MQScopedBenchmark bm(bmRealRenderWorld);
+
 			RealRender_World_Trampoline();
 		}
 	}
@@ -535,10 +591,9 @@ public:
 		// always perform the real world update, the limiting here happens in the sleep later in this function
 		{
 			// Measure how long it takes to do a realrender
-			MQScopedBenchmark bm(bmRealRenderWorld);
 			RecordSimulationSample();
 
-			pDisplay.get_as<CDisplayHook>()->RealRender_World_Trampoline();
+			pDisplay.get_as<CDisplayHook>()->DoRealRender_World();
 
 			if (GetTieUiToSimulation())
 				CXWndManagerHook::CallDrawWindows();
@@ -1290,7 +1345,7 @@ static void PulseFrameLimiter()
 	s_frameLimiter.OnPulse();
 }
 
-static void SetGameStateFrameLimiter(DWORD GameState)
+static void SetGameStateFrameLimiter(int GameState)
 {
 	s_frameLimiter.PauseForZone();
 

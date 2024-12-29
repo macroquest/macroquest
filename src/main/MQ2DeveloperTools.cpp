@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -31,6 +31,8 @@
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
 #include <cfenv>
+#include <inttypes.h>
+#include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
 
@@ -38,7 +40,7 @@ namespace mq {
 
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
-static void DeveloperTools_SetGameState(DWORD gameState);
+static void DeveloperTools_SetGameState(int gameState);
 static void DeveloperTools_UpdateImGui();
 
 static MQModule s_developerToolsModule = {
@@ -1124,7 +1126,8 @@ class AltAbilityInspector : public ImGuiWindowBase
 {
 	CAltAbilityData* m_selectedAbility = nullptr;
 	bool m_foundSelected = false;
-	bool m_showVisable = true;
+	bool m_showVisible = true;
+	char m_searchText[256] = { 0 };
 
 public:
 	AltAbilityInspector() : ImGuiWindowBase("Alt Abilities Inspector")
@@ -1213,7 +1216,11 @@ public:
 
 		CAltAbilityData* nextSelection = nullptr;
 
-		ImGui::Checkbox("Show Visible Only", &m_showVisable);
+		ImGui::Checkbox("Show Visible Only", &m_showVisible);
+
+		ImGui::Text("Search: ");
+	
+		ImGui::InputText("##AASearchText", m_searchText, 256);
 
 		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
 		{
@@ -1231,9 +1238,16 @@ public:
 			while (ppAltAbility)
 			{
 				CAltAbilityData* altAbility = *ppAltAbility;
-				if (!m_showVisable || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
+				if (!m_showVisible || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
 				{
-					DrawAltAbilityTableRow(altAbility);
+					if (!m_searchText[0] ||
+							ci_find_substr(altAbility->GetNameString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetCategoryString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetDescriptionString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetExpansionString(), m_searchText) != -1)
+					{
+						DrawAltAbilityTableRow(altAbility);
+					}
 				}
 
 				if (altAbility == m_selectedAbility)
@@ -2039,6 +2053,14 @@ public:
 
 				ImGui::EndTabItem();
 			}
+
+			if (ImGui::BeginTabItem("Fonts"))
+			{
+				DrawFonts();
+
+				ImGui::EndTabItem();
+			}
+
 			ImGui::EndTabBar();
 		}
 	}
@@ -2058,6 +2080,92 @@ public:
 		}
 
 		ImGui::Text("Rounding Mode: %s", roundingMode);
+	}
+
+	void DrawFonts()
+	{
+		if (!pGraphicsEngine) return;
+		auto resourceMgr = pGraphicsEngine->pResourceManager;
+		if (!resourceMgr) return;
+
+		CCachedFont* pCachedFont;
+		CCachedFont* pSelectedFont = nullptr;
+		EStatus status = eStatusFailure;
+
+		// GetCachedFont may crash here if the font manager hasn't been created yet, but we're
+		// using this routine to get access to the font manager. If it throws an access violation,
+		// the application state is fine, we can just bail on this attempt.
+		__try {
+			status = resourceMgr->GetCachedFont(0, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			status = eStatusFailure;
+		}
+
+		if (status != eStatusSuccess) return;
+		CFontManager* fontMgr = pCachedFont->pFontManager;
+		if (!fontMgr) return;
+
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_rightPaneSize == 0.0f)
+			m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+		imgui::DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+		// Left Pane
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::PopStyleVar();
+
+			for (int fontIndex = 0; fontIndex < NumFontStyles; ++fontIndex)
+			{
+				resourceMgr->GetCachedFont(fontIndex, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+
+				ImGui::PushID(pCachedFont);
+
+				char szLabel[64];
+				sprintf_s(szLabel, "%d: %s", fontIndex, pCachedFont->strFontName.c_str());
+
+				if (ImGui::Selectable(szLabel, m_selectedFont == fontIndex))
+					m_selectedFont = fontIndex;
+
+				if (m_selectedFont == fontIndex)
+					pSelectedFont = pCachedFont;
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndChild();
+		}
+
+		ImGui::SameLine();
+
+		// Right Pane
+		{
+			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+			if (pSelectedFont)
+			{
+				ImGui::Text("Font: %s", pSelectedFont->strFontName.c_str());
+				ImGui::Text("Font ID: %d", pSelectedFont->eFontId);
+
+				if (ImGui::CollapsingHeader("Textures"))
+				{
+					int index = 0;
+					for (CD3DTexturePointerNode* ptr : pSelectedFont->arTextures)
+					{
+						ImGui::Text("%d:", index++);
+
+						ImTextureID TexID = ptr->pTexture;
+
+						ImGui::Image(TexID, ImVec2(pSelectedFont->fTextureSize, pSelectedFont->fTextureSize));
+					}
+				}
+			}
+
+			ImGui::EndChild();
+		}
 	}
 
 	void DrawBitmaps()
@@ -2250,7 +2358,12 @@ public:
 				ImGui::Text("Can Reclaim: %s", pBitmap->m_canReclaim ? "Yes" : "No");
 				ImGui::Text("Tracking Type: %s", TrackingTypeToString(pBitmap->m_nTrackingType));
 
+#if HAS_DIRECTX_11
+				ImTextureID TexID = pBitmap;
+#else
 				ImTextureID TexID = pBitmap->GetTexture();
+#endif
+
 				if (TexID != nullptr)
 				{
 					ImGui::Separator();
@@ -2280,6 +2393,8 @@ private:
 	float m_leftPaneSize = 150.0f; // initial size of left column
 	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
 	const CEQGBitmap* m_selectedBitmap = nullptr;
+
+	int m_selectedFont = 0;
 };
 
 static EngineInspector* s_engineInspector = nullptr;
@@ -2287,6 +2402,69 @@ static EngineInspector* s_engineInspector = nullptr;
 #pragma endregion
 
 #pragma region EverQuest Data Inspector
+
+void DeveloperTools_DrawHotButtonData(const HotButtonData& data)
+{
+	// Item
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item");
+	if (ItemPtr pItem = data.Item)
+	{
+		ImGui::TableNextColumn();
+		if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+			pItemDisplayManager->ShowItem(pItem);
+	}
+
+	// ItemGuid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemGuid");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemGuid.guid);
+
+	// Label
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Label");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.Label);
+
+	// Item Name
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item Name");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemName);
+
+	// ItemID
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.ItemId);
+
+	// IconType
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconType");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconType);
+
+	// IconSlot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconSlot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconSlot);
+
+	// IconId
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconId);
+
+	// Slot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Slot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.Slot);
+
+	// Type
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Type");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.Type);
+
+	// Item Valid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemValid");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.ItemValid);
+}
 
 class EverQuestDataInspector : public ImGuiWindowBase
 {
@@ -2433,11 +2611,11 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Mouse Buttons");
-				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.MouseButtons, ", ")).c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(g_pDeviceInputProxy->mouse.CurrentClickState, ", ")).c_str());
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Mouse Buttons Old");
-				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.OldMouseButtons, ", ")).c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(g_pDeviceInputProxy->mouse.LastClickState, ", ")).c_str());
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Right Handed Mouse");
@@ -2526,7 +2704,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Expansion Flags");
-				ImGui::TableNextColumn(); ImGui::Text("%08X", eq.ExpansionsFlagBitmask);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ExpansionsFlagBitmask);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
@@ -2662,6 +2840,139 @@ public:
 				ImGui::TreePop();
 			}
 
+			if (pConnection)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (ImGui::TreeNode("Network"))
+				{
+					UdpLibrary::UdpConnectionStatistics stats;
+					pConnection->GetStats(&stats);
+
+					char temp[64];
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Sent");
+					FormatBytes(temp, stats.totalBytesSent);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Received");
+					FormatBytes(temp, stats.totalBytesReceived);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("CRC Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.crcRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Order Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.orderRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Order Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfOrderPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Duplicate Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.duplicatePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Range Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfRangePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Accelerated");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsAccelerated);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Timed Out");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsTimedOut);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Iterations");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.iterations);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Corrupt Packet Errors");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.corruptPacketErrors);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Age");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingAge);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Average Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.averagePingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Low Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("High Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Last Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.lastPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Reliable Average Ping");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.reliableAveragePing);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentSentSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Received");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentReceivedSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Connection Strength");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", pConnection->GetConnectionStrength() * 100);
+
+					ImGui::TreePop();
+				}
+			}
+
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 			if (ImGui::TreeNode("Server"))
@@ -2684,7 +2995,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
-				ImGui::TableNextColumn(); ImGui::Text("%08x", eq.ProgressionOpenExpansions);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ProgressionOpenExpansions);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
@@ -2812,6 +3123,49 @@ public:
 								ImGui::TableNextRow();
 								ImGui::TableNextColumn(); ImGui::Text("Changed");
 								ImGui::TableNextColumn(); ImGui::Checkbox("##Changed", &eq.bSocialChanged[i][j]);
+
+								ImGui::TreePop();
+							}
+						}
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("HotButtons"))
+			{
+				for (int window = 0; window < NUM_HOTBUTTON_WINDOWS; ++window)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode((void*)&eq.hotButtons[window][0][0], "Window %d", window + 1))
+					{
+						for (int page = 0; page < NUM_HOTBUTTON_PAGES; ++page)
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							if (ImGui::TreeNode((void*)&eq.hotButtons[window][page][0], "Page %d", page + 1))
+							{
+								for (int button = 0; button < HOTBUTTONS_PER_PAGE; ++button)
+								{
+									HotButtonData& data = eq.hotButtons[window][page][button];
+
+									ImGui::TableNextRow();
+									ImGui::TableNextColumn();
+									if (ImGui::TreeNode((void*)&data, "Button %d", button + 1))
+									{
+										DeveloperTools_DrawHotButtonData(data);
+
+										ImGui::TreePop();
+									}
+								}
 
 								ImGui::TreePop();
 							}
@@ -4169,16 +4523,13 @@ public:
 			ResetLastTimes();
 			m_resetNext = false;
 		}
-		//ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
-		//if (ImGui::CollapsingHeader("Benchmark Plot"))
-		{
-			DrawPlot();
-		}
 
-		//if (ImGui::CollapsingHeader("Benchmark Table"))
-		//{
-		//	DrawTable();
-		//}
+		DrawPlot();
+
+		if (ImGui::CollapsingHeader("Benchmark Table"))
+		{
+			DrawTable();
+		}
 
 		ResetLastTimes();
 	}
@@ -4249,29 +4600,31 @@ public:
 			}
 		}
 
-		ImPlot::SetNextAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextAxisLimits(ImAxis_Y1, 0, 20, ImGuiCond_Once);
-		ImPlot::SetNextAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+
 
 		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
 			ImPlot::SetupAxis(ImAxis_X1, "Time");
 			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
-
+			ImPlot::SetupAxis(ImAxis_Y3, "Frames Per Second", ImPlotAxisFlags_LockMin | ImPlotAxisFlags_Opposite);
+			ImPlot::SetupAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 40, ImGuiCond_Appearing);
+			ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y3, 0, 60, ImGuiCond_Appearing);
 			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
-
 				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
 					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}
 
 			if (!m_fpsData.Data.empty())
 			{
-				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y3);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
 				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0].x, &m_fpsData.Data[0].y,
@@ -5405,13 +5758,14 @@ static GameFaceInspector* s_gameFaceInspector = nullptr;
 //============================================================================
 //============================================================================
 
-struct WindowMenuEntry
+struct ConsoleMenuEntry
 {
 	ImGuiWindowBase* window;
+	std::string command;
 	std::string menuName;
 	std::string itemName;
 };
-static std::vector<WindowMenuEntry> s_inspectorMenus;
+static std::vector<ConsoleMenuEntry> s_inspectorMenus;
 static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
@@ -5453,8 +5807,16 @@ void DeveloperTools_DrawMenu()
 
 		if (isMenuOpen)
 		{
-			if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
-				entry.window->Toggle();
+			if (entry.window != nullptr)
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
+					entry.window->Toggle();
+			}
+			else
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, false))
+					DoCommand(entry.command.c_str(), false);
+			}
 		}
 	}
 
@@ -5466,7 +5828,14 @@ void DeveloperTools_DrawMenu()
 
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)
 {
-	s_inspectorMenus.push_back(WindowMenuEntry{ window, menuName ? menuName : "Tools", itemName });
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ window, "", menuName ? menuName : "Tools", itemName });
+
+	s_inspectorMenusDirty = true;
+}
+
+void DeveloperTools_RegisterMenuItem(const char* command, const char* itemName, const char* menuName)
+{
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ nullptr, command, menuName ? menuName : "Tools", itemName });
 
 	s_inspectorMenusDirty = true;
 }
@@ -5479,11 +5848,19 @@ void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window)
 		std::end(s_inspectorMenus));
 }
 
+void DeveloperTools_UnregisterMenuItem(const char* itemName)
+{
+	s_inspectorMenus.erase(
+		std::remove_if(std::begin(s_inspectorMenus), std::end(s_inspectorMenus),
+			[&](const auto& p) { return p.itemName == itemName; }),
+		std::end(s_inspectorMenus));
+}
+
 //============================================================================
 
 void DeveloperTools_WindowInspector_Initialize();
 void DeveloperTools_WindowInspector_Shutdown();
-void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState);
+void DeveloperTools_WindowInspector_SetGameState(int gameState);
 
 static void DeveloperTools_Initialize()
 {
@@ -5522,6 +5899,8 @@ static void DeveloperTools_Initialize()
 
 	s_macroEvaluator = new MacroExpressionEvaluator();
 	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
+
+	DeveloperTools_RegisterMenuItem("/squelch /lua run mq/eval", "Lua Expression Evaluator", s_menuNameTools);
 
 #if HAS_GAMEFACE_UI
 	s_gameFaceInspector = new GameFaceInspector();
@@ -5569,6 +5948,8 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;
 
+	DeveloperTools_UnregisterMenuItem("Lua Expression Evaluator");
+
 #if HAS_GAMEFACE_UI
 	DeveloperTools_UnregisterMenuItem(s_gameFaceInspector);
 	delete s_gameFaceInspector; s_gameFaceInspector = nullptr;
@@ -5577,7 +5958,7 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_WindowInspector_Shutdown();
 }
 
-static void DeveloperTools_SetGameState(DWORD gameState)
+static void DeveloperTools_SetGameState(int gameState)
 {
 	DeveloperTools_WindowInspector_SetGameState(gameState);
 }

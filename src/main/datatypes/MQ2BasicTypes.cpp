@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -1900,7 +1900,9 @@ bool MQ2HeadingType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	if (!pMember)
 		return false;
 
-	float Heading = 360.0f - VarPtr.Float;
+	float Heading = 360.0f - fmod(VarPtr.Float, 360.0f);
+	if (Heading < 0) Heading += 360.0f;
+
 	switch (static_cast<HeadingMembers>(pMember->ID))
 	{
 	case HeadingMembers::Clock:

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,6 +16,7 @@
 
 #include "mq/base/Common.h"
 #include "mq/base/Deprecation.h"
+#include "mq/base/PluginHandle.h"
 
 #include "eqlib/base/Color.h"
 #include "eqlib/CXStr.h"
@@ -414,7 +415,7 @@ namespace datatypes {
 class MQ2Type
 {
 public:
-	MQLIB_OBJECT MQ2Type(std::string_view typeName);
+	MQLIB_OBJECT MQ2Type(std::string_view typeName, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 	MQLIB_OBJECT virtual ~MQ2Type();
 
 	MQLIB_OBJECT void InitializeMembers(MQTypeMember* MemberArray);

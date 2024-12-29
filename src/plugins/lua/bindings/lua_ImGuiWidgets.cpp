@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -707,12 +707,12 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::Text("%s", text.c_str()); }
 	));
 	ImGui.set_function("TextColored", sol::overload(
-		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, text); },
-		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored({ r, g, b, a }, text.c_str()); },
-		[](int col, const char* text) { ImGui::TextColored(ImColor(col), text); },
-		[](int col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(ImColor(col), text.c_str()); },
-		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, text); },
-		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(col, text.c_str()); }
+		[](float r, float g, float b, float a, const char* text) { ImGui::TextColored({ r, g, b, a }, "%s", text); },
+		[](float r, float g, float b, float a, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored({ r, g, b, a }, "%s", text.c_str()); },
+		[](int col, const char* text) { ImGui::TextColored(ImColor(col), "%s", text); },
+		[](int col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(ImColor(col), "%s", text.c_str()); },
+		[](const ImVec4& col, const char* text) { ImGui::TextColored(col, "%s", text); },
+		[](const ImVec4& col, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextColored(col, "%s", text.c_str()); }
 	));
 	ImGui.set_function("TextDisabled", sol::overload(
 		[](const char* text) { ImGui::TextDisabled("%s", text); },
@@ -766,7 +766,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	});
 	ImGui.set_function("ImageButton", sol::overload(
 		[](const char* str_id, ImTextureID texture_id, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
-			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(str_id, texture_id, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), bg_col.value_or(ImVec4(1, 1, 1, 1)), tint_col.value_or(ImVec4(0, 0, 0, 0))); },
+			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(str_id, texture_id, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1))); },
 		// OBSOLETE:
 		[](ImTextureID texture_id, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<int> frame_padding,
 			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(texture_id, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), frame_padding.value_or(-1), bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1))); }
@@ -849,8 +849,8 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](sol::object obj, int flags, sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); return ImGui::TreeNodeEx(obj.pointer(), flags, "%s", text.c_str()); }
 	));
 	ImGui.set_function("TreePush", sol::overload(
-		[](std::optional<const char*> strId) { ImGui::TreePush(strId.value_or(nullptr)); },
-		[](sol::object obj) { ImGui::TreePush(obj.pointer()); }
+		[](const char* strId) { ImGui::TreePush(strId); },
+		[](std::optional<sol::object> obj) { if (obj.has_value()) ImGui::TreePush(obj->pointer()); else ImGui::TreePush(static_cast<void*>(nullptr)); }
 	));
 	ImGui.set_function("TreePop", &ImGui::TreePop);
 	ImGui.set_function("GetTreeNodeToLabelSpacing", &ImGui::GetTreeNodeToLabelSpacing);

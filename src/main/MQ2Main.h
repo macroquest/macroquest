@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -55,7 +55,6 @@ using namespace eqlib;
 #include "MQ2Commands.h"
 #include "MQ2DataContainers.h"
 #include "MQ2Utilities.h"
-#include "MQDataAPI.h"
 #include "datatypes/MQ2DataTypes.h"
 
 // Link up ImGui
@@ -69,13 +68,13 @@ using namespace eqlib;
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
 
-#include "mq/base/Detours.h"
 #include "mq/utils/Benchmarks.h"
 #include "mq/utils/Keybinds.h"
 
 #include "mq/api/Main.h"
+#include "mq/api/DetourAPI.h"
 #include "mq/api/MacroAPI.h"
-#include "mq/api/Plugin.h"
+#include "mq/api/PluginAPI.h"
 
 namespace mq {
 
@@ -86,17 +85,26 @@ void InitializeMQ2Benchmarks();
 void InitializeDisplayHook();
 void ShutdownDisplayHook();
 
-void InitializeMQ2Commands();
-void ShutdownMQ2Commands();
-
 void InitializeMQ2Pulse();
 void ShutdownMQ2Pulse();
 
 void InitializeChatHook();
 void ShutdownChatHook();
 
+// Logging / Console output
+MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
+MQLIB_API void WriteChatf(const char* Format, ...);
+MQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
+
+MQLIB_API DEPRECATE("Use WriteChatf instead")
+void WriteChatfSafe(const char* szFormat, ...);
+
+MQLIB_API void DebugSpew(const char* szFormat, ...);
+MQLIB_API void DebugSpewAlways(const char* szFormat, ...);
+MQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
+MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
+
 /* SPAWN HANDLING */
-MQLIB_API bool SetNameSpriteState(SPAWNINFO* pSpawn, bool Show);
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
 
@@ -140,64 +148,8 @@ MQLIB_API void DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
-MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
-MQLIB_API void WriteChatf(const char* Format, ...);
-MQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
-
-MQLIB_API DEPRECATE("Use WriteChatf instead")
-void WriteChatfSafe(const char* szFormat, ...);
-
-/* PLUGIN HANDLING */
-MQLIB_API void InitializeMQ2Plugins();
-MQLIB_API int LoadMQ2Plugin(const char* pszFilename, bool bCustom = false);
-MQLIB_API bool UnloadMQ2Plugin(const char* pszFilename);
-MQLIB_API void UnloadMQ2Plugins();
-MQLIB_API void ShutdownMQ2Plugins();
-MQLIB_API void ShutdownFailedPlugins();
-
-MQLIB_API DEPRECATE("This is handled on load/unload without the direct call.")
-void SaveMQ2PluginLoadStatus(const char* Name, bool bLoad);
-
-void PulsePlugins();
-void PluginsZoned();
-bool PluginsIncomingChat(const char* Line, DWORD Color);
-void PluginsCleanUI();
-void PluginsReloadUI();
-void PluginsSetGameState(DWORD GameState);
-void PluginsDrawHUD();
-void PluginsAddSpawn(SPAWNINFO* pNewSpawn);
-void PluginsRemoveSpawn(SPAWNINFO* pSpawn);
-void PluginsAddGroundItem(GROUNDITEM* pNewGroundItem);
-void PluginsRemoveGroundItem(GROUNDITEM* pGroundItem);
-void PluginsBeginZone();
-void PluginsEndZone();
-void PluginsUpdateImGui();
-void ModulesUpdateImGui();
-void PluginsMacroStart(const char* Name);
-void PluginsMacroStop(const char* Name);
-
 /* CLEAN UI */
 MQLIB_API void DrawHUD();
-
-/* COMMAND HANDLING */
-MQLIB_API void AddCommand(const char* Command, fEQCommand Function, bool EQ = false, bool Parse = true, bool InGame = false);
-MQLIB_API void AddAlias(const char* ShortCommand, const char* LongCommand);
-MQLIB_API bool RemoveAlias(const char* ShortCommand);
-MQLIB_API void AddSubstitute(const char* Original, const char* Substitution);
-MQLIB_API bool RemoveSubstitute(const char* Original);
-MQLIB_API bool RemoveCommand(const char* Command);
-MQLIB_API void PulseCommands();
-MQLIB_API void TimedCommand(const char* Command, int msDelay);
-MQLIB_API bool IsCommand(const char* command);
-MQLIB_API bool IsAlias(const char* alias);
-
-MQLIB_OBJECT void AddCommand(const char* Command, std::function<void(PlayerClient*, const char*)> Function, bool EQ = false, bool Parse = true, bool InGame = false);
-
-/* MACRO COMMANDS */
-MQLIB_API void DumpStack(SPAWNINFO*, char*);
-MQLIB_API void EndMacro(SPAWNINFO*, char*);
-MQLIB_API void Echo(SPAWNINFO*, char*);
-MQLIB_API void EchoClean(SPAWNINFO*, char*);
 
 
 /* MOUSE */
@@ -207,18 +159,13 @@ MQLIB_API bool MoveMouse(int x, int y);
 MQLIB_API bool ClickMouseButton(int mouseButton); // Uses DirectInput to simulate a mouse click at the current mouse position.
 MQLIB_API bool MouseToPlayer(PlayerClient* pPlayer, DWORD position, bool bClick = false);
 MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
-   inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
+inline bool ClickMouseItem(SPAWNINFO* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
+void MouseConsume(int mouseButton, bool pressed);
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
 MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 
-//----------------------------------------------------------------------------
-// Logging utilities
-MQLIB_API void DebugSpew(const char* szFormat, ...);
-MQLIB_API void DebugSpewAlways(const char* szFormat, ...);
-MQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
-MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 //----------------------------------------------------------------------------
 // Argument string parsing
@@ -238,15 +185,6 @@ inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char S
 MQLIB_API DEPRECATE("The EQ Path is the working directory.")
 char* GetEQPath(char* szBuffer, size_t len);
 
-// Command Execution
-MQLIB_API void HideDoCommand(SPAWNINFO* pChar, const char* szLine, bool delayed);
-MQLIB_API void DoCommandf(const char* szFormat, ...);
-inline void DoCommand(PSPAWNINFO pSpawnInfo, const char* szCommand)
-{
-	HideDoCommand(pSpawnInfo, szCommand, FromPlugin);
-}
-inline void EzCommand(const char* szCommand) { DoCommand(pLocalPlayer, szCommand); }
-
 MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
 MQLIB_API void StripMQChat(const char* in, char* out);
 MQLIB_OBJECT void StripMQChat(std::string_view in, char* out);
@@ -263,7 +201,7 @@ MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
 
 MQLIB_API int GetLanguageIDByName(const char* szName);
-MQLIB_API int GetCurrencyIDByName(char* szName);
+MQLIB_API int GetCurrencyIDByName(const char* szName);
 MQLIB_API const char* GetSpellNameByID(int dwSpellID);
 MQLIB_API EQ_Spell* GetSpellByName(std::string_view name);
 MQLIB_API EQ_Spell* GetSpellByAAName(const char* szName);
@@ -282,9 +220,8 @@ MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
 MQLIB_API int GetFamiliarCount();
 MQLIB_API int GetHeroForgeCount();
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 MQLIB_API int GetTeleportationItemCount();
-#endif
+MQLIB_API int GetActivatedItemCount();
 
 MQLIB_API bool IsActiveAA(const char* pSpellName);
 MQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type);
@@ -375,9 +312,9 @@ MQLIB_API void SyntaxError(const char* szFormat, ...);
 MQLIB_API void MacroError(const char* szFormat, ...);
 MQLIB_API void FatalError(const char* szFormat, ...);
 MQLIB_API char* GetSpellRestrictions(EQ_Spell* pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
-MQLIB_API void MQ2DataError(char* szFormat, ...);
+MQLIB_API void MQ2DataError(const char* szFormat, ...);
 MQLIB_API void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold);
-MQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
+MQLIB_API void CustomPopup(const char* szPopText, bool bPopOutput);
 
 MQLIB_API bool IsBardSong(EQ_Spell* pSpell);
 MQLIB_API bool IsSPAEffect(EQ_Spell* pSpell, int EffectID);
@@ -390,6 +327,7 @@ MQLIB_API uint32_t GetItemTimer(ItemClient* pItem);
 MQLIB_API ItemClient* GetItemContentsByName(const char* ItemName);
 MQLIB_API DWORD GetAvailableSlots(ItemClient* pContainer, ItemClient* pItem, int *firstavailableslot);
 MQLIB_API bool LoH_HT_Ready();
+MQLIB_API ECombatState GetCombatState();
 
 /* MQ2DATAVARS */
 MQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
@@ -528,9 +466,6 @@ MQLIB_API bool GetClosestAlert(SPAWNINFO* pSpawn, uint32_t id);
 MQLIB_API bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t List);
 MQLIB_API bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id);
 MQLIB_API void WriteFilterNames();
-MQLIB_API void RewriteSubstitutions();
-MQLIB_API void RewriteAliases();
-MQLIB_API void WriteAliasToIni(const char* Name, const char* Command);
 MQLIB_API int FindSpellListByName(const char* szName);
 MQLIB_API float StateHeightMultiplier(DWORD StandState);
 extern void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
@@ -553,7 +488,7 @@ MQLIB_API int         GetWorldState();
 MQLIB_API float       GetMeleeRange(PlayerClient*, PlayerClient*);
 MQLIB_API uint32_t    GetSpellGemTimer(int nGem);
 MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
-MQLIB_API bool        HasExpansion(int nExpansion);
+MQLIB_API bool        HasExpansion(int64_t nExpansion);
 MQLIB_API void        ListMercAltAbilities();
 MQLIB_API ItemClient*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 MQLIB_API ItemContainer* GetItemContainerByType(ItemContainerInstance type);
@@ -772,13 +707,6 @@ MQLIB_OBJECT int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);
 MQLIB_OBJECT void RemoveTokenMessageCmd(int StringID, int CallbackID);
 
 //----------------------------------------------------------------------------
-
-enum class GetMoneyFromStringFormat {
-	Long = 0,       // e.g. pp, gp, sp, cp
-	Short = 1,      // e.g. p, g, s, c
-};
-MQLIB_API uint64_t GetMoneyFromString(const char* string, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
-MQLIB_API void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount, GetMoneyFromStringFormat format = GetMoneyFromStringFormat::Long);
 
 MQLIB_API MembershipLevel GetMembershipLevel();
 inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }

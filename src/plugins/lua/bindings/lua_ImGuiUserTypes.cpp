@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -304,7 +304,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 	imDrawList.set_function("AddTextureAnimation",
 		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, std::optional<ImVec2> size) {
-			return imgui::AddTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
+			return imgui::DrawTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
 		});
 
 
