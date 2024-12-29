@@ -2196,7 +2196,7 @@ void MacroLog(PlayerClient* pChar, const char* szLine)
 
 	fmt::memory_buffer buffer;
 	auto out = fmt::format_to(fmt::appender(buffer),
-		"[{:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d}] {}",
+		"[{:04d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}] {}",
 		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
 		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
 	*out = 0;
