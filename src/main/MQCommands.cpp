@@ -834,7 +834,7 @@ void SelectItem(PlayerClient* pChar, const char* szLine)
 		}
 	}
 
-	WriteChatf("/selectitem works when a merchantwindow is open, it will select a item from YOUR inventory.\n"
+	WriteChatf("/selectitem works when a merchantwindow is open, it will select an item from YOUR inventory.\n"
 		"Use /invoke ${Merchant.SelectItem[some item]} if you want to select an item in the MERCHANTS inventory.");
 	WriteChatf(R"(Usage: /selectitem "some item in YOUR inventory", use "=some item in YOUR inventory" for EXACT name search.)");
 }
