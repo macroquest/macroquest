@@ -1,3 +1,7 @@
+Jan 11, 2025:
+- ImGui has been updated to version 1.91.6
+- Fix date format string of output from /mqlog
+
 Dec 13, 2024:
 - test: Update for test patch
 

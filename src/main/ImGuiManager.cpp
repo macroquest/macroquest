@@ -391,6 +391,7 @@ extern bool gbAutoDockspacePreserveRatio;
 
 // We forward declare this so that we don't need windows.h types in the header
 LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT  ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io);
 
 void SetOverlayEnabled(bool visible)
 {
@@ -1033,7 +1034,7 @@ void ImGuiManager_DrawCursorAttachment()
 	ImGui::End();
 }
 
-bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
+static bool HandleWndProcEvent(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
 {
 	if (msg == WM_KEYDOWN
 		&& gbToggleConsoleHotkeyReady)
@@ -1051,7 +1052,26 @@ bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intpt
 		}
 	}
 
+	return false;
+}
+
+bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
+{
+	if (HandleWndProcEvent(hWnd, msg, wParam, lParam))
+		return true;
+
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
+
+	return false;
+}
+
+bool ImGuiManager_HandleWndProcEx(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam, ImGuiIO& io)
+{
+	if (HandleWndProcEvent(hWnd, msg, wParam, lParam))
+		return true;
+
+	if (ImGui_ImplWin32_WndProcHandlerEx(hWnd, msg, wParam, lParam, io))
 		return true;
 
 	return false;
