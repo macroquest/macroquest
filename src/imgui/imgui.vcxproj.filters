@@ -108,6 +108,12 @@
     <ClInclude Include="ImGuiUtils.h">
       <Filter>Header Files\mq\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imgui_stacklayout.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\imgui\imgui_stacklayout_internal.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -160,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="implot\implot_items.cpp">
       <Filter>Source Files\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui_stacklayout.cpp">
+      <Filter>Source Files\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

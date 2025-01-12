@@ -329,4 +329,8 @@ inline bool operator!=(const ImGuiTextureObject& a, const ImGuiTextureObject& b)
 
 #define ImTextureID ImGuiTextureObject
 
-#endif // HAS_DIRECTX_11
+#else // HAS_DIRECTX_11
+
+#define ImTextureID void*
+
+#endif // !HAS_DIRECTX_11
