@@ -79,6 +79,9 @@ int Target_AggroPctSecondaryLabel_TopOffsetOrg = 33;
 int Target_AggroPctPlayerLabel_BottomOffsetOrg = 47;
 int Target_AggroNameSecondaryLabel_BottomOffsetOrg = 47;
 int Target_AggroPctSecondaryLabel_BottomOffsetOrg = 47;
+int TargetDistanceShort = 25;
+int TargetDistanceMedium = 250;
+int TargetDistanceLong = 400;
 
 bool Initialized = false;
 bool bDisablePluginDueToBadUI = false;
@@ -856,14 +859,18 @@ PLUGIN_API void OnPulse()
 					if(gBShowDistance)
 					{
 						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
-						sprintf_s(szTargetDist, "%.2f", dist);
+						sprintf_s(szTargetDist, "%.0f", dist);
 
-						if (dist < 250)
-						{
+						if (dist < TargetDistanceShort) {
+							DistanceLabel->SetCRNormal(MQColor(0, 0, 255)); // blue
+						}
+						else if (dist >= TargetDistanceShort && dist < TargetDistanceMedium) {
 							DistanceLabel->SetCRNormal(MQColor(0, 255, 0)); // green
 						}
-						else
-						{
+						else if (dist >= TargetDistanceMedium && dist < TargetDistanceLong) {
+							DistanceLabel->SetCRNormal(MQColor(255, 255, 0)); // yellow
+						}
+						else {
 							DistanceLabel->SetCRNormal(MQColor(255, 0, 0)); // red
 						}
 
