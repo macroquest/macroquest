@@ -879,7 +879,7 @@ void ShowProfilesMenu(bool showLoadAll)
 					ImGui::TableNextRow(ImGuiTableRowFlags_None);
 					ImGui::TableNextColumn();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+					ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
 
 					for (auto& profile : profiles.Updated())
 					{

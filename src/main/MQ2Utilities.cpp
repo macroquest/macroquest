@@ -5097,7 +5097,16 @@ void UseAbility(const char* sAbility)
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(int64_t nExpansion)
 {
-	return pLocalPC && (pLocalPC->ExpansionFlags & nExpansion) != 0;
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOB)
+	// ExpansionFlags was expanded to 64 bits in TOB. If this client is not using TOB or later, we
+	// can short circuit the check if the request exceeds the LS expansion level.
+	if (nExpansion > EXPANSION_LS)
+		return false;
+#endif
+
+	using FlagsType = std::make_unsigned_t<decltype(pLocalPC->ExpansionFlags)>;
+
+	return pLocalPC && (pLocalPC->ExpansionFlags & static_cast<FlagsType>(nExpansion)) != 0;
 }
 
 int GetAvailableBagSlots()

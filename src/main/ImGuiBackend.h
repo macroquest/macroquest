@@ -25,6 +25,8 @@ namespace mq {
 // DX9 renderer backend
 //----------------------------------------------------------------------------
 
+#if HAS_DIRECTX_9
+
 bool     ImGui_ImplDX9_Init(IDirect3DDevice9* device);
 void     ImGui_ImplDX9_Shutdown();
 void     ImGui_ImplDX9_NewFrame();
@@ -34,10 +36,13 @@ void     ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX9_InvalidateDeviceObjects();
 bool     ImGui_ImplDX9_CreateDeviceObjects();
 
+#endif // HAS_DIRECTX_9
 
 //----------------------------------------------------------------------------
 // DX11 renderer backend
 //----------------------------------------------------------------------------
+
+#if HAS_DIRECTX_11
 
 bool     ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_context);
 void     ImGui_ImplDX11_Shutdown();
@@ -48,6 +53,17 @@ void     ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX11_InvalidateDeviceObjects();
 bool     ImGui_ImplDX11_CreateDeviceObjects();
 
+// [BETA] Selected render state data shared with callbacks.
+// This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplDX11_RenderDrawData() call.
+// (Please open an issue if you feel you need access to more data)
+struct ImGui_ImplDX11_RenderState
+{
+	ID3D11Device* Device;
+	ID3D11DeviceContext* DeviceContext;
+	ID3D11SamplerState* SamplerDefault;
+};
+
+#endif // HAS_DIRECTX_11
 
 //----------------------------------------------------------------------------
 // Win32 platform backend
