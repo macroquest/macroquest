@@ -1,3 +1,6 @@
+Han 15, 2025:
+- live: Update for patch
+
 Jan 12, 2025:
 - test: Update for patch
 - Added ${Pet.ProcHold} and ${Pet.Resume}
