@@ -102,6 +102,8 @@ enum class PetMembers
 	Focus,
 	FindBuff,
 	SpellHold,
+	Resume,
+	ProcHold,
 };
 
 MQ2PetType::MQ2PetType() : MQ2Type("pet")
@@ -120,6 +122,8 @@ MQ2PetType::MQ2PetType() : MQ2Type("pet")
 	ScopedTypeMember(PetMembers, Focus);
 	ScopedTypeMember(PetMembers, FindBuff);
 	ScopedTypeMember(PetMembers, SpellHold);
+	ScopedTypeMember(PetMembers, Resume);
+	ScopedTypeMember(PetMembers, ProcHold);
 }
 
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -248,6 +252,18 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		Dest.Set(pPetInfoWnd->SpellHold);
 		Dest.Type = pBoolType;
 		return true;
+
+#if IS_TEST_CLIENT
+	case PetMembers::Resume:
+		Dest.Set(pPetInfoWnd->Resume);
+		Dest.Type = pBoolType;
+		return true;
+
+	case PetMembers::ProcHold:
+		Dest.Set(pPetInfoWnd->ProcHold);
+		Dest.Type = pBoolType;
+		return true;
+#endif
 
 	case PetMembers::ReGroup:
 		Dest.Set(pPetInfoWnd->ReGroup);

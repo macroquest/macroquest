@@ -11536,9 +11536,6 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
 
 #if IMGUI_HAS_STACK_LAYOUT
     ImGuiLayoutType layout_type = ImGuiInternal::GetCurrentLayoutType(window->ID);
-#else
-    ImGuiLayoutType layout_type = window->DC.LayoutType;
-#endif
 
     //if (g.IO.KeyAlt) window->DrawList->AddCircle(window->DC.CursorPos, 3.0f, IM_COL32(255,255,0,255), 4); // [DEBUG] Widget position
 
@@ -11565,6 +11562,7 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
         window->DC.IsSameLine = window->DC.IsSetPos = false;
         return;
     }
+#endif // IMGUI_HAS_STACK_LAYOUT
 
     // We increase the height in this function to accommodate for baseline offset.
     // In theory we should be offsetting the starting position (window->DC.CursorPos), that will be the topic of a larger refactor,
@@ -11584,12 +11582,20 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     window->DC.CursorMaxPos.y = ImMax(window->DC.CursorMaxPos.y, window->DC.CursorPos.y - g.Style.ItemSpacing.y);
     //if (g.IO.KeyAlt) window->DrawList->AddCircle(window->DC.CursorMaxPos, 3.0f, IM_COL32(255,0,0,255), 4); // [DEBUG]
 
+#if IMGUI_HAS_STACK_LAYOUT
     window->DC.PrevLineSize.x = 0.0f;
+#endif
     window->DC.PrevLineSize.y = line_height;
     window->DC.CurrLineSize.y = 0.0f;
     window->DC.PrevLineTextBaseOffset = ImMax(window->DC.CurrLineTextBaseOffset, text_baseline_y);
     window->DC.CurrLineTextBaseOffset = 0.0f;
     window->DC.IsSameLine = window->DC.IsSetPos = false;
+
+#if !IMGUI_HAS_STACK_LAYOUT
+    // Horizontal layout mode
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+        SameLine();
+#endif
 }
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 
