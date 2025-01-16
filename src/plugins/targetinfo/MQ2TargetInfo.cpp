@@ -16,8 +16,12 @@
 // 2.1 Added enums for menu and go to menu item
 // 2.2 Added fix from dannuic/knightly to stop clearing target when using hotbuttons.
 // 2.3 Added a fix for stopping movement by Freezerburn26
+// 2.4 FelisMalum: Moved allot of configuration to INI + added some additional, added distance variables/color, updated INI.
 
 // TODO: Update for zone checking since the info is in the file (requires switching storage or map key)
+// TODO: Move 2nd aggro%/name to ini. Find a better color parse. Possible label variables?
+// TODO: Cleanup ph loading, no need to load entire file on load or hardcode npc.
+
 #include <mq/Plugin.h>
 #include "resource.h"
 
@@ -26,7 +30,7 @@
 #include <string>
 
 PreSetup("MQ2TargetInfo");
-PLUGIN_VERSION(2.3);
+PLUGIN_VERSION(2.4);
 
 enum class eINIOptions
 {
@@ -56,21 +60,19 @@ CLabelWnd* Target_AggroPctPlayerLabel = nullptr;
 CLabelWnd* Target_AggroNameSecondaryLabel = nullptr;
 CLabelWnd* Target_AggroPctSecondaryLabel = nullptr;
 
-// TODO:  These should probably be a map of UI specific settings
-/* Also defaulted in HandleINI() for INI reads and in the .ini resource */
-int Target_BuffWindow_TopOffset = 76; // see note above
-int Target_BuffWindow_TopOffsetOld = 50; // see note above
-int dTopOffset = 60; // see note above
-int dBottomOffset = 74; // see note above
-int CanSeeTopOffset = 47; // see note above
-int dLeftOffset = 50; // see note above
-int CanSeeBottomOffset = 61; // see note above
-int TargetInfoWindowStyle = 0; // see note above
-int TargetInfoAnchoredToRight = 0; // see note above
-std::string ManaLabelName = "Player_ManaLabel"; // see note above
-std::string FatigueLabelName = "Player_FatigueLabel"; // see note above
-std::string TargetInfoLoc = "34,48,0,40"; // see note above
-std::string TargetDistanceLoc = "34,48,90,0"; // see note above
+//Defaulted on initialize but over-written by INI
+int Target_BuffWindow_TopOffset = 76;
+int Target_BuffWindow_TopOffsetOld = 50; //Not in ini
+int dTopOffset = 60;
+int dBottomOffset = 74;
+int TargetInfoWindowStyle = 0;
+int TargetInfoAnchoredToRight = 0;
+std::string manaLabelName = "Player_ManaLabel";
+std::string fatigueLabelName = "Player_FatigueLabel";
+std::string TargetInfoLoc = "34,48,0,40";
+int targetInfoColor[3] = { 0, 255, 0 };
+std::string TargetDistanceLoc = "34,48,90,0";
+std::string canSeeIndicatorLoc = "47,61,50,0";
 /* End multiple location defaults */
 
 int Target_AggroPctPlayerLabel_TopOffsetOrg = 33;
@@ -79,6 +81,13 @@ int Target_AggroPctSecondaryLabel_TopOffsetOrg = 33;
 int Target_AggroPctPlayerLabel_BottomOffsetOrg = 47;
 int Target_AggroNameSecondaryLabel_BottomOffsetOrg = 47;
 int Target_AggroPctSecondaryLabel_BottomOffsetOrg = 47;
+int	targetMeleeRng[3] = { 0 , 0, 255 };
+int targetDistanceShort = 25;
+int targetSpellRng[3] = { 0, 255, 0 };
+int targetDistanceMedium = 250;
+int targetBowRng[3] = { 255, 255, 0 };
+int targetDistanceLong = 400;
+int targetFarRng[3] = { 255, 0, 0 };
 
 bool Initialized = false;
 bool bDisablePluginDueToBadUI = false;
@@ -262,6 +271,23 @@ CXRect GetCXRectTBLRFromString(const std::string& Input, int defaultTop, int def
 	return CXRect(defaultLeft, defaultTop, defaultRight, defaultBottom);
 }
 
+void ColorConversion(int colorArray[], std::string colorString) {
+	auto splitString = split(colorString, ',');
+	if (splitString.size() == 3) {
+		colorArray[0] = GetIntFromString(splitString[0], 255);
+		colorArray[1] = GetIntFromString(splitString[1], 255);
+		colorArray[2] = GetIntFromString(splitString[2], 255);
+	}
+}
+
+std::string ColorDeConversion(int colorArray[]) {
+	std::string s = "";
+	s = std::to_string(colorArray[0]) + ",";
+	s += std::to_string(colorArray[1]) + ","; 
+	s += std::to_string(colorArray[2]); 
+	return s;
+}
+
 void CleanUp()
 {
 	bDisablePluginDueToBadUI = false;
@@ -379,7 +405,7 @@ void HandleINI(eINIOptions Operation)
 
 	if (!Initialized)
 	{
-		gBUsePerCharSettings = GetPrivateProfileBool("Default", "UsePerCharSettings", gBUsePerCharSettings, INIFileName);
+		gBUsePerCharSettings = GetPrivateProfileBool(szSettingINISection, "UsePerCharSettings", gBUsePerCharSettings, INIFileName);
 	}
 
 	if (gBUsePerCharSettings && pLocalPlayer && GetServerShortName()[0] != '\0')
@@ -388,8 +414,9 @@ void HandleINI(eINIOptions Operation)
 	}
 
 	std::string strUISection = "UI_";
-	strUISection.append(gUISkin);
+	strUISection.append(szSettingINISection);
 
+	//Reads from INI
 	if (Operation == eINIOptions::ReadOnly || Operation == eINIOptions::ReadAndWrite)
 	{
 		gBShowDistance = GetPrivateProfileBool(szSettingINISection, "ShowDistance", gBShowDistance, INIFileName);
@@ -397,25 +424,30 @@ void HandleINI(eINIOptions Operation)
 		gbShowPlaceholder = GetPrivateProfileBool(szSettingINISection, "ShowPlaceholder", gbShowPlaceholder, INIFileName);
 		gbShowAnon = GetPrivateProfileBool(szSettingINISection, "ShowAnon", gbShowAnon, INIFileName);
 		gbShowSight = GetPrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
-
 		DistanceLabelToolTip = GetPrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
+		manaLabelName = GetPrivateProfileString(szSettingINISection, "manaLabelName", manaLabelName, INIFileName);
+		fatigueLabelName = GetPrivateProfileString(szSettingINISection, "fatigueLabelName", fatigueLabelName, INIFileName);
 
-		/* Also defaulted on the global and in the .ini resource */
-		Target_BuffWindow_TopOffset = GetPrivateProfileInt(strUISection, "Target_BuffWindow_TopOffset", 76, INIFileName); // see note above
-		dTopOffset = GetPrivateProfileInt(strUISection, "dTopOffset", 60, INIFileName); // see note above
-		dBottomOffset = GetPrivateProfileInt(strUISection, "dBottomOffset", 74, INIFileName); // see note above
-		dLeftOffset = GetPrivateProfileInt(strUISection, "dLeftOffset", 50, INIFileName); // see note above
-		CanSeeTopOffset = GetPrivateProfileInt(strUISection, "CanSeeTopOffset", 47, INIFileName); // see note above
-		CanSeeBottomOffset = GetPrivateProfileInt(strUISection, "CanSeeBottomOffset", 61, INIFileName); // see note above
-		TargetInfoWindowStyle = GetPrivateProfileInt(strUISection, "TargetInfoWindowStyle", 0, INIFileName); // see note above
-		TargetInfoAnchoredToRight = GetPrivateProfileInt(strUISection, "TargetInfoAnchoredToRight", 0, INIFileName); // see note above
+		Target_BuffWindow_TopOffset = GetPrivateProfileInt(strUISection, "Target_BuffWindow_TopOffset", Target_BuffWindow_TopOffset, INIFileName);
+		dTopOffset = GetPrivateProfileInt(strUISection, "dTopOffset", dTopOffset, INIFileName);
+		dBottomOffset = GetPrivateProfileInt(strUISection, "dBottomOffset", dBottomOffset, INIFileName);
+		TargetInfoWindowStyle = GetPrivateProfileInt(strUISection, "TargetInfoWindowStyle", TargetInfoWindowStyle, INIFileName);
+		TargetInfoAnchoredToRight = GetPrivateProfileInt(strUISection, "TargetInfoAnchoredToRight", TargetInfoAnchoredToRight, INIFileName);
 
-		ManaLabelName = GetPrivateProfileString(strUISection, "Label1", "Player_ManaLabel", INIFileName); // see note above
-		FatigueLabelName = GetPrivateProfileString(strUISection, "Label2", "Player_FatigueLabel", INIFileName); // see note above
-		TargetDistanceLoc = GetPrivateProfileString(strUISection, "TargetDistanceLoc", "34,48,90,0", INIFileName); // see note above
-		TargetInfoLoc = GetPrivateProfileString(strUISection, "TargetInfoLoc", "34,48,0,40", INIFileName); // see note above
+		TargetDistanceLoc = GetPrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
+		TargetInfoLoc = GetPrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
+		ColorConversion(targetInfoColor, GetPrivateProfileString(strUISection, "targetInfoColor", "0,255,0", INIFileName));
+		canSeeIndicatorLoc = GetPrivateProfileString(strUISection, "canSeeIndicatorLoc", canSeeIndicatorLoc, INIFileName);
+		ColorConversion(targetMeleeRng, GetPrivateProfileString(strUISection, "meleeRngColor", "0,0,255", INIFileName));
+		targetDistanceShort = GetPrivateProfileInt(strUISection, "targetDistanceShort", targetDistanceShort, INIFileName);
+		ColorConversion(targetSpellRng, GetPrivateProfileString(strUISection, "spellRngColor", "0,255,0", INIFileName));
+		targetDistanceMedium = GetPrivateProfileInt(strUISection, "targetDistanceMedium", targetDistanceMedium, INIFileName);
+		ColorConversion(targetBowRng, GetPrivateProfileString(strUISection, "bowRngColor", "255,255,0", INIFileName));
+		targetDistanceLong = GetPrivateProfileInt(strUISection, "targetDistanceLong", targetDistanceLong, INIFileName);
+		ColorConversion(targetFarRng, GetPrivateProfileString(strUISection, "farRngColor", "255,0,0", INIFileName));
 		/* End multiple location defaults */
 	}
+	//Writes to INI
 	if (Operation == eINIOptions::WriteOnly || Operation == eINIOptions::ReadAndWrite)
 	{
 		WritePrivateProfileBool("Default", "UsePerCharSettings", gBUsePerCharSettings, INIFileName);
@@ -427,20 +459,26 @@ void HandleINI(eINIOptions Operation)
 		WritePrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
 
 		WritePrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "manaLabelName", manaLabelName, INIFileName);
+		WritePrivateProfileString(szSettingINISection, "fatigueLabelName", fatigueLabelName, INIFileName);
 
 		WritePrivateProfileInt(strUISection, "Target_BuffWindow_TopOffset", Target_BuffWindow_TopOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "dTopOffset", dTopOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "dBottomOffset", dBottomOffset, INIFileName);
-		WritePrivateProfileInt(strUISection, "dLeftOffset", dLeftOffset, INIFileName);
-		WritePrivateProfileInt(strUISection, "CanSeeTopOffset", CanSeeTopOffset, INIFileName);
-		WritePrivateProfileInt(strUISection, "CanSeeBottomOffset", CanSeeBottomOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "TargetInfoWindowStyle", TargetInfoWindowStyle, INIFileName);
 		WritePrivateProfileInt(strUISection, "TargetInfoAnchoredToRight", TargetInfoAnchoredToRight, INIFileName);
 
-		WritePrivateProfileString(strUISection, "Label1", ManaLabelName, INIFileName);
-		WritePrivateProfileString(strUISection, "Label2", FatigueLabelName, INIFileName);
 		WritePrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
 		WritePrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
+		WritePrivateProfileString(strUISection, "targetInfoColor", ColorDeConversion(targetInfoColor), INIFileName);
+		WritePrivateProfileString(strUISection, "canSeeIndicatorLoc", canSeeIndicatorLoc, INIFileName);
+		WritePrivateProfileString(strUISection, "meleeRngColor", ColorDeConversion(targetMeleeRng), INIFileName);
+		WritePrivateProfileInt(strUISection, "targetDistanceShort", targetDistanceShort, INIFileName);
+		WritePrivateProfileString(strUISection, "spellRngColor", ColorDeConversion(targetSpellRng), INIFileName);
+		WritePrivateProfileInt(strUISection, "targetDistanceMedium", targetDistanceMedium, INIFileName);
+		WritePrivateProfileString(strUISection, "bowRngColor", ColorDeConversion(targetBowRng), INIFileName);
+		WritePrivateProfileInt(strUISection, "targetDistanceLong", targetDistanceLong, INIFileName);
+		WritePrivateProfileString(strUISection, "farRngColor", ColorDeConversion(targetFarRng), INIFileName);
 	}
 }
 
@@ -505,8 +543,8 @@ void Initialize()
 			Target_BuffWindow->SetTopOffset(Target_BuffWindow_TopOffset);
 		}
 
-		CControlTemplate* DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(ManaLabelName.c_str());
-		CControlTemplate* CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(FatigueLabelName.c_str());
+		CControlTemplate* DistLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(manaLabelName.c_str());
+		CControlTemplate* CanSeeLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate(fatigueLabelName.c_str());
 		CControlTemplate* PHButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"); // borrowing this...
 
 		if (PHButtonTemplate && CanSeeLabelTemplate && DistLabelTemplate)
@@ -552,14 +590,14 @@ void Initialize()
 				InfoLabel->bAlignCenter = false;
 				InfoLabel->bAlignRight = false;
 
-				const CXRect rect = GetCXRectTBLRFromString(TargetInfoLoc, 34, 48, 0, 40);
+				const CXRect rectInfo = GetCXRectTBLRFromString(TargetInfoLoc, 34, 48, 0, 40);
 
-				InfoLabel->SetTopOffset(rect.top);
-				InfoLabel->SetBottomOffset(rect.bottom);
-				InfoLabel->SetLeftOffset(rect.left);
-				InfoLabel->SetRightOffset(rect.right);
+				InfoLabel->SetTopOffset(rectInfo.top);
+				InfoLabel->SetBottomOffset(rectInfo.bottom);
+				InfoLabel->SetLeftOffset(rectInfo.left);
+				InfoLabel->SetRightOffset(rectInfo.right);
 
-				InfoLabel->SetCRNormal(MQColor(0, 255, 0));//green
+				InfoLabel->SetCRNormal(MQColor(targetInfoColor[0], targetInfoColor[1], targetInfoColor[2]));
 				InfoLabel->SetBGColor(MQColor(255, 255, 255));
 				InfoLabel->SetTooltip(szTargetInfo);
 			}
@@ -571,6 +609,7 @@ void Initialize()
 			CanSeeLabelTemplate->nFont = 2;
 			CanSeeLabelTemplate->strName = "Target_CanSeeLabel";
 			CanSeeLabelTemplate->strScreenId = "Target_CanSeeLabel";
+			const CXRect rectCanSee = GetCXRectTBLRFromString(canSeeIndicatorLoc, 47, 61, 50, 0);
 
 			if (CanSeeLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pTargetWnd, CanSeeLabelTemplate))
 			{
@@ -583,12 +622,12 @@ void Initialize()
 				CanSeeLabel->SetTopAnchoredToTop(true);
 				CanSeeLabel->bAlignCenter = true;
 				CanSeeLabel->bAlignRight = false;
-				CanSeeLabel->SetTopOffset(CanSeeTopOffset);
+				CanSeeLabel->SetTopOffset(rectCanSee.top);
 				CanSeeLabel->SetTopOffset(CanSeeLabel->GetTopOffset() + 10);
-				CanSeeLabel->SetBottomOffset(CanSeeBottomOffset);
+				CanSeeLabel->SetBottomOffset(rectCanSee.bottom);
 				CanSeeLabel->SetBottomOffset(CanSeeLabel->GetBottomOffset() + 10);
-				CanSeeLabel->SetLeftOffset(dLeftOffset);
-				CanSeeLabel->SetRightOffset(dLeftOffset);
+				CanSeeLabel->SetLeftOffset(rectCanSee.left);
+				CanSeeLabel->SetRightOffset(rectCanSee.right);
 				CanSeeLabel->SetCRNormal(0xFF00FF00); // green
 				CanSeeLabel->SetBGColor(0xFFFFFFFF);
 				CanSeeLabel->SetTooltip(szCanSeeTarget);
@@ -603,12 +642,12 @@ void Initialize()
 				PHButton->SetLeftAnchoredToLeft(true);
 				PHButton->SetRightAnchoredToLeft(false);
 				PHButton->SetTopAnchoredToTop(true);
-				PHButton->SetTopOffset(CanSeeTopOffset + 1);
+				PHButton->SetTopOffset(rectCanSee.top + 1);
 				PHButton->SetBottomOffset(dTopOffset - 1);
 				PHButton->SetLeftOffset(0);
 				PHButton->SetRightOffset(0);
 				// left top right bottom
-				PHButton->SetLocation({ 2, CanSeeTopOffset + 1, 20, PHButton->GetBottomOffset() });
+				PHButton->SetLocation({ 2, rectCanSee.top + 1, 20, PHButton->GetBottomOffset() });
 
 				PHButton->SetCRNormal(0xFF00FFFF); // cyan
 				PHButton->SetBGColor(0xFFFFFFFF);
@@ -856,15 +895,19 @@ PLUGIN_API void OnPulse()
 					if(gBShowDistance)
 					{
 						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
-						sprintf_s(szTargetDist, "%.2f", dist);
+						sprintf_s(szTargetDist, "%.0f", dist);
 
-						if (dist < 250)
-						{
-							DistanceLabel->SetCRNormal(MQColor(0, 255, 0)); // green
+						if (dist < targetDistanceShort) {
+							DistanceLabel->SetCRNormal(MQColor(targetMeleeRng[0], targetMeleeRng[1], targetMeleeRng[2]));
 						}
-						else
-						{
-							DistanceLabel->SetCRNormal(MQColor(255, 0, 0)); // red
+						else if (dist >= targetDistanceShort && dist < targetDistanceMedium) {
+							DistanceLabel->SetCRNormal(MQColor(targetSpellRng[0], targetSpellRng[1], targetSpellRng[2]));
+						}
+						else if (dist >= targetDistanceMedium && dist < targetDistanceLong) {
+							DistanceLabel->SetCRNormal(MQColor(targetBowRng[0], targetBowRng[1], targetBowRng[2]));
+						}
+						else {
+							DistanceLabel->SetCRNormal(MQColor(targetFarRng[0], targetFarRng[1], targetFarRng[2]));
 						}
 
 						DistanceLabel->SetWindowText(szTargetDist);
