@@ -53,6 +53,7 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#if IMGUI_HAS_STACK_LAYOUT
 #ifndef IMGUI_DISABLE
 #include "imgui_internal.h"
 
@@ -1126,3 +1127,5 @@ void ImGui::ResumeLayout()
 //-----------------------------------------------------------------------------
 
 #endif // #ifndef IMGUI_DISABLE
+
+#endif

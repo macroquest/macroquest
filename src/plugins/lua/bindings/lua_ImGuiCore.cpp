@@ -17,6 +17,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/imgui_stacklayout.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
 
@@ -651,6 +652,26 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	// Clipboard Utilities
 	ImGui.set_function("GetClipboardText", &ImGui::GetClipboardText);
 	ImGui.set_function("SetClipboardText", &ImGui::SetClipboardText);
+
+#if IMGUI_HAS_STACK_LAYOUT
+#pragma region StackLayout Functions
+	ImGui.set_function("BeginHorizontal", sol::overload(
+		[](const char* str_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(str_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](int int_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(int_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](sol::object obj, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(obj.pointer(), size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); }
+	));
+	ImGui.set_function("EndHorizontal", &ImGui::EndHorizontal);
+	ImGui.set_function("BeginVertical", sol::overload(
+		[](const char* str_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(str_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](int int_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(int_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](sol::object obj, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(obj.pointer(), size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); }
+	));
+	ImGui.set_function("EndVertical", &ImGui::EndVertical);
+	ImGui.set_function("Spring", [](std::optional<float> weight, std::optional<float> spacing) { ImGui::Spring(weight.value_or(1.0f), spacing.value_or(-1.0f)); });
+	ImGui.set_function("SuspendLayout", &ImGui::SuspendLayout);
+	ImGui.set_function("ResumeLayout", &ImGui::ResumeLayout);
+#pragma endregion
+#endif // IMGUI_HAS_STACK_LAYOUT
 
 #pragma region Obsolete Functions
 	// OBSOLETE 
