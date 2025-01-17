@@ -19,7 +19,7 @@
 // 2.4 FelisMalum: Moved allot of configuration to INI + added some additional, added distance variables/color, updated INI.
 
 // TODO: Update for zone checking since the info is in the file (requires switching storage or map key)
-// TODO: Move 2nd aggro%/name to ini. Find a better color parse. Possible label variables?
+// TODO: Move 2nd aggro%/name to ini. Add true name?. Possible label variables?
 // TODO: Cleanup ph loading, no need to load entire file on load or hardcode npc.
 
 #include <mq/Plugin.h>
@@ -70,7 +70,7 @@ int TargetInfoAnchoredToRight = 0;
 std::string manaLabelName = "Player_ManaLabel";
 std::string fatigueLabelName = "Player_FatigueLabel";
 std::string TargetInfoLoc = "34,48,0,40";
-int targetInfoColor[3] = { 0, 255, 0 };
+MQColor targetInfoColor = MQColor(0, 255, 0);
 std::string TargetDistanceLoc = "34,48,90,0";
 std::string canSeeIndicatorLoc = "47,61,50,0";
 /* End multiple location defaults */
@@ -81,13 +81,13 @@ int Target_AggroPctSecondaryLabel_TopOffsetOrg = 33;
 int Target_AggroPctPlayerLabel_BottomOffsetOrg = 47;
 int Target_AggroNameSecondaryLabel_BottomOffsetOrg = 47;
 int Target_AggroPctSecondaryLabel_BottomOffsetOrg = 47;
-int	targetMeleeRng[3] = { 0 , 0, 255 };
+MQColor	targetMeleeRng = MQColor(0, 0, 255);
 int targetDistanceShort = 25;
-int targetSpellRng[3] = { 0, 255, 0 };
+MQColor targetSpellRng = MQColor(0, 255, 0);
 int targetDistanceMedium = 250;
-int targetBowRng[3] = { 255, 255, 0 };
+MQColor targetBowRng = MQColor(255, 255, 0);
 int targetDistanceLong = 400;
-int targetFarRng[3] = { 255, 0, 0 };
+MQColor targetFarRng = MQColor(255, 0, 0);
 
 bool Initialized = false;
 bool bDisablePluginDueToBadUI = false;
@@ -271,20 +271,16 @@ CXRect GetCXRectTBLRFromString(const std::string& Input, int defaultTop, int def
 	return CXRect(defaultLeft, defaultTop, defaultRight, defaultBottom);
 }
 
-void ColorConversion(int colorArray[], std::string colorString) {
-	auto splitString = split(colorString, ',');
+MQColor ParseColorString(MQColor defaultValue, const std::string& colorString) {
+	auto splitString = split_view(colorString, ',');
 	if (splitString.size() == 3) {
-		colorArray[0] = GetIntFromString(splitString[0], 255);
-		colorArray[1] = GetIntFromString(splitString[1], 255);
-		colorArray[2] = GetIntFromString(splitString[2], 255);
+		return MQColor(GetIntFromString(splitString[0], defaultValue.Red), GetIntFromString(splitString[1], defaultValue.Green), GetIntFromString(splitString[2], defaultValue.Blue));
 	}
+	return defaultValue;
 }
 
-std::string ColorDeConversion(int colorArray[]) {
-	std::string s = "";
-	s = std::to_string(colorArray[0]) + ",";
-	s += std::to_string(colorArray[1]) + ","; 
-	s += std::to_string(colorArray[2]); 
+std::string ParseColorToString(MQColor color) {
+	std::string s = fmt::format("{},{},{}", color.Red, color.Green, color.Blue);
 	return s;
 }
 
@@ -436,15 +432,15 @@ void HandleINI(eINIOptions Operation)
 
 		TargetDistanceLoc = GetPrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
 		TargetInfoLoc = GetPrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
-		ColorConversion(targetInfoColor, GetPrivateProfileString(strUISection, "targetInfoColor", "0,255,0", INIFileName));
+		targetInfoColor = ParseColorString(targetInfoColor, GetPrivateProfileString(strUISection, "targetInfoColor", "0,255,0", INIFileName));
 		canSeeIndicatorLoc = GetPrivateProfileString(strUISection, "canSeeIndicatorLoc", canSeeIndicatorLoc, INIFileName);
-		ColorConversion(targetMeleeRng, GetPrivateProfileString(strUISection, "meleeRngColor", "0,0,255", INIFileName));
+		targetMeleeRng = ParseColorString(targetMeleeRng, GetPrivateProfileString(strUISection, "meleeRngColor", "0,0,255", INIFileName));
 		targetDistanceShort = GetPrivateProfileInt(strUISection, "targetDistanceShort", targetDistanceShort, INIFileName);
-		ColorConversion(targetSpellRng, GetPrivateProfileString(strUISection, "spellRngColor", "0,255,0", INIFileName));
+		targetSpellRng = ParseColorString(targetSpellRng, GetPrivateProfileString(strUISection, "spellRngColor", "0,255,0", INIFileName));
 		targetDistanceMedium = GetPrivateProfileInt(strUISection, "targetDistanceMedium", targetDistanceMedium, INIFileName);
-		ColorConversion(targetBowRng, GetPrivateProfileString(strUISection, "bowRngColor", "255,255,0", INIFileName));
+		targetBowRng = ParseColorString(targetBowRng, GetPrivateProfileString(strUISection, "bowRngColor", "255,255,0", INIFileName));
 		targetDistanceLong = GetPrivateProfileInt(strUISection, "targetDistanceLong", targetDistanceLong, INIFileName);
-		ColorConversion(targetFarRng, GetPrivateProfileString(strUISection, "farRngColor", "255,0,0", INIFileName));
+		targetFarRng = ParseColorString(targetFarRng, GetPrivateProfileString(strUISection, "farRngColor", "255,0,0", INIFileName));
 		/* End multiple location defaults */
 	}
 	//Writes to INI
@@ -470,15 +466,15 @@ void HandleINI(eINIOptions Operation)
 
 		WritePrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
 		WritePrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
-		WritePrivateProfileString(strUISection, "targetInfoColor", ColorDeConversion(targetInfoColor), INIFileName);
+		WritePrivateProfileString(strUISection, "targetInfoColor", ParseColorToString(targetInfoColor), INIFileName);
 		WritePrivateProfileString(strUISection, "canSeeIndicatorLoc", canSeeIndicatorLoc, INIFileName);
-		WritePrivateProfileString(strUISection, "meleeRngColor", ColorDeConversion(targetMeleeRng), INIFileName);
+		WritePrivateProfileString(strUISection, "meleeRngColor", ParseColorToString(targetMeleeRng), INIFileName);
 		WritePrivateProfileInt(strUISection, "targetDistanceShort", targetDistanceShort, INIFileName);
-		WritePrivateProfileString(strUISection, "spellRngColor", ColorDeConversion(targetSpellRng), INIFileName);
+		WritePrivateProfileString(strUISection, "spellRngColor", ParseColorToString(targetSpellRng), INIFileName);
 		WritePrivateProfileInt(strUISection, "targetDistanceMedium", targetDistanceMedium, INIFileName);
-		WritePrivateProfileString(strUISection, "bowRngColor", ColorDeConversion(targetBowRng), INIFileName);
+		WritePrivateProfileString(strUISection, "bowRngColor", ParseColorToString(targetBowRng), INIFileName);
 		WritePrivateProfileInt(strUISection, "targetDistanceLong", targetDistanceLong, INIFileName);
-		WritePrivateProfileString(strUISection, "farRngColor", ColorDeConversion(targetFarRng), INIFileName);
+		WritePrivateProfileString(strUISection, "farRngColor", ParseColorToString(targetFarRng), INIFileName);
 	}
 }
 
@@ -597,7 +593,7 @@ void Initialize()
 				InfoLabel->SetLeftOffset(rectInfo.left);
 				InfoLabel->SetRightOffset(rectInfo.right);
 
-				InfoLabel->SetCRNormal(MQColor(targetInfoColor[0], targetInfoColor[1], targetInfoColor[2]));
+				InfoLabel->SetCRNormal(targetInfoColor);
 				InfoLabel->SetBGColor(MQColor(255, 255, 255));
 				InfoLabel->SetTooltip(szTargetInfo);
 			}
@@ -898,16 +894,16 @@ PLUGIN_API void OnPulse()
 						sprintf_s(szTargetDist, "%.0f", dist);
 
 						if (dist < targetDistanceShort) {
-							DistanceLabel->SetCRNormal(MQColor(targetMeleeRng[0], targetMeleeRng[1], targetMeleeRng[2]));
+							DistanceLabel->SetCRNormal(targetMeleeRng);
 						}
 						else if (dist >= targetDistanceShort && dist < targetDistanceMedium) {
-							DistanceLabel->SetCRNormal(MQColor(targetSpellRng[0], targetSpellRng[1], targetSpellRng[2]));
+							DistanceLabel->SetCRNormal(targetSpellRng);
 						}
 						else if (dist >= targetDistanceMedium && dist < targetDistanceLong) {
-							DistanceLabel->SetCRNormal(MQColor(targetBowRng[0], targetBowRng[1], targetBowRng[2]));
+							DistanceLabel->SetCRNormal(targetBowRng);
 						}
 						else {
-							DistanceLabel->SetCRNormal(MQColor(targetFarRng[0], targetFarRng[1], targetFarRng[2]));
+							DistanceLabel->SetCRNormal(targetFarRng);
 						}
 
 						DistanceLabel->SetWindowText(szTargetDist);
