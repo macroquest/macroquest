@@ -253,17 +253,23 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		Dest.Type = pBoolType;
 		return true;
 
-#if IS_TEST_CLIENT
 	case PetMembers::Resume:
+#if IS_CLIENT_DATE(20250107)
 		Dest.Set(pPetInfoWnd->Resume);
+#else
+		Dest.Set(false);
+#endif
 		Dest.Type = pBoolType;
 		return true;
 
 	case PetMembers::ProcHold:
+#if IS_CLIENT_DATE(20250107)
 		Dest.Set(pPetInfoWnd->ProcHold);
+#else
+		Dest.Set(false);
+#endif
 		Dest.Type = pBoolType;
 		return true;
-#endif
 
 	case PetMembers::ReGroup:
 		Dest.Set(pPetInfoWnd->ReGroup);

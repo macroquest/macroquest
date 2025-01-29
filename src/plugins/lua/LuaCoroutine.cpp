@@ -77,9 +77,19 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 
 	try
 	{
+		lua_State* L = thread.state();
 		auto check_thread = sol::thread::create(thread.state());
-		sol::function check(check_thread.state(), *func);
-		return check();
+
+		sol::protected_function check_func(check_thread.state(), *func);
+		sol::protected_function_result result = check_func();
+
+		if (!result.valid())
+		{
+			sol::error err = result;
+			luaL_error(thread.state(), "Error in mq.delay callback: %s", err.what());
+		}
+
+		return result.get<bool>();
 	}
 	catch (sol::error& ex)
 	{
