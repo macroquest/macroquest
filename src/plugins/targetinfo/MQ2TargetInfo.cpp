@@ -20,7 +20,7 @@
 
 // TODO: Update for zone checking since the info is in the file (requires switching storage or map key)
 // TODO: Move 2nd aggro%/name to ini. Add true name?. Possible label variables?
-// TODO: Cleanup ph loading, no need to load entire file on load or hardcode npc.
+// TODO: Cleanup ph loading, no need to load entire file on load or hardcode npc, show rare name on tooltip.
 
 #include <mq/Plugin.h>
 #include "resource.h"
@@ -413,25 +413,44 @@ void HandleINI(eINIOptions Operation)
 	}
 
 	std::string strUISection = "UI_";
-	strUISection.append(szSettingINISection);
+	strUISection.append(gUISkin);
 
 	//Reads from INI
 	if (Operation == eINIOptions::ReadOnly || Operation == eINIOptions::ReadAndWrite)
 	{
+		//Global settings
 		gbShowDistance = GetPrivateProfileBool(szSettingINISection, "ShowDistance", gbShowDistance, INIFileName);
 		gbShowTargetInfo = GetPrivateProfileBool(szSettingINISection, "ShowTargetInfo", gbShowTargetInfo, INIFileName);
 		gbShowPlaceholder = GetPrivateProfileBool(szSettingINISection, "ShowPlaceholder", gbShowPlaceholder, INIFileName);
 		gbShowAnon = GetPrivateProfileBool(szSettingINISection, "ShowAnon", gbShowAnon, INIFileName);
 		gbShowSight = GetPrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
 		DistanceLabelToolTip = GetPrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
-		ManaLabelName = GetPrivateProfileString(szSettingINISection, "ManaLabelName", ManaLabelName, INIFileName);
-		FatigueLabelName = GetPrivateProfileString(szSettingINISection, "FatigueLabelName", FatigueLabelName, INIFileName);
 
+		//UI specific settings
 		Target_BuffWindow_TopOffset = GetPrivateProfileInt(strUISection, "Target_BuffWindow_TopOffset", Target_BuffWindow_TopOffset, INIFileName);
 		dTopOffset = GetPrivateProfileInt(strUISection, "dTopOffset", dTopOffset, INIFileName);
 		dBottomOffset = GetPrivateProfileInt(strUISection, "dBottomOffset", dBottomOffset, INIFileName);
 		TargetInfoWindowStyle = GetPrivateProfileInt(strUISection, "TargetInfoWindowStyle", TargetInfoWindowStyle, INIFileName);
 		TargetInfoAnchoredToRight = GetPrivateProfileInt(strUISection, "TargetInfoAnchoredToRight", TargetInfoAnchoredToRight, INIFileName);
+		//Check and update old keys
+		if (PrivateProfileKeyExists(strUISection, "ManaLabelName", INIFileName))
+		{
+			ManaLabelName = GetPrivateProfileString(strUISection, "ManaLabelName", ManaLabelName, INIFileName);
+		}
+		else
+		{
+			ManaLabelName = GetPrivateProfileString(strUISection, "Label1", ManaLabelName, INIFileName);
+			WritePrivateProfileString(strUISection, "Label1", "See: ManaLabelName", INIFileName);
+		}
+		if (PrivateProfileKeyExists(strUISection, "FatigueLabelName", INIFileName))
+		{
+			FatigueLabelName = GetPrivateProfileString(strUISection, "FatigueLabelName", FatigueLabelName, INIFileName);
+		}
+		else
+		{
+			FatigueLabelName = GetPrivateProfileString(strUISection, "Label2", FatigueLabelName, INIFileName);
+			WritePrivateProfileString(strUISection, "Label2", "See: FatigueLabelName", INIFileName);
+		}
 
 		TargetDistanceLoc = GetPrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
 		TargetInfoLoc = GetPrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
@@ -456,16 +475,15 @@ void HandleINI(eINIOptions Operation)
 		WritePrivateProfileBool(szSettingINISection, "ShowPlaceholder", gbShowPlaceholder, INIFileName);
 		WritePrivateProfileBool(szSettingINISection, "ShowAnon", gbShowAnon, INIFileName);
 		WritePrivateProfileBool(szSettingINISection, "ShowSight", gbShowSight, INIFileName);
-
 		WritePrivateProfileString(szSettingINISection, "DistanceLabelToolTip", DistanceLabelToolTip, INIFileName);
-		WritePrivateProfileString(szSettingINISection, "ManaLabelName", ManaLabelName, INIFileName);
-		WritePrivateProfileString(szSettingINISection, "FatigueLabelName", FatigueLabelName, INIFileName);
 
 		WritePrivateProfileInt(strUISection, "Target_BuffWindow_TopOffset", Target_BuffWindow_TopOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "dTopOffset", dTopOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "dBottomOffset", dBottomOffset, INIFileName);
 		WritePrivateProfileInt(strUISection, "TargetInfoWindowStyle", TargetInfoWindowStyle, INIFileName);
 		WritePrivateProfileInt(strUISection, "TargetInfoAnchoredToRight", TargetInfoAnchoredToRight, INIFileName);
+		WritePrivateProfileString(strUISection, "ManaLabelName", ManaLabelName, INIFileName);
+		WritePrivateProfileString(strUISection, "FatigueLabelName", FatigueLabelName, INIFileName);
 
 		WritePrivateProfileString(strUISection, "TargetDistanceLoc", TargetDistanceLoc, INIFileName);
 		WritePrivateProfileString(strUISection, "TargetInfoLoc", TargetInfoLoc, INIFileName);
