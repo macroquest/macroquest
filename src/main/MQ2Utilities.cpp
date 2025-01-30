@@ -5593,7 +5593,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = globalIndex;
@@ -5720,7 +5720,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
