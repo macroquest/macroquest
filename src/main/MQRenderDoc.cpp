@@ -18,11 +18,10 @@
 
 #include <renderdoc/renderdoc_app.h>
 #include <wil/resource.h>
+#include <atomic>
 #include <filesystem>
 
 #include "mq/base/WString.h"
-
-#pragma comment(lib, "d3d9") // For D3DPERF_BeginEvent, D3DPERF_EndEvent, D3DPERF_SetMarker
 
 namespace mq {
 
@@ -63,6 +62,76 @@ static int s_debugOutputMute = 1;
 static int s_overlayBits = 0;
 
 static constexpr const char* s_renderDocDefaultPath = R"(C:\Program Files\RenderDoc)";
+
+static std::atomic_int s_stubBeginEventCounter = 0;
+static HMODULE s_hDXCaptureReplayModule = nullptr;
+extern std::set<HMODULE> g_knownModules;
+
+using D3DPERF_BeginEvent_FPtr = int (WINAPI*)(D3DCOLOR, LPCWSTR);
+using D3DPERF_EndEvent_FPtr = int (WINAPI*)();
+using D3DPERF_SetMarker_FPtr = void (WINAPI*)(D3DCOLOR, LPCWSTR);
+
+int WINAPI D3DPERF_BeginEventStub(D3DCOLOR col, LPCWSTR wszName)
+{
+	UNUSED(col);
+	UNUSED(wszName);
+
+	return ++s_stubBeginEventCounter;
+}
+
+int WINAPI D3DPERF_EndEventStub()
+{
+	int counter = --s_stubBeginEventCounter;
+	if (counter < 0)
+	{
+		++s_stubBeginEventCounter;
+		counter = 0;
+	}
+
+	return counter + 1;
+}
+
+void WINAPI D3DPERF_SetMarkerStub(D3DCOLOR col, LPCWSTR wszName)
+{
+	UNUSED(col);
+	UNUSED(wszName);
+}
+
+D3DPERF_BeginEvent_FPtr pD3DPERF_BeginEvent = D3DPERF_BeginEventStub;
+D3DPERF_EndEvent_FPtr pD3DPERF_EndEvent = D3DPERF_EndEventStub;
+D3DPERF_SetMarker_FPtr pD3DPERF_SetMarker = D3DPERF_SetMarkerStub;
+
+static void DXCaptureReplay_Initialize()
+{
+	if (s_hDXCaptureReplayModule == nullptr)
+	{
+		s_hDXCaptureReplayModule = ::LoadLibraryW(L"DXCaptureReplay.dll");
+		if (s_hDXCaptureReplayModule != nullptr)
+		{
+			g_knownModules.insert(s_hDXCaptureReplayModule);
+
+			pD3DPERF_BeginEvent = (D3DPERF_BeginEvent_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_BeginEvent");
+			pD3DPERF_EndEvent = (D3DPERF_EndEvent_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_EndEvent");
+			pD3DPERF_SetMarker = (D3DPERF_SetMarker_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_SetMarker");
+		}
+	}
+}
+
+static void DXCaptureReplay_Shutdown()
+{
+	if (s_hDXCaptureReplayModule != nullptr)
+	{
+		::FreeLibrary(s_hDXCaptureReplayModule);
+		g_knownModules.erase(s_hDXCaptureReplayModule);
+
+		s_hDXCaptureReplayModule = nullptr;
+
+		pD3DPERF_BeginEvent = D3DPERF_BeginEventStub;
+		pD3DPERF_EndEvent = D3DPERF_EndEventStub;
+		pD3DPERF_SetMarker = D3DPERF_SetMarkerStub;
+	}
+}
+
 
 static void SetRenderDocOptions()
 {
@@ -144,6 +213,8 @@ static void LoadRenderDoc()
 	// Sleep for a bit to give RenderDoc time to initialize
 	Sleep(1000);
 
+	DXCaptureReplay_Initialize();
+
 	s_renderDocModule = hModule.release();
 	s_renderDocInitialized = true;
 }
@@ -154,7 +225,7 @@ void RenderDoc_BeginEvent(MQColor color, const char* name)
 	{
 		std::wstring wName = mq::utf8_to_wstring(name);
 
-		D3DPERF_BeginEvent(color.ToARGB(), wName.c_str());
+		pD3DPERF_BeginEvent(color.ToARGB(), wName.c_str());
 	}
 }
 
@@ -164,7 +235,7 @@ void RenderDoc_BeginEvent(MQColor color, const wchar_t* name)
 {
 	if (s_renderDocEnabled)
 	{
-		D3DPERF_BeginEvent(color.ToARGB(), name);
+		pD3DPERF_BeginEvent(color.ToARGB(), name);
 	}
 }
 
@@ -172,7 +243,7 @@ void RenderDoc_EndEvent()
 {
 	if (s_renderDocEnabled)
 	{
-		D3DPERF_EndEvent();
+		pD3DPERF_EndEvent();
 	}
 }
 
@@ -180,7 +251,7 @@ void RenderDoc_SetMarker(MQColor color, const wchar_t* name)
 {
 	if (s_renderDocAPI != nullptr)
 	{
-		D3DPERF_SetMarker(color.ToARGB(), name);
+		pD3DPERF_SetMarker(color.ToARGB(), name);
 	}
 }
 
@@ -482,6 +553,7 @@ static void RenderDoc_Initialize()
 {
 	if (s_renderDocInitialized)
 	{
+		g_knownModules.insert(s_renderDocModule);
 		s_renderDocCapturesPath = (fs::path(mq::internal_paths::Logs) / "Captures").string();
 
 		std::string captureFilePathTemplate = (fs::path(s_renderDocCapturesPath) / "eqgame").string();
@@ -499,6 +571,8 @@ static void RenderDoc_Initialize()
 
 static void RenderDoc_Shutdown()
 {
+	DXCaptureReplay_Shutdown();
+
 	// We cannot free the module since it may be still loaded, so we will just let it leak.
 	s_renderDocModule = nullptr;
 	s_renderDocInitialized = false;
