@@ -18,8 +18,10 @@
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
 #include "CrashHandler.h"
+#include "mq/base/WString.h"
 
 #include <detours/detours.h>
+#include <TlHelp32.h>
 
 namespace mq {
 
@@ -348,10 +350,10 @@ BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWOR
 	if (gbInMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
 	++gbInMemCheck4;
 	bool getMacroQuestModules = true;
-	BOOL result = GetFilteredModules(hProcess, hModule, cb, lpcbNeeded,
+	bool result = GetFilteredModules(hProcess, hModule, cb, lpcbNeeded,
 		[&getMacroQuestModules](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule, getMacroQuestModules); }) ? TRUE : FALSE;
 	--gbInMemCheck4;
-	return result;
+	return result ? 1 : 0;
 }
 
 DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindProcesses_Trampoline, (DWORD*, DWORD, DWORD*))
@@ -360,11 +362,83 @@ BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded
 	if (gbInMemCheck4 != 1) return FindProcesses_Trampoline(lpidProcess, cb, lpcbNeeded);
 	++gbInMemCheck4;
 	bool getMacroQuestProcesses = true;
-	BOOL result = GetFilteredProcesses(lpidProcess, cb, lpcbNeeded,
-		[&getMacroQuestProcesses](char process_name[MAX_PATH]) -> bool { return IsMacroQuestProcess(process_name, getMacroQuestProcesses); }) ? TRUE : FALSE;
+	bool result = GetFilteredProcesses(lpidProcess, cb, lpcbNeeded,
+		[&getMacroQuestProcesses](std::string_view process_name) -> bool { return IsMacroQuestProcess(process_name, getMacroQuestProcesses); }) ? TRUE : FALSE;
 	--gbInMemCheck4;
-	return result;
+	return result ? 1 : 0;
 }
+
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, Module32Next_Trampoline, (HANDLE, LPMODULEENTRY32))
+static BOOL FilterModuleEntry(HANDLE hSnapshot, LPMODULEENTRY32 lpme)
+{
+	while (IsMacroQuestModule(lpme->hModule, true))
+	{
+		if (!Module32Next_Trampoline(hSnapshot, lpme))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL WINAPI Module32Next_Detour(HANDLE hSnapshot, LPMODULEENTRY32 lpme)
+{
+	if (Module32Next_Trampoline(hSnapshot, lpme))
+	{
+		return FilterModuleEntry(hSnapshot, lpme);
+	}
+
+	return FALSE;
+}
+
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, Module32First_Trampoline, (HANDLE, LPMODULEENTRY32))
+BOOL WINAPI Module32First_Detour(HANDLE hSnapshot, LPMODULEENTRY32 lpme)
+{
+	if (Module32First_Trampoline(hSnapshot, lpme))
+	{
+		return FilterModuleEntry(hSnapshot, lpme);
+	}
+
+	return FALSE;
+}
+
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, Process32Next_Trampoline, (HANDLE, LPPROCESSENTRY32))
+static BOOL FilterProcessEntry(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
+{
+	while (IsMacroQuestProcess(lppe->th32ProcessID, true)
+		|| IsMacroQuestProcess(lppe->th32ParentProcessID, true))
+	{
+		if (!Process32Next_Trampoline(hSnapshot, lppe))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL WINAPI Process32Next_Detour(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
+{
+	if (Process32Next_Trampoline(hSnapshot, lppe))
+	{
+		return FilterProcessEntry(hSnapshot, lppe);
+	}
+
+	return FALSE;
+}
+
+DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, Process32First_Trampoline, (HANDLE, LPPROCESSENTRY32))
+BOOL WINAPI Process32First_Detour(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
+{
+	if (Process32First_Trampoline(hSnapshot, lppe))
+	{
+		return FilterProcessEntry(hSnapshot, lppe);
+	}
+
+	return FALSE;
+}
+
+uintptr_t __Module32First = 0;
+uintptr_t __Module32Next = 0;
+uintptr_t __Process32First = 0;
+uintptr_t __Process32Next = 0;
 
 void HookMemChecker(bool Patch)
 {
@@ -444,6 +518,17 @@ static void InitializeDetours()
 	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 	EzDetour(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
+
+	HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
+	__Module32First = (uintptr_t)GetProcAddress(hKernel32, "Module32First");
+	__Module32Next = (uintptr_t)GetProcAddress(hKernel32, "Module32Next");
+	__Process32First = (uintptr_t)GetProcAddress(hKernel32, "Process32First");
+	__Process32Next = (uintptr_t)GetProcAddress(hKernel32, "Process32Next");
+
+	EzDetour(__Module32First, &Module32First_Detour, &Module32First_Trampoline);
+	EzDetour(__Module32Next, &Module32Next_Detour, &Module32Next_Trampoline);
+	EzDetour(__Process32First, &Process32First_Detour, &Process32First_Trampoline);
+	EzDetour(__Process32Next, &Process32Next_Detour, &Process32Next_Trampoline);
 }
 
 static void ShutdownDetours()
@@ -452,6 +537,10 @@ static void ShutdownDetours()
 	RemoveDetour(GetProcAddress_Addr);
 	RemoveDetour(__ModuleList);
 	RemoveDetour(__ProcessList);
+	RemoveDetour(__Module32First);
+	RemoveDetour(__Module32Next);
+	RemoveDetour(__Process32First);
+	RemoveDetour(__Process32Next);
 
 	HookMemChecker(false);
 }
@@ -554,12 +643,12 @@ bool MQDetourAPI::ValidateNewDetour(uintptr_t address, std::string_view name, co
 		if (existingDetour->GetAddress() == address)
 		{
 			SPDLOG_ERROR("Plugin \"{}\" tried to detour address {} (\"{}\") but it already exists as another detour created by {}",
-				thisPlugin->name, (void*)address, name, plugin->name);
+				thisPlugin->name, (void*)address, name, plugin ? std::string_view(plugin->name) : std::string_view("(NULL)"));
 		}
 		else
 		{
 			SPDLOG_ERROR("Plugin \"{}\" tried to detour address {} (\"{}\") but it conflicts with another detour created by {}",
-				thisPlugin->name, (void*)address, name, plugin->name);
+				thisPlugin->name, (void*)address, name, plugin ? std::string_view(plugin->name) : std::string_view("(NULL)"));
 		}
 
 		return false;
