@@ -129,7 +129,7 @@ void InitializeLogging()
 
 	if (IsDebuggerPresent())
 	{
-		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
 	}
 
 #if LOG_FILENAMES
