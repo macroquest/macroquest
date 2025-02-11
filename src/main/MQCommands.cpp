@@ -5509,8 +5509,8 @@ void ListProcessesCommand(PlayerClient* pChar, const char* szLine)
 	processIDs.resize(1024);
 
 	DWORD cbNeeded = 0;
-	BOOL result = GetFilteredProcesses(processIDs.data(), static_cast<DWORD>(processIDs.size()) * sizeof(DWORD), &cbNeeded,
-		[&](char process_name[MAX_PATH]) -> bool
+	bool result = GetFilteredProcesses(processIDs.data(), static_cast<DWORD>(processIDs.size()) * sizeof(DWORD), &cbNeeded,
+		[&](std::string_view process_name) -> bool
 		{
 			return IsMacroQuestProcess(process_name) || (szLine != nullptr && szLine[0] != '\0' && ci_find_substr(process_name, szLine) == -1);
 		});

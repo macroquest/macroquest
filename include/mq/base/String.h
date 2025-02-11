@@ -458,12 +458,6 @@ inline bool ci_equals(std::string_view sv1, std::string_view sv2)
 		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_equals());
 }
 
-inline bool ci_equals(std::wstring_view sv1, std::wstring_view sv2)
-{
-	return sv1.size() == sv2.size()
-		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_equals_w());
-}
-
 inline bool ci_equals(std::string_view haystack, std::string_view needle, bool isExact)
 {
 	if (isExact)
