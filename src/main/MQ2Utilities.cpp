@@ -4932,13 +4932,6 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 	return 14.0f;
 }
 
-bool IsValidSpellIndex(int index)
-{
-	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
-		return false;
-	return true;
-}
-
 inline bool IsValidSpellSlot(int nGem)
 {
 	return nGem >= 0 && nGem < 16;
