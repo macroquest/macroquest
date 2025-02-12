@@ -25,6 +25,7 @@
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
 #include "mq/base/Logging.h"
+#include "mq/base/WString.h"
 
 #include "resource.h"
 
@@ -41,12 +42,19 @@
 #include <tuple>
 #include <shellapi.h>
 #include <fcntl.h>
+#include <shlwapi.h>
+#include <shlobj.h>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "shlwapi.lib")
+
+#ifdef ShellExecute
+#undef ShellExecute
+#endif
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
@@ -1343,6 +1351,109 @@ void InitializeVersionInfo()
 	to_lower(ServerType);
 }
 
+//------------------------------------------------------------------------------------------------------
+// Gross block of COM code to make this launch de-elevated
+
+HRESULT GetShellViewForDesktop(REFIID riid, void** ppv)
+{
+	*ppv = NULL;
+
+	IShellWindows* psw;
+	HRESULT hr = CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&psw));
+	if (SUCCEEDED(hr))
+	{
+		HWND hwnd;
+		IDispatch* pdisp;
+		VARIANT vEmpty = {}; // VT_EMPTY
+		if (S_OK == psw->FindWindowSW(&vEmpty, &vEmpty, SWC_DESKTOP, (long*)&hwnd, SWFO_NEEDDISPATCH, &pdisp))
+		{
+			IShellBrowser* psb;
+			hr = IUnknown_QueryService(pdisp, SID_STopLevelBrowser, IID_PPV_ARGS(&psb));
+			if (SUCCEEDED(hr))
+			{
+				IShellView* psv;
+				hr = psb->QueryActiveShellView(&psv);
+				if (SUCCEEDED(hr))
+				{
+					hr = psv->QueryInterface(riid, ppv);
+					psv->Release();
+				}
+				psb->Release();
+			}
+			pdisp->Release();
+		}
+		else
+		{
+			hr = E_FAIL;
+		}
+		psw->Release();
+	}
+	return hr;
+}
+
+// From a shell view object gets its automation interface and from that gets the shell
+// application object that implements IShellDispatch2 and related interfaces.
+
+HRESULT GetShellDispatchFromView(IShellView* psv, REFIID riid, void** ppv)
+{
+	*ppv = NULL;
+
+	IDispatch* pdispBackground;
+	HRESULT hr = psv->GetItemObject(SVGIO_BACKGROUND, IID_PPV_ARGS(&pdispBackground));
+	if (SUCCEEDED(hr))
+	{
+		IShellFolderViewDual* psfvd;
+		hr = pdispBackground->QueryInterface(IID_PPV_ARGS(&psfvd));
+		if (SUCCEEDED(hr))
+		{
+			IDispatch* pdisp;
+			hr = psfvd->get_Application(&pdisp);
+			if (SUCCEEDED(hr))
+			{
+				hr = pdisp->QueryInterface(riid, ppv);
+				pdisp->Release();
+			}
+			psfvd->Release();
+		}
+		pdispBackground->Release();
+	}
+	return hr;
+}
+
+bool ShellExecInExplorerProcess(PCWSTR pszFile, PCWSTR pszArgs, PCWSTR pszDir)
+{
+	IShellView* psv;
+	HRESULT hr = GetShellViewForDesktop(IID_PPV_ARGS(&psv));
+	if (SUCCEEDED(hr))
+	{
+		IShellDispatch2* psd;
+		hr = GetShellDispatchFromView(psv, IID_PPV_ARGS(&psd));
+		if (SUCCEEDED(hr))
+		{
+			BSTR bstrFile = SysAllocString(pszFile);
+			VARIANT vtArgs = {};
+			vtArgs.bstrVal = SysAllocString(pszArgs);
+			vtArgs.vt = VT_BSTR;
+			VARIANT vtDir = {};
+			vtDir.bstrVal = SysAllocString(pszDir);
+			vtDir.vt = VT_BSTR;
+			
+			VARIANT vtEmpty = {}; // VT_EMPTY
+			hr = psd->ShellExecute(bstrFile, vtArgs, vtDir, vtEmpty, vtEmpty);
+
+			SysFreeString(bstrFile);
+			SysFreeString(vtArgs.bstrVal);
+			SysFreeString(vtDir.bstrVal);
+
+			psd->Release();
+		}
+		psv->Release();
+	}
+
+	return hr == S_OK;
+}
+//------------------------------------------------------------------------------------------------------
+
 // ***************************************************************************
 // Function:    WinMain
 // Description: EXE entry point
@@ -1365,13 +1476,6 @@ int WINAPI CALLBACK WinMain(
 	InitializeLogging();
 
 	SPDLOG_INFO("Starting MacroQuest Loader. Built " __TIMESTAMP__);
-
-	// Initialize crash handler
-	gCrashPadInitialized = InitializeCrashpad();
-	if (!gCrashPadInitialized && gEnableCrashpad)
-		SPDLOG_WARN("Crashpad handler failed to initialize.");
-	else if (!gEnableCrashpad)
-		SPDLOG_INFO("Crashpad is disabled.");
 
 	// TODO:  Allow argument processing of passing ini file so the file can be launched from anywhere
 	std::string fullCommandLine = "";
@@ -1408,6 +1512,9 @@ int WINAPI CALLBACK WinMain(
 		}
 	}
 
+	// Initialize COM
+	auto coCleanup = wil::CoInitializeEx(COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+
 	if (!spawnedProcess)
 	{
 		char szFileName[MAX_PATH] = { 0 };
@@ -1435,10 +1542,12 @@ int WINAPI CALLBACK WinMain(
 		// Launch a new process if this process isn't the renamed process
 		if (!ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
 		{
+			std::string programPathStr = ProgramPath.string();
+
 			std::error_code ec;
 			if (exists(ProgramPath, ec))
 			{
-				if (IsProcessRunning(oldProcessName.c_str()))
+				if (IsProcessRunning(oldProcessName))
 				{
 					if (!file_equals(thisProgramPath, ProgramPath))
 					{
@@ -1446,54 +1555,44 @@ int WINAPI CALLBACK WinMain(
 					}
 					else
 					{
-						SPDLOG_WARN("Alternate loader is already running: " + ProgramPath.string());
+						SPDLOG_WARN("Alternate loader is already running: {}", programPathStr);
 						exit(0);
 					}
 				}
 				if (!file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
 				{
-					ShowErrorBlocking("Could not delete alternate loader: " + ProgramPath.string());
+					ShowErrorBlocking("Could not delete alternate loader: " + programPathStr);
 					exit(1);
 				}
 			}
 			if (!exists(ProgramPath, ec) && !std::filesystem::copy_file(thisProgramPath, ProgramPath, ec))
 			{
-				ShowErrorBlocking("Could not create duplicate of this program at: " + ProgramPath.string());
+				ShowErrorBlocking("Could not create duplicate of this program at: " + programPathStr);
 				exit(1);
 			}
 
-			fullCommandLine = fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine);
-
-			STARTUPINFO si = {};
-			wil::unique_process_information pi;
-
+			std::wstring arguments = utf8_to_wstring(fmt::format("{} /spawnedprocess", fullCommandLine));
 			SPDLOG_INFO("Relaunching as spawned process");
 
-			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
-					&fullCommandLine[0], // Command line to run
-					nullptr,             // Process Attributes - handle not inheritable
-					nullptr,             // Thread Attributes - handle not inheritable
-					false,               // Set handle inheritance to FALSE
-					CREATE_NEW_CONSOLE,  // Creation Flags - Create a new console window instead of running in the existing console
-					nullptr,             // Use parent's environment block
-					nullptr,             // Use parent's starting directory
-					&si,                 // Pointer to STARTUPINFO structure
-					&pi)                 // Pointer to PROCESS_INFORMATION structure
-				)
+			if (ShellExecInExplorerProcess(ProgramPath.wstring().c_str(), arguments.c_str(), ProgramPath.parent_path().wstring().c_str()))
 			{
-				WritePrivateProfileValue("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini.c_str());
+				WritePrivateProfileString("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini);
 			}
 			else
 			{
-				ShowErrorBlocking("Could not launch alternate loader at: " + ProgramPath.string());
+				ShowErrorBlocking("Could not launch alternate loader at: " + programPathStr);
 				exit(1);
 			}
 			exit(0);
 		}
 	}
 
-	// Initialize COM
-	auto coCleanup = wil::CoInitializeEx();
+	// Initialize crash handler
+	gCrashPadInitialized = InitializeCrashpad();
+	if (!gCrashPadInitialized && gEnableCrashpad)
+		SPDLOG_WARN("Crashpad handler failed to initialize.");
+	else if (!gEnableCrashpad)
+		SPDLOG_INFO("Crashpad is disabled.");
 
 	INITCOMMONCONTROLSEX ccex = { sizeof(INITCOMMONCONTROLSEX) };
 	ccex.dwICC = ICC_STANDARD_CLASSES | ICC_HOTKEY_CLASS;
