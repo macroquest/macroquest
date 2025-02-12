@@ -856,14 +856,14 @@ void PopulateSpellMap()
 	s_triggeredSpells.clear();
 	s_spellNameMap.clear();
 
-	for (auto pSpell : pSpellMgr->Spells)
+	for (EQ_Spell* pSpell : pSpellMgr->Spells)
 	{
 		if (!pSpell || !pSpell->Name[0])
 			continue;
 
 		PopulateTriggeredMap(pSpell);
 
-		s_spellNameMap.emplace(pSpell->Name, const_cast<EQ_Spell*>(pSpell));
+		s_spellNameMap.emplace(pSpell->Name, pSpell);
 	}
 
 	gbSpelldbLoaded = true;
