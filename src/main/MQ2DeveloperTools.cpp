@@ -3035,7 +3035,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
-				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+				ImGui::TableNextColumn(); ImGui::Text("%d, %d", (int32_t)eq.bHeroicCharacterRelated1, (int32_t)eq.bHeroicCharacterRelated2);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");

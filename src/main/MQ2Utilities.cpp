@@ -4932,13 +4932,6 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 	return 14.0f;
 }
 
-bool IsValidSpellIndex(int index)
-{
-	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
-		return false;
-	return true;
-}
-
 inline bool IsValidSpellSlot(int nGem)
 {
 	return nGem >= 0 && nGem < 16;
@@ -5593,7 +5586,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = globalIndex;
@@ -5720,7 +5713,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);

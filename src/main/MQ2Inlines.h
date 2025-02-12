@@ -68,7 +68,7 @@ inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* ex
 
 inline EQ_Spell* GetSpellByID(int spellID)
 {
-	if (!pSpellMgr || spellID <= 0 || spellID >= TOTAL_SPELL_COUNT)
+	if (!pSpellMgr || spellID <= 0 || spellID >= pSpellMgr->GetMaxSpellID())
 		return nullptr;
 
 	return pSpellMgr->GetSpellByID(spellID);
