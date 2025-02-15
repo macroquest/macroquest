@@ -31,6 +31,7 @@
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
 #include <cfenv>
+#include <inttypes.h>
 #include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
@@ -2703,7 +2704,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Expansion Flags");
-				ImGui::TableNextColumn(); ImGui::Text("%08X", eq.ExpansionsFlagBitmask);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ExpansionsFlagBitmask);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
@@ -2994,7 +2995,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
-				ImGui::TableNextColumn(); ImGui::Text("%08x", eq.ProgressionOpenExpansions);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ProgressionOpenExpansions);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
@@ -3034,7 +3035,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
-				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+				ImGui::TableNextColumn(); ImGui::Text("%d, %d", (int32_t)eq.bHeroicCharacterRelated1, (int32_t)eq.bHeroicCharacterRelated2);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");

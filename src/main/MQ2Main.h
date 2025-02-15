@@ -220,9 +220,8 @@ MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
 MQLIB_API int GetFamiliarCount();
 MQLIB_API int GetHeroForgeCount();
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
 MQLIB_API int GetTeleportationItemCount();
-#endif
+MQLIB_API int GetActivatedItemCount();
 
 MQLIB_API bool IsActiveAA(const char* pSpellName);
 MQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type);
@@ -298,11 +297,11 @@ MQLIB_API float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, flo
 MQLIB_API char* ShowSpellSlotInfo(EQ_Spell* pSpell, char* szBuffer, size_t BufferSize, const char* lineBreak = "<br>");
 MQLIB_API char* ParseSpellEffect(EQ_Spell* pSpell, int i, char* szBuffer, size_t BufferSize, int level = 100);
 
-MQLIB_API int GetSpellAttrib(EQ_Spell* pSpell, int index);
-MQLIB_API int64_t GetSpellBase(EQ_Spell* pSpell, int index);
-MQLIB_API int64_t GetSpellBase2(EQ_Spell* pSpell, int index);
-MQLIB_API int64_t GetSpellMax(EQ_Spell* pSpell, int index);
-MQLIB_API int GetSpellCalc(EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellAttrib(const EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellBase(const EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellBase2(const EQ_Spell* pSpell, int index);
+MQLIB_API int64_t GetSpellMax(const EQ_Spell* pSpell, int index);
+MQLIB_API int GetSpellCalc(const EQ_Spell* pSpell, int index);
 
 MQLIB_API void SlotValueCalculate(char* szBuff, EQ_Spell* pSpell, int i, double mp = 1.0);
 MQLIB_API int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int minlevel = MAX_PC_LEVEL, int level = MAX_PC_LEVEL);
@@ -489,7 +488,7 @@ MQLIB_API int         GetWorldState();
 MQLIB_API float       GetMeleeRange(PlayerClient*, PlayerClient*);
 MQLIB_API uint32_t    GetSpellGemTimer(int nGem);
 MQLIB_API uint32_t    GetSpellBuffTimer(int SpellID);
-MQLIB_API bool        HasExpansion(int nExpansion);
+MQLIB_API bool        HasExpansion(int64_t nExpansion);
 MQLIB_API void        ListMercAltAbilities();
 MQLIB_API ItemClient*   FindItemBySlot(int InvSlot, int BagSlot = -1, ItemContainerInstance location = eItemContainerPossessions);
 MQLIB_API ItemContainer* GetItemContainerByType(ItemContainerInstance type);

@@ -931,7 +931,7 @@ static InjectResult DoInject(uint32_t PID)
 
 		if (lastErr == ERROR_ACCESS_DENIED)
 		{
-			SPDLOG_ERROR("Failed to inject: Access Denied. pid={0}", PID);
+			SPDLOG_ERROR("Failed to inject: Access Denied. This usually means that EQ is being launched as Administrator");
 			return InjectResult::FailedElevationRequired;
 		}
 
@@ -958,7 +958,8 @@ static InjectResult DoInject(uint32_t PID)
 	if (!hEqGameMod)
 	{
 		// Something went wrong - we couldn't get the EQ base address
-		SPDLOG_ERROR("Failed to get eqgame.exe base address. pid={0}", PID);
+		SPDLOG_ERROR("{}",
+			fmt::windows_error(GetLastError(), "Failed to get eqgame.exe base address for pid={}", PID).what());
 		return InjectResult::FailedRetry;
 	}
 

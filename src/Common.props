@@ -81,7 +81,10 @@
 
     <NASM>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <PreprocessorDefinitions>$(eqlibClientDefine)</PreprocessorDefinitions>
+      <IncludePaths>$(MQ2Root)src;%(IncludePaths)</IncludePaths>
+      <AdditionalDependencies>$(MQ2Root)src\eqlib\AssemblyMacros.asm</AdditionalDependencies>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">ARCH_X64;$(eqlibClientDefine);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='Win32'">ARCH_X86;$(eqlibClientDefine);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </NASM>
   </ItemDefinitionGroup>
   <ItemGroup />

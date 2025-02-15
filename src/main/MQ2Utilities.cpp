@@ -23,7 +23,7 @@
 
 #include <DbgHelp.h>
 #include <PathCch.h>
-
+#include <wil/resource.h>
 #include <random>
 
 #ifdef _DEBUG
@@ -1316,6 +1316,8 @@ void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value,
 	if (const char* ptr = pCDBStr->GetString(value, type))
 	{
 		const std::string currency = to_lower_copy(ptr);
+		if (currency.empty())
+			return;
 		cache[currency] = value;
 		cache[remove_chars(currency, chars_to_remove)] = value;
 	}
@@ -4930,13 +4932,6 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 	return 14.0f;
 }
 
-bool IsValidSpellIndex(int index)
-{
-	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
-		return false;
-	return true;
-}
-
 inline bool IsValidSpellSlot(int nGem)
 {
 	return nGem >= 0 && nGem < 16;
@@ -5093,9 +5088,18 @@ void UseAbility(const char* sAbility)
 
 // Function to check if the account has a given expansion enabled.
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
-bool HasExpansion(int nExpansion)
+bool HasExpansion(int64_t nExpansion)
 {
-	return pLocalPC && (pLocalPC->ExpansionFlags & nExpansion) != 0;
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOB)
+	// ExpansionFlags was expanded to 64 bits in TOB. If this client is not using TOB or later, we
+	// can short circuit the check if the request exceeds the LS expansion level.
+	if (nExpansion > EXPANSION_LS)
+		return false;
+#endif
+
+	using FlagsType = std::make_unsigned_t<decltype(pLocalPC->ExpansionFlags)>;
+
+	return pLocalPC && (pLocalPC->ExpansionFlags & static_cast<FlagsType>(nExpansion)) != 0;
 }
 
 int GetAvailableBagSlots()
@@ -5196,13 +5200,17 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+	case eItemContainerActivatedKeyRingItems:
+		return &pLocalPC->ActivatedKeyRingItems;
+#endif
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // not exactly sure when this was added.
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;
 #endif
 #if HAS_DRAGON_HOARD
 	case eItemContainerDragonHoard:
-		return &pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
+		return pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
 #endif
 #if HAS_TRADESKILL_DEPOT
 	case eItemContainerTradeskillDepot:
@@ -5578,7 +5586,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = globalIndex;
@@ -5705,7 +5713,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
 	MultipleItemMoveManager::MoveItemArray moveArray;
 	MultipleItemMoveManager::MoveItem moveItem;
 	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
@@ -6461,7 +6469,7 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_LS))
+	if (HasExpansion(EXPANSION_LS) || HasExpansion(EXPANSION_TOB))
 	{
 		MaxLevel = 125;
 	}
@@ -7309,13 +7317,20 @@ EQSwitch* FindSwitchByName(const char* szName)
 }
 
 //----------------------------------------------------------------------------
+
+std::set<HMODULE> g_knownModules;
+std::vector<std::string> s_launcherExtras;
+static wchar_t s_macroQuestDirW[MAX_PATH] = { 0 };
+
 bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 {
-	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
-	if (szMacroQuestDir[0] == 0)
+	if (g_knownModules.count(hModule))
+		return getMacroQuestModules;
+
+	if (s_macroQuestDirW[0] == 0)
 	{
-		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
-		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+		::GetModuleFileNameW(ghModule, s_macroQuestDirW, MAX_PATH);
+		PathCchRemoveFileSpec(s_macroQuestDirW, MAX_PATH);
 	}
 
 	// Get the path to this module and then check if it is in the same folder as
@@ -7324,26 +7339,28 @@ bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 	wchar_t szModulePath[MAX_PATH];
 	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
 
-	int substr_pos = ci_find_substr_w(szModulePath, szMacroQuestDir);
-
-	return !getMacroQuestModules ? (substr_pos == -1) : (substr_pos == 0);
-}
-
-bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses)
-{
-	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
-	if (szMacroQuestDir[0] == 0)
+	if (getMacroQuestModules)
 	{
-		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
-		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+		if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == 0)
+		{
+			g_knownModules.insert(hModule);
+			return true;
+		}
+	}
+	else if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == -1)
+	{
+		return true;
 	}
 
-	std::wstring wpath = mq::utf8_to_wstring(path);
-	int substr_pos = ci_find_substr_w(wpath, szMacroQuestDir);
+	return false;
+}
 
-	auto keys = GetPrivateProfileKeys("LauncherExtras", internal_paths::MQini);
-	std::vector<std::string> extras;
-	std::transform(keys.begin(), keys.end(), std::back_inserter(extras), [](const std::string& key)
+static void UpdateLauncherExtras()
+{
+	std::vector<std::string> keys = GetPrivateProfileKeys("LauncherExtras", internal_paths::MQini);
+	s_launcherExtras.clear();
+
+	std::transform(keys.begin(), keys.end(), std::back_inserter(s_launcherExtras), [](const std::string& key)
 		{
 			auto path = std::filesystem::path(GetPrivateProfileString("LauncherExtras", key.c_str(), "", internal_paths::MQini));
 			if (path.has_filename())
@@ -7352,15 +7369,79 @@ bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses)
 			return std::string();
 		});
 
-	extras.erase(std::remove_if(extras.begin(), extras.end(), [](const std::string& extra) { return extra.empty(); }), extras.end());
+	s_launcherExtras.erase(
+		std::remove_if(s_launcherExtras.begin(), s_launcherExtras.end(),
+			[](const std::string& extra) { return extra.empty(); }), s_launcherExtras.end());
+}
 
-	auto basename = std::filesystem::path(path).filename().string();
-	auto inlist = std::find_if(extras.begin(), extras.end(), [&basename](const std::string& extra) -> bool
+static bool IsLauncherExtra(std::string_view path)
+{
+	std::string basename = std::filesystem::path(path).filename().string();
+
+	if (std::find_if(s_launcherExtras.begin(), s_launcherExtras.end(),
+		[&basename](const std::string& extra) -> bool
 		{
 			return ci_equals(basename, extra);
-		}) != extras.end();
+		}) != s_launcherExtras.end())
+	{
+		return true;
+	}
 
-	return !getMacroQuestProcesses ? (substr_pos == -1 && !inlist) : (substr_pos == 0 || inlist);
+	static std::vector<std::string_view> s_otherNames = {
+		"MacroQuest",
+		"MQ2",
+		"MySEQ",
+		"ShowEQ",
+		"EQBC",
+		"RedGuides",
+		"MMOBugs",
+		"EQEmu",
+		"\\ida.exe"
+	};
+
+	for (std::string_view otherName : s_otherNames)
+	{
+		if (ci_find_substr(path, otherName) != -1)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses)
+{
+	if (s_macroQuestDirW[0] == 0)
+	{
+		::GetModuleFileNameW(ghModule, s_macroQuestDirW, MAX_PATH);
+		PathCchRemoveFileSpec(s_macroQuestDirW, MAX_PATH);
+	}
+
+	std::wstring wpath = mq::utf8_to_wstring(path);
+	int substr_pos = ci_find_substr_w(wpath, s_macroQuestDirW);
+
+	bool inList = IsLauncherExtra(path);
+	return !getMacroQuestProcesses ? (substr_pos == -1 && !inList) : (substr_pos == 0 || inList);
+}
+
+bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses)
+{
+	wil::unique_process_handle hProcess(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessID));
+	if (hProcess)
+	{
+		char process_name[MAX_PATH] = "";
+		DWORD size = MAX_PATH;
+
+		if (!QueryFullProcessImageNameA(hProcess.get(), 0, process_name, &size))
+		{
+			return false;
+		}
+
+		return IsMacroQuestProcess(process_name, getMacroQuestProcesses);
+	}
+
+	return false;
 }
 
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
@@ -7398,7 +7479,7 @@ bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcb
 	return result;
 }
 
-bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const std::function<bool(char[MAX_PATH])>& filter)
+bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const std::function<bool(std::string_view)>& filter)
 {
 	BOOL result = ((BOOL(WINAPI*)(DWORD*, DWORD, DWORD*))__ProcessList)(lpidProcess, cb, lpcbNeeded);
 
@@ -7409,20 +7490,23 @@ bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const
 		auto a1 = lpidProcess;
 		auto a2 = lpidProcess + (size / sizeof(DWORD));
 		auto a3 = lpidProcess + (cb / sizeof(DWORD));
+		UpdateLauncherExtras();
 
 		auto iter = std::remove_if(a1, a2, [&filter](DWORD lpidProcess)
 			{
-				HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, lpidProcess);
-				if (hProcess != NULL)
+				if (lpidProcess == 0)
+					return false;
+
+				wil::unique_process_handle hProcess(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, lpidProcess));
+				if (hProcess)
 				{
 					char process_name[MAX_PATH] = "";
 					DWORD size = MAX_PATH;
-					if (QueryFullProcessImageNameA(hProcess, 0, process_name, &size))
+
+					if (QueryFullProcessImageNameA(hProcess.get(), 0, process_name, &size))
 					{
-						CloseHandle(hProcess);
 						return filter(process_name);
 					}
-					CloseHandle(hProcess);
 				}
 
 				return true;

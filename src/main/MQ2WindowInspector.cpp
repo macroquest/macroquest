@@ -470,7 +470,7 @@ static void ColumnArrayList(const char* Label, const char* Type, int count,
 			char szSummaryLabel[256];
 			szSummaryLabel[0] = 0;
 			if constexpr (!std::is_same_v<SummaryCb, nullptr_t>) {
-				summaryCb(szSummaryLabel, 64, *it);
+				summaryCb(szSummaryLabel, 256, *it);
 			}
 
 			if (ColumnTreeNodeType(szIndexLabel, Type, szSummaryLabel))

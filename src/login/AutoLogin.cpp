@@ -22,8 +22,12 @@
 #include "imgui/fonts/IconsMaterialDesign.h"
 
 #include <fmt/format.h>
+#include <fmt/os.h>
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
+
+#include <shellapi.h>
+#include <TlHelp32.h>
 
 namespace fs = std::filesystem;
 
@@ -263,6 +267,101 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 	}
 }
 
+DWORD LaunchProcess(const std::string& process, const std::string& workingDir)
+{
+	// Find a suitable parent process for this process we are creating (and remember it for later)
+	wil::unique_process_handle hParent;
+	static DWORD dwParentProcessID = 0;
+
+	// Try to reuse parent id from last time
+	if (dwParentProcessID != 0)
+	{
+		hParent.reset(OpenProcess(PROCESS_CREATE_PROCESS, FALSE, dwParentProcessID));
+
+		if (!hParent)
+		{
+			dwParentProcessID = 0;
+		}
+	}
+
+	// Try to use shell to get parent id
+	if (!hParent)
+	{
+		HWND hWnd = GetShellWindow();
+		DWORD dwProcessID = 0;
+
+		if (GetWindowThreadProcessId(hWnd, &dwProcessID))
+		{
+			hParent.reset(OpenProcess(PROCESS_CREATE_PROCESS, FALSE, dwProcessID));
+
+			if (hParent)
+			{
+				dwParentProcessID = dwProcessID;
+			}
+		}
+	}
+
+	// Search for explorer.exe as a fallback
+	if (!hParent)
+	{
+		wil::unique_tool_help_snapshot hSnapshot(::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+
+		PROCESSENTRY32 proc = { sizeof(PROCESSENTRY32) };
+		if (::Process32First(hSnapshot.get(), &proc))
+		{
+			do
+			{
+				if (mq::ci_equals(proc.szExeFile, "explorer.exe"))
+				{
+					dwParentProcessID = proc.th32ProcessID;
+					break;
+				}
+			} while (Process32Next(hSnapshot.get(), &proc));
+		}
+
+		hParent.reset(::OpenProcess(PROCESS_CREATE_PROCESS, FALSE, dwParentProcessID));
+	}
+
+	if (!hParent)
+	{
+		SPDLOG_ERROR("Failed to find parent process for new eqgame process");
+		return 0;
+	}
+
+	STARTUPINFOEXA si = { sizeof(STARTUPINFOEXA) };
+	si.StartupInfo.wShowWindow = SW_SHOWNORMAL;
+	si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
+	SIZE_T sizeToAlloc;
+	InitializeProcThreadAttributeList(NULL, 1, 0, &sizeToAlloc);
+	std::unique_ptr<char[]> pProcThreadAttrListPtr = std::make_unique<char[]>(sizeToAlloc);
+	PPROC_THREAD_ATTRIBUTE_LIST pProcThreadAttrList = (PPROC_THREAD_ATTRIBUTE_LIST)pProcThreadAttrListPtr.get();
+	InitializeProcThreadAttributeList(pProcThreadAttrList, 1, 0, &sizeToAlloc);
+	UpdateProcThreadAttribute(pProcThreadAttrList, 0, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, hParent.addressof(), sizeof(hParent.get()), nullptr, nullptr);
+	si.lpAttributeList = pProcThreadAttrList;
+
+	SetLastError(0);
+
+	wil::unique_process_information pi;
+	if (CreateProcessA(
+		nullptr,
+		(LPSTR)process.c_str(),
+		nullptr,
+		nullptr,
+		FALSE,
+		EXTENDED_STARTUPINFO_PRESENT,
+		nullptr,
+		workingDir.c_str(),
+		(LPSTARTUPINFOA)&si,
+		&pi) && pi.hProcess != nullptr)
+	{
+		return pi.dwProcessId;
+	}
+
+	SPDLOG_ERROR("{}",
+		fmt::windows_error(GetLastError(), "Failed to create new eqgame process").what());
+	return 0;
+}
+
 const LoginInstance* StartInstance(ProfileRecord& profile)
 {
 	std::string instanceKey = LoginInstance::Key(profile);
@@ -311,7 +410,8 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 		}
 		else
 		{
-			const auto eqgame = fs::path{ *profile.eqPath } / "eqgame.exe";
+			std::string& eqPath = *profile.eqPath;
+			const auto eqgame = fs::path{ eqPath } / "eqgame.exe";
 			if (std::error_code ec; !fs::exists(eqgame, ec))
 			{
 				std::string msg = fmt::format("eqgame.exe does not exist at {} for {} ({}) (profile group {}), set from {}", *profile.eqPath,
@@ -324,21 +424,14 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 			{
 				std::string parameters = fmt::format(R"("{}" patchme "/login:{}")", eqgame.string(), arg);
 
-				STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-				si.wShowWindow = SW_SHOWNORMAL;
-				si.dwFlags = STARTF_USESHOWWINDOW;
-
-				wil::unique_process_information pi;
-				if (CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, profile.eqPath->c_str(), &si, &pi) && pi.hProcess != nullptr)
+				if (DWORD dwProcessID = LaunchProcess(parameters, eqPath))
 				{
 					auto [it, _] = s_loadedInstances.emplace(
 						LoginInstance::Key(profile),
-						LoginInstance(pi.dwProcessId, profile));
+						LoginInstance(dwProcessID, profile));
 
 					return &it->second;
 				}
-
-				SPDLOG_ERROR("Failed to create new eqgame process");
 			}
 		}
 	}
@@ -879,7 +972,7 @@ void ShowProfilesMenu(bool showLoadAll)
 					ImGui::TableNextRow(ImGuiTableRowFlags_None);
 					ImGui::TableNextColumn();
 
-					ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+					ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
 
 					for (auto& profile : profiles.Updated())
 					{

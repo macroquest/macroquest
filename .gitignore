@@ -57,3 +57,5 @@ src/MacroQuest*.sln
 
 # ignore resharper files
 *.DotSettings.user
+src/_ReSharper*/
+src/*.[Rr]e[Ss]harper

@@ -580,7 +580,10 @@ std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateFileBuffer(std::string_vie
 	ZepTabWindow* pTabs = m_editor->EnsureTab();
 	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
 	{
+		auto oldBuffer = pDefaultWindow->GetBuffer().shared_from_this();
 		pDefaultWindow->SetBuffer(pBuffer);
+
+		RemoveBuffer(oldBuffer);
 	}
 	
 	return pBuffer->shared_from_this();
@@ -598,7 +601,10 @@ std::shared_ptr<Zep::ZepBuffer> ImGuiZepEditor::CreateBuffer(std::string_view na
 	ZepTabWindow* pTabs = m_editor->EnsureTab();
 	if (ZepWindow* pDefaultWindow = pTabs->GetDefaultWindow())
 	{
+		auto oldBuffer = pDefaultWindow->GetBuffer().shared_from_this();
 		pDefaultWindow->SetBuffer(pBuffer);
+
+		RemoveBuffer(oldBuffer);
 	}
 	
 	return pBuffer->shared_from_this();

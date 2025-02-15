@@ -501,7 +501,19 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(std::string_view str, bool setWorkingDir
     // Get a buffer for the start file; even if the path is not valid; it can be created but not saved
     auto pFileBuffer = GetFileBuffer(startPath);
     auto pTab = EnsureTab();
-    pTab->AddWindow(pFileBuffer, nullptr, RegionLayoutType::HBox);
+
+    // Try to replace default buffer.
+    if (ZepWindow* pWindow = pTab->GetDefaultWindow())
+    {
+        auto oldBuffer = pWindow->GetBuffer().shared_from_this();
+        pWindow->SetBuffer(pFileBuffer);
+
+        RemoveBuffer(oldBuffer.get());
+    }
+    else
+    {
+        pTab->AddWindow(pFileBuffer, nullptr, RegionLayoutType::HBox);
+    }
 
     return pFileBuffer;
 }
@@ -513,7 +525,18 @@ ZepBuffer* ZepEditor::InitWithText(std::string_view strName, std::string_view st
     auto pBuffer = GetEmptyBuffer(strName);
     pBuffer->SetText(strText, true);
 
-    pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
+    // Try to replace default buffer.
+    if (ZepWindow* pWindow = pTab->GetDefaultWindow())
+    {
+        auto oldBuffer = pWindow->GetBuffer().shared_from_this();
+        pWindow->SetBuffer(pBuffer);
+
+        RemoveBuffer(oldBuffer.get());
+    }
+    else
+    {
+        pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
+    }
 
     return pBuffer;
 }

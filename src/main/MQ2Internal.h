@@ -863,15 +863,15 @@ public:
 
 void RefreshKeyRingWindow();
 
-
 //----------------------------------------------------------------------------
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
 	const std::function<bool(HMODULE)>& filter);
 bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded,
-	const std::function<bool(char[MAX_PATH])>& filter);
+	const std::function<bool(std::string_view)>& filter);
 std::string GetProcessName(DWORD processID);
 bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules = false);
-bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses = false);
+bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses = false);
+bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses = false);
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 std::string GetCurrentUI();
 

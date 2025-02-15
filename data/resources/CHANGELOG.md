@@ -1,3 +1,48 @@
+Feb 12, 2025:
+- live: Update for patch
+
+Feb 10, 2025:
+- test: Update for patch
+
+Jan 29, 2025:
+- test: Update for patch
+
+Jan 15, 2025:
+- live: Update for patch
+- lua: Add error handling to mq.delay, failures inside the callback should now propagate to the caller properly
+
+Jan 12, 2025:
+- test: Update for patch
+- Added ${Pet.ProcHold} and ${Pet.Resume}
+
+Jan 11, 2025:
+- ImGui has been updated to version 1.91.6
+- Fix date format string of output from /mqlog
+
+Dec 13, 2024:
+- test: Update for test patch
+
+Dec 5, 2024:
+- live: Update for patch
+
+Dec 3, 2024:
+- live: Update for TOB expansion patch
+- Fix /useitem not interacting with activated item keyring
+
+Dec 1, 2024:
+- test: Update for TOB expansion patch
+
+Nov 21, 2024:
+- Fix a couple crashes
+
+Nov 20, 2024:
+- live: Update for live patch
+- test: Update for test patch
+
+Note to plugin authors: the name labels of CGiveWnd and CTradeWnd changed from CLabel to CStmlWnd
+For compatibility between versions of the client, a new GetText() method is added to both to get
+the widget's text.
+
 Nov 17, 2024:
 - lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
   This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
@@ -8,6 +53,9 @@ Nov 10, 2024:
 
 Nov 8, 2024:
 - live: Update for live patch
+
+Oct 30, 2024:
+- test: Update for test patch
 
 Oct 24, 2024:
 - Fix new spawns getting mq captions applied when mqcaptions are disabled
