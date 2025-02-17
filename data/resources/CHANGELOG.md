@@ -1,3 +1,30 @@
+Feb 15, 2025:
+- Fix EverQuest.WinTitle not returning the window title
+
+Feb 12, 2025:
+- live: Update for patch
+
+Feb 10, 2025:
+- test: Update for patch
+
+Jan 29, 2025:
+- test: Update for patch
+
+Jan 15, 2025:
+- live: Update for patch
+- lua: Add error handling to mq.delay, failures inside the callback should now propagate to the caller properly
+
+Jan 12, 2025:
+- test: Update for patch
+- Added ${Pet.ProcHold} and ${Pet.Resume}
+
+Jan 11, 2025:
+- ImGui has been updated to version 1.91.6
+- Fix date format string of output from /mqlog
+
+Dec 13, 2024:
+- test: Update for test patch
+
 Dec 5, 2024:
 - live: Update for patch
 

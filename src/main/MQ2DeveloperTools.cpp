@@ -3033,9 +3033,11 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Tutorial Enabled");
 				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##Tutorial", &eq.bIsTutorialEnabled);
 
+#if IS_CLIENT_DATE(20250203)
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
-				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+				ImGui::TableNextColumn(); ImGui::Text("%d, %d", (int32_t)eq.bHeroicCharacterRelated1, (int32_t)eq.bHeroicCharacterRelated2);
+#endif
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");

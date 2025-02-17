@@ -25,6 +25,7 @@ void ImGuiManager_Pulse();
 void ImGuiManager_DrawFrame();
 void ImGuiManager_DrawCursorAttachment();
 
+bool ImGuiManager_HandleWndProcEx(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam, ImGuiIO& io);
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);

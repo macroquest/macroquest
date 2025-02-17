@@ -221,10 +221,25 @@ void EmuSetCpuAffinity()
 		HANDLE processHandle = GetCurrentProcess();
 		GetSystemInfo(&SystemInfo);
 		int cores = SystemInfo.dwNumberOfProcessors;
+		intptr_t m = 0;
 
-		int m = int(pow(2, cores) - 1);
+		if (cores >= sizeof(DWORD_PTR) * 8)
+		{
+			// If we have more cores than bits in the mask, we can't set affinity.
+			// This is a limitation of the API.
+			m = -1;
+		}
+		else
+		{
+			m = static_cast<intptr_t>(pow(2, cores) - 1);
+		}
+
 		DebugSpewAlways("Setting processor affinity to %d (%d logical cores)", m, cores);
-		SetProcessAffinityMask(processHandle, m);
+
+		if (!SetProcessAffinityMask(processHandle, static_cast<DWORD_PTR>(m)))
+		{
+			DebugSpewAlways("Failed to set processor affinity: %d", GetLastError());
+		}
 	}
 }
 
