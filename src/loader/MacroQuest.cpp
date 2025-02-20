@@ -32,9 +32,10 @@
 #include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <spdlog/sinks/wincolor_sink.h>
 #include <extras/wil/Constants.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
@@ -105,6 +106,8 @@ static uint32_t s_logCleanupMaxAgeDays = 14;        // Default to 14 days before
 static uint32_t s_logFileCleanupIntervalMins = 360; // Default to 6 hours between cleanings
 
 static std::chrono::steady_clock::time_point s_lastLogFileCleanupRun;
+static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> s_ringBufferSink;
+static std::shared_ptr<spdlog::sinks::wincolor_stdout_sink_mt> s_stdOutSink;
 
 //----------------------------------------------------------------------------
 
@@ -139,6 +142,31 @@ void InitializeConsole()
 
 	gbConsoleVisible = true;
 	gbConsoleCreated = true;
+
+	// create the std out logger.
+	s_stdOutSink = std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>();
+
+	if (s_ringBufferSink)
+	{
+		// The logger already exists, so replace ring buffer sink with stdout sink.
+		auto logger = spdlog::default_logger();
+		
+		// Erase the ring buffer sink from the logger's list of sinks.
+		auto& sinks = logger->sinks();
+		sinks.erase(std::remove_if(sinks.begin(), sinks.end(), [](const auto& sink) { return sink == s_ringBufferSink; }), sinks.end());
+		sinks.push_back(s_stdOutSink);
+
+		auto storedItems = s_ringBufferSink->last_raw();
+		SPDLOG_INFO("Console opened, only showing {} most recent messages...", storedItems.size());
+
+		for (const auto& item : storedItems)
+		{
+			if (s_stdOutSink->should_log(item.level))
+				s_stdOutSink->log(item);
+		}
+
+		s_ringBufferSink.reset();
+	}
 }
 
 void ShutdownConsole()
@@ -247,7 +275,7 @@ static void PerformLoggingCleanup()
 			std::copy_n(std::begin(dirItems), dirItems.size() - countCutoff, std::back_inserter(removeItems));
 		}
 
-		if (firstTime)
+		if (firstTime && !removeItems.empty())
 		{
 			SPDLOG_INFO("Performing log file cleanup, found {} files to remove.", removeItems.size());
 		}
@@ -292,8 +320,21 @@ static void CheckPruneLogging()
 
 void InitializeLogging()
 {
-	// create color multi threaded logger
-	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
+	std::shared_ptr<spdlog::sinks::sink> baseSink;
+
+	// If we don't have a stdout sink yet, create a ring buffer to hold messages in case we get one later.
+	if (!s_stdOutSink)
+	{
+		s_ringBufferSink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(20);
+		baseSink = s_ringBufferSink;
+	}
+	else
+	{
+		baseSink = s_stdOutSink;
+	}
+
+	auto logger = std::make_shared<spdlog::logger>("MQ", baseSink);
+	spdlog::details::registry::instance().initialize_logger(logger);
 	spdlog::set_default_logger(logger);
 	spdlog::flush_on(spdlog::level::trace);
 	spdlog::set_level(spdlog::level::trace);
@@ -1723,6 +1764,8 @@ int WINAPI CALLBACK WinMain(
 
 	UnregisterClass(gszWinClassName, hInstance);
 
+	s_ringBufferSink.reset();
+	s_stdOutSink.reset();
 	spdlog::shutdown();
 
 	return (int)msg.wParam;
