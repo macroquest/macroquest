@@ -260,7 +260,7 @@ namespace Util
 	HRESULT defaultExecutablePath(WCHAR* path, DWORD nSize = MAX_PATH)
 	{
 		DWORD written = GetModuleFileNameExW(GetCurrentProcess(), nullptr, path, nSize);
-		SPDLOG_DEBUG("Default executable path: {}", mq::wstring_to_utf8(path));
+		//SPDLOG_DEBUG("Default executable path: {}", mq::wstring_to_utf8(path));
 		return (written > 0) ? S_OK : E_FAIL;
 	}
 
@@ -274,7 +274,7 @@ namespace Util
 			errno_t result = wcscat_s(path, nSize, DEFAULT_SHELL_LINKS_PATH);
 			hr = (result == 0) ? S_OK : E_INVALIDARG;
 
-			SPDLOG_DEBUG("Default shell link path: {}", mq::wstring_to_utf8(path));
+			//SPDLOG_DEBUG("Default shell link path: {}", mq::wstring_to_utf8(path));
 		}
 		return hr;
 	}
@@ -288,7 +288,7 @@ namespace Util
 			errno_t result = wcscat_s(path, nSize, appLink.c_str());
 			hr = (result == 0) ? S_OK : E_INVALIDARG;
 
-			SPDLOG_DEBUG("Default shell link file path: {}", mq::wstring_to_utf8(path));
+			//SPDLOG_DEBUG("Default shell link file path: {}", mq::wstring_to_utf8(path));
 		}
 		return hr;
 	}
@@ -556,7 +556,7 @@ void WinToast::setAppName(const std::wstring& appName)
 void WinToast::setAppUserModelId(const std::wstring& aumi)
 {
 	m_aumi = aumi;
-	SPDLOG_DEBUG("Default App User Model Id: {}", mq::wstring_to_utf8(m_aumi));
+	//SPDLOG_DEBUG("Default App User Model Id: {}", mq::wstring_to_utf8(m_aumi));
 }
 
 void WinToast::setShortcutPolicy(ShortcutPolicy shortcutPolicy)
@@ -1029,7 +1029,7 @@ int64_t WinToast::showToast(const WinToastTemplate& toast, std::shared_ptr<IWinT
 											std::forward_as_tuple(id),
 											std::forward_as_tuple(notification, activatedToken, dismissedToken, failedToken));
 
-										SPDLOG_DEBUG("xml: {}", Util::AsString(xmlDocument));
+										//SPDLOG_DEBUG("xml: {}", Util::AsString(xmlDocument));
 
 										hr = notifier->Show(notification.Get());
 										if (FAILED(hr))
