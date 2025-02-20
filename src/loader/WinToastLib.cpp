@@ -396,7 +396,7 @@ namespace Util
 								}
 							}
 
-							if (arguments.empty())
+							if (!arguments.empty())
 							{
 								eventHandler->toastActivated(mq::GetIntFromString(arguments, 0));
 								DllImporter::WindowsDeleteString(argumentsHandle);
@@ -878,9 +878,8 @@ HRESULT WinToast::createShellLinkHelper()
 	return hr;
 }
 
-int64_t WinToast::showToast(const WinToastTemplate& toast, IWinToastHandler* eventHandler, WinToastError* error)
+int64_t WinToast::showToast(const WinToastTemplate& toast, std::shared_ptr<IWinToastHandler> handler, WinToastError* error)
 {
-	std::shared_ptr<IWinToastHandler> handler(eventHandler);
 	setError(error, WinToastError::NoError);
 	int64_t id = -1;
 
@@ -1681,6 +1680,11 @@ void WinToastTemplate::setTextField(const std::wstring& txt, WinToastTemplate::T
 	m_textFields[position] = txt;
 }
 
+void WinToastTemplate::setTextField(const std::string& txt, WinToastTemplate::TextField pos)
+{
+	setTextField(mq::utf8_to_wstring(txt), pos);
+}
+
 void WinToastTemplate::setImagePath(const std::wstring& imgPath, CropHint cropHint)
 {
 	m_imagePath = imgPath;
@@ -1745,14 +1749,29 @@ void WinToastTemplate::setFirstLine(const std::wstring& text)
 	setTextField(text, WinToastTemplate::FirstLine);
 }
 
+void WinToastTemplate::setFirstLine(const std::string& text)
+{
+	setTextField(mq::utf8_to_wstring(text), WinToastTemplate::FirstLine);
+}
+
 void WinToastTemplate::setSecondLine(const std::wstring& text)
 {
 	setTextField(text, WinToastTemplate::SecondLine);
 }
 
+void WinToastTemplate::setSecondLine(const std::string& text)
+{
+	setTextField(mq::utf8_to_wstring(text), WinToastTemplate::SecondLine);
+}
+
 void WinToastTemplate::setThirdLine(const std::wstring& text)
 {
 	setTextField(text, WinToastTemplate::ThirdLine);
+}
+
+void WinToastTemplate::setThirdLine(const std::string& text)
+{
+	setTextField(mq::utf8_to_wstring(text), WinToastTemplate::ThirdLine);
 }
 
 void WinToastTemplate::setDuration(Duration duration)
@@ -1792,6 +1811,11 @@ void WinToastTemplate::setAttributionText(const std::wstring& attributionText)
 void WinToastTemplate::addAction(const std::wstring& label)
 {
 	m_actions.push_back(label);
+}
+
+void WinToastTemplate::addAction(const std::string& label)
+{
+	m_actions.push_back(mq::utf8_to_wstring(label));
 }
 
 void WinToastTemplate::addInput()

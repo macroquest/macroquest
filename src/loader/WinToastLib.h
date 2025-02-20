@@ -56,11 +56,11 @@ public:
 	};
 
 	virtual ~IWinToastHandler() = default;
-	virtual void toastActivated() const = 0;
-	virtual void toastActivated(int actionIndex) const = 0;
-	virtual void toastActivated(const char* response) const = 0;
-	virtual void toastDismissed(WinToastDismissalReason state) const = 0;
-	virtual void toastFailed() const = 0;
+	virtual void toastActivated() = 0;
+	virtual void toastActivated(int actionIndex) = 0;
+	virtual void toastActivated(const char* response) = 0;
+	virtual void toastDismissed(WinToastDismissalReason state) = 0;
+	virtual void toastFailed() = 0;
 };
 
 class WinToastTemplate
@@ -123,9 +123,17 @@ public:
 	~WinToastTemplate();
 
 	void setFirstLine(const std::wstring& text);
+	void setFirstLine(const std::string& text);
+
 	void setSecondLine(const std::wstring& text);
+	void setSecondLine(const std::string& text);
+
 	void setThirdLine(const std::wstring& text);
+	void setThirdLine(const std::string& text);
+
 	void setTextField(const std::wstring& txt, TextField pos);
+	void setTextField(const std::string& txt, TextField pos);
+
 	void setAttributionText(const std::wstring& attributionText);
 	void setImagePath(const std::wstring& imgPath, CropHint cropHint = CropHint::Square);
 	void setHeroImagePath(const std::wstring& imgPath, bool inlineImage = false);
@@ -135,7 +143,10 @@ public:
 	void setDuration(Duration duration);
 	void setExpiration(int64_t millisecondsFromNow);
 	void setScenario(Scenario scenario);
+
 	void addAction(const std::wstring& label);
+	void addAction(const std::string& label);
+
 	void addInput();
 
 	std::size_t textFieldsCount() const;
@@ -229,7 +240,7 @@ public:
 	bool initialize(WinToastError* error = nullptr);
 	bool isInitialized() const;
 	bool hideToast(int64_t id);
-	int64_t showToast(WinToastTemplate const& toast, IWinToastHandler* eventHandler, WinToastError* error = nullptr);
+	int64_t showToast(WinToastTemplate const& toast, std::shared_ptr<IWinToastHandler> eventHandler, WinToastError* error = nullptr);
 	void clear();
 	ShortcutResult createShortcut();
 
