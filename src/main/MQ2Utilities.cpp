@@ -3998,6 +3998,7 @@ bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id)
 
 	return false;
 }
+
 // ***************************************************************************
 // Function:    CleanupName
 // Description: Cleans up NPC names
@@ -7341,13 +7342,13 @@ bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 
 	if (getMacroQuestModules)
 	{
-		if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == 0)
+		if (ci_find_substr(szModulePath, s_macroQuestDirW) == 0)
 		{
 			g_knownModules.insert(hModule);
 			return true;
 		}
 	}
-	else if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == -1)
+	else if (ci_find_substr(szModulePath, s_macroQuestDirW) == -1)
 	{
 		return true;
 	}
@@ -7419,7 +7420,7 @@ bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses)
 	}
 
 	std::wstring wpath = mq::utf8_to_wstring(path);
-	int substr_pos = ci_find_substr_w(wpath, s_macroQuestDirW);
+	int substr_pos = ci_find_substr(wpath, s_macroQuestDirW);
 
 	bool inList = IsLauncherExtra(path);
 	return !getMacroQuestProcesses ? (substr_pos == -1 && !inList) : (substr_pos == 0 || inList);
@@ -7451,7 +7452,7 @@ bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
 	wchar_t szModulePath[MAX_PATH];
 	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
 
-	return ci_find_substr_w(szModulePath, searchString) != -1;
+	return ci_find_substr(szModulePath, searchString) != -1;
 }
 
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
