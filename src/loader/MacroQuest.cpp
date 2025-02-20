@@ -1705,6 +1705,27 @@ void CheckPaths()
 	::RevertToSelf();
 }
 
+void ShowBalloonTip(HWND hwnd, const wchar_t* title, const wchar_t* msg)
+{
+	NOTIFYICONDATAW nid = {};
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = hwnd;
+	nid.uID = WM_USER_SYSTRAY;
+	nid.uFlags = NIF_INFO;
+	wcscpy_s(nid.szInfoTitle, title);
+	wcscpy_s(nid.szInfo, msg);
+	::Shell_NotifyIconW(NIM_MODIFY, &nid);
+}
+
+void ReportFailedInjection(InjectResult result, DWORD pid)
+{
+	if (result == InjectResult::FailedElevationRequired)
+	{
+		std::string message = fmt::format("Access denied - PID {}", pid);
+		ShowBalloonTip(hMainWnd, L"Failed to inject", mq::utf8_to_wstring(message).c_str());
+	}
+}
+
 // ***************************************************************************
 // Function:    WinMain
 // Description: EXE entry point
