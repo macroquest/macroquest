@@ -1747,7 +1747,7 @@ int WINAPI CALLBACK WinMain(
 	// Initialize Logging
 	InitializeLogging();
 
-	bool s_isElevated = IsElevated();
+	s_isElevated = IsElevated();
 
 	SPDLOG_INFO("Starting MacroQuest Loader{}. Built {}", s_isElevated ? " (Elevated)" : "", __TIMESTAMP__);
 
