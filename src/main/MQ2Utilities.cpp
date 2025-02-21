@@ -5566,6 +5566,12 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return false;
 
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not pick up item: index is invalid");
+		return false;
+	}
+
 	ItemPtr pItem = FindItemByGlobalIndex(globalIndex);
 	if (!pItem)
 	{
@@ -5618,6 +5624,22 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return false;
 
 	default: break;
+	}
+
+	// Make sure we're not trying to pick up an augment in a socket.
+	ItemGlobalIndex parentIndex = globalIndex.GetParent();
+	if (parentIndex.IsValidIndex())
+	{
+		if (ItemPtr pParentItem = FindItemByGlobalIndex(parentIndex))
+		{
+			if (!pParentItem->IsContainer())
+			{
+				// We're not trying to pick up an item from a bag, we're trying to pick up
+				// an augment from an item
+				WriteChatf("Cannot pick up an augment socketed in an item");
+				return false;
+			}
+		}
 	}
 
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
@@ -5770,7 +5792,14 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor);
 	if (!pItem)
 	{
+		// TODO: Handle case where item link is on the cursor
 		WriteChatf("Cannot drop item into inventory slot: no item is on the cursor.");
+		return false;
+	}
+
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not drop item: index is invalid");
 		return false;
 	}
 
