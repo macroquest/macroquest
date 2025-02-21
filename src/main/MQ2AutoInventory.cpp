@@ -531,7 +531,7 @@ public:
 										if (button->bChecked)
 										{
 											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex(static_cast<int>(list->GetItemData(i)));
-											if (itemIndex.IsValidIndex())
+											if (itemIndex.IsValidIndex() && itemIndex.GetLocation() == eItemContainerPossessions)
 											{
 												gDeleteList.push_back(itemIndex);
 											}
@@ -569,6 +569,10 @@ public:
 										if (button->bChecked)
 										{
 											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex(static_cast<int>(list->GetItemData(i)));
+
+											// Can only sell items from our inventory.
+											if (isMerchantMode && itemIndex.GetLocation() != eItemContainerPossessions)
+												continue;
 
 											if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
 											{
