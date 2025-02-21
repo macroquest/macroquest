@@ -5546,6 +5546,20 @@ bool ItemOnCursor()
 	return pProfile->InventoryContainer.GetItem(InvSlot_Cursor) != nullptr;
 }
 
+static bool CanUseMultiItemManager(const ItemGlobalIndex& globalIndex)
+{
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 bool PickupItem(const ItemGlobalIndex& globalIndex)
 {
 	if (!pInvSlotMgr) return false;
@@ -5556,13 +5570,6 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	if (!pItem)
 	{
 		WriteChatf("Could not pick up item: no item found.");
-		return false;
-	}
-
-	if (globalIndex.GetLocation() == eItemContainerPossessions
-		&& globalIndex.GetTopSlot() == InvSlot_Cursor)
-	{
-		WriteChatf("Cannot pick up an item from the cursor slot!");
 		return false;
 	}
 
@@ -5585,26 +5592,100 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot pick up an item from the cursor slot!");
+			return false;
+		}
+		break;
+
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
+
+	case eItemContainerTrade:
+		WriteChatf("Cannot pick up items from trade slots");
+		return false;
+
+	default: break;
+	}
+
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = globalIndex;
-	moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = isCtrl ? 1 : 0;
-	moveArray.Add(moveItem);
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = globalIndex;
+		moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = isCtrl ? 1 : 0;
+		moveArray.Add(moveItem);
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif
+
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+#if 0
+		if (pCursorAttachment->IsActive())
+		{
+			WriteChatf("Cannot pick up an item from a keyring while something else is on the cursor");
+			return false;
+		}
+
+		KeyRingType keyRingType = CKeyRingWnd::GetKeyRingType(globalIndex.GetLocation());
+		ECursorAttachmentType linkType = CKeyRingWnd::GetLinkType(keyRingType);
+		if (linkType == eCursorAttachment_None)
+		{
+			WriteChatf("Cannot interact with keyring container: %s", GetNameForContainerInstance(globalIndex.GetLocation()));
+			return false;
+		}
+
+		if (!pCursorAttachment->IsOkToActivate(linkType))
+		{
+			WriteChatf("Failed to pick up keyring item");
+			return false;
+		}
+
+		// Note: The item is not in the held slot, it is only attached to the cursor until we move it somewhere else.
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, linkType, -1, pItem->ItemGUID, pItem->ID, "", nullptr, -1, -1);
+		return true;
 #else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+		WriteChatf("Cannot pick up items from keyrings");
+		return false;
+#endif
+	}
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemGlobalIndex To = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
 	ItemGlobalIndex From = globalIndex;
 
-	// This is just a a top level slot. We should have invslots for all of these.
+	// This is just a top level slot. We should have invslots for all of these.
 	if (globalIndex.GetIndex().GetSlot(1) == -1)
 	{
 		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
@@ -5676,7 +5757,6 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
 
 bool DropItem(const ItemGlobalIndex& globalIndex)
@@ -5694,7 +5774,6 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return false;
 	}
 
-	bool bSelectSlot = false;
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
 		// If this is merchant selection, we cannot do it anywhere other than our inventory.
@@ -5714,23 +5793,66 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
-#if HAS_MULTIPLE_ITEM_MOVE_MANAGER && 0
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.to = globalIndex;
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = 0;
-	moveArray.Add(moveItem);
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot top an item into the cursor slot!");
+			return false;
+		}
+		break;
 
-	// Deactivate the cursor attachment. This will ensure that the new item (if any)
-	// will replace it on the cursor.
-	pCursorAttachment->Deactivate();
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
-#else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+	default: break;
+	}
+
+#if HAS_MULTIPLE_ITEM_MOVE_MANAGER
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.to = globalIndex;
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = 0;
+		moveArray.Add(moveItem);
+
+		// Deactivate the cursor attachment. This will ensure that the new item (if any)
+		// will replace it on the cursor.
+		pCursorAttachment->Deactivate();
+
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif // HAS_MULTIPLE_ITEM_MOVE_MANAGER
+
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+		WriteChatf("Dropping items into keyring slots is not currently supported");
+		return false;
+	}
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemContainerInstance type = globalIndex.GetLocation();
 	short ToInvSlot = globalIndex.GetTopSlot();
@@ -5770,9 +5892,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
-
 
 bool StripQuotes(char* str)
 {

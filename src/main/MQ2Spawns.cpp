@@ -1125,4 +1125,26 @@ static void Spawns_SpawnRemoved(PlayerClient* pSpawn)
 		std::end(gSpawnsArray));
 }
 
+//----------------------------------------------------------------------------
+// Utility Functions
+//----------------------------------------------------------------------------
+
+PlayerClient* GetClosestBanker(bool forInteraction)
+{
+	// gSpawnsArray is sorted by distance from the player, so the first banker we find will be the closest
+	for (const auto& spawn : gSpawnsArray)
+	{
+		if (forInteraction && spawn.GetDistanceSquared() > MAX_INTERACT_DISTANCE_SQUARED)
+			break;
+
+		if (auto pSpawn = spawn.GetSpawn())
+		{
+			if (pSpawn->GetClass() == Class_Banker)
+				return pSpawn;
+		}
+	}
+
+	return nullptr;
+}
+
 } // namespace mq

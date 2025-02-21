@@ -112,6 +112,9 @@ MQModule* GetPostOfficeModule();
 MQModule* GetEmuExtensionsModule();
 #endif
 
+void InitializeMQ2AutoInventory();
+void ShutdownMQ2AutoInventory();
+
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
