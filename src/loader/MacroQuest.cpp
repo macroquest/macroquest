@@ -1349,6 +1349,7 @@ void InitializeWindows()
 
 	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
 
+	LauncherImGui::AddMainPanel("Crash Reporting", ShowCrashReportingPanel);
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
 	LauncherImGui::AddMainPanel("Logging", ShowLoggingSettings);
 	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
