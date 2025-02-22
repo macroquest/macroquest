@@ -5669,6 +5669,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	}
 #endif
 
+#if HAS_KEYRING_WINDOW
 	// If this is a keyring slot, we need to use a different method to pick up the item.
 	if (globalIndex.IsKeyRingLocation())
 	{
@@ -5701,6 +5702,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return false;
 #endif
 	}
+#endif // HAS_KEYRING_WINDOW
 
 	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
@@ -5874,12 +5876,14 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	}
 #endif // HAS_MULTIPLE_ITEM_MOVE_MANAGER
 
+#if HAS_KEYRING_WINDOW
 	// If this is a keyring slot, we need to use a different method to pick up the item.
 	if (globalIndex.IsKeyRingLocation())
 	{
 		WriteChatf("Dropping items into keyring slots is not currently supported");
 		return false;
 	}
+#endif // HAS_KEYRING_WINDOW
 
 	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 

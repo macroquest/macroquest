@@ -48,7 +48,7 @@ namespace AutoBank
 class AutoBank::BankWnd_Hook
 {
 public:
-	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
+	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*));
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
 		CBankWnd* pThis = reinterpret_cast<CBankWnd*>(this);
