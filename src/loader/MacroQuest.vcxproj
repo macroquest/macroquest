@@ -138,6 +138,7 @@
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="RemoteOps.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="WinToastLib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProcessMonitor.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="WinToastLib.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MacroQuest.rc" />

@@ -28,6 +28,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>
+#include <sddl.h>
 
 using namespace std::chrono_literals;
 
@@ -875,18 +876,37 @@ bool NamedPipeServer::CreateAndConnect()
 	// the pipe should have been moved out by now...
 	m_hPipe.reset();
 
-	wil::unique_hfile hPipe(::CreateNamedPipe(
-		m_pipeName.c_str(),             // pipe name
-		PIPE_ACCESS_DUPLEX |            // read/write access
-		FILE_FLAG_OVERLAPPED,           // overlapped mode
-		PIPE_TYPE_MESSAGE |             // message-type pipe
-		PIPE_READMODE_MESSAGE |         // message read mode
-		PIPE_WAIT,                      // blocking mode
-		PIPE_UNLIMITED_INSTANCES,       // unlimited instances,
-		BUFFER_SIZE,                    // output buffer size,
-		BUFFER_SIZE,                    // input buffer size
-		PIPE_TIMEOUT,                   // client timeout
-		nullptr));                      // default security attributes
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(sa);
+	sa.bInheritHandle = false;
+
+	wil::unique_any<PSECURITY_DESCRIPTOR, decltype(&::LocalFree), LocalFree> saCleanup;
+	PSECURITY_ATTRIBUTES pSA = nullptr;
+
+	// Create a security descriptor that allows everyone access
+	if (!::ConvertStringSecurityDescriptorToSecurityDescriptorW(L"D:(A;OICI;GA;;;WD)",
+		SDDL_REVISION_1, saCleanup.addressof(), nullptr))
+	{
+		SPDLOG_ERROR("Failed to create security descriptor. Other processes may not be able to access the named pipe!");
+	}
+	else
+	{
+		sa.lpSecurityDescriptor = saCleanup.get();
+		pSA = &sa;
+	}
+
+	wil::unique_hfile hPipe(::CreateNamedPipeW(
+		mq::utf8_to_wstring(m_pipeName).c_str(), // pipe name
+		PIPE_ACCESS_DUPLEX |                     // read/write access
+		    FILE_FLAG_OVERLAPPED,                // overlapped mode
+		PIPE_TYPE_MESSAGE |                      // message-type pipe
+		    PIPE_READMODE_MESSAGE |              // message read mode
+		    PIPE_WAIT,                           // blocking mode
+		PIPE_UNLIMITED_INSTANCES,                // unlimited instances,
+		BUFFER_SIZE,                             // output buffer size,
+		BUFFER_SIZE,                             // input buffer size
+		PIPE_TIMEOUT,                            // client timeout
+		pSA));                                   // default security attributes
 	if (!hPipe.is_valid()) {
 		throw fmt::windows_error(::GetLastError(), "Failed to create named pipe on {}", m_pipeName);
 	}
@@ -1066,6 +1086,8 @@ void NamedPipeClient::NamedPipeThread()
 
 	while (IsRunning())
 	{
+		bool showMessage = true;
+
 		// First loop will try to establish a connection
 		while (!m_connection && IsRunning())
 		{
@@ -1114,6 +1136,15 @@ void NamedPipeClient::NamedPipeThread()
 			case ERROR_FILE_NOT_FOUND:
 				// named pipe has not been created
 				SPDLOG_TRACE("Named pipe not found, waiting for it to be created...");
+				break;
+
+			case ERROR_ACCESS_DENIED:
+				// named pipe exists but is not accessible
+				if (showMessage)
+				{
+					showMessage = false;
+					SPDLOG_ERROR("Named pipe exists but is not accessible!");
+				}
 				break;
 
 			case ERROR_PIPE_BUSY:
