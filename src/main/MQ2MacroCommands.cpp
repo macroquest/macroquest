@@ -508,6 +508,8 @@ void CleanMacroLine(char* szLine)
 		szLine[NewLength] = '\0';
 }
 
+bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
+
 // ***************************************************************************
 // Function:    Include
 // Description: Includes another macro file

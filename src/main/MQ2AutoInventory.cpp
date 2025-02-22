@@ -21,6 +21,7 @@
 #include <string>
 
 namespace mq {
+
 #if HAS_FIND_ITEM_WINDOW
 CContextMenu* CheckBoxMenu = nullptr;
 static int s_findItemCheckBoxMenu = 0;
@@ -83,10 +84,10 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, Update_Trampoline, ())
 	void Update_Detour()
 	{
-		CFindItemWnd* pFIWnd = (CFindItemWnd*)this;
+		CFindItemWnd* pFIWnd = reinterpret_cast<CFindItemWnd*>(this);
 		Update_Trampoline();
 
-		CListWnd* list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList");
+		CListWnd* list = static_cast<CListWnd*>(pFIWnd->GetChildItem("FIW_ItemList"));
 		if (gbCheckBoxFeatureEnabled && list)
 		{
 			if (MarkCol && list->Columns.Count > MarkCol)
@@ -106,21 +107,17 @@ public:
 				}
 				TotalWidth += 20;
 
-				int mainwidth = rectmain.right - rectmain.left;
-				int newwidth = 0;
-
 				if (TotalWidth > rect.right - rect.left)
 				{
-					newwidth = TotalWidth - (rect.right - rect.left);
+					int newwidth = TotalWidth - (rect.right - rect.left);
 					rect.right += newwidth;
 					rectmain.right += newwidth + 10;
 					list->Move(rect, false, false, false, false);
 					pFIWnd->Move(rectmain, false, false, false, false);
 				}
 
-				// lets borrow a checkbox...
-				CControlTemplate* pDisableConnectionTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("ATW_Checkbox");
-				if (pDisableConnectionTemplate)
+				// let's borrow a checkbox
+				if (CControlTemplate* pDisableConnectionTemplate = static_cast<CControlTemplate*>(pSidlMgr->FindScreenPieceTemplate("ATW_Checkbox")))
 				{
 					CXRect OldRect = pDisableConnectionTemplate->rect;
 					CXStr OldName1 = pDisableConnectionTemplate->strName;
@@ -138,7 +135,7 @@ public:
 						pDisableConnectionTemplate->strName = szTemp2;
 						pDisableConnectionTemplate->strScreenId = szTemp2;
 
-						if (CCheckBoxWnd* pCheck = (CCheckBoxWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pDisableConnectionTemplate))
+						if (CCheckBoxWnd* pCheck = static_cast<CCheckBoxWnd*>(pSidlMgr->CreateXWndFromTemplate(pFIWnd, pDisableConnectionTemplate)))
 						{
 							pCheck->SetEnabled(true);
 							pCheck->SetCheck(false);
@@ -158,7 +155,7 @@ public:
 
 							list->SetItemWnd(i, MarkCol, pCheck);
 
-							ItemGlobalIndex itemIndex = pFIWnd->GetItemGlobalIndex((int)pCheck->GetData());
+							ItemGlobalIndex itemIndex = pFIWnd->GetItemGlobalIndex(static_cast<int>(pCheck->GetData()));
 							if (itemIndex.IsValidIndex())
 							{
 								if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
@@ -181,7 +178,7 @@ public:
 									if (pItem->Cost > 0)
 									{
 										int sellprice = ptr->ValueSellMerchant(1.05f, 1);
-										FormatMoneyString(szTemp3, lengthof(szTemp3), (uint64_t)sellprice, GetMoneyFromStringFormat::Long);
+										FormatMoneyString(szTemp3, lengthof(szTemp3), static_cast<uint64_t>(sellprice), GetMoneyFromStringFormat::Long);
 									}
 
 									list->SetItemText(i, ValueCol, szTemp3);
@@ -207,13 +204,13 @@ public:
 	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
-		CFindItemWnd* pThis = (CFindItemWnd*)this;
+		CFindItemWnd* pThis = reinterpret_cast<CFindItemWnd*>(this);
 
 		if (uiMessage == XWM_SORTREQUEST)
 		{
 			if (pWnd == pThis->FIW_ItemList)
 			{
-				SListWndSortInfo* pSI = (SListWndSortInfo*)pData;
+				SListWndSortInfo* pSI = static_cast<SListWndSortInfo*>(pData);
 
 				if (pSI->SortCol == Column_Value)
 				{
@@ -227,19 +224,17 @@ public:
 		}
 		else if (uiMessage == XWM_MENUSELECT)
 		{
-#pragma warning(suppress : 4311 4302)
-			int ItemID = (int)pData;
+			int ItemID = static_cast<int>(reinterpret_cast<intptr_t>(pData));
 			int iItemID = 0;
 
-			if (CContextMenu* pContextMenu = (CContextMenu*)pWnd)
+			if (CContextMenu* pContextMenu = static_cast<CContextMenu*>(pWnd))
 			{
 				CXPoint pt = pWndMgr->MousePoint;
 				iItemID = pContextMenu->GetItemAtPoint(pt);
 			}
 
-			switch (ItemID)
+			if (ItemID == ContextMenu_CheckboxFeatureEnabled)
 			{
-			case ContextMenu_CheckboxFeatureEnabled:
 				if (gbCheckBoxFeatureEnabled)
 				{
 					gbCheckBoxFeatureEnabled = false;
@@ -249,7 +244,7 @@ public:
 					if (pCountLabel)
 						pCountLabel->SetVisible(false);
 
-					if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
+					if (CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList")))
 					{
 						list->Selected = 0xFF004040;
 					}
@@ -263,7 +258,7 @@ public:
 					if (pCountLabel)
 						pCountLabel->SetVisible(true);
 
-					if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
+					if (CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList")))
 					{
 						if (list->Columns.Count > Column_CheckBox)
 						{
@@ -279,20 +274,19 @@ public:
 
 				CheckBoxMenu->CheckMenuItem(iItemID, gbCheckBoxFeatureEnabled);
 				pFindItemWnd->Update();
-				break;
-
-			case ContextMenu_ColorsFeatureEnabled:
+			}
+			else if (ItemID == ContextMenu_ColorsFeatureEnabled)
+			{
 				gbColorsFeatureEnabled = !gbColorsFeatureEnabled;
 				WritePrivateProfileBool("CoolBoxes", "ColorsFeatureEnabled", gbColorsFeatureEnabled, mq::internal_paths::MQini);
 
 				CheckBoxMenu->CheckMenuItem(iItemID, gbColorsFeatureEnabled);
 				pFindItemWnd->Update();
-				break;
 			}
 		}
 		else if (uiMessage == XWM_RCLICK)
 		{
-			if (CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem"))
+			if (CButtonWnd* FIW_DestroyItem = static_cast<CButtonWnd*>(pThis->GetChildItem("FIW_DestroyItem")))
 			{
 				if (pWnd == FIW_DestroyItem || pWnd == pNLMarkedButton || pWnd == pCountLabel)
 				{
@@ -313,24 +307,22 @@ public:
 			if (uiMessage == XWM_LCLICK)
 			{
 				// for our checkboxes, they should parent notify to this func...
-#pragma warning(suppress : 4311 4302)
-				int itemclicked = (int)pData;
-				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
+				int itemclicked = static_cast<int>(reinterpret_cast<intptr_t>(pData));
+				if (CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList")))
 				{
-					CXMLData* data = pWnd->GetXMLData();
 					if (list->Columns.Count > Column_CheckBox)
 					{
 						SListWndColumn* col = &list->Columns[Column_CheckBox];
 
-						if (bool bCheckBox = pWnd->IsType(WRT_CHECKBOXWND))
+						if (pWnd->IsType(WRT_CHECKBOXWND))
 						{
-							bool bChecked = ((CCheckBoxWnd*)pWnd)->bChecked;
+							bool bChecked = static_cast<CCheckBoxWnd*>(pWnd)->bChecked;
 							int Selected = 0;
 							int Checked = 0;
 
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+								if (CButtonWnd* button = static_cast<CButtonWnd*>(list->GetItemWnd(i, Column_CheckBox)))
 								{
 									if (button->bChecked)
 										Checked++;
@@ -375,9 +367,9 @@ public:
 								col->pTextureAnim = pChecked;
 							}
 						}
-						else if (bool bList = pWnd->IsType(WRT_LISTWND))
+						else if (pWnd->IsType(WRT_LISTWND))
 						{
-							// they clicked a item maybe...
+							// they clicked an item maybe...
 							if (itemclicked < list->ItemsArray.Count)
 							{
 								if (itemclicked == list->CurSel)
@@ -393,7 +385,7 @@ public:
 
 							if (pMerchantWnd && pMerchantWnd->IsVisible() && list->CurSel >= 0)
 							{
-								ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(list->CurSel));
+								ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex(static_cast<int>(list->GetItemData(list->CurSel)));
 								if (itemIndex.IsValidIndex())
 								{
 									pMerchantWnd->SelectBuySellSlot(itemIndex, itemIndex.GetTopSlot());
@@ -403,7 +395,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+								if (CButtonWnd* button = static_cast<CButtonWnd*>(list->GetItemWnd(i, Column_CheckBox)))
 								{
 									if (button->bChecked)
 									{
@@ -432,12 +424,11 @@ public:
 			}
 			else if (uiMessage == XWM_COLUMNCLICK)
 			{
-#pragma warning(suppress : 4311 4302)
-				int colindex = (int)pData;
+				int colindex = static_cast<int>(reinterpret_cast<intptr_t>(pData));
 
 				if (colindex == Column_CheckBox)
 				{
-					CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList");
+					CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList"));
 					if (list)
 					{
 						if (list->Columns.Count > Column_CheckBox)
@@ -470,7 +461,7 @@ public:
 							int Checked = 0;
 							for (int i = 0; i < list->ItemsArray.Count; i++)
 							{
-								if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+								if (CButtonWnd* button = static_cast<CButtonWnd*>(list->GetItemWnd(i, Column_CheckBox)))
 								{
 									if (selected > 1)
 									{
@@ -517,33 +508,30 @@ public:
 			}
 			else if (uiMessage == XWM_LMOUSEUP)
 			{
-#pragma warning(suppress : 4311 4302)
-				int clickedrow = (int)pData;
-
-				if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
+				if (CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList")))
 				{
 					if (list->Columns.Count > Column_CheckBox)
 					{
-						CButtonWnd* FIW_DestroyItem = (CButtonWnd*)pThis->GetChildItem("FIW_DestroyItem");
-						if (FIW_DestroyItem && FIW_DestroyItem == pWnd)
+						// Clicked destroy button?
+						CButtonWnd* FIW_DestroyItem = static_cast<CButtonWnd*>(pThis->GetChildItem("FIW_DestroyItem"));
+						if (FIW_DestroyItem && pWnd == FIW_DestroyItem)
 						{
 							if (!gDeleteList.empty())
 								return 0;
 
-							// if we have something on cursor we let eq handle the destroy
+							// if we have something on cursor we let eq handle the destroy action
 							PcProfile* pProfile = GetPcProfile();
 							if (!pProfile->GetInventorySlot(InvSlot_Cursor))
 							{
-								// if we have something on cursor we let eq handle the destroy
-								// IF have something checked... AND they clicked the destroy item button... we go... their fault if they do this.
+								// If we have something checked AND they clicked the destroy item button... we go... their fault if they do this.
 								for (int i = 0; i < list->ItemsArray.Count; i++)
 								{
-									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+									if (CButtonWnd* button = static_cast<CButtonWnd*>(list->GetItemWnd(i, Column_CheckBox)))
 									{
 										if (button->bChecked)
 										{
-											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(i));
-											if (itemIndex.IsValidIndex())
+											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex(static_cast<int>(list->GetItemData(i)));
+											if (itemIndex.IsValidIndex() && itemIndex.GetLocation() == eItemContainerPossessions)
 											{
 												gDeleteList.push_back(itemIndex);
 											}
@@ -572,18 +560,23 @@ public:
 
 							if (list)
 							{
+								bool isMerchantMode = pMerchantWnd && pMerchantWnd->IsVisible();
+
 								for (int i = 0; i < list->ItemsArray.Count; i++)
 								{
-									if (CButtonWnd* button = (CButtonWnd*)list->GetItemWnd(i, Column_CheckBox))
+									if (CButtonWnd* button = static_cast<CButtonWnd*>(list->GetItemWnd(i, Column_CheckBox)))
 									{
 										if (button->bChecked)
 										{
-											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex((int)list->GetItemData(i));
+											ItemGlobalIndex itemIndex = pThis->GetItemGlobalIndex(static_cast<int>(list->GetItemData(i)));
+
+											// Can only sell items from our inventory.
+											if (isMerchantMode && itemIndex.GetLocation() != eItemContainerPossessions)
+												continue;
+
 											if (ItemPtr ptr = pLocalPC->GetItemByGlobalIndex(itemIndex))
 											{
-												ItemDefinition* pItem = ptr->GetItemDefinition();
-
-												if (pMerchantWnd && pMerchantWnd->IsVisible())
+												if (isMerchantMode)
 												{
 													WriteChatf("[%d] Adding %s to Sell List", i, ptr->GetName());
 													gSellList.push_back(itemIndex);
@@ -594,6 +587,8 @@ public:
 													WriteChatf("[%d] Marking %s as Never Loot", i, ptr->GetName());
 													if (pLootFiltersManager)
 													{
+														ItemDefinition* pItem = ptr->GetItemDefinition();
+
 														pLootFiltersManager->SetItemLootFilter(pItem->ItemNumber, pItem->IconNumber, pItem->Name, 8, false, false);
 													}
 												}
@@ -613,7 +608,7 @@ public:
 		}
 		else if (!gbCheckBoxFeatureEnabled)
 		{
-			if (CListWnd* list = (CListWnd*)pThis->GetChildItem("FIW_ItemList"))
+			if (CListWnd* list = static_cast<CListWnd*>(pThis->GetChildItem("FIW_ItemList")))
 			{
 				if (list->Columns.Count > Column_CheckBox)
 				{
@@ -638,21 +633,20 @@ public:
 	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
-		CBarterWnd* pThis = (CBarterWnd*)this;
+		CBarterWnd* pThis = reinterpret_cast<CBarterWnd*>(this);
 
 		if (pWnd == pThis->plistBuyLines)
 		{
 			if (uiMessage == XWM_COLUMNCLICK)
 			{
-#pragma warning(suppress : 4311 4302)
-				int columnIndex = (int)pData;
+				int columnIndex = static_cast<int>(reinterpret_cast<intptr_t>(pData));
 
 				pThis->plistBuyLines->SetSortColumn(columnIndex);
 				return 0;
 			}
 			else if (uiMessage == XWM_SORTREQUEST)
 			{
-				SListWndSortInfo* sortInfo = (SListWndSortInfo*)pData;
+				SListWndSortInfo* sortInfo = static_cast<SListWndSortInfo*>(pData);
 
 				switch (sortInfo->SortCol)
 				{
@@ -690,7 +684,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd* pWnd, uint32_t uiMessage, void* pData))
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
-		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
+		CBarterSearchWnd* pThis = reinterpret_cast<CBarterSearchWnd*>(this);
 
 		if (pWnd == pThis->plistInventory)
 		{
@@ -699,13 +693,12 @@ public:
 				int selectedIndex = pThis->plistInventory->GetCurSel();
 				if (selectedIndex != -1)
 				{
-					int searchIndex = (int)pThis->plistInventory->GetItemData(selectedIndex);
+					int searchIndex = static_cast<int>(pThis->plistInventory->GetItemData(selectedIndex));
 					if (searchIndex >= 0 && searchIndex < pThis->InventoryItems.GetLength())
 					{
 						BarterInventoryItem& item = pThis->InventoryItems[searchIndex];
-						ItemPtr pItem = FindItemByID(item.ItemID);
 
-						if (pItem)
+						if (ItemPtr pItem = FindItemByID(item.ItemID))
 						{
 							pItemDisplayManager->ShowItem(pItem);
 						}
@@ -714,17 +707,18 @@ public:
 
 				return 0;
 			}
-			else if (uiMessage == XWM_COLUMNCLICK)
+			
+			if (uiMessage == XWM_COLUMNCLICK)
 			{
-#pragma warning(suppress : 4311 4302)
-				int columnIndex = (int)pData;
+				int columnIndex = static_cast<int>(reinterpret_cast<intptr_t>(pData));
 				pThis->plistInventory->SetSortColumn(columnIndex);
 
 				return 0;
 			}
-			else if (uiMessage == XWM_SORTREQUEST)
+
+			if (uiMessage == XWM_SORTREQUEST)
 			{
-				SListWndSortInfo* sortInfo = (SListWndSortInfo*)pData;
+				SListWndSortInfo* sortInfo = static_cast<SListWndSortInfo*>(pData);
 
 				switch (sortInfo->SortCol)
 				{
@@ -751,13 +745,13 @@ public:
 	{
 		UpdateInventoryList_Trampoline();
 
-		CBarterSearchWnd* pThis = (CBarterSearchWnd*)this;
+		CBarterSearchWnd* pThis = reinterpret_cast<CBarterSearchWnd*>(this);
 
 		if (BarterValueCol != 0 && BarterValueCol < pThis->plistInventory->Columns.GetCount())
 		{
 			for (int i = 0; i < pThis->plistInventory->ItemsArray.GetCount(); ++i)
 			{
-				int realIndex = (int)pThis->plistInventory->GetItemData(i);
+				int realIndex = static_cast<int>(pThis->plistInventory->GetItemData(i));
 				ItemPtr pItem = FindItemByID(pThis->InventoryItems[realIndex].ItemID);
 
 				char szLabel[32] = "";
@@ -867,13 +861,12 @@ static void AddFindItemMenu()
 
 		if (CFindItemWnd* pFIWnd = pFindItemWnd)
 		{
-			if (CListWnd* list = (CListWnd*)pFIWnd->GetChildItem("FIW_ItemList"))
+			if (CListWnd* list = static_cast<CListWnd*>(pFIWnd->GetChildItem("FIW_ItemList")))
 			{
 				list->bHasItemTooltips = true;
 
-				// if we dont do this the column tooltip is not drawn, i dont know why, possibly a listwindow bug
+				// if we don't do this the column tooltip is not drawn, I don't know why, possibly a listwindow bug
 				list->SetTooltip("Find item Window has a sixth column now.");
-				//list->SetItemIcon()
 				list->ListWndStyle |= 0x00020000; // ok to multiselect, if we add a 1 here we can edit lines as well
 				pUnChecked = pSidlMgr->FindAnimation("A_CheckBoxNormal");
 				pChecked = pSidlMgr->FindAnimation("A_CheckBoxPressed");
@@ -881,14 +874,13 @@ static void AddFindItemMenu()
 				// add checkbox column
 				if (list->Columns.Count == Column_CheckBox)
 				{
-					// can't get this stupid tooltip to show for columns, i dont know why...
+					// can't get this stupid tooltip to show for columns, I don't know why...
 					CXStr Str = "Toggle Checkboxes On/Off";
 					MarkCol = list->AddColumn("", pUnChecked, 20, 0, Str, 3, nullptr, nullptr, true, { 0,0 }, { 0,0 });
 					list->SetColumnJustification(MarkCol, 0);
 				}
 				else
 				{
-					SListWndColumn& col = list->Columns[Column_CheckBox];
 					MarkCol = Column_CheckBox;
 				}
 
@@ -901,14 +893,13 @@ static void AddFindItemMenu()
 				}
 				else
 				{
-					SListWndColumn& col = list->Columns[Column_CheckBox + 1];
 					ValueCol = Column_CheckBox + 1;
 				}
 
 				// we need to add a couple controls, Checked count label and Never Loot Button
-				if (CControlTemplate* pCountLabelTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_ItemNameLabel"))
+				if (CControlTemplate* pCountLabelTemplate = static_cast<CControlTemplate*>(pSidlMgr->FindScreenPieceTemplate("FIW_ItemNameLabel")))
 				{
-					if (pCountLabel = (CLabelWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pCountLabelTemplate))
+					if ((pCountLabel = static_cast<CLabelWnd*>(pSidlMgr->CreateXWndFromTemplate(pFIWnd, pCountLabelTemplate))))
 					{
 						pCountLabel->SetBottomAnchoredToTop(false);
 						pCountLabel->SetLeftAnchoredToLeft(false);
@@ -921,20 +912,20 @@ static void AddFindItemMenu()
 						pCountLabel->SetRightOffset(160);
 						pCountLabel->SetTooltip("Shows you how many items you have selected.");
 						pCountLabel->SetWindowText("0/10000");
-						//BackgroundTextureTint
+						// BackgroundTextureTint
 						pCountLabel->SetBGColor(0xFF2032FF);
 					}
 				}
 
-				if (CControlTemplate* pRequestPreviewButtonTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("FIW_DestroyItem"))
+				if (CControlTemplate* pRequestPreviewButtonTemplate = static_cast<CControlTemplate*>(pSidlMgr->FindScreenPieceTemplate("FIW_DestroyItem")))
 				{
-					if (pNLMarkedButton = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pFIWnd, pRequestPreviewButtonTemplate))
+					if ((pNLMarkedButton = static_cast<CButtonWnd*>(pSidlMgr->CreateXWndFromTemplate(pFIWnd, pRequestPreviewButtonTemplate))))
 					{
 						pNLMarkedButton->SetLeftOffset(157);
 						pNLMarkedButton->SetRightOffset(87);
 						pNLMarkedButton->SetTooltip("Click to tag all marked items as NEVER LOOT in advloot filters.");
 						pNLMarkedButton->SetWindowText("Never Loot");
-						//BackgroundTextureTint
+						// BackgroundTextureTint
 						pNLMarkedButton->SetBGColor(0xFF2032FF);
 					}
 				}
@@ -979,10 +970,9 @@ void RemoveFindItemMenu()
 				pCountLabel = nullptr;
 			}
 
-
 			if (pFindItemWnd)
 			{
-				if (CListWnd* list = (CListWnd*)pFindItemWnd->GetChildItem("FIW_ItemList"))
+				if (CListWnd* list = static_cast<CListWnd*>(pFindItemWnd->GetChildItem("FIW_ItemList")))
 				{
 					if (list->Columns.Count > ValueCol)
 					{
@@ -999,14 +989,13 @@ void RemoveFindItemMenu()
 			}
 		}
 	}
-#endif
+#endif // HAS_FIND_ITEM_WINDOW
 }
 
 static void FindItemPulse()
 {
 	if (!pLocalPC)
 		return;
-	PcProfile* pProfile = GetPcProfile();
 
 #if HAS_FIND_ITEM_WINDOW
 	if (pMerchantWnd)
@@ -1050,34 +1039,30 @@ static void FindItemPulse()
 				return;
 
 			// user wants us to sell stuff
-			for (auto g = gSellList.begin(); g != gSellList.end(); g++)
+			if (!gSellList.empty())
 			{
-				ItemGlobalIndex& gi = *g;
-				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(gi))
+				ItemGlobalIndex itemIndex = gSellList.front();
+				gSellList.pop_front();
+
+				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(itemIndex))
 				{
 					bool didSell = false;
 					if (pMerchantWnd->pSelectedItem)
 					{
 						if (pMerchantWnd->pSelectedItem->GetID() == pItem->GetID())
 						{
-							gSellList.pop_front();
 							WriteChatf("Sold %d %s", pItem->GetItemCount(), pItem->GetName());
 							DoCommandf("/sellitem %d", pItem->GetItemCount());
 							SellTimer = GetTickCount64();
 							didSell = true;
-							break;
 						}
 					}
 
 					if (!didSell)
 					{
-						pMerchantWnd->SelectBuySellSlot(gi, gi.GetTopSlot());
-						break;
+						pMerchantWnd->SelectBuySellSlot(itemIndex, itemIndex.GetTopSlot());
 					}
 				}
-
-				gSellList.pop_front();
-				break;
 			}
 
 			if (gSellList.empty())
@@ -1098,26 +1083,25 @@ static void FindItemPulse()
 			// user wants us to delete stuff. Delete one item per frame.
 			if (!gDeleteList.empty())
 			{
-				ItemGlobalIndex index = gDeleteList.front();
+				ItemGlobalIndex itemIndex = gDeleteList.front();
 				gDeleteList.pop_front();
 
-				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(index))
+				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(itemIndex))
 				{
 					if (PickupItem(pItem->GetItemLocation()))
 					{
-						if (ItemDefinition* pItemDef = GetItemFromContents(pItem))
-						{
-							if (pItemDef->NoDestroy)
-							{
-								WriteChatf("Skipping \"No Destroy\" item %s", pItem->GetName());
-								DoCommandf("/autoinventory");
-							}
-							else
-							{
+						ItemDefinition* pItemDef = pItem->GetItemDefinition();
 
-								WriteChatf("Destroyed %s", pItem->GetName());
-								DoCommandf("/destroyitem");
-							}
+						if (pItemDef->NoDestroy)
+						{
+							WriteChatf("Skipping \"No Destroy\" item %s", pItem->GetName());
+							DoCommandf("/autoinventory");
+						}
+						else
+						{
+
+							WriteChatf("Destroyed %s", pItem->GetName());
+							DoCommandf("/destroyitem");
 						}
 					}
 				}
@@ -1126,11 +1110,9 @@ static void FindItemPulse()
 			if (gDeleteList.empty())
 				gbStartDeleting = false;
 		}
-
-		return;
 	}
-#endif
 
+#endif // HAS_FIND_ITEM_WINDOW
 }
 
 void InitializeMQ2AutoInventory()
