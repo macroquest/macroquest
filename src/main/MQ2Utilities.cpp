@@ -26,190 +26,9 @@
 #include <wil/resource.h>
 #include <random>
 
-#ifdef _DEBUG
-#define DBG_SPEW // enable DebugSpew messages in debug builds
-#endif
-
 #define IsNaN(x) (x != x)
 
 namespace mq {
-
-//***************************************************************************
-// Function:    DebugSpew
-// Description: Outputs text to debugger, usage is same as printf ;)
-//***************************************************************************
-
-static void LogToFile(const char* szOutput)
-{
-	FILE* fOut = nullptr;
-
-	const std::filesystem::path pathDebugSpew = std::filesystem::path(mq::internal_paths::Logs) / "DebugSpew.log";
-	fOut = _fsopen(pathDebugSpew.string().c_str(), "at", _SH_DENYWR);
-
-	if (!fOut)
-		return;
-
-#ifdef DBG_CHARNAME
-	char Name[256] = "Unknown";
-	if (pLocalPC)
-	{
-		strcpy_s(Name, pLocalPC->Name);
-	}
-	fprintf(fOut, "%s - ", Name);
-#endif
-
-	fprintf(fOut, "%s\r\n", szOutput);
-	fclose(fOut);
-}
-
-static void DebugSpewImpl(bool always, bool logToFile, const char* szFormat, va_list vaList)
-{
-	if (!always && gFilterDebug)
-		return;
-
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
-	size_t theLen = len + 32;
-
-	auto out = std::make_unique<char[]>(theLen);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, theLen, szFormat, vaList);
-
-	strcat_s(szOutput, theLen, "\n");
-	OutputDebugString(szOutput);
-
-	if (logToFile)
-	{
-		LogToFile(szOutput);
-	}
-}
-
-// Outputs to debug console when gFilterDebug is false.  Does not output to file. (/filter debug or FilterDebug=0 in ini)
-void DebugSpew(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	DebugSpewImpl(false, false, szFormat, vaList);
-}
-
-// Outputs to debug console always.  Outputs to file when gSpewToFile is true. (/spewfile or DebugSpewToFile=1 in ini)
-void DebugSpewAlways(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	DebugSpewImpl(true, gSpewToFile, szFormat, vaList);
-}
-
-// Outputs to debug console always.  Outputs to file always.
-void DebugSpewAlwaysFile(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	DebugSpewImpl(true, true, szFormat, vaList);
-}
-
-// Outputs to debug console when DBG_SPEW is defined
-MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
-{
-#ifdef DBG_SPEW
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	DebugSpewImpl(true, false, szFormat, vaList);
-#endif
-}
-
-// Implemented in MQ2PluginHandler.cpp
-void PluginsWriteChatColor(const char* Line, int Color, int Filter);
-
-static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, int Filter)
-{
-	if (IsMainThread())
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	}
-
-	// Queue it up to run on the main thread
-	PostToMainThread(
-		[Ptr = std::shared_ptr<char[]>{ std::move(Ptr) }, Color, Filter]()
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	});
-}
-
-void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
-{
-	// If we're already on the main thread, avoid copying anything and just call
-	// straight to PluginsWriteChatColor
-
-	if (IsMainThread())
-	{
-		PluginsWriteChatColor(Line, Color, Filter);
-		return;
-	}
-
-	// we're not on the main thread, we need to copy the string and queue up a function
-	// to be executed on the main thread.
-	size_t length = strlen(Line) + 1;
-	std::shared_ptr<char[]> Ptr{ new char[length] };
-	strcpy_s(Ptr.get(), length, Line);
-
-	// Queue it up to run on the main thread
-	PostToMainThread(
-		[Ptr, Color, Filter]()
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	});
-}
-
-void WriteChatf(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
-}
-
-void WriteChatfSafe(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
-}
-
-void WriteChatColorf(const char* szFormat, int color, ...)
-{
-	va_list vaList;
-	va_start(vaList, color);
-
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, color);
-}
 
 //============================================================================
 
@@ -832,7 +651,7 @@ DWORD MQToSTML(const char* in, char* out, size_t maxlen, uint32_t ColorOverride)
 #undef InsertStopColorSafe
 }
 
-static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
+static bool ItemFitsInSlot(ItemClient* pItem, std::string_view search)
 {
 	// map some commonly used synonyms
 	struct Mapping {
@@ -856,7 +675,7 @@ static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
 		}
 	}
 
-	int cmp = GetItemFromContents(pCont)->EquipSlots;
+	int cmp = pItem->GetItemDefinition()->EquipSlots;
 
 	for (int i = 0; i < NUM_WORN_ITEMS; ++i)
 	{
@@ -872,7 +691,7 @@ static bool ItemFitsInSlot(ItemClient* pCont, std::string_view search)
 	return false;
 }
 
-int ItemHasStat(ItemClient* pCont, std::string_view search)
+int ItemHasStat(ItemClient* pItem, std::string_view search)
 {
 	// map stat names to accessors
 	static const std::map<std::string, std::function<int(ItemDefinition*)>, ci_less> mapping = {
@@ -1033,23 +852,20 @@ int ItemHasStat(ItemClient* pCont, std::string_view search)
 	auto iter = mapping.find(search);
 	if (iter != mapping.end())
 	{
-		ItemDefinition* pItem = GetItemFromContents(pCont);
-		if (pItem)
-		{
-			return iter->second(pItem);
-		}
+		return iter->second(pItem->GetItemDefinition());
 	}
 
 	return 0;
 }
 
-static bool ItemHasRace(ItemClient* pCont, std::string_view search)
+static bool ItemHasRace(ItemClient* pItem, std::string_view search)
 {
 	// FIXME: This code is duplicated in a multiple of places.
-	int cmp = GetItemFromContents(pCont)->Races;
+	int raceMask = pItem->GetItemDefinition()->Races;
+
 	for (int num = 0; num < NUM_RACES; num++)
 	{
-		if (cmp & (1 << num))
+		if (raceMask & (1 << num))
 		{
 			int tmp = num + 1;
 			switch (num)
@@ -1078,13 +894,14 @@ static bool ItemHasRace(ItemClient* pCont, std::string_view search)
 	return false;
 }
 
-static bool ItemHasClass(ItemClient* pCont, std::string_view search)
+static bool ItemHasClass(ItemClient* pItem, std::string_view search)
 {
 	// FIXME: This code is duplicated in a multiple of places.
-	int cmp = GetItemFromContents(pCont)->Classes;
+	int classMask = pItem->GetItemDefinition()->Classes;
+
 	for (int num = 0; num < TotalPlayerClasses; num++)
 	{
-		if (cmp & (1 << num))
+		if (classMask & (1 << num))
 		{
 
 			if (ci_equals(pEverQuest->GetClassDesc(num), search))
@@ -1103,21 +920,6 @@ const char* GetFilenameFromFullPath(const char* Filename)
 		Filename = strstr(Filename, "\\") + 1;
 
 	return Filename;
-}
-
-bool CompareTimes(char* RealTime, char* ExpectedTime)
-{
-	// Match everything except seconds
-	// Format is: WWW MMM DD hh:mm:ss YYYY
-	//            0123456789012345678901234
-	//                      1         2
-	if (!_strnicmp(RealTime, ExpectedTime, 17)
-		&& !_strnicmp(RealTime + 19, ExpectedTime + 19, 5))
-	{
-		return true;
-	}
-
-	return false;
 }
 
 void AddFilter(const char* szFilter, int Length, bool& pEnabled)
@@ -1626,34 +1428,34 @@ void ClearSearchItem(MQItemSearch& SearchItem)
 #define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
 #define RequireFlag(flag,value) { if (MaskSet(flag) && Flag(flag) != (char)((value)!=0)) return false;}
 
-bool ItemMatchesSearch(MQItemSearch& SearchItem, ItemClient* pContents)
+bool ItemMatchesSearch(MQItemSearch& SearchItem, ItemClient* pItem)
 {
-	ItemDefinition* pItem = GetItemFromContents(pContents);
+	ItemDefinition* pItemDef = pItem->GetItemDefinition();
 
-	if (SearchItem.ID && pItem->ItemNumber != SearchItem.ID)
+	if (SearchItem.ID && pItemDef->ItemNumber != SearchItem.ID)
 		return false;
 
-	RequireFlag(Lore, pItem->Lore);
-	RequireFlag(NoRent, pItem->NoRent);
-	RequireFlag(NoDrop, pItem->IsDroppable);
-	RequireFlag(Magic, pItem->IsMagic());
-	RequireFlag(Pack, pItem->Type == ITEMTYPE_PACK);
-	RequireFlag(Book, pItem->Type == ITEMTYPE_BOOK);
-	RequireFlag(Combinable, pItem->ItemType == 17);
-	RequireFlag(Summoned, pItem->Summoned);
-	RequireFlag(Instrument, pItem->InstrumentType);
-	RequireFlag(Weapon, pItem->Damage && pItem->Delay);
-	RequireFlag(Normal, pItem->Type == ITEMTYPE_NORMAL);
+	RequireFlag(Lore, pItemDef->Lore);
+	RequireFlag(NoRent, pItemDef->NoRent);
+	RequireFlag(NoDrop, pItemDef->IsDroppable);
+	RequireFlag(Magic, pItemDef->IsMagic());
+	RequireFlag(Pack, pItemDef->Type == ITEMTYPE_PACK);
+	RequireFlag(Book, pItemDef->Type == ITEMTYPE_BOOK);
+	RequireFlag(Combinable, pItemDef->ItemType == 17);
+	RequireFlag(Summoned, pItemDef->Summoned);
+	RequireFlag(Instrument, pItemDef->InstrumentType);
+	RequireFlag(Weapon, pItemDef->Damage && pItemDef->Delay);
+	RequireFlag(Normal, pItemDef->Type == ITEMTYPE_NORMAL);
 
-	if (SearchItem.szName[0] && ci_find_substr(pItem->Name, SearchItem.szName))
+	if (SearchItem.szName[0] && ci_find_substr(pItemDef->Name, SearchItem.szName))
 		return false;
-	if (SearchItem.szSlot[0] && !ItemFitsInSlot(pContents, SearchItem.szSlot))
+	if (SearchItem.szSlot[0] && !ItemFitsInSlot(pItem, SearchItem.szSlot))
 		return false;
-	if (SearchItem.szStat[0] && ItemHasStat(pContents, SearchItem.szStat) == 0)
+	if (SearchItem.szStat[0] && ItemHasStat(pItem, SearchItem.szStat) == 0)
 		return false;
-	if (SearchItem.szRace[0] && !ItemHasRace(pContents, SearchItem.szRace))
+	if (SearchItem.szRace[0] && !ItemHasRace(pItem, SearchItem.szRace))
 		return false;
-	if (SearchItem.szClass[0] && !ItemHasClass(pContents, SearchItem.szClass))
+	if (SearchItem.szClass[0] && !ItemHasClass(pItem, SearchItem.szClass))
 		return false;
 
 	return true;

@@ -425,32 +425,32 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::NoRent:
-		Dest.Set(!GetItemFromContents(pItem)->NoRent);
+		Dest.Set(!pItem->GetItemDefinition()->NoRent);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Magic:
-		Dest.Set(((pItem->GetType() == ITEMTYPE_NORMAL) && (pItem->GetItemDefinition()->IsMagic())));
+		Dest.Set(pItem->GetType() == ITEMTYPE_NORMAL && pItem->GetItemDefinition()->IsMagic());
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Value:
-		Dest.DWord = GetItemFromContents(pItem)->Cost;
+		Dest.DWord = pItem->GetItemDefinition()->Cost;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Size:
-		Dest.DWord = GetItemFromContents(pItem)->Size;
+		Dest.DWord = pItem->GetItemDefinition()->Size;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::SizeCapacity:
-		Dest.DWord = GetItemFromContents(pItem)->SizeCapacity;
+		Dest.DWord = pItem->GetItemDefinition()->SizeCapacity;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Weight:
-		Dest.DWord = GetItemFromContents(pItem)->Weight;
+		Dest.DWord = pItem->GetItemDefinition()->Weight;
 		Dest.Type = pIntType;
 		return true;
 
@@ -505,7 +505,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::LDoNTheme:
-		strcpy_s(DataTypeTemp, GetLDoNTheme(GetItemFromContents(pItem)->LDTheme));
+		strcpy_s(DataTypeTemp, GetLDoNTheme(pItem->GetItemDefinition()->LDTheme));
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -513,7 +513,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		// we go to keep this for backward compatibility
 		// but really it should be called case ItemMembers::ElementalFlag:
 	case ItemMembers::DMGBonusType:
-		strcpy_s(DataTypeTemp, szDmgBonusType[GetItemFromContents(pItem)->ElementalFlag]);
+		strcpy_s(DataTypeTemp, szDmgBonusType[pItem->GetItemDefinition()->ElementalFlag]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
@@ -521,16 +521,16 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case ItemMembers::Container:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+		if (pItem->GetItemDefinition()->Type == ITEMTYPE_PACK)
 		{
-			Dest.DWord = GetItemFromContents(pItem)->Slots;
+			Dest.DWord = pItem->GetItemDefinition()->Slots;
 		}
 		return true;
 
 	case ItemMembers::Open:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+		if (pItem->GetItemDefinition()->Type == ITEMTYPE_PACK)
 		{
 			Dest.DWord = pItem->Open;
 		}
@@ -642,7 +642,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		if (pActiveMerchant)
 		{
 			Dest.DWord = static_cast<int>(
-				static_cast<float>(GetItemFromContents(pItem)->Cost)* (1.0f / pMerchantWnd->MerchantGreed));
+				static_cast<float>(pItem->GetItemDefinition()->Cost)* (1.0f / pMerchantWnd->MerchantGreed));
 			return true;
 		}
 		return false;
@@ -658,7 +658,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				if (!Count)
 					return false;
 
-				int cmp = GetItemFromContents(pItem)->EquipSlots;
+				int cmp = pItem->GetItemDefinition()->EquipSlots;
 				for (int num = 0; num < 32; num++)
 				{
 					if (cmp & (1 << num))
@@ -679,7 +679,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				uint32_t nInvSlot = ItemSlotMap[Index];
 				if ((nInvSlot || !_stricmp(Index, "charm")) && nInvSlot < 32)
 				{
-					Dest.Set((GetItemFromContents(pItem)->EquipSlots & (1 << nInvSlot)) != 0);
+					Dest.Set((pItem->GetItemDefinition()->EquipSlots & (1 << nInvSlot)) != 0);
 					Dest.Type = pBoolType;
 					return true;
 				}
@@ -691,7 +691,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.DWord = 0;
 
 		// count bits
-		int cmp = GetItemFromContents(pItem)->EquipSlots;
+		int cmp = pItem->GetItemDefinition()->EquipSlots;
 		for (int num = 0; num < 32; num++)
 		{
 			if (cmp & (1 << num))
@@ -702,21 +702,21 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case ItemMembers::CastTime:
-		Dest.UInt64 = GetItemFromContents(pItem)->Clicky.CastTime;
+		Dest.UInt64 = pItem->GetItemDefinition()->Clicky.CastTime;
 		Dest.Type = pTimeStampType;
 		return true;
 
 	case ItemMembers::Spell:
 		Dest.Type = pSpellType;
-		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Clicky.SpellID))
+		if (Dest.Ptr = GetSpellByID(pItem->GetItemDefinition()->Clicky.SpellID))
 			return true;
-		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Scroll.SpellID))
+		if (Dest.Ptr = GetSpellByID(pItem->GetItemDefinition()->Scroll.SpellID))
 			return true;
-		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Proc.SpellID))
+		if (Dest.Ptr = GetSpellByID(pItem->GetItemDefinition()->Proc.SpellID))
 			return true;
-		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Focus.SpellID))
+		if (Dest.Ptr = GetSpellByID(pItem->GetItemDefinition()->Focus.SpellID))
 			return true;
-		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Worn.SpellID))
+		if (Dest.Ptr = GetSpellByID(pItem->GetItemDefinition()->Worn.SpellID))
 			return true;
 		return false;
 
@@ -734,18 +734,19 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		// This used to return an int type with a case statment, items could have
 		// only one effect. For backwards compatibility we return based on a hierarchy.
 		// A zero in any field indicates no effect (others will also be zero)
-		if (!GetItemFromContents(pItem)->Clicky.SpellID)
+		if (!pItem->GetItemDefinition()->Clicky.SpellID)
 		{
 			return false;
 		}
-		else if (GetItemFromContents(pItem)->Scroll.SpellID != -1)
+
+		if (pItem->GetItemDefinition()->Scroll.SpellID != -1)
 		{
 			strcpy_s(DataTypeTemp, "Spell Scroll");
 		}
-		else if (GetItemFromContents(pItem)->Clicky.SpellID != -1)
+		else if (pItem->GetItemDefinition()->Clicky.SpellID != -1)
 		{
 			// code to detect must-be-worn etc here
-			switch (GetItemFromContents(pItem)->Clicky.EffectType)
+			switch (pItem->GetItemDefinition()->Clicky.EffectType)
 			{
 			case ItemEffectClickyWorn:
 				strcpy_s(DataTypeTemp, "Click Worn");
@@ -759,11 +760,11 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				break;
 			}
 		}
-		else if (GetItemFromContents(pItem)->Focus.SpellID != -1 || GetItemFromContents(pItem)->Worn.SpellID != -1)
+		else if (pItem->GetItemDefinition()->Focus.SpellID != -1 || pItem->GetItemDefinition()->Worn.SpellID != -1)
 		{
 			strcpy_s(DataTypeTemp, "Worn");
 		}
-		else if (GetItemFromContents(pItem)->Proc.SpellID != -1)
+		else if (pItem->GetItemDefinition()->Proc.SpellID != -1)
 		{
 			strcpy_s(DataTypeTemp, "Combat");
 		}
@@ -775,30 +776,30 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::InstrumentMod:
-		Dest.Float = ((float)GetItemFromContents(pItem)->InstrumentMod) / 10.0f;
+		Dest.Float = static_cast<float>(pItem->GetItemDefinition()->InstrumentMod) / 10.0f;
 		Dest.Type = pFloatType;
 		return true;
 
 	case ItemMembers::Tribute:
-		Dest.DWord = GetItemFromContents(pItem)->Favor;
+		Dest.DWord = pItem->GetItemDefinition()->Favor;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Attunable:
 	case ItemMembers::Attuneable:
-		Dest.Set(GetItemFromContents(pItem)->Attuneable);
+		Dest.Set(pItem->GetItemDefinition()->Attuneable);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Timer:
 		Dest.DWord = 0;
 		Dest.Type = pTicksType;
-		if (GetItemFromContents(pItem)->Clicky.TimerID != -1)
+		if (pItem->GetItemDefinition()->Clicky.TimerID != -1)
 		{
 			Dest.DWord = (GetItemTimer(pItem) + 5) / 6;
 			return true;
 		}
-		if (GetItemFromContents(pItem)->Clicky.SpellID != -1)
+		if (pItem->GetItemDefinition()->Clicky.SpellID != -1)
 		{
 			Dest.DWord = 0; // insta-clicky
 			return true;
@@ -806,24 +807,24 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::Damage:
-		Dest.DWord = GetItemFromContents(pItem)->Damage;
+		Dest.DWord = pItem->GetItemDefinition()->Damage;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::ItemDelay:
-		Dest.DWord = GetItemFromContents(pItem)->Delay;
+		Dest.DWord = pItem->GetItemDefinition()->Delay;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::TimerReady:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (GetItemFromContents(pItem)->Clicky.TimerID != -1)
+		if (pItem->GetItemDefinition()->Clicky.TimerID != -1)
 		{
 			Dest.DWord = GetItemTimer(pItem);
 			return true;
 		}
-		if (GetItemFromContents(pItem)->Clicky.SpellID != -1)
+		if (pItem->GetItemDefinition()->Clicky.SpellID != -1)
 		{
 			Dest.DWord = 0; // insta-click or instant recast
 			return true;
@@ -930,7 +931,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 
 		// count bits
-		int cmp = GetItemFromContents(pItem)->Classes;
+		int cmp = pItem->GetItemDefinition()->Classes;
 		for (int num = 0; num < TotalPlayerClasses; num++)
 		{
 			if (cmp & (1 << num))
@@ -950,7 +951,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				if (!Count)
 					return false;
 
-				int cmp = GetItemFromContents(pItem)->Classes;
+				int cmp = pItem->GetItemDefinition()->Classes;
 				for (int num = 0; num < TotalPlayerClasses; num++)
 				{
 					if (cmp & (1 << num))
@@ -967,7 +968,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			else
 			{
 				// by name
-				int cmp = GetItemFromContents(pItem)->Classes;
+				int cmp = pItem->GetItemDefinition()->Classes;
 				for (int num = 0; num < TotalPlayerClasses; num++)
 				{
 					if (cmp & (1 << num))
@@ -990,7 +991,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 
 		// count bits
-		int cmp = GetItemFromContents(pItem)->Races;
+		int cmp = pItem->GetItemDefinition()->Races;
 		for (int num = 0; num < NUM_RACES; num++)
 		{
 			if (cmp & (1 << num))
@@ -1010,7 +1011,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				if (!Count)
 					return false;
 
-				int cmp = GetItemFromContents(pItem)->Races;
+				int cmp = pItem->GetItemDefinition()->Races;
 				for (int num = 0; num < NUM_RACES; num++)
 				{
 					if (cmp & (1 << num))
@@ -1042,7 +1043,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			else
 			{
 				// by name
-				int cmp = GetItemFromContents(pItem)->Races;
+				int cmp = pItem->GetItemDefinition()->Races;
 				for (int num = 0; num < NUM_RACES; num++)
 				{
 					if (cmp & (1 << num))
@@ -1081,7 +1082,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pIntType;
 
 		// count bits
-		int cmp = GetItemFromContents(pItem)->Deity;
+		int cmp = pItem->GetItemDefinition()->Deity;
 		for (int num = 0; num < NUM_DEITIES; num++)
 		{
 			if (cmp & (1 << num))
@@ -1100,7 +1101,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 				int Count = GetIntFromString(Index, 0);
 				if (!Count)
 					return false;
-				int cmp = GetItemFromContents(pItem)->Deity;
+				int cmp = pItem->GetItemDefinition()->Deity;
 				for (int num = 0; num < NUM_DEITIES; num++)
 				{
 					if (cmp & (1 << num))
@@ -1117,7 +1118,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			else
 			{
 				// by name
-				int cmp = GetItemFromContents(pItem)->Deity;
+				int cmp = pItem->GetItemDefinition()->Deity;
 				for (int num = 0; num < NUM_DEITIES; num++)
 				{
 					if (cmp & (1 << num))
@@ -1145,12 +1146,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::SkillModValue:
-		Dest.DWord = GetItemFromContents(pItem)->SkillModValue;
+		Dest.DWord = pItem->GetItemDefinition()->SkillModValue;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::SkillModMax:
-		Dest.DWord = GetItemFromContents(pItem)->SkillModMax;
+		Dest.DWord = pItem->GetItemDefinition()->SkillModMax;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1160,170 +1161,170 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::AC:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AC;
+			Dest.DWord = pItem->GetItemDefinition()->AC;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HP:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HP;
+			Dest.DWord = pItem->GetItemDefinition()->HP;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::STR:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->STR;
+			Dest.DWord = pItem->GetItemDefinition()->STR;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::STA:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->STA;
+			Dest.DWord = pItem->GetItemDefinition()->STA;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AGI:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AGI;
+			Dest.DWord = pItem->GetItemDefinition()->AGI;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::DEX:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->DEX;
+			Dest.DWord = pItem->GetItemDefinition()->DEX;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::CHA:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->CHA;
+			Dest.DWord = pItem->GetItemDefinition()->CHA;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::INT:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->INT;
+			Dest.DWord = pItem->GetItemDefinition()->INT;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::WIS:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->WIS;
+			Dest.DWord = pItem->GetItemDefinition()->WIS;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Mana:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Mana;
+			Dest.DWord = pItem->GetItemDefinition()->Mana;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::ManaRegen:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->ManaRegen;
+			Dest.DWord = pItem->GetItemDefinition()->ManaRegen;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HPRegen:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HPRegen;
+			Dest.DWord = pItem->GetItemDefinition()->HPRegen;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Endurance:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Endurance;
+			Dest.DWord = pItem->GetItemDefinition()->Endurance;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Attack:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Attack;
+			Dest.DWord = pItem->GetItemDefinition()->Attack;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svCold:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvCold;
+			Dest.DWord = pItem->GetItemDefinition()->SvCold;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svFire:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvFire;
+			Dest.DWord = pItem->GetItemDefinition()->SvFire;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svMagic:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvMagic;
+			Dest.DWord = pItem->GetItemDefinition()->SvMagic;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svDisease:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvDisease;
+			Dest.DWord = pItem->GetItemDefinition()->SvDisease;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svPoison:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvPoison;
+			Dest.DWord = pItem->GetItemDefinition()->SvPoison;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::svCorruption:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->SvCorruption;
+			Dest.DWord = pItem->GetItemDefinition()->SvCorruption;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Haste:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Haste;
+			Dest.DWord = pItem->GetItemDefinition()->Haste;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1333,18 +1334,18 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::AugType:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugType;
+			Dest.DWord = pItem->GetItemDefinition()->AugType;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugRestrictions:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugRestrictions;
+			Dest.DWord = pItem->GetItemDefinition()->AugRestrictions;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1353,7 +1354,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Type = pAugType;
 		int index = GetIntFromString(Index, 0) - 1;
 		if (index >= 0 && index < MAX_AUG_SOCKETS
-			&& GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL)
+			&& pItem->GetItemDefinition()->Type == ITEMTYPE_NORMAL)
 		{
 			// FIXME: ItemIndex
 			Dest.Set(MQSlotInItem(pItem->GetItemLocation(), index));
@@ -1363,55 +1364,55 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case ItemMembers::AugSlot1:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[0].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[0].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugSlot2:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[1].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[1].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugSlot3:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[2].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[2].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugSlot4:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[3].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[3].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugSlot5:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[4].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[4].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::AugSlot6:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[5].Type;
+			Dest.DWord = pItem->GetItemDefinition()->AugData.Sockets[5].Type;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Power:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
 			Dest.DWord = pItem->Power;
@@ -1419,13 +1420,13 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::PctPower:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 		{
 			Dest.Float = 0;
 		}
 		else
 		{
-			if (int maxpower = GetItemFromContents(pItem)->MaxPower)
+			if (int maxpower = pItem->GetItemDefinition()->MaxPower)
 			{
 				Dest.Float = (float)((pItem->Power * 100) / maxpower);
 			}
@@ -1438,28 +1439,28 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::MaxPower:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL) {
 			Dest.DWord = 0;
 		}
 		else {
-			Dest.DWord = GetItemFromContents(pItem)->MaxPower;
+			Dest.DWord = pItem->GetItemDefinition()->MaxPower;
 		}
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Purity:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Purity;
+			Dest.DWord = pItem->GetItemDefinition()->Purity;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Range:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Range;
+			Dest.DWord = pItem->GetItemDefinition()->Range;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1504,58 +1505,58 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::HeroicSTR:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSTR;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicSTR;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicINT:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicINT;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicINT;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicWIS:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicWIS;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicWIS;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicAGI:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicAGI;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicAGI;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicDEX:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicDEX;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicDEX;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicSTA:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicSTA;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicSTA;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HeroicCHA:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HeroicCHA;
+			Dest.DWord = pItem->GetItemDefinition()->HeroicCHA;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1590,26 +1591,26 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return true;
 
 	case ItemMembers::EnduranceRegen:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->EnduranceRegen;
+			Dest.DWord = pItem->GetItemDefinition()->EnduranceRegen;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::HealAmount:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->HealAmount;
+			Dest.DWord = pItem->GetItemDefinition()->HealAmount;
 		Dest.Type = pIntType;
 		return true;
 
 	case ItemMembers::Clairvoyance:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+		if (pItem->GetItemDefinition()->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->Clairvoyance;
+			Dest.DWord = pItem->GetItemDefinition()->Clairvoyance;
 		Dest.Type = pIntType;
 		return true;
 
@@ -1620,7 +1621,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 	case ItemMembers::SpellDamage:
 		Dest.DWord = 0;
-		if (ItemDefinition* pII = GetItemFromContents(pItem))
+		if (ItemDefinition* pII = pItem->GetItemDefinition())
 		{
 			if (pII->Type == ITEMTYPE_NORMAL)
 			{
@@ -1648,12 +1649,12 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case ItemMembers::Tradeskills:
-		Dest.Set(GetItemFromContents(pItem)->TradeSkills);
+		Dest.Set(pItem->GetItemDefinition()->TradeSkills);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Prestige:
-		Dest.Set(GetItemFromContents(pItem)->Prestige != 0);
+		Dest.Set(pItem->GetItemDefinition()->Prestige != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1692,27 +1693,27 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case ItemMembers::Heirloom:
-		Dest.Set(GetItemFromContents(pItem)->Heirloom);
+		Dest.Set(pItem->GetItemDefinition()->Heirloom);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Collectible:
-		Dest.Set(GetItemFromContents(pItem)->Collectible);
+		Dest.Set(pItem->GetItemDefinition()->Collectible);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::NoDestroy:
-		Dest.Set(GetItemFromContents(pItem)->NoDestroy);
+		Dest.Set(pItem->GetItemDefinition()->NoDestroy);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Quest:
-		Dest.Set(GetItemFromContents(pItem)->QuestItem != 0);
+		Dest.Set(pItem->GetItemDefinition()->QuestItem != 0);
 		Dest.Type = pBoolType;
 		return true;
 
 	case ItemMembers::Expendable:
-		Dest.Set(GetItemFromContents(pItem)->Expendable != 0);
+		Dest.Set(pItem->GetItemDefinition()->Expendable != 0);
 		Dest.Type = pBoolType;
 		return true;
 
@@ -1726,7 +1727,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		return false;
 
 	case ItemMembers::Icon:
-		Dest.DWord = GetItemFromContents(pItem)->IconNumber;
+		Dest.DWord = pItem->GetItemDefinition()->IconNumber;
 		Dest.Type = pIntType;
 		return true;
 

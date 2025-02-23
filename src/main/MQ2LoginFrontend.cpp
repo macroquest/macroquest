@@ -53,7 +53,7 @@ public:
 		if (!gbInFrontend)
 		{
 			gGameState = GetGameState();
-			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
+			Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState));
 		}
 
 		gbInFrontend = true;

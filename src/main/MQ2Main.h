@@ -38,12 +38,6 @@ using namespace eqlib;
 // the new interfaces
 #define MQNEXT
 
-#ifdef DEBUG_TRY
-#define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
-#else
-#define DebugTry(x) x
-#endif
-
 #define MAX_VARNAME           64
 
 #include "mq/base/Traits.h"

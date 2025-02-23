@@ -45,6 +45,7 @@ constexpr uint32_t DETOUR_BYTES_COUNT = 12;
 
 namespace detail
 {
+#if !defined(_M_AMD64)
 	template <typename Fn, size_t width = sizeof(Fn)>
 	uintptr_t extract_fn_addr(Fn fn)
 	{
@@ -69,6 +70,7 @@ namespace detail
 		else // width == 12u
 			reinterpret_cast<uintptr_t*>(&fn)[1] = ptr;
 	}
+#endif // !defined(_M_AMD64)
 
 	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name);
 	bool CreateDetour(uintptr_t address, size_t width, std::string_view name);

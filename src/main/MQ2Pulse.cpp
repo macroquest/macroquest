@@ -703,7 +703,7 @@ static HeartbeatState Heartbeat()
 		gStringTableFixed = true;
 	}
 
-	DebugTry(int GameState = GetGameState());
+	int GameState = GetGameState();
 	if (GameState != -1)
 	{
 		if (GameState != gGameState)
@@ -711,7 +711,7 @@ static HeartbeatState Heartbeat()
 			DebugSpew("GetGameState()=%d vs %d", GameState, gGameState);
 			gGameState = GameState;
 			gbInZone = (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE);
-			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState)));
+			Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 		}
 
 		// they "zoned" to charselect...
@@ -724,12 +724,15 @@ static HeartbeatState Heartbeat()
 
 	UpdateMQ2SpawnSort();
 
-	DebugTry(DrawHUD());
-	DebugTry(PulseMQ2AutoInventory());
+	DrawHUD();
+	PulseMQ2AutoInventory();
 
 	bRunNextCommand = true;
-	DebugTry(Pulse());
-	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
+	Pulse();
+	{
+		MQScopedBenchmark bench(bmPluginsPulse);
+		PulsePlugins();
+	}
 
 	static bool ShownNews = false;
 	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)

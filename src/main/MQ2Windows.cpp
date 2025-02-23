@@ -546,36 +546,36 @@ bool SendWndClick2(CXWnd* pWnd, const char* ClickNotification)
 			switch (i)
 			{
 			case 0:
-				DebugTry(pWnd->HandleLButtonDown(pt, 0));
+				pWnd->HandleLButtonDown(pt, 0);
 				break;
 			case 1:
-				DebugTry(pWnd->HandleLButtonDown(pt, 0));
-				DebugTry(pWnd->HandleLButtonUp(pt, 0));
+				pWnd->HandleLButtonDown(pt, 0);
+				pWnd->HandleLButtonUp(pt, 0);
 				break;
 			case 2:
-				DebugTry(pWnd->HandleLButtonDown(pt, 0));
-				DebugTry(pWnd->HandleLButtonHeld(pt, 0));
+				pWnd->HandleLButtonDown(pt, 0);
+				pWnd->HandleLButtonHeld(pt, 0);
 				break;
 			case 3:
-				DebugTry(pWnd->HandleLButtonDown(pt, 0));
-				DebugTry(pWnd->HandleLButtonHeld(pt, 0));
-				DebugTry(pWnd->HandleLButtonUpAfterHeld(pt, 0));
+				pWnd->HandleLButtonDown(pt, 0);
+				pWnd->HandleLButtonHeld(pt, 0);
+				pWnd->HandleLButtonUpAfterHeld(pt, 0);
 				break;
 			case 4:
-				DebugTry(pWnd->HandleRButtonDown(pt, 0));
+				pWnd->HandleRButtonDown(pt, 0);
 				break;
 			case 5:
-				DebugTry(pWnd->HandleRButtonDown(pt, 0));
-				DebugTry(pWnd->HandleRButtonUp(pt, 0));
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonUp(pt, 0);
 				break;
 			case 6:
-				DebugTry(pWnd->HandleRButtonDown(pt, 0));
-				DebugTry(pWnd->HandleRButtonHeld(pt, 0));
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonHeld(pt, 0);
 				break;
 			case 7:
-				DebugTry(pWnd->HandleRButtonDown(pt, 0));
-				DebugTry(pWnd->HandleRButtonHeld(pt, 0));
-				DebugTry(pWnd->HandleRButtonUpAfterHeld(pt, 0));
+				pWnd->HandleRButtonDown(pt, 0);
+				pWnd->HandleRButtonHeld(pt, 0);
+				pWnd->HandleRButtonUpAfterHeld(pt, 0);
 				break;
 			default:
 				return false;

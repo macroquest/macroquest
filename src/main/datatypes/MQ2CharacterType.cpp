@@ -2163,43 +2163,39 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::ItemReady: {
 		Dest.Set(false);
 		Dest.Type = pBoolType;
-		ItemClient* pCont = nullptr;
 
-		if (pDisplay && pLocalPlayer && Index[0])
+		if (pLocalPlayer && Index[0])
 		{
+			ItemClient* pItem = nullptr;
 			if (IsNumber(Index))
 			{
-				pCont = FindItemByID(GetIntFromString(Index, 0));
+				pItem = FindItemByID(GetIntFromString(Index, 0));
 			}
 			else
 			{
-				if (char* pName = Index)
+				bool bExact = false;
+				if (*Index == '=')
 				{
-					bool bExact = false;
-					if (*pName == '=')
-					{
-						bExact = true;
-						pName++;
-					}
-
-					pCont = FindItemByName(pName, bExact);
+					bExact = true;
+					Index++;
 				}
+
+				pItem = FindItemByName(Index, bExact);
 			}
 
-			if (pCont)
+			if (pItem)
 			{
-				if (ItemDefinition* pIteminf = GetItemFromContents(pCont))
+				ItemDefinition* pItemDef = pItem->GetItemDefinition();
+
+				if (pItemDef->Clicky.TimerID != -1)
 				{
-					if (pIteminf->Clicky.TimerID != -1)
-					{
-						uint32_t timer = GetItemTimer(pCont);
-						if (timer == 0)
-							Dest.Set(true);
-					}
-					else if (pIteminf->Clicky.SpellID != -1)
-					{
-						Dest.Set(true); // insta-click or instant recast
-					}
+					uint32_t timer = GetItemTimer(pItem);
+					if (timer == 0)
+						Dest.Set(true);
+				}
+				else if (pItemDef->Clicky.SpellID != -1)
+				{
+					Dest.Set(true); // insta-click or instant recast
 				}
 			}
 		}

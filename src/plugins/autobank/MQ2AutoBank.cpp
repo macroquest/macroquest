@@ -388,22 +388,22 @@ static void AutoBankPulse()
 	{
 		const ItemGlobalIndex& ind = gAutoBankList.front();
 
-		if (ItemClient* pCont = FindItemByGlobalIndex(ind))
+		if (ItemClient* pItem = FindItemByGlobalIndex(ind))
 		{
-			ItemDefinition* pItem = GetItemFromContents(pCont);
-			ItemGlobalIndex indy = pCont->GetItemLocation();
+			ItemDefinition* pItemDef = pItem->GetItemDefinition();
+			ItemGlobalIndex itemIndex = pItem->GetItemLocation();
 
-			if (WillFitInBank(pCont))
+			if (WillFitInBank(pItem))
 			{
 				WriteChatf("[%d] Moving %s from slot %d %d to bank",
-					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+					gAutoBankList.size(), pItemDef->Name, itemIndex.GetIndex().GetSlot(0), itemIndex.GetIndex().GetSlot(1));
 
-				PickupItem(indy.Location, pCont);
+				PickupItem(itemIndex.Location, pItem);
 			}
 			else
 			{
 				WriteChatf("[%d] \arAutoBank for %s from slot %d %d to bank \ayFAILED\ar, you are out of space.\ax",
-					gAutoBankList.size(), pItem->Name, indy.GetIndex().GetSlot(0), indy.GetIndex().GetSlot(1));
+					gAutoBankList.size(), pItemDef->Name, itemIndex.GetIndex().GetSlot(0), itemIndex.GetIndex().GetSlot(1));
 			}
 		}
 		else

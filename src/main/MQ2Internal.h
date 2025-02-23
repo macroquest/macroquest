@@ -875,6 +875,8 @@ bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses = false)
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 std::string GetCurrentUI();
 
+char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
+
 //----------------------------------------------------------------------------
 
 class MainImpl : public MainInterface

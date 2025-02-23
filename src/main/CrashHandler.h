@@ -16,6 +16,7 @@
 
 namespace mq {
 
+// Deprecated macros
 #define DebugTryBegin()
 #define DebugTryEnd()
 
@@ -23,6 +24,7 @@ namespace mq {
 #define DebugTryEndRet()
 
 #define DebugTryEx(x) x
+#define DebugTry(x) x
 
 //============================================================================
 

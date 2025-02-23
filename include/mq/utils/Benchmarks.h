@@ -73,9 +73,9 @@ private:
 //----------------------------------------------------------------------------
 // Old-style benchmark macro. Prefer using MQScopedBenchmark instead.
 #ifdef DISABLE_BENCHMARKS
-    #define Benchmark(BMHandle, code) code
+#define Benchmark(BMHandle, code) code
 #else
-    #define Benchmark(BMHandle, code) { EnterMQ2Benchmark(BMHandle); code; ExitMQ2Benchmark(BMHandle); }
+#define Benchmark(BMHandle, code) { MQScopedBenchmark __scopedBenchMarkHolder(BMHandle); code; }
 #endif
 
 } // namespace mq

@@ -573,7 +573,7 @@ void DoMQ2ChatBind(const char* Name, bool Down)
 PLUGIN_API void OnReloadUI()
 {
 	// redraw window when you load/reload UI
-	DebugTry(CreateChatWindow());
+	CreateChatWindow();
 }
 
 PLUGIN_API void OnCleanUI()
@@ -627,7 +627,7 @@ PLUGIN_API void SetGameState(int GameState)
 		if (GameState == GAMESTATE_INGAME && !MQChatWnd)
 		{
 			// we entered the game, set up shop
-			DebugTry(CreateChatWindow());
+			CreateChatWindow();
 		}
 	}
 }
