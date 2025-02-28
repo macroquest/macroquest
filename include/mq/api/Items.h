@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -30,6 +30,37 @@ static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlo
 
 	container.VisitItems(fromSlot, toSlot, -1, predicatedCountVisitor);
 	return count;
+}
+
+/**
+ * Convert a string representation of item size to its corresponding integer value.
+ *
+ * This function maps size descriptors to their integer representations.
+ * If the input string doesn't match any known descriptors, it returns -1.
+ *
+ * @param String A std::string_view representing the descriptor of the item's size.
+ *               Expected values are: "tiny", "small", "medium", "large", "giant".
+ *
+ * @return Integer value representing the item's size. Returns -1 for unrecognized descriptors.
+ */
+inline int GetItemSizeFromDesc(std::string_view String)
+{
+	if (ci_equals(String, "tiny"))
+		return ItemSize_Tiny;
+
+	if (ci_equals(String, "small"))
+		return ItemSize_Small;
+
+	if (ci_equals(String, "medium"))
+		return ItemSize_Medium;
+
+	if (ci_equals(String, "large"))
+		return ItemSize_Large;
+
+	if (ci_equals(String, "giant"))
+		return ItemSize_Giant;
+
+	return -1;
 }
 
 } // namespace mq

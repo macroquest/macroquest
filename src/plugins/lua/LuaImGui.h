@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,6 +15,8 @@
 #pragma once
 
 #include "LuaCommon.h"
+
+struct ImPlotContext;
 
 namespace mq::lua {
 
@@ -51,6 +53,8 @@ public:
 private:
 	const LuaThread* m_thread;
 	std::vector<std::unique_ptr<LuaImGui>> m_imguis;
+
+	std::shared_ptr<ImPlotContext> m_imPlotContext;
 };
 
 } // namespace mq::lua

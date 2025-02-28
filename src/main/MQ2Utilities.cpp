@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -23,7 +23,7 @@
 
 #include <DbgHelp.h>
 #include <PathCch.h>
-
+#include <wil/resource.h>
 #include <random>
 
 #ifdef _DEBUG
@@ -297,7 +297,7 @@ void FatalError(const char* szFormat, ...)
 	}
 }
 
-void MQ2DataError(char* szFormat, ...)
+void MQ2DataError(const char* szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -1310,60 +1310,45 @@ int GetLanguageIDByName(const char* szName)
 	return -1;
 }
 
-// TOOD: Convert to data table
-int GetCurrencyIDByName(char* szName)
+void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value, eDatabaseStringType type)
 {
-	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;
-	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX;
-	if (!_stricmp(szName, "Phosphenes")) return ALTCURRENCY_PHOSPHENES;
-	if (!_stricmp(szName, "Phosphites")) return ALTCURRENCY_PHOSPHITES;
-	if (!_stricmp(szName, "Faycitum")) return ALTCURRENCY_FAYCITES;
-	if (!_stricmp(szName, "Chronobines")) return ALTCURRENCY_CHRONOBINES;
-	if (!_stricmp(szName, "Silver Tokens")) return ALTCURRENCY_SILVERTOKENS;
-	if (!_stricmp(szName, "Gold Tokens")) return ALTCURRENCY_GOLDTOKENS;
-	if (!_stricmp(szName, "McKenzie's Special Brew")) return ALTCURRENCY_MCKENZIE;
-	if (!_stricmp(szName, "Bayle Marks")) return ALTCURRENCY_BAYLE;
-	if (!_stricmp(szName, "Tokens of Reclamation")) return ALTCURRENCY_RECLAMATION;
-	if (!_stricmp(szName, "Brellium Tokens")) return ALTCURRENCY_BRELLIUM;
-	if (!_stricmp(szName, "Dream Motes")) return ALTCURRENCY_MOTES;
-	if (!_stricmp(szName, "Rebellion Chits")) return ALTCURRENCY_REBELLIONCHITS;
-	if (!_stricmp(szName, "Diamond Coins")) return ALTCURRENCY_DIAMONDCOINS;
-	if (!_stricmp(szName, "Bronze Fiats")) return ALTCURRENCY_BRONZEFIATS;
-	if (!_stricmp(szName, "Expedient Delivery Vouchers")) return ALTCURRENCY_VOUCHER;
-	if (!_stricmp(szName, "Velium Shards")) return ALTCURRENCY_VELIUMSHARDS;
-	if (!_stricmp(szName, "Crystallized Fear")) return ALTCURRENCY_CRYSTALLIZEDFEAR;
-	if (!_stricmp(szName, "Shadowstones")) return ALTCURRENCY_SHADOWSTONES;
-	if (!_stricmp(szName, "Dreadstones")) return ALTCURRENCY_DREADSTONES;
-	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR;
-	if (!_stricmp(szName, "Medals of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM;
-	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS;
-	if (!_stricmp(szName, "Fists of Bayle")) return ALTCURRENCY_FISTSOFBAYLE;
-	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES;
-	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS;
-	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT;
-	if (!_stricmp(szName, "Remnants of Tranquility")) return ALTCURRENCY_REMNANTSOFTRANQUILITY;
-	if (!_stricmp(szName, "Bifurcated Coin")) return ALTCURRENCY_BIFURCATEDCOIN;
-	if (!_stricmp(szName, "Adoptive Coins")) return ALTCURRENCY_ADOPTIVE;
-	if (!_stricmp(szName, "Sathir's Trade Gems")) return ALTCURRENCY_SATHIRSTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Sebilisian Coins")) return ALTCURRENCY_ANCIENTSEBILISIANCOINS;
-	if (!_stricmp(szName, "Bathezid Trade Gems")) return ALTCURRENCY_BATHEZIDTRADEGEMS;
-	if (!_stricmp(szName, "Ancient Draconic Coin")) return ALTCURRENCY_ANCIENTDRACONICCOIN;
-	if (!_stricmp(szName, "Fetterred Ifrit Coins")) return ALTCURRENCY_FETTERREDIFRITCOINS;
-	if (!_stricmp(szName, "Entwined Djinn Coins")) return ALTCURRENCY_ENTWINEDDJINNCOINS;
-	if (!_stricmp(szName, "Crystallized Luck")) return ALTCURRENCY_CRYSTALLIZEDLUCK;
-	if (!_stricmp(szName, "Froststone Ducat")) return ALTCURRENCY_FROSTSTONEDUCAT;
-	if (!_stricmp(szName, "Warlord's Symbol")) return ALTCURRENCY_WARLORDSSYMBOL;
-	if (!_stricmp(szName, "Overseer Tetradrachm")) return ALTCURRENCY_OVERSEERTETRADRACHM;
-	if (!_stricmp(szName, "Restless Mark")) return ALTCURRENCY_RESTLESSMARK;
-	if (!_stricmp(szName, "Warforged Emblem")) return ALTCURRENCY_WARFORGEDEMBLEM;
-	if (!_stricmp(szName, "Scarlet Marks")) return ALTCURRENCY_SCARLETMARKS;
-	if (!_stricmp(szName, "Medals of Conflict")) return ALTCURRENCY_MEDALSOFCONFLICT;
-	if (!_stricmp(szName, "Shaded Specie")) return ALTCURRENCY_SHADEDSPECIE;
-	if (!_stricmp(szName, "Spiritual Medallion")) return ALTCURRENCY_SPIRITUALMEDALLION;
+	constexpr std::string_view chars_to_remove = "'`";
+	if (const char* ptr = pCDBStr->GetString(value, type))
+	{
+		const std::string currency = to_lower_copy(ptr);
+		if (currency.empty())
+			return;
+		cache[currency] = value;
+		cache[remove_chars(currency, chars_to_remove)] = value;
+	}
+}
+
+int GetCurrencyIDByName(const char* szName)
+{
+	static std::unordered_map<std::string, int> cache;
+
+	if (cache.empty())
+	{
+		for (int i = ALTCURRENCY_FIRST; i <= ALTCURRENCY_LAST; ++i)
+		{
+			UpdateCurrencyCache(cache, i, eAltCurrencyNamePlural);
+			UpdateCurrencyCache(cache, i, eAltCurrencyName);
+		}
+		// Crowns are outside ALTCURRENCY_LAST
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyNamePlural);
+		UpdateCurrencyCache(cache, ALTCURRENCY_CROWNS, eAltCurrencyName);
+	}
+
+	const auto it = cache.find(to_lower_copy(szName));
+	if (it != cache.end())
+	{
+		return it->second;
+	}
+
 	return -1;
 }
 
-// This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
+// This wrapper is here to deal with older plugins and to preserve backwards compatibility with older clients (emu)
 CAltAbilityData* GetAAById(int nAbilityId, int playerLevel)
 {
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
@@ -1809,7 +1794,7 @@ void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency
 		msHold);
 }
 
-void CustomPopup(char* szPopText, bool bPopOutput)
+void CustomPopup(const char* szPopText, bool bPopOutput)
 {
 	int iArgNum = 1;
 	int iMsgColor = CONCOLOR_LIGHTBLUE;
@@ -1994,7 +1979,7 @@ bool LoadCfgFile(const char* Filename, bool Delayed)
 				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
 				if (Cmd && Cmd[0] && Cmd[0] != ';')
 				{
-					HideDoCommand(pLocalPlayer, Cmd, Delayed);
+					DoCommand(Cmd, Delayed);
 				}
 			}
 
@@ -4013,6 +3998,7 @@ bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id)
 
 	return false;
 }
+
 // ***************************************************************************
 // Function:    CleanupName
 // Description: Cleans up NPC names
@@ -4947,13 +4933,6 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 	return 14.0f;
 }
 
-bool IsValidSpellIndex(int index)
-{
-	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
-		return false;
-	return true;
-}
-
 inline bool IsValidSpellSlot(int nGem)
 {
 	return nGem >= 0 && nGem < 16;
@@ -5019,30 +4998,16 @@ uint32_t GetSpellGemTimer(int nGem)
 
 uint32_t GetSpellBuffTimer(int SpellID)
 {
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pBuffWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pBuffWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pBuffWnd->BuffTimer[nBuff]) {
-				return pBuffWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
 
-	// look, this probably is an oversight by the eqdevs
-	// but the struct only have 0x2a BuffTimers so...
-	// even though there could be 0x37 shortbuffs
-	// we can only check up to 0x2a...
-	for (int nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
+	if (auto buffInfo = pSongWnd->GetBuffInfoBySpellID(SpellID))
 	{
-		if (pSongWnd->BuffId[nBuff] == SpellID)
-		{
-			if (pSongWnd->BuffTimer[nBuff])
-			{
-				return pSongWnd->BuffTimer[nBuff];
-			}
-		}
+		return buffInfo.GetBuffTimer();
 	}
+
 	return 0;
 }
 
@@ -5060,27 +5025,14 @@ void AttackRanged(PlayerClient* pRangedTarget)
 
 void UseAbility(const char* sAbility)
 {
-	char szBuffer[MAX_STRING] = { 0 };
-	strcpy_s(szBuffer, sAbility);
-
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return;
 
 	if (!cmdDoAbility)
-	{
-		CMDLIST* pCmdListOrig = (CMDLIST*)EQADDR_CMDLIST;
-
-		for (int i = 0; pCmdListOrig[i].fAddress != nullptr; i++)
-		{
-			if (ci_equals(pCmdListOrig[i].szName, "/doability"))
-			{
-				cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
-			}
-		}
-	}
-
-	if (!cmdDoAbility)
 		return;
+
+	char szBuffer[MAX_STRING] = { 0 };
+	strcpy_s(szBuffer, sAbility);
 
 	if (GetIntFromString(szBuffer, 0))
 	{
@@ -5137,9 +5089,18 @@ void UseAbility(const char* sAbility)
 
 // Function to check if the account has a given expansion enabled.
 // Pass expansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
-bool HasExpansion(int nExpansion)
+bool HasExpansion(int64_t nExpansion)
 {
-	return pLocalPC && (pLocalPC->ExpansionFlags & nExpansion) != 0;
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOB)
+	// ExpansionFlags was expanded to 64 bits in TOB. If this client is not using TOB or later, we
+	// can short circuit the check if the request exceeds the LS expansion level.
+	if (nExpansion > EXPANSION_LS)
+		return false;
+#endif
+
+	using FlagsType = std::make_unsigned_t<decltype(pLocalPC->ExpansionFlags)>;
+
+	return pLocalPC && (pLocalPC->ExpansionFlags & static_cast<FlagsType>(nExpansion)) != 0;
 }
 
 int GetAvailableBagSlots()
@@ -5240,13 +5201,17 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerTeleportationKeyRingItems:
 		return &pLocalPC->TeleportationKeyRingItems;
 #endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+	case eItemContainerActivatedKeyRingItems:
+		return &pLocalPC->ActivatedKeyRingItems;
+#endif
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // not exactly sure when this was added.
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;
 #endif
 #if HAS_DRAGON_HOARD
 	case eItemContainerDragonHoard:
-		return &pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
+		return pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
 #endif
 #if HAS_TRADESKILL_DEPOT
 	case eItemContainerTradeskillDepot:
@@ -5581,23 +5546,36 @@ bool ItemOnCursor()
 	return pProfile->InventoryContainer.GetItem(InvSlot_Cursor) != nullptr;
 }
 
+static bool CanUseMultiItemManager(const ItemGlobalIndex& globalIndex)
+{
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 bool PickupItem(const ItemGlobalIndex& globalIndex)
 {
 	if (!pInvSlotMgr) return false;
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return false;
 
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not pick up item: index is invalid");
+		return false;
+	}
+
 	ItemPtr pItem = FindItemByGlobalIndex(globalIndex);
 	if (!pItem)
 	{
 		WriteChatf("Could not pick up item: no item found.");
-		return false;
-	}
-
-	if (globalIndex.GetLocation() == eItemContainerPossessions
-		&& globalIndex.GetTopSlot() == InvSlot_Cursor)
-	{
-		WriteChatf("Cannot pick up an item from the cursor slot!");
 		return false;
 	}
 
@@ -5620,26 +5598,118 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot pick up an item from the cursor slot!");
+			return false;
+		}
+		break;
+
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
+
+	case eItemContainerTrade:
+		WriteChatf("Cannot pick up items from trade slots");
+		return false;
+
+	default: break;
+	}
+
+	// Make sure we're not trying to pick up an augment in a socket.
+	ItemGlobalIndex parentIndex = globalIndex.GetParent();
+	if (parentIndex.IsValidIndex())
+	{
+		if (ItemPtr pParentItem = FindItemByGlobalIndex(parentIndex))
+		{
+			if (!pParentItem->IsContainer())
+			{
+				// We're not trying to pick up an item from a bag, we're trying to pick up
+				// an augment from an item
+				WriteChatf("Cannot pick up an augment socketed in an item");
+				return false;
+			}
+		}
+	}
+
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
 #if HAS_MULTIPLE_ITEM_MOVE_MANAGER
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = globalIndex;
-	moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = isCtrl ? 1 : 0;
-	moveArray.Add(moveItem);
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = globalIndex;
+		moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = isCtrl ? 1 : 0;
+		moveArray.Add(moveItem);
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif
+
+#if HAS_KEYRING_WINDOW
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+#if 0
+		if (pCursorAttachment->IsActive())
+		{
+			WriteChatf("Cannot pick up an item from a keyring while something else is on the cursor");
+			return false;
+		}
+
+		KeyRingType keyRingType = CKeyRingWnd::GetKeyRingType(globalIndex.GetLocation());
+		ECursorAttachmentType linkType = CKeyRingWnd::GetLinkType(keyRingType);
+		if (linkType == eCursorAttachment_None)
+		{
+			WriteChatf("Cannot interact with keyring container: %s", GetNameForContainerInstance(globalIndex.GetLocation()));
+			return false;
+		}
+
+		if (!pCursorAttachment->IsOkToActivate(linkType))
+		{
+			WriteChatf("Failed to pick up keyring item");
+			return false;
+		}
+
+		// Note: The item is not in the held slot, it is only attached to the cursor until we move it somewhere else.
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, linkType, -1, pItem->ItemGUID, pItem->ID, "", nullptr, -1, -1);
+		return true;
 #else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+		WriteChatf("Cannot pick up items from keyrings");
+		return false;
+#endif
+	}
+#endif // HAS_KEYRING_WINDOW
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemGlobalIndex To = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
 	ItemGlobalIndex From = globalIndex;
 
-	// This is just a a top level slot. We should have invslots for all of these.
+	// This is just a top level slot. We should have invslots for all of these.
 	if (globalIndex.GetIndex().GetSlot(1) == -1)
 	{
 		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
@@ -5711,7 +5781,6 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
 
 bool DropItem(const ItemGlobalIndex& globalIndex)
@@ -5725,11 +5794,17 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor);
 	if (!pItem)
 	{
+		// TODO: Handle case where item link is on the cursor
 		WriteChatf("Cannot drop item into inventory slot: no item is on the cursor.");
 		return false;
 	}
 
-	bool bSelectSlot = false;
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not drop item: index is invalid");
+		return false;
+	}
+
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
 		// If this is merchant selection, we cannot do it anywhere other than our inventory.
@@ -5749,23 +5824,68 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot top an item into the cursor slot!");
+			return false;
+		}
+		break;
+
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
+
+	default: break;
+	}
+
 #if HAS_MULTIPLE_ITEM_MOVE_MANAGER
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.to = globalIndex;
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = 0;
-	moveArray.Add(moveItem);
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.to = globalIndex;
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = 0;
+		moveArray.Add(moveItem);
 
-	// Deactivate the cursor attachment. This will ensure that the new item (if any)
-	// will replace it on the cursor.
-	pCursorAttachment->Deactivate();
+		// Deactivate the cursor attachment. This will ensure that the new item (if any)
+		// will replace it on the cursor.
+		pCursorAttachment->Deactivate();
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
-#else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif // HAS_MULTIPLE_ITEM_MOVE_MANAGER
+
+#if HAS_KEYRING_WINDOW
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+		WriteChatf("Dropping items into keyring slots is not currently supported");
+		return false;
+	}
+#endif // HAS_KEYRING_WINDOW
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemContainerInstance type = globalIndex.GetLocation();
 	short ToInvSlot = globalIndex.GetTopSlot();
@@ -5805,9 +5925,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
-
 
 bool StripQuotes(char* str)
 {
@@ -5824,7 +5942,7 @@ bool StripQuotes(char* str)
 //.text:00638051                 push    0
 //.text:00638053                 add     ecx, 1FE0h
 //.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
-void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
+void MakeMeVisible(PlayerClient* pChar, const char* szLine)
 {
 	if (pLocalPC)
 	{
@@ -5836,9 +5954,8 @@ void MakeMeVisible(SPAWNINFO* pChar, char* szLine)
 // Function:    RemoveAura
 // Description: Removes auras
 // Usage:       /removeaura <name> or <partial name>
-// Author:      EqMule
 // ***************************************************************************
-void RemoveAura(SPAWNINFO* pChar, char* szLine)
+void RemoveAura(PlayerClient* pChar, const char* szLine)
 {
 	if (!pAuraWnd)
 		return;
@@ -6506,7 +6623,11 @@ int GetCharMaxLevel()
 {
 	int MaxLevel = 50;
 
-	if (HasExpansion(EXPANSION_TOL))
+	if (HasExpansion(EXPANSION_LS) || HasExpansion(EXPANSION_TOB))
+	{
+		MaxLevel = 125;
+	}
+	else if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
 	{
 		MaxLevel = 120;
 	}
@@ -6938,144 +7059,14 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 
 //============================================================================
 
-static MQColor gUserColors[] = {
-	MQColor(255, 255, 255), //  1 Say
-	MQColor(190, 40,  190), //  2 Tell
-	MQColor(0,   255, 255), //  3 Group
-	MQColor(40,  240, 40),  //  4 Guild
-	MQColor(0,   128, 0),   //  5 OOC
-	MQColor(0,   128, 0),   //  6 Auction
-	MQColor(255, 0,   0),   //  7 Shout
-	MQColor(90,  90,  255), //  8 Emote
-	MQColor(90,  90,  255), //  9 Spells
-	MQColor(255, 255, 255), // 10 You hit other
-	MQColor(255, 0,   0),   // 11 Other hits you
-	MQColor(255, 255, 255), // 12 You miss other
-	MQColor(255, 255, 255), // 13 Other misses you
-	MQColor(255, 255, 0),   // 14 Broadcasts
-	MQColor(90,  90,  255), // 15 Skills
-	MQColor(255, 255, 255), // 16 Combat Abilities / Disciplines (You)
-	MQColor(255, 255, 255), // 17 Unused at this time
-	MQColor(255, 255, 255), // 18 Default Text
-	MQColor(255, 255, 255), // 19 Faction Messages
-	MQColor(240, 240, 0),   // 20 Merchant Offer Price
-	MQColor(240, 240, 0),   // 21 Merchant Buy/Sell
-	MQColor(255, 255, 255), // 22 Death Notification - You
-	MQColor(255, 255, 255), // 23 Death Notification - Other PCs
-	MQColor(255, 255, 255), // 24 Other damage other
-	MQColor(255, 255, 255), // 25 Other miss other
-	MQColor(128, 0,   128), // 26 Who slash command results
-	MQColor(255, 255, 255), // 27 Yell for help
-	MQColor(0,   114, 255), // 28 Spell Damage
-	MQColor(240, 240, 0),   // 29 Spell worn off
-	MQColor(0,   140, 0),   // 30 Money Splits
-	MQColor(90,  90,  255), // 31 Loot Messages
-	MQColor(255, 0,   0),   // 32 Dice Roll (/random) - Mine
-	MQColor(90,  90,  255), // 33 Others spells
-	MQColor(255, 0,   0),   // 34 Spell Failures
-	MQColor(215, 154, 66),  // 35 Chat Channel
-	MQColor(110, 143, 176), // 36 Chat Channel 1
-	MQColor(110, 143, 176), // 37 Chat Channel 2
-	MQColor(110, 143, 176), // 38 Chat Channel 3
-	MQColor(110, 143, 176), // 39 Chat Channel 4
-	MQColor(110, 143, 176), // 40 Chat Channel 5
-	MQColor(110, 143, 176), // 41 Chat Channel 6
-	MQColor(110, 143, 176), // 42 Chat Channel 7
-	MQColor(110, 143, 176), // 43 Chat Channel 8
-	MQColor(110, 143, 176), // 44 Chat Channel 9
-	MQColor(110, 143, 176), // 45 Chat Channel 10
-	MQColor(255, 255, 255), // 46 Melee Crits
-	MQColor(255, 255, 255), // 47 Spell Crits
-	MQColor(255, 0,   0),   // 48 Too far away (melee)
-	MQColor(255, 0,   0),   // 49 NPC Rampage
-	MQColor(255, 0,   0),   // 50 NPC Flurry
-	MQColor(255, 0,   0),   // 51 NPC Enrage
-	MQColor(255, 255, 255), // 52 Say echo
-	MQColor(255, 255, 255), // 53 Tell echo
-	MQColor(255, 255, 255), // 54 Group echo
-	MQColor(255, 255, 255), // 55 Guild echo
-	MQColor(255, 255, 255), // 56 OOC echo
-	MQColor(255, 255, 255), // 57 Auction echo
-	MQColor(255, 255, 255), // 58 Shout echo
-	MQColor(255, 255, 255), // 59 Emote echo
-	MQColor(215, 154, 66),  // 60 Chat Channel 1 echo
-	MQColor(215, 154, 66),  // 61 Chat Channel 2 echo
-	MQColor(215, 154, 66),  // 62 Chat Channel 3 echo
-	MQColor(215, 154, 66),  // 63 Chat Channel 4 echo
-	MQColor(215, 154, 66),  // 64 Chat Channel 5 echo
-	MQColor(215, 154, 66),  // 65 Chat Channel 6 echo
-	MQColor(215, 154, 66),  // 66 Chat Channel 7 echo
-	MQColor(215, 154, 66),  // 67 Chat Channel 8 echo
-	MQColor(215, 154, 66),  // 68 Chat Channel 9 echo
-	MQColor(215, 154, 66),  // 69 Chat Channel 10 echo
-	MQColor(255, 255, 0),   // 70 Avatar Command Output
-	MQColor(255, 0,   255), // 71 Item Links
-	MQColor(0,   200, 200), // 72 Raid Say
-	MQColor(255, 255, 255), // 73 My Pet Melee
-	MQColor(255, 255, 255), // 74 Damage Shields (You Attacking)
-	MQColor(0,   255, 255), // 75 Group / Raid Role Messages
-	MQColor(255, 0,   0),   // 76 Pet Rampage/Flurry
-	MQColor(255, 255, 255), // 77 Pet Crits
-	MQColor(90,  90,  255), // 78 Focus Effects
-	MQColor(255, 255, 0),   // 79 Experience Messages
-	MQColor(255, 255, 0),   // 80 System Messages
-	MQColor(255, 255, 255), // 81 Pet Spells
-	MQColor(255, 255, 255), // 82 Pet Responses
-	MQColor(255, 255, 255), // 83 Item Speech
-	MQColor(255, 255, 255), // 84 Strikethrough messages
-	MQColor(255, 255, 255), // 85 Stun messages
-	MQColor(255, 155, 155), // 86 Swarm Pet Death
-	MQColor(90,  90,  255), // 87 Fellowship Chat
-	MQColor(255, 255, 255), // 88 Death Text (NPCs)
-	MQColor(255, 255, 255), // 89 NPC dialogue to you
-	MQColor(255, 255, 255), // 90 Guild messages
-	MQColor(255, 255, 255), // 91 Mercenary Messages
-	MQColor(255, 127, 0),   // 92 Achievement Links
-	MQColor(255, 255, 255), // 93 Emote achievement messages
-	MQColor(255, 255, 255), // 94 Guild achievement messages
-	MQColor(255, 255, 255), // 95 PvP Messages
-	MQColor(192, 0,   0),   // 96 Hotbutton Cooldown Overlay
-	MQColor(0,   255, 0),   // 97 Aggro Labels - Low
-	MQColor(255, 255, 0),   // 98 Aggro Labels - Warning
-	MQColor(255, 0,   0),   // 99 Aggro Labels - Most
-	MQColor(24,  224, 255), // 100 Dialog [Response] Links
-	MQColor(255, 255, 255), // 101 Your Flurry
-	MQColor(255, 255, 255), // 102 Debug Output
-	MQColor(255, 255, 255), // 103 Death Notification - NPCs
-	MQColor(255, 0,   0),   // 104 Dice Roll (/random) - Others
-	MQColor(255, 0,   0),   // 105 Dice Roll (/random) - Group / Raid
-	MQColor(255, 0,   0),   // 106 Environmental Damage (Yours)
-	MQColor(255, 255, 255), // 107 Environmental Damage (Others)
-	MQColor(255, 255, 255), // 108 Damage Shields (You Defending)
-	MQColor(255, 255, 255), // 109 Damage Shields (Others)
-	MQColor(0,   255, 0),   // 110 Event Messages
-	MQColor(240, 240, 0),   // 111 Spell Overwritten (Detrimental)
-	MQColor(240, 240, 0),   // 112 Spell Overwritten (Beneficial)
-	MQColor(255, 255, 255), // 113 Can't Use Command Warning
-	MQColor(255, 255, 255), // 114 Combat Ability Reuse
-	MQColor(255, 255, 255), // 115 AA Ability Reuse
-	MQColor(255, 100, 25),  // 116 Destroyed Items
-	MQColor(66,  78,  244), // 117 Auras (You)
-	MQColor(66,  78,  244), // 118 Auras (Others)
-	MQColor(0,   114, 255), // 119 Heals (You)
-	MQColor(0,   67,  255), // 120 Heals (Others)
-	MQColor(0,   114, 255), // 121 DoTs (Yours)
-	MQColor(0,   67,  255), // 122 DoTs (Others)
-	MQColor(70,  70,  255), // 123 Bard Songs on Pets
-	MQColor(0,   67,  255), // 124 Direct Damage (Others)
-	MQColor(90,  90,  255), // 125 Spell Emotes
-	MQColor(255, 127, 0),   // 126 Faction Links
-	MQColor(90,  90,  255), // 127 Taunt Messages
-	MQColor(255, 255, 255), // 128 Combat Abilities / Disciplines (Others)
-	MQColor(0,   255, 0),   // 129 Item Stat Positive
-	MQColor(255, 0,   0),   // 130 Item Stat Negative
-};
-
 MQColor GetColorForChatColor(uint32_t chatColor)
 {
 	if (chatColor > 255)
 	{
 		chatColor -= 256;
+
+		if (chatColor >= NUM_USER_COLORS)
+			chatColor = 0;
 
 		// Ensure that alpha is set to fully opaque
 		MQColor color{ MQColor::format_bgr, CDisplay::GetUserDefinedColor(chatColor) };
@@ -7085,7 +7076,7 @@ MQColor GetColorForChatColor(uint32_t chatColor)
 			|| (color.ARGB & 0x00ffffff) == 0x00ffffff)
 		{
 			// Hasn't been set yet. Use defaults.
-			color = gUserColors[chatColor];
+			color = gDefaultUserDefinedColors[chatColor];
 		}
 		color.Alpha = 255;
 		return color;
@@ -7480,13 +7471,20 @@ EQSwitch* FindSwitchByName(const char* szName)
 }
 
 //----------------------------------------------------------------------------
+
+std::set<HMODULE> g_knownModules;
+std::vector<std::string> s_launcherExtras;
+static wchar_t s_macroQuestDirW[MAX_PATH] = { 0 };
+
 bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 {
-	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
-	if (szMacroQuestDir[0] == 0)
+	if (g_knownModules.count(hModule))
+		return getMacroQuestModules;
+
+	if (s_macroQuestDirW[0] == 0)
 	{
-		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
-		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+		::GetModuleFileNameW(ghModule, s_macroQuestDirW, MAX_PATH);
+		PathCchRemoveFileSpec(s_macroQuestDirW, MAX_PATH);
 	}
 
 	// Get the path to this module and then check if it is in the same folder as
@@ -7495,26 +7493,28 @@ bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 	wchar_t szModulePath[MAX_PATH];
 	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
 
-	int substr_pos = ci_find_substr_w(szModulePath, szMacroQuestDir);
-
-	return !getMacroQuestModules ? (substr_pos == -1) : (substr_pos == 0);
-}
-
-bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses)
-{
-	static wchar_t szMacroQuestDir[MAX_PATH] = { 0 };
-	if (szMacroQuestDir[0] == 0)
+	if (getMacroQuestModules)
 	{
-		::GetModuleFileNameW(ghModule, szMacroQuestDir, MAX_PATH);
-		PathCchRemoveFileSpec(szMacroQuestDir, MAX_PATH);
+		if (ci_find_substr(szModulePath, s_macroQuestDirW) == 0)
+		{
+			g_knownModules.insert(hModule);
+			return true;
+		}
+	}
+	else if (ci_find_substr(szModulePath, s_macroQuestDirW) == -1)
+	{
+		return true;
 	}
 
-	std::wstring wpath = mq::utf8_to_wstring(path);
-	int substr_pos = ci_find_substr_w(wpath, szMacroQuestDir);
+	return false;
+}
 
-	auto keys = GetPrivateProfileKeys("LauncherExtras", internal_paths::MQini);
-	std::vector<std::string> extras;
-	std::transform(keys.begin(), keys.end(), std::back_inserter(extras), [](const std::string& key)
+static void UpdateLauncherExtras()
+{
+	std::vector<std::string> keys = GetPrivateProfileKeys("LauncherExtras", internal_paths::MQini);
+	s_launcherExtras.clear();
+
+	std::transform(keys.begin(), keys.end(), std::back_inserter(s_launcherExtras), [](const std::string& key)
 		{
 			auto path = std::filesystem::path(GetPrivateProfileString("LauncherExtras", key.c_str(), "", internal_paths::MQini));
 			if (path.has_filename())
@@ -7523,15 +7523,79 @@ bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses)
 			return std::string();
 		});
 
-	extras.erase(std::remove_if(extras.begin(), extras.end(), [](const std::string& extra) { return extra.empty(); }), extras.end());
+	s_launcherExtras.erase(
+		std::remove_if(s_launcherExtras.begin(), s_launcherExtras.end(),
+			[](const std::string& extra) { return extra.empty(); }), s_launcherExtras.end());
+}
 
-	auto basename = std::filesystem::path(path).filename().string();
-	auto inlist = std::find_if(extras.begin(), extras.end(), [&basename](const std::string& extra) -> bool
+static bool IsLauncherExtra(std::string_view path)
+{
+	std::string basename = std::filesystem::path(path).filename().string();
+
+	if (std::find_if(s_launcherExtras.begin(), s_launcherExtras.end(),
+		[&basename](const std::string& extra) -> bool
 		{
 			return ci_equals(basename, extra);
-		}) != extras.end();
+		}) != s_launcherExtras.end())
+	{
+		return true;
+	}
 
-	return !getMacroQuestProcesses ? (substr_pos == -1 && !inlist) : (substr_pos == 0 || inlist);
+	static std::vector<std::string_view> s_otherNames = {
+		"MacroQuest",
+		"MQ2",
+		"MySEQ",
+		"ShowEQ",
+		"EQBC",
+		"RedGuides",
+		"MMOBugs",
+		"EQEmu",
+		"\\ida.exe"
+	};
+
+	for (std::string_view otherName : s_otherNames)
+	{
+		if (ci_find_substr(path, otherName) != -1)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses)
+{
+	if (s_macroQuestDirW[0] == 0)
+	{
+		::GetModuleFileNameW(ghModule, s_macroQuestDirW, MAX_PATH);
+		PathCchRemoveFileSpec(s_macroQuestDirW, MAX_PATH);
+	}
+
+	std::wstring wpath = mq::utf8_to_wstring(path);
+	int substr_pos = ci_find_substr(wpath, s_macroQuestDirW);
+
+	bool inList = IsLauncherExtra(path);
+	return !getMacroQuestProcesses ? (substr_pos == -1 && !inList) : (substr_pos == 0 || inList);
+}
+
+bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses)
+{
+	wil::unique_process_handle hProcess(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessID));
+	if (hProcess)
+	{
+		char process_name[MAX_PATH] = "";
+		DWORD size = MAX_PATH;
+
+		if (!QueryFullProcessImageNameA(hProcess.get(), 0, process_name, &size))
+		{
+			return false;
+		}
+
+		return IsMacroQuestProcess(process_name, getMacroQuestProcesses);
+	}
+
+	return false;
 }
 
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
@@ -7541,7 +7605,7 @@ bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
 	wchar_t szModulePath[MAX_PATH];
 	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
 
-	return ci_find_substr_w(szModulePath, searchString) != -1;
+	return ci_find_substr(szModulePath, searchString) != -1;
 }
 
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
@@ -7569,7 +7633,7 @@ bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcb
 	return result;
 }
 
-bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const std::function<bool(char[MAX_PATH])>& filter)
+bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const std::function<bool(std::string_view)>& filter)
 {
 	BOOL result = ((BOOL(WINAPI*)(DWORD*, DWORD, DWORD*))__ProcessList)(lpidProcess, cb, lpcbNeeded);
 
@@ -7580,20 +7644,23 @@ bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded, const
 		auto a1 = lpidProcess;
 		auto a2 = lpidProcess + (size / sizeof(DWORD));
 		auto a3 = lpidProcess + (cb / sizeof(DWORD));
+		UpdateLauncherExtras();
 
 		auto iter = std::remove_if(a1, a2, [&filter](DWORD lpidProcess)
 			{
-				HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, lpidProcess);
-				if (hProcess != NULL)
+				if (lpidProcess == 0)
+					return false;
+
+				wil::unique_process_handle hProcess(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, lpidProcess));
+				if (hProcess)
 				{
 					char process_name[MAX_PATH] = "";
 					DWORD size = MAX_PATH;
-					if (QueryFullProcessImageNameA(hProcess, 0, process_name, &size))
+
+					if (QueryFullProcessImageNameA(hProcess.get(), 0, process_name, &size))
 					{
-						CloseHandle(hProcess);
 						return filter(process_name);
 					}
-					CloseHandle(hProcess);
 				}
 
 				return true;
@@ -7642,15 +7709,11 @@ const char* GetTeleportName(DWORD id)
 	return "UNKNOWN";
 }
 
-int GetSubscriptionLevel()
+MembershipLevel GetMembershipLevel()
 {
-	if (EQADDR_SUBSCRIPTIONTYPE) {
-		if (uintptr_t dwsubtype = *(uintptr_t*)EQADDR_SUBSCRIPTIONTYPE) {
-			BYTE subtype = *(BYTE*)dwsubtype;
-			return subtype;
-		}
-	}
-	return 0;
+	FreeToPlayClient& client = FreeToPlayClient::Instance();
+
+	return client.MembershipLevel;
 }
 
 std::string GetCurrentUI()
@@ -7672,6 +7735,26 @@ std::string GetCurrentUI()
 		}
 	}
 	return "Default";
+}
+
+void FormatBytes(char* szBuffer, size_t bufferLength, uint64_t bytes)
+{
+	if (bytes < 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%d Bytes", static_cast<int>(bytes));
+	}
+	else if (bytes < 1024 * 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f KB", static_cast<float>(bytes) / 1024);
+	}
+	else if (bytes < 1024 * 1024 * 1024)
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f MB", static_cast<float>(bytes) / (1024 * 1024));
+	}
+	else
+	{
+		sprintf_s(szBuffer, bufferLength, "%.2f GB", static_cast<float>(bytes) / (1024 * 1024 * 1024));
+	}
 }
 
 } // namespace mq

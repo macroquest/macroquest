@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -61,6 +61,17 @@ void RegisterBindings_Globals(LuaThread* thread, sol::state_view state)
 		sol::unsafe_function require = sol::state_view(s)["_old_require"];
 		return require(args);
 	};
+
+	//----------------------------------------------------------------------------
+	// Internal helpers
+
+	sol::function arginfo = state.script(R"(
+		return function(f)
+			local info = debug.getinfo(f, "nu")
+			return info.name or 'unknown', info.namewhat or 'unk', info.nparams or -1, info.isvararg or false
+		end
+	)");
+	state.set_function("__command_arginfo", arginfo);
 }
 
 } // namespace mq::lua::bindings

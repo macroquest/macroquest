@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -105,7 +105,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	if (szLine && szLine[0] == '/')
 	{
 		uint64_t Start = MQGetTickCount64();
-		HideDoCommand(pChar, szLine, false);
+		DoCommand(szLine, false);
 
 		uint64_t Time = MQGetTickCount64() - Start;
 		WriteChatf("\ay%s\ax completed in \at%.2f\axs", szLine, static_cast<double>(Time) / 1000.);

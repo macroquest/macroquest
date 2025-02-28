@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,10 +15,9 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
-#pragma warning(push)
-#pragma warning(disable: 4244)
+#include "MQPluginHandler.h"
+
 #include <fmt/chrono.h>
-#pragma warning(pop)
 
 namespace mq {
 
@@ -72,9 +71,22 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 			if (gbTimeStampChat)
 			{
-				std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+				time_t curr_time;
+				time(&curr_time);
 
-				Trampoline(timeStampedMsg.c_str(), dwColor, EqLog, dopercentsubst);
+				std::tm local_tm;
+				localtime_s(&local_tm, &curr_time);
+
+				fmt::memory_buffer buffer;
+				auto out = fmt::format_to(fmt::appender(buffer),
+					"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
+				*out = 0;
+
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst, makeStmlSafe);
+#else
+				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst);
+#endif
 				SkipTrampoline = true;
 			}
 #endif // HAS_CHAT_TIMESTAMPS
@@ -113,9 +125,18 @@ public:
 #if HAS_CHAT_TIMESTAMPS
 		if (gbTimeStampChat)
 		{
-			std::string timeStampedMsg = fmt::format("[{:%H:%M:%S}] {}", std::chrono::system_clock::now(), szMsg);
+			time_t curr_time;
+			time(&curr_time);
 
-			TellWnd_Trampoline(timeStampedMsg.c_str(), from, windowtitle, text, color, bLogOk);
+			std::tm local_tm;
+			localtime_s(&local_tm, &curr_time);
+
+			fmt::memory_buffer buffer;
+			auto out = fmt::format_to(fmt::appender(buffer),
+				"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
+			*out = 0;
+
+			TellWnd_Trampoline(buffer.data(), from, windowtitle, text, color, bLogOk);
 			SkipTrampoline = true;
 		}
 #endif // HAS_CHAT_TIMESTAMPS
@@ -134,7 +155,7 @@ public:
 	void UPCNotificationFlush_Detour()
 	{
 		CEverQuest* eq = (CEverQuest*)this;
-		char szBuf[128] = { 0 };
+		char szBuf[MAX_STRING] = { 0 };
 
 		if (eq->ucNotificationCount > 0)
 		{
@@ -198,7 +219,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 
 	if (pLocalPlayer)
 	{
-		return static_cast<uint32_t>(strlen(ParseMacroParameter(pLocalPlayer, Value, ValueLen)));
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
 	}
 
 	return static_cast<uint32_t>(strlen(Value));

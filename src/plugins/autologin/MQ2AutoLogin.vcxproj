@@ -64,17 +64,18 @@
     <_ProjectFileVersion>11.0.51106.1</_ProjectFileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="AutoLoginShared.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="MQ2AutoLogin.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\login\login.vcxproj">
+      <Project>{b85c18a8-0d53-4e32-917e-f9bf30080b16}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\main\MQ2Main.vcxproj">
       <Project>{2a0a06a4-e9c6-4229-82ee-bd2d4e0a7221}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutoLoginShared.h" />
     <ClInclude Include="MQ2AutoLogin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

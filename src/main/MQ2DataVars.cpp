@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "MQDataAPI.h"
 
 #include <variant>
 
@@ -38,7 +39,7 @@ void DeleteMQ2DataVariable(MQDataVar* pVar)
 	delete pVar;
 }
 
-MQDataVar* FindMQ2DataVariable(const char* Name)
+MQDataVar* FindMacroVariable(const char* Name)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -71,6 +72,11 @@ MQDataVar* FindMQ2DataVariable(const char* Name)
 	}
 
 	return nullptr;
+}
+
+bool IsMacroVariable(const char* variableName)
+{
+	return FindMacroVariable(variableName) != nullptr;
 }
 
 using DefaultValueType = std::variant<const char*, MQTypeVar>;
@@ -132,7 +138,7 @@ static bool InitArrayValue(const std::shared_ptr<CDataArray>& pArray, const Defa
 	return false;
 }
 
-static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pType, MQDataVar** ppHead, const DefaultValueType& defaultValue)
+static bool AddMQ2DataEventVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const DefaultValueType& defaultValue)
 {
 	std::scoped_lock lock(s_dataVarMutex);
 
@@ -141,8 +147,9 @@ static bool AddMQ2DataEventVariable(const char* Name, char* Index, MQ2Type* pTyp
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
-		return false; // name in use
+	// Make sure that the name isn't already in use.
+	if (pDataAPI->FindTopLevelObject(Name) != nullptr || pDataAPI->FindDataType(Name) != nullptr)
+		return false;
 	if (!pType)
 		return false;
 
@@ -189,7 +196,7 @@ static bool AddMQ2DataVariableBy(const char* Name, const char* Index, MQ2Type* p
 	if (!Index)
 		Index = "";
 
-	if (FindMQ2DataVariable(Name) || FindMQ2Data(Name) || FindMQ2DataType(Name))
+	if (IsMacroVariable(Name) || pDataAPI->IsReservedName(Name))
 		return false; // name in use
 	if (!pType)
 		return false;
@@ -266,7 +273,7 @@ MQDataVar** FindVariableScope(const char* Name)
 
 bool DeleteMQ2DataVariable(const char* Name)
 {
-	if (MQDataVar * pVar = FindMQ2DataVariable(Name))
+	if (MQDataVar* pVar = FindMacroVariable(Name))
 	{
 		DeleteMQ2DataVariable(pVar);
 		return true;
@@ -289,15 +296,16 @@ void ClearMQ2DataVariables(MQDataVar** ppHead)
 	*ppHead = nullptr;
 }
 
-void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
+void DeclareVar(PlayerClient* pChar, const char* szLine)
 {
+	UNUSED(pChar);
+
 	if (!szLine[0])
 	{
 		SyntaxError("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local|bind] [default value]");
 		return;
 	}
 
-	MQDataVar** pScope = nullptr;
 	MQ2Type* pType = nullptr;
 
 	char szIndex[MAX_STRING] = { 0 };
@@ -305,19 +313,21 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 	GetArg(szName, szLine, 1);
 	char Arg[MAX_STRING] = { 0 };
 	GetArg(Arg, szLine, 2);
-	const char* pDefault = nullptr;
 
-	if (pScope = FindVariableScope(Arg))
+	MQDataVar** pScope = FindVariableScope(Arg);
+	const char* pDefault;
+
+	if (pScope)
 	{
 		// scope comes AFTER type, so next must be default
 		pDefault = GetNextArg(szLine, 2);
 	}
-	else if (pType = FindMQ2DataType(Arg))
+	else if ((pType = pDataAPI->FindDataType(Arg)))
 	{
 		// next is either scope or default
 		GetArg(Arg, szLine, 3);
 
-		if (pScope = FindVariableScope(Arg))
+		if ((pScope = FindVariableScope(Arg)))
 		{
 			// next is default
 			pDefault = GetNextArg(szLine, 3);
@@ -392,7 +402,7 @@ void NewDeclareVar(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void NewDeleteVarCmd(SPAWNINFO* pChar, char* szLine)
+void DeleteVarCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (szLine[0] == 0) {
 		SyntaxError("Usage: /deletevar <varname|* global>");
@@ -412,7 +422,7 @@ void NewDeleteVarCmd(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void NewVarset(SPAWNINFO* pChar, char* szLine)
+void VarSetCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -431,7 +441,7 @@ void NewVarset(SPAWNINFO* pChar, char* szLine)
 		strcpy_s(szIndex, &pBracket[1]);
 	}
 
-	MQDataVar* pVar = FindMQ2DataVariable(szName);
+	MQDataVar* pVar = FindMacroVariable(szName);
 	if (!pVar)
 	{
 		MacroError("/varset failed, variable '%s' not found", szName);
@@ -468,7 +478,7 @@ void NewVarset(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void NewVarcalc(SPAWNINFO* pChar, char* szLine)
+void VarCalcCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -503,7 +513,7 @@ void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 		strcpy_s(szIndex, &pBracket[1]);
 	}
 
-	MQDataVar* pVar = FindMQ2DataVariable(szName);
+	MQDataVar* pVar = FindMacroVariable(szName);
 	if (!pVar)
 	{
 		MacroError("/varcalc failed, variable '%s' not found", szName);
@@ -540,7 +550,7 @@ void NewVarcalc(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-void NewVardata(SPAWNINFO* pChar, char* szLine)
+void VarDataCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -551,13 +561,15 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	char szName[MAX_STRING] = { 0 };
 	GetArg(szName, szLine, 1);
 
-	// FIXME: This is a mutable pointer to szLine. We modify it in ParseMQ2DataPortion below.
-	char* szRest = GetNextArg(szLine);
-	if (!szRest || !szRest[0])
+	const char* nextArg = GetNextArg(szLine);
+	if (!nextArg || !nextArg[0])
 	{
 		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
+
+	char szRest[MAX_STRING] = { 0 };
+	strcpy_s(szRest, nextArg);
 
 	char szIndex[MAX_STRING] = { 0 };
 	if (char* pBracket = strchr(szName, '['))
@@ -566,7 +578,7 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 		strcpy_s(szIndex, &pBracket[1]);
 	}
 
-	MQDataVar* destVar = FindMQ2DataVariable(szName);
+	MQDataVar* destVar = FindMacroVariable(szName);
 	if (!destVar)
 	{
 		MacroError("/vardata '%s' failed, variable not found", szName);
@@ -574,14 +586,14 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 	}
 
 	MQTypeVar sourceVar;
-	if (!ParseMQ2DataPortion(szRest, sourceVar))
+	if (!pDataAPI->ParseMQ2DataPortion(szRest, sourceVar))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
 		return;
 	}
 
-	MQ2Type* destType = nullptr;
-	MQVarPtr* destData = nullptr;
+	MQ2Type* destType;
+	MQVarPtr* destData;
 	int num = -1;
 
 	if (szIndex[0])
@@ -634,14 +646,13 @@ void NewVardata(SPAWNINFO* pChar, char* szLine)
 
 static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 {
-	MQEventQueue* pEvent = nullptr;
 	if (!gEventFunc[Event])
 		return;
 
 	// this is deleted in 2 locations DoEvents and EndMacro
 	DebugSpewNoFile("Adding Event %d %s", Event, FirstArg);
 
-	pEvent = new MQEventQueue();
+	MQEventQueue* pEvent = new MQEventQueue();
 	pEvent->Name = FirstArg;
 	pEvent->Type = Event;
 
@@ -666,7 +677,7 @@ static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 
 				GetFuncParam(&line.Command[0], i, szParamName, MAX_STRING, szParamType, MAX_STRING);
 
-				MQ2Type* pType = FindMQ2DataType(szParamType);
+				MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 				if (!pType)
 					pType = pStringType;
 
@@ -684,8 +695,8 @@ static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 	}
 	else
 	{
-		MQEventQueue* pTemp = nullptr;
-		for (pTemp = gEventQueue; pTemp->pNext; pTemp = pTemp->pNext);
+		MQEventQueue* pTemp;
+		for (pTemp = gEventQueue; pTemp->pNext; pTemp = pTemp->pNext) {}
 		pTemp->pNext = pEvent;
 		pEvent->pPrev = pTemp;
 	}
@@ -695,8 +706,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 {
 	DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'", ID, pData, pValues, EventMsg);
 
-	MQEventList* pEList = (MQEventList*)pData;
-	MQEventQueue* pEvent = nullptr;
+	MQEventList* pEList = static_cast<MQEventList*>(pData);
 
 	if (!pEList->pEventFunc)
 	{
@@ -704,7 +714,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 		return;
 	}
 
-	pEvent = new MQEventQueue();
+	MQEventQueue* pEvent = new MQEventQueue();
 	if (!pEvent)
 		return;
 
@@ -720,7 +730,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 		GetFuncParam(&eventIter->second.Command[0], 0, szParamName, MAX_STRING, szParamType, MAX_STRING);
 	}
 
-	MQ2Type* pType = FindMQ2DataType(szParamType);
+	MQ2Type* pType = pDataAPI->FindDataType(szParamType);
 	if (!pType)
 		pType = pStringType;
 
@@ -736,7 +746,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 				GetFuncParam(&eventIter2->second.Command[0], GetIntFromString(pValues->Name, 0), szParamName, MAX_STRING, szParamType, MAX_STRING);
 			}
 
-			MQ2Type* pType2 = FindMQ2DataType(szParamType);
+			MQ2Type* pType2 = pDataAPI->FindDataType(szParamType);
 			if (!pType2)
 				pType2 = pStringType;
 
@@ -753,7 +763,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 	else
 	{
 		MQEventQueue* pTemp;
-		for (pTemp = gEventQueue; pTemp->pNext; pTemp = pTemp->pNext);
+		for (pTemp = gEventQueue; pTemp->pNext; pTemp = pTemp->pNext) {}
 		pTemp->pNext = pEvent;
 		pEvent->pPrev = pTemp;
 	}
@@ -776,12 +786,12 @@ static void TellCheck(const char* szClean)
 	bool isTell = false;
 	if (const char* pDest = strstr(szClean, " tells you, "))
 	{
-		strncpy_s(name, szClean, (int)(pDest - szClean));
+		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
 		isTell = true;
 	}
 	else if (pDest = strstr(szClean, " told you, "))
 	{
-		strncpy_s(name, szClean, (int)(pDest - szClean));
+		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
 		isTell = true;
 	}
 
@@ -1003,6 +1013,25 @@ void DropTimers()
 			}
 		}
 		pTimer = pTimer->pNext;
+	}
+}
+
+namespace detail
+{
+	void PrintMacroDataConversionError(const char* fromType, const char* toType)
+	{
+		WriteChatf("Tried to convert unlike types %s and %s", fromType, toType);
+
+		if (gMacroBlock != nullptr && gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
+		{
+			WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
+		}
+
+		if (gMacroStack != nullptr)
+		{
+			char buf[MAX_STRING];
+			WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
+		}
 	}
 }
 

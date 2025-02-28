@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <tuple>
 
+#include <glm/glm.hpp>
 #include <fmt/format.h>
 
 // ***************************************************************************
@@ -1353,14 +1354,13 @@ static bool AddMapFilterOptionAsImGuiSetting(MapFilterOption* option, std::stack
 		ImGui::SameLine();
 
 		mq::imgui::HelpMarker(
-			[&]() -> const std::string
+			[&](char* buffer, size_t length)
 			{
-				std::string requireString = "Requires: ";
+				strcpy_s(buffer, length, "Requires: ");
 				if (requirement.IsObject() != option->IsObject())
-					requireString += requirement.IsObject() ? "Object Filters -> " : "Options -> ";
+					strcat_s(buffer, length, requirement.IsObject() ? "Object Filters -> " : "Options -> ");
 
-				requireString += std::string(requirement.szName);
-				return requireString;
+				strcat_s(buffer, length, requirement.szName);
 			}
 		);
 	}

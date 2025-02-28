@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -29,8 +29,6 @@ struct CaseInsensitiveLess
 	}
 };
 
-struct IDirect3DDevice9;
-
 // Probably move these to eqlib but for now these are all contained within MQ
 #if defined(EMULATOR)
 #define HAS_CHAT_TIMESTAMPS 1
@@ -57,7 +55,6 @@ MQLIB_API uint32_t bmPluginsCleanUI;
 MQLIB_API uint32_t bmPluginsReloadUI;
 MQLIB_API uint32_t bmPluginsDrawHUD;
 MQLIB_API uint32_t bmPluginsSetGameState;
-MQLIB_API uint32_t bmParseMacroParameter;
 MQLIB_API uint32_t bmUpdateSpawnSort;
 MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;
@@ -241,15 +238,11 @@ MQLIB_VAR MQFilter* gpFilters;
 // TODO: Change to use case insensitive comparison
 MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
-MQLIB_VAR MOUSESPOOF* gMouseData;
-
-MQLIB_VAR DWORD gGameState;
+MQLIB_VAR int gGameState;
 MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;
 
-
 MQLIB_VAR bool gMouseClickInProgress[8];
-MQLIB_VAR bool bDetMouse;
 
 // ***************************************************************************
 // String arrays
@@ -277,27 +270,27 @@ MQLIB_API uint32_t GetExpansionNumber(std::string_view expansionName);
 
 MQLIB_VAR const char* szWornLoc[];
 
-MQLIB_VAR fEQCommand            cmdHelp;
-MQLIB_VAR fEQCommand            cmdWho;
-MQLIB_VAR fEQCommand            cmdWhoTarget;
-MQLIB_VAR fEQCommand            cmdLocation;
-MQLIB_VAR fEQCommand            cmdFace;
-MQLIB_VAR fEQCommand            cmdTarget;
-MQLIB_VAR fEQCommand            cmdCharInfo;
-MQLIB_VAR fEQCommand            cmdFilter;
-MQLIB_VAR fEQCommand            cmdDoAbility;
-MQLIB_VAR fEQCommand            cmdCast;
-MQLIB_VAR fEQCommand            cmdUseItem;
-MQLIB_VAR fEQCommand            cmdHotbutton;
-MQLIB_VAR fEQCommand            cmdTaskQuit;
-MQLIB_VAR fEQCommand            cmdPet;
-MQLIB_VAR fEQCommand            cmdMercSwitch;
-MQLIB_VAR fEQCommand            cmdAdvLoot;
-MQLIB_VAR fEQCommand            cmdPickZone;
-MQLIB_VAR fEQCommand            cmdAssist;
-MQLIB_VAR fEQCommand            cmdQuit;
+MQLIB_VAR fEQCommand cmdHelp;
+MQLIB_VAR fEQCommand cmdWho;
+MQLIB_VAR fEQCommand cmdWhoTarget;
+MQLIB_VAR fEQCommand cmdLocation;
+MQLIB_VAR fEQCommand cmdFace;
+MQLIB_VAR fEQCommand cmdTarget;
+MQLIB_VAR fEQCommand cmdCharInfo;
+MQLIB_VAR fEQCommand cmdFilter;
+MQLIB_VAR fEQCommand cmdDoAbility;
+MQLIB_VAR fEQCommand cmdCast;
+MQLIB_VAR fEQCommand cmdUseItem;
+MQLIB_VAR fEQCommand cmdHotbutton;
+MQLIB_VAR fEQCommand cmdTaskQuit;
+MQLIB_VAR fEQCommand cmdPet;
+MQLIB_VAR fEQCommand cmdMercSwitch;
+MQLIB_VAR fEQCommand cmdAdvLoot;
+MQLIB_VAR fEQCommand cmdPickZone;
+MQLIB_VAR fEQCommand cmdAssist;
+MQLIB_VAR fEQCommand cmdQuit;
 
-MQLIB_VAR fEQGetMelee           get_melee_range;
+MQLIB_VAR fEQGetMelee get_melee_range;
 
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
@@ -334,11 +327,6 @@ const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
 MQLIB_VAR int gParserVersion;
-
-/* OVERLAY GLOBALS */
-MQLIB_VAR IDirect3DDevice9* gpD3D9Device;
-MQLIB_VAR bool gbDeviceAcquired;
-MQLIB_VAR bool gbDeviceHooksInstalled;
 
 /* DEPRECATION GLOBALS */
 MQLIB_VAR int gbGroundDeprecateCount;

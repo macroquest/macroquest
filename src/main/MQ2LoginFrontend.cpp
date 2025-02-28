@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
+#include "MQPluginHandler.h"
 
 // "LoginFrontend" or just "Frontend" refers to the UI part of EQ that contains login
 // and server select. This is contained in eqmain, and its functions are only available

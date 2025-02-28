@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,6 +15,9 @@
 #pragma once
 
 #include "mq/api/MacroAPI.h"
+#include "mq/api/Main.h"
+#include "mq/api/PluginAPI.h"
+#include "mq/base/PluginHandle.h"
 
 #include <map>
 #include <memory>
@@ -23,12 +26,6 @@
 #include <variant>
 
 namespace mq {
-
-namespace datatypes {
-class MQ2Type;
-}
-
-using datatypes::MQ2Type;
 
 enum eAdventureTheme
 {
@@ -337,8 +334,6 @@ struct MQBindList
 
 	MQBindList* pNext = nullptr;
 };
-using BINDLIST DEPRECATE("Use MQBindList instead of BINDLIST") = MQBindList;
-using PBINDLIST DEPRECATE("Use MQBindList* instead of PBINDLIST") = MQBindList *;
 
 struct MQFilter
 {
@@ -364,73 +359,6 @@ struct MQGroundPending
 	MQGroundPending* pNext = nullptr;
 };
 
-// Base Class for all Plugin interface subclasses
-class MQLIB_OBJECT PluginInterface
-{
-public:
-	virtual ~PluginInterface() {}
-};
-
-// Plugin Function Types
-using fMQWriteChatColor      = DWORD  (*)(const char*, DWORD, DWORD);
-using fMQPulse               = void   (*)();
-using fMQIncomingChat        = bool   (*)(const char* Line, DWORD Color);
-using fMQInitializePlugin    = void   (*)();
-using fMQShutdownPlugin      = void   (*)();
-using fMQZoned               = void   (*)();
-using fMQReloadUI            = void   (*)();
-using fMQCleanUI             = void   (*)();
-using fMQDrawHUD             = void   (*)();
-using fMQSetGameState        = void   (*)(DWORD GameState);
-using fMQSpawn               = void   (*)(SPAWNINFO*);
-using fMQGroundItem          = void   (*)(GROUNDITEM*);
-using fMQBeginZone           = void   (*)();
-using fMQEndZone             = void   (*)();
-using fMQUpdateImGui         = void   (*)();
-using fMQMacroStart          = void   (*)(const char*);
-using fMQMacroStop           = void   (*)(const char*);
-using fMQLoadPlugin          = void   (*)(const char*);
-using fMQUnloadPlugin        = void   (*)(const char*);
-using fMQGetPluginInterface  = PluginInterface* (*)();
-
-struct MQPlugin
-{
-	char                 szFilename[MAX_PATH] = { 0 };
-	std::string          name;
-	HMODULE              hModule = nullptr;
-	float                fpVersion = 1.0;
-	bool                 bCustom = false;
-	fMQInitializePlugin  Initialize = 0;
-	fMQShutdownPlugin    Shutdown = 0;
-	fMQZoned             Zoned = 0;
-	fMQWriteChatColor    WriteChatColor = 0;
-	fMQPulse             Pulse = 0;
-	fMQIncomingChat      IncomingChat = 0;
-	fMQCleanUI           CleanUI = 0;
-	fMQReloadUI          ReloadUI = 0;
-	fMQDrawHUD           DrawHUD = 0;
-	fMQSetGameState      SetGameState = 0;
-	fMQSpawn             AddSpawn = 0;
-	fMQSpawn             RemoveSpawn = 0;
-	fMQGroundItem        AddGroundItem = 0;
-	fMQGroundItem        RemoveGroundItem = 0;
-	fMQBeginZone         BeginZone = 0;
-	fMQEndZone           EndZone = 0;
-	fMQUpdateImGui       UpdateImGui = 0;
-	fMQMacroStart        MacroStart = 0;
-	fMQMacroStop         MacroStop = 0;
-	fMQLoadPlugin        LoadPlugin = 0;
-	fMQUnloadPlugin      UnloadPlugin = 0;
-	fMQGetPluginInterface GetPluginInterface = 0;
-
-	MQPlugin* pLast = nullptr;
-	MQPlugin* pNext = nullptr;
-};
-using PMQPLUGIN DEPRECATE("Use MQPlugin* instead of PMQPLUGIN") = MQPlugin*;
-using MQPLUGIN DEPRECATE("Use MQPlugin instead of MQPLUGIN") = MQPlugin;
-
-
-
 // Like lightweight plugins, but these are internal to mq2main
 struct MQModule
 {
@@ -449,6 +377,9 @@ struct MQModule
 	fMQEndZone           EndZone = 0;
 	fMQLoadPlugin        LoadPlugin = 0;
 	fMQUnloadPlugin      UnloadPlugin = 0;
+	fMQCleanUI           CleanUI = 0;
+	fMQReloadUI          ReloadUI = 0;
+	fMQPostUnloadPlugin  OnPostUnloadPlugin = 0;
 
 	bool                 loaded = false;
 	bool                 manualUnload = false;
@@ -480,8 +411,10 @@ struct ModuleInitializer
 #endif
 
 #define DECLARE_MODULE_INITIALIZER(moduleRecord) \
-		extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
-		FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
+	extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
+	FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
+
+
 
 //============================================================================
 
@@ -512,18 +445,18 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const CXStr& screenpiece)
-		: CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const CXStr& screenpiece)
+		: CSidlScreenWnd(nullptr, screenpiece, eIniFlag_All)
 	{
 		Init();
 	}
 
-	CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
 	{
 		Init();
 	}
 
-	~CCustomWnd()
+	~CCustomWnd() override
 	{
 	}
 
@@ -548,7 +481,7 @@ public:
 	{
 	}
 
-	~CCustomMenu()
+	~CCustomMenu() override
 	{
 	}
 };
@@ -654,416 +587,6 @@ private:
 	Any* m_list = nullptr;
 	std::recursive_mutex m_mutex;
 };
-
-//============================================================================
-
-namespace detail {
-
-	template <typename T>
-	constexpr bool is_shared_ptr = false;
-
-	template <typename T>
-	constexpr bool is_shared_ptr<std::shared_ptr<T>> = true;
-
-	template <typename T>
-	struct shared_ptr_element_type { using type = T; };
-
-	template <typename T>
-	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
-
-	template <typename From, typename To>
-	static void ConvertData(const From& input, std::optional<To>& output)
-	{
-		if constexpr (std::is_convertible_v<From, To>)
-			output = static_cast<To>(input);
-		else
-		{
-			WriteChatf("Tried to convert unlike types %s and %s", type_name<From>().c_str(), type_name<To>().c_str());
-
-			if (gMacroBlock != nullptr && gMacroBlock->Line.find(gMacroBlock->CurrIndex) != gMacroBlock->Line.end())
-			{
-				WriteChatf("%s: %d", gMacroBlock->Line.at(gMacroBlock->CurrIndex).SourceFile.c_str(), gMacroBlock->Line.at(gMacroBlock->CurrIndex).LineNumber);
-			}
-
-			if (gMacroStack != nullptr)
-			{
-				char buf[MAX_STRING];
-				WriteChatf("%s", GetSubFromLine(gMacroStack->LocationIndex, buf, MAX_STRING));
-			}
-		}
-	}
-}
-
-template <typename T>
-static constexpr auto type_name() noexcept
-{
-	std::string_view name = __FUNCSIG__
-		, prefix = "auto __cdecl mq::type_name<"
-		, suffix = ">(void) noexcept";
-
-	name.remove_prefix(prefix.size());
-	name.remove_suffix(suffix.size());
-	return std::string(name);
-}
-
-struct MQVarPtr
-{
-	using MQVariant = std::variant<
-		void*,
-		bool,
-		float,
-		double,
-		uint64_t,
-		std::shared_ptr<void>,
-		CXStr,
-		ItemPtr
-	>;
-
-	MQVariant Data;
-
-	// HighPart is slightly more complicated, but only just. We just save off the HighPart in this member variable unless
-	// the underlying data is uint64_t -- and we will prefer to store the uint32_t variant when setting
-	uint32_t HighPart_ = 0;
-
-	enum class VariantIdx
-	{
-		Ptr = 0,
-		Bool,
-		Float,
-		Double,
-		UInt64,
-		ComplexObject,
-		String,
-		Item,
-	};
-
-	bool IsType(VariantIdx Index) const { return Data.index() == static_cast<size_t>(Index); }
-	VariantIdx GetType() const { return static_cast<VariantIdx>(Data.index()); }
-
-	bool operator==(const MQVarPtr& other) const
-	{
-		// this is a strict equals check, will be false if the underlying data type is not the same
-		// if you want to compare unlike types, you will need to first actualize the variant
-		return this->Data == other.Data;
-	}
-
-	template <typename T>
-	T Cast() const
-	{
-		// These type aliases will mask the underlying type in diagnostic messages.
-		//using ToType = T;
-		//using FromType = ;
-
-		std::optional<T> to;
-
-		auto visitor = [&to, this](const auto& from)
-		{
-			detail::ConvertData<std::decay_t<decltype(from)>, T>(from, to);
-		};
-
-		std::visit(visitor, Data);
-		return to.value_or(T());
-	}
-
-	template <typename T>
-	struct ReturnType {
-		using type = std::conditional_t<detail::is_shared_ptr<T>, T, std::shared_ptr<T>>;
-		using value_type = typename detail::shared_ptr_element_type<T>::type;
-	};
-
-	template <typename T>
-	typename ReturnType<T>::type Set(T Object)
-	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::shared_ptr<T>(new T(std::move(Object)),
-			[](T* ptr) { if constexpr (std::is_array_v<T>) delete[] ptr; else delete ptr; })));
-	}
-
-	template <typename T>
-	typename ReturnType<T>::type Set(std::shared_ptr<T> Object)
-	{
-		return std::static_pointer_cast<T>(std::get<std::shared_ptr<void>>(Data = std::move(Object)));
-	}
-
-	template <typename T>
-	typename ReturnType<T>::type Get() const
-	{
-		using value_type = ReturnType<T>::value_type;
-		using return_type = ReturnType<T>::type;
-
-		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
-			return return_type();
-
-		return std::static_pointer_cast<value_type>(std::get<std::shared_ptr<void>>(Data));
-	}
-
-	template <> struct ReturnType<CXStr> { using type = CXStr; };
-
-	template <>
-	CXStr Set<CXStr>(CXStr string)
-	{
-		return std::get<CXStr>(Data = std::move(string));
-	}
-
-	// this function is special to allow us to set a CXStr from a string_view without needing extra allocations
-	CXStr SetString(std::string_view string)
-	{
-		return std::get<CXStr>(Data = CXStr(string));
-	}
-
-	template <>
-	CXStr Get<CXStr>() const
-	{
-		if (Data.index() != static_cast<size_t>(VariantIdx::String))
-			return CXStr();
-
-		return std::get<CXStr>(Data);
-	}
-
-	template <> struct ReturnType<ItemPtr> { using type = ItemPtr; };
-
-	template <>
-	ItemPtr Set<ItemPtr>(ItemPtr pItem)
-	{
-		return std::get<ItemPtr>(Data = std::move(pItem));
-	}
-
-	template <>
-	ItemPtr Get<ItemPtr>() const
-	{
-		if (Data.index() != static_cast<size_t>(VariantIdx::Item))
-			return ItemPtr();
-
-		return std::get<ItemPtr>(Data);
-	}
-
-	// Specializations for integer types
-#define MQVARPTR_INTSPECIALIZE(Type) \
-	template <> struct ReturnType<Type> { using type = Type; }; \
-	template <> Type Set<Type>(Type Val) { return static_cast<Type>(std::get<uint64_t>(Data = static_cast<uint64_t>(Val))); } \
-	template <> Type Get<Type>() const { return static_cast<Type>(Cast<uint64_t>()); }
-	MQVARPTR_INTSPECIALIZE(int8_t);
-	MQVARPTR_INTSPECIALIZE(uint8_t);
-	MQVARPTR_INTSPECIALIZE(int16_t);
-	MQVARPTR_INTSPECIALIZE(uint16_t);
-	MQVARPTR_INTSPECIALIZE(int32_t);
-	MQVARPTR_INTSPECIALIZE(uint32_t);
-	MQVARPTR_INTSPECIALIZE(int64_t);
-#undef MQVARPTR_INTSPECIALIZE
-
-#define MQVARPTR_SPECIALIZE(Type) \
-	template<> struct ReturnType<Type> { using type = Type; }; \
-	template<> Type Set<Type>(Type Val) { return std::get<Type>(Data = Val); } \
-	template<> Type Get<Type>() const { return Cast<Type>(); }
-	MQVARPTR_SPECIALIZE(void*);
-	MQVARPTR_SPECIALIZE(bool);
-	MQVARPTR_SPECIALIZE(float);
-	MQVARPTR_SPECIALIZE(double);
-	MQVARPTR_SPECIALIZE(uint64_t);
-#undef MQVARPTR_SPECIALIZE
-
-#define MQVARPTR_PROPERTIES(Type, Prop) \
-	Type set_##Prop(Type Val) { return Set<Type>(Val); } \
-	Type get_##Prop() const { return Get<Type>(); } \
-	__declspec(property(get = get_##Prop, put = set_##Prop)) Type Prop;
-	// TODO: Future work -- deprecate all of these in favor of Get/Set
-	MQVARPTR_PROPERTIES(void*, Ptr);
-	MQVARPTR_PROPERTIES(float, Float);
-	MQVARPTR_PROPERTIES(int32_t, Int);
-	MQVARPTR_PROPERTIES(uint32_t, DWord);
-	MQVARPTR_PROPERTIES(double, Double);
-	MQVARPTR_PROPERTIES(int64_t, Int64);
-	MQVARPTR_PROPERTIES(uint64_t, UInt64);
-	MQVARPTR_PROPERTIES(ItemPtr, Item);
-#undef MQVARPTR_PROPERTIES
-
-	// TODO: Future work -- uncomment the deprecates and refactor all uses of high/low part
-	// these are here only to support deprecated functionality where some types rely on storing ints in low and high parts
-	//DEPRECATE("Use Get<uint32_t>() instead of LowPart. For data needing High and Low part, create a data structure instead.")
-	uint32_t get_LowPart() const { return Get<uint32_t>(); }
-
-	//DEPRECATE("Use Set<uint32_t>(v) instead of LowPart. For data needing High and Low part, create a data structure instead.")
-	uint32_t set_LowPart(uint32_t Val)
-	{
-		// we can assume that if the user wanted to also set HighPart, they did it explicitly either before or after setting
-		// LowPart, which falls into 2 cases. Either the underlying data was set before the 64-bit, or it wasn't (either the
-		// the default or an explicit 32-bit/pointer value).
-
-		// first check if we have 64-bit Data -- we only need to worry about unsigned because this trick wouldn't work with signed
-		// data without some explicit or implicit casting to unsigned
-		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
-		{
-			// if so, we need to save the HighPart off before setting the low part, then retain the data type in the variant
-			ULARGE_INTEGER i;
-			i.QuadPart = Get<uint64_t>();
-			i.LowPart = Val;
-			Set<uint64_t>(i.QuadPart);
-			return i.LowPart;
-		}
-
-		// if we get here, we don't have 64-bit data, so HighPart is either unset, or set in the convenience variable above
-		// we can just set the LowPart as uint32_t
-		return Set<uint32_t>(Val);
-	}
-
-#pragma warning(suppress: 4996)
-	__declspec(property(get = get_LowPart, put = set_LowPart)) uint32_t LowPart;
-
-	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
-	uint32_t get_HighPart() const
-	{
-		// this data is only stored in Data if the type of variant is UInt64
-		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
-		{
-			ULARGE_INTEGER i;
-			i.QuadPart = Get<uint64_t>();
-			return i.HighPart;
-		}
-
-		// otherwise, just return the extra storage information
-		return HighPart_;
-	}
-
-	//DEPRECATE("For data needing High and Low part, create a data structure instead.")
-	uint32_t set_HighPart(uint32_t Val)
-	{
-		// again, check if we  have already set the underlying data type to uint64_t
-		if (Data.index() == static_cast<size_t>(VariantIdx::UInt64))
-		{
-			ULARGE_INTEGER i;
-			i.QuadPart = Get<uint64_t>();
-			i.HighPart = Val;
-			Set<uint64_t>(i.QuadPart);
-			return i.HighPart;
-		}
-
-		// otherwise, just set the extra storage information and move on
-		HighPart_ = Val;
-		return HighPart_;
-	}
-
-#pragma warning(disable: 4996)
-	__declspec(property(get = get_HighPart, put = set_HighPart)) uint32_t HighPart;
-#pragma warning(default: 4996)
-
-	ARGBCOLOR get_Argb() const
-	{
-		auto ptr = Get<ARGBCOLOR>();
-		if (ptr != nullptr)
-			return *ptr;
-
-		return { { 0, 0, 0, 0 } };
-	}
-
-	ARGBCOLOR set_Argb(ARGBCOLOR Val)
-	{
-		// this is a bit of a cowboy deref, but we are guaranteed that Set constructs a new shared pointer
-		return *Set<ARGBCOLOR>(Val);
-	}
-
-	__declspec(property(get = get_Argb, put = set_Argb)) ARGBCOLOR Argb;
-
-	MQVarPtr() = default;
-
-	MQVarPtr(const MQVarPtr& other)
-		: Data(other.Data)
-		, HighPart_(other.HighPart_)
-	{
-	}
-
-	MQVarPtr(MQVarPtr&& other)
-		: Data(std::move(other.Data))
-		, HighPart_(other.HighPart_)
-	{
-	}
-
-	MQVarPtr& operator=(MQVarPtr&& other)
-	{
-		Data = std::move(other.Data);
-		HighPart_ = other.HighPart_;
-
-		return *this;
-	}
-
-	MQVarPtr& operator=(const MQVarPtr& other)
-	{
-		Data = other.Data;
-		HighPart_ = other.HighPart_;
-
-		return *this;
-	}
-
-	template <typename T>
-	static MQVarPtr Create(T&& Data)
-	{
-		MQVarPtr VarPtr;
-		VarPtr.Set(std::forward<T>(Data));
-		return VarPtr;
-	}
-
-};
-using MQ2VARPTR DEPRECATE("Use MQVarPtr instead of MQ2VARPTR.") = MQVarPtr;
-using PMQ2VARPTR DEPRECATE("Use MQVarPtr* instead of PMQ2VARPTR.") = MQVarPtr*;
-
-struct MQTypeVar : public MQVarPtr
-{
-	MQ2Type* Type = nullptr;
-
-	bool operator==(const MQTypeVar& other) const
-	{
-		return Type == other.Type && this->MQVarPtr::operator==(other);
-	}
-
-	MQVarPtr& GetVarPtr() { return *this; }
-	const MQVarPtr& GetVarPtr() const { return *this; }
-
-	MQVarPtr& SetVarPtr(const MQVarPtr& VarPtr) { static_cast<MQVarPtr&>(*this) = VarPtr; return *this; }
-	__declspec(property(get = GetVarPtr, put = SetVarPtr)) MQVarPtr VarPtr;
-};
-using MQ2TYPEVAR DEPRECATE("Use MQTypeVar instead of MQ2TYPEVAR") = MQTypeVar;
-using PMQ2TYPEVAR DEPRECATE("Use MQTypeVar* instead of PMQ2TYPEVAR") = MQTypeVar;
-
-struct MQTypeMember
-{
-	int          ID;
-	uint32_t     Type;
-	const char*  Name;
-
-	MQTypeMember(int ID, const char* Name)
-		: ID(ID), Name(Name), Type(0) {}
-	MQTypeMember(int ID, const char* Name, uint32_t Type)
-		: ID(ID), Name(Name), Type(Type) {}
-};
-using MQ2TYPEMEMBER DEPRECATE("Use MQTypeMember instead of MQ2TYPEMEMBER") = MQTypeMember;
-using PMQ2TYPEMEMBER DEPRECATE("Use MQTypeMember* instead of PMQ2TYPEMEMBER") = MQTypeMember*;
-
-struct MQDataItem
-{
-	std::string Name;
-	MQTopLevelObjectFunction Function;
-};
-using MQ2DATAITEM DEPRECATE("Use MQDataItem instead of MQ2DATAITEM") = MQDataItem;
-using PMQ2DATAITEM DEPRECATE("Use MQDataItem* instead of PMQ2DATAITEM") = MQDataItem*;
-
-struct MQDataVar
-{
-	char szName[MAX_STRING];
-	MQTypeVar Var;
-
-	MQDataVar* pNext;
-	MQDataVar* pPrev;
-	MQDataVar** ppHead;
-};
-using PDATAVAR DEPRECATE("Use MQDataVar* instead of PDATAVAR") = MQDataVar*;
-using DATAVAR DEPRECATE("Use MQDataVar instead of DATAVAR") = MQDataVar;
-
-// MQ2Hud is using this...
-MQLIB_VAR MQDataVar* FindMQ2DataVariable(const char* Name);
-
-bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
-bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
-MQDataVar** FindVariableScope(const char* Name);
-bool DeleteMQ2DataVariable(const char* Name);
-void ClearMQ2DataVariables(MQDataVar** ppHead);
 
 //============================================================================
 
@@ -1340,126 +863,108 @@ public:
 
 void RefreshKeyRingWindow();
 
-
-//----------------------------------------------------------------------------
-// TODO: Put this somewhere in a more shared location
-
-
-/** this function does not consider the current locale and only
-works with ASCII digits.
-@return true if c is a digit character
-*/
-inline bool alphanum_isdigit(const char c)
-{
-	return c >= '0' && c <= '9';
-}
-
-/**
-	compare l and r with strcmp() semantics, but using
-	the "Alphanum Algorithm". This function is designed to read
-	through the l and r strings only one time, for
-	maximum performance. It does not allocate memory for
-	substrings. It can either use the C-library functions isdigit()
-	and atoi() to honour your locale settings, when recognizing
-	digit characters when you "#define ALPHANUM_LOCALE=1" or use
-	it's own digit character handling which only works with ASCII
-	digit characters, but provides better performance.
-
-	@param l NULL-terminated C-style string
-	@param r NULL-terminated C-style string
-	@return negative if l<r, 0 if l equals r, positive if l>r
-*/
-inline int alphanum_comp(std::string_view lsv, std::string_view rsv)
-{
-	enum mode_t { STRING, NUMBER } mode = STRING;
-	auto l = lsv.begin();
-	auto r = rsv.begin();
-
-	while (l != lsv.end() && r != rsv.end())
-	{
-		if (mode == STRING)
-		{
-			char l_char, r_char;
-			while (l != lsv.end() && (l_char = *l) && r != rsv.end() && (r_char = *r))
-			{
-				// check if this are digit characters
-				const bool l_digit = alphanum_isdigit(l_char), r_digit = alphanum_isdigit(r_char);
-				// if both characters are digits, we continue in NUMBER mode
-				if (l_digit && r_digit)
-				{
-					mode = NUMBER;
-					break;
-				}
-				// if only the left character is a digit, we have a result
-				if (l_digit) return -1;
-				// if only the right character is a digit, we have a result
-				if (r_digit) return +1;
-				// compute the difference of both characters
-				const int diff = l_char - r_char;
-				// if they differ we have a result
-				if (diff != 0) return diff;
-				// otherwise process the next characters
-				++l;
-				++r;
-			}
-		}
-		else // mode==NUMBER
-		{
-			// get the left number
-			unsigned long l_int = 0;
-			while (l != lsv.end() && alphanum_isdigit(*l))
-			{
-				// TODO: this can overflow
-				l_int = l_int * 10 + *l - '0';
-				++l;
-			}
-
-			// get the right number
-			unsigned long r_int = 0;
-			while (r != rsv.end() && alphanum_isdigit(*r))
-			{
-				// TODO: this can overflow
-				r_int = r_int * 10 + *r - '0';
-				++r;
-			}
-
-			// if the difference is not equal to zero, we have a comparison result
-			const long diff = l_int - r_int;
-			if (diff != 0)
-				return diff;
-
-			// otherwise we process the next substring in STRING mode
-			mode = STRING;
-		}
-	}
-
-	if (r != rsv.end()) return -1;
-	if (l != lsv.end()) return +1;
-	return 0;
-}
-
-/**
-   Functor class to compare two objects with the "Alphanum
-   Algorithm".
-*/
-template <class Ty>
-struct alphanum_less
-{
-	bool operator()(const Ty& left, const Ty& right) const
-	{
-		return alphanum_comp(left, right) < 0;
-	}
-};
-
 //----------------------------------------------------------------------------
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
 	const std::function<bool(HMODULE)>& filter);
 bool GetFilteredProcesses(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded,
-	const std::function<bool(char[MAX_PATH])>& filter);
+	const std::function<bool(std::string_view)>& filter);
 std::string GetProcessName(DWORD processID);
 bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules = false);
-bool IsMacroQuestProcess(char path[MAX_PATH], bool getMacroQuestProcesses = false);
+bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses = false);
+bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses = false);
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 std::string GetCurrentUI();
+
+//----------------------------------------------------------------------------
+
+class MainImpl : public MainInterface
+{
+public:
+	MainImpl();
+	~MainImpl() override;
+
+	void DoMainThreadInitialization();
+
+	bool AddTopLevelObject(
+		const char* name,
+		MQTopLevelObjectFunction callback,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool RemoveTopLevelObject(
+		const char* name,
+		const MQPluginHandle& pluginHandle) override;
+
+	MQTopLevelObject* FindTopLevelObject(const char* name) override;
+
+	void SendToActor(
+		postoffice::Dropbox* dropbox,
+		const postoffice::Address& address,
+		const std::string& data,
+		const postoffice::ResponseCallbackAPI& callback,
+		const MQPluginHandle& pluginHandle) override;
+
+	void ReplyToActor(
+		postoffice::Dropbox* dropbox,
+		const std::shared_ptr<postoffice::Message>& message,
+		const std::string& data,
+		uint8_t status,
+		const MQPluginHandle& pluginHandle) override;
+
+	postoffice::Dropbox* AddActor(
+		const char* localAddress,
+		postoffice::ReceiveCallbackAPI&& receive,
+		const MQPluginHandle& pluginHandle) override;
+
+	void RemoveActor(
+		postoffice::Dropbox*& dropbox,
+		const MQPluginHandle& pluginHandle) override;
+
+	// Commands
+	bool AddCommand(
+		std::string_view command,
+		MQCommandHandler handler,
+		bool eq,
+		bool parse,
+		bool inGame,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool RemoveCommand(
+		std::string_view command,
+		const MQPluginHandle& pluginHandle) override;
+
+	bool IsCommand(std::string_view command) const override;
+
+	void DoCommand(
+		const char* command,
+		bool delayed,
+		const MQPluginHandle& pluginHandle) override;
+
+	void TimedCommand(
+		const char* command,
+		int msDelay,
+		const MQPluginHandle& pluginHandle) override;
+
+	// Aliases
+	bool AddAlias(
+		const std::string& shortCommand,
+		const std::string& longCommand,
+		bool persist,
+		const MQPluginHandle& pluginHandle) override;
+	bool RemoveAlias(
+		const std::string& shortCommand,
+		const MQPluginHandle& pluginHandle) override;
+	bool IsAlias(
+		const std::string& alias) const override;
+
+	// Detours
+	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
+		const MQPluginHandle& pluginHandle) override;
+	bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
+	bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
+};
+
+extern MainImpl* gpMainAPI;
+
+MQPluginHandle CreatePluginHandle();
 
 } // namespace mq

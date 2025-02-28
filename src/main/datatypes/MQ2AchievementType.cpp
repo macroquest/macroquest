@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -463,10 +463,7 @@ bool MQ2AchievementType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 
 bool MQ2AchievementType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	AchievementManager& mgr = AchievementManager::Instance();
-
-	int achievementIndex = VarPtr.Int;
-	const eqlib::Achievement* achievement = mgr.GetAchievementByIndex(VarPtr.Int);
+	const eqlib::Achievement* achievement = GetAchievement(VarPtr);
 	if (!achievement)
 		return false;
 	
@@ -502,6 +499,17 @@ bool MQ2AchievementType::FromString(MQVarPtr& VarPtr, const char* Source)
 	}
 
 	return VarPtr.Int != -1;
+}
+
+
+const Achievement* MQ2AchievementType::GetAchievement(const MQVarPtr& VarPtr)
+{
+	if (!VarPtr.IsType(MQVarPtr::VariantIdx::UInt64))
+		return nullptr;
+
+	AchievementManager& mgr = AchievementManager::Instance();
+
+	return mgr.GetAchievementByIndex(VarPtr.Int);
 }
 
 //============================================================================

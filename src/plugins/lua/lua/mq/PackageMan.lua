@@ -1,29 +1,33 @@
-local PackageMan = { _version = '1.0', author = 'Knightly' }
--- This script uses ImguiHelper which currently relies on mq, so we can bring this in for ease of 
+local PackageMan = { _version = '1.2' }
+-- This script uses ImguiHelper which currently relies on mq, so we can bring this in for ease of
 -- other functions (like paths)
 local mq = require('mq')
 
 -- User facing settings
 PackageMan.repoUrl = 'https://luarocks.macroquest.org/'
 PackageMan.repoName = 'MacroQuest'
+PackageMan.debug = false
 
 -- Requirements
 local ImguiHelper = require('mq/ImguiHelper')
 local Utils = require('mq/Utils')
 
 -- Internal settings
-local mqRepoUrl = 'https://luarocks.macroquest.org/'
+local jitVersion = Utils.String.Split(jit.version, ' ')[2]
+local mqRepoUrl = 'https://luarocks.macroquest.org/' .. jitVersion .. '/'
 local mqRepoName = 'MacroQuest'
---- luarocks --lua-version 5.1 --only-server "https://luarocks.macroquest.org/" install --deps-mode none --tree modules\luarocks lsqlite3complete
+PackageMan.repoUrl = mqRepoUrl
+
+if PackageMan.debug then
+    printf("PackageMan: Using LuaRocks repository '%s'", PackageMan.repoUrl)
+end
+
 local cliVersionArg = Utils.String.Split(_VERSION, ' ')[2]
 local cliLuarocksPath = mq.TLO.MacroQuest.Path() .. '\\luarocks.exe'
-local cliInstallPath = mq.TLO.Lua.Dir('modules')() .. '\\luarocks'
-
--- Local functions
+local cliInstallPath = string.format("%s\\%s\\luarocks", mq.TLO.Lua.Dir('modules')(), jitVersion)
+local cliCachePath = cliInstallPath .. '\\cache'
 
 -- Exposed functions
-
----@alias InstallResult 0 | 1 | 2 | 3 | 4 | 5
 
 -- Returns:
 --    0 - success
@@ -32,10 +36,11 @@ local cliInstallPath = mq.TLO.Lua.Dir('modules')() .. '\\luarocks'
 --    3 - package install failed
 --    4 - no package
 --    5 - prompt timed out
+--    6 - open process failed
 ---@param package_name string The package name
----@return InstallResult
+---@return integer InstallResult, string ResultMessage
 PackageMan.Install = function(package_name)
-    if not package_name then return 4 end
+    if not package_name then return 4, "no package" end
 
     local callString = 'unknown'
     local callerInfo = debug.getinfo(3,'Sl')
@@ -59,67 +64,57 @@ PackageMan.Install = function(package_name)
         local result = ImguiHelper.Popup.Modal(title, text, { "Install", "Cancel" })
         -- user said no
         if result == 2 then
-            return 2
+            return 2, "user said no"
         end
         -- prompt timed out
         if result == 0 then
-            return 5
+            return 5, "prompt timed out"
         end
 
-        local execute_string = string.format('""%s" --lua-version %s --only-server "%s" install --deps-mode none --tree "%s" "%s""', cliLuarocksPath, cliVersionArg, PackageMan.repoUrl, cliInstallPath, package_name)
-        if os.execute(execute_string) ~= 0 then
-            return 3
+        local execute_string = string.format('"%s" --cache "%s" --lua-version %s --skip-config-warning --only-server "%s" install --deps-mode none --tree "%s" "%s"', cliLuarocksPath, cliCachePath, cliVersionArg, PackageMan.repoUrl, cliInstallPath, package_name)
+        if PackageMan.debug then
+            print("DEBUG: Executing the following command:")
+            print(execute_string)
+        end
+        local command = string.format('"%s"', execute_string)
+        local handle = io.popen(command)
+        if handle then
+            local result = handle:read("*a")
+            handle:close()
+            if not string.find(result, "is now installed") then
+                if PackageMan.debug then
+                    print(result)
+                end
+                return 3, "package install failed"
+            end
+        else
+            return 6, "open process failed"
         end
     else
-        return 1
+        return 1, "luarocks not installed"
     end
-    return 0
+    return 0, "success"
 end
 
----@param package_name string The package name
+---@param package_name string The package name from luarocks
 ---@param require_name? string The package internal export name
----@return nil | any
+---@return nil | any LoadedPackage, string ResultMessage
 PackageMan.InstallAndLoad = function(package_name, require_name)
+    local message = "no package name specified"
+    local result = nil
     if package_name then
         require_name = require_name or package_name
-        if PackageMan.Install(package_name) == 0 then
-            return Utils.Library.Include(require_name)
+        result, message = PackageMan.Install(package_name)
+        if result == 0 then
+            return Utils.Library.Include(require_name), message
         end
     end
-    return nil
+    return result, message
 end
 
--- BEGIN WORKAROUND CODE ---
-local function search_paths(require_name, paths)
-    local file_name, _ = string.match(require_name, "([^%.]+)%.(.*)")
-    file_name = file_name or require_name
-    for path in string.gmatch(paths, "([^;]+)") do
-        local file = string.gsub(path, "?", file_name)
-        if Utils.File.Exists(file) then
-            return file
-        end
-    end
-    return nil
-end
-
-local function require_if_exists(require_name)
-    local file = search_paths(require_name, package.cpath)
-    if file then
-        return require(require_name)
-    end
-
-    file = search_paths(require_name, package.path)
-    if file ~= nil then
-        return require(require_name)
-    end
-
-    return nil
-end
--- END WORKAROUND CODE ---
-
----@param package_name string The package name
+---@param package_name string The package name from luarocks
 ---@param require_name? string The package internal export name
----@param fail_message? string Oevrride fail message if package fails to load
+---@param fail_message? string Override fail message if package fails to load
 ---@return any
 PackageMan.Require = function(package_name, require_name, fail_message)
     require_name = require_name or package_name
@@ -132,14 +127,16 @@ PackageMan.Require = function(package_name, require_name, fail_message)
     end
 
     if package_name then
-        -- This code is working around an issue using the pcall directly, see above workaround code
-        local my_package = require_if_exists(require_name)
+        local my_package = Utils.Library.Include(require_name)
+        local result_message = nil
         if not my_package then
-            if PackageMan.Install(package_name) == 0 then
-                return Utils.Library.Include(require_name)
-            end
-        else
+            my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
+        end
+        if my_package then
             return my_package
+        end
+        if result_message then
+            fail_message = fail_message .. " :: " .. result_message
         end
     end
 

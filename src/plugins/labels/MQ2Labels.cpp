@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -133,7 +133,7 @@ public:
 			{
 				STMLToPlainText(tooltip.mutable_data(), buffer);
 
-				ParseMacroParameter(pLocalPlayer, buffer, MAX_STRING);
+				ParseMacroParameter(buffer, MAX_STRING);
 				if (strcmp(buffer, "NULL") == 0)
 					buffer[0] = 0;
 			}
@@ -155,7 +155,7 @@ public:
 					char buffer[MAX_STRING] = { 0 };
 					strcpy_s(buffer, Id_PMP[index].PMP);
 
-					ParseMacroParameter(pLocalPlayer, buffer, MAX_STRING);
+					ParseMacroParameter(buffer, MAX_STRING);
 					if (strcmp(buffer, "NULL") == 0)
 						buffer[0] = 0;
 

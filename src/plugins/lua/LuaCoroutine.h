@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -32,12 +32,14 @@ struct LuaCoroutine
 	std::optional<sol::function> m_delayCondition = std::nullopt;
 
 	bool CheckCondition(std::optional<sol::function>& func);
-	void Delay(sol::object delayObj, sol::object conditionObj, sol::state_view s);
+	void Delay(sol::object delayObj, std::optional<sol::object> conditionObj, sol::state_view s);
 	void SetDelay(uint64_t time, std::optional<sol::function> condition = std::nullopt);
 	void ClearDelay();
 
 	bool ShouldRun();
-	CoroutineResult RunCoroutine(const std::vector<std::string>& args = {});
+	CoroutineResult RunCoroutine();
+	CoroutineResult RunCoroutine(const std::vector<std::string>& args);
+	CoroutineResult RunCoroutine(const std::vector<sol::object>& args);
 	static std::shared_ptr<LuaCoroutine> Create(sol::thread& thread, LuaThread* luaThread);
 
 	LuaCoroutine(sol::thread& thread, LuaThread* luaThread);

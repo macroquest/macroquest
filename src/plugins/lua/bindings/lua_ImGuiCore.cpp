@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,9 +17,11 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/imgui_stacklayout.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <sol/sol.hpp>
 
+#include <optional>
 #include <string>
 
 namespace mq::lua::bindings {
@@ -31,203 +33,50 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui);
 void RegisterBindings_ImGuiUserTypes(sol::state_view state);
 void RegisterBindings_ImGuiEnums(sol::state_view state);
 
-void lua_addimgui(std::string_view name, sol::function function, sol::this_state s);
-void lua_removeimgui(std::string_view name, sol::this_state s);
-
-#pragma region Core Functions
-// Child Windows
-static bool BeginChild(const std::string& name)                                                     { return ImGui::BeginChild(name.c_str()); }
-static bool BeginChild(const std::string& name, float sizeX)                                        { return ImGui::BeginChild(name.c_str(), { sizeX, 0 }); }
-static bool BeginChild(const std::string& name, float sizeX, float sizeY)                           { return ImGui::BeginChild(name.c_str(), { sizeX, sizeY }); }
-static bool BeginChild(const std::string& name, float sizeX, float sizeY, bool border)              { return ImGui::BeginChild(name.c_str(), { sizeX, sizeY }, border); }
-static bool BeginChild(const std::string& name, float sizeX, float sizeY, bool border, int flags)   { return ImGui::BeginChild(name.c_str(), { sizeX, sizeY }, border, static_cast<ImGuiWindowFlags>(flags)); }
-static void EndChild()                                                                              { ImGui::EndChild(); }
-
-static void SetNextWindowSizeConstraintsWithLuaCallback(sol::this_state s, const ImVec2& min, const ImVec2& max, sol::function customCallback)
+std::string format_text(sol::this_state s, sol::variadic_args va)
 {
-	ImGui::SetNextWindowSizeConstraints(min, max,
-		[customCallback, L = s.lua_state()](ImGuiSizeCallbackData* data)
-	{
-		sol::function_result result = sol::function(L, customCallback)(data->Pos, data->CurrentSize, data->DesiredSize);
-		const sol::optional<ImVec2>& value = result.get<sol::optional<ImVec2>>();
-		if (value.has_value())
-			data->DesiredSize = *value;
-	});
+	sol::function string_format = sol::state_view(s)["string"]["format"];
+	std::string text = string_format(va);
+	return text;
 }
 
-static void SetNextWindowContentSize(float sizeX, float sizeY)                                      { ImGui::SetNextWindowContentSize({ sizeX, sizeY }); }
-static void SetNextWindowCollapsed(bool collapsed)                                                  { ImGui::SetNextWindowCollapsed(collapsed); }
-static void SetNextWindowCollapsed(bool collapsed, int cond)                                        { ImGui::SetNextWindowCollapsed(collapsed, static_cast<ImGuiCond>(cond)); }
-static void SetNextWindowFocus()                                                                    { ImGui::SetNextWindowFocus(); }
-static void SetNextWindowBgAlpha(float alpha)                                                       { ImGui::SetNextWindowBgAlpha(alpha); }
-static void SetWindowPos(float posX, float posY)                                                    { ImGui::SetWindowPos({ posX, posY }); }
-static void SetWindowPos(float posX, float posY, int cond)                                          { ImGui::SetWindowPos({ posX, posY }, static_cast<ImGuiCond>(cond)); }
-static void SetWindowCollapsed(bool collapsed)                                                      { ImGui::SetWindowCollapsed(collapsed); }
-static void SetWindowCollapsed(bool collapsed, int cond)                                            { ImGui::SetWindowCollapsed(collapsed, static_cast<ImGuiCond>(cond)); }
-static void SetWindowFocus()                                                                        { ImGui::SetWindowFocus(); }
-static void SetWindowFontScale(float scale)                                                         { ImGui::SetWindowFontScale(scale); }
-static void SetWindowPos(const std::string& name, float posX, float posY)                           { ImGui::SetWindowPos(name.c_str(), { posX, posY }); }
-static void SetWindowPos(const std::string& name, float posX, float posY, int cond)                 { ImGui::SetWindowPos(name.c_str(), { posX, posY }, static_cast<ImGuiCond>(cond)); }
-static void SetWindowCollapsed(const std::string& name, bool collapsed)                             { ImGui::SetWindowCollapsed(name.c_str(), collapsed); }
-static void SetWindowCollapsed(const std::string& name, bool collapsed, int cond)                   { ImGui::SetWindowCollapsed(name.c_str(), collapsed, static_cast<ImGuiCond>(cond)); }
-static void SetWindowFocus(const std::string& name)                                                 { ImGui::SetWindowFocus(name.c_str()); }
+#pragma region Drag and Drop
+// Create a type to add as a lua usertype
+struct LuaImGuiPayload
+{
+	// TODO: expand this variant to handle more complex types. The issue with that is that SetDragDropPayload will
+	// shallow copy data (with memcpy), so we need to specially handle any complex types (like sol::function) that
+	// would lose their refs on both the Set and Accept ends
+	using VarType = std::variant<int, float, std::string>;
+	VarType Data;
 
-// Content Region
-static std::tuple<float, float> GetContentRegionMax()                                               { const auto vec2{ ImGui::GetContentRegionMax() };  return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetContentRegionAvail()                                             { const auto vec2{ ImGui::GetContentRegionAvail() };  return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetWindowContentRegionMin()                                         { const auto vec2{ ImGui::GetWindowContentRegionMin() };  return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetWindowContentRegionMax()                                         { const auto vec2{ ImGui::GetWindowContentRegionMax() };  return std::make_tuple(vec2.x, vec2.y); }
-static float GetWindowContentRegionWidth()                                                          { return ImGui::GetWindowContentRegionWidth(); }
+	LuaImGuiPayload(const ImGuiPayload* payload)
+		: Data(*static_cast<VarType*>(payload->Data)) {}
+};
 
-// Windows Scrolling
-static float GetScrollX()                                                                           { return ImGui::GetScrollX(); }
-static float GetScrollY()                                                                           { return ImGui::GetScrollY(); }
-static float GetScrollMaxX()                                                                        { return ImGui::GetScrollMaxX(); }
-static float GetScrollMaxY()                                                                        { return ImGui::GetScrollMaxY(); }
-static void SetScrollX(float scrollX)                                                               { ImGui::SetScrollX(scrollX); }
-static void SetScrollY(float scrollY)                                                               { ImGui::SetScrollY(scrollY); }
-static void SetScrollHereX()                                                                        { ImGui::SetScrollHereX(); }
-static void SetScrollHereX(float centerXRatio)                                                      { ImGui::SetScrollHereX(centerXRatio); }
-static void SetScrollHereY()                                                                        { ImGui::SetScrollHereY(); }
-static void SetScrollHereY(float centerYRatio)                                                      { ImGui::SetScrollHereY(centerYRatio); }    
-static void SetScrollFromPosX(float localX)                                                         { ImGui::SetScrollFromPosX(localX); }
-static void SetScrollFromPosX(float localX, float centerXRatio)                                     { ImGui::SetScrollFromPosX(localX, centerXRatio); }
-static void SetScrollFromPosY(float localY)                                                         { ImGui::SetScrollFromPosY(localY); }
-static void SetScrollFromPosY(float localY, float centerYRatio)                                     { ImGui::SetScrollFromPosY(localY, centerYRatio); }
+static bool SetDragDropPayload(const char* type, sol::object data, std::optional<int> cond)
+{
+	if (data.get_type() == sol::type::nil)
+		return false;
 
-// Parameters stacks (shared)
-static void PushFont(ImFont* pFont)                                                                 { ImGui::PushFont(pFont); }
-static void PopFont()                                                                               { ImGui::PopFont(); }
-static void PushStyleColor(int idx, int col)                                                        { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), ImU32(col)); }
-static void PushStyleColor(int idx, float colR, float colG, float colB, float colA)                 { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), { colR, colG, colB, colA }); }
-static void PopStyleColor()                                                                         { ImGui::PopStyleColor(); }
-static void PopStyleColor(int count)                                                                { ImGui::PopStyleColor(count); }
-static void PushStyleVar(int idx, float val)                                                        { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
-static void PushStyleVar(int idx, float valX, float valY)                                           { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), { valX, valY }); }
-static void PushStyleVar(int idx, const ImVec2& val)                                                { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
-static void PopStyleVar()                                                                           { ImGui::PopStyleVar(); }
-static void PopStyleVar(int count)                                                                  { ImGui::PopStyleVar(count); }
-static std::tuple<float, float, float, float> GetStyleColorVec4(int idx)                            { const auto col{ ImGui::GetStyleColorVec4(static_cast<ImGuiCol>(idx)) };    return std::make_tuple(col.x, col.y, col.z, col.w); }
-static ImFont* GetFont()                                                                            { return ImGui::GetFont(); }
-static float GetFontSize()                                                                          { return ImGui::GetFontSize(); }
-static std::tuple<float, float> GetFontTexUvWhitePixel()                                            { const auto vec2{ ImGui::GetFontTexUvWhitePixel() };    return std::make_tuple(vec2.x, vec2.y); }
-static int GetColorU32(int idx, float alphaMul)                                                     { return ImGui::GetColorU32(static_cast<ImGuiCol>(idx), alphaMul); }
-static int GetColorU32(float colR, float colG, float colB, float colA)                              { return ImGui::GetColorU32({ colR, colG, colB, colA }); }
-static int GetColorU32(int col)                                                                     { return ImGui::GetColorU32(ImU32(col)); }
-static int GetColorU32(const ImVec4& imvec4)                                                        { return ImColor(imvec4); }
+	auto vardata = data.as<LuaImGuiPayload::VarType>();
+	return ImGui::SetDragDropPayload(type, &vardata, sizeof(vardata), cond.value_or(0));
+}
 
-static int GetColorU32_Int(int colR, int colG, int colB, int colA)                                  { return IM_COL32(colR, colG, colB, colA); }
+static std::unique_ptr<LuaImGuiPayload> AcceptDragDropPayload(const char* type, std::optional<int> flags)
+{
+	auto payload = ImGui::AcceptDragDropPayload(type, flags.value_or(0));
+	return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+}
 
-// Parameters stacks (current window)
-static void PushItemWidth(float itemWidth)                                                          { ImGui::PushItemWidth(itemWidth); }
-static void PopItemWidth()                                                                          { ImGui::PopItemWidth(); }
-static void SetNextItemWidth(float itemWidth)                                                       { ImGui::SetNextItemWidth(itemWidth); }
-static float CalcItemWidth()                                                                        { return ImGui::CalcItemWidth(); }
-static void PushTextWrapPos()                                                                       { ImGui::PushTextWrapPos(); }
-static void PushTextWrapPos(float wrapLocalPosX)                                                    { ImGui::PushTextWrapPos(wrapLocalPosX); }
-static void PopTextWrapPos()                                                                        { ImGui::PopTextWrapPos(); }
-static void PushAllowKeyboardFocus(bool allowKeyboardFocus)                                         { ImGui::PushAllowKeyboardFocus(allowKeyboardFocus); }
-static void PopAllowKeyboardFocus()                                                                 { ImGui::PopAllowKeyboardFocus(); }
-static void PushButtonRepeat(bool repeat)                                                           { ImGui::PushButtonRepeat(repeat); }
-static void PopButtonRepeat()                                                                       { ImGui::PopButtonRepeat(); }
-
-// Cursor / Layout
-static void Separator()                                                                             { ImGui::Separator(); }
-static void SameLine()                                                                              { ImGui::SameLine(); }
-static void SameLine(float offsetFromStartX)                                                        { ImGui::SameLine(offsetFromStartX); }
-static void SameLine(float offsetFromStartX, float spacing)                                         { ImGui::SameLine(offsetFromStartX, spacing); }
-static void NewLine()                                                                               { ImGui::NewLine(); }
-static void Spacing()                                                                               { ImGui::Spacing(); }
-static void Dummy(float sizeX, float sizeY)                                                         { ImGui::Dummy({ sizeX, sizeY }); }
-static void Indent()                                                                                { ImGui::Indent(); }
-static void Indent(float indentW)                                                                   { ImGui::Indent(indentW); }
-static void Unindent()                                                                              { ImGui::Unindent(); }
-static void Unindent(float indentW)                                                                 { ImGui::Unindent(indentW); }
-static void BeginGroup()                                                                            { ImGui::BeginGroup(); }
-static void EndGroup()                                                                              { ImGui::EndGroup(); }
-static std::tuple<float, float> GetCursorPos()                                                      { const auto vec2{ ImGui::GetCursorPos() };  return std::make_tuple(vec2.x, vec2.y); }
-static float GetCursorPosX()                                                                        { return ImGui::GetCursorPosX(); }
-static float GetCursorPosY()                                                                        { return ImGui::GetCursorPosY(); }
-static void SetCursorPos(float localX, float localY)                                                { ImGui::SetCursorPos({ localX, localY }); }
-static void SetCursorPosX(float localX)                                                             { ImGui::SetCursorPosX(localX); }
-static void SetCursorPosY(float localY)                                                             { ImGui::SetCursorPosY(localY); }
-static std::tuple<float, float> GetCursorStartPos()                                                 { const auto vec2{ ImGui::GetCursorStartPos() };  return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetCursorScreenPos()                                                { const auto vec2{ ImGui::GetCursorScreenPos() };  return std::make_tuple(vec2.x, vec2.y); }
-static void SetCursorScreenPos(float posX, float posY)                                              { ImGui::SetCursorScreenPos({ posX, posY }); }
-static void AlignTextToFramePadding()                                                               { ImGui::AlignTextToFramePadding(); }
-static float GetTextLineHeight()                                                                    { return ImGui::GetTextLineHeight(); }
-static float GetTextLineHeightWithSpacing()                                                         { return ImGui::GetTextLineHeightWithSpacing(); }
-static float GetFrameHeight()                                                                       { return ImGui::GetFrameHeight(); }
-static float GetFrameHeightWithSpacing()                                                            { return ImGui::GetFrameHeightWithSpacing(); }
-
-// ID stack / scopes
-static void PushID(std::string_view stringID)                                                       { ImGui::PushID(stringID.data(), stringID.data() + stringID.length()); }
-static void PushID(int intID)                                                                       { ImGui::PushID(intID); }
-static void PushID(sol::object object)                                                              { ImGui::PushID(object.pointer()); }
-static void PopID()                                                                                 { ImGui::PopID(); }
-static int GetID(std::string_view stringID)                                                        { return ImGui::GetID(stringID.data(), stringID.data() + stringID.length()); }
-static int GetID(sol::object object)                                                                { return ImGui::GetID(object.pointer()); }
-
+static std::unique_ptr<LuaImGuiPayload> GetDragDropPayload()
+{
+	auto payload = ImGui::GetDragDropPayload();
+	return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+}
 #pragma endregion
 
-#pragma region Utilities
-
-// Logging
-static void LogToTTY()                                                                              { ImGui::LogToTTY(); }
-static void LogToTTY(int auto_open_depth)                                                           { ImGui::LogToTTY(auto_open_depth); }
-static void LogToFile()                                                                             { ImGui::LogToFile(); }
-static void LogToFile(int auto_open_depth)                                                          { ImGui::LogToFile(auto_open_depth); }
-static void LogToFile(int auto_open_depth, const std::string& filename)                             { ImGui::LogToFile(auto_open_depth, filename.c_str()); }
-static void LogToClipboard()                                                                        { ImGui::LogToClipboard(); }
-static void LogToClipboard(int auto_open_depth)                                                     { ImGui::LogToClipboard(auto_open_depth); }
-static void LogFinish()                                                                             { ImGui::LogFinish(); }
-static void LogButtons()                                                                            { ImGui::LogButtons(); }
-static void LogText(const std::string& fmt)                                                         { ImGui::LogText(fmt.c_str()); }
-
-// Clipping
-static void PushClipRect(float min_x, float min_y, float max_x, float max_y, bool intersect_current) { ImGui::PushClipRect({ min_x, min_y }, { max_x, max_y }, intersect_current); }
-static void PopClipRect()                                                                           { ImGui::PopClipRect(); }
-
-// Focus, Activation
-static void SetItemDefaultFocus()                                                                   { ImGui::SetItemDefaultFocus(); }
-static void SetKeyboardFocusHere()                                                                  { ImGui::SetKeyboardFocusHere(); }
-static void SetKeyboardFocusHere(int offset)                                                        { ImGui::SetKeyboardFocusHere(offset); }
-
-// Miscellaneous Utilities
-static bool IsRectVisible(float sizeX, float sizeY)                                                 { return ImGui::IsRectVisible({ sizeX, sizeY }); }
-static bool IsRectVisible(float minX, float minY, float maxX, float maxY)                           { return ImGui::IsRectVisible({ minX, minY }, { maxX, maxY }); }
-static double GetTime()                                                                             { return ImGui::GetTime(); }
-static int GetFrameCount()                                                                          { return ImGui::GetFrameCount(); }
-static std::string GetStyleColorName(int idx)                                                       { return std::string(ImGui::GetStyleColorName(static_cast<ImGuiCol>(idx))); }
-/* TODO: SetStateStorage(), GetStateStorage(), CalcListClipping() ==> UNSUPPORTED */
-
-
-// Text Utilities
-static std::tuple<float, float> CalcTextSize(const std::string& text)
-{
-	const auto vec2{ ImGui::CalcTextSize(text.c_str()) };
-	return std::make_tuple(vec2.x, vec2.y);
-}
-
-static std::tuple<float, float> CalcTextSize(const std::string& text, const std::string& text_end)
-{
-	const auto vec2{ ImGui::CalcTextSize(text.c_str(), text_end.c_str()) };
-	return std::make_tuple(vec2.x, vec2.y);
-}
-
-static std::tuple<float, float> CalcTextSize(const std::string& text, const std::string& text_end, bool hide_text_after_double_hash)
-{
-	const auto vec2{ ImGui::CalcTextSize(text.c_str(), text_end.c_str(), hide_text_after_double_hash) };
-	return std::make_tuple(vec2.x, vec2.y);
-}
-
-static std::tuple<float, float> CalcTextSize(const std::string& text, const std::string& text_end, bool hide_text_after_double_hash, float wrap_width)
-{
-	const auto vec2{ ImGui::CalcTextSize(text.c_str(), text_end.c_str(), hide_text_after_double_hash, wrap_width) };
-	return std::make_tuple(vec2.x, vec2.y);
-}
-
-// Color Utilities
+#pragma region Color Utilities
 static sol::as_table_t<std::vector<float>> ColorConvertU32ToFloat4(unsigned int in)
 {
 	const auto vec4 = ImGui::ColorConvertU32ToFloat4(in);
@@ -240,89 +89,30 @@ static sol::as_table_t<std::vector<float>> ColorConvertU32ToFloat4(unsigned int 
 static unsigned int ColorConvertFloat4ToU32(const sol::table& rgba)
 {
 	const lua_Number
-		r{ rgba[1].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-		g{ rgba[2].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-		b{ rgba[3].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) },
-		a{ rgba[4].get<std::optional<lua_Number>>().value_or(static_cast<lua_Number>(0)) };
+		r{ rgba[1].get<std::optional<lua_Number>>().value_or(lua_Number(0)) },
+		g{ rgba[2].get<std::optional<lua_Number>>().value_or(lua_Number(0)) },
+		b{ rgba[3].get<std::optional<lua_Number>>().value_or(lua_Number(0)) },
+		a{ rgba[4].get<std::optional<lua_Number>>().value_or(lua_Number(0)) };
 
 	return ImGui::ColorConvertFloat4ToU32({ float(r), float(g), float(b), float(a) });
 }
-
-static std::tuple<float, float, float> ColorConvertRGBtoHSV(float r, float g, float b)
-{
-	float h{}, s{}, v{};
-	ImGui::ColorConvertRGBtoHSV(r, g, b, h, s, v);
-	return std::make_tuple(h, s, v);
-}
-
-static std::tuple<float, float, float> ColorConvertHSVtoRGB(float h, float s, float v)
-{
-	float r{}, g{}, b{};
-	ImGui::ColorConvertHSVtoRGB(h, s, v, r, g, b);
-	return std::make_tuple(r, g, b);
-}
-
-// Inputs Utilities: Keyboard
-static int GetKeyIndex(int imgui_key)                                                               { return ImGui::GetKeyIndex(static_cast<ImGuiKey>(imgui_key)); }
-static bool IsKeyDown(int user_key_index)                                                           { return ImGui::IsKeyDown(user_key_index); }
-static bool IsKeyPressed(int user_key_index)                                                        { return ImGui::IsKeyPressed(user_key_index); }
-static bool IsKeyPressed(int user_key_index, bool repeat)                                           { return ImGui::IsKeyPressed(user_key_index, repeat); }
-static bool IsKeyReleased(int user_key_index)                                                       { return ImGui::IsKeyReleased(user_key_index); }
-static int GetKeyPressedAmount(int key_index, float repeat_delay, float rate)                       { return ImGui::GetKeyPressedAmount(key_index, repeat_delay, rate); }
-static void CaptureKeyboardFromApp()                                                                { ImGui::CaptureKeyboardFromApp(); }
-static void CaptureKeyboardFromApp(bool want_capture_keyboard_value)                                { ImGui::CaptureKeyboardFromApp(want_capture_keyboard_value); }
-
-// Inputs Utilities: Mouse
-static bool IsMouseDown(int button)                                                                 { return ImGui::IsMouseDown(static_cast<ImGuiMouseButton>(button)); }
-static bool IsMouseClicked(int button)                                                              { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button)); }
-static bool IsMouseClicked(int button, bool repeat)                                                 { return ImGui::IsMouseClicked(static_cast<ImGuiMouseButton>(button), repeat); }
-static bool IsMouseReleased(int button)                                                             { return ImGui::IsMouseReleased(static_cast<ImGuiMouseButton>(button)); }
-static bool IsAnyMouseDown()                                                                        { return ImGui::IsAnyMouseDown(); }
-static std::tuple<float, float> GetMousePos()                                                       { const auto vec2{ ImGui::GetMousePos() }; return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetMousePosOnOpeningCurrentPopup()                                  { const auto vec2{ ImGui::GetMousePosOnOpeningCurrentPopup() }; return std::make_tuple(vec2.x, vec2.y); }
-static bool IsMouseDragging(int button)                                                             { return ImGui::IsMouseDragging(static_cast<ImGuiMouseButton>(button)); }
-static bool IsMouseDragging(int button, float lock_threshold)                                       { return ImGui::IsMouseDragging(static_cast<ImGuiMouseButton>(button), lock_threshold); }
-static std::tuple<float, float> GetMouseDragDelta()                                                 { const auto vec2{ ImGui::GetMouseDragDelta() }; return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetMouseDragDelta(int button)                                       { const auto vec2{ ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button)) }; return std::make_tuple(vec2.x, vec2.y); }
-static std::tuple<float, float> GetMouseDragDelta(int button, float lock_threshold)                 { const auto vec2{ ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button), lock_threshold) }; return std::make_tuple(vec2.x, vec2.y); }
-static ImVec2 GetMouseDragDeltaVec()                                                                { return ImGui::GetMouseDragDelta(); }
-static ImVec2 GetMouseDragDeltaVec(int button)                                                      { return ImGui::GetMouseDragDelta(static_cast<ImGuiMouseButton>(button)); }
-static void ResetMouseDragDelta()                                                                   { ImGui::ResetMouseDragDelta(); }
-static void ResetMouseDragDelta(int button)                                                         { ImGui::ResetMouseDragDelta(static_cast<ImGuiMouseButton>(button)); }
-static int GetMouseCursor()                                                                         { return ImGui::GetMouseCursor(); }
-static void SetMouseCursor(int cursor_type)                                                         { ImGui::SetMouseCursor(static_cast<ImGuiMouseCursor>(cursor_type)); }
-static void CaptureMouseFromApp()                                                                   { ImGui::CaptureMouseFromApp(); }
-static void CaptureMouseFromApp(bool want_capture_mouse_value)                                      { ImGui::CaptureMouseFromApp(want_capture_mouse_value); }
-
-// Clipboard Utilities
-static std::string GetClipboardText()
-{
-	const char* text = ImGui::GetClipboardText();
-	return text ? std::string(text) : std::string();
-}
-static void SetClipboardText(const std::string& text)                                               { ImGui::SetClipboardText(text.c_str()); }
-
-
 #pragma endregion
 
-void RegisterBindings_ImGui(sol::state_view state)
+sol::table RegisterBindings_ImGui(sol::state_view state)
 {
-	sol::table ImGui = state.get_or("ImGui", sol::lua_nil);
-	if (ImGui != sol::lua_nil) return;
+	bool imguiRegistered = state.get_or("_imgui_registered", false);
+	if (imguiRegistered) return state["ImGui"];
+	state["_imgui_registered"] = true;
 
-	ImGui = state.create_named_table("ImGui");
+	sol::table ImGui = state.create_named_table("ImGui");
 	bindings::RegisterBindings_ImGuiEnums(state);
 	bindings::RegisterBindings_ImGuiUserTypes(state);
-
-	ImGui.set_function("Register", lua_addimgui);
-	ImGui.set_function("Unregister", lua_removeimgui);
-
-	#pragma region Core Functions
 
 	// Main
 	ImGui.set_function("GetIO", ImGui::GetIO);
 	ImGui.set_function("GetStyle", []() { return &ImGui::GetStyle(); });
 
+	#pragma region Demo, Debug, Information
 	// Demo, Debug, Information
 	ImGui.set_function("ShowDemoWindow", sol::overload(
 		[]() { ImGui::ShowDemoWindow(); },
@@ -330,6 +120,12 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("ShowMetricsWindow", sol::overload(
 		[]() { ImGui::ShowMetricsWindow(); },
 		[](bool show) { ImGui::ShowMetricsWindow(&show); return show; }));
+	ImGui.set_function("ShowDebugLogWindow", sol::overload(
+		[]() { ImGui::ShowDebugLogWindow(); },
+		[](bool show) { ImGui::ShowDebugLogWindow(&show); return show; }));
+	ImGui.set_function("ShowIDStackToolWindow", sol::overload(
+		[]() { ImGui::ShowIDStackToolWindow(); },
+		[](bool show) { ImGui::ShowIDStackToolWindow(&show); return show; }));
 	ImGui.set_function("ShowAboutWindow", sol::overload(
 		[]() { ImGui::ShowAboutWindow(); },
 		[](bool show) { ImGui::ShowAboutWindow(&show); return show; }));
@@ -341,289 +137,427 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("ShowFontSelector", &ImGui::ShowFontSelector);
 	ImGui.set_function("ShowUserGuide", &ImGui::ShowUserGuide);
 	ImGui.set_function("GetVersion", &ImGui::GetVersion);
+	#pragma endregion
 
+	#pragma region Styles
 	// Styles
 	ImGui.set_function("StyleColorsDark", []() { auto style = std::make_shared<ImGuiStyle>(); ImGui::StyleColorsDark(style.get()); return style; });
 	ImGui.set_function("StyleColorsLight", []() { auto style = std::make_shared<ImGuiStyle>(); ImGui::StyleColorsLight(style.get()); return style; });
-	ImGui.set_function("StyleCStyleColorsClassicolorsDark", []() { auto style = std::make_shared<ImGuiStyle>(); ImGui::StyleColorsClassic(style.get()); return style; });
+	ImGui.set_function("StyleColorsClassic", []() { auto style = std::make_shared<ImGuiStyle>(); ImGui::StyleColorsClassic(style.get()); return style; });
+	#pragma endregion
 
+	#pragma region Windows
 	// Windows
 	ImGui.set_function("Begin", sol::overload(
 		[](const char* name) { return ImGui::Begin(name); },
-		[](const char* name, nullptr_t, int flags) { return ImGui::Begin(name, nullptr, ImGuiWindowFlags(flags)); },
-		[](const char* name, bool open) { bool draw = ImGui::Begin(name, &open); return std::make_tuple(open, draw); },
-		[](const char* name, bool open, int flags) { bool draw = ImGui::Begin(name, &open, ImGuiWindowFlags(flags)); return std::make_tuple(open, draw); }
-	));
+		[](const char* name, std::optional<bool> open, std::optional<int> flags) {
+			if (!open.has_value()) { bool show = ImGui::Begin(name, nullptr, ImGuiWindowFlags(flags.value_or(0))); return std::make_tuple(true, show); }
+			else { bool open_ = open.value(); bool show = ImGui::Begin(name, &open_, ImGuiWindowFlags(flags.value_or(0))); return std::make_tuple(open_, show); }
+		}));
 	ImGui.set_function("End", &ImGui::End);
+	#pragma endregion
 
+	#pragma region Child Windows
 	// Child Windows
 	ImGui.set_function("BeginChild", sol::overload(
-		sol::resolve<bool(const std::string&)>(BeginChild),
-		sol::resolve<bool(const std::string&, float)>(BeginChild),
-		sol::resolve<bool(const std::string&, float, float)>(BeginChild),
-		sol::resolve<bool(const std::string&, float, float, bool)>(BeginChild),
-		sol::resolve<bool(const std::string&, float, float, bool, int)>(BeginChild)
+		// Old format with bool for border: Deprecated
+		[](const char* str_id, std::optional<float> size_x, std::optional<float> size_y, std::optional<bool> border, std::optional<int> flags)
+		{
+			return ImGui::BeginChild(str_id, ImVec2(size_x.value_or(0.f), size_y.value_or(0.f)), border.value_or(false) ? ImGuiChildFlags_Border : 0, flags.value_or(0));
+		},
+		[](const char* str_id, const ImVec2& size, std::optional<bool> border, std::optional<int> flags)
+		{
+			return ImGui::BeginChild(str_id, size, border.value_or(false) ? ImGuiChildFlags_Border : 0, flags.value_or(0));
+		},
+		// New format with child flags param
+		[](const char* str_id, std::optional<float> size_x, std::optional<float> size_y, std::optional<int> child_flags, std::optional<int> flags)
+		{
+			return ImGui::BeginChild(str_id, ImVec2(size_x.value_or(0.f), size_y.value_or(0.f)), child_flags.value_or(0), flags.value_or(0));
+		},
+		[](const char* str_id, const ImVec2& size, std::optional<int> child_flags, std::optional<int> flags)
+		{
+			return ImGui::BeginChild(str_id, size, child_flags.value_or(0), flags.value_or(0));
+		}
 	));
-	ImGui.set_function("EndChild", EndChild);
+	ImGui.set_function("EndChild", &ImGui::EndChild);
+	#pragma endregion
 
+	#pragma region Window Utilities
 	// Window Utilities
 	ImGui.set_function("IsWindowAppearing", &ImGui::IsWindowAppearing);
 	ImGui.set_function("IsWindowCollapsed", &ImGui::IsWindowCollapsed);
-	ImGui.set_function("IsWindowFocused", sol::overload(
-		[]() { return ImGui::IsWindowFocused(); },
-		[](int flags) { return ImGui::IsWindowFocused(static_cast<ImGuiFocusedFlags>(flags)); }
-	));
-	ImGui.set_function("IsWindowHovered", sol::overload(
-		[]() { return ImGui::IsWindowHovered(); },
-		[](int flags) { return ImGui::IsWindowHovered(static_cast<ImGuiHoveredFlags>(flags)); }
-	));
-	ImGui.set_function("GetWindowDrawList", ImGui::GetWindowDrawList);
+	ImGui.set_function("IsWindowFocused", [](std::optional<int> flags) { return ImGui::IsWindowFocused(flags.value_or(0)); });
+	ImGui.set_function("IsWindowHovered", [](std::optional<int> flags) { return ImGui::IsWindowHovered(flags.value_or(0)); });
+	ImGui.set_function("GetWindowDrawList", &ImGui::GetWindowDrawList);
 	ImGui.set_function("GetWindowDpiScale", &ImGui::GetWindowDpiScale);
-	ImGui.set_function("GetWindowPos", []() { const auto vec2{ ImGui::GetWindowPos() };  return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetWindowPos", []() { ImVec2 vec = ImGui::GetWindowPos();  return std::make_tuple(vec.x, vec.y); });
 	ImGui.set_function("GetWindowPosVec", ImGui::GetWindowPos);
-	ImGui.set_function("GetWindowSize", []() { const auto vec2{ ImGui::GetWindowSize() };  return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetWindowSize", []() { ImVec2 vec = ImGui::GetWindowSize();  return std::make_tuple(vec.x, vec.y); });
 	ImGui.set_function("GetWindowSizeVec", ImGui::GetWindowSize);
 	ImGui.set_function("GetWindowWidth", &ImGui::GetWindowWidth);
 	ImGui.set_function("GetWindowHeight", &ImGui::GetWindowHeight);
 	ImGui.set_function("GetWindowViewport", &ImGui::GetWindowViewport);
+	#pragma endregion
 
+	#pragma region Window Manipulation
 	// Window Manipulation
 	ImGui.set_function("SetNextWindowPos", sol::overload(
-		[](float posX, float posY) { ImGui::SetNextWindowPos({ posX, posY }); },
-		[](float posX, float posY, int cond) { ImGui::SetNextWindowPos({ posX, posY }, static_cast<ImGuiCond>(cond)); },
-		[](float posX, float posY, int cond, float pivotX, float pivotY) { ImGui::SetNextWindowPos({ posX, posY }, static_cast<ImGuiCond>(cond), { pivotX, pivotY }); },
-		[](const ImVec2& pos) { ImGui::SetNextWindowPos(pos); },
-		[](const ImVec2& pos, int cond) { ImGui::SetNextWindowPos(pos, ImGuiCond(cond)); },
-		[](const ImVec2& pos, int cond, const ImVec2& pivot) { ImGui::SetNextWindowPos(pos, ImGuiCond(cond), pivot); }
+		[](float posX, float posY, std::optional<int> cond, std::optional<float> pivotX, std::optional<float> pivotY) { ImGui::SetNextWindowPos({ posX, posY }, cond.value_or(0), { pivotX.value_or(0.f), pivotY.value_or(0.f) }); },
+		[](const ImVec2& pos, std::optional<int> cond, std::optional<ImVec2> pivot) { ImGui::SetNextWindowPos(pos, cond.value_or(0), pivot.value_or(ImVec2(0, 0))); }
 	));
 	ImGui.set_function("SetNextWindowSize", sol::overload(
-		[](float sizeX, float sizeY) { ImGui::SetNextWindowSize({ sizeX, sizeY }); },
-		[](float sizeX, float sizeY, int cond) { ImGui::SetNextWindowSize({ sizeX, sizeY }, static_cast<ImGuiCond>(cond)); },
-		[](const ImVec2& size) { ImGui::SetNextWindowSize(size); },
-		[](const ImVec2& size, int cond) { ImGui::SetNextWindowSize(size, ImGuiCond(cond)); }
+		[](float sizeX, float sizeY, std::optional<int> cond) { ImGui::SetNextWindowSize({ sizeX, sizeY }, cond.value_or(0)); },
+		[](const ImVec2& size, std::optional<int> cond) { ImGui::SetNextWindowSize(size, cond.value_or(0)); }
 	));
 	ImGui.set_function("SetNextWindowSizeConstraints", sol::overload(
-		[](const ImVec2& min, const ImVec2& max) { ImGui::SetNextWindowSizeConstraints(min, max); },
-		SetNextWindowSizeConstraintsWithLuaCallback,
+		[](sol::this_state s, const ImVec2& min, const ImVec2& max, std::optional<sol::function> callback)
+		{
+			if (callback.has_value()) {
+				ImGui::SetNextWindowSizeConstraints(min, max, [callback, L = s.lua_state()](ImGuiSizeCallbackData* data) {
+					sol::function_result result = sol::function(L, callback.value())(data->Pos, data->CurrentSize, data->DesiredSize);
+					std::optional<ImVec2> value = result.get<std::optional<ImVec2>>();
+					if (value.has_value())
+						data->DesiredSize = *value;
+				});
+			} else {
+				ImGui::SetNextWindowSizeConstraints(min, max);
+			}
+		},
 		[](float minX, float minY, float maxX, float maxY) { ImGui::SetNextWindowSizeConstraints({ minX, minY }, { maxX, maxY }); }
 	));
-	ImGui.set_function("SetNextWindowContentSize", SetNextWindowContentSize);
-	ImGui.set_function("SetNextWindowCollapsed", sol::overload(
-		sol::resolve<void(bool)>(SetNextWindowCollapsed),
-		sol::resolve<void(bool, int)>(SetNextWindowCollapsed)
+	ImGui.set_function("SetNextWindowContentSize", sol::overload(
+		[](float sizeX, float sizeY) { ImGui::SetNextWindowContentSize({ sizeX,  sizeY }); },
+		[](const ImVec2& size) { ImGui::SetNextWindowContentSize(size); }
 	));
-	ImGui.set_function("SetNextWindowFocus", SetNextWindowFocus);
-	ImGui.set_function("SetNextWindowBgAlpha", SetNextWindowBgAlpha);
-	ImGui.set_function("SetNextWindowViewport", ImGui::SetNextWindowViewport);
+	ImGui.set_function("SetNextWindowCollapsed", [](bool collapsed, std::optional<int> cond) { ImGui::SetNextWindowCollapsed(collapsed, cond.value_or(0)); });
+	ImGui.set_function("SetNextWindowFocus", &ImGui::SetNextWindowFocus);
+	ImGui.set_function("SetNextWindowScroll", &ImGui::SetNextWindowScroll);
+	ImGui.set_function("SetNextWindowBgAlpha", &ImGui::SetNextWindowBgAlpha);
+	ImGui.set_function("SetNextWindowViewport", &ImGui::SetNextWindowViewport);
+
 	ImGui.set_function("SetWindowPos", sol::overload(
-		sol::resolve<void(float, float)>(SetWindowPos),
-		sol::resolve<void(float, float, int)>(SetWindowPos),
-		sol::resolve<void(const std::string&, float, float)>(SetWindowPos),
-		sol::resolve<void(const std::string&, float, float, int)>(SetWindowPos)
+		[](float posX, float posY, std::optional<int> cond) { ImGui::SetWindowPos({ posX, posY }, cond.value_or(0)); },
+		[](const ImVec2& pos, std::optional<int> cond) { ImGui::SetWindowPos(pos, cond.value_or(0)); },
+		[](const char* name, float posX, float posY, std::optional<int> cond) { ImGui::SetWindowPos(name, { posX, posY }, cond.value_or(0)); },
+		[](const char* name, const ImVec2& pos, std::optional<int> cond) { ImGui::SetWindowPos(name, pos, cond.value_or(0)); }
 	));
 	ImGui.set_function("SetWindowSize", sol::overload(
-		[](float sizeX, float sizeY) { ImGui::SetWindowSize({ sizeX, sizeY }); },
-		[](float sizeX, float sizeY, int cond) { ImGui::SetWindowSize({ sizeX, sizeY }, ImGuiCond(cond)); },
-		[](const char* name, float sizeX, float sizeY) { ImGui::SetWindowSize(name, { sizeX, sizeY }); },
-		[](const char* name, float sizeX, float sizeY, int cond) { ImGui::SetWindowSize(name, { sizeX, sizeY }, ImGuiCond(cond)); },
-		[](const ImVec2& size) { ImGui::SetWindowSize(size); },
-		[](const ImVec2& size, int cond) { ImGui::SetWindowSize(size, ImGuiCond(cond)); },
-		[](const char* name, const ImVec2& size) { ImGui::SetWindowSize(name, size); },
-		[](const char* name, const ImVec2& size, int cond) { ImGui::SetWindowSize(name, size, ImGuiCond(cond)); }
+		[](float sizeX, float sizeY, std::optional<int> cond) { ImGui::SetWindowSize({ sizeX, sizeY }, cond.value_or(0)); },
+		[](const char* name, float sizeX, float sizeY, std::optional<int> cond) { ImGui::SetWindowSize(name, { sizeX, sizeY }, cond.value_or(0)); },
+		[](const ImVec2& size, std::optional<int> cond) { ImGui::SetWindowSize(size, cond.value_or(0)); },
+		[](const char* name, const ImVec2& size, std::optional<int> cond) { ImGui::SetWindowSize(name, size, cond.value_or(0)); }
 	));
 	ImGui.set_function("SetWindowCollapsed", sol::overload(
-		sol::resolve<void(bool)>(SetWindowCollapsed),
-		sol::resolve<void(bool, int)>(SetWindowCollapsed),
-		sol::resolve<void(const std::string&, bool)>(SetWindowCollapsed),
-		sol::resolve<void(const std::string&, bool, int)>(SetWindowCollapsed)
+		[](bool collapsed, std::optional<int> cond) { ImGui::SetWindowCollapsed(collapsed, cond.value_or(0)); },
+		[](const char* name, bool collapsed, std::optional<int> cond) { ImGui::SetWindowCollapsed(name, collapsed, cond.value_or(0)); }
 	));
 	ImGui.set_function("SetWindowFocus", sol::overload(
-		sol::resolve<void()>(SetWindowFocus),
-		sol::resolve<void(const std::string&)>(SetWindowFocus)
+		[]() { ImGui::SetWindowFocus(); },
+		[](std::optional<const char*> name) { ImGui::SetWindowFocus(name.value_or(nullptr)); }
 	));
-	ImGui.set_function("SetWindowFontScale", SetWindowFontScale);
+	ImGui.set_function("SetWindowFontScale", &ImGui::SetWindowFontScale);
+	#pragma endregion
 
+	#pragma region Content Region
 	// Content Region
-	ImGui.set_function("GetContentRegionMax", GetContentRegionMax);
-	ImGui.set_function("GetContentRegionAvail", GetContentRegionAvail);
+	ImGui.set_function("GetContentRegionAvail", []() { ImVec2 vec = ImGui::GetContentRegionAvail(); return std::make_tuple(vec.x, vec.y); });
 	ImGui.set_function("GetContentRegionAvailVec", ImGui::GetContentRegionAvail);
-	ImGui.set_function("GetWindowContentRegionMin", GetWindowContentRegionMin);
-	ImGui.set_function("GetWindowContentRegionMax", GetWindowContentRegionMax);
-	ImGui.set_function("GetWindowContentRegionWidth", GetWindowContentRegionWidth);
+	ImGui.set_function("GetContentRegionMax", []() { ImVec2 vec = ImGui::GetContentRegionMax(); return std::make_tuple(vec.x, vec.y); });
+	ImGui.set_function("GetContentRegionMaxVec", &ImGui::GetContentRegionMax);
+	ImGui.set_function("GetWindowContentRegionMin", []() { ImVec2 vec = ImGui::GetWindowContentRegionMin(); return std::make_tuple(vec.x, vec.y); });
+	ImGui.set_function("GetWindowContentRegionMinVec", ImGui::GetWindowContentRegionMin);
+	ImGui.set_function("GetWindowContentRegionMax", []() { ImVec2 vec = ImGui::GetWindowContentRegionMax(); return std::make_tuple(vec.x, vec.y); });
+	ImGui.set_function("GetWindowContentRegionMaxVec", ImGui::GetWindowContentRegionMax);
+	ImGui.set_function("GetWindowContentRegionWidth", []() { return ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x; });
+	#pragma endregion
 
+	#pragma region Windows Scrolling
 	// Windows Scrolling
-	ImGui.set_function("GetScrollX", GetScrollX);
-	ImGui.set_function("GetScrollY", GetScrollY);
-	ImGui.set_function("GetScrollMaxX", GetScrollMaxX);
-	ImGui.set_function("GetScrollMaxY", GetScrollMaxY);
-	ImGui.set_function("SetScrollX", SetScrollX);
-	ImGui.set_function("SetScrollY", SetScrollY);
-	ImGui.set_function("SetScrollHereX", sol::overload(
-		sol::resolve<void()>(SetScrollHereX),
-		sol::resolve<void(float)>(SetScrollHereX)
-	));
-	ImGui.set_function("SetScrollHereY", sol::overload(
-		sol::resolve<void()>(SetScrollHereY),
-		sol::resolve<void(float)>(SetScrollHereY)
-	));
-	ImGui.set_function("SetScrollFromPosX", sol::overload(
-		sol::resolve<void(float)>(SetScrollFromPosX),
-		sol::resolve<void(float, float)>(SetScrollFromPosX)
-	));
-	ImGui.set_function("SetScrollFromPosY", sol::overload(
-		sol::resolve<void(float)>(SetScrollFromPosY),
-		sol::resolve<void(float, float)>(SetScrollFromPosY)
-	));
+	ImGui.set_function("GetScrollX", &ImGui::GetScrollX);
+	ImGui.set_function("GetScrollY", &ImGui::GetScrollY);
+	ImGui.set_function("SetScrollX", [](float scroll_x) { ImGui::SetScrollX(scroll_x); });
+	ImGui.set_function("SetScrollY", [](float scroll_y) { ImGui::SetScrollY(scroll_y); });
+	ImGui.set_function("GetScrollMaxX", ImGui::GetScrollMaxX);
+	ImGui.set_function("GetScrollMaxY", ImGui::GetScrollMaxY);
+	ImGui.set_function("SetScrollHereX", [](std::optional<float> center_x_ratio) { ImGui::SetScrollHereX(center_x_ratio.value_or(0.5f)); });
+	ImGui.set_function("SetScrollHereY", [](std::optional<float> center_y_ratio) { ImGui::SetScrollHereY(center_y_ratio.value_or(0.5f)); });
+	ImGui.set_function("SetScrolFromPosX", [](float local_x, std::optional<float> center_x_ratio) { ImGui::SetScrollFromPosX(local_x, center_x_ratio.value_or(0.5f)); });
+	ImGui.set_function("SetScrolFromPosY", [](float local_y, std::optional<float> center_y_ratio) { ImGui::SetScrollFromPosY(local_y, center_y_ratio.value_or(0.5f)); });
+	#pragma endregion
 
+	#pragma region Parameters Stacks (Shared)
 	// Parameters stacks (shared)
-	ImGui.set_function("PushFont", PushFont);
-	ImGui.set_function("PopFont", PopFont);
+	ImGui.set_function("PushFont", [](std::optional<ImFont*> font) { ImGui::PushFont(font.value_or(nullptr)); });
+	ImGui.set_function("PopFont", &ImGui::PopFont);
 	ImGui.set_function("PushStyleColor", sol::overload(
-		sol::resolve<void(int, int)>(PushStyleColor),
-		sol::resolve<void(int, float, float, float, float)>(PushStyleColor),
-		sol::resolve<void(int, const ImVec4&)>(&ImGui::PushStyleColor)
+		[](int idx, int col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), ImU32(col)); },
+		[](int idx, float colR, float colG, float colB, float colA) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), { colR, colG, colB, colA }); },
+		[](int idx, const ImVec4& col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), col); }
 	));
-	ImGui.set_function("PopStyleColor", sol::overload(
-		sol::resolve<void()>(PopStyleColor),
-		sol::resolve<void(int)>(PopStyleColor)
-	));
+	ImGui.set_function("PopStyleColor", [](std::optional<int> count) { ImGui::PopStyleColor(count.value_or(1)); });
 	ImGui.set_function("PushStyleVar", sol::overload(
-		sol::resolve<void(int, float)>(PushStyleVar),
-		sol::resolve<void(int, float, float)>(PushStyleVar),
-		sol::resolve<void(int, const ImVec2&)>(PushStyleVar)
+		[](int idx, float val) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); },
+		[](int idx, float valX, float valY) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), { valX, valY }); },
+		[](int idx, const ImVec2& val) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
 	));
-	ImGui.set_function("PopStyleVar", sol::overload(
-		sol::resolve<void()>(PopStyleVar),
-		sol::resolve<void(int)>(PopStyleVar)
-	));
-	ImGui.set_function("GetStyleColorVec4", GetStyleColorVec4);
-	ImGui.set_function("GetStyleColor", ImGui::GetStyleColorVec4);
-	ImGui.set_function("GetFont", GetFont);
-	ImGui.set_function("GetFontSize", GetFontSize);
-	ImGui.set_function("GetFontTexUvWhitePixel", GetFontTexUvWhitePixel);
-	ImGui.set_function("GetColorU32", sol::overload(
-		sol::resolve<int(int, float)>(GetColorU32),
-		sol::resolve<int(float, float, float, float)>(GetColorU32),
-		sol::resolve<int(int)>(GetColorU32),
-		sol::resolve<int(const ImVec4&)>(GetColorU32))
-	);
+	ImGui.set_function("PopStyleVar", [](std::optional<int> count) { ImGui::PopStyleVar(count.value_or(1)); });
+	ImGui.set_function("PushTabStop", &ImGui::PushTabStop);
+	ImGui.set_function("PopTabStop", &ImGui::PopTabStop);
+	ImGui.set_function("PushButtonRepeat", &ImGui::PushButtonRepeat);
+	ImGui.set_function("PopButtonRepeat", &ImGui::PopButtonRepeat);
+	#pragma endregion
 
-	// global "macro"
-	state.set_function("IM_COL32", GetColorU32_Int);
-
+	#pragma region Parameters stacks (current window)
 	// Parameters stacks (current window)
-	ImGui.set_function("PushItemWidth", PushItemWidth);
-	ImGui.set_function("PopItemWidth", PopItemWidth);
-	ImGui.set_function("SetNextItemWidth", SetNextItemWidth);
-	ImGui.set_function("CalcItemWidth", CalcItemWidth);
-	ImGui.set_function("PushTextWrapPos", sol::overload(
-		sol::resolve<void()>(PushTextWrapPos),
-		sol::resolve<void(float)>(PushTextWrapPos)
-	));
-	ImGui.set_function("PopTextWrapPos", PopTextWrapPos);
-	ImGui.set_function("PushAllowKeyboardFocus", PushAllowKeyboardFocus);
-	ImGui.set_function("PopAllowKeyboardFocus", PopAllowKeyboardFocus);
-	ImGui.set_function("PushButtonRepeat", PushButtonRepeat);
-	ImGui.set_function("PopButtonRepeat", PopButtonRepeat);
+	ImGui.set_function("PushItemWidth", &ImGui::PushItemWidth);
+	ImGui.set_function("PopItemWidth", &ImGui::PopItemWidth);
+	ImGui.set_function("SetNextItemWidth", &ImGui::SetNextItemWidth);
+	ImGui.set_function("CalcItemWidth", &ImGui::CalcItemWidth);
+	ImGui.set_function("PushTextWrapPos", [](std::optional<float> wrap_local_pos_x) { ImGui::PushTextWrapPos(wrap_local_pos_x.value_or(0.0f)); });
+	ImGui.set_function("PopTextWrapPos", &ImGui::PopTextWrapPos);
+	#pragma endregion
 
-	// Cursor / Layout
-	ImGui.set_function("Separator", Separator);
-	ImGui.set_function("SameLine", sol::overload(
-		sol::resolve<void()>(SameLine),
-		sol::resolve<void(float)>(SameLine),
-		sol::resolve<void(float, float)>(SameLine)
+	#pragma region Style read access
+	// Style read access
+	ImGui.set_function("GetFont", &ImGui::GetFont);
+	ImGui.set_function("GetFontSize", &ImGui::GetFontSize);
+	ImGui.set_function("GetFontTexUvWhitePixel", &ImGui::GetFontTexUvWhitePixel);
+	ImGui.set_function("GetColorU32", sol::overload(
+		[](int idx, float alpha_mul) { return ImGui::GetColorU32(static_cast<ImGuiCol>(idx), alpha_mul); },
+		[](float colR, float colG, float colB, float colA) { return ImGui::GetColorU32({ colR, colG, colB, colA }); },
+		[](const ImVec4& col) { return ImGui::GetColorU32(col); },
+		[](int col) { return ImGui::GetColorU32(ImU32(col)); }
 	));
-	ImGui.set_function("NewLine", NewLine);
-	ImGui.set_function("Spacing", Spacing);
-	ImGui.set_function("Dummy", Dummy);
-	ImGui.set_function("Indent", sol::overload(
-		sol::resolve<void()>(Indent),
-		sol::resolve<void(float)>(Indent)
-	));
-	ImGui.set_function("Unindent", sol::overload(
-		sol::resolve<void()>(Unindent),
-		sol::resolve<void(float)>(Unindent)
-	));
-	ImGui.set_function("BeginGroup", BeginGroup);
-	ImGui.set_function("EndGroup", EndGroup);
-	ImGui.set_function("GetCursorPos", GetCursorPos);
-	ImGui.set_function("GetCursorPosX", GetCursorPosX);
-	ImGui.set_function("GetCursorPosY", GetCursorPosY);
-	ImGui.set_function("SetCursorPos", SetCursorPos);
-	ImGui.set_function("SetCursorPosX", SetCursorPosX);
-	ImGui.set_function("SetCursorPosY", SetCursorPosY);
-	ImGui.set_function("GetCursorStartPos", GetCursorStartPos);
-	ImGui.set_function("GetCursorScreenPos", GetCursorScreenPos);
+	ImGui.set_function("GetStyleColor", [](int idx) { ImVec4 col = ImGui::GetStyleColorVec4(static_cast<ImGuiCol>(idx)); return std::make_tuple(col.x, col.y, col.z, col.w); });
+	ImGui.set_function("GetStyleColorVec4", &ImGui::GetStyleColorVec4);
+	#pragma endregion
+
+	#pragma region Layout cursor positioning
+	// Layout cursor positioning
+	ImGui.set_function("GetCursorScreenPos", []() { ImVec2 pos = ImGui::GetCursorScreenPos(); return std::make_tuple(pos.x, pos.y); });
 	ImGui.set_function("GetCursorScreenPosVec", &ImGui::GetCursorScreenPos);
-	ImGui.set_function("SetCursorScreenPos", SetCursorScreenPos);
-	ImGui.set_function("AlignTextToFramePadding", AlignTextToFramePadding);
-	ImGui.set_function("GetTextLineHeight", GetTextLineHeight);
-	ImGui.set_function("GetTextLineHeightWithSpacing", GetTextLineHeightWithSpacing);
-	ImGui.set_function("GetFrameHeight", GetFrameHeight);
-	ImGui.set_function("GetFrameHeightWithSpacing", GetFrameHeightWithSpacing);
+	ImGui.set_function("SetCursorScreenPos", sol::overload(
+		[](float posX, float posY) { ImGui::SetCursorScreenPos({ posX, posY }); },
+		[](const ImVec2& pos) { ImGui::SetCursorScreenPos(pos); }
+	));
+	ImGui.set_function("GetCursorPos", []() { ImVec2 pos = ImGui::GetCursorPos(); return std::make_tuple(pos.x, pos.y); });
+	ImGui.set_function("GetCursorPosVec", &ImGui::GetCursorPos);
+	ImGui.set_function("GetCursorPosX", &ImGui::GetCursorPosX);
+	ImGui.set_function("GetCursorPosY", &ImGui::GetCursorPosY);
+	ImGui.set_function("SetCursorPos", sol::overload(
+		[](float posX, float posY) { ImGui::SetCursorPos({ posX, posY }); },
+		[](const ImVec2& pos) { ImGui::SetCursorPos(pos); }
+	));
+	ImGui.set_function("SetCursorPosX", &ImGui::SetCursorPosX);
+	ImGui.set_function("SetCursorPosY", &ImGui::SetCursorPosY);
+	ImGui.set_function("GetCursorStartPos", []() { ImVec2 pos = ImGui::GetCursorStartPos(); return std::make_tuple(pos.x, pos.y); });
+	ImGui.set_function("GetCursorStartPosVec", &ImGui::GetCursorStartPos);
+	#pragma endregion
 
+	#pragma region Other layout functions
+	// Other layout functions
+	ImGui.set_function("Separator", &ImGui::Separator);
+	ImGui.set_function("SameLine", [](std::optional<float> offset_from_start_x, std::optional<float> spacing) { ImGui::SameLine(offset_from_start_x.value_or(0.0f), spacing.value_or(-1.0f)); });
+	ImGui.set_function("NewLine", &ImGui::NewLine);
+	ImGui.set_function("Spacing", &ImGui::Spacing);
+	ImGui.set_function("Dummy", sol::overload(
+		[](float sizeX, float sizeY) { ImGui::Dummy({ sizeX, sizeY }); },
+		[](const ImVec2& size) { ImGui::Dummy(size); }
+	));
+	ImGui.set_function("Indent", [](std::optional<float> indent_w) { ImGui::Indent(indent_w.value_or(0.0f)); });
+	ImGui.set_function("Unindent", [](std::optional<float> indent_w) { ImGui::Unindent(indent_w.value_or(0.0f)); });
+	ImGui.set_function("BeginGroup", &ImGui::BeginGroup);
+	ImGui.set_function("EndGroup", &ImGui::EndGroup);
+	ImGui.set_function("AlignTextToFramePadding", &ImGui::AlignTextToFramePadding);
+	ImGui.set_function("GetTextLineHeight", &ImGui::GetTextLineHeight);
+	ImGui.set_function("GetTextLineHeightWithSpacing", &ImGui::GetTextLineHeightWithSpacing);
+	ImGui.set_function("GetFrameHeight", &ImGui::GetFrameHeight);
+	ImGui.set_function("GetFrameHeightWithSpacing", &ImGui::GetFrameHeightWithSpacing);
+	#pragma endregion
+
+	#pragma region ID stack / scopes
 	// ID stack / scopes
 	ImGui.set_function("PushID", sol::overload(
-		sol::resolve<void(std::string_view)>(PushID),
-		sol::resolve<void(int)>(PushID),
-		sol::resolve<void(sol::object)>(PushID)
+		[](std::string_view str_id) { ImGui::PushID(str_id.data(), str_id.data() + str_id.length()); },
+		[](int int_id) { ImGui::PushID(int_id); },
+		[](sol::object obj) { ImGui::PushID(obj.pointer()); }
 	));
-	ImGui.set_function("PopID", PopID);
+	ImGui.set_function("PopID", &ImGui::PopID);
 	ImGui.set_function("GetID", sol::overload(
-		sol::resolve<int(std::string_view)>(GetID),
-		sol::resolve<int(sol::object)>(GetID)
+		[](std::string_view str_id) { ImGui::GetID(str_id.data(), str_id.data() + str_id.length()); },
+		[](sol::object obj) { ImGui::GetID(obj.pointer()); }
 	));
 	#pragma endregion
 
-	#pragma region Utilities
+	// Widgets - see lua_ImGuiWidgets.cpp
 
+	#pragma region Tooltips
+	ImGui.set_function("BeginTooltip", &ImGui::BeginTooltip);
+	ImGui.set_function("EndTooltip", &ImGui::EndTooltip);
+	ImGui.set_function("SetTooltip", [](sol::variadic_args args, sol::this_state s) { std::string text = format_text(s, args); ImGui::SetTooltip("%s", text.c_str()); });
+	ImGui.set_function("BeginItemTooltip", &ImGui::BeginItemTooltip);
+	ImGui.set_function("SetItemTooltip", [](sol::variadic_args args, sol::this_state s) { std::string text = format_text(s, args); ImGui::SetItemTooltip("%s", text.c_str()); });
+	#pragma endregion
+
+	#pragma region Popups, Modals
+	ImGui.set_function("BeginPopup", [](const char* str_id, std::optional<int> flags) { return ImGui::BeginPopup(str_id, flags.value_or(0)); });
+	ImGui.set_function("BeginPopupModal", sol::overload(
+		[](const char* name, std::optional<bool> open, std::optional<bool> flags)
+		{
+			bool open_ = open.value_or(true);
+			bool show = ImGui::BeginPopupModal(name, open.has_value() ? &open_ : nullptr, flags.value_or(0));
+			return std::make_tuple(show, open_);
+		}
+	));
+	ImGui.set_function("EndPopup", &ImGui::EndPopup);
+	ImGui.set_function("OpenPopup", sol::overload(
+		[](const char* str_id, std::optional<int> popup_flags) { ImGui::OpenPopup(str_id, popup_flags.value_or(0)); },
+		[](ImGuiID id, std::optional<int> popup_flags) { ImGui::OpenPopup(id, popup_flags.value_or(0)); }
+	));
+	ImGui.set_function("OpenPopupOnItemClick", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { ImGui::OpenPopupOnItemClick(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("CloseCurrentPopup", &ImGui::CloseCurrentPopup);
+	ImGui.set_function("BeginPopupContextItem", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { return ImGui::BeginPopupContextItem(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("BeginPopupContextWindow", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { return ImGui::BeginPopupContextWindow(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("BeginPopupContextVoid", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { return ImGui::BeginPopupContextVoid(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
+	ImGui.set_function("IsPopupOpen", [](const char* str_id, std::optional<int> flags) { return ImGui::IsPopupOpen(str_id, flags.value_or(0)); });
+#pragma endregion
+
+	#pragma region Tables
+	ImGui.set_function("BeginTable", sol::overload(
+		[](const char* str_id, int column, std::optional<int> flags, std::optional<ImVec2> outer_size, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags.value_or(0), outer_size.value_or(ImVec2(0, 0)), inner_width.value_or(0.0f));
+		},
+		[](const char* str_id, int column, int flags, float outer_size_x, float outer_size_y, std::optional<float> inner_width) {
+			return ImGui::BeginTable(str_id, column, flags, ImVec2(outer_size_x, outer_size_y), inner_width.value_or(0.0f));
+		}
+	));
+	ImGui.set_function("EndTable", &ImGui::EndTable);
+	ImGui.set_function("TableNextRow", [](std::optional<int> flags, std::optional<float> min_row_height) { ImGui::TableNextRow(flags.value_or(0), min_row_height.value_or(0.0f)); });
+	ImGui.set_function("TableNextColumn", &ImGui::TableNextColumn);
+	ImGui.set_function("TableSetColumnIndex", &ImGui::TableSetColumnIndex);
+
+	ImGui.set_function("TableSetupColumn", [](const char* label, std::optional<int> flags, std::optional<float> init_width_or_weight, std::optional<int> user_id) { ImGui::TableSetupColumn(label, flags.value_or(0), init_width_or_weight.value_or(0.0f), (ImGuiID)user_id.value_or(0)); });
+	ImGui.set_function("TableSetupScrollFreeze", &ImGui::TableSetupScrollFreeze);
+	ImGui.set_function("TableHeader", &ImGui::TableHeader);
+	ImGui.set_function("TableHeadersRow", &ImGui::TableHeadersRow);
+	ImGui.set_function("TableAngledHeadersRow", &ImGui::TableAngledHeadersRow);
+
+	ImGui.set_function("TableGetSortSpecs", []() -> std::optional<ImGuiTableSortSpecs*> { auto specs = ImGui::TableGetSortSpecs(); if (specs) return std::make_optional(specs); else return {}; });
+	ImGui.set_function("TableGetColumnCount", &ImGui::TableGetColumnCount);
+	ImGui.set_function("TableGetColumnIndex", &ImGui::TableGetColumnIndex);
+	ImGui.set_function("TableGetRowIndex", &ImGui::TableGetRowIndex);
+	ImGui.set_function("TableGetColumnName", [](std::optional<int> column_n) { return ImGui::TableGetColumnName(column_n.value_or(-1)); });
+	ImGui.set_function("TableGetColumnFlags", [](std::optional<int> column_n) { return ImGui::TableGetColumnFlags(column_n.value_or(-1)); });
+	ImGui.set_function("TableSetColumnEnabled", [](int column_n, bool v) { ImGui::TableSetColumnEnabled(column_n, v); });
+	ImGui.set_function("TableSetBgColor", sol::overload(
+		[](int target, const ImVec4& color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32(color), column_n.value_or(-1)); },
+		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); },
+		[](int target, ImU32 color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, color, column_n.value_or(-1)); }
+	));
+
+	ImGui.set_function("TableGetColumnIsVisible", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsVisible) != 0; });
+	ImGui.set_function("TableGetColumnIsSorted", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsSorted) != 0; });
+	ImGui.set_function("TableGetHoveredColumn", &ImGui::TableGetHoveredColumn);
+	ImGui.set_function("TableGetColumnHasFlag", [](int flag, std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & flag) != 0; });
+	#pragma endregion
+
+	#pragma region Columns
+	ImGui.set_function("Columns", [](std::optional<int> count, std::optional<const char*> id, std::optional<bool> border) { ImGui::Columns(count.value_or(1), id.value_or(nullptr), border.value_or(true)); });
+	ImGui.set_function("NextColumn", &ImGui::NextColumn);
+	ImGui.set_function("GetColumnIndex", &ImGui::GetColumnIndex);
+	ImGui.set_function("GetColumnWidth", [](std::optional<int> column_index) { return ImGui::GetColumnWidth(column_index.value_or(-1)); });
+	ImGui.set_function("SetColumnWidth", &ImGui::SetColumnWidth);
+	ImGui.set_function("GetColumnOffset", [](std::optional<int> column_index) { return ImGui::GetColumnOffset(column_index.value_or(-1)); });
+	ImGui.set_function("SetColumnOffset", &ImGui::SetColumnOffset);
+	ImGui.set_function("GetColumnsCount", &ImGui::GetColumnsCount);
+	#pragma endregion
+
+	#pragma region Tab Bars, Tabs
+	ImGui.set_function("BeginTabBar", [](const char* str_id, std::optional<int> flags) { return ImGui::BeginTabBar(str_id, flags.value_or(0)); });
+	ImGui.set_function("EndTabBar", &ImGui::EndTabBar);
+	ImGui.set_function("BeginTabItem",
+		[](const char* label, std::optional<bool> open, std::optional<int> flags) {
+			bool open_ = open.value_or(true); bool show = ImGui::BeginTabItem(label, open.has_value() ? &open_ : nullptr, flags.value_or(0));
+			return std::make_tuple(open.has_value() ? open_ : show, show);
+		});
+	ImGui.set_function("EndTabItem", &ImGui::EndTabItem);
+	ImGui.set_function("TabItemButton", [](const char* label, std::optional<int> flags) { return ImGui::TabItemButton(label, flags.value_or(0)); });
+	ImGui.set_function("SetTabItemClosed", &ImGui::SetTabItemClosed);
+	#pragma endregion
+
+	#pragma region Docking
+	ImGui.set_function("DockSpace", sol::overload(
+		[](ImGuiID id, std::optional<ImVec2> size, std::optional<int> flags, std::optional<ImGuiWindowClass*> window_class) { return ImGui::DockSpace(id, size.value_or(ImVec2(0, 0)), flags.value_or(0), window_class.value_or(nullptr)); },
+		[](ImGuiID id, float sizeX, float sizeY, std::optional<int> flags, std::optional<ImGuiWindowClass*> window_class) { return ImGui::DockSpace(id, { sizeX, sizeY }, flags.value_or(0), window_class.value_or(nullptr)); }
+	));
+	ImGui.set_function("DockSpaceOverViewport", sol::overload(
+		[](std::optional<ImGuiViewport*> viewport, std::optional<int> flags, std::optional<ImGuiWindowClass*> window_class)
+		{
+			return ImGui::DockSpaceOverViewport(0, viewport.value_or(nullptr), flags.value_or(0), window_class.value_or(nullptr));
+		},
+		[](ImGuiID dockspace_id, std::optional<ImGuiViewport*> viewport, std::optional<int> flags, std::optional<ImGuiWindowClass*> window_class)
+		{
+			return ImGui::DockSpaceOverViewport(dockspace_id, viewport.value_or(nullptr), flags.value_or(0), window_class.value_or(nullptr));
+		}
+	));
+	ImGui.set_function("SetNextWindowDockID", [](ImGuiID dock_id, std::optional<int> cond) { ImGui::SetNextWindowDockID(dock_id, cond.value_or(0)); });
+	ImGui.set_function("SetNextWindowClass", [](ImGuiWindowClass* window_class) { ImGui::SetNextWindowClass(window_class); });
+	ImGui.set_function("GetWindowDockID", &ImGui::GetWindowDockID);
+	ImGui.set_function("IsWindowDocked", &ImGui::IsWindowDocked);
+	#pragma endregion
+
+	#pragma region Logging/Capture
 	// Logging / Capture
-	ImGui.set_function("LogToTTY", sol::overload(
-		sol::resolve<void()>(LogToTTY),
-		sol::resolve<void(int)>(LogToTTY)
-	));
-	ImGui.set_function("LogToFile", sol::overload(
-		sol::resolve<void(int)>(LogToFile),
-		sol::resolve<void(int, const std::string&)>(LogToFile)
-	));
-	ImGui.set_function("LogToClipboard", sol::overload(
-		sol::resolve<void()>(LogToClipboard),
-		sol::resolve<void(int)>(LogToClipboard)
-	));
-	ImGui.set_function("LogFinish", LogFinish);
-	ImGui.set_function("LogButtons", LogButtons);
-	ImGui.set_function("LogText", LogText);
+	ImGui.set_function("LogToTTY", [](std::optional<int> auto_open_depth) { ImGui::LogToTTY(auto_open_depth.value_or(-1)); });
+	ImGui.set_function("LogToFile", [](std::optional<int> auto_open_depth, std::optional<const char*> filename) { ImGui::LogToFile(auto_open_depth.value_or(-1), filename.value_or(nullptr)); });
+	ImGui.set_function("LogToClipboard", [](std::optional<int> auto_open_depth) { ImGui::LogToClipboard(auto_open_depth.value_or(-1)); });
+	ImGui.set_function("LogFinish", &ImGui::LogFinish);
+	ImGui.set_function("LogButtons", &ImGui::LogButtons);
+	ImGui.set_function("LogText", [](const char* text) { ImGui::LogText("%s", text); });
+	#pragma endregion
 
+	#pragma region Drag Drop
+	ImGui.set_function("BeginDragDropSource", [](std::optional<int> flags) { return ImGui::BeginDragDropSource(flags.value_or(0)); });
+	ImGui.set_function("SetDragDropPayload", &SetDragDropPayload);
+	ImGui.set_function("EndDragDropSource", &ImGui::EndDragDropSource);
+	ImGui.set_function("BeginDragDropTarget", &ImGui::BeginDragDropTarget);
+	ImGui.set_function("AcceptDragDropPayload", &AcceptDragDropPayload);
+	ImGui.set_function("EndDragDropTarget", &ImGui::EndDragDropTarget);
+	ImGui.set_function("GetDragDropPayload", &GetDragDropPayload);
+
+	state.new_usertype<LuaImGuiPayload>(
+		"ImGuiPayload", sol::no_constructor,
+		"Data",         sol::readonly(&LuaImGuiPayload::Data)
+	);
+	#pragma endregion
+
+	#pragma region Disabling
 	// Disabling
-	ImGui.set_function("BeginDisabled", sol::overload(
-		[]() { ImGui::BeginDisabled(); },
-		[](bool disabled) { ImGui::BeginDisabled(disabled); }
-	));
+	ImGui.set_function("BeginDisabled", [](std::optional<bool> disabled) { ImGui::BeginDisabled(disabled.value_or(true)); });
 	ImGui.set_function("EndDisabled", &ImGui::EndDisabled);
+	#pragma endregion
 
 	// Clipping
-	ImGui.set_function("PushClipRect", PushClipRect);
-	ImGui.set_function("PopClipRect", PopClipRect);
-
+	ImGui.set_function("PushClipRect", sol::overload(
+		[](float min_x, float min_y, float max_x, float max_y, bool intersect_current) { ImGui::PushClipRect({ min_x, min_y }, { max_x, max_y }, intersect_current); },
+		[](const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect) { ImGui::PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect); }
+	));
+	ImGui.set_function("PopClipRect", &ImGui::PopClipRect);
 
 	// Focus, Activation
-	ImGui.set_function("SetItemDefaultFocus", SetItemDefaultFocus);
-	ImGui.set_function("SetKeyboardFocusHere", sol::overload(
-		sol::resolve<void()>(SetKeyboardFocusHere),
-		sol::resolve<void(int)>(SetKeyboardFocusHere)
-	));
+	ImGui.set_function("SetItemDefaultFocus", &ImGui::SetItemDefaultFocus);
+	ImGui.set_function("SetKeyboardFocusHere", [](std::optional<int> offset) { ImGui::SetKeyboardFocusHere(offset.value_or(0)); });
 
+	// Overlapping mode
+	ImGui.set_function("SetNextItemAllowOverlap", &ImGui::SetNextItemAllowOverlap);
+	ImGui.set_function("SetItemAllowOverlap", &ImGui::SetItemAllowOverlap); // OBSOLETE
+
+	#pragma region Item/Widgets Utilities and Query Functions
 	// Item/Widgets Utilities
-	ImGui.set_function("IsItemHovered", sol::overload(
-		[]() -> bool { return ImGui::IsItemHovered(); },
-		&ImGui::IsItemHovered
-	));
+	ImGui.set_function("IsItemHovered", [](std::optional<int> flags) { return ImGui::IsItemHovered(flags.value_or(0)); });
 	ImGui.set_function("IsItemActive", &ImGui::IsItemActive);
 	ImGui.set_function("IsItemFocused", &ImGui::IsItemFocused);
-	ImGui.set_function("IsItemClicked", sol::overload(
-		[]() -> bool { return ImGui::IsItemClicked(); },
-		&ImGui::IsItemClicked
-	));
+	ImGui.set_function("IsItemClicked", [](std::optional<int> mouse_button) { return ImGui::IsItemClicked(mouse_button.value_or(0)); });
 	ImGui.set_function("IsItemVisible", &ImGui::IsItemVisible);
 	ImGui.set_function("IsItemEdited", &ImGui::IsItemEdited);
 	ImGui.set_function("IsItemActivated", &ImGui::IsItemActivated);
@@ -633,118 +567,130 @@ void RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("IsAnyItemHovered", &ImGui::IsAnyItemHovered);
 	ImGui.set_function("IsAnyItemActive", &ImGui::IsAnyItemActive);
 	ImGui.set_function("IsAnyItemFocused", &ImGui::IsAnyItemFocused);
-	ImGui.set_function("GetItemRectMin", []() { const auto vec2{ ImGui::GetItemRectMin() }; return std::make_tuple(vec2.x, vec2.y); });
-	ImGui.set_function("GetItemRectMax", []() { const auto vec2{ ImGui::GetItemRectMax() }; return std::make_tuple(vec2.x, vec2.y); });
-	ImGui.set_function("GetItemRectSize", []() { const auto vec2{ ImGui::GetItemRectSize() }; return std::make_tuple(vec2.x, vec2.y); });
-	ImGui.set_function("SetItemAllowOverlap", &ImGui::SetItemAllowOverlap);
+	ImGui.set_function("GetItemRectMinVec", &ImGui::GetItemRectMin);
+	ImGui.set_function("GetItemRectMin", []() { ImVec2 vec2 = ImGui::GetItemRectMin(); return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetItemRectMaxVec", &ImGui::GetItemRectMax);
+	ImGui.set_function("GetItemRectMax", []() { ImVec2 vec2 = ImGui::GetItemRectMax(); return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetItemRectSizeVec", &ImGui::GetItemRectSize);
+	ImGui.set_function("GetItemRectSize", []() { ImVec2 vec2 = ImGui::GetItemRectSize(); return std::make_tuple(vec2.x, vec2.y); });
+	#pragma endregion
 
 	// Viewports
 	ImGui.set_function("GetMainViewport", &ImGui::GetMainViewport);
 
+	// Background/Foreground Draw Lists
+	ImGui.set_function("GetBackgroundDrawList", sol::overload(
+		[] { return ImGui::GetBackgroundDrawList(); },
+		sol::resolve<ImDrawList* (ImGuiViewport*)>(&ImGui::GetBackgroundDrawList)));
+	ImGui.set_function("GetForegroundDrawList", sol::overload(
+		[] { return ImGui::GetForegroundDrawList(); },
+		sol::resolve<ImDrawList* (ImGuiViewport*)>(&ImGui::GetForegroundDrawList)));
+
 	// Miscellaneous Utilities
 	ImGui.set_function("IsRectVisible", sol::overload(
-		sol::resolve<bool(float, float)>(IsRectVisible),
-		sol::resolve<bool(float, float, float, float)>(IsRectVisible)
+		[](const ImVec2& size) { return ImGui::IsRectVisible(size); },
+		[](const ImVec2& rect_min, const ImVec2& rect_max) { return ImGui::IsRectVisible(rect_min, rect_max); },
+		[](float sizeX, float sizeY) { return ImGui::IsRectVisible({ sizeX, sizeY }); },
+		[](float minX, float minY, float maxX, float maxY) { return ImGui::IsRectVisible({ minX, minY }, { maxX, maxY }); }
 	));
-	ImGui.set_function("GetTime", GetTime);
-	ImGui.set_function("GetFrameCount", GetFrameCount);
-	ImGui.set_function("GetBackgroundDrawList", sol::overload(
-		sol::resolve<ImDrawList*()>(&ImGui::GetBackgroundDrawList),
-		sol::resolve<ImDrawList*(ImGuiViewport*)>(&ImGui::GetBackgroundDrawList)));
-	ImGui.set_function("GetForegroundDrawList", sol::overload(
-		sol::resolve<ImDrawList*()>(ImGui::GetForegroundDrawList),
-		sol::resolve<ImDrawList*(ImGuiViewport*)>(&ImGui::GetForegroundDrawList)));
+	ImGui.set_function("GetTime", &ImGui::GetTime);
+	ImGui.set_function("GetFrameCount", &ImGui::GetFrameCount);
 	ImGui.set_function("GetDrawListSharedData", ImGui::GetDrawListSharedData);
-	ImGui.set_function("GetStyleColorName", GetStyleColorName);
-	ImGui.set_function("BeginChildFrame", sol::overload(
-		[](unsigned int id, float sizeX, float sizeY) { return ImGui::BeginChildFrame(id, { sizeX, sizeY }); },
-		[](unsigned int id, float sizeX, float sizeY, int flags) { return ImGui::BeginChildFrame(id, { sizeX, sizeY }, ImGuiWindowFlags(flags)); },
-		[](unsigned int id, const ImVec2& size) { return ImGui::BeginChildFrame(id, size); },
-		[](unsigned int id, const ImVec2& size, int flags) { return ImGui::BeginChildFrame(id, size, ImGuiWindowFlags(flags)); }
-	));
-	ImGui.set_function("EndChildFrame", &ImGui::EndChildFrame);
+	ImGui.set_function("GetStyleColorName", &ImGui::GetStyleColorName);
 
 	// Text Utilities
-	ImGui.set_function("CalcTextSize", sol::overload(
-		sol::resolve<std::tuple<float, float>(const std::string&)>(CalcTextSize),
-		sol::resolve<std::tuple<float, float>(const std::string&, const std::string&)>(CalcTextSize),
-		sol::resolve<std::tuple<float, float>(const std::string&, const std::string&, bool)>(CalcTextSize),
-		sol::resolve<std::tuple<float, float>(const std::string&, const std::string&, bool, float)>(CalcTextSize)
-	));
+	ImGui.set_function("CalcTextSizeVec", [](const char* text, std::optional<bool> hide_text_after_double_hash, std::optional<float> wrap_width) { return ImGui::CalcTextSize(text, nullptr, hide_text_after_double_hash.value_or(false), wrap_width.value_or(-1.0f)); });
+	ImGui.set_function("CalcTextSize", [](const char* text, std::optional<bool> hide_text_after_double_hash, std::optional<float> wrap_width) { ImVec2 size = ImGui::CalcTextSize(text, nullptr, hide_text_after_double_hash.value_or(false), wrap_width.value_or(-1.0f)); return std::make_tuple(size.x, size.y); });
 
+	#pragma region Color Utilities
 	// Color Utilities
 	ImGui.set_function("ColorConvertU32ToFloat4", ColorConvertU32ToFloat4);
 	ImGui.set_function("ColorConvertFloat4ToU32", ColorConvertFloat4ToU32);
-	ImGui.set_function("ColorConvertRGBtoHSV", ColorConvertRGBtoHSV);
-	ImGui.set_function("ColorConvertHSVtoRGB", ColorConvertHSVtoRGB);
+	ImGui.set_function("ColorConvertRGBtoHSV", [](float r, float g, float b) { float h, s, v; ImGui::ColorConvertRGBtoHSV(r, g, b, h, s, v); return std::make_tuple(h, s, v); });
+	ImGui.set_function("ColorConvertHSVtoRGB", [](float h, float s, float v) { float r, g, b; ImGui::ColorConvertHSVtoRGB(h, s, v, r, g, b); return std::make_tuple(r, g, b); });
+	state.set_function("IM_COL32", [](int colR, int colG, int colB, std::optional<int> colA) -> int { return IM_COL32(colR, colG, colB, colA.value_or(255)); });
+	#pragma endregion
 
+	#pragma region Inputs Utilities: Keyboard
 	// Inputs Utilities: Keyboard
-	ImGui.set_function("GetKeyIndex", GetKeyIndex);
-	ImGui.set_function("IsKeyDown", IsKeyDown);
-	ImGui.set_function("IsKeyPressed", sol::overload(
-		sol::resolve<bool(int)>(IsKeyPressed),
-		sol::resolve<bool(int, bool)>(IsKeyPressed)
-	));
-	ImGui.set_function("IsKeyReleased", IsKeyReleased);
-	ImGui.set_function("CaptureKeyboardFromApp", sol::overload(
-		sol::resolve<void()>(CaptureKeyboardFromApp),
-		sol::resolve<void(bool)>(CaptureKeyboardFromApp)
-	));
+	ImGui.set_function("IsKeyDown", [](ImGuiKey key) { return ImGui::IsKeyDown(key); });
+	ImGui.set_function("IsKeyPressed", [](ImGuiKey key, std::optional<bool> repeat) { return ImGui::IsKeyPressed(key, repeat.value_or(true)); });
+	ImGui.set_function("IsKeyReleased", [](ImGuiKey key) { ImGui::IsKeyReleased(key); });
+	ImGui.set_function("IsKeyChordPressed", [](ImGuiKeyChord chord) { return ImGui::IsKeyChordPressed(chord); });
+	ImGui.set_function("GetKeyPressedAmount", &ImGui::GetKeyPressedAmount);
+	ImGui.set_function("GetKeyName", &ImGui::GetKeyName);
+	ImGui.set_function("SetNextFrameWantCaptureKeyboard", &ImGui::SetNextFrameWantCaptureKeyboard);
+	ImGui.set_function("GetKeyIndex", [](uint32_t key) { return key; }); // Deprecated
+	#pragma endregion
 
+	#pragma region Inputs Utilities: Mouse
 	// Inputs Utilities: Mouse
-	ImGui.set_function("IsMouseDown", IsMouseDown);
-	ImGui.set_function("IsMouseClicked", sol::overload(
-		sol::resolve<bool(int)>(IsMouseClicked),
-		sol::resolve<bool(int, bool)>(IsMouseClicked)
-	));
-	ImGui.set_function("IsMouseReleased", IsMouseReleased);
-	ImGui.set_function("IsMouseDoubleClicked", [](int button) { return ImGui::IsMouseDoubleClicked(static_cast<ImGuiMouseButton>(button)); });
+	ImGui.set_function("IsMouseDown", [](int button) { return ImGui::IsMouseDown(button); });
+	ImGui.set_function("IsMouseClicked", [](int button, std::optional<bool> repeat) { return ImGui::IsMouseClicked(button, repeat.value_or(true)); });
+	ImGui.set_function("IsMouseReleased", [](int button) { return ImGui::IsMouseReleased(button); });
+	ImGui.set_function("IsMouseDoubleClicked", [](int button) { return ImGui::IsMouseDoubleClicked(button); });
+	ImGui.set_function("GetMouseClickedCount", [](int button) { return ImGui::GetMouseClickedCount(button); });
 	ImGui.set_function("IsMouseHoveringRect", sol::overload(
-		[](float min_x, float min_y, float max_x, float max_y) { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }); },
-		[](float min_x, float min_y, float max_x, float max_y, bool clip) { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }, clip); },
-		[](const ImVec2& min, const ImVec2& max) { return ImGui::IsMouseHoveringRect(min, max); },
-		&ImGui::IsMouseHoveringRect
+		[](const ImVec2& r_min, const ImVec2& r_max, std::optional<bool> clip) { return ImGui::IsMouseHoveringRect(r_min, r_max, clip.value_or(true)); },
+		[](float min_x, float min_y, float max_x, float max_y, std::optional<bool> clip) { return ImGui::IsMouseHoveringRect({ min_x, min_y }, { max_x, max_y }, clip.value_or(true)); }
 	));
-	ImGui.set_function("IsMousePosValid", sol::overload(
-		[]() { return ImGui::IsMousePosValid(); },
-		[](const ImVec2& pos) { return ImGui::IsMousePosValid(&pos); }
-	));
-	ImGui.set_function("IsAnyMouseDown", IsAnyMouseDown);
-	ImGui.set_function("GetMousePos", GetMousePos);
-	ImGui.set_function("GetMousePosVec", ImGui::GetMousePos);
-	ImGui.set_function("GetMousePosOnOpeningCurrentPopup", GetMousePosOnOpeningCurrentPopup);
-	ImGui.set_function("IsMouseDragging", sol::overload(
-		sol::resolve<bool(int)>(IsMouseDragging),
-		sol::resolve<bool(int, float)>(IsMouseDragging)
-	));
-	ImGui.set_function("GetMouseDragDelta", sol::overload(
-		sol::resolve<std::tuple<float, float>()>(GetMouseDragDelta),
-		sol::resolve<std::tuple<float, float>(int)>(GetMouseDragDelta),
-		sol::resolve<std::tuple<float, float>(int, float)>(GetMouseDragDelta)
-	));
-	ImGui.set_function("GetMouseDragDeltaVec", sol::overload(
-		sol::resolve<ImVec2()>(GetMouseDragDeltaVec),
-		sol::resolve<ImVec2(int)>(GetMouseDragDeltaVec),
-		sol::resolve<ImVec2(int, float)>(ImGui::GetMouseDragDelta)
-	));
-	ImGui.set_function("ResetMouseDragDelta", sol::overload(
-		sol::resolve<void()>(ResetMouseDragDelta),
-		sol::resolve<void(int)>(ResetMouseDragDelta)
-	));
-	ImGui.set_function("GetMouseCursor", GetMouseCursor);
-	ImGui.set_function("SetMouseCursor", SetMouseCursor);
-	ImGui.set_function("CaptureMouseFromApp", sol::overload(
-		sol::resolve<void()>(CaptureMouseFromApp),
-		sol::resolve<void(bool)>(CaptureMouseFromApp)
-	));
+	ImGui.set_function("IsMousePosValid", [](std::optional<ImVec2> mouse_pos) { return ImGui::IsMousePosValid(mouse_pos.has_value() ? &mouse_pos.value() : nullptr); });
+	ImGui.set_function("IsAnyMouseDown", &ImGui::IsAnyMouseDown);
+	ImGui.set_function("GetMousePosVec", &ImGui::GetMousePos);
+	ImGui.set_function("GetMousePos", []() { ImVec2 vec2 = ImGui::GetMousePos(); return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetMousePosOnOpeningCurrentPopupVec", &ImGui::GetMousePosOnOpeningCurrentPopup);
+	ImGui.set_function("GetMousePosOnOpeningCurrentPopup", []() { ImVec2 vec2 = ImGui::GetMousePosOnOpeningCurrentPopup(); return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("IsMouseDragging", [](int button, std::optional<float> lock_threshold) { return ImGui::IsMouseDragging(button, lock_threshold.value_or(-1.0f)); });
+	ImGui.set_function("GetMouseDragDelta", [](std::optional<int> button, std::optional<float> lock_threshold) { ImVec2 vec2 = ImGui::GetMouseDragDelta(button.value_or(0), lock_threshold.value_or(-1.0f)); return std::make_tuple(vec2.x, vec2.y); });
+	ImGui.set_function("GetMouseDragDelta", [](std::optional<int> button, std::optional<float> lock_threshold) { return ImGui::GetMouseDragDelta(button.value_or(0), lock_threshold.value_or(-1.0f)); });
+	ImGui.set_function("ResetMouseDragDelta", [](std::optional<int> button) { ImGui::ResetMouseDragDelta(button.value_or(0)); });
+	ImGui.set_function("GetMouseCursor", &ImGui::GetMouseCursor);
+	ImGui.set_function("SetMouseCursor", &ImGui::SetMouseCursor);
+	ImGui.set_function("SetNextFrameWantCaptureMouse", &ImGui::SetNextFrameWantCaptureMouse);
+	#pragma endregion
 
 	// Clipboard Utilities
-	ImGui.set_function("GetClipboardText", GetClipboardText);
-	ImGui.set_function("SetClipboardText", SetClipboardText);
-	#pragma endregion
+	ImGui.set_function("GetClipboardText", &ImGui::GetClipboardText);
+	ImGui.set_function("SetClipboardText", &ImGui::SetClipboardText);
+
+#if IMGUI_HAS_STACK_LAYOUT
+#pragma region StackLayout Functions
+	ImGui.set_function("BeginHorizontal", sol::overload(
+		[](const char* str_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(str_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](int int_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(int_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](sol::object obj, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(obj.pointer(), size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); }
+	));
+	ImGui.set_function("EndHorizontal", &ImGui::EndHorizontal);
+	ImGui.set_function("BeginVertical", sol::overload(
+		[](const char* str_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(str_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](int int_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(int_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
+		[](sol::object obj, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginVertical(obj.pointer(), size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); }
+	));
+	ImGui.set_function("EndVertical", &ImGui::EndVertical);
+	ImGui.set_function("Spring", [](std::optional<float> weight, std::optional<float> spacing) { ImGui::Spring(weight.value_or(1.0f), spacing.value_or(-1.0f)); });
+	ImGui.set_function("SuspendLayout", &ImGui::SuspendLayout);
+	ImGui.set_function("ResumeLayout", &ImGui::ResumeLayout);
+#pragma endregion
+#endif // IMGUI_HAS_STACK_LAYOUT
+
+#pragma region Obsolete Functions
+	// OBSOLETE 
+	ImGui.set_function("PushAllowKeyboardFocus", &ImGui::PushAllowKeyboardFocus);
+	ImGui.set_function("PopAllowKeyboardFocus", &ImGui::PopAllowKeyboardFocus);
+	ImGui.set_function("CaptureKeyboardFromApp", [](std::optional<bool> want_capture_keyboard) { ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard.value_or(true)); });
+	ImGui.set_function("CaptureMouseFromApp", [](std::optional<bool> want_capture_mouse) { ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse.value_or(true)); });
+
+	ImGui.set_function("BeginChildFrame", sol::overload(
+		[](ImGuiID id, float sizeX, float sizeY, std::optional<int> flags) { return ImGui::BeginChild(id, { sizeX, sizeY }, ImGuiChildFlags_FrameStyle, flags.value_or(0)); },
+		[](ImGuiID id, const ImVec2& size, std::optional<int> flags) { return ImGui::BeginChild(id, size, ImGuiChildFlags_FrameStyle, flags.value_or(0)); }
+	));
+	ImGui.set_function("EndChildFrame", &ImGui::EndChildFrame);
+#pragma endregion
 
 	bindings::RegisterBindings_ImGuiWidgets(ImGui);
 	bindings::RegisterBindings_ImGuiCustom(ImGui);
+
+	return ImGui;
 }
 
 } // namespace mq::lua::bindings

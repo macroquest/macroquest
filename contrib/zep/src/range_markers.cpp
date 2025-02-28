@@ -1,9 +1,9 @@
+#include "pch.h"
 #include "zep/range_markers.h"
 #include "zep/buffer.h"
 #include "zep/editor.h"
 
-namespace Zep
-{
+namespace Zep {
 
 RangeMarker::RangeMarker(ZepBuffer& buffer)
     : m_buffer(buffer)

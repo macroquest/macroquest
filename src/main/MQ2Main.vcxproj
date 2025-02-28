@@ -76,19 +76,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <CodeAnalysisRuleSet>..\VisualStudioAnalysis.ruleset</CodeAnalysisRuleSet>
-    <IncludePath>$(VCPKG_IncludeDirs)\crashpad-backtrace;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -100,7 +100,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <AdditionalDependencies>d3dx9.lib;fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -114,7 +114,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
-      <AdditionalDependencies>d3dx9.lib;fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -128,7 +128,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <AdditionalDependencies>d3dx9.lib;fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -141,7 +141,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
-      <AdditionalDependencies>d3dx9d.lib;fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -157,12 +157,7 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</ForcedIncludeFiles>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</ForcedIncludeFiles>
-    </ClCompile>
+    <ClCompile Include="api\Abilities.cpp" />
     <ClCompile Include="api\Spawns.cpp" />
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -489,44 +484,68 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ImGuiBackend.cpp" />
-    <ClCompile Include="ImGuiZepEditor.cpp" />
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="emu\EmuExtensions.cpp" />
+    <ClCompile Include="GraphicsEngine.cpp" />
+    <ClCompile Include="GraphicsEngineDX11.cpp" />
+    <ClCompile Include="GraphicsEngineDX9.cpp" />
+    <ClCompile Include="GraphicsResources.cpp" />
+    <ClCompile Include="ImGuiBackendDX11.cpp" />
+    <ClCompile Include="ImGuiBackendDX9.cpp" />
+    <ClCompile Include="ImGuiBackendWin32.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2CachedBuffs.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
-    <ClCompile Include="MQ2CleanUI.cpp" />
-    <ClCompile Include="MQ2CommandAPI.cpp" />
-    <ClCompile Include="MQ2Commands.cpp" />
+    <ClCompile Include="MQDisplayHook.cpp" />
+    <ClCompile Include="MQCommandAPI.cpp" />
+    <ClCompile Include="MQCommands.cpp" />
     <ClCompile Include="MQ2DeveloperTools.cpp" />
-    <ClCompile Include="MQ2DInput.cpp" />
+    <ClCompile Include="MQInputAPI.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
-    <ClCompile Include="MQ2DataAPI.cpp" />
+    <ClCompile Include="MQActorAPI.cpp" />
+    <ClCompile Include="MQDataAPI.cpp" />
     <ClCompile Include="MQ2DataVars.cpp" />
-    <ClCompile Include="MQ2DetourAPI.cpp" />
+    <ClCompile Include="MQDetourAPI.cpp" />
     <ClCompile Include="MQ2FrameLimiter.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
     <ClCompile Include="MQ2ImGuiTools.cpp" />
     <ClCompile Include="MQ2GroundSpawns.cpp" />
-    <ClCompile Include="MQ2ImGuiConsole.cpp" />
-    <ClCompile Include="MQ2ImguiWidgets.cpp" />
+    <ClCompile Include="MQImGuiConsole.cpp" />
+    <ClCompile Include="MQImguiWidgets.cpp" />
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
-    <ClCompile Include="MQ2Mouse.cpp" />
-    <ClCompile Include="ImGuiOverlay.cpp" />
-    <ClCompile Include="MQ2ParseAPI.cpp" />
-    <ClCompile Include="PipeClient.cpp" />
-    <ClCompile Include="MQ2PluginHandler.cpp" />
+    <ClCompile Include="MQPostOffice.cpp" />
+    <ClCompile Include="MQPluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
     <ClCompile Include="MQ2Spawns.cpp" />
     <ClCompile Include="MQ2Spells.cpp" />
@@ -535,6 +554,8 @@
     <ClCompile Include="MQ2WindowInspector.cpp" />
     <ClCompile Include="MQ2Windows.cpp" />
     <ClCompile Include="MQAchievements.cpp" />
+    <ClCompile Include="MQInventory.cpp" />
+    <ClCompile Include="MQRenderDoc.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -547,48 +568,75 @@
     <ClInclude Include="..\..\contrib\args\args.hxx" />
     <ClInclude Include="..\..\contrib\Blech\Blech.h" />
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp" />
+    <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h" />
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp" />
+    <ClInclude Include="..\..\include\extras\wil\Constants.h" />
     <ClInclude Include="..\..\include\moveitem.h" />
+    <ClInclude Include="..\..\include\mq\api\Abilities.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
+    <ClInclude Include="..\..\include\mq\api\ActorAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\CommandAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\DetourAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\Inventory.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
+    <ClInclude Include="..\..\include\mq\api\Main.h" />
+    <ClInclude Include="..\..\include\mq\api\PluginAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\RenderDoc.h" />
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
+    <ClInclude Include="..\..\include\mq\api\Textures.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
     <ClInclude Include="..\..\include\mq\base\Config.h" />
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
-    <ClInclude Include="..\..\include\mq\base\Detours.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
+    <ClInclude Include="..\..\include\mq\base\Logging.h" />
+    <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
     <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\base\Vector.h" />
     <ClInclude Include="..\..\include\mq\base\WString.h" />
+    <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h" />
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
+    <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
+    <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\..\include\mq\utils\OS.h" />
     <ClInclude Include="..\common\Common.h" />
     <ClInclude Include="..\common\ConfigUtils.h" />
     <ClInclude Include="..\common\HotKeys.h" />
-    <ClInclude Include="..\common\NamedPipes.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
+    <ClInclude Include="..\eqdata\actordef.h" />
+    <ClInclude Include="..\eqdata\combines.h" />
+    <ClInclude Include="..\eqdata\dikeys.h" />
+    <ClInclude Include="..\eqdata\itemclasses.h" />
+    <ClInclude Include="..\eqdata\skills.h" />
+    <ClInclude Include="..\eqdata\spelleffects.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
     <ClCompile Include="ImGuiManager.cpp" />
+    <ClInclude Include="emu\EmuExtensions.h" />
+    <ClInclude Include="GraphicsEngine.h" />
+    <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="ImGuiZepEditor.h" />
     <ClInclude Include="MQ2Commands.h" />
+    <ClInclude Include="MQActorAPI.h" />
+    <ClInclude Include="MQCommandAPI.h" />
+    <ClInclude Include="MQDataAPI.h" />
     <ClInclude Include="MQ2DataContainers.h" />
     <ClInclude Include="MQ2DeveloperTools.h" />
     <ClInclude Include="MQ2Globals.h" />
@@ -602,9 +650,12 @@
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
+    <ClInclude Include="MQDetourAPI.h" />
+    <ClInclude Include="MQPluginHandler.h" />
+    <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PipeClient.h" />
+    <ClInclude Include="MQPostOffice.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -623,6 +674,9 @@
     <ProjectReference Include="..\imgui\imgui.vcxproj">
       <Project>{1777e251-0f50-496a-b8c5-ec7f41a0b186}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\routing\routing.vcxproj">
+      <Project>{6ce4f8d6-1709-47c5-9297-1619bbc4a71e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <NASM Include="AssemblyFunctions64.asm">
@@ -632,9 +686,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\data\resources\CHANGELOG.md" />
+    <None Include="..\..\data\resources\Zones.ini" />
+    <None Include="..\..\LICENSE.md" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\data\resources\GPL.txt" />
     <Text Include="..\..\data\resources\ItemDB.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

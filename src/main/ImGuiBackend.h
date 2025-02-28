@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -14,10 +14,18 @@
 
 #pragma once
 
-#include <d3d9.h>
-#include <imgui.h>
+struct ImDrawData;
+struct IDirect3DDevice9;
+struct ID3D11Device;
+struct ID3D11DeviceContext;
 
 namespace mq {
+
+//----------------------------------------------------------------------------
+// DX9 renderer backend
+//----------------------------------------------------------------------------
+
+#if HAS_DIRECTX_9
 
 bool     ImGui_ImplDX9_Init(IDirect3DDevice9* device);
 void     ImGui_ImplDX9_Shutdown();
@@ -28,6 +36,38 @@ void     ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX9_InvalidateDeviceObjects();
 bool     ImGui_ImplDX9_CreateDeviceObjects();
 
+#endif // HAS_DIRECTX_9
+
+//----------------------------------------------------------------------------
+// DX11 renderer backend
+//----------------------------------------------------------------------------
+
+#if HAS_DIRECTX_11
+
+bool     ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_context);
+void     ImGui_ImplDX11_Shutdown();
+void     ImGui_ImplDX11_NewFrame();
+void     ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
+
+// Use if you want to reset your rendering device without losing Dear ImGui state.
+void     ImGui_ImplDX11_InvalidateDeviceObjects();
+bool     ImGui_ImplDX11_CreateDeviceObjects();
+
+// [BETA] Selected render state data shared with callbacks.
+// This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplDX11_RenderDrawData() call.
+// (Please open an issue if you feel you need access to more data)
+struct ImGui_ImplDX11_RenderState
+{
+	ID3D11Device* Device;
+	ID3D11DeviceContext* DeviceContext;
+	ID3D11SamplerState* SamplerDefault;
+};
+
+#endif // HAS_DIRECTX_11
+
+//----------------------------------------------------------------------------
+// Win32 platform backend
+//----------------------------------------------------------------------------
 
 bool     ImGui_ImplWin32_Init(void* hwnd);
 void     ImGui_ImplWin32_Shutdown();
@@ -42,6 +82,9 @@ bool     ImGui_IsImGuiForeground();
 // Implemented by ImGuiOverlay.cpp
 bool     ImGuiOverlay_HandleMouseEvent(int mouseButton, bool pressed);
 
-void     ImGuiRenderDebug_UpdateImGui();
+struct ImGuiViewportData
+{
+	HWND hDeviceWindow;
+};
 
 } // namespace mq

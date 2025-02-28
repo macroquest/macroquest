@@ -14,20 +14,20 @@ extern ?Throttler_Trampoline@mq@@3P6AXXZEA
 
 section .text
 
-global ?GetAssistParam@mq@@YAXXZ
-?GetAssistParam@mq@@YAXXZ:
-	push rcx
-	; Frame size (0xCPacketScrambler_Detours::ntoh_Detour): 0x38 + 0x8 return address
-	; Adjustment: 0x10 (counteracts pushes)
-	; Local variable in parameter block: 0x20
-	; alloca offset: 0xAEE8
-	mov rcx, [rsp + 0x80 + 0xAEE8]
-	test rcx, rcx
-	jz emptyassist
-	call ?SetAssist@mq@@YAXPEAE@Z
-emptyassist:
-	pop rcx
-	ret
+;global ?GetAssistParam@mq@@YAXXZ
+;?GetAssistParam@mq@@YAXXZ:
+;	push rcx
+;	; Frame size (0xCPacketScrambler_Detours::ntoh_Detour): 0x38 + 0x8 return address
+;	; Adjustment: 0x10 (counteracts pushes)
+;	; Local variable in parameter block: 0x20
+;	; alloca offset: 0xAEE8
+;	mov rcx, [rsp + 0x80 + 0xAEE8]
+;	test rcx, rcx
+;	jz emptyassist
+;	call ?SetAssist@mq@@YAXPEAE@Z
+;emptyassist:
+;	pop rcx
+;	ret
 
 ;---------------------------------------------------------------------------------------
 

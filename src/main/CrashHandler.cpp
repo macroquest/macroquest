@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -13,9 +13,15 @@
  */
 
 #include "pch.h"
+
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 #include "MQVersionInfo.h"
+#include "mq/base/WString.h"
+
+// warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead.
+// To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+#pragma warning (disable : 4996)
 
 // Crashpad client headers
 #include <client/crash_report_database.h>
@@ -26,8 +32,6 @@
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 #include <filesystem>
-
-#include "mq/base/WString.h"
 
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
@@ -49,13 +53,24 @@ namespace fs = std::filesystem;
 
 namespace mq {
 
+static void CrashHandler_Initialize();
+static void CrashHandler_Shutdown();
+
+static MQModule gCrashHandlerModule = {
+	"CrashHandler",               // Name
+	false,                        // CanUnload
+	CrashHandler_Initialize,      // Initialize
+	CrashHandler_Shutdown,        // Shutdown
+};
+DECLARE_MODULE_INITIALIZER(gCrashHandlerModule);
+
 // CrashHandler TODO:
 // - Improved crash notification to include information about what kind of unhandled exception occurred.
 // - Stretch: Create a way to notify the user that a process has crashed from the launcher.
 
 // Some of these settings are mirrored in MacroQuest.exe
 
-static bool gEnableCrashpad = true;                                  // Indicates if we we want to be using crashpad.
+static bool gEnableCrashpad = true;                                  // Indicates if we want to be using crashpad.
 static bool gEnableSharedCrashpad = true;                            // If using crashpad, use the shared crashpad process.
 static bool gEnableSilentCrashpad = false;                           // If using crashpad, crash & report silently.
 static bool gEnableCrashSubmissions = CRASHPAD_SUBMISSIONS_ENABLED;  // If using crashpad, we will submit them.
@@ -78,6 +93,9 @@ static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
 static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
 static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
 
+static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("mq.command");
+static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("mq.macro_data");
+
 static std::string s_sessionUuid;
 
 static LONG WINAPI OurCrashHandler(EXCEPTION_POINTERS* ex);
@@ -96,6 +114,8 @@ bool ShouldUploadCrash()
 {
 	return gEnableCrashSubmissions && !gCrashpadSubmissionURL.empty() && MQMAIN_VERSION_BUILD != 0;
 }
+
+std::unique_ptr<crashpad::CrashReportDatabase> s_database;
 
 // Use this function to start crashpad with a new crashpad process.
 bool InitializeCrashpad()
@@ -127,9 +147,9 @@ bool InitializeCrashpad()
 
 	const base::FilePath db(dbPath);
 	const base::FilePath handler(handlerPath);
-	const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
+	s_database = crashpad::CrashReportDatabase::Initialize(db);
 
-	if (database == nullptr || database->GetSettings() == nullptr)
+	if (s_database == nullptr || s_database->GetSettings() == nullptr)
 	{
 		SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
 		return false;
@@ -137,16 +157,16 @@ bool InitializeCrashpad()
 
 	if (ShouldUploadCrash())
 	{
-		database->GetSettings()->SetUploadsEnabled(true);
+		s_database->GetSettings()->SetUploadsEnabled(true);
 		SPDLOG_INFO("Crash report submission is: enabled");
 
 		crashpad::UUID uuid;
-		database->GetSettings()->GetClientID(&uuid);
+		s_database->GetSettings()->GetClientID(&uuid);
 		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 	else
 	{
-		database->GetSettings()->SetUploadsEnabled(false);
+		s_database->GetSettings()->SetUploadsEnabled(false);
 		SPDLOG_INFO("Crash report submission is: disabled");
 	}
 
@@ -281,6 +301,7 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 {
 	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE hProcess = GetCurrentProcess();
+	DWORD processID = GetCurrentProcessId();
 
 	SymInitialize(hProcess, nullptr, true);
 
@@ -315,30 +336,33 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		if (SymGetLineFromAddr64(hProcess, dwAddress, &dwDisplacement, &line))
 		{
 			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
+				"MacroQuest caught a crash:\n\n"
+				"Process ID: %d\n"
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d @ %s:%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				processID, pSymbol->Name, dwDisplacement, line.FileName, line.LineNumber, szSymSearchPath, (void*)(line.Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 		else
 		{
 			sprintf_s(szTemp,
-				"MacroQuest caught a crash:\n"
+				"MacroQuest caught a crash:\n\n"
+				"Process ID: %d\n"
 				"Version: " MQMAIN_VERSION  "\n"
 				"Location: %s+%d (%s+%p)\n"
 				"\nCrashID: %s\n",
-				pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+				processID, pSymbol->Name, dwDisplacement, szSymSearchPath, (void*)(pSymbol->Address - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 		}
 	}
 	else
 	{
 		sprintf_s(szTemp,
-			"MacroQuest caught a crash:\n"
+			"MacroQuest caught a crash:\n\n"
+			"Process ID: %d\n"
 			"Version: " MQMAIN_VERSION  "\n"
 			"Location: %s+%p\n"
 			"\nCrashID: %s\n",
-			szSymSearchPath, (void*)(dwAddress - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
+			processID, szSymSearchPath, (void*)(dwAddress - (uintptr_t)hModule), ShouldUploadCrash() ? s_sessionUuid.c_str() : "Not reported");
 	}
 
 	SymCleanup(hProcess);
@@ -357,7 +381,9 @@ int MQ2CrashHandler(EXCEPTION_POINTERS* ex, const char* description)
 		"\n"
 		"You can either:\n"
 		" * [RETRY] Continue execution and hope for the best.\n"
-		" * [CANCEL] Write a crash dump and terminate EverQuest.\n",
+		" * [CANCEL] Write a crash dump and terminate EverQuest.\n"
+		"\n"
+		"Copy the contents of this dialog to your clipboard by pressing Ctrl+C\n",
 		szTemp);
 
 	const int mbRet = ::MessageBoxA(nullptr, szMessage, "EverQuest Crash Detected", MB_RETRYCANCEL | MB_DEFBUTTON2 | MB_ICONERROR | MB_SYSTEMMODAL);
@@ -443,7 +469,7 @@ void UninstallUnhandledExceptionFilter()
 
 //============================================================================
 
-void InitializeCrashHandler()
+void CrashHandler_Startup()
 {
 	// Load preferences. Decide if we want to enable the crash reporting system. These are primarily aimed at developers.
 	gEnableCrashpad = GetPrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, internal_paths::MQini);
@@ -466,24 +492,47 @@ void InitializeCrashHandler()
 
 	// Set some annotations.
 
-#pragma warning(suppress: 4996)
-	buildTypeAnnotation.Set(GetBuildTargetName(static_cast<BuildTarget>(gBuild)));
-#pragma warning(suppress: 4996)
-	buildVersionAnnotation.Set(MQMAIN_VERSION);
-	buildTimestampAnnotation.Set(__ExpectedVersionDate " " __ExpectedVersionTime);
+	// Using base::StringPiece here to select an implementation that doesn't trigger usage of strncpy,
+	// leading to deprecation warnings from crashpad.
+	buildTypeAnnotation.Set(base::StringPiece(GetBuildTargetName(static_cast<BuildTarget>(gBuild))));
+	buildVersionAnnotation.Set(base::StringPiece(MQMAIN_VERSION));
+	buildTimestampAnnotation.Set(base::StringPiece(__ExpectedVersionDate " " __ExpectedVersionTime));
 	SetCrashId();
+}
+
+void CrashHandler_SetLastCommand(const char* command)
+{
+	if (gEnableCrashSubmissions)
+	{
+		if (!command || !command[0])
+			s_currentCommandAnnotation.Clear();
+		else
+			s_currentCommandAnnotation.Set(command);
+	}
+}
+
+void CrashHandler_SetLastMacroData(const char* macroData)
+{
+	if (gEnableCrashSubmissions)
+	{
+		if (!macroData || !macroData[0])
+			s_currentMacroData.Clear();
+		else
+			s_currentMacroData.Set(macroData);
+	}
 }
 
 //----------------------------------------------------------------------------
 
-void DoCrash(SPAWNINFO* pChar, char* szLine)
+static crashpad::StringAnnotation<32> s_synthesizedAnnotation("synthesized");
+
+void DoCrash(PlayerClient*, const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 
 	// Indicate to crash reporting that this is a synthetic crash
-	auto pAnno = new crashpad::StringAnnotation<32>("synthesized");
-	pAnno->Set("true");
+	s_synthesizedAnnotation.Set(base::StringPiece("true"));
 
 	if (ci_equals(szArg1, "force"))
 	{
@@ -496,21 +545,18 @@ void DoCrash(SPAWNINFO* pChar, char* szLine)
 		crashpad::CaptureContext(&context);
 		crashpad::CrashpadClient::DumpWithoutCrash(context);
 	}
+
+	s_synthesizedAnnotation.Clear();
 }
 
-void InitializeMQ2CrashHandler()
+void CrashHandler_Initialize()
 {
 	AddCommand("/crash", DoCrash);
 }
 
-void ShutdownMQ2CrashHandler()
+void CrashHandler_Shutdown()
 {
 	RemoveCommand("/crash");
-}
-
-void InvokeExceptionHandler(EXCEPTION_POINTERS* p)
-{
-	OurCrashHandler(p);
 }
 
 } // namespace mq

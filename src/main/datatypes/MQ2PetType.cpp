@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -50,29 +50,25 @@ bool MQ2PetBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index,
 	switch (static_cast<PetBuffMembers>(pMember->ID))
 	{
 	case PetBuffMembers::Caster:
-		if (CXStr* pWhoCast = pPetInfoWnd->WhoCast.FindFirst(pSpell->ID))
+		if (auto buffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
 		{
-			strcpy_s(DataTypeTemp, pWhoCast->c_str());
+			strcpy_s(DataTypeTemp, buffInfo.GetCaster());
 			Dest.Type = pStringType;
 			Dest.Ptr = &DataTypeTemp[0];
 			return true;
 		}
+
 		return false;
 
-	case PetBuffMembers::Duration: {
-		// Find the index of this spell id.
-		for (int index = 0; index < pPetInfoWnd->GetMaxBuffs(); ++index)
+	case PetBuffMembers::Duration:
+		if (auto buffInfo = pPetInfoWnd->GetBuffInfoBySpellID(pSpell->ID))
 		{
-			if (pPetInfoWnd->Buff[index] == pSpell->ID)
-			{
-				Dest.UInt64 = pPetInfoWnd->PetBuffTimer[index];
-				Dest.Type = pTimeStampType;
-				return true;
-			}
+			Dest.UInt64 = buffInfo.GetBuffTimer();
+			Dest.Type = pTimeStampType;
+			return true;
 		}
 
 		return false;
-	}
 
 	default: break;
 	}
@@ -105,6 +101,9 @@ enum class PetMembers
 	Name,
 	Focus,
 	FindBuff,
+	SpellHold,
+	Resume,
+	ProcHold,
 };
 
 MQ2PetType::MQ2PetType() : MQ2Type("pet")
@@ -122,6 +121,9 @@ MQ2PetType::MQ2PetType() : MQ2Type("pet")
 	ScopedTypeMember(PetMembers, Name);
 	ScopedTypeMember(PetMembers, Focus);
 	ScopedTypeMember(PetMembers, FindBuff);
+	ScopedTypeMember(PetMembers, SpellHold);
+	ScopedTypeMember(PetMembers, Resume);
+	ScopedTypeMember(PetMembers, ProcHold);
 }
 
 bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -173,10 +175,10 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 			if (nBuff < 0 || nBuff >= pPetInfoWnd->GetMaxBuffs())
 				return false;
 
-			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
+			if (pPetInfoWnd->GetBuff(nBuff) == -1 || pPetInfoWnd->GetBuff(nBuff) == 0)
 				return false;
 
-			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+			if (Dest.Ptr = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 			{
 				Dest.Type = pPetBuffType;
 				return true;
@@ -186,7 +188,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		{
 			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 				{
 					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 					{
@@ -211,20 +213,20 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 			if (nBuff < 0 || nBuff >= pPetInfoWnd->GetMaxBuffs())
 				return false;
 
-			if (pPetInfoWnd->Buff[nBuff] == -1 || pPetInfoWnd->Buff[nBuff] == 0)
+			if (pPetInfoWnd->GetBuff(nBuff) == -1 || pPetInfoWnd->GetBuff(nBuff) == 0)
 				return false;
 
-			Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
+			Dest.UInt64 = pPetInfoWnd->GetBuffTimer(nBuff);
 			return true;
 		}
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]))
+			if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
-					Dest.UInt64 = pPetInfoWnd->PetBuffTimer[nBuff];
+					Dest.UInt64 = pPetInfoWnd->GetBuffTimer(nBuff);
 					return true;
 				}
 			}
@@ -243,6 +245,29 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 	case PetMembers::Hold:
 		Dest.Set(pPetInfoWnd->Hold);
+		Dest.Type = pBoolType;
+		return true;
+
+	case PetMembers::SpellHold:
+		Dest.Set(pPetInfoWnd->SpellHold);
+		Dest.Type = pBoolType;
+		return true;
+
+	case PetMembers::Resume:
+#if IS_CLIENT_DATE(20250107)
+		Dest.Set(pPetInfoWnd->Resume);
+#else
+		Dest.Set(false);
+#endif
+		Dest.Type = pBoolType;
+		return true;
+
+	case PetMembers::ProcHold:
+#if IS_CLIENT_DATE(20250107)
+		Dest.Set(pPetInfoWnd->ProcHold);
+#else
+		Dest.Set(false);
+#endif
 		Dest.Type = pBoolType;
 		return true;
 

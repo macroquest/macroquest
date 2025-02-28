@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -211,7 +211,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 
 bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
 {
-	auto pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
+	EQ_Spell* pSpell = GetSpell(VarPtr);
 	if (!pSpell)
 		return false;
 
@@ -225,6 +225,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 			{
 			case SpellMethods::Inspect:
 			{
+#if defined(CSpellDisplayManager__ShowSpell_x)
+				if (pSpellDisplayManager)
+					pSpellDisplayManager->ShowSpell(pSpell->ID, true, true, SpellDisplayType_SpellBookWnd);
+#else
 				char buffer[512] = { 0 };
 				if (Index[0])
 					FormatSpellLink(buffer, 512, pSpell, Index);
@@ -232,6 +236,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 					FormatSpellLink(buffer, 512, pSpell);
 				TextTagInfo info = ExtractLink(buffer);
 				ExecuteTextLink(info);
+#endif
 				return true;
 			}
 			default:
@@ -668,7 +673,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 			if (!pBuffSpell)
 				continue;
 
@@ -680,7 +685,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				// Blocking buff duration is greater than duration argument
 				int duration = GetIntFromString(Index, 0);
 				if (duration == 0 ||
-					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->PetBuffTimer[nBuff] / 6000) > duration))
+					(GetSpellDuration(pBuffSpell, pLocalPlayer->Level, false) < -1 || ceil(pPetInfoWnd->GetBuffTimer(nBuff) / 6000) > duration))
 				{
 					Dest.Set(false);
 					return true;
@@ -702,7 +707,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			auto pBuffSpell = GetSpellByID(pPetInfoWnd->Buff[nBuff]);
+			auto pBuffSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff));
 
 			// Spell does NOT stack (will NOT land)
 			if (pBuffSpell && !WillStackWith(pSpell, pBuffSpell))
@@ -1123,7 +1128,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 				continue;
 
 			auto pFoundSpell = GetSpellByID(pAbility->SpellID);
-			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup)
+			if (pFoundSpell && pFoundSpell->SpellGroup == pSpell->SpellGroup && pSpell->Category == pFoundSpell->Category && pSpell->Subcategory == pFoundSpell->Subcategory)
 			{
 				Dest.Ptr = pFoundSpell;
 				return true;
@@ -1333,7 +1338,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool MQ2SpellType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto pSpell = static_cast<EQ_Spell*>(VarPtr.Ptr);
+	EQ_Spell* pSpell = GetSpell(VarPtr);
 	if (!pSpell)
 		return false;
 
@@ -1403,6 +1408,14 @@ bool MQ2SpellType::dataSpell(const char* szIndex, MQTypeVar& Ret)
 	GetVarPtrFromString(Ret, szIndex);
 	Ret.Type = pSpellType;
 	return true;
+}
+
+EQ_Spell* MQ2SpellType::GetSpell(const MQVarPtr& VarPtr)
+{
+	if (!VarPtr.IsType(MQVarPtr::VariantIdx::Ptr))
+		return nullptr;
+
+	return static_cast<EQ_Spell*>(VarPtr.Ptr);
 }
 
 } // namespace mq::datatypes

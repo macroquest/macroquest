@@ -1,14 +1,14 @@
 Param (
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectName,
 
     [Parameter(
         Mandatory = $true,
-        ValueFromPipeLine = $true,
+        ValueFromPipeline = $true,
         ValueFromPipelineByPropertyName = $true
     )]
     [string]$ProjectDirectory,
@@ -219,43 +219,58 @@ if ($performBootstrap) {
     Write-Host "Search complete"
 }
 
-$vcpkgTable = @{}
-$vcpkgList = ./vcpkg.exe list
-if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -gt 1) {
-    foreach ($line in $vcpkgList) {
-        $fullPackage = $line.Split(" ")[0]
-        $packageParts = $fullPackage.Split(":")
-        $packageName = $packageParts[0]
-        $packageTriplet = $packageParts[1]
-        $packageFeature = ""
-        if ($packageName -Match "(?<package>.+)\[(?<feature>.*)\]") {
-            $packageName = $Matches.package
-            $packageFeature = $Matches.feature
-        }
-        # Ignore the built-in packages
-        if ($packageName -NotLike 'vcpkg-cmake*') {
-            if (-Not $vcpkgTable.ContainsKey($packageTriplet)) {
-                $vcpkgTable.Add($packageTriplet,@{})
+function Get-VcpkgTable {
+    $vcpkgTable = @{}
+    $vcpkgList = ./vcpkg.exe list
+    if (-Not ($vcpkgList -Like "No packages are installed*") -Or $vcpkgList.Count -gt 1) {
+        foreach ($line in $vcpkgList) {
+            $fullPackage = $line.Split(" ")[0]
+            $packageParts = $fullPackage.Split(":")
+            $packageName = $packageParts[0]
+            $packageTriplet = $packageParts[1]
+            $packageFeature = ""
+            if ($packageName -Match "(?<package>.+)\[(?<feature>.*)\]") {
+                $packageName = $Matches.package
+                $packageFeature = $Matches.feature
             }
+            # Ignore the built-in packages
+            if ($packageName -NotLike 'vcpkg-cmake*') {
+                if (-Not $vcpkgTable.ContainsKey($packageTriplet)) {
+                    $vcpkgTable.Add($packageTriplet,@{})
+                }
 
-            if (-Not $vcpkgTable[$packageTriplet].ContainsKey($packageName)) {
-                $vcpkgTable[$packageTriplet][$packageName] = New-Object System.Collections.Generic.List[System.Object]
-            }
+                if (-Not $vcpkgTable[$packageTriplet].ContainsKey($packageName)) {
+                    $vcpkgTable[$packageTriplet][$packageName] = New-Object System.Collections.Generic.List[System.Object]
+                }
 
-            if ($packageFeature -ne "" -And -Not ($vcpkgTable[$packageTriplet][$packageName] -Contains $packageFeature)) {
-                $vcpkgTable[$packageTriplet][$packageName].Add("$packageFeature")
+                if ($packageFeature -ne "" -And -Not ($vcpkgTable[$packageTriplet][$packageName] -Contains $packageFeature)) {
+                    $vcpkgTable[$packageTriplet][$packageName].Add("$packageFeature")
+                }
             }
         }
     }
+    return $vcpkgTable
 }
+
+$vcpkgTable = Get-VcpkgTable
 
 # If we did a bootstrap and we already had installed packages
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
     & ./vcpkg.exe upgrade --no-dry-run
     if ($LASTEXITCODE -ne 0) {
-        # if the upgrade failed, the bootstrap file should show accodingly
+        Write-Warning "vcpkg upgrade failed - your vcpkg installation may need to be manually fixed. Save this log before trying again."
+        # if the upgrade failed, the bootstrap file should show accordingly
         "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
+        # Attempt automatic cleanup
+        Write-Warning "vcpkg is now attempting to remove outdated packages"
+        & ./vcpkg.exe remove --outdated --recurse
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "vcpkg outdated remove failed - attempting to remove all packages."
+            & ./vcpkg list | ForEach-Object { ./vcpkg remove $_.Split(" ")[0] --recurse }
+        }
     }
+    # Packages may have changed, so rebuild the list
+    $vcpkgTable = Get-VcpkgTable
 }
 
 $vcpkgInstallTable = @{}
@@ -328,8 +343,11 @@ if ($vcpkgInstallTable.Count -ne 0) {
         if ($triplet.Value.Count -ne 0) {
             foreach ($node in $triplet.Value.GetEnumerator()) {
                 if ($node.Value.Count -ne 0) {
-                    # Force recursion to install new features
-                    $vcpkg_command += " --recurse $($node.Name)["
+                    # Force recursion to install new features if it is not already specified
+                    if ($vcpkg_command -NotLike "*--recurse*") {
+                        $vcpkg_command = $vcpkg_command.Replace("install --x-wait-for-lock","install --x-wait-for-lock --recurse")
+                    }
+                    $vcpkg_command += " $($node.Name)["
                     foreach ($feature in $node.Value) {
                         $vcpkg_command += "$feature,"
                     }

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -51,14 +51,14 @@ public:
 	DETOUR_TRAMPOLINE_DEF(int, WndNotification_Trampoline, (CXWnd*, uint32_t, void*));
 	int WndNotification_Detour(CXWnd* pWnd, uint32_t uiMessage, void* pData)
 	{
-		CBankWnd* pThis = (CBankWnd*)this;
+		CBankWnd* pThis = reinterpret_cast<CBankWnd*>(this);
 		PcProfile* pProfile = GetPcProfile();
 
 		// we use this to intercept the menu messages for our autobank button extension
 		if (pThis->AutoButton == pWnd)
 		{
 			if (gAutoBankButton != pWnd)
-				gAutoBankButton = (CButtonWnd*)pWnd;
+				gAutoBankButton = static_cast<CButtonWnd*>(pWnd);
 
 			if (gAutoBankButton)
 			{
@@ -116,14 +116,16 @@ public:
 						pContextMenuManager->PopupMenu(s_bankCustomMenu, Loc, pThis);
 					}
 					break;
-				};
+
+				default: break;
+				}
 			}
 		}
 		else if (uiMessage == XWM_MENUSELECT)
 		{
-			CContextMenu* pContextMenu = (CContextMenu*)pWnd;
-#pragma warning(suppress : 4311 4302)
-			int ItemID = (int)pData;
+			CContextMenu* pContextMenu = static_cast<CContextMenu*>(pWnd);
+			int ItemID = static_cast<int>(reinterpret_cast<intptr_t>(pData));
+
 			int iItemID = pContextMenu->GetItemAtPoint(pWndMgr->MousePoint);
 
 			switch (ItemID)
@@ -161,7 +163,9 @@ public:
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTrophiesWithTradeskill);
 				break;
-			};
+
+			default: break;
+			}
 		}
 
 		return WndNotification_Trampoline(pWnd, uiMessage, pData);
@@ -270,7 +274,9 @@ static void AutoBankPulse()
 			pLocalPC->BankItems.VisitContainers(
 				[&](const ItemPtr& pItem, const ItemIndex& index)
 				{
-					// dont add bags that have items inside of them.
+					UNUSED(index);
+
+					// don't add bags that have items inside of them.
 					if (pItem->IsContainer() && !pItem->IsEmpty())
 						return;
 
@@ -378,7 +384,8 @@ static void AutoBankPulse()
 		return;
 	}
 
-	if (!gAutoBankList.empty()) {
+	if (!gAutoBankList.empty())
+	{
 		const ItemGlobalIndex& ind = gAutoBankList.front();
 
 		if (ItemClient* pCont = FindItemByGlobalIndex(ind))

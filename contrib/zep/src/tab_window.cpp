@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/tab_window.h"
 #include "zep/buffer.h"
 #include "zep/display.h"
@@ -8,8 +9,7 @@
 #include "zep/mcommon/logger.h"
 
 // A 'window' is like a Vim Tab
-namespace Zep
-{
+namespace Zep {
 
 ZepTabWindow::ZepTabWindow(ZepEditor& editor)
     : ZepComponent(editor)
@@ -122,6 +122,21 @@ void ZepTabWindow::SetActiveWindow(ZepWindow* pBuffer)
     GetEditor().UpdateTabs();
 }
 
+ZepWindow* ZepTabWindow::GetDefaultWindow() const
+{
+    if (m_windows.size() == 1)
+    {
+        auto& buffer = m_windows[0]->GetBuffer();
+
+        if (buffer.HasFileFlags(FileFlags::DefaultBuffer) && !buffer.HasFileFlags(FileFlags::Dirty))
+        {
+            return m_windows[0];
+        }
+    }
+
+    return nullptr;
+}
+
 // The region management is in theory dirt-simple.
 // Each region contains a list of either vertical or horizontally split regions.
 // Any region can have child regions of the same type.
@@ -132,14 +147,12 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, Regio
 {
     // If we are replacing a default/unmodified start buffer, then this new window will replace it
     // This makes for nice behavior where adding a top-level window to the tab will nuke the default buffer
-    if (m_windows.size() == 1 && pParent == nullptr)
+    if (pParent == nullptr)
     {
-        auto& buffer = m_windows[0]->GetBuffer();
-        if (buffer.HasFileFlags(FileFlags::DefaultBuffer) && 
-            !buffer.HasFileFlags(FileFlags::Dirty))
+        if (ZepWindow* pWindow = GetDefaultWindow())
         {
-            m_windows[0]->SetBuffer(pBuffer);
-            return m_windows[0];
+            pWindow->SetBuffer(pBuffer);
+            return pWindow;
         }
     }
 

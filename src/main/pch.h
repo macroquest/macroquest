@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -57,6 +57,7 @@
 #include <string_view>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 // Windows Header Files:
 #include <windows.h>
@@ -70,6 +71,7 @@
 #include <ctime>
 #include <winsock.h>
 
+#include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 #include <fmt/format.h>
 

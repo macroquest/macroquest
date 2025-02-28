@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package mq.proto.login;
+
+enum MessageId {
+	ProfileLoaded = 0;
+	ProfileUnloaded = 1;
+	ProfileCharInfo = 2;
+	StartInstance = 3;
+	Identify = 4;
+	ApplyProfile = 5;
+}
+
+message LoginMessage {
+	MessageId id = 1;
+	optional bytes payload = 2;
+}
+
+// submessage for the login target state, both targets are optional
+message LoginTarget {
+	optional string server = 1;
+	optional string character = 2;
+	optional string server_type = 3;
+}
+
+// First login method is via profiles
+message ProfileMethod {
+	string profile = 1;
+	optional string account = 2;
+	LoginTarget target = 3;
+}
+
+// Second login method is via direct login/pass
+message DirectMethod {
+	string login = 1;
+	string password = 2;
+	LoginTarget target = 3;
+	optional string hotkey = 4;
+	optional string eq_path = 5;
+}
+
+// can add more login methods here... (like token)
+
+message StartInstanceMissive {
+	oneof method {
+		ProfileMethod profile = 1;
+		DirectMethod direct = 2;
+	}
+}
+
+message NotifyLoadedMissive {
+	oneof method {
+		ProfileMethod profile = 1;
+		DirectMethod direct = 2;
+	}
+
+	uint32 pid = 10;
+}
+
+message StopInstanceMissive {
+	uint32 pid = 1;
+}
+
+// character info for updating the UI
+message CharacterInfoMissive {
+	uint32 class = 1;
+	uint32 level = 2;
+	string server = 3;
+	string character = 4;
+}
+
+// Loader requesting a client identify itself
+message IdentifyMissive {
+}
+
+// Loader sending a new profile to apply to a client
+message ApplyProfileMissive {
+	oneof method {
+		ProfileMethod profile = 1;
+		DirectMethod direct = 2;
+	}
+	optional bool do_login = 3;
+}

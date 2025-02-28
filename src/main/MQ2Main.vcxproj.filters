@@ -63,6 +63,21 @@
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\extras">
+      <UniqueIdentifier>{2748c6c5-410e-4f9f-b316-0971358525a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\extras\wil">
+      <UniqueIdentifier>{398f05d1-d412-4d4d-8554-14f8255af25d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\eqdata">
+      <UniqueIdentifier>{2b7d5e30-e807-4d3b-ac81-56092830cb6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\emu">
+      <UniqueIdentifier>{7b5b93b4-0c81-41c2-92f0-45f73d2cc354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\emu">
+      <UniqueIdentifier>{e76cfbc5-b95f-40ca-b940-ffc54cbd169e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MQ2AutoInventory.cpp">
@@ -74,28 +89,28 @@
     <ClCompile Include="MQ2ChatHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2CleanUI.cpp">
+    <ClCompile Include="MQDisplayHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2CommandAPI.cpp">
+    <ClCompile Include="MQCommandAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Commands.cpp">
+    <ClCompile Include="MQCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DInput.cpp">
+    <ClCompile Include="MQInputAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DataAPI.cpp">
+    <ClCompile Include="MQDataAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2DataVars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DetourAPI.cpp">
+    <ClCompile Include="MQDetourAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Globals.cpp">
@@ -110,13 +125,7 @@
     <ClCompile Include="MQ2Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Mouse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2ParseAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2PluginHandler.cpp">
+    <ClCompile Include="MQPluginHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Pulse.cpp">
@@ -135,9 +144,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGuiOverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2LoginFrontend.cpp">
@@ -302,9 +308,6 @@
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
       <Filter>Source Files\Contrib\mini-yaml</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\NamedPipes.cpp">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -323,16 +326,13 @@
     <ClCompile Include="MQ2DeveloperTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PipeClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2Items.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2FrameLimiter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImGuiConsole.cpp">
+    <ClCompile Include="MQImGuiConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2ImGuiTools.cpp">
@@ -344,13 +344,10 @@
     <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiZepEditor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQ2WindowInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImguiWidgets.cpp">
+    <ClCompile Include="MQImguiWidgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2AchievementType.cpp">
@@ -362,7 +359,7 @@
     <ClCompile Include="ImGuiManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiBackend.cpp">
+    <ClCompile Include="ImGuiBackendDX9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQIniType.cpp">
@@ -373,6 +370,51 @@
     </ClCompile>
     <ClCompile Include="api\Spawns.cpp">
       <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendDX11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackendWin32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngineDX9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngineDX11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQPostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQInventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQInventoryType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="MQActorAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQCursorAttachmentType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="api\Abilities.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQSocialType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
+    <ClCompile Include="emu\EmuExtensions.cpp">
+      <Filter>Source Files\emu</Filter>
+    </ClCompile>
+    <ClCompile Include="MQRenderDoc.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -423,9 +465,6 @@
     </ClInclude>
     <ClInclude Include="..\..\contrib\args\args.hxx">
       <Filter>Header Files\contrib\args</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\NamedPipes.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
@@ -484,9 +523,6 @@
     <ClInclude Include="MQVersionInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImGuiZepEditor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2SpellSearch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -512,12 +548,6 @@
       <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiBackend.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\mq\base\Detours.h">
-      <Filter>Header Files\mq\base</Filter>
-    </ClInclude>
-    <ClInclude Include="PipeClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Config.h">
@@ -559,6 +589,108 @@
     <ClInclude Include="..\..\include\mq\api\Spells.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\ConsoleWidget.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Main.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQDataAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\PluginAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQPostOffice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Inventory.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\ActorAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQActorAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Textures.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\extras\wil\Constants.h">
+      <Filter>Header Files\extras\wil</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\actordef.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\combines.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\dikeys.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\itemclasses.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\skills.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\eqdata\spelleffects.h">
+      <Filter>Header Files\eqdata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\Abilities.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\Markov.h">
+      <Filter>Header Files\mq\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Logging.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\PluginHandle.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\CommandAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MQCommandAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQPluginHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQDetourAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\DetourAPI.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="emu\EmuExtensions.h">
+      <Filter>Header Files\emu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\ScopeExit.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="MQRenderDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\RenderDoc.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\contrib\renderdoc\renderdoc_app.h">
+      <Filter>Header Files\contrib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
+      <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MQ2Main.rc">
@@ -566,14 +698,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\MacroQuest.natvis">
-      <Filter>Resource Files</Filter>
-    </Natvis>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\data\resources\GPL.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
     <Text Include="..\..\data\resources\ItemDB.txt">
       <Filter>Resource Files</Filter>
     </Text>
@@ -582,10 +706,19 @@
     <None Include="..\..\data\resources\CHANGELOG.md">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\LICENSE.md">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\data\resources\Zones.ini">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <NASM Include="AssemblyFunctions64.asm">
       <Filter>Source Files</Filter>
     </NASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\MacroQuest.natvis" />
   </ItemGroup>
 </Project>

@@ -19,86 +19,23 @@
     <Filter Include="Header Files\mcommon">
       <UniqueIdentifier>{7802156d-84a8-411c-958b-bb18fbfb2d01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\zep">
+      <UniqueIdentifier>{1ff7a728-1607-490a-95cf-28759e3a6653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\zep">
+      <UniqueIdentifier>{c99b09a6-5a39-4da7-bf89-cdf1e24ec7e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{90aa2191-5b47-408c-a311-0eca64b7535e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq">
+      <UniqueIdentifier>{bb40859b-6c6c-4ba9-af38-915a4fc16091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\zep">
+      <UniqueIdentifier>{ce24e7be-a9d0-447a-89bb-5f1070d93e69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\commands.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\display.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\editor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\filesystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\glyph_iterator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\indexer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\keymap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\line_widgets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mode_search.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mode_standard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mode_tree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\mode_vim.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\range_markers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\regress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\scroller.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\splits.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\syntax.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\syntax_markdown.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\syntax_providers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\syntax_rainbow_brackets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\syntax_tree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tab_window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\theme.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\mcommon\animation\timer.cpp">
       <Filter>Source Files\mcommon</Filter>
     </ClCompile>
@@ -108,98 +45,95 @@
     <ClCompile Include="src\mcommon\string\stringutils.cpp">
       <Filter>Source Files\mcommon</Filter>
     </ClCompile>
-    <ClCompile Include="zep.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\buffer.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\commands.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\display.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\filesystem.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glyph_iterator.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\indexer.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\keymap.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\line_widgets.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_search.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_standard.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_tree.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mode_vim.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\range_markers.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\regress.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scroller.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\splits.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_markdown.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_providers.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_rainbow_brackets.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syntax_tree.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tab_window.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\theme.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\zep\ImGuiZepEditor.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files\zep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\zep\ImGuiZepConsole.cpp">
+      <Filter>Source Files\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\zep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\commands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\display.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\editor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\filesystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\gap_buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\glyph_iterator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\indexer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\keymap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\line_widgets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\mode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\mode_search.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\mode_standard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\mode_tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\mode_vim.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\range_markers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\regress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\scroller.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\splits.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\syntax.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\syntax_markdown.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\syntax_providers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\syntax_rainbow_brackets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\syntax_tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\tab_window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\theme.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\zep_config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\zep\buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\zep\mcommon\platform.h">
       <Filter>Header Files\mcommon</Filter>
     </ClInclude>
@@ -259,6 +193,102 @@
     </ClInclude>
     <ClInclude Include="include\zep\mcommon\math\color.h">
       <Filter>Header Files\mcommon</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\buffer.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\commands.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\display.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\editor.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\filesystem.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\gap_buffer.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\glyph_iterator.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\indexer.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\keymap.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\line_widgets.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_search.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_standard.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_tree.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\mode_vim.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\range_markers.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\regress.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\scroller.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\splits.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_markdown.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_providers.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_rainbow_brackets.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\syntax_tree.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\tab_window.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\theme.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\window.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="include\zep\zep_config.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepConsole.h">
+      <Filter>Header Files\mq\zep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\zep\ImGuiZepEditor.h">
+      <Filter>Header Files\mq\zep</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

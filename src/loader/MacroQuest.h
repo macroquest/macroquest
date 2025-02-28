@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -13,6 +13,8 @@
  */
 
 #pragma once
+
+#define MQ_NO_EXPORTS
 
 #include "../common/Common.h"
 #include "../common/HotKeys.h"
@@ -48,8 +50,6 @@
 
 using namespace mq;
 
-constexpr size_t PIPE_BUFFER_SIZE = 512;
-
 // Constants
 
 #define WinClassName "__MacroQuestTray"
@@ -57,37 +57,16 @@ constexpr size_t PIPE_BUFFER_SIZE = 512;
 #define ENCRYPT_ALGORITHM CALG_RC4
 #define ENCRYPT_BLOCK_SIZE 8
 
-// message types received over the named pipe server
-constexpr int MSG_LOGINCHAR                 = 1;
-constexpr int MSG_LOADED                    = 2;
-constexpr int MSG_UNLOADED                  = 3;
-constexpr int MSG_MQ2UNLOAD                 = 4;
-constexpr int MSG_CLASSLVL                  = 5;
-
 // custom window message types
 constexpr int WM_USER_SHELLNOTIFY_CALLBACK  = (WM_USER + 1);
 constexpr int WM_USER_SYSTRAY               = (WM_USER + 2);
-constexpr int WM_USER_REGISTER_HK           = (WM_USER + 3);
-constexpr int WM_USER_UNREGISTER_HK         = (WM_USER + 4);
-constexpr int WM_USER_RESETLOADED           = (WM_USER + 5);
-constexpr int WM_USER_SETLOADED             = (WM_USER + 6);
-constexpr int WM_USER_UPDATECLASS           = (WM_USER + 7);
-constexpr int WM_USER_UPDATELEVEL           = (WM_USER + 8);
-constexpr int WM_USER_PROCESS_ADDED         = (WM_USER + 9);
-constexpr int WM_USER_PROCESS_REMOVED       = (WM_USER + 10);
-constexpr int WM_USER_CALLBACK              = (WM_USER + 11);
+constexpr int WM_USER_PROCESS_ADDED         = (WM_USER + 3);
+constexpr int WM_USER_PROCESS_REMOVED       = (WM_USER + 4);
+constexpr int WM_USER_HOTKEY_ADD            = (WM_USER + 5);
+constexpr int WM_USER_HOTKEY_REMOVE         = (WM_USER + 6);
 
 
 //----------------------------------------------------------------------------
-
-struct ProfileInfo;
-
-struct gHotkeyPair
-{
-	WORD modkey;
-	WORD hotkey;
-	ProfileInfo* ppi = nullptr;
-};
 
 // mirrors the implementation in mq2main. This could possibly be shared code
 // between them.
@@ -111,26 +90,22 @@ extern HMENU hMenu;
 extern HWND hMainWnd;
 extern HINSTANCE g_hInst;
 
-extern char gszMQVersion[64];
-
 extern bool gEnableCrashpad;
 extern bool gEnableSharedCrashpad;
 extern bool gEnableSilentCrashpad;
 extern bool gEnableCrashSubmissions;
 extern bool gEnableRateLimit;
 
-DWORD CALLBACK PipeListenerThread(void* pData);
-
 HWND LocateHotkeyWindow(WORD modkey, WORD hotkey);
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString);
 void UnregisterGlobalHotkey(std::string_view hotkeyString);
 void UnregisterGlobalHotkey(HWND hWnd);
+std::string_view GetServerType();
 
 // ProcessList
 HMODULE GetEQGameModuleByPID(DWORD processId);
 uint8_t* GetMQ2MainBaseAddress(DWORD processId);
 std::vector<HWND> GetEQWindowHandles();
-bool IsEQGameProcessId(DWORD processId);
 bool IsInjected(DWORD processId);
 void Inject(uint32_t PID, std::chrono::milliseconds delay = std::chrono::milliseconds(0));
 std::vector<DWORD> GetAllEqGameSessions();
@@ -141,6 +116,15 @@ void RefreshInjections();
 void ShutdownInjector();
 std::string GetInjecteePath();
 
+enum class InjectResult {
+	Success = 0,
+	FailedRetry,
+	FailedPermanent,
+	FailedElevationRequired,
+};
+
+void ReportFailedInjection(InjectResult result, DWORD pid);
+
 
 // Utility
 std::string GetVersionStringLocal(const std::filesystem::path& filePath);
@@ -148,6 +132,8 @@ std::string GetVersionStringRemote(const std::string& versionURL);
 void ShowWarningBlocking(const std::string& Message);
 void ShowErrorBlocking(const std::string& Message);
 void ThreadedMessage(const std::string& Message, int MessageType);
+void SetFocusWindowPID(uint32_t pid, bool state);
+void SetForegroundWindowInternal(HWND hWnd);
 
 // RemoteOps
 HMODULE WINAPI GetRemoteModuleHandle(HANDLE hProcess, LPCSTR lpModuleName);
@@ -156,6 +142,7 @@ FARPROC WINAPI GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, LPCSTR lpP
 // Get the name of the player in the process specified by the pid.
 std::string GetLocalPlayer(DWORD pid);
 
-// NamedPipeServer
-void InitializeNamedPipeServer();
-void ShutdownNamedPipeServer();
+// AutoLogin
+void InitializeAutoLogin();
+void ShutdownAutoLogin();
+void AutoLoginRemoveProcess(uint32_t process_id);

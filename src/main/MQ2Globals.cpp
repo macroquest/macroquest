@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -31,7 +31,6 @@ HANDLE ghInitializeSpellDbThread = nullptr;
 
 /* BENCHMARKS */
 uint32_t bmRenderScene = 0;
-uint32_t bmParseMacroParameter = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
 uint32_t bmSpellLoad = 0;
@@ -42,8 +41,8 @@ MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
 
 ePVPServer PVPServer = PVP_NONE;
-char gszVersion[32] = VersionString;
-char gszTime[32] = TimeString;
+char gszVersion[32] = __ExpectedVersionDate;
+char gszTime[32] = __ExpectedVersionTime;
 
 #if defined(EMULATOR)
 int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)
@@ -53,7 +52,7 @@ int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
 int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
 #endif
 
-DWORD gGameState = 0;
+int gGameState = 0;
 bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
 bool g_Loaded = false;
@@ -256,9 +255,6 @@ EQSwitch* pDoorTarget = nullptr;
 // Alternatively, move it into the macro block.
 int gParserVersion = 1;
 
-MOUSESPOOF* gMouseData = nullptr;
-bool bDetMouse = true;
-
 // EQ Functions Initialization
 fEQCommand cmdHelp = nullptr;
 fEQCommand cmdWho = nullptr;
@@ -457,24 +453,34 @@ const char* szSkills[] = {
 };
 
 const char* szInnates[] = {
-	"Awareness",//c4c
-	"Bash Door",//c50
-	"Breathe Fire",//c54
-	"Harmony",//c58
-	"Harm Touch",//c5c
-	"Infravision",//c60
-	"Lay Hands",//c64
-	"Lore",//c68
-	"No Bash",//c6c
-	"Regeneration",//c70
-	"Slam",//c74
-	"Surprise",//c78
-	"Ultravision",//c7c
-	"Inspect",//c80
-	"Open",//c84
-	nullptr
+	nullptr,          // 0
+	"Awareness",      // 1
+	"Bash Door",      // 2
+	"Breathe Fire",   // 3
+	"Harmony",        // 4
+	"Harm Touch",     // 5
+	"Infravision",    // 6
+	"Lay Hands",      // 7
+	"Lore",           // 8
+	"No Bash",        // 9
+	"Regeneration",   // 10
+	"Slam",           // 11
+	"Surprise",       // 12
+	"Ultravision",    // 13
+	"Inspect",        // 14
+	"Open",           // 15
+	"Reveal Trap",    // 16
+	nullptr,          // 17
+	nullptr,          // 18
+	nullptr,          // 19
+	nullptr,          // 20
+	nullptr,          // 21
+	nullptr,          // 22
+	nullptr,          // 23
+	nullptr,          // 24
 };
 
+[[deprecated("Use GetZoneExpansionName or GetExpansionNumber")]]
 const char* szZoneExpansionName[] = {
 	"Original EQ",              // 0
 	"Kunark",                   // 1
@@ -506,13 +512,16 @@ const char* szZoneExpansionName[] = {
 	"Claws of Veeshan",         // 27
 	"Terror of Luclin",         // 28
 	"Night of Shadows",         // 29
+	"Laurion's Song",           // 30
+	"The Outer Brood",          // 31
 };
 
 const char* GetZoneExpansionName(int expansion)
 {
-	if (expansion >= 0 && expansion < (int)lengthof(szZoneExpansionName))
+	if (expansion >= 0 && expansion <= NUM_EXPANSIONS)
 	{
-		return szZoneExpansionName[expansion];
+		if (const char* ptr = pCDBStr->GetString(expansion, eExpansionName, nullptr))
+			return ptr;
 	}
 
 	return "Unknown";
@@ -520,13 +529,11 @@ const char* GetZoneExpansionName(int expansion)
 
 uint32_t GetExpansionNumber(std::string_view expansionName)
 {
-	if (ci_equals(expansionName, "EverQuest"))
-		return 0;
-
-	for (uint32_t i = 0; i < lengthof(szZoneExpansionName); ++i)
+	for (int i = 0; i <= NUM_EXPANSIONS; ++i)
 	{
-		if (ci_equals(szZoneExpansionName[i], expansionName))
-			return i;
+		if (const char* ptr = pCDBStr->GetString(i, eExpansionName, nullptr))
+			if (ci_equals(ptr, expansionName))
+				return i;
 	}
 
 	return 0;

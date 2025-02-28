@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package mq.proto.lua.actor;
+
+message Table {
+	map<string, Variant> entries = 1;
+	map<uint32, Variant> arr = 2;
+}
+
+message ImVec2 {
+	optional float x = 1;
+	optional float y = 2;
+}
+
+message ImVec4 {
+	optional float x = 1;
+	optional float y = 2;
+	optional float z = 3;
+	optional float w = 4;
+}
+
+message Variant {
+	oneof value {
+		double number = 1;
+		bool boolean = 5;
+		string str = 8;
+		Table table = 10;
+		ImVec2 imvec2 = 11;
+		ImVec4 imvec4 = 12;
+	}
+}
+

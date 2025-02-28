@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -250,10 +250,10 @@ bool MQ2MathType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			P[0][1] = P[1][1] = pControlledPlayer->X;
 			P[0][2] = P[1][2] = pControlledPlayer->Z;
 
-			for (int i = 0; i < p_list.size() && i < 2; i++)				// for ever separate location
+			for (size_t i = 0; i < p_list.size() && i < 2; i++)				// for ever separate location
 			{
 				auto pointList = split_view(p_list[i], ' ', true);			// create a string view list of each float
-				for (int j = 0; j < pointList.size() && j < 3; j++)			// for every string broken by spaces
+				for (size_t j = 0; j < pointList.size() && j < 3; j++)		// for every string broken by spaces
 				{
 					P[i][j] = GetFloatFromString(pointList[j], P[i][j]);	// Convert jth float and store in ith array
 				}

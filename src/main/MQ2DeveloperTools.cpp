@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -30,6 +30,9 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
+#include <cfenv>
+#include <inttypes.h>
+#include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
 
@@ -37,7 +40,7 @@ namespace mq {
 
 static void DeveloperTools_Initialize();
 static void DeveloperTools_Shutdown();
-static void DeveloperTools_SetGameState(DWORD gameState);
+static void DeveloperTools_SetGameState(int gameState);
 static void DeveloperTools_UpdateImGui();
 
 static MQModule s_developerToolsModule = {
@@ -292,7 +295,7 @@ public:
 			hovered = true;
 		ImGui::SameLine();
 
-		float widthAvail = ImGui::GetContentRegionAvailWidth();
+		float widthAvail = ImGui::GetContentRegionAvail().x;
 		ImGui::PushTextWrapPos(widthAvail - 60.0f);
 		ImGui::Text("%s", component.description.c_str());
 		if (ImGui::IsItemHovered())
@@ -1123,7 +1126,8 @@ class AltAbilityInspector : public ImGuiWindowBase
 {
 	CAltAbilityData* m_selectedAbility = nullptr;
 	bool m_foundSelected = false;
-	bool m_showVisable = true;
+	bool m_showVisible = true;
+	char m_searchText[256] = { 0 };
 
 public:
 	AltAbilityInspector() : ImGuiWindowBase("Alt Abilities Inspector")
@@ -1212,7 +1216,11 @@ public:
 
 		CAltAbilityData* nextSelection = nullptr;
 
-		ImGui::Checkbox("Show Visible Only", &m_showVisable);
+		ImGui::Checkbox("Show Visible Only", &m_showVisible);
+
+		ImGui::Text("Search: ");
+	
+		ImGui::InputText("##AASearchText", m_searchText, 256);
 
 		if (ImGui::BeginTable("##AltAbilityTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, size))
 		{
@@ -1230,9 +1238,16 @@ public:
 			while (ppAltAbility)
 			{
 				CAltAbilityData* altAbility = *ppAltAbility;
-				if (!m_showVisable || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
+				if (!m_showVisible || pAltAdvManager->CanSeeAbility(pLocalPC, altAbility))
 				{
-					DrawAltAbilityTableRow(altAbility);
+					if (!m_searchText[0] ||
+							ci_find_substr(altAbility->GetNameString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetCategoryString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetDescriptionString(), m_searchText) != -1 ||
+							ci_find_substr(altAbility->GetExpansionString(), m_searchText) != -1)
+					{
+						DrawAltAbilityTableRow(altAbility);
+					}
 				}
 
 				if (altAbility == m_selectedAbility)
@@ -1776,25 +1791,171 @@ public:
 			ImGui::TableNextRow();
 			ImGui::TableNextColumn();
 
+			static std::unordered_map<int, std::string> ConsumableFeatureNames = {
+				{ EQFeature_MerchantPerk, "Merchant Perk" },
+				{ EQFeature_DragonHoard, "Dragon Hoard" },
+				{ EQFeature_TradeskillDepot, "Tradeskill Depot" },
+				{ EQFeature_TradeskillDepotSlots, "Tradeskill Depot Slots" },
+			};
+
 			if (ImGui::TreeNode("Consumable Features"))
 			{
 				for (const auto& ClaimData : pLocalPC->ConsumableFeatures.claimData)
 				{
 					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
 
-					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.featureId);
-					ImGui::TableNextColumn(); ImGui::Text("%d", ClaimData.count);
+					int featureId = ClaimData.featureId;
+
+					if (const ClaimFeatureData* featureData = pClaimWnd->claimFeatureData.GetClaimFeatureDataByFeatureId(featureId))
+					{
+						bool expand = false;
+						char szLabel[128];
+
+						if (featureData->itemCount > 0)
+						{
+							sprintf_s(szLabel, "%s (%d)", featureData->items[0].itemName.c_str(), featureId);
+						}
+						else
+						{
+							sprintf_s(szLabel, "%d", featureId);
+						}
+
+						expand = ImGui::TreeNode(szLabel);
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", featureData->featureCount);
+
+						if (expand)
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							if (featureData->itemCount > 0)
+							{
+								char szLabel[32];
+								if (featureData->itemCount == 1)
+									strcpy_s(szLabel, "1 Item");
+								else
+									sprintf_s(szLabel, "%d Items", featureData->itemCount);
+
+								if (ImGui::TreeNode(szLabel))
+								{
+									for (int itemIdx = 0; itemIdx < featureData->itemCount; ++itemIdx)
+									{
+										const ClaimItemData& itemData = featureData->items[itemIdx];
+
+										ImGui::TableNextRow();
+										ImGui::TableNextColumn(); ImGui::Text("%s (%d)", itemData.itemName.c_str(), itemData.itemId);
+										ImGui::TableNextColumn(); ImGui::Text("%d", itemData.itemCount);
+									}
+
+									ImGui::TreePop();
+
+								}
+							}
+
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn(); ImGui::Text("Description");
+							ImGui::TableNextColumn(); ImGui::Text("%s", pDBStr->GetString(featureData->stringId, eClaimFeatureDescription));
+
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn(); ImGui::Text("Requirements Met");
+							ImGui::TableNextColumn(); ImGui::Text("%s", featureData->meetsRequirements ? "Yes": "No");
+
+							ImGui::TreePop();
+						}
+					}
+					else
+					{
+						ImGui::Indent();
+						auto iter = ConsumableFeatureNames.find(ClaimData.featureId);
+						if (iter != ConsumableFeatureNames.end())
+						{
+							ImGui::Text("%s (%d)", iter->second.c_str(), ClaimData.featureId);
+						}
+						else
+						{
+							ImGui::Text("%d", ClaimData.featureId);
+						}
+
+						ImGui::TableNextColumn();
+						ImGui::Text("%d", ClaimData.count);
+						ImGui::Unindent();
+					}
 				}
 
 				ImGui::TreePop();
 			}
+
 			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
 			if (ImGui::TreeNode("Game Features"))
 			{
+				FreeToPlayClient& client = FreeToPlayClient::Instance();
 
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Membership Level");
+				ImGui::TableNextColumn(); ImGui::Text("%s (%d)", FreeToPlayClient::ToString(client.MembershipLevel),
+					client.MembershipLevel);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Subscription days");
+				ImGui::TableNextColumn(); ImGui::Text("%d", pLocalPC->SubscriptionDays);
+
+				for (int i = 0; i < (int)GameFeature::Max; ++i)
+				{
+					const RestrictionInfo& info = FreeToPlayClient::RestrictionInfo[i];
+					GameFeature feature = static_cast<GameFeature>(i);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("%s", info.string);
+
+					int data = pLocalPC->GetGameFeature(feature);
+					if (info.boolean)
+					{
+						ImGui::TableNextColumn();
+						if (data != 0)
+							ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "Enabled");
+						else
+							ImGui::TextColored(MQColor(255, 0, 0).ToImColor(), "Disabled");
+					}
+					else
+					{
+						ImGui::TableNextColumn();
+
+						if (data == -1)
+							ImGui::TextColored(MQColor(127, 127, 127).ToImColor(), "Unrestricted");
+						else
+							ImGui::Text("%d", data);
+					}
+				}
 
 				ImGui::TreePop();
 			}
+
+#if HAS_ALTERNATE_PERSONAS
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("Personas"))
+			{
+				for (int i = 0; i < MAX_PLAYER_CLASSES; ++i)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					ImGui::Text("%s", GetClassDesc(i + 1));
+
+					ImGui::TableNextColumn();
+					ImGui::Text("%d", pLocalPC->ProfileManager.GetAltClassLevel(i));
+					
+				}
+
+				ImGui::TreePop();
+			}
+#endif
 
 			ImGui::EndTable();
 		}
@@ -1804,8 +1965,506 @@ static CharacterDataInspector* s_characterDataInspector = nullptr;
 
 #pragma endregion
 
+#pragma region Engine Inspector
 
-#pragma region Character Data Inspector
+static const char* DeferModeToString(eDeferMode mode)
+{
+	switch (mode)
+	{
+	case cNonDeferred:
+		return "Non-Deferred";
+	case cDeferredWad:
+		return "Deferred (Wad)";
+	case cDeferredWadLoading:
+		return "Deferred - Loading (Wad)";
+	case cDeferredFile:
+		return "Deferred (File)";
+	case cDeferredFileLoading:
+		return "Deferred - Loading (File)";
+	case cDeferredForeground:
+		return "Deferred - Foreground";
+	case cDeferredError:
+		return "Deferred - Error";
+
+	default: return "Unknown";
+	}
+}
+
+static const char* TextureQualityToString(eBitmapTextureQuality quality)
+{
+	switch (quality)
+	{
+	case eBitmapTextureQualityInvalid: return "Invalid";
+	case eBitmapTextureQualityHigh: return "High";
+	case eBitmapTextureQualityMedium: return "Medium";
+	case eBitmapTextureQualityLow: return "Low";
+
+	default: return "Unknown";
+	}
+}
+
+static const char* TrackingTypeToString(int trackingType)
+{
+	switch (trackingType)
+	{
+	case 0: return "WLD";
+	case 1: return "WLD/PCLOUD";
+	case 2: return "EQG";
+	case 3: return "EQG/SMODEL";
+	case 4: return "EQG/HMODEL";
+	case 5: return "Particle";
+	case 6: return "Downsampled";
+	case -1:
+	default: return "Unknown";
+	}
+}
+
+class EngineInspector : public ImGuiWindowBase
+{
+public:
+	EngineInspector() : ImGuiWindowBase("Engine Inspector")
+	{
+		SetDefaultSize(ImVec2(800, 600));
+	}
+
+	~EngineInspector() override
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return true;
+	}
+
+	void Draw() override
+	{
+		if (ImGui::BeginTabBar("##EngineTabBar"))
+		{
+			if (ImGui::BeginTabItem("General"))
+			{
+				DrawGeneral();
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Bitmaps"))
+			{
+				DrawBitmaps();
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Fonts"))
+			{
+				DrawFonts();
+
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
+		}
+	}
+
+	void DrawGeneral()
+	{
+		int round = fegetround();
+
+		const char* roundingMode = "";
+		switch (round)
+		{
+		case FE_TONEAREST: roundingMode = "FE_TONEAREST"; break;
+		case FE_UPWARD: roundingMode = "FE_UPWARD"; break;
+		case FE_DOWNWARD: roundingMode = "FE_DOWNWARD"; break;
+		case FE_TOWARDZERO: roundingMode = "FE_TOWARDZERO"; break;
+		default: roundingMode = "UNKNOWN"; break;
+		}
+
+		ImGui::Text("Rounding Mode: %s", roundingMode);
+	}
+
+	void DrawFonts()
+	{
+		if (!pGraphicsEngine) return;
+		auto resourceMgr = pGraphicsEngine->pResourceManager;
+		if (!resourceMgr) return;
+
+		CCachedFont* pCachedFont;
+		CCachedFont* pSelectedFont = nullptr;
+		EStatus status = eStatusFailure;
+
+		// GetCachedFont may crash here if the font manager hasn't been created yet, but we're
+		// using this routine to get access to the font manager. If it throws an access violation,
+		// the application state is fine, we can just bail on this attempt.
+		__try {
+			status = resourceMgr->GetCachedFont(0, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			status = eStatusFailure;
+		}
+
+		if (status != eStatusSuccess) return;
+		CFontManager* fontMgr = pCachedFont->pFontManager;
+		if (!fontMgr) return;
+
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_rightPaneSize == 0.0f)
+			m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+		imgui::DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+		// Left Pane
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::PopStyleVar();
+
+			for (int fontIndex = 0; fontIndex < NumFontStyles; ++fontIndex)
+			{
+				resourceMgr->GetCachedFont(fontIndex, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
+
+				ImGui::PushID(pCachedFont);
+
+				char szLabel[64];
+				sprintf_s(szLabel, "%d: %s", fontIndex, pCachedFont->strFontName.c_str());
+
+				if (ImGui::Selectable(szLabel, m_selectedFont == fontIndex))
+					m_selectedFont = fontIndex;
+
+				if (m_selectedFont == fontIndex)
+					pSelectedFont = pCachedFont;
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndChild();
+		}
+
+		ImGui::SameLine();
+
+		// Right Pane
+		{
+			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+			if (pSelectedFont)
+			{
+				ImGui::Text("Font: %s", pSelectedFont->strFontName.c_str());
+				ImGui::Text("Font ID: %d", pSelectedFont->eFontId);
+
+				if (ImGui::CollapsingHeader("Textures"))
+				{
+					int index = 0;
+					for (CD3DTexturePointerNode* ptr : pSelectedFont->arTextures)
+					{
+						ImGui::Text("%d:", index++);
+
+						ImTextureID TexID = ptr->pTexture;
+
+						ImGui::Image(TexID, ImVec2(pSelectedFont->fTextureSize, pSelectedFont->fTextureSize));
+					}
+				}
+			}
+
+			ImGui::EndChild();
+		}
+	}
+
+	void DrawBitmaps()
+	{
+		ImVec2 availSize = ImGui::GetContentRegionAvail();
+		if (m_rightPaneSize == 0.0f)
+			m_rightPaneSize = availSize.x - m_leftPaneSize - 1;
+
+		imgui::DrawSplitter(false, 9.0f, &m_leftPaneSize, &m_rightPaneSize, 50, 250);
+
+		// Left Pane
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), true);
+			ImGui::PopStyleVar();
+
+			const CEQGBitmap* pLastSelectedBitmap = m_selectedBitmap;
+			m_selectedBitmap = nullptr;
+
+			std::vector<std::vector<CEQGBitmap*>> bitmapsByPool;
+			bitmapsByPool.resize(eNumMemoryPoolManagerTypes);
+			{
+				CEQGBitmap* pEQBitmap = CEQGBitmap::GetFirstBitmap();
+				while (pEQBitmap != nullptr)
+				{
+					bitmapsByPool[pEQBitmap->m_eMemoryPoolManagerType].push_back(pEQBitmap);
+
+					if (pEQBitmap == pLastSelectedBitmap)
+						m_selectedBitmap = pEQBitmap;
+
+					pEQBitmap = pEQBitmap->GetNextBitmap();
+				}
+			}
+
+			//for (auto& bitmaps : bitmapsByPool)
+			//{
+			//	std::sort(bitmaps.begin(), bitmaps.end(),
+			//		[](CEQGBitmap* p1, CEQGBitmap* p2)
+			//		{
+			//			return mq::ci_less()(p1->m_pszFileName, p2->m_pszFileName);
+			//		});
+			//}
+
+			ImGuiTableFlags tableFlags = ImGuiTableFlags_ScrollY
+				| ImGuiTableFlags_BordersV
+				| ImGuiTableFlags_BordersOuterH
+				| ImGuiTableFlags_Resizable
+				| ImGuiTableFlags_RowBg;
+
+			if (ImGui::BeginTable("##eqgbitmaps", 2, tableFlags))
+			{
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Index");
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableHeadersRow();
+
+
+
+				for (int pool = 0; pool < (int)bitmapsByPool.size(); ++pool)
+				{
+					auto& bitmaps = bitmapsByPool[pool];
+					EMemoryPoolManagerType poolType = static_cast<EMemoryPoolManagerType>(pool);
+
+					char label[64];
+					switch (poolType)
+					{
+					case eMemoryPoolManagerTypePersistent:
+						sprintf_s(label, "Pool: Persistent (%d)", static_cast<int>(bitmaps.size()));
+						break;
+					case eMemoryPoolManagerTypeOnDemand:
+						sprintf_s(label, "Pool: On Demand (%d)", static_cast<int>(bitmaps.size()));
+						break;
+					case eMemoryPoolManagerTypeZone:
+						sprintf_s(label, "Pool: Zone (%d)", static_cast<int>(bitmaps.size()));
+						break;
+
+					default:
+						sprintf_s(label, "Other: %d (%d)", poolType, static_cast<int>(bitmaps.size()));
+						break;
+					}
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNodeEx(reinterpret_cast<void*>(poolType), 0, "%s", label))
+					{
+						for (int i = 0; i < (int)bitmaps.size(); ++i)
+						{
+							bool selectThis = false;
+							const CEQGBitmap* pEQBitmap = bitmaps[i];
+
+							ImGui::PushID(pEQBitmap);
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							const bool selected = pEQBitmap == pLastSelectedBitmap;
+							ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth
+								| ImGuiTreeNodeFlags_SpanAvailWidth
+								| ImGuiTreeNodeFlags_Leaf
+								| ImGuiTreeNodeFlags_NoTreePushOnOpen;
+							if (selected)
+							{
+								flags |= ImGuiTreeNodeFlags_Selected;
+							}
+
+							ImGui::TreeNodeEx(pEQBitmap, flags, "%d", i);
+
+							if (m_selectedBitmap == nullptr || ImGui::IsItemClicked())
+							{
+								m_selectedBitmap = pEQBitmap;
+							}
+
+							ImGui::TableNextColumn(); ImGui::Text("%s", pEQBitmap->m_pszFileName);
+							ImGui::PopID();
+						}
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::EndTable();
+			}
+
+			ImGui::EndChild();
+		}
+
+		ImGui::SameLine();
+
+		// Right Pane
+		{
+			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), true);
+
+			if (m_selectedBitmap)
+			{
+				const CEQGBitmap* pPrevious = m_selectedBitmap->GetPreviousBitmap();
+				ImGui::BeginDisabled(pPrevious == nullptr);
+				if (ImGui::Button("Prev") && pPrevious)
+					m_selectedBitmap = pPrevious;
+				ImGui::EndDisabled();
+
+				ImGui::SameLine();
+
+				const CEQGBitmap* pNext = m_selectedBitmap->GetNextBitmap();
+				ImGui::BeginDisabled(pNext == nullptr);
+				if (ImGui::Button("Next") && pNext)
+					m_selectedBitmap = pNext;
+				ImGui::EndDisabled();
+
+				const CEQGBitmap* pBitmap = m_selectedBitmap;
+
+				const char* typeLabel = "Unknown";
+				switch (pBitmap->m_eType)
+				{
+				case eBitmapTypeNormal: typeLabel = "Normal"; break;
+				case eBitmapTypeLayer: typeLabel = "Layer"; break;
+				case eBitmapTypeSingleDetail: typeLabel = "Single Detail"; break;
+				case eBitmapTypePaletteDetailMain: typeLabel = "Palette Detail - Main"; break;
+				case eBitmapTypePaletteDetailPalette: typeLabel = "Palette Detail - Palette"; break;
+				case eBitmapTypePaletteDetailDetail: typeLabel = "Palette Detail - Detail"; break;
+				default: break;
+				}
+				ImGui::Text("Bitmap Type: %s", typeLabel);
+
+				const char* memoryPoolLabel = "Unknown";
+				switch (pBitmap->m_eMemoryPoolManagerType)
+				{
+				case eMemoryPoolManagerTypePersistent: memoryPoolLabel = "Persistent"; break;
+				case eMemoryPoolManagerTypeOnDemand: memoryPoolLabel = "On Demand"; break;
+				case eMemoryPoolManagerTypeZone: memoryPoolLabel = "Zone"; break;
+				default: break;
+				}
+				ImGui::Text("Memory Pool: %s", memoryPoolLabel);
+
+				ImGui::Text("File Name: %s", pBitmap->m_pszFileName);
+				ImGui::Text("Size: %d x %d", pBitmap->m_uWidth, pBitmap->m_uHeight);
+				ImGui::Text("Source Size: %d x %d", pBitmap->m_uSourceWidth, pBitmap->m_uSourceHeight);
+
+				ImGui::Text("Has Texture: %s", pBitmap->m_bHasTexture ? "Yes" : "No");
+				ImGui::Text("Object Index: %d", pBitmap->m_uObjectIndex);
+				ImGui::Text("Distance Squared: %.2f", pBitmap->m_distanceSq);
+				ImGui::Text("Last Distance Time: %d", pBitmap->m_lastDistanceTime);
+				ImGui::Text("Last Render Time: %d", pBitmap->m_lastRenderTime);
+				ImGui::Text("Loaded Time: %d", pBitmap->m_loadedTime);
+				ImGui::Text("Defer Mode: %s", DeferModeToString(pBitmap->m_eDeferMode));
+				ImGui::Text("Defer Mode (original): %s", DeferModeToString(pBitmap->m_eOriginalDeferMode));
+				ImGui::Text("Deferred Filename: %s", pBitmap->m_DeferredFilename.c_str());
+
+				ImGui::Text("Texture Quality: %s", TextureQualityToString(pBitmap->m_eTextureQuality));
+				ImGui::Text("Can Reclaim: %s", pBitmap->m_canReclaim ? "Yes" : "No");
+				ImGui::Text("Tracking Type: %s", TrackingTypeToString(pBitmap->m_nTrackingType));
+
+#if HAS_DIRECTX_11
+				ImTextureID TexID = pBitmap;
+#else
+				ImTextureID TexID = pBitmap->GetTexture();
+#endif
+
+				if (TexID != nullptr)
+				{
+					ImGui::Separator();
+
+					bool drawBorder = true;
+					ImVec2 minUV = ImVec2(0, 0);
+					ImVec2 maxUV = ImVec2(1, 1);
+					ImVec2 textureSize = ImVec2(static_cast<float>(pBitmap->m_uWidth),
+						static_cast<float>(pBitmap->m_uHeight));
+
+					ImVec2 imageSize = textureSize;
+
+					ImGui::Image(
+						TexID, imageSize,
+						minUV, maxUV,
+						ImVec4(1, 1, 1, 1),
+						drawBorder ? ImVec4(1, 1, 1, 0.5f) : ImVec4()
+					);
+				}
+			}
+
+			ImGui::EndChild();
+		}
+	}
+
+private:
+	float m_leftPaneSize = 150.0f; // initial size of left column
+	float m_rightPaneSize = 0.0f;  // size of right column. Initial value calculated from left.
+	const CEQGBitmap* m_selectedBitmap = nullptr;
+
+	int m_selectedFont = 0;
+};
+
+static EngineInspector* s_engineInspector = nullptr;
+
+#pragma endregion
+
+#pragma region EverQuest Data Inspector
+
+void DeveloperTools_DrawHotButtonData(const HotButtonData& data)
+{
+	// Item
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item");
+	if (ItemPtr pItem = data.Item)
+	{
+		ImGui::TableNextColumn();
+		if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+			pItemDisplayManager->ShowItem(pItem);
+	}
+
+	// ItemGuid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemGuid");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemGuid.guid);
+
+	// Label
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Label");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.Label);
+
+	// Item Name
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Item Name");
+	ImGui::TableNextColumn(); ImGui::Text("%s", data.ItemName);
+
+	// ItemID
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.ItemId);
+
+	// IconType
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconType");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconType);
+
+	// IconSlot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconSlot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconSlot);
+
+	// IconId
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("IconID");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.IconId);
+
+	// Slot
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Slot");
+	ImGui::TableNextColumn(); ImGui::Text("%d", data.Slot);
+
+	// Type
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("Type");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.Type);
+
+	// Item Valid
+	ImGui::TableNextRow();
+	ImGui::TableNextColumn(); ImGui::Text("ItemValid");
+	ImGui::TableNextColumn(); ImGui::Text("%d", (int)data.ItemValid);
+}
 
 class EverQuestDataInspector : public ImGuiWindowBase
 {
@@ -1952,11 +2611,11 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Mouse Buttons");
-				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.MouseButtons, ", ")).c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(g_pDeviceInputProxy->mouse.CurrentClickState, ", ")).c_str());
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Mouse Buttons Old");
-				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(eq.OldMouseButtons, ", ")).c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", fmt::format("{}", fmt::join(g_pDeviceInputProxy->mouse.LastClickState, ", ")).c_str());
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Right Handed Mouse");
@@ -2045,7 +2704,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Expansion Flags");
-				ImGui::TableNextColumn(); ImGui::Text("%08X", eq.ExpansionsFlagBitmask);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ExpansionsFlagBitmask);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
@@ -2114,6 +2773,315 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Auto Range Attack");
 				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bAutoRangeAttack);
 
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Show Names Level");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.iShowNamesLevel);
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Game Options"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Gamma");
+				ImGui::TableNextColumn(); ImGui::Text("%.2f", eq.gOpt.gamma);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Anonymous");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.anonymous);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Trade");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.trade);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("GuildInvites");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.guildInvites);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Sky");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.sky);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("LoD");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.lod);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.pcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("NPCNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.npcNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("PetOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.petNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("MercOwnerNames");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.mercNames);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("TargetHealth");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.targetHealth);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementHideUI");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPalcementHideUI);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("ItemPlacementDefaultModeCursor");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.gOpt.itemPlacementDefaultModeCursor);
+
+
+				ImGui::TreePop();
+			}
+
+			if (pConnection)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				if (ImGui::TreeNode("Network"))
+				{
+					UdpLibrary::UdpConnectionStatistics stats;
+					pConnection->GetStats(&stats);
+
+					char temp[64];
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Sent");
+					FormatBytes(temp, stats.totalBytesSent);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Bytes Received");
+					FormatBytes(temp, stats.totalBytesReceived);
+					ImGui::TableNextColumn(); ImGui::TextUnformatted(temp);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Total Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.totalPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("CRC Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.crcRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Order Rejected Packets");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.orderRejectedPackets);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Order Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfOrderPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Duplicate Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.duplicatePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Out Of Range Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.outOfRangePacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Accelerated");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsAccelerated);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Resent Packets Timed Out");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.resentPacketsTimedOut);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Application Packets Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.applicationPacketsReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Iterations");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.iterations);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Corrupt Packet Errors");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.corruptPacketErrors);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Age");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingAge);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Master Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.masterPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Average Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.averagePingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Low Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("High Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.highPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Last Ping Time");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.lastPingTime);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Reliable Average Ping");
+					ImGui::TableNextColumn(); ImGui::Text("%d", stats.reliableAveragePing);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Our Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncOurReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirSent);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Sync Their Received");
+					ImGui::TableNextColumn(); ImGui::Text("%lld", stats.syncTheirReceived);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Sent");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentSentSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Packet Loss: Received");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", (1.0 - stats.percentReceivedSuccess) * 100);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn(); ImGui::Text("Connection Strength");
+					ImGui::TableNextColumn(); ImGui::Text("%.2f%%", pConnection->GetConnectionStrength() * 100);
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("Server"))
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Ruleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Rp Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##RpServer", &eq.bRpServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Accelerated Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##AccelServer", &eq.bAcceleratedServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##ProgServer", &eq.bProgressionServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ProgressionOpenExpansions);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.bHeroicCharacterFlag);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Progression Level Cap");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.ProgressionLevelCap);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Dev Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##DevServer", &eq.bIsDevServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Beta Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##BetaServer", &eq.bIsBetaServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Test Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##TestServer", &eq.bIsTestServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Staging Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##StageServer", &eq.bIsStageServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Mail System");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##MailSystem", &eq.bUseMailSystem);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Escape Server");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##EscServer", &eq.bIsEscapeServer);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Tutorial Enabled");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##Tutorial", &eq.bIsTutorialEnabled);
+
+#if IS_CLIENT_DATE(20250203)
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d, %d", (int32_t)eq.bHeroicCharacterRelated1, (int32_t)eq.bHeroicCharacterRelated2);
+#endif
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeadStart", &eq.bCanCreateHeadStartCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic Char");
+				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##HeroicChar", &eq.bCanCreateHeroicCharacter);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Monthly Claim");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.nMonthlyClaim);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Marketplace Related");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.MarketPlaceRelated);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 85 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic85Slots);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Heroic 100 Slots");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.Heroic100Slots);
+
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Characters Ruleset");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyCharactersRuleset);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Max Characters");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumMaxCharacters);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Legacy Experience Bonus");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.LegacyExperienceBonus);
+#endif
+#if HAS_ALTERNATE_PERSONAS
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Num Available Personas");
+				ImGui::TableNextColumn(); ImGui::Text("%d", eq.NumAvailablePersonas);
+#endif
+
 				ImGui::TreePop();
 			}
 
@@ -2157,6 +3125,49 @@ public:
 								ImGui::TableNextRow();
 								ImGui::TableNextColumn(); ImGui::Text("Changed");
 								ImGui::TableNextColumn(); ImGui::Checkbox("##Changed", &eq.bSocialChanged[i][j]);
+
+								ImGui::TreePop();
+							}
+						}
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			if (ImGui::TreeNode("HotButtons"))
+			{
+				for (int window = 0; window < NUM_HOTBUTTON_WINDOWS; ++window)
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+
+					if (ImGui::TreeNode((void*)&eq.hotButtons[window][0][0], "Window %d", window + 1))
+					{
+						for (int page = 0; page < NUM_HOTBUTTON_PAGES; ++page)
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+
+							if (ImGui::TreeNode((void*)&eq.hotButtons[window][page][0], "Page %d", page + 1))
+							{
+								for (int button = 0; button < HOTBUTTONS_PER_PAGE; ++button)
+								{
+									HotButtonData& data = eq.hotButtons[window][page][button];
+
+									ImGui::TableNextRow();
+									ImGui::TableNextColumn();
+									if (ImGui::TreeNode((void*)&data, "Button %d", button + 1))
+									{
+										DeveloperTools_DrawHotButtonData(data);
+
+										ImGui::TreePop();
+									}
+								}
 
 								ImGui::TreePop();
 							}
@@ -2835,12 +3846,12 @@ class SpellsInspector : public ImGuiWindowBase
 {
 	CTextureAnimation* m_pTASpellIcon = nullptr;
 public:
-	SpellsInspector() : ImGuiWindowBase("Spells Developer Tools")
+	SpellsInspector() : ImGuiWindowBase("Spells & Buffs Developer Tools")
 	{
 		SetDefaultSize(ImVec2(700, 400));
 	}
 
-	~SpellsInspector()
+	~SpellsInspector() override
 	{
 		if (m_pTASpellIcon)
 		{
@@ -2849,7 +3860,7 @@ public:
 		}
 	}
 
-	void DoSpellBuffTableHeaders()
+	static void DoSpellBuffTableHeaders()
 	{
 		ImGui::TableSetupColumn("Index");
 		ImGui::TableSetupColumn("Icon");
@@ -2901,10 +3912,6 @@ public:
 		ImGui::TableNextColumn();
 		m_pTASpellIcon->SetCurCell(spell->SpellIcon);
 		imgui::DrawTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->GemIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
-		//m_pTASpellIcon->SetCurCell(spell->BookIcon);
-		//RenderTextureAnimation(m_pTASpellIcon);
 
 		// Name
 		ImGui::TableNextColumn();
@@ -2919,9 +3926,13 @@ public:
 
 		if (ImGui::BeginPopupContextItem("BuffContextMenu"))
 		{
-			if (ImGui::Selectable("Inspect (NYI)"))
+			if (ImGui::Selectable("Inspect"))
 			{
-				// TODO: trigger spell/buff viewer
+				char buffer[512] = { 0 };
+				FormatSpellLink(buffer, 512, spell);
+
+				TextTagInfo info = ExtractLink(buffer);
+				ExecuteTextLink(info);
 			}
 
 			ImGui::Separator();
@@ -3048,6 +4059,197 @@ public:
 			ImGui::EndTable();
 		}
 		return count;
+	}
+
+	static void FormatBuffDuration(char* timeLabel, size_t size, int buffTimer)
+	{
+		if (buffTimer < 0)
+		{
+			strcpy_s(timeLabel, size, "Permanent");
+		}
+		else if (buffTimer > 0)
+		{
+			int hours = 0;
+			int minutes = 0;
+			int seconds = 0;
+
+			int totalSeconds = buffTimer / 1000;
+
+			if (totalSeconds > 0)
+			{
+				hours = totalSeconds / 3600;
+				minutes = (totalSeconds % 3600) / 60;
+				seconds = totalSeconds % 60;
+			}
+
+			if (hours > 0)
+			{
+				if (minutes > 0 && seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm %ds", hours, minutes, seconds);
+				}
+				else if (minutes > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %dm", hours, minutes);
+				}
+				else if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dh %ds", hours, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dh", hours);
+				}
+			}
+			else if (minutes > 0)
+			{
+				if (seconds > 0)
+				{
+					sprintf_s(timeLabel, size, "%dm %ds", minutes, seconds);
+				}
+				else
+				{
+					sprintf_s(timeLabel, size, "%dm", minutes);
+				}
+			}
+			else
+			{
+				sprintf_s(timeLabel, size, "%ds", seconds);
+			}
+		}
+		else
+		{
+			strcpy_s(timeLabel, size, "0s");
+		}
+	}
+
+	template <typename T>
+	void DoBuffsTable(const char* name, IteratorRange<PlayerBuffInfoWrapper::Iterator<T>> Buffs,
+		bool petBuffs = false, bool playerBuffs = false, int baseIndex = 0)
+	{
+		ImGuiTableFlags tableFlags = 0
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY | ImGuiTableFlags_ScrollX
+			| ImGuiTableFlags_RowBg
+			| ImGuiTableFlags_Borders
+			| ImGuiTableFlags_Resizable;
+
+		if (ImGui::BeginTable(name, 6, tableFlags))
+		{
+			ImGui::TableSetupScrollFreeze(2, 1);
+			
+			ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+			ImGui::TableSetupColumn("Icon", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Spell ID", ImGuiTableColumnFlags_WidthFixed, 46.0f);
+			ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 78.0f);
+			ImGui::TableSetupColumn("Caster", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableHeadersRow();
+
+			for (const auto& buffInfo : Buffs)
+			{
+				EQ_Spell* spell = buffInfo.GetSpell();
+				if (!spell)
+					continue;
+
+				ImGui::PushID(buffInfo.GetIndex());
+
+				if (!m_pTASpellIcon)
+				{
+					m_pTASpellIcon = new CTextureAnimation();
+					if (CTextureAnimation* temp = pSidlMgr->FindAnimation("A_SpellGems"))
+						*m_pTASpellIcon = *temp;
+				}
+
+				ImGui::TableNextRow();
+
+				// Index
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", buffInfo.GetIndex() + 1 + baseIndex);
+
+				// Icon
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					m_pTASpellIcon->SetCurCell(spell->SpellIcon);
+					imgui::DrawTextureAnimation(m_pTASpellIcon);
+				}
+
+				// Name
+				ImGui::TableNextColumn();
+				if (spell)
+				{
+					ImGui::Text("%s", spell->Name);
+				}
+				else
+				{
+					ImGui::Text("");
+				}
+
+				if (spell)
+				{
+					if (ImGui::BeginPopupContextItem("BuffContextMenu"))
+					{
+						if (ImGui::Selectable("Inspect"))
+						{
+							char buffer[512] = { 0 };
+							FormatSpellLink(buffer, 512, spell);
+
+							TextTagInfo info = ExtractLink(buffer);
+							ExecuteTextLink(info);
+						}
+
+						if (petBuffs)
+						{
+							ImGui::Separator();
+
+							if (ImGui::Selectable("Remove Pet Buff"))
+							{
+								RemovePetBuffByName(spell->Name);
+							}
+						}
+						else if (playerBuffs)
+						{
+							if (ImGui::Selectable("Remove by Index"))
+							{
+								RemoveBuffByIndex(buffInfo.GetIndex() + baseIndex);
+							}
+
+							if (ImGui::Selectable("Remove by Name"))
+							{
+								RemoveBuffByName(spell->Name);
+							}
+
+							if (ImGui::Selectable("Remove by Spell ID"))
+							{
+								RemoveBuffBySpellID(buffInfo.GetSpellID());
+							}
+						}
+
+						ImGui::EndPopup();
+					}
+				}
+
+				// ID
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", buffInfo.GetSpellID());
+
+				// Duration
+				ImGui::TableNextColumn();
+
+				char timeLabel[64];
+				FormatBuffDuration(timeLabel, 64, buffInfo.GetBuffTimer());
+				ImGui::Text("%s", timeLabel);
+
+				// Caster
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", buffInfo.GetCaster());
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
 	}
 
 	virtual bool IsEnabled() const override
@@ -3182,18 +4384,67 @@ public:
 			}
 
 			char szLabel[64];
-			sprintf_s(szLabel, "Spell Buffs (%d)###SpellBuffs", count);
 
-			if (ImGui::BeginTabItem(szLabel))
+			if (pBuffWnd)
 			{
-				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
-				ImGui::EndTabItem();
+				sprintf_s(szLabel, "Buffs (%d)###Buffs", pBuffWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("BuffsTable", pBuffWnd->GetBuffRange(), false, true, pBuffWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pSongWnd)
+			{
+				sprintf_s(szLabel, "Short Buffs (%d)###ShortBuffs", pSongWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("ShortBuffsTable", pSongWnd->GetBuffRange(), false, true, pSongWnd->firstEffectSlot);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pPetInfoWnd)
+			{
+				sprintf_s(szLabel, "Pet Buffs (%d)###PetBuffs", pPetInfoWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("PetBuffsTable", pPetInfoWnd->GetBuffRange(), true);
+
+					ImGui::EndTabItem();
+				}
+			}
+
+			if (pTargetWnd)
+			{
+				sprintf_s(szLabel, "Target Buffs (%d)###TargetBuffs", pTargetWnd->GetTotalBuffCount());
+
+				if (ImGui::BeginTabItem(szLabel))
+				{
+					DoBuffsTable("TargetBuffsTable", pTargetWnd->GetBuffRange(), false);
+
+					ImGui::EndTabItem();
+				}
 			}
 
 			if (ImGui::BeginTabItem("Stacking Tests"))
 			{
 				DoSpellStackingTests();
 
+				ImGui::EndTabItem();
+			}
+
+			sprintf_s(szLabel, "Spell Affects (%d)###SpellBuffs", count);
+
+			if (ImGui::BeginTabItem(szLabel))
+			{
+				DoSpellAffectTable("SpellAffectBuffsTable", std::begin(pcProfile->Buffs), std::end(pcProfile->Buffs), arrayLength);
 				ImGui::EndTabItem();
 			}
 
@@ -3274,16 +4525,13 @@ public:
 			ResetLastTimes();
 			m_resetNext = false;
 		}
-		//ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
-		//if (ImGui::CollapsingHeader("Benchmark Plot"))
-		{
-			DrawPlot();
-		}
 
-		//if (ImGui::CollapsingHeader("Benchmark Table"))
-		//{
-		//	DrawTable();
-		//}
+		DrawPlot();
+
+		if (ImGui::CollapsingHeader("Benchmark Table"))
+		{
+			DrawTable();
+		}
 
 		ResetLastTimes();
 	}
@@ -3354,40 +4602,46 @@ public:
 			}
 		}
 
-		ImPlot::SetNextPlotLimitsX(static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextPlotLimitsY(0, 20, ImGuiCond_Once, 0);
-		ImPlot::SetNextPlotLimitsY(0, 100, ImGuiCond_Always, 1);
 
-		static int rt_axis = ImPlotAxisFlags_Default;
 
-		if (ImPlot::BeginPlot("##Benchmarks", "Time", "Milliseconds", ImVec2(-1, -1), ImPlotFlags_Default | ImPlotFlags_YAxis2,
-			rt_axis, rt_axis | ImPlotAxisFlags_LockMin, ImPlotAxisFlags_LockMin | ImPlotAxisFlags_TickLabels))
+		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
-			ImPlot::SetPlotYAxis(0);
+			ImPlot::SetupAxis(ImAxis_X1, "Time");
+			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
+			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
+			ImPlot::SetupAxis(ImAxis_Y3, "Frames Per Second", ImPlotAxisFlags_LockMin | ImPlotAxisFlags_Opposite);
+			ImPlot::SetupAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 40, ImGuiCond_Appearing);
+			ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y3, 0, 60, ImGuiCond_Appearing);
+			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
-
-				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0], data->Data.size(), data->Offset);
+				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
+					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}
 
 			if (!m_fpsData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y3);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 255, 0, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0], m_fpsData.Data.size(), m_fpsData.Offset);
+				ImPlot::PlotLine("Frame Rate", &m_fpsData.Data[0].x, &m_fpsData.Data[0].y,
+					m_fpsData.Data.size(), ImPlotLineFlags_None, m_fpsData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
 
 			if (!m_cpuData.Data.empty())
 			{
-				ImPlot::SetPlotYAxis(1);
+				ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
 				ImPlot::PushStyleColor(ImPlotCol_Line, IM_COL32(127, 127, 255, 255));
 				ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2);
-				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0], m_cpuData.Data.size(), m_cpuData.Offset);
+				ImPlot::PlotLine("CPU Usage %", &m_cpuData.Data[0].x, &m_cpuData.Data[0].y,
+					m_cpuData.Data.size(), ImPlotLineFlags_None, m_cpuData.Offset, sizeof(ImVec2));
 				ImPlot::PopStyleVar();
 				ImPlot::PopStyleColor();
 			}
@@ -4287,7 +5541,7 @@ protected:
 			// Evaluate the row
 			static char szTemp[MAX_STRING];
 			strcpy_s(szTemp, m_expressions[i].get());
-			ParseMacroParameter(nullptr, szTemp);
+			ParseMacroParameter(szTemp);
 
 			ImGui::Text("%s", szTemp);
 			ImGui::Separator();
@@ -4336,6 +5590,14 @@ public:
 
 	void Draw() override
 	{
+		auto gf = pGFViewListener.get();
+
+		if (!gf)
+		{
+			ImGui::Text("GameFace is not running");
+			return;
+		}
+
 		if (ImGui::BeginTable("##GameFaceUI", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
 		{
 			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
@@ -4349,8 +5611,6 @@ public:
 #define TableRow(label, format, ...) \
 	ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text(label); \
 	ImGui::TableNextColumn(); ImGui::Text(format, __VA_ARGS__);
-
-			auto gf = pGFViewListener.get();
 
 			if (ImGui::TreeNode("object1"))
 			{
@@ -4500,13 +5760,14 @@ static GameFaceInspector* s_gameFaceInspector = nullptr;
 //============================================================================
 //============================================================================
 
-struct WindowMenuEntry
+struct ConsoleMenuEntry
 {
 	ImGuiWindowBase* window;
+	std::string command;
 	std::string menuName;
 	std::string itemName;
 };
-static std::vector<WindowMenuEntry> s_inspectorMenus;
+static std::vector<ConsoleMenuEntry> s_inspectorMenus;
 static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
@@ -4548,8 +5809,16 @@ void DeveloperTools_DrawMenu()
 
 		if (isMenuOpen)
 		{
-			if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
-				entry.window->Toggle();
+			if (entry.window != nullptr)
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, entry.window->IsOpen()))
+					entry.window->Toggle();
+			}
+			else
+			{
+				if (ImGui::MenuItem(entry.itemName.c_str(), nullptr, false))
+					DoCommand(entry.command.c_str(), false);
+			}
 		}
 	}
 
@@ -4561,7 +5830,14 @@ void DeveloperTools_DrawMenu()
 
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)
 {
-	s_inspectorMenus.push_back(WindowMenuEntry{ window, menuName ? menuName : "Tools", itemName });
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ window, "", menuName ? menuName : "Tools", itemName });
+
+	s_inspectorMenusDirty = true;
+}
+
+void DeveloperTools_RegisterMenuItem(const char* command, const char* itemName, const char* menuName)
+{
+	s_inspectorMenus.push_back(ConsoleMenuEntry{ nullptr, command, menuName ? menuName : "Tools", itemName });
 
 	s_inspectorMenusDirty = true;
 }
@@ -4574,11 +5850,19 @@ void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window)
 		std::end(s_inspectorMenus));
 }
 
+void DeveloperTools_UnregisterMenuItem(const char* itemName)
+{
+	s_inspectorMenus.erase(
+		std::remove_if(std::begin(s_inspectorMenus), std::end(s_inspectorMenus),
+			[&](const auto& p) { return p.itemName == itemName; }),
+		std::end(s_inspectorMenus));
+}
+
 //============================================================================
 
 void DeveloperTools_WindowInspector_Initialize();
 void DeveloperTools_WindowInspector_Shutdown();
-void DeveloperTools_WindowInspector_SetGameState(uint32_t gameState);
+void DeveloperTools_WindowInspector_SetGameState(int gameState);
 
 static void DeveloperTools_Initialize()
 {
@@ -4594,14 +5878,17 @@ static void DeveloperTools_Initialize()
 	s_characterDataInspector = new CharacterDataInspector();
 	DeveloperTools_RegisterMenuItem(s_characterDataInspector, "Character Data", s_menuNameInspectors);
 
+	s_engineInspector = new EngineInspector();
+	DeveloperTools_RegisterMenuItem(s_engineInspector, "Engine Inspector", s_menuNameInspectors);
+
 	s_everquestDataInspector = new EverQuestDataInspector();
-	DeveloperTools_RegisterMenuItem(s_everquestDataInspector, "Everquest Data", s_menuNameInspectors);
+	DeveloperTools_RegisterMenuItem(s_everquestDataInspector, "EverQuest Data", s_menuNameInspectors);
 
 	s_realEstateInspector = new RealEstateInspector();
 	DeveloperTools_RegisterMenuItem(s_realEstateInspector, "Real Estate", s_menuNameInspectors);
 
 	s_spellsInspector = new SpellsInspector();
-	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells", s_menuNameInspectors);
+	DeveloperTools_RegisterMenuItem(s_spellsInspector, "Spells & Buffs", s_menuNameInspectors);
 
 	s_switchInspector = new SwitchInspector();
 	DeveloperTools_RegisterMenuItem(s_switchInspector, "Switches", s_menuNameInspectors);
@@ -4614,6 +5901,8 @@ static void DeveloperTools_Initialize()
 
 	s_macroEvaluator = new MacroExpressionEvaluator();
 	DeveloperTools_RegisterMenuItem(s_macroEvaluator, "Macro Expression Evaluator", s_menuNameTools);
+
+	DeveloperTools_RegisterMenuItem("/squelch /lua run mq/eval", "Lua Expression Evaluator", s_menuNameTools);
 
 #if HAS_GAMEFACE_UI
 	s_gameFaceInspector = new GameFaceInspector();
@@ -4637,6 +5926,12 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_UnregisterMenuItem(s_characterDataInspector);
 	delete s_characterDataInspector; s_characterDataInspector = nullptr;
 
+	DeveloperTools_UnregisterMenuItem(s_engineInspector);
+	delete s_engineInspector; s_engineInspector = nullptr;
+
+	DeveloperTools_UnregisterMenuItem(s_everquestDataInspector);
+	delete s_everquestDataInspector; s_everquestDataInspector = nullptr;
+
 	DeveloperTools_UnregisterMenuItem(s_realEstateInspector);
 	delete s_realEstateInspector; s_realEstateInspector = nullptr;
 
@@ -4655,6 +5950,8 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_UnregisterMenuItem(s_macroEvaluator);
 	delete s_macroEvaluator; s_macroEvaluator = nullptr;
 
+	DeveloperTools_UnregisterMenuItem("Lua Expression Evaluator");
+
 #if HAS_GAMEFACE_UI
 	DeveloperTools_UnregisterMenuItem(s_gameFaceInspector);
 	delete s_gameFaceInspector; s_gameFaceInspector = nullptr;
@@ -4663,7 +5960,7 @@ static void DeveloperTools_Shutdown()
 	DeveloperTools_WindowInspector_Shutdown();
 }
 
-static void DeveloperTools_SetGameState(DWORD gameState)
+static void DeveloperTools_SetGameState(int gameState)
 {
 	DeveloperTools_WindowInspector_SetGameState(gameState);
 }

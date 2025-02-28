@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -112,13 +112,13 @@ inline std::string GetPrivateProfileValue(const char* Section, const char* Key, 
 inline std::string GetPrivateProfileValue(const char* Section, const char* Key, const std::string& defaultValue, const char* IniFileName) { return GetPrivateProfileString(Section, Key, defaultValue.c_str(), IniFileName); }
 
 template <typename T>
-inline auto GetPrivateProfileValue(const std::string& Section, const std::string& Key, T defaultValue, const char* IniFileName)
+auto GetPrivateProfileValue(const std::string& Section, const std::string& Key, T defaultValue, const char* IniFileName)
 {
 	return GetPrivateProfileValue(Section.c_str(), Key.c_str(), defaultValue, IniFileName);
 }
 
 template <size_t BUFFER_SIZE = MAX_STRING>
-inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section, const std::string& iniFileName)
+std::vector<std::string> GetPrivateProfileKeys(const std::string& section, const std::string& iniFileName)
 {
 	char keybuffer[BUFFER_SIZE] = { 0 };
 
@@ -139,7 +139,7 @@ inline std::vector<std::string> GetPrivateProfileKeys(const std::string& section
 }
 
 template <size_t BUFFER_SIZE = MAX_STRING>
-inline std::vector<std::pair<std::string, std::string>> GetPrivateProfileKeyValues(const std::string& section, const std::string& iniFileName)
+std::vector<std::pair<std::string, std::string>> GetPrivateProfileKeyValues(const std::string& section, const std::string& iniFileName)
 {
 	char keybuffer[BUFFER_SIZE] = { 0 };
 

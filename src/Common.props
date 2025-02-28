@@ -19,14 +19,16 @@
     <MQ2LibDir>$(MQ2BuildDirectory)lib\$(Platform)\$(MQ2BinaryDirName)\</MQ2LibDir>
     <NASMPATH>$(MQ2Root)tools\NASM\</NASMPATH>
     <!-- vcpkg paths -->
-    <VCPKG_IncludeDirs Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeDirs>
-    <VCPKG_IncludeDirs Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeDirs>
+    <VCPKG_IncludeStatic Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeStatic>
+    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows\include</VCPKG_IncludeDynamic>
+    <VCPKG_IncludeStatic Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeStatic>
+    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</VCPKG_IncludeDynamic>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib;$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x86-windows\debug\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib;$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x86-windows\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
     <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib;$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\manual-link;$(MQ2Root)contrib\vcpkg\installed\x64-windows\lib</VCPKG_LibraryDirs>
     <!-- 32-bit linker settings -->
-    <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\detours\lib;$(MQ2Root)contrib\dxsdk90\lib</PlatformLibraryDirectories>
+    <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\detours\lib</PlatformLibraryDirectories>
     <!-- 64-bit linker settings -->
     <PlatformLibraryDirectories Condition="'$(Platform)'=='x64'">
     </PlatformLibraryDirectories>
@@ -57,13 +59,13 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeDirs);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeStatic);$(VCPKG_IncludeDynamic);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>GLM_FORCE_CTOR_INIT;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_SAFE_FUNCTIONS;SOL_SAFE_USERTYPE;GLM_FORCE_CTOR_INIT;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <!-- Shared linker settings -->
@@ -79,7 +81,10 @@
 
     <NASM>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <PreprocessorDefinitions>$(eqlibClientDefine)</PreprocessorDefinitions>
+      <IncludePaths>$(MQ2Root)src;%(IncludePaths)</IncludePaths>
+      <AdditionalDependencies>$(MQ2Root)src\eqlib\AssemblyMacros.asm</AdditionalDependencies>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">ARCH_X64;$(eqlibClientDefine);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='Win32'">ARCH_X86;$(eqlibClientDefine);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </NASM>
   </ItemDefinitionGroup>
   <ItemGroup />
@@ -88,6 +93,9 @@
     <Exec Condition="'$(Platform)'=='Win32'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQ2Root.TrimEnd('\'))%22 -Platform %22x86%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
     <Exec Condition="'$(Platform)'=='x64'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQ2Root.TrimEnd('\'))%22 -Platform %22x64%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
   </Target>
+  <PropertyGroup>
+    <ProtocolBufferDependsOn>VcpkgMQInstallManifestDependencies;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
+  </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project=".\private\Common-private.props" Condition="exists('.\private\Common-private.props')" />
   </ImportGroup>

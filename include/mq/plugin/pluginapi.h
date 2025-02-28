@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2020 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,7 +15,10 @@
 // The mqplugin namespace contains all shared code that is linked into a plugin. It does
 // not reside within MQ2Main.
 
+#pragma once
+
 #include "../../src/main/MQ2Main.h"
+#include "mq/api/Main.h"
 
 #define PLUGIN_API extern "C" __declspec(dllexport)
 
@@ -26,6 +29,9 @@ namespace mqplugin {
 
 extern const char* PluginName;
 extern HINSTANCE ghPluginModule;
+extern mq::MainInterface* MainInterface;
+extern mq::MQPluginHandle ThisPluginHandle;
+extern mq::MQPlugin* ThisPlugin;
 
 bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved);
 
@@ -43,4 +49,3 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved);
 #if __has_include("../../../src/private/pluginapi-private.h")
 #include "../../../src/private/pluginapi-private.h"
 #endif
-

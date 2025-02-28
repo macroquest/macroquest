@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,14 +15,19 @@
 #pragma once
 
 #include "LuaCommon.h"
+#include <mq/Plugin.h>
 
 namespace mq {
 	struct MQTypeVar;
-	struct MQDataItem;
+	struct MQTopLevelObject;
 }
 
 namespace mq::datatypes {
 	class MQ2Type;
+}
+
+namespace mq::lua {
+	std::tuple<const std::string&, const std::string&, int, bool> GetArgInfo(sol::function func);
 }
 
 namespace mq::lua::bindings {
@@ -41,11 +46,11 @@ public:
 
 //----------------------------------------------------------------------------
 
-class lua_MQDataItem;
+class lua_MQTopLevelObject;
 
 class lua_MQTypeVar
 {
-	friend class lua_MQDataItem;
+	friend class lua_MQTopLevelObject;
 
 public:
 	lua_MQTypeVar(const std::string& str);
@@ -57,7 +62,7 @@ public:
 	lua_MQTypeVar(const MQTypeVar& self);
 
 	bool operator==(const lua_MQTypeVar& right) const;
-	bool EqualData(const lua_MQDataItem& right) const;
+	bool EqualData(const lua_MQTopLevelObject& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
 	MQTypeVar EvaluateMember(const char* index = nullptr) const;
 	static std::string ToString(const lua_MQTypeVar& obj);
@@ -69,27 +74,27 @@ public:
 	datatypes::MQ2Type* GetType() const;
 
 private:
-	std::unique_ptr<MQTypeVar> m_self;
+	MQTypeVar m_self;
 	std::string m_member;
 };
 
 //----------------------------------------------------------------------------
 
-class lua_MQDataItem
+class lua_MQTopLevelObject
 {
 public:
-	lua_MQDataItem() = default;
+	lua_MQTopLevelObject() = default;
 
 	// this will allow users an alternate way to Get data items
-	lua_MQDataItem(const std::string& str);
-	lua_MQDataItem(const MQDataItem* const self);
+	lua_MQTopLevelObject(sol::this_state L, const std::string& str);
+	lua_MQTopLevelObject(sol::this_state L, const MQTopLevelObject* const self);
 
 	lua_MQTypeVar EvaluateSelf() const;
-	bool operator==(const lua_MQDataItem& right) const;
+	bool operator==(const lua_MQTopLevelObject& right) const;
 	bool EqualVar(const lua_MQTypeVar& right) const;
 	bool EqualNil(const sol::lua_nil_t&) const;
 
-	static std::string ToString(const lua_MQDataItem& data);
+	static std::string ToString(const lua_MQTopLevelObject& data);
 
 	sol::object Call(const std::string& index, sol::this_state L) const;
 	sol::object CallInt(int index, sol::this_state L) const;
@@ -100,7 +105,47 @@ public:
 	datatypes::MQ2Type* GetType() const;
 
 private:
-	const MQDataItem* const self = nullptr;
+	const MQTopLevelObject* const self = nullptr;
 };
+
+//----------------------------------------------------------------------------
+
+class LuaAbstractDataType;
+
+// A custom DataType implementation that serves as a proxy between the Macro
+// interface and the lua bindings.
+class LuaProxyType : public MQ2Type
+{
+public:
+	LuaProxyType(const std::string& typeName, LuaAbstractDataType* luaType);
+	virtual ~LuaProxyType();
+
+	virtual bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
+	virtual bool FromString(MQVarPtr& VarPTr, const char* Source) override;
+
+	virtual void InitVariable(MQVarPtr& VarPtr) override {}
+	virtual void FreeVariable(MQVarPtr& VarPtr) override {}
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	void RegisterMembers();
+
+private:
+	LuaAbstractDataType* m_luaType;
+};
+
+//----------------------------------------------------------------------------
+
+class LuaTableType : public MQ2Type
+{
+public:
+	LuaTableType();
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	bool ToString(MQVarPtr VarPtr, char* Destination) override;
+};
+
+//----------------------------------------------------------------------------
 
 } // namespace mq::lua::bindings

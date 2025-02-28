@@ -9,21 +9,13 @@
 			Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
 		<ProtoImportPath Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows\include</ProtoImportPath>
 		<ProtoImportPath Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
-		<!-- This is the most likely path to exist -->
-		<ProtocPath>$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
-		<ExistsProtocPath>false</ExistsProtocPath>
-		<ExistsProtocPath Condition="Exists('$(ProtocPath)')">true</ExistsProtocPath>
-		<!-- This only matters if the first path doesn't exist -->
-		<ProtocPathx64Static>$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPathx64Static>
-		<ExistsProtocPathx64Static>false</ExistsProtocPathx64Static>
-		<ExistsProtocPathx64Static Condition="!$(ExistsProtocPath) and Exists('$(ProtocPathx64Static)')">true</ExistsProtocPathx64Static>
-		<!-- This only matters if neither of the two above paths exist -->
-		<ProtocPathx86Static>$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPathx86Static>
-		<ExistsProtocPathx86Static>false</ExistsProtocPathx86Static>
-		<ExistsProtocPathx86Static Condition="!$(ExistsProtocPath) and !$(ExistsProtocPathx64Static)">true</ExistsProtocPathx86Static>
-		<!-- Path search -->
-		<ProtocPath Condition="!$(ExistsProtocPath) and $(ExistsProtocPathx64Static)">$(ProtocPathx64Static)</ProtocPath>
-		<ProtocPath Condition="!$(ExistsProtocPath) and !$(ExistsProtocPathx64Static) and $(ExistsProtocPathx86Static)">$(ProtocPathx86Static)</ProtocPath>
+		<!-- Check paths in order of probability -->
+		<ProtocPath Condition="Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<!-- By default the x86 version of protobuf is in the static directory, while the x64 is in both so default to the most appropriate -->
+		<ProtocPath Condition="'$(Platform)'=='Win32' and '$(ProtocPath)' == ''">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(Platform)'=='x64' and '$(ProtocPath)' == ''">$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
 	</PropertyGroup>
 	<ItemDefinitionGroup>
 		<ProtocolBuffer>

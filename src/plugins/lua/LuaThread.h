@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,17 +16,30 @@
 
 #include "LuaCommon.h"
 
+#include "mq/api/MacroAPI.h"
 #include "mq/base/GlobalBuffer.h"
+#include "mq/base/String.h"
+#include "mq/base/Vector.h"
 
 #include <sol/sol.hpp>
 
 #include <chrono>
 #include <stack>
 
+namespace eqlib {
+	class PlayerClient;
+	class EQGroundItem;
+}
+
+namespace mq {
+	struct MQPlugin;
+}
+
 namespace mq::lua {
 
 class LuaEventProcessor;
 class LuaImGuiProcessor;
+class LuaActors;
 class LuaThread;
 struct LuaCoroutine;
 
@@ -44,6 +57,7 @@ enum class LuaThreadExitReason
 {
 	Unspecified = 0,
 	Exit = 1,
+	DependencyRemoved = 2,
 };
 
 enum class YieldDisabledReason
@@ -85,6 +99,7 @@ struct LuaThreadInfo
 	void EndRun();
 };
 
+
 //============================================================================
 
 class LuaThread : public std::enable_shared_from_this<LuaThread>
@@ -95,6 +110,8 @@ private:
 public:
 	LuaThread(this_is_private&&, LuaEnvironmentSettings* environment);
 	static std::shared_ptr<LuaThread> Create(LuaEnvironmentSettings* environment);
+
+	~LuaThread();
 
 	LuaThread(const LuaThread&) = delete;
 	LuaThread& operator=(const LuaThread&) = delete;
@@ -109,6 +126,8 @@ public:
 	const std::string& GetScript() const { return m_path; }
 	sol::state_view GetState() const;
 	sol::thread GetLuaThread() const;
+	sol::thread_status GetThreadStatus() const;
+
 	// Buffer to get swapped in for DataTypeTemp
 	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 
@@ -123,6 +142,7 @@ public:
 	void EnableImGui();
 	void EnableEvents();
 
+	std::optional<LuaThreadInfo> StartFile(const ScriptLocationInfo& locationInfo, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartFile(std::string_view filename, const std::vector<std::string>& args);
 	std::optional<LuaThreadInfo> StartString(std::string_view script, std::string_view name = "");
 
@@ -132,10 +152,8 @@ public:
 
 	LuaThreadStatus Pause();
 
-	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default)
-	{
-		m_allowYield = allowYield; m_yieldDisabledReason = reason;
-	}
+	void SetAllowYield(bool allowYield, YieldDisabledReason reason = YieldDisabledReason::Default);
+
 	bool GetAllowYield() const { return m_allowYield; }
 	YieldDisabledReason GetYieldDisabledReason() const { return m_yieldDisabledReason; }
 
@@ -152,14 +170,42 @@ public:
 	const std::string& GetLuaDir() const { return m_luaEnvironmentSettings->luaDir; }
 	const std::string& GetModuleDir() const { return m_luaEnvironmentSettings->moduleDir; }
 
-	static std::string GetScriptPath(std::string_view script, const std::filesystem::path& luaDir);
-	static std::string GetCanonicalScriptName(std::string_view script, const std::filesystem::path& luaDir);
 	void UpdateLuaDir(const std::filesystem::path& newLuaDir);
+
+	// TLOs
+	bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction func);
+	bool RemoveTopLevelObject(const char* name);
+
+	void RemoveAllDataObjects();
+
+	void AssociateTopLevelObject(const MQTopLevelObject* tlo);
+
+	bool AddDependency(const void* dep) {
+		return mq::insert_unique_sorted(m_dependencies, dep) != end(m_dependencies);
+	}
+	void RemoveDependency(const void* dep) {
+		mq::remove_sorted(m_dependencies, dep);
+	}
+	bool IsDependency(const void* dep) const {
+		return mq::sorted_contains(m_dependencies, dep);
+	}
+
+	void AddNamedDependency(const std::string& name) {
+		m_namedDependencies.insert(name);
+	}
+
+	sol::table GetSpawnTable();
+	void AddSpawn(eqlib::PlayerClient* spawn);
+	void RemoveSpawn(eqlib::PlayerClient* spawn);
+
+	sol::table GetGroundItemTable();
+	void AddGroundItem(eqlib::EQGroundItem* item);
+	void RemoveGroundItem(eqlib::EQGroundItem* item);
 
 private:
 	RunResult RunOnce();
 
-	void RegisterMQNamespace(sol::state_view sv);
+	sol::table RegisterMQNamespace(sol::this_state L);
 	void Initialize();
 
 	void YieldAt(int count) const;
@@ -176,7 +222,6 @@ private:
 	sol::state m_globalState;
 	std::shared_ptr<LuaCoroutine> m_coroutine;
 	sol::environment m_environment;
-	std::optional<sol::table> m_mqTable;
 	sol::table m_threadTable;
 	uint32_t m_threadIndex = 0;
 
@@ -191,10 +236,19 @@ private:
 	bool m_allowYield = true;
 	YieldDisabledReason m_yieldDisabledReason = YieldDisabledReason::Default;
 	LuaThreadExitReason m_exitReason = LuaThreadExitReason::Unspecified;
+	std::vector<const void*> m_dependencies;
+	std::unordered_set<std::string> m_namedDependencies;
 
 	std::unique_ptr<LuaEventProcessor> m_eventProcessor;
 	std::unique_ptr<LuaImGuiProcessor> m_imguiProcessor;
 	LuaCoroutine* m_currentCoroutine = nullptr;
+
+	// datatypes
+	ci_unordered::set<std::string> m_registeredTLOs;
+
+	// memoized table references
+	sol::table m_spawnTable = sol::nil;
+	sol::table m_groundItemTable = sol::nil;
 };
 
 //============================================================================

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,13 +15,18 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
-
+#include "MQActorAPI.h"
+#include "MQCommandAPI.h"
+#include "MQDataAPI.h"
+#include "MQDetourAPI.h"
+#include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
+#include "MQPluginHandler.h"
 #include "ImGuiManager.h"
-
+#include "GraphicsResources.h"
 #include "EQLib/Logging.h"
+#include "mq/base/Logging.h"
 
-#include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -35,12 +40,14 @@
 #endif
 
 #include <Psapi.h>
+
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "version.lib")
+#pragma comment(lib, "detours.lib")
 
 #define CLIENT_OVERRIDE 0
 
-#if defined(LIVE)
+#if IS_LIVE_CLIENT
 
 #if !defined(_M_AMD64)
 #error Live build is only for x64
@@ -49,7 +56,7 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Live)"
 #define MacroQuestWinName "MacroQuest(Live)"
 
-#elif defined(TEST)
+#elif IS_TEST_CLIENT
 
 #if !defined(_M_AMD64)
 #error Test build is only for x64
@@ -58,7 +65,16 @@
 #define MacroQuestWinClassName "__MacroQuestTray(Test)"
 #define MacroQuestWinName "MacroQuest(Test)"
 
-#elif defined(EMULATOR)
+#elif IS_BETA_CLIENT
+
+#if !defined(_M_AMD64)
+#error Beta build is only for x64
+#endif
+#pragma message("Building MacroQuest for BETA (x64)")
+#define MacroQuestWinClassName "__MacroQuestTray(Beta)"
+#define MacroQuestWinName "MacroQuest(Beta)"
+
+#elif IS_EMU_CLIENT
 
 #if defined(_M_AMD64)
 #error Emulator Build is only for x86
@@ -70,6 +86,7 @@
 #endif
 
 namespace fs = std::filesystem;
+using namespace std::chrono_literals;
 
 namespace mq {
 
@@ -79,23 +96,24 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
-// From MQ2ParseAPI.cpp
-void InitializeParser();
-void ShutdownParser();
-
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
 MQModule* GetSpellsModule();
 MQModule* GetImGuiToolsModule();
 MQModule* GetDataAPIModule();
+MQModule* GetActorAPIModule();
 MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
+MQModule* GetPostOfficeModule();
+#if IS_EMU_CLIENT
+MQModule* GetEmuExtensionsModule();
+#endif
 
-void InitializeDetours();
-void ShutdownDetours();
+void InitializeMQ2AutoInventory();
+void ShutdownMQ2AutoInventory();
 
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
@@ -108,17 +126,15 @@ void* ModuleListHandler = nullptr;
 void InitializeLogging()
 {
 	fs::path loggingPath = mq::internal_paths::Logs;
-	std::string filename = (loggingPath / fmt::format("MacroQuest-{}.log",
-		date::format("%Y%m%dT%H%M%SZ", date::floor<std::chrono::microseconds>(
-			std::chrono::system_clock::now())))).string();
 
-	// create color multi threaded logger
-	auto logger = spdlog::create<spdlog::sinks::basic_file_sink_mt>("mq", filename, true);
+	auto new_logger = std::make_shared<spdlog::logger>("MQ");
+	spdlog::set_default_logger(new_logger);
+
 	if (IsDebuggerPresent())
-		logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
-	logger->sinks().push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+	{
+		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
+	}
 
-	spdlog::set_default_logger(logger);
 #if LOG_FILENAMES
 	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
 #else
@@ -127,8 +143,25 @@ void InitializeLogging()
 	spdlog::flush_on(spdlog::level::trace);
 	spdlog::set_level(spdlog::level::trace);
 
+	fmt::memory_buffer filename;
+	auto out = fmt::format_to(fmt::appender(filename),
+		"{}\\{}", mq::internal_paths::Logs, mq::CreateLogFilename("MacroQuest"));
+	*out = 0;
+
+	// Create file sink
+	try
+	{
+		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
+		new_logger->sinks().push_back(fileSink);
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		SPDLOG_WARN("Failed to create file logger: {}, ex: {}",
+			std::string_view(filename.data(), filename.size()), ex.what());
+	}
+
 	SPDLOG_DEBUG("Logging Initialized");
-	eqlib::InitializeLogging(logger);
+	eqlib::InitializeLogging(new_logger);
 }
 
 void ShutdownLogging()
@@ -159,13 +192,17 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	{
 		if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 		{
+			::SetDllDirectoryA(nullptr);
+
 			// Get path to the dll and strip off the filename
-			GetModuleFileName(ghModule, szFilename, MAX_STRING);
+			::GetModuleFileNameA(ghModule, szFilename, MAX_STRING);
 			szProcessName = strrchr(szFilename, '\\');
 			szProcessName[0] = '\0';
 
 			mq::internal_paths::MQRoot = szFilename;
 			g_Loaded = true;
+
+			RenderDoc_Startup();
 
 			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
 		}
@@ -575,29 +612,33 @@ void SetMainThreadId()
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
-	InitializePipeClient();
-	InitializeMQ2Commands();
+	gpMainAPI->DoMainThreadInitialization();
+
 	InitializeDisplayHook();
-	InitializeMouseHooks();
+	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
 	// this needs to be done before anything that would need to add a callback to string message parsing
 	InitializeStringDB();
 
 	InitializeChatHook();
-	InitializeMQ2CrashHandler();
 	InitializeAnonymizer();
 	InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
 	AddInternalModule(GetImGuiToolsModule());
 	AddInternalModule(GetSpellsModule());
 	AddInternalModule(GetDataAPIModule());
+	AddInternalModule(GetActorAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetPostOfficeModule());
+#if IS_EMU_CLIENT
+	AddInternalModule(GetEmuExtensionsModule());
+#endif
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
-	InitializeMQ2Plugins();
+	InitializePlugins();
 	InitializeCachedBuffs();
 }
 
@@ -722,9 +763,11 @@ bool MQ2Initialize()
 	}
 
 	InitializeLogging();
-	InitializeCrashHandler();
+	CrashHandler_Startup();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
+
+	InitializePluginHandle();
 
 	ZeroMemory(szEQMappableCommands, sizeof(szEQMappableCommands));
 	for (int i = 0; i < nEQMappableCommands; i++)
@@ -766,13 +809,7 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands -  2] = "UNKNOWN0x220";
 	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
 
-	InitializeDetours();
-	InitializeMQ2Benchmarks();
-	InitializeParser();
-
-	// These two sub-systems will get us onto the main thread.
-	InitializeMQ2Pulse();
-	InitializeLoginFrontend();
+	gpMainAPI = new MainImpl();
 
 	// We will wait for pulse from the game to init on main thread.
 	g_hLoadComplete.wait();
@@ -785,26 +822,23 @@ void MQ2Shutdown()
 	OutputDebugString("MQ2Shutdown Called");
 
 	ShutdownCachedBuffs();
-	ShutdownInternalModules();
 	ShutdownMQ2KeyBinds();
 	ShutdownDisplayHook();
-	ShutdownMQ2DInput();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
-	ShutdownMouseHooks();
-	ShutdownMQ2CrashHandler();
-	ShutdownParser();
-	ShutdownMQ2Commands();
 	ShutdownAnonymizer();
-	ShutdownMQ2Plugins();
+	ShutdownPlugins();
 	ShutdownFailedPlugins();
+	ShutdownInternalModules();
 	ImGuiManager_Shutdown();
+	GraphicsResources_Shutdown();
 	ShutdownStringDB();
-	ShutdownDetours();
 	ShutdownMQ2Benchmarks();
-	ShutdownPipeClient();
+
+	delete gpMainAPI;
+	gpMainAPI = nullptr;
 
 	DebugSpew("Shutdown completed");
 	ShutdownLogging();
@@ -900,8 +934,6 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 		Sleep(500);
 	}
-
-	InitializeMQ2DInput();
 
 	DebugSpewAlways("%s", LoadedString);
 
@@ -1128,29 +1160,163 @@ void InjectDisable()
 	g_hHook = nullptr;
 }
 
+//============================================================================
+
+MainImpl::MainImpl()
+{
+	pDetourAPI = new MQDetourAPI();
+	pCommandAPI = new MQCommandAPI();
+
+	InitializeMQ2Benchmarks();
+
+	// These two sub-systems will get us onto the main thread.
+	InitializeMQ2Pulse();
+	InitializeLoginFrontend();
+}
+
+MainImpl::~MainImpl()
+{
+	delete pDataAPI;
+	pDataAPI = nullptr;
+
+	delete pActorAPI;
+	pActorAPI = nullptr;
+
+	delete pDetourAPI;
+	pDetourAPI = nullptr;
+}
+
+void MainImpl::DoMainThreadInitialization()
+{
+	pDataAPI = new MQDataAPI();
+	pDataAPI->Initialize();
+
+	pActorAPI = new MQActorAPI();
+}
+
+
+bool MainImpl::AddTopLevelObject(
+	const char* name,
+	MQTopLevelObjectFunction callback,
+	const MQPluginHandle& pluginHandle)
+{
+	return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
+}
+
+bool MainImpl::RemoveTopLevelObject(
+	const char* name,
+	const MQPluginHandle& pluginHandle)
+{
+	return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
+}
+
+MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
+{
+	return pDataAPI->FindTopLevelObject(name);
+}
+
+void MainImpl::SendToActor(
+	postoffice::Dropbox* dropbox,
+	const postoffice::Address& address,
+	const std::string& data,
+	const postoffice::ResponseCallbackAPI& callback,
+	const MQPluginHandle& pluginHandle)
+{
+	pActorAPI->SendToActor(dropbox, address, data, callback, pluginHandle);
+}
+
+void MainImpl::ReplyToActor(
+	postoffice::Dropbox* dropbox,
+	const std::shared_ptr<postoffice::Message>& message,
+	const std::string& data,
+	uint8_t status,
+	const MQPluginHandle& pluginHandle)
+{
+	pActorAPI->ReplyToActor(dropbox, message, data, status, pluginHandle);
+}
+
+postoffice::Dropbox* MainImpl::AddActor(
+	const char* localAddress,
+	postoffice::ReceiveCallbackAPI&& receive,
+	const MQPluginHandle& pluginHandle)
+{
+	return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
+}
+
+void MainImpl::RemoveActor(
+	postoffice::Dropbox*& dropbox,
+	const MQPluginHandle& pluginHandle)
+{
+	pActorAPI->RemoveActor(dropbox, pluginHandle);
+}
+
+bool MainImpl::AddCommand(
+	std::string_view command,
+	MQCommandHandler handler,
+	bool eq, bool parse, bool inGame,
+	const MQPluginHandle& pluginHandle)
+{
+	return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
+}
+
+bool MainImpl::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
+{
+	return pCommandAPI->RemoveCommand(command, pluginHandle);
+}
+
+bool MainImpl::IsCommand(std::string_view command) const
+{
+	return pCommandAPI->IsCommand(command);
+}
+
+void MainImpl::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
+{
+	pCommandAPI->DoCommand(command, delayed, pluginHandle);
+}
+
+void MainImpl::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
+{
+	pCommandAPI->TimedCommand(command, msDelay, pluginHandle);
+}
+
+bool MainImpl::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
+{
+	return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
+}
+
+bool MainImpl::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
+{
+	return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
+}
+
+bool MainImpl::IsAlias(const std::string& alias) const
+{
+	return pCommandAPI->IsAlias(alias);
+}
+
+bool MainImpl::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	return pDetourAPI->CreateDetour(address, target, detour, name, pluginHandle);
+}
+
+bool MainImpl::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	return pDetourAPI->CreateDetour(address, width, name, pluginHandle);
+}
+
+bool MainImpl::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
+{
+	return pDetourAPI->RemoveDetour(address, pluginHandle);
+}
+
+MainImpl* gpMainAPI = nullptr;
+
+MainInterface* GetMainInterface()
+{
+	return gpMainAPI;
+}
+
 } // namespace mq
-
-// FIXME: Put this somewhere more appropriate
-SGlobalBuffer::SGlobalBuffer()
-	: ptr(&buffer[0])
-{
-}
-
-SGlobalBuffer::~SGlobalBuffer()
-{
-}
-
-void SGlobalBuffer::push_buffer(char* new_buffer)
-{
-	m_stack.push(ptr);
-	ptr = new_buffer;
-}
-
-void SGlobalBuffer::pop_buffer()
-{
-	ptr = m_stack.top();
-	m_stack.pop();
-}
 
 #if __has_include("../private/MQ2Main-private.cpp")
 #include "../private/MQ2Main-private.cpp"

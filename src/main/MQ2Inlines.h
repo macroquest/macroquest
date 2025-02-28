@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,6 +17,7 @@
 #include "../common/Common.h"
 
 #include "mq/api/Spawns.h"
+#include "mq/api/Abilities.h"
 
  // string trim includes:
 #include <algorithm>
@@ -67,7 +68,7 @@ inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* ex
 
 inline EQ_Spell* GetSpellByID(int spellID)
 {
-	if (!pSpellMgr || spellID <= 0 || spellID >= TOTAL_SPELL_COUNT)
+	if (!pSpellMgr || spellID <= 0 || spellID >= pSpellMgr->GetMaxSpellID())
 		return nullptr;
 
 	return pSpellMgr->GetSpellByID(spellID);
@@ -217,16 +218,6 @@ inline int GetMaxMana()
 	return pLocalPC ? pLocalPC->Max_Mana() : 0;
 }
 
-inline int GetAdjustedSkill(int nSkill)
-{
-	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
-}
-
-inline int GetBaseSkill(int nSkill)
-{
-	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
-}
-
 inline int GetModCap(int index, bool bToggle = false)
 {
 	return pLocalPC ? pLocalPC->GetModCap(index, bToggle) : 0;
@@ -245,11 +236,6 @@ inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut
 inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
 {
 	return pLocalPC ? pLocalPC->GetFocusRangeModifier(pSpell, pItemOut) : 0;
-}
-
-inline bool HasSkill(int nSkill)
-{
-	return pLocalPC && pLocalPC->HasSkill(nSkill);
 }
 
 inline float GetDistance(float X1, float Y1)
@@ -385,17 +371,6 @@ inline uint32_t ConColorToARGB(int ConColor)
 	default:
 		return 0xFFFF0000;
 	}
-}
-
-inline bool IsNumber(std::string_view String)
-{
-	if (String.empty())
-		return false;
-
-	double test_var;
-	const auto result = std::from_chars(String.data(), String.data() + String.size(), test_var, std::chars_format::fixed);
-
-	return result.ec != std::errc::invalid_argument && result.ptr[0] == '\0';
 }
 
 inline bool IsNumberToComma(const char* String)

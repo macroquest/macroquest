@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -19,127 +19,135 @@ namespace mq::datatypes {
 
 enum class WindowMembers
 {
-	Open = 1,
-	Child,
-	VScrollMax,
-	VScrollPos,
-	VScrollPct,
-	HScrollMax,
-	HScrollPos,
-	HScrollPct,
-	Children,
-	Siblings,
-	Parent,
-	FirstChild,
-	Next,
-	Minimized,
-	X,
-	Y,
-	Height,
-	Width,
-	MouseOver,
 	BGColor,
-	Text,
-	Tooltip,
-	List,
 	Checked,
-	Style,
-	Enabled,
-	Highlighted,
-	Name,
-	ScreenID,
-	Type,
-	Items,
-	HisTradeReady,
-	MyTradeReady,
-	GetCurSel,
-	Size,
-	Value,
-	TabCount,
-	Tab,
+	Child,
+	Children,
 	CurrentTab,
 	CurrentTabIndex,
+	Enabled,
+	FirstChild,
+	GetCurSel,
+	Height,
+	Highlighted,
+	HisTradeReady,
+	HotButton,
+	HScrollMax,
+	HScrollPct,
+	HScrollPos,
+	InvSlot,
+	Items,
+	List,
+	Minimized,
+	MouseOver,
+	MyTradeReady,
+	Name,
+	Next,
+	Open,
+	Parent,
+	ScreenID,
+	SelectedIndex,
+	Siblings,
+	Size,
+	Style,
+	Tab,
+	TabCount,
+	Text,
+	Tooltip,
+	Type,
+	Value,
+	VScrollMax,
+	VScrollPct,
+	VScrollPos,
+	Width,
+	X,
+	Y,
 };
 
 enum class WindowMethods
 {
-	LeftMouseDown = 1,
-	LeftMouseUp,
+	DoClose,
+	DoOpen,
+	LeftMouseDown,
 	LeftMouseHeld,
 	LeftMouseHeldUp,
+	LeftMouseUp,
+	Move,
 	RightMouseDown,
-	RightMouseUp,
 	RightMouseHeld,
 	RightMouseHeldUp,
-	DoOpen,
-	DoClose,
+	RightMouseUp,
 	Select,
-	Move,
-	SetBGColor,
 	SetAlpha,
-	SetFadeAlpha,
+	SetBGColor,
 	SetCurrentTab,
+	SetFadeAlpha,
+	SetText,
 };
 
 MQ2WindowType::MQ2WindowType() : MQ2Type("window")
 {
-	ScopedTypeMember(WindowMembers, Open);
-	ScopedTypeMember(WindowMembers, Child);
-	ScopedTypeMember(WindowMembers, VScrollMax);
-	ScopedTypeMember(WindowMembers, VScrollPos);
-	ScopedTypeMember(WindowMembers, VScrollPct);
-	ScopedTypeMember(WindowMembers, HScrollMax);
-	ScopedTypeMember(WindowMembers, HScrollPos);
-	ScopedTypeMember(WindowMembers, HScrollPct);
-	ScopedTypeMember(WindowMembers, Children);
-	ScopedTypeMember(WindowMembers, Parent);
-	ScopedTypeMember(WindowMembers, Siblings);
-	ScopedTypeMember(WindowMembers, FirstChild);
-	ScopedTypeMember(WindowMembers, Next);
-	ScopedTypeMember(WindowMembers, Minimized);
-	ScopedTypeMember(WindowMembers, X);
-	ScopedTypeMember(WindowMembers, Y);
-	ScopedTypeMember(WindowMembers, Height);
-	ScopedTypeMember(WindowMembers, Width);
-	ScopedTypeMember(WindowMembers, MouseOver);
 	ScopedTypeMember(WindowMembers, BGColor);
-	ScopedTypeMember(WindowMembers, Text);
-	ScopedTypeMember(WindowMembers, Tooltip);
-	ScopedTypeMember(WindowMembers, List);
 	ScopedTypeMember(WindowMembers, Checked);
-	ScopedTypeMember(WindowMembers, Style);
-	ScopedTypeMember(WindowMembers, Enabled);
-	ScopedTypeMember(WindowMembers, Highlighted);
-	ScopedTypeMember(WindowMembers, Name);
-	ScopedTypeMember(WindowMembers, ScreenID);
-	ScopedTypeMember(WindowMembers, Type);
-	ScopedTypeMember(WindowMembers, Items);
-	ScopedTypeMember(WindowMembers, HisTradeReady);
-	ScopedTypeMember(WindowMembers, MyTradeReady);
-	ScopedTypeMember(WindowMembers, GetCurSel);
-	ScopedTypeMember(WindowMembers, Size);
-	ScopedTypeMember(WindowMembers, Value);
-	ScopedTypeMember(WindowMembers, TabCount);
-	ScopedTypeMember(WindowMembers, Tab);
+	ScopedTypeMember(WindowMembers, Child);
+	ScopedTypeMember(WindowMembers, Children);
 	ScopedTypeMember(WindowMembers, CurrentTab);
 	ScopedTypeMember(WindowMembers, CurrentTabIndex);
+	ScopedTypeMember(WindowMembers, Enabled);
+	ScopedTypeMember(WindowMembers, FirstChild);
+	ScopedTypeMember(WindowMembers, GetCurSel);
+	ScopedTypeMember(WindowMembers, Height);
+	ScopedTypeMember(WindowMembers, Highlighted);
+	ScopedTypeMember(WindowMembers, HisTradeReady);
+	ScopedTypeMember(WindowMembers, HotButton);
+	ScopedTypeMember(WindowMembers, HScrollMax);
+	ScopedTypeMember(WindowMembers, HScrollPct);
+	ScopedTypeMember(WindowMembers, HScrollPos);
+	ScopedTypeMember(WindowMembers, InvSlot);
+	ScopedTypeMember(WindowMembers, Items);
+	ScopedTypeMember(WindowMembers, List);
+	ScopedTypeMember(WindowMembers, Minimized);
+	ScopedTypeMember(WindowMembers, MouseOver);
+	ScopedTypeMember(WindowMembers, MyTradeReady);
+	ScopedTypeMember(WindowMembers, Name);
+	ScopedTypeMember(WindowMembers, Next);
+	ScopedTypeMember(WindowMembers, Open);
+	ScopedTypeMember(WindowMembers, Parent);
+	ScopedTypeMember(WindowMembers, ScreenID);
+	ScopedTypeMember(WindowMembers, SelectedIndex);
+	ScopedTypeMember(WindowMembers, Siblings);
+	ScopedTypeMember(WindowMembers, Size);
+	ScopedTypeMember(WindowMembers, Style);
+	ScopedTypeMember(WindowMembers, Tab);
+	ScopedTypeMember(WindowMembers, TabCount);
+	ScopedTypeMember(WindowMembers, Text);
+	ScopedTypeMember(WindowMembers, Tooltip);
+	ScopedTypeMember(WindowMembers, Type);
+	ScopedTypeMember(WindowMembers, Value);
+	ScopedTypeMember(WindowMembers, VScrollMax);
+	ScopedTypeMember(WindowMembers, VScrollPct);
+	ScopedTypeMember(WindowMembers, VScrollPos);
+	ScopedTypeMember(WindowMembers, Width);
+	ScopedTypeMember(WindowMembers, X);
+	ScopedTypeMember(WindowMembers, Y);
 
+	ScopedTypeMethod(WindowMethods, DoClose);
+	ScopedTypeMethod(WindowMethods, DoOpen);
 	ScopedTypeMethod(WindowMethods, LeftMouseDown);
-	ScopedTypeMethod(WindowMethods, LeftMouseUp);
 	ScopedTypeMethod(WindowMethods, LeftMouseHeld);
 	ScopedTypeMethod(WindowMethods, LeftMouseHeldUp);
+	ScopedTypeMethod(WindowMethods, LeftMouseUp);
+	ScopedTypeMethod(WindowMethods, Move);
 	ScopedTypeMethod(WindowMethods, RightMouseDown);
-	ScopedTypeMethod(WindowMethods, RightMouseUp);
 	ScopedTypeMethod(WindowMethods, RightMouseHeld);
 	ScopedTypeMethod(WindowMethods, RightMouseHeldUp);
-	ScopedTypeMethod(WindowMethods, DoOpen);
-	ScopedTypeMethod(WindowMethods, DoClose);
+	ScopedTypeMethod(WindowMethods, RightMouseUp);
 	ScopedTypeMethod(WindowMethods, Select);
-	ScopedTypeMethod(WindowMethods, Move);
-	ScopedTypeMethod(WindowMethods, SetBGColor);
 	ScopedTypeMethod(WindowMethods, SetAlpha);
-	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
+	ScopedTypeMethod(WindowMethods, SetBGColor);
 	ScopedTypeMethod(WindowMethods, SetCurrentTab);
+	ScopedTypeMethod(WindowMethods, SetFadeAlpha);
+	ScopedTypeMethod(WindowMethods, SetText);
 }
 
 bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -277,7 +285,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint32_t color = std::stoi(Index, nullptr, 16);
+					uint32_t color = std::stoul(Index, nullptr, 16);
 					pWnd->SetBGColor(color);
 					pWnd->Refade();
 				}
@@ -290,7 +298,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					uint8_t alpha = static_cast<uint8_t>(std::stoul(Index, nullptr, 0));
 					pWnd->SetAlpha(alpha);
 					pWnd->Refade();
 				}
@@ -303,7 +311,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			{
 				try
 				{
-					uint8_t alpha = static_cast<uint8_t>(std::stoi(Index, nullptr, 0));
+					uint8_t alpha = static_cast<uint8_t>(std::stoul(Index, nullptr, 0));
 					pWnd->SetFadeToAlpha(alpha);
 					pWnd->Refade();
 				}
@@ -335,6 +343,18 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 						}
 					}
 				}
+			}
+			return true;
+
+		case WindowMethods::SetText:
+			if (pWnd->GetType() == UI_EditBox)
+			{
+				CEditWnd* pEditWnd = static_cast<CEditWnd*>(pWnd);
+
+				pEditWnd->SetWindowText(Index);
+				pEditWnd->ParentWndNotification(pEditWnd, XWM_NEWVALUE, nullptr);
+
+				WeDidStuff();
 			}
 			return true;
 
@@ -617,6 +637,24 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		return false;
 	}
 
+	case WindowMembers::InvSlot:
+		if (pWnd->GetType() == UI_InvSlot)
+		{
+			Dest.Type = pInvSlotWindowType;
+			Dest.Ptr = VarPtr.Ptr;
+			return true;
+		}
+		return false;
+
+	case WindowMembers::HotButton:
+		if (pWnd->GetType() == UI_HotButton)
+		{
+			Dest.Type = pHotButtonWindowType;
+			Dest.Ptr = VarPtr.Ptr;
+			return true;
+		}
+		return false;
+
 	case WindowMembers::Name:
 		Dest.Type = pStringType;
 		if (CXMLData* pXMLData = pWnd->GetXMLData())
@@ -693,6 +731,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		}
 		return true;
 
+	case WindowMembers::SelectedIndex:
 	case WindowMembers::GetCurSel: {
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -746,7 +785,7 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		if (pWnd->GetType() == UI_TabBox && Index[0])
 		{
 			CTabWnd* pTabWnd = static_cast<CTabWnd*>(pWnd);
-			
+
 			if (IsNumber(Index))
 			{
 				int tabIndex = GetIntFromString(Index, 0) - 1;
@@ -844,6 +883,449 @@ bool MQ2WindowType::dataWindow(const char* szIndex, MQTypeVar& Ret)
 	}
 
 	return false;
+}
+
+//============================================================================
+// SubWindow Type: MQInvSlotWindowType
+//============================================================================
+
+enum class InvSlotWindowMembers
+{
+	Background,
+	ItemLocation,
+	ItemIndexSlot,
+	Item,
+	ItemOffsetX,
+	ItemOffsetY,
+	ItemTexture,
+	Quantity,
+	Selected,
+	FindSelected,
+	HotButton,
+	InventorySlotLinked,
+	Text,
+	Mode,
+};
+
+MQInvSlotWindowType::MQInvSlotWindowType() : MQ2Type("invslotwindow")
+{
+	ScopedTypeMember(InvSlotWindowMembers, Background);
+	ScopedTypeMember(InvSlotWindowMembers, ItemLocation);
+	ScopedTypeMember(InvSlotWindowMembers, ItemIndexSlot);
+	ScopedTypeMember(InvSlotWindowMembers, Item);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetX);
+	ScopedTypeMember(InvSlotWindowMembers, ItemOffsetY);
+	ScopedTypeMember(InvSlotWindowMembers, Quantity);
+	ScopedTypeMember(InvSlotWindowMembers, Selected);
+	ScopedTypeMember(InvSlotWindowMembers, FindSelected);
+	ScopedTypeMember(InvSlotWindowMembers, HotButton);
+	ScopedTypeMember(InvSlotWindowMembers, InventorySlotLinked);
+	ScopedTypeMember(InvSlotWindowMembers, Text);
+	ScopedTypeMember(InvSlotWindowMembers, Mode);
+}
+
+bool MQInvSlotWindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+	if (!VarPtr.Ptr)
+		return false;
+
+	if (pWnd->GetType() != UI_InvSlot)
+		return false;
+
+	CInvSlotWnd* pInvWnd = static_cast<CInvSlotWnd*>(pWnd);
+
+	MQTypeMember* pMember = MQInvSlotWindowType::FindMember(Member);
+	if (!pMember)
+		return false;
+
+	switch (static_cast<InvSlotWindowMembers>(pMember->ID))
+	{
+
+	case InvSlotWindowMembers::Background:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->pBackground->GetName().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::ItemLocation:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemLocation.GetLocation();
+		return true;
+
+	case InvSlotWindowMembers::ItemIndexSlot:
+		if (IsNumber(Index))
+		{
+			int nIndex = GetIntFromString(Index, 0);
+			Dest.Type = pIntType;
+			Dest.DWord = pInvWnd->ItemLocation.GetIndex().GetSlot(nIndex);
+			return true;
+		}
+		return false;
+
+	case InvSlotWindowMembers::Item:
+		Dest.Type = pItemType;
+		Dest = pItemType->MakeTypeVar(pInvWnd->LinkedItem ? pInvWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pInvWnd->ItemLocation));
+		return true;
+
+	case InvSlotWindowMembers::ItemOffsetX:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemOffsetX;
+		return true;
+
+	case InvSlotWindowMembers::ItemOffsetY:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->ItemOffsetY;
+		return true;
+
+	case InvSlotWindowMembers::ItemTexture:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->ptItem->GetName().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::Quantity:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->Quantity;
+		return true;
+
+	case InvSlotWindowMembers::Selected:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bSelected;
+		return true;
+
+	case InvSlotWindowMembers::FindSelected:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bFindSelected;
+		return true;
+
+	case InvSlotWindowMembers::HotButton:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bHotButton;
+		return true;
+
+	case InvSlotWindowMembers::InventorySlotLinked:
+		Dest.Type = pBoolType;
+		Dest.DWord = pInvWnd->bInventorySlotLinked;
+		return true;
+
+	case InvSlotWindowMembers::Text:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pInvWnd->pTextObject->GetText().c_str());
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case InvSlotWindowMembers::Mode:
+		Dest.Type = pIntType;
+		Dest.DWord = pInvWnd->Mode;
+		return true;
+	}
+	return false;
+}
+
+bool MQInvSlotWindowType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	CInvSlotWnd* pWnd = static_cast<CInvSlotWnd*>(VarPtr.Ptr);
+	bool bFound = false;
+
+	if (pWnd)
+	{
+		ItemPtr pItem = pWnd->LinkedItem ? pWnd->LinkedItem : pLocalPC->GetItemByGlobalIndex(pWnd->ItemLocation);
+
+		if (pItem && pWnd->IsVisible())
+		{
+			strcpy_s(Destination, MAX_STRING, pItem->GetName());
+			bFound = true;
+		}
+		else
+			strcpy_s(Destination, MAX_STRING, "NULL");
+	}
+	return bFound;
+}
+
+bool MQInvSlotWindowType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
+{
+	if (Source.Type != pInvSlotWindowType)
+		return false;
+
+	VarPtr.Ptr = Source.Ptr;
+	return true;
+}
+
+
+//============================================================================
+// SubWindow Type: MQHotButtonType
+//============================================================================
+
+enum class HotButtonWindowMembers
+{
+	AltAbility,
+	ButtonIndex,
+	BarIndex,
+	IconSlot,
+	IconType,
+	Item,
+	ItemGuid,
+	ItemId,
+	ItemName,
+	Label,
+	PageIndex,
+	Slot,
+	Social,
+	Spell,
+	Type,
+	TypeName,
+};
+
+enum class HotButtonWindowMethods
+{
+	Activate,
+};
+
+MQHotButtonType::MQHotButtonType() : MQ2Type("hotbuttonwindow")
+{
+	ScopedTypeMember(HotButtonWindowMembers, AltAbility);
+	ScopedTypeMember(HotButtonWindowMembers, ButtonIndex);
+	ScopedTypeMember(HotButtonWindowMembers, BarIndex);
+	ScopedTypeMember(HotButtonWindowMembers, IconSlot);
+	ScopedTypeMember(HotButtonWindowMembers, IconType);
+	ScopedTypeMember(HotButtonWindowMembers, Item);
+	ScopedTypeMember(HotButtonWindowMembers, ItemGuid);
+	ScopedTypeMember(HotButtonWindowMembers, ItemId);
+	ScopedTypeMember(HotButtonWindowMembers, ItemName);
+	ScopedTypeMember(HotButtonWindowMembers, Label);
+	ScopedTypeMember(HotButtonWindowMembers, PageIndex);
+	ScopedTypeMember(HotButtonWindowMembers, Slot);
+	ScopedTypeMember(HotButtonWindowMembers, Social);
+	ScopedTypeMember(HotButtonWindowMembers, Spell);
+	ScopedTypeMember(HotButtonWindowMembers, Type);
+	ScopedTypeMember(HotButtonWindowMembers, TypeName);
+
+	ScopedTypeMethod(HotButtonWindowMethods, Activate);
+}
+
+static void GetHotButtonLabel(CHotButton* hotButton, char* dest, size_t bufferSize)
+{
+	// We're copy the text from the button and replace line breaks with spaces. A more involved
+	// way to do this might be to fetch the name of the spell/item/ability, but this is simpler.
+	if (!hotButton->LastLabel.empty())
+	{
+		strcpy_s(dest, bufferSize, hotButton->LastLabel.c_str());
+	}
+	else if (hotButton->DefaultLabel.c_str())
+	{
+		strcpy_s(dest, bufferSize, hotButton->DefaultLabel.c_str());
+	}
+	else
+	{
+		dest[0] = 0;
+	}
+
+	// Remove line breaks
+	for (size_t i = 0; i < strlen(dest); ++i)
+	{
+		if (dest[i] == '\r' || dest[i] == '\n')
+		{
+			dest[i] = ' ';
+		}
+	}
+}
+
+bool MQHotButtonType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	CXWnd* pWnd = static_cast<CXWnd*>(VarPtr.Ptr);
+	if (!VarPtr.Ptr)
+		return false;
+
+	if (pWnd->GetType() != UI_HotButton)
+		return false;
+
+	CHotButton* pHotButton = static_cast<CHotButton*>(pWnd);
+
+	MQTypeMember* pMember = MQHotButtonType::FindMember(Member);
+	if (!pMember)
+	{
+		MQTypeMember* pMethod = MQHotButtonType::FindMethod(Member);
+		if (pMethod)
+		{
+			switch (static_cast<HotButtonWindowMethods>(pMethod->ID))
+			{
+			case HotButtonWindowMethods::Activate:
+			{
+				char wndName[64];
+				if (pHotButton->BarIndex > 0)
+				{
+					sprintf_s(wndName, "HotButtonWnd%d", pHotButton->BarIndex + 1);
+				}
+				else
+				{
+					strcpy_s(wndName, "HotButtonWnd");
+				}
+
+				if (CHotButtonWnd* window = static_cast<CHotButtonWnd*>(FindMQ2Window(wndName)))
+				{
+					window->DoHotButton(pHotButton->ButtonIndex, false, nullptr);
+				}
+
+				return true;
+			}
+			default: break;
+			}
+		}
+
+		return false;
+	}
+
+	switch (static_cast<HotButtonWindowMembers>(pMember->ID))
+	{
+	case HotButtonWindowMembers::AltAbility:
+		Dest.Type = pAltAbilityType;
+		Dest.Ptr = nullptr;
+
+		if (pHotButton->LastButtonType == HotButtonType_Social)
+		{
+			if (pHotButton->LastButtonSlot >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
+			{
+				int aaId = pHotButton->LastButtonSlot - (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE);
+				Dest.Ptr = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId);
+			}
+		}
+		return true;
+
+	case HotButtonWindowMembers::ButtonIndex:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->ButtonIndex + 1;
+		return true;
+
+	case HotButtonWindowMembers::BarIndex:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->BarIndex + 1;
+		return true;
+
+	case HotButtonWindowMembers::IconSlot:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastIconSlot;
+		return true;
+
+	case HotButtonWindowMembers::IconType:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastIconType;
+		return true;
+
+	case HotButtonWindowMembers::Item:
+		if (const HotButtonData* data = pHotButton->GetHotButtonData())
+			Dest = pItemType->MakeTypeVar(data->Item);
+		else
+			Dest = pItemType->MakeTypeVar();
+
+		return true;
+
+	case HotButtonWindowMembers::ItemGuid:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, pHotButton->LastItemGuid.guid);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::ItemId:
+		Dest.Type = pIntType;
+		Dest.DWord = pHotButton->LastItemId;
+		return true;
+
+	case HotButtonWindowMembers::ItemName:
+		Dest.Type = pStringType;
+		if (const HotButtonData* data = pHotButton->GetHotButtonData())
+			strcpy_s(DataTypeTemp, data->ItemName);
+		else
+			DataTypeTemp[0] = '\0';
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::Label:
+		Dest.Type = pStringType;
+		GetHotButtonLabel(pHotButton, DataTypeTemp, MAX_STRING);
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case HotButtonWindowMembers::PageIndex:
+		Dest.Type = pIntType;
+		Dest.Int = pEverQuestInfo->hotBank[pHotButton->BarIndex] + 1;
+		return true;
+
+	case HotButtonWindowMembers::Slot:
+		Dest.Type = pIntType;
+		Dest.Int = pHotButton->LastButtonSlot;
+		return true;
+
+	case HotButtonWindowMembers::Social:
+		if (pHotButton->LastButtonType == HotButtonType_Social
+			&& pHotButton->LastButtonSlot >= 0
+			&& pHotButton->LastButtonSlot < (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE)) // If social is outside the range, its an AA
+		{
+			Dest.Type = pSocialType;
+			Dest.Int = pHotButton->LastButtonSlot;
+			return true;
+		}
+		return false;
+
+	case HotButtonWindowMembers::Spell:
+		Dest.Type = pSpellType;
+		Dest.Ptr = nullptr;
+
+		if (pHotButton->LastButtonType == HotButtonType_SpellGem)
+		{
+			if (pHotButton->LastButtonSlot >= 0 && pHotButton->LastButtonSlot < NUM_SPELL_GEMS)
+			{
+				Dest.Ptr = GetSpellByID(GetMemorizedSpell(pHotButton->LastButtonSlot));
+				return true;
+			}
+		}
+		else if (pHotButton->LastButtonType == HotButtonType_Social)
+		{
+			if (pHotButton->LastButtonSlot >= (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE))
+			{
+				int aaId = pHotButton->LastButtonSlot - (NUM_SOCIAL_PAGES * SOCIALS_PER_PAGE);
+
+				if (CAltAbilityData* pAbility = pAltAdvManager->GetOwnedAbilityFromGroupID(pLocalPC, aaId))
+				{
+					Dest.Ptr = GetSpellByID(pAbility->SpellID);
+					return true;
+				}
+			}
+		}
+		return true;
+
+	case HotButtonWindowMembers::Type:
+		Dest.Type = pIntType;
+		Dest.Int = static_cast<int>(pHotButton->LastButtonType);
+		return true;
+
+	case HotButtonWindowMembers::TypeName:
+		Dest.Type = pStringType;
+		strcpy_s(DataTypeTemp, HotButtonTypeToString(pHotButton->LastButtonType));
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+	}
+	return false;
+}
+
+bool MQHotButtonType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	if (CHotButton* pWnd = static_cast<CHotButton*>(VarPtr.Ptr))
+	{
+		GetHotButtonLabel(pWnd, Destination, MAX_STRING);
+		return true;
+	}
+
+	return false;
+}
+
+bool MQHotButtonType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
+{
+	if (Source.Type != pHotButtonWindowType)
+		return false;
+
+	VarPtr.Ptr = Source.Ptr;
+	return true;
 }
 
 } // namespace mq::datatypes

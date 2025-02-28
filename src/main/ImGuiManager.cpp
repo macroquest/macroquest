@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -15,13 +15,14 @@
 #include "pch.h"
 #include "ImGuiManager.h"
 
-#include "ImGuiBackend.h"
+#include "GraphicsEngine.h"
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
+#include "MQPluginHandler.h"
 
 #include <imgui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui_internal.h>
+#include "imgui/implot/implot.h"
 
  // I was trying to avoid including main, but we just got too many globals
 #include "MQ2Main.h"
@@ -31,7 +32,8 @@
 #include <mq/base/WString.h>
 #include <mq/utils/Benchmarks.h>
 
-#include <cfenv>
+#include "imgui/implot/implot_internal.h"
+#include "mq/imgui/Widgets.h"
 
 namespace ImGui
 {
@@ -306,12 +308,13 @@ namespace ImGui
 			}
 
 			int show_count = isNeedFilter ? static_cast<int>(itemScoreVector.size()) : items_count;
-			if (ImGui::ListBoxHeader("##ComboWithFilter_itemList", show_count))
+			float height = GetTextLineHeightWithSpacing() * ((items_count < 7 ? items_count : 7) + 0.25f) + GetStyle().FramePadding.y * 2.0f;
+			if (ImGui::BeginListBox("##ComboWithFilter_itemList", ImVec2(0.0f, height)))
 			{
 				for (int i = 0; i < show_count; i++)
 				{
 					int idx = isNeedFilter ? itemScoreVector[i].first : i;
-					PushID((void*)(intptr_t)idx);
+					PushID(idx);
 					const bool item_selected = (idx == *current_item);
 					const char* item_text = accessor(items, idx).c_str();
 					if (Selectable(item_text, item_selected))
@@ -324,7 +327,7 @@ namespace ImGui
 						SetItemDefaultFocus();
 					PopID();
 				}
-				ImGui::ListBoxFooter();
+				ImGui::EndListBox();
 			}
 			ImGui::PopItemWidth();
 			ImGui::EndPopup();
@@ -338,7 +341,6 @@ namespace ImGui
 	}
 }
 
-
 namespace mq {
 
 // Benchmarks for ImGui updates
@@ -348,15 +350,27 @@ uint32_t bmPluginsUpdateImGui = 0;
 // global imgui toggle
 bool gbRenderImGui = true;
 
+bool gbHideCursorAttachment = false;
+int gDrawWindowFrameSkipCount = -1;
+
 enum class DebugTab {
 	MouseInput = 0,
 	Graphics = 1,
 	Fonts = 2,
+	Cursor = 3,
 
 	None = -1,
 };
+static DebugTab s_selectedDebugTab = DebugTab::None;
 static DebugTab s_selectDebugTab = DebugTab::None;
-static bool s_bOverlayDebug = false;
+static bool s_overlayDebug = false;
+static bool s_enableCursorAttachment = true;
+static bool s_shiftToDock = false;
+static bool s_keyboardNavImGui = false;
+static bool s_imguiIgnoreClampWindow = false;
+static ImGuiWindow* s_cursorLastHoveredWindow = nullptr;  // only used for comparison. might be invalid.
+static std::string s_cursorLastHoveredWindowName;
+static bool s_showCursorAttachment = false;
 
 static mq::PlatformHotkey gToggleConsoleHotkey;
 static const char gToggleConsoleDefaultBind[] = "ctrl+`";
@@ -365,11 +379,19 @@ static bool gbToggleConsoleHotkeyReady = false;
 // Critical error occurred and imgui needs to be reset
 bool gbManualResetRequired = false;
 
-extern bool gbToggleConsoleRequested;
+static ImFontAtlas* s_fontAtlas = nullptr;
 
-void InitializeMQ2Overlay();
-void ShutdownMQ2Overlay();
-void PulseMQ2Overlay();
+static char ImGuiSettingsFile[MAX_PATH] = { 0 };
+static char ImGuiLogFile[MAX_PATH] = { 0 };
+
+static bool s_deferredClearSettings = false;
+extern bool gbToggleConsoleRequested;
+extern bool gbAutoDockspaceViewport;
+extern bool gbAutoDockspacePreserveRatio;
+
+// We forward declare this so that we don't need windows.h types in the header
+LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT  ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io);
 
 void SetOverlayEnabled(bool visible)
 {
@@ -383,14 +405,18 @@ bool IsOverlayEnabled()
 
 static void StartupOverlayComponents()
 {
-	InitializeMQ2Overlay();
+	engine::Initialize();
 	InitializeImGuiConsole();
+
+	AddSettingsPanel("Overlay", ImGuiManager_OverlaySettings);
 }
 
 static void ShutdownOverlayComponents()
 {
-	ShutdownMQ2Overlay();
+	RemoveSettingsPanel("Overlay");
+
 	ShutdownImGuiConsole();
+	engine::Shutdown();
 }
 
 void DoImGuiUpdateInternal()
@@ -452,11 +478,160 @@ void LoadFonts()
 	ReleaseDC(0, hdc);
 }
 
+//----------------------------------------------------------------------------
+//============================================================================
+
+struct EQFontData
+{
+	std::string      fontName;
+	int              fontSize = 0;
+	int              fontID = 0;
+	bool             valid = false;
+
+	HFONT            hFont;
+	HDC              hDC;
+
+	ImFont*          pImFont = nullptr;
+	ImFontConfig     fontConfig;
+	CCachedFont*     pCachedFont = nullptr;
+};
+
+static std::vector<EQFontData> s_eqFontData;
+static bool s_eqFontsLoaded = false;
+
+ImFont* ImGuiManager_GetEQImFont(int fontID)
+{
+	if (fontID >= 0 && fontID < static_cast<int>(s_eqFontData.size()))
+		return s_eqFontData[fontID].pImFont;
+
+	return nullptr;
+}
+
+std::unique_ptr<uint8_t[]> GetRawFontData(HFONT hFont, HDC hdc, uint32_t& dataSize)
+{
+	std::unique_ptr<uint8_t[]> fontData;
+	HFONT oldFont = static_cast<HFONT>(SelectObject(hdc, hFont));
+
+	// Get the size of the font data
+	dataSize = GetFontData(hdc, 0, 0, nullptr, 0);
+	if (dataSize != GDI_ERROR)
+	{
+		fontData = std::make_unique<uint8_t[]>(dataSize);
+
+		// Actually get the font data
+		if (GetFontData(hdc, 0, 0, fontData.get(), dataSize) == GDI_ERROR)
+		{
+			fontData.reset();
+		}
+	}
+
+	SelectObject(hdc, oldFont);
+	return fontData;
+}
+
+static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData)
+{
+	// Load font data from HFONT
+	uint32_t fontDataSize = 0;
+	auto fontDataBuffer = GetRawFontData(fontData.hFont, fontData.hDC, fontDataSize);
+	if (!fontDataBuffer)
+		return false;
+
+	fontData.fontConfig = ImFontConfig();
+	fontData.fontConfig.FontData = fontDataBuffer.get();
+	fontData.fontConfig.FontDataSize = fontDataSize;
+	fontData.fontConfig.FontDataOwnedByAtlas = false;
+	fontData.fontConfig.OversampleH = 2;
+	fontData.fontConfig.OversampleV = 2;
+	fontData.fontConfig.PixelSnapH = true;
+	strcpy_s(fontData.fontConfig.Name, fontData.fontName.c_str());
+
+	// FreeType renders the fonts slightly bigger than the renderer that EQ uses. To compensate, we
+	// adjust the font size slightly. It isn't perfect, however. Unless we use the same font rasterizer,
+	// the appearance will be slightly different if you look close enough.
+	switch (fontData.fontSize)
+	{
+	case 10:
+		fontData.fontConfig.SizePixels = 9;
+		break;
+
+	default:
+		fontData.fontConfig.SizePixels = static_cast<float>(fontData.fontSize) - 2;
+		break;
+	}
+
+	ImFont* newFont = fontAtlas->AddFont(&fontData.fontConfig);
+
+	// Preserve existing pointer so that we don't invalidate any client code using the font.
+	if (fontData.pImFont)
+	{
+		*fontData.pImFont = *newFont;
+	}
+	else
+	{
+		fontData.pImFont = newFont;
+	}
+
+	fontData.valid = true;
+	return true;
+}
+
+static std::string CreateFontDisplayName(SLogFontEntry& fontEntry, int num)
+{
+	std::string name = fmt::format("EQ Font {} - {} {}", num, fontEntry.lf.lfFaceName, fontEntry.lf.lfHeight);
+	if (fontEntry.lf.lfWeight == FW_THIN)
+		name += " Thin";
+	if (fontEntry.lf.lfWeight == FW_BOLD)
+		name += " Bold";
+
+	return name;
+}
+
+static bool LoadEQFonts(ImFontAtlas* fontAtlas)
+{
+	s_eqFontData.resize(NumFontStyles);
+
+	for (int i = 0; i < NumFontStyles; ++i)
+	{
+		CCachedFont* font = CCachedFont::Get(i);
+		if (!font) break;
+		CFontManager* pFontMgr = font->pFontManager;
+
+		SLogFontEntry& fontEntry = pFontMgr->arLogFonts[i];
+
+		if (font->hDC == INVALID_HANDLE_VALUE || font->hFont == INVALID_HANDLE_VALUE)
+			continue;
+
+		EQFontData& fontData = s_eqFontData[i];
+
+		fontData.pCachedFont = font;
+		fontData.fontID = i;
+		fontData.fontName = CreateFontDisplayName(fontEntry, i);
+		fontData.fontSize = font->nHeight;
+		fontData.hDC = font->hDC;
+		fontData.hFont = font->hFont;
+		fontData.valid = false;
+
+		LoadFontData(fontAtlas, fontData);
+	}
+
+	return true;
+}
+
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas)
 {
 	LoadFonts();
 
 	mq::imgui::ConfigureFonts(fontAtlas);
+	s_eqFontsLoaded = LoadEQFonts(fontAtlas);
+}
+
+void ImGuiManager_CleanupFonts()
+{
+	delete s_fontAtlas;
+	s_fontAtlas = nullptr;
+
+	s_eqFontsLoaded = false;
 }
 
 void FontPicker()
@@ -474,12 +649,13 @@ void PulseFonts()
 void UpdateImGuiDebugInfo()
 {
 	ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("ImGui Debug", &s_bOverlayDebug))
+	if (ImGui::Begin("ImGui Debug", &s_overlayDebug))
 	{
 		if (ImGui::BeginTabBar("#DebugTabs"))
 		{
 			if (ImGui::BeginTabItem("Mouse", nullptr, (s_selectDebugTab == DebugTab::MouseInput) ? ImGuiTabItemFlags_SetSelected : 0))
 			{
+				s_selectedDebugTab = DebugTab::MouseInput;
 				ImGuiIO& io = ImGui::GetIO();
 
 				// Display ImGuiIO output flags
@@ -507,13 +683,57 @@ void UpdateImGuiDebugInfo()
 
 			if (ImGui::BeginTabItem("Graphics", nullptr, (s_selectDebugTab == DebugTab::Graphics) ? ImGuiTabItemFlags_SetSelected : 0))
 			{
-				ImGuiRenderDebug_UpdateImGui();
+				s_selectedDebugTab = DebugTab::Graphics;
+
+				engine::ImGuiRenderDebug_UpdateImGui();
 				ImGui::EndTabItem();
 			}
 
 			if (ImGui::BeginTabItem("Fonts", nullptr, (s_selectDebugTab == DebugTab::Fonts) ? ImGuiTabItemFlags_SetSelected : 0))
 			{
+				s_selectedDebugTab = DebugTab::Fonts;
+
 				FontPicker();
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Cursor", nullptr, (s_selectDebugTab == DebugTab::Cursor) ? ImGuiTabItemFlags_SetSelected : 0))
+			{
+				s_selectedDebugTab = DebugTab::Cursor;
+
+				ImGui::TextUnformatted("Hovered Window:");
+				ImGui::SameLine();
+				if (!s_cursorLastHoveredWindowName.empty())
+				{
+					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), "%s", s_cursorLastHoveredWindowName.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(MQColor(128, 128, 128).ToImColor(), "None");
+				}
+
+				ImGui::TextUnformatted("Has Cursor Attachment:");
+				ImGui::SameLine();
+				if (pCursorAttachment && pCursorAttachment->IsActive())
+				{
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "Yes");
+				}
+				else
+				{
+					ImGui::TextColored(MQColor(255, 0, 0).ToImColor(), "No");
+				}
+
+				ImGui::TextUnformatted("Show Cursor Attachment:");
+				ImGui::SameLine();
+				if (s_showCursorAttachment)
+				{
+					ImGui::TextColored(MQColor(0, 255, 0).ToImColor(), "Yes");
+				}
+				else
+				{
+					ImGui::TextColored(MQColor(255, 0, 0).ToImColor(), "No");
+				}
+
 				ImGui::EndTabItem();
 			}
 
@@ -522,127 +742,308 @@ void UpdateImGuiDebugInfo()
 			ImGui::EndTabBar();
 		}
 	}
-	if (!s_bOverlayDebug)
+	if (!s_overlayDebug)
 	{
 		WritePrivateProfileBool("MacroQuest", "OverlayDebug", false, mq::internal_paths::MQini);
 	}
 	ImGui::End();
 }
 
+static void ResumeOverlay()
+{
+	// Reset Implot context because it might be dirty after unexpected abort.
+	if (auto imPlotContext = ImPlot::GetCurrentContext())
+	{
+		ImPlot::ResetCtxForNextPlot(imPlotContext);
+		ImPlot::ResetCtxForNextSubplot(imPlotContext);
+	}
+
+	gbManualResetRequired = false;
+}
+
+static int s_showForFrames = 0;
+
+static bool ImGuiManager_DetectCursorAttachment()
+{
+	if (!s_enableCursorAttachment || !pCursorAttachment || !pCursorAttachment->IsActive())
+	{
+		s_cursorLastHoveredWindow = nullptr;
+		s_cursorLastHoveredWindowName.clear();
+		return false;
+	}
+
+	auto& io = ImGui::GetIO();
+	auto* context = ImGui::GetCurrentContext();
+	bool show = false;
+	ImGuiWindow* overlappedWindow = nullptr;
+
+	if (context->HoveredWindow)
+	{
+		show = true;
+		overlappedWindow = context->HoveredWindow;
+	}
+	else
+	{
+		// Check to see if the cursor would overlap a window
+		ImVec2 attachmentSize(50, 50);
+
+		ImGuiWindow* attachmentWindow = ImGui::FindWindowByName("##CursorAttachment");
+		if (attachmentWindow)
+		{
+			attachmentSize = attachmentWindow->Size;
+		}
+
+		// Create rect
+		ImRect attachmentRect(io.MousePos + ImVec2(1, 1), io.MousePos + ImVec2(1, 1) + attachmentSize);
+
+		for (int i = context->Windows.Size - 1; i >= 0; --i)
+		{
+			ImGuiWindow* window = context->Windows[i];
+
+			if (!window->Active)
+				continue;
+			if (window->Hidden || window->IsFallbackWindow)
+				continue;
+			if (window->Flags & ImGuiWindowFlags_NoMouseInputs)
+				continue;
+			if (window->Viewport != context->MouseViewport)
+				continue;
+
+			// Using the clipped AABB, a child window will typically be clipped by its parent (not always)
+			if (!window->OuterRectClipped.Overlaps(attachmentRect))
+				continue;
+
+			// Support for one rectangular hole in any given window
+			// FIXME: Consider generalizing hit-testing override (with more generic data, callback, etc.) (#1512)
+			if (window->HitTestHoleSize.x != 0)
+			{
+				ImVec2 hole_pos(window->Pos.x + (float)window->HitTestHoleOffset.x, window->Pos.y + (float)window->HitTestHoleOffset.y);
+				ImVec2 hole_size(window->HitTestHoleSize.x, window->HitTestHoleSize.y);
+				if (ImRect(hole_pos, hole_pos + hole_size).Contains(io.MousePos))
+					continue;
+			}
+
+			show = true;
+			overlappedWindow = window;
+			break;
+		}
+	}
+
+	if (show)
+	{
+		s_showForFrames = 3;
+	}
+	else if (s_showForFrames > 0)
+	{
+		--s_showForFrames;
+	}
+
+	if (s_cursorLastHoveredWindow != overlappedWindow && s_selectedDebugTab == DebugTab::Cursor)
+	{
+		s_cursorLastHoveredWindow = overlappedWindow;
+
+		if (overlappedWindow)
+			s_cursorLastHoveredWindowName = overlappedWindow->Name;
+		else
+			s_cursorLastHoveredWindowName.clear();
+	}
+
+	gbHideCursorAttachment = s_showForFrames > 0;
+	return s_showForFrames > 0;
+}
+
 void ImGuiManager_DrawFrame()
 {
-	if (!gbRenderImGui)
-		return;
+	MQScopedBenchmark bm1(bmUpdateImGui);
 
-	// we can't expect that the rounding mode is valid, and imgui respects the rounding mode so set it here and ensure that we reset it before the return
-	auto round = fegetround();
-	fesetround(FE_TONEAREST);
+	DoImGuiUpdateInternal();
 
-	IDirect3DStateBlock9* stateBlock = nullptr;
-	gpD3D9Device->CreateStateBlock(D3DSBT_ALL, &stateBlock);
-
-	// Prepare the new frame
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-
-	try
+	// Plugins will get disabled if an error occurs.
+	if (!gbManualResetRequired)
 	{
-		ImGui::NewFrame();
+		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
+		PluginsUpdateImGui();
+	}
+	else
+	{
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
+		ImVec2 size = ImVec2(360, 120);
+
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+		ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+		float windowWidth = ImGui::GetWindowSize().x;
 
 		{
-			MQScopedBenchmark bm1(bmUpdateImGui);
-			DoImGuiUpdateInternal();
+			const char* message = "The Overlay is paused due to an ImGui error.";
+			float textWidth = ImGui::CalcTextSize(message).x;
 
-			// Plugins will get disabled if an error occurs.
-			if (!gbManualResetRequired)
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+		}
+
+		{
+			const char* message = "Please fix the problem before resuming.";
+			float textWidth = ImGui::CalcTextSize(message).x;
+
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
+		}
+
+		ImGui::NewLine();
+
+		{
+			ImGui::SetCursorPosX((windowWidth - 160) * .5f);
+
+			if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
+				ResumeOverlay();
+		}
+
+		ImGui::End();
+	}
+
+	if (s_overlayDebug)
+	{
+		UpdateImGuiDebugInfo();
+	}
+
+	s_showCursorAttachment = ImGuiManager_DetectCursorAttachment();
+	if (s_showCursorAttachment)
+	{
+		ImGuiManager_DrawCursorAttachment();
+	}
+}
+
+void ImGuiManager_DrawCursorAttachment()
+{
+	if (!pCursorAttachment || !pCursorAttachment->IsActive())
+		return;
+
+	ImVec2 pos = ImGui::GetMousePos() + ImVec2(1, 1);
+	ImVec2 size = pCursorAttachment->GetClientRect().GetSize();
+
+	ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+
+	bool show = ImGui::Begin("##CursorAttachment", nullptr,
+		ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing
+		| ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking);
+	if (show)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		CXRect rect = CXRect(CXPoint(pos), CXSize(size));
+
+		if (pCursorAttachment->pBGStaticAnim)
+		{
+			mq::imgui::DrawScreenPiece(window->DrawList, pCursorAttachment->pBGStaticAnim, rect);
+		}
+
+		if (pCursorAttachment->pOverlayStaticAnim)
+		{
+			mq::imgui::DrawScreenPiece(window->DrawList, pCursorAttachment->pOverlayStaticAnim, rect);
+		}
+
+		ECursorAttachmentType type = static_cast<ECursorAttachmentType>(pCursorAttachment->Type);
+
+		if (type == eCursorAttachment_SpellGem)
+		{
+			if (pCursorAttachment->pSpellGem && pCursorAttachment->pSpellGem->IsVisible())
 			{
-				MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-				PluginsUpdateImGui();
+				// Draw the spell gem using the widget API because we want it to also reserve space in the window.
+				ImGui::SetCursorPos(pCursorAttachment->pSpellGem->Location.TopLeft());
+				mq::imgui::SpellGem("##SpellGem", pCursorAttachment->pSpellGem, ImGuiSpellGemFlags_None);
+			}
+		}
+
+		// Draw button text
+		if (!pCursorAttachment->ButtonText.empty())
+		{
+			CXRect textRect;
+			if (pCursorAttachment->pBGStaticAnim)
+			{
+				textRect = pCursorAttachment->pBGStaticAnim->rect;
+				textRect += pos;
 			}
 			else
 			{
-				ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-				ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
-				ImVec2 size = ImVec2(360, 120);
-
-				ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
-				ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
-
-				ImGui::Begin("MQOverlay Paused", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
-
-				float windowWidth = ImGui::GetWindowSize().x;
-
-				{
-					const char* message = "The Overlay is paused due to an ImGui error.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				{
-					const char* message = "Please fix the problem before resuming.";
-					float textWidth = ImGui::CalcTextSize(message).x;
-
-					ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-					ImGui::TextColored(MQColor(255, 255, 0).ToImColor(), message);
-				}
-
-				ImGui::NewLine();
-
-				{
-					ImGui::SetCursorPosX((windowWidth - 160) * .5f);
-
-					if (ImGui::Button("Resume Overlay", ImVec2(160, 0)))
-						gbManualResetRequired = false;
-				}
-
-				ImGui::End();
+				textRect = rect;
 			}
 
-			if (s_bOverlayDebug)
-			{
-				UpdateImGuiDebugInfo();
-			}
+			mq::imgui::DrawEQText(window->DrawList, FontStyle_14, pCursorAttachment->ButtonText.c_str(),
+				textRect, MQColor(255, 255, 255), DrawText_VCenter | DrawText_HCenter);
 		}
 
-		// Render the ui
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		ImGui::UpdatePlatformWindows();
-
-		// Update and Render additional Platform Windows
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		// Draw currency/stack size
+		if (pCursorAttachment->Quantity > 0)
 		{
-			ImGui::RenderPlatformWindowsDefault();
+			window->DrawList->PushClipRectFullScreen();
+
+			CCachedFont* eqFont = CCachedFont::Get(pCursorAttachment->TextFontStyle);
+			ImFont* font = ImGuiManager_GetEQImFont(pCursorAttachment->TextFontStyle);
+
+			if (font && eqFont)
+			{
+				fmt::memory_buffer buf;
+				fmt::format_to(fmt::appender(buf), "{:d}", pCursorAttachment->Quantity);
+				buf.push_back(0);
+
+				if (type == eCursorAttachment_Item
+					|| type == eCursorAttachment_InvSlot
+					|| type == eCursorAttachment_ItemLink
+					|| type == eCursorAttachment_KronoSlot)
+				{
+					int textWidth = static_cast<int>(font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, buf.data(), nullptr).x);
+					if (textWidth < 10) textWidth = 10;
+
+					CXRect textRect = rect;
+					textRect.bottom -= 6;
+					textRect.right -= 6;
+					textRect.top = textRect.bottom - 10;
+					textRect.left = textRect.right - textWidth;
+
+					window->DrawList->AddRectFilled(textRect.TopLeft(), textRect.BottomRight(),
+						MQColor(64, 64, 64).ToImU32());
+
+					mq::imgui::DrawEQText(window->DrawList, pCursorAttachment->TextFontStyle, buf.data(),
+						textRect);
+				}
+				else
+				{
+					CXRect textRect = rect;
+					textRect.top = rect.bottom - 4;
+					textRect.bottom = textRect.top + eqFont->nHeight;
+
+					window->DrawList->AddRectFilled(textRect.TopLeft(), textRect.BottomRight(),
+						MQColor(64, 64, 64).ToImU32());
+
+					mq::imgui::DrawEQText(window->DrawList, pCursorAttachment->TextFontStyle, buf.data(),
+						textRect, MQColor(255, 255, 255), DrawText_NoWrap | DrawText_HCenter);
+				}
+			}
+
+			window->DrawList->PopClipRect();
 		}
-	}
-	catch (const ImGuiException& ex)
-	{
-		gbManualResetRequired = true;
 
-		WriteChatf("\arImGui Critical Failure: %s", ex.what());
-		WriteChatf("\arPlugin ImGui has been temporarily paused. To resume imgui, run: \ay/mqoverlay resume\ar");
+		// Ensure that this window is last in the viewport
+		ImGui::BringWindowToDisplayFront(window);
 	}
 
-	stateBlock->Apply();
-	stateBlock->Release();
-
-	fesetround(round);
+	ImGui::End();
 }
 
-bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
+static bool HandleWndProcEvent(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
 {
 	if (msg == WM_KEYDOWN
 		&& gbToggleConsoleHotkeyReady)
 	{
 		// Match the vkey and modifiers
-		if (wparam == gToggleConsoleHotkey.virtualKey)
+		if (wParam == gToggleConsoleHotkey.virtualKey)
 		{
 			// Check the modifiers, don't allow repeats.
-			if ((HIWORD(lparam) & KF_REPEAT) == 0
+			if ((HIWORD(lParam) & KF_REPEAT) == 0
 				&& mq::IsHotKeyModifiersPressed(gToggleConsoleHotkey))
 			{
 				gbToggleConsoleRequested = true;
@@ -650,6 +1051,28 @@ bool ImGuiManager_HandleWndProc(uint32_t msg, uintptr_t wparam, intptr_t lparam)
 			}
 		}
 	}
+
+	return false;
+}
+
+bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam)
+{
+	if (HandleWndProcEvent(hWnd, msg, wParam, lParam))
+		return true;
+
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return true;
+
+	return false;
+}
+
+bool ImGuiManager_HandleWndProcEx(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam, ImGuiIO& io)
+{
+	if (HandleWndProcEvent(hWnd, msg, wParam, lParam))
+		return true;
+
+	if (ImGui_ImplWin32_WndProcHandlerEx(hWnd, msg, wParam, lParam, io))
+		return true;
 
 	return false;
 }
@@ -697,6 +1120,184 @@ void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
 	return nullptr;
 }
 
+void ImGuiManager_ReloadContext()
+{
+	if (ImGui::GetCurrentContext() != nullptr)
+	{
+		ImGui::DestroyContext();
+	}
+
+	ImGuiManager_CreateContext();
+}
+
+void ImGuiManager_CreateContext()
+{
+	bool buildFonts = false;
+	if (s_fontAtlas == nullptr)
+	{
+		s_fontAtlas = new ImFontAtlas();
+		buildFonts = true;
+	}
+	else
+	{
+		// If we crashed in the middle of a frame, the atlas might be locked.
+		s_fontAtlas->Locked = false;
+	}
+
+	// Initialize ImGui context
+	ImGui::CreateContext(s_fontAtlas);
+	ImPlot::CreateContext();
+
+	if (buildFonts)
+	{
+		ImGuiManager_BuildFonts(s_fontAtlas);
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+
+	if (s_deferredClearSettings)
+	{
+		std::error_code ec;
+		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
+			std::filesystem::remove(ImGuiSettingsFile, ec);
+	}
+	io.IniFilename = &ImGuiSettingsFile[0];
+
+	fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
+	io.LogFilename = &ImGuiLogFile[0];
+
+	ImGui::StyleColorsDark();
+	mq::imgui::ConfigureStyle();
+
+	io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
+	io.ConfigDockingWithShift = s_shiftToDock;
+
+	if (s_keyboardNavImGui)
+	{
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	}
+	else
+	{
+		io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+	}
+}
+
+void ImGuiManager_DestroyContext()
+{
+	ImPlot::DestroyContext();
+	ImGui::DestroyContext();
+
+	ImGuiManager_CleanupFonts();
+}
+
+void ImGuiManager_OverlaySettings()
+{
+	if (ImGui::Checkbox("Enable Viewports", &gbEnableImGuiViewports))
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		ResetOverlay();
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("The viewports feature allows ImGui windows to be dragged out of the window into "
+		"their own floating windows. This feature is BETA quality and has some known issues.\n"
+		"\n"
+		"Viewports are disabled when running in full screen mode.");
+
+	if (ImGui::Checkbox("Resize EverQuest viewport to fit dockspace (Experimental)", &gbAutoDockspaceViewport))
+	{
+		if (!gbAutoDockspaceViewport)
+		{
+			ImGuiManager_ResetGameViewport();
+		}
+
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, if a window is docked to the side of the screen,\n"
+		"the EverQuest viewport will be resized to fit the available screen space");
+
+	ImGui::BeginDisabled(!gbAutoDockspaceViewport);
+	ImGui::Indent();
+	{
+		if (ImGui::Checkbox("Preserve aspect ratio", &gbAutoDockspacePreserveRatio))
+		{
+			WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		}
+	}
+	ImGui::Unindent();
+	ImGui::EndDisabled();
+
+	if (ImGui::Checkbox("Emulate EverQuest Cursor", &s_enableCursorAttachment))
+	{
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, MacroQuest will take over drawing the EQ Cursor when\n"
+		"it is near to or hovering over an ImGui window.");
+
+	if (ImGui::Checkbox("Require Shift to Dock", &s_shiftToDock))
+	{
+		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+
+		auto& io = ImGui::GetIO();
+		io.ConfigDockingWithShift = s_shiftToDock;
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, HOLD Shift to Dock a Window");
+
+	if (ImGui::Checkbox("Navigate with Keyboard", &s_keyboardNavImGui))
+	{
+		auto& io = ImGui::GetIO();
+		if (s_keyboardNavImGui)
+		{
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		}
+		else
+		{
+			io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+		}
+
+		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, Tab and Arrow Keys will navigate active ImGui window.");
+
+	if (ImGui::Checkbox("Ignore Window Clamping", &s_imguiIgnoreClampWindow))
+	{
+		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
+
+		auto& io = ImGui::GetIO();
+		io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
+	}
+
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("For ISBoxer users, enable this if your ImGui window positions reset when switching windows");
+
+	ImGui::NewLine();
+
+	if (ImGui::Button("Clear Saved ImGui Window Settings"))
+	{
+		s_deferredClearSettings = true;
+		ResetOverlay();
+	}
+}
+
+void ImGuiManager_ResetGameViewport()
+{
+	if (pEverQuestInfo)
+	{
+		pEverQuestInfo->Render_MinX = 0;
+		pEverQuestInfo->Render_MinY = 0;
+		pEverQuestInfo->Render_MaxX = pEverQuestInfo->ScreenXRes;
+		pEverQuestInfo->Render_MaxY = pEverQuestInfo->ScreenYRes;
+	}
+}
+
+
 //============================================================================
 
 void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
@@ -704,7 +1305,13 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
 
-	if (ci_equals(szArg, "reload"))
+	bool showUsage = false;
+
+	if (ci_equals(szArg, "help"))
+	{
+		showUsage = true;
+	}
+	else if (ci_equals(szArg, "reload"))
 	{
 		ResetOverlay();
 	}
@@ -713,11 +1320,11 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		if (gbManualResetRequired)
 		{
 			WriteChatf("Resuming overlay...");
-			gbManualResetRequired = false;
+			ResumeOverlay();
 		}
 		else
 		{
-			WriteChatf("Overlay is already running");
+			WriteChatf("Overlay is not suspended; Can not resume.");
 		}
 	}
 	else if (ci_equals(szArg, "stop"))
@@ -729,7 +1336,8 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		char szParam[MAX_STRING] = { 0 };
 		GetArg(szParam, szLine, 2);
 
-		bool newOverlayDebug = s_bOverlayDebug;
+		bool newOverlayDebug = s_overlayDebug;
+		s_selectDebugTab = DebugTab::None;
 
 		if (szParam[0] == 0)
 		{
@@ -738,28 +1346,77 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		else if (ci_equals(szParam, "mouse"))
 		{
 			s_selectDebugTab = DebugTab::MouseInput;
-			s_bOverlayDebug = true;
+			s_overlayDebug = true;
 		}
 		else if (ci_equals(szParam, "graphics"))
 		{
 			s_selectDebugTab = DebugTab::Graphics;
-			s_bOverlayDebug = true;
+			s_overlayDebug = true;
+		}
+		else if (ci_equals(szParam, "fonts"))
+		{
+			s_selectDebugTab = DebugTab::Fonts;
+			s_overlayDebug = true;
+		}
+		else if (ci_equals(szParam, "cursor"))
+		{
+			s_selectDebugTab = DebugTab::Cursor;
+			s_overlayDebug = true;
 		}
 
-		if (newOverlayDebug != s_bOverlayDebug)
+		if (newOverlayDebug != s_overlayDebug)
 		{
-			s_bOverlayDebug = newOverlayDebug;
-			WriteChatf("Overlay debug info is now: %s", s_bOverlayDebug ? "\agOn" : "\arOff");
-			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+			s_overlayDebug = newOverlayDebug;
+			WriteChatf("Overlay debug info is now: %s", s_overlayDebug ? "\agOn" : "\arOff");
+			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
 		}
 	}
 	else if (ci_equals(szLine, "start"))
 	{
 		StartupOverlayComponents();
 	}
+	else if (ci_equals(szArg, "cursor"))
+	{
+		char szParam[MAX_STRING] = { 0 };
+		GetArg(szParam, szLine, 2);
+
+		if (ci_equals(szParam, "on"))
+		{
+			s_enableCursorAttachment = true;
+		}
+		else if (ci_equals(szParam, "off"))
+		{
+			s_enableCursorAttachment = false;
+		}
+		else if (szParam[0])
+		{
+			showUsage = true;
+		}
+		else
+		{
+			s_enableCursorAttachment = !s_enableCursorAttachment;
+		}
+
+		WriteChatf("Overlay cursor attachment emulation is now: %s",
+			s_enableCursorAttachment ? "\agOn" : "\arOff");
+
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	}
 	else
 	{
-		WriteChatf("Usage: /mqoverlay [reload | resume | debug | stop | start]");
+		showUsage = true;
+	}
+
+	if (showUsage)
+	{
+		WriteChatf("\ayUsage: /mqoverlay <options>");
+		WriteChatf("\ayOverlay Control Options:");
+		//WriteChatf("\ay  [reload | resume | debug | stop | start]")
+		WriteChatf("\ay  reload\ax    - Reload the overlay by shutting it down and starting it back up again.");
+		WriteChatf("\ay  resume\ax    - Resumes the overlay in the event that an error has occurred.");
+		WriteChatf("\ay  stop\ax      - Turns off the overlay. This state does not persist between MQ sessions.");
+		WriteChatf("\ay  start\ax     - Turns on the overlay.");
+		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no parma will toggle).");
 	}
 }
 
@@ -769,7 +1426,26 @@ void ImGuiManager_Initialize()
 	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-	s_bOverlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+	s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
+
+	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
+	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
+	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
+	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
+	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
 	// connect to the win32 hook and control the imgui console.
@@ -796,7 +1472,7 @@ void ImGuiManager_Initialize()
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_bOverlayDebug, mq::internal_paths::MQini);
+		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
 	}
 
 	AddCommand("/mqoverlay", MQOverlayCommand);
@@ -816,7 +1492,7 @@ void ImGuiManager_Shutdown()
 
 void ImGuiManager_Pulse()
 {
-	PulseMQ2Overlay();
+	engine::OnUpdateFrame();
 	PulseFonts();
 }
 
