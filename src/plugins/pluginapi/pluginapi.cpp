@@ -15,6 +15,8 @@
 #include <mq/plugin/pluginapi.h>
 #include <mq/api/Main.h>
 
+#include <spdlog/spdlog.h>
+
 char INIFileName[MAX_STRING] = { 0 };
 
 #pragma comment(lib, "detours.lib")
@@ -30,6 +32,8 @@ PLUGIN_API void InitPluginHandle(mq::MQPlugin* thisPlugin, mq::MQPluginHandle th
 {
 	ThisPlugin = thisPlugin;
 	ThisPluginHandle = thisPluginHandle;
+
+	spdlog::set_default_logger(thisPlugin->logger);
 }
 
 // This is a sentinel that is used to identify a plugin as being built with the
@@ -44,11 +48,11 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		mqplugin::MainInterface = mq::GetMainInterface();
+
 		ghPluginModule = hModule;
 		mq::DebugSpewAlways("%s Module Loaded", mqplugin::PluginName);
 		sprintf_s(INIFileName, "%s\\%s.ini", mq::gPathConfig, mqplugin::PluginName);
-
-		mqplugin::MainInterface = mq::GetMainInterface();
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
@@ -212,6 +216,44 @@ bool mq::RemoveDetour(uintptr_t address)
 	return mqplugin::MainInterface->RemoveDetour(address, mqplugin::ThisPluginHandle);
 }
 
+//============================================================================
+
+void mq::WriteChatColor(const char* line, int color, int filter)
+{
+	mqplugin::MainInterface->WriteChatColor(line, color, filter, mqplugin::ThisPluginHandle);
+}
+
+void mq::WriteChatf(const char* format, ...)
+{
+	va_list vaList;
+	va_start(vaList, format);
+
+	mqplugin::MainInterface->WriteChatFormat(format, vaList, -1, mqplugin::ThisPluginHandle);
+}
+
+void mq::WriteChatColorf(const char* format, int color, ...)
+{
+	va_list vaList;
+	va_start(vaList, color);
+
+	mqplugin::MainInterface->WriteChatFormat(format, vaList, color, mqplugin::ThisPluginHandle);
+}
+
+void mq::DebugSpew(const char* format, ...)
+{
+	va_list vaList;
+	va_start(vaList, format);
+
+	mqplugin::MainInterface->LogMessage(format, vaList, (int)spdlog::level::debug, false, mqplugin::ThisPluginHandle);
+}
+
+void mq::DebugSpewAlways(const char* format, ...)
+{
+	va_list vaList;
+	va_start(vaList, format);
+
+	mqplugin::MainInterface->LogMessage(format, vaList, (int)spdlog::level::debug, true, mqplugin::ThisPluginHandle);
+}
 
 //============================================================================
 

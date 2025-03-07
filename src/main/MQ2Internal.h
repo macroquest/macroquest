@@ -963,6 +963,11 @@ public:
 		const MQPluginHandle& pluginHandle) override;
 	bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
 	bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
+
+	// Chat/Logging
+	void WriteChatColor(const char* line, int color, int filter, const MQPluginHandle& pluginHandle) override;
+	void WriteChatFormat(const char* format, va_list va, int color, const MQPluginHandle& pluginHandle) override;
+	void LogMessage(const char* format, va_list va, int level, bool toFile, const MQPluginHandle& pluginHandle) override;
 };
 
 extern MainImpl* gpMainAPI;

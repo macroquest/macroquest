@@ -15,16 +15,16 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MQCommandAPI.h"
+#include "MQLogging.h"
+
 #include <mq/utils/OS.h>
 
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 #include <random>
 
-#include "MQCommandAPI.h"
-
 //#define DEBUG_PLUGINS
-
 
 namespace mqplugin
 {
@@ -534,6 +534,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
 	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginPath) };
 	pPlugin->hModule           = hModule.release();
+	pPlugin->logger            = g_loggingManager->CreatePluginLogger(pluginPath, rec.handle);
 
 	s_pluginHandleMap.emplace(rec.handle.pluginID, rec.instance);
 
@@ -639,6 +640,9 @@ static void ShutdownPlugin(const PluginInfoRec& rec)
 
 	// Perform any additional de-registration as required
 	pCommandAPI->OnPluginUnloaded(pPlugin, rec.handle);
+
+	// Cleanup the logger
+	g_loggingManager->RemovePluginLogger(rec.handle);
 }
 
 bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
@@ -814,10 +818,11 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 
 	if (size_t len = strlen(Line))
 	{
-		std::unique_ptr<char[]> plainText = std::make_unique<char[]>(len + 1);
+		fmt::memory_buffer buffer;
+		buffer.resize(len + 1);
 
-		StripMQChat(Line, plainText.get());
-		CheckChatForEvent(plainText.get());
+		StripMQChat(Line, buffer.data());
+		CheckChatForEvent(buffer.data());
 
 		DebugSpew("WriteChatColor(%s)", Line);
 	}

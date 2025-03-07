@@ -19,19 +19,14 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQDetourAPI.h"
+#include "MQLogging.h"
 #include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
 #include "GraphicsResources.h"
-#include "EQLib/Logging.h"
-#include "mq/base/Logging.h"
 
 #include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
 #include <wil/resource.h>
 #include <fstream>
 
@@ -96,6 +91,11 @@ namespace mq {
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
 
+// From MQLogging.cpp
+void InitializeLogging();
+void InitializeLogFile();
+void ShutdownLogging();
+
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
@@ -123,52 +123,6 @@ wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
 void* ModuleListHandler = nullptr;
 
-void InitializeLogging()
-{
-	fs::path loggingPath = mq::internal_paths::Logs;
-
-	auto new_logger = std::make_shared<spdlog::logger>("MQ");
-	spdlog::set_default_logger(new_logger);
-
-	if (IsDebuggerPresent())
-	{
-		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
-	}
-
-#if LOG_FILENAMES
-	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
-#else
-	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v");
-#endif
-	spdlog::flush_on(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::trace);
-
-	fmt::memory_buffer filename;
-	auto out = fmt::format_to(fmt::appender(filename),
-		"{}\\{}", mq::internal_paths::Logs, mq::CreateLogFilename("MacroQuest"));
-	*out = 0;
-
-	// Create file sink
-	try
-	{
-		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
-		new_logger->sinks().push_back(fileSink);
-	}
-	catch (const spdlog::spdlog_ex& ex)
-	{
-		SPDLOG_WARN("Failed to create file logger: {}, ex: {}",
-			std::string_view(filename.data(), filename.size()), ex.what());
-	}
-
-	SPDLOG_DEBUG("Logging Initialized");
-	eqlib::InitializeLogging(new_logger);
-}
-
-void ShutdownLogging()
-{
-	eqlib::ShutdownLogging();
-	spdlog::shutdown();
-}
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
@@ -390,7 +344,6 @@ bool ParseINIFile(const std::string& iniFile)
 	}
 
 	gFilterDebug             = GetPrivateProfileBool("MacroQuest", "FilterDebug", gFilterDebug, iniFile);
-	gFilterMQ2DataErrors     = GetPrivateProfileBool("MacroQuest", "FilterMQ2Data", gFilterMQ2DataErrors, iniFile);
 	gFilterTarget            = GetPrivateProfileBool("MacroQuest", "FilterTarget", gFilterTarget, iniFile);
 	gFilterMoney             = GetPrivateProfileBool("MacroQuest", "FilterMoney", gFilterMoney, iniFile);
 	gFilterFood              = GetPrivateProfileBool("MacroQuest", "FilterFood", gFilterFood, iniFile);
@@ -425,7 +378,6 @@ bool ParseINIFile(const std::string& iniFile)
 	if (gbWriteAllConfig)
 	{
 		WritePrivateProfileBool("MacroQuest", "FilterDebug", gFilterDebug, iniFile);
-		WritePrivateProfileBool("MacroQuest", "FilterMQ2Data", gFilterMQ2DataErrors, iniFile);
 		WritePrivateProfileBool("MacroQuest", "FilterTarget", gFilterTarget, iniFile);
 		WritePrivateProfileBool("MacroQuest", "FilterMoney", gFilterMoney, iniFile);
 		WritePrivateProfileBool("MacroQuest", "FilterFood", gFilterFood, iniFile);
@@ -645,6 +597,9 @@ void DoMainThreadInitialization()
 // Perform injection-time initialization. This occurs on the injection thread.
 bool MQ2Initialize()
 {
+	InitializePluginHandle();
+	InitializeLogging();
+
 	MODULEINFO EQGameModuleInfo;
 	HMODULE hEQGameModule = GetModuleHandle(nullptr);
 
@@ -762,12 +717,10 @@ bool MQ2Initialize()
 		return false;
 	}
 
-	InitializeLogging();
+	InitializeLogFile();
 	CrashHandler_Startup();
 
 	srand(static_cast<uint32_t>(time(nullptr)));
-
-	InitializePluginHandle();
 
 	ZeroMemory(szEQMappableCommands, sizeof(szEQMappableCommands));
 	for (int i = 0; i < nEQMappableCommands; i++)
@@ -1307,6 +1260,21 @@ bool MainImpl::CreateDetour(uintptr_t address, size_t width, std::string_view na
 bool MainImpl::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
 {
 	return pDetourAPI->RemoveDetour(address, pluginHandle);
+}
+
+void MainImpl::WriteChatColor(const char* line, int color, int filter, const MQPluginHandle& pluginHandle)
+{
+	g_loggingManager->WriteChatColor(line, color, filter, pluginHandle);
+}
+
+void MainImpl::WriteChatFormat(const char* format, va_list va, int color, const MQPluginHandle& pluginHandle)
+{
+	g_loggingManager->WriteChatFormat(format, va, color, pluginHandle);
+}
+
+void MainImpl::LogMessage(const char* format, va_list va, int level, bool toFile, const MQPluginHandle& pluginHandle)
+{
+	g_loggingManager->LogMessage(format, va, level, toFile, pluginHandle);
 }
 
 MainImpl* gpMainAPI = nullptr;

@@ -21,8 +21,8 @@ namespace mq {
 /* COMMANDS */
 MQLIB_API void SetError                            (PlayerClient* pChar, const char* szLine);
 MQLIB_API void SuperWho                            (PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroIfCmd                               (PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroWhileCmd                            (PlayerClient* pChar, const char* szLine);
+MQLIB_API void MacroIfCmd                          (PlayerClient* pChar, const char* szLine);
+MQLIB_API void MacroWhileCmd                       (PlayerClient* pChar, const char* szLine);
 MQLIB_API void Call                                (PlayerClient* pChar, const char* szLine);
 MQLIB_API void DeclareVar                          (PlayerClient* pChar, const char* szLine);
 MQLIB_API void DumpStack                           (PlayerClient* pChar, const char* szLine);

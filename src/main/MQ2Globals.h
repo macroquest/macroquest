@@ -173,7 +173,6 @@ MQLIB_VAR bool gFilterMQ;
 MQLIB_VAR eFilterMacro gFilterMacro;
 MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;
-MQLIB_VAR bool gFilterMQ2DataErrors;
 MQLIB_VAR bool gSpewToFile;
 MQLIB_VAR bool gbDoAutoRun;
 MQLIB_VAR bool gMQPauseOnChat;

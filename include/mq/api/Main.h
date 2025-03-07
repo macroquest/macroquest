@@ -54,6 +54,31 @@ public:
 		const MQPluginHandle& pluginHandle) = 0;
 
 	//
+	// Chat/Logging API
+	//
+
+	// Write output to chat
+	virtual void WriteChatColor(
+		const char* line,
+		int color /* = USERCOLOR_DEFAULT */,
+		int filter /* = 0 */,
+		const MQPluginHandle& pluginHandle) = 0;
+
+	virtual void WriteChatFormat(
+		const char* format,
+		va_list va,
+		int color /* = USERCOLOR_DEFAULT */,
+		const MQPluginHandle& pluginHandle) = 0;
+
+	// Write debug output
+	virtual void LogMessage(
+		const char* format,
+		va_list va,
+		int level /* = debug */,
+		bool toFile /* = true */,
+		const MQPluginHandle& pluginHandle) = 0;
+
+	//
 	// Command API
 	//
 

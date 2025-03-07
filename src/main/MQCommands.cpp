@@ -1159,31 +1159,6 @@ void Filter(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (!_stricmp("mq2data", szArg))
-	{
-		if (szRest[0] == 0)
-		{
-			WriteChatf("Filtering of MQ2Data Errors is set to: %s", szUseChat[gFilterMQ2DataErrors]);
-			return;
-		}
-
-		for (int Command = 0; szUseChat[Command]; Command++)
-		{
-			if (!_stricmp(szRest, szUseChat[Command]))
-			{
-				gFilterMQ2DataErrors = Command != 0;
-
-				WriteChatf("Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
-
-				WritePrivateProfileBool("MacroQuest", "FilterMQ2Data", gFilterMQ2DataErrors, mq::internal_paths::MQini);
-				return;
-			}
-		}
-
-		SyntaxError("Usage: /filter mq2data [on|off]");
-		return;
-	}
-
 	if (!_stricmp("target", szArg))
 	{
 		if (szRest[0] == 0)
@@ -4376,8 +4351,6 @@ void Echo(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 void EchoClean(PlayerClient* pChar, const char* szLine)
 {
-	DebugSpewNoFile("Echo: %s", szLine);
-
 	char szEcho[MAX_STRING] = { 0 };
 	strncat_s(szEcho, szLine, MAX_STRING);
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);

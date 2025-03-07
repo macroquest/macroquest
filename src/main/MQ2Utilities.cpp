@@ -32,119 +32,6 @@ namespace mq {
 
 //============================================================================
 
-static void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
-{
-	DWORD NewLength = (DWORD)strlen(szNewString);
-	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
-	memcpy_s(szInsert, InsertLen - NewLength, szNewString, NewLength);
-}
-
-void ConvertCR(char* Text, size_t LineLen)
-{
-	// not super-efficient but this is only being called at initialization currently.
-	while (char* Next = strstr(Text, "\\n"))
-	{
-		int len = (int)(Next - Text);
-		StrReplaceSection(Next, LineLen - len, 2, "\n");
-	}
-}
-
-void SyntaxError(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	int len = _vscprintf(szFormat, vaList) + 1 + 32;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, CONCOLOR_YELLOW);
-	strcpy_s(gszLastSyntaxError, szOutput);
-}
-
-void MacroError(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	int len = _vscprintf(szFormat, vaList) + 1 + 32;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, CONCOLOR_RED);
-
-	if (bAllErrorsLog) MacroLog(nullptr, "Macro Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
-
-	strcpy_s(gszLastNormalError, szOutput);
-
-	if (gMacroBlock)
-	{
-		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(nullptr, nullptr);
-
-		if (bAllErrorsFatal)
-			EndMacro(pLocalPlayer, "");
-	}
-}
-
-void FatalError(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	int len = _vscprintf(szFormat, vaList) + 1 + 32;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, CONCOLOR_RED);
-	strcpy_s(gszLastNormalError, szOutput);
-
-	if (bAllErrorsLog) MacroLog(nullptr, "Fatal Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
-
-	if (gMacroBlock)
-	{
-		DumpStack(nullptr, nullptr);
-		EndMacro(pLocalPlayer, "");
-	}
-}
-
-void MQ2DataError(const char* szFormat, ...)
-{
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	int len = _vscprintf(szFormat, vaList) + 1 + 32;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	if (gFilterMQ2DataErrors)
-		DebugSpew("%s", szOutput);
-	else
-		WriteChatColor(szOutput, CONCOLOR_RED);
-
-	strcpy_s(gszLastMQ2DataError, szOutput);
-	if (bAllErrorsLog) MacroLog(nullptr, "Data Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
-
-	if (gMacroBlock)
-	{
-		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(nullptr, nullptr);
-
-		if (bAllErrorsFatal)
-			EndMacro(pLocalPlayer, "");
-	}
-}
 
 // ***************************************************************************
 // Function:    GetNextArg
@@ -328,10 +215,10 @@ char* GetEQPath(char* szBuffer, size_t len)
 	return szBuffer;
 }
 
-void StripMQChat(std::string_view in, char* out)
+size_t StripMQChat(std::string_view in, char* out)
 {
 	size_t i = 0;
-	int o = 0;
+	size_t o = 0;
 	while (i < in.size() && in[i])
 	{
 		if (in[i] == '\a')
@@ -355,12 +242,14 @@ void StripMQChat(std::string_view in, char* out)
 			out[o++] = in[i];
 		i++;
 	}
+
 	out[o] = 0;
+	return o;
 }
 
-void StripMQChat(const char* in, char* out)
+size_t StripMQChat(const char* in, char* out)
 {
-	StripMQChat(std::string_view{ in }, out);
+	return StripMQChat(std::string_view{ in }, out);
 }
 
 static bool ReplaceSafely(char** out, size_t* pchar_out_string_position, char chr, size_t maxlen)
@@ -4497,12 +4386,13 @@ bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggering
 		|| ((aSpell->SpellType == ItemSpellType_Proc || aSpell->SpellType == ItemSpellType_Worn) && (bSpell->SpellType == ItemSpellType_Proc || bSpell->SpellType == ItemSpellType_Worn) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
 }
 
+// TODO: Add logger for stacking debug
 template <typename ...Args>
-inline void StackingDebugLog(const char* string, Args&& ...args)
+void StackingDebugLog(const char* string, Args&& ...args)
 {
 	if (gStackingDebug != STACKINGDEBUG_OFF)
 	{
-		DebugSpewAlwaysFile(string, args...);
+		DebugSpewAlways(string, args...);
 
 		if (gStackingDebug == STACKINGDEBUG_OUTPUT)
 		{

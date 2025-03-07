@@ -149,7 +149,6 @@ bool gMQPauseOnChat = false;
 bool gKeepKeys = true;
 bool gLClickedObject = false;
 MQWhoFilter gFilterSWho;
-bool gFilterMQ2DataErrors = false;
 bool gCreateMQ2NewsWindow = true;
 char gIfDelimiter = ',';
 char gIfAltDelimiter = '~';

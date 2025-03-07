@@ -544,6 +544,7 @@
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
+    <ClCompile Include="MQLogging.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQPluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
@@ -579,6 +580,7 @@
     <ClInclude Include="..\..\include\mq\api\DetourAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Inventory.h" />
     <ClInclude Include="..\..\include\mq\api\Items.h" />
+    <ClInclude Include="..\..\include\mq\api\LoggingAPI.h" />
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h" />
     <ClInclude Include="..\..\include\mq\api\MacroDataTypes.h" />
     <ClInclude Include="..\..\include\mq\api\Main.h" />
@@ -651,6 +653,7 @@
     <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQDetourAPI.h" />
+    <ClInclude Include="MQLogging.h" />
     <ClInclude Include="MQPluginHandler.h" />
     <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />

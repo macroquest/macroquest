@@ -17,12 +17,16 @@
 #include "mq/base/Common.h"
 #include "mq/base/PluginHandle.h"
 
+#include <memory>
 #include <string_view>
 #include <string>
 
 namespace eqlib {
 	class PlayerClient;
 	class EQGroundItem;
+}
+namespace spdlog {
+	class logger;
 }
 
 namespace mq {
@@ -88,6 +92,9 @@ struct MQPlugin
 
 	MQPlugin*            pLast = nullptr;
 	MQPlugin*            pNext = nullptr;
+
+	// Logger created for this plugin
+	std::shared_ptr<spdlog::logger> logger;
 };
 
 /**

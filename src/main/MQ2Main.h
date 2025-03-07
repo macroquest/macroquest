@@ -67,6 +67,7 @@ using namespace eqlib;
 
 #include "mq/api/Main.h"
 #include "mq/api/DetourAPI.h"
+#include "mq/api/LoggingAPI.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/api/PluginAPI.h"
 
@@ -85,18 +86,6 @@ void ShutdownMQ2Pulse();
 void InitializeChatHook();
 void ShutdownChatHook();
 
-// Logging / Console output
-MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
-MQLIB_API void WriteChatf(const char* Format, ...);
-MQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
-
-MQLIB_API DEPRECATE("Use WriteChatf instead")
-void WriteChatfSafe(const char* szFormat, ...);
-
-MQLIB_API void DebugSpew(const char* szFormat, ...);
-MQLIB_API void DebugSpewAlways(const char* szFormat, ...);
-MQLIB_API void DebugSpewAlwaysFile(const char* szFormat, ...);
-MQLIB_API void DebugSpewNoFile(const char* szFormat, ...);
 
 /* SPAWN HANDLING */
 MQLIB_API bool IsTargetable(SPAWNINFO* pSpawn);
@@ -159,7 +148,8 @@ void MouseConsume(int mouseButton, bool pressed);
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
 MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
-
+MQLIB_API bool StripQuotes(char* str);
+MQLIB_API int RangeRandom(int min, int max);
 
 //----------------------------------------------------------------------------
 // Argument string parsing
@@ -179,17 +169,10 @@ inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char S
 MQLIB_API DEPRECATE("The EQ Path is the working directory.")
 char* GetEQPath(char* szBuffer, size_t len);
 
-MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
-MQLIB_API void StripMQChat(const char* in, char* out);
-MQLIB_OBJECT void StripMQChat(std::string_view in, char* out);
-MQLIB_API void STMLToPlainText(char* in, char* out);
-MQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
 MQLIB_API const char* GetFilenameFromFullPath(const char* Filename);
-MQLIB_API bool CompareTimes(char* RealTime, char* ExpectedTime);
 MQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
 MQLIB_API void DefaultFilters();
 MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
-MQLIB_API void CheckChatForEvent(const char* szMsg);
 MQLIB_API int FindInvSlotForContents(ItemClient* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);
@@ -208,7 +191,6 @@ MQLIB_API bool RemoveBuffByName(std::string_view buffName);
 MQLIB_API bool RemoveBuffBySpellID(int buffName);
 MQLIB_API bool RemoveBuffByIndex(int buffIndex);
 MQLIB_API bool RemovePetBuffByName(std::string_view buffName);
-MQLIB_API bool StripQuotes(char* str);
 MQLIB_API int GetKeyRingCount(KeyRingType keyRingType);
 MQLIB_API int GetMountCount();
 MQLIB_API int GetIllusionCount();
@@ -224,7 +206,6 @@ MQLIB_API bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalLis
 MQLIB_API void WeDidStuff();
 MQLIB_API int GetFreeInventory(int nSize);
 MQLIB_API int GetFreeStack(ItemClient* pContents);
-MQLIB_API int RangeRandom(int min, int max);
 
 MQLIB_API int GetCharMaxBuffSlots();
 MQLIB_API int GetCharMaxLevel();
@@ -294,11 +275,7 @@ MQLIB_API int64_t CalcValue(int calc, int64_t base, int64_t max, int tick, int m
 MQLIB_API char* GetSpellEffectName(int EffectID, char* szBuffer, size_t BufferSize);
 MQLIB_API void GetGameDate(int* Month, int* Day, int* Year);
 MQLIB_API void GetGameTime(int* Hour, int* Minute, int* Night);
-MQLIB_API void SyntaxError(const char* szFormat, ...);
-MQLIB_API void MacroError(const char* szFormat, ...);
-MQLIB_API void FatalError(const char* szFormat, ...);
 MQLIB_API char* GetSpellRestrictions(EQ_Spell* pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
-MQLIB_API void MQ2DataError(const char* szFormat, ...);
 MQLIB_API void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold);
 MQLIB_API void CustomPopup(const char* szPopText, bool bPopOutput);
 
