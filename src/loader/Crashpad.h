@@ -22,3 +22,6 @@ std::string GetHandlerIPCPipe();
 
 // Returns the current state of crashpad
 bool IsCrashpadInitialized();
+
+// Show ImGui panel for Crash handler
+void ShowCrashReportingPanel();

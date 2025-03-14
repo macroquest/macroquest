@@ -367,6 +367,8 @@ private:
 
 void ScopedModuleTracker::TrackerData::Start()
 {
+	::SetDllDirectoryA(gPathMQRoot);
+
 	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId()));
 	if (!hSnapshot)
 		return;
@@ -382,6 +384,8 @@ void ScopedModuleTracker::TrackerData::Start()
 
 void ScopedModuleTracker::TrackerData::Finish()
 {
+	::SetDllDirectoryA(nullptr);
+
 	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId()));
 	if (!hSnapshot)
 		return;
@@ -398,11 +402,6 @@ void ScopedModuleTracker::TrackerData::Finish()
 			newModules.push_back(me32.hModule);
 		}
 	} while (Module32Next(hSnapshot.get(), &me32));
-
-	//for (HMODULE hModule : newModules)
-	//{
-	//	g_knownModules.insert(hModule);
-	//}
 }
 
 static std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view name)
