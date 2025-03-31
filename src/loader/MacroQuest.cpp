@@ -1546,24 +1546,33 @@ wil::unique_handle GetImpersonationToken()
 
 bool HasWriteAccess(HANDLE hToken, const fs::path& directoryPath, DWORD dwAccessDesired = GENERIC_WRITE)
 {
-	wil::unique_any<PSECURITY_DESCRIPTOR, decltype(&::LocalFree), LocalFree> pSD;
-	PACL pDACL = nullptr;
-	PSID pSid = nullptr;
+	// In event of error just treat it as ok.
 
-	DWORD dwErr = ::GetNamedSecurityInfoW(directoryPath.wstring().c_str(), SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
-		nullptr, nullptr, &pDACL, nullptr, pSD.addressof());
+	constexpr SECURITY_INFORMATION si = OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION;
+	DWORD length = 0;
 
-	if (dwErr != ERROR_SUCCESS)
+	if (::GetFileSecurityW(directoryPath.wstring().c_str(), si, nullptr, 0, &length) != 0
+		|| ::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 	{
-		SPDLOG_WARN("GetNamedSecurityInfoW failed with error: {}", dwErr);
-		return false;
+		SPDLOG_WARN("Unexpected result while querying GetFileSecurity for buffer size, path={} error={}",
+			directoryPath.string(), ::GetLastError());
+		return true;
+	}
+
+	wil::unique_any<PSECURITY_DESCRIPTOR, decltype(&::free), free> pSD(::malloc(length));
+
+	if (!::GetFileSecurityW(directoryPath.wstring().c_str(), si, pSD.get(), length, &length))
+	{
+		SPDLOG_WARN("Failed to get security descriptor for path={} error={}",
+			directoryPath.string(), ::GetLastError());
+		return true;
 	}
 
 	PRIVILEGE_SET PrivilegeSet;
 	DWORD PrivilegeSetLength = sizeof(PrivilegeSet);
 	DWORD dwAccessGranted = 0;
 	BOOL accessStatus = FALSE;
-	
+
 	GENERIC_MAPPING mapping;
 	mapping.GenericRead = FILE_GENERIC_READ;
 	mapping.GenericWrite = FILE_GENERIC_WRITE;
@@ -1571,15 +1580,14 @@ bool HasWriteAccess(HANDLE hToken, const fs::path& directoryPath, DWORD dwAccess
 	mapping.GenericAll = FILE_ALL_ACCESS;
 	::MapGenericMask(&dwAccessDesired, &mapping);
 
-	bool hasWriteAccess = false;
-
-	if (::AccessCheck(pSD.get(), hToken, dwAccessDesired, &mapping,
+	if (!::AccessCheck(pSD.get(), hToken, dwAccessDesired, &mapping,
 		&PrivilegeSet, &PrivilegeSetLength, &dwAccessGranted, &accessStatus))
 	{
-		hasWriteAccess = (dwAccessGranted & dwAccessDesired) == dwAccessDesired;
+		SPDLOG_WARN("AccessCheck failed: path={} error={}", directoryPath.string(), ::GetLastError());
+		return true;
 	}
 
-	return hasWriteAccess;
+	return (dwAccessGranted & dwAccessDesired) == dwAccessDesired;
 }
 
 class PermissionNotificationHandler : public IWinToastHandler

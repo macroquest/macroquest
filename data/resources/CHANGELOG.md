@@ -1,3 +1,11 @@
+March 18, 2025:
+- live: Update for live patch
+
+March 12, 2025:
+- test: Update for test patch
+- live: Update for live patch
+- Improve file permission checks to reduce the number of false positives
+
 Feb 15, 2025:
 - Fix EverQuest.WinTitle not returning the window title
 
