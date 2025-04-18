@@ -1,4 +1,7 @@
 April 17, 2025:
+- live: Update for live hotfix patch
+
+April 17, 2025:
 - Fix broken AdvancedLootItem
 
 April 16, 2025:
