@@ -39,6 +39,7 @@ static bool s_isValid = true;
 static bool s_hasNotified = false;
 
 void UpdateMQ2SpawnSort();
+void PulseMQ2AutoInventory();
 
 //----------------------------------------------------------------------------
 

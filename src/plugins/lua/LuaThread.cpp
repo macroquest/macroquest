@@ -234,6 +234,12 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		return 1;
 	}
 
+	if (pkg == "Zep")
+	{
+		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -620,7 +626,7 @@ void LuaThread::AssociateTopLevelObject(const MQTopLevelObject* tlo)
 
 //============================================================================
 
-void LuaThread::InitializeSpawnTable()
+sol::table LuaThread::GetSpawnTable()
 {
 	if (m_spawnTable == sol::nil)
 	{
@@ -637,6 +643,8 @@ void LuaThread::InitializeSpawnTable()
 			}
 		}
 	}
+
+	return m_spawnTable;
 }
 
 void LuaThread::AddSpawn(eqlib::PlayerClient* spawn)
@@ -655,7 +663,7 @@ void LuaThread::RemoveSpawn(eqlib::PlayerClient* spawn)
 	}
 }
 
-void LuaThread::InitializeGroundItemTable()
+sol::table LuaThread::GetGroundItemTable()
 {
 	if (m_groundItemTable == sol::nil)
 	{
@@ -671,6 +679,8 @@ void LuaThread::InitializeGroundItemTable()
 			}
 		}
 	}
+
+	return m_groundItemTable;
 }
 
 void LuaThread::AddGroundItem(eqlib::EQGroundItem* item)

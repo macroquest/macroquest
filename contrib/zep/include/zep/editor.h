@@ -60,7 +60,7 @@ struct Region;
 #define ZEP_UNUSED(var) (void)var;
 
 // Helpers
-inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) ? true : false); }
+inline bool ZTestFlags(const uint32_t& flags, uint32_t value) { return ((flags & value) == value); }
 inline uint32_t ZSetFlags(const uint32_t& flags, uint32_t value, bool set = true) { if (set) { return flags | value; } else return flags; }
 inline uint32_t ZClearFlags(const uint32_t& flags, uint32_t value) { return flags & ~value; }
 
@@ -77,8 +77,8 @@ enum
 enum class ZepMouseButton
 {
     Left,
-    Middle,
     Right,
+    Middle,
     Button4,
     Button5,
     Unknown
@@ -99,6 +99,7 @@ enum class Msg
     ConfigChanged,
     ToolTip,
     MouseScroll,
+    HyperlinkClick,
 
     UserEvent = 100,
 };
@@ -195,6 +196,7 @@ using tSyntaxFactory = std::function<std::shared_ptr<ZepSyntax>(ZepBuffer*)>;
 struct SyntaxProvider
 {
     std::string syntaxID;
+    std::string name = "Plaintext";
     tSyntaxFactory factory = nullptr;
 };
 
@@ -285,8 +287,8 @@ public:
     void RequestQuit();
 
     void Reset();
-    ZepBuffer* InitWithFileOrDir(const std::string& str, bool setWorkingDir = false);
-    ZepBuffer* InitWithText(const std::string& strName, std::string_view strText);
+    ZepBuffer* InitWithFileOrDir(std::string_view str, bool setWorkingDir = false);
+    ZepBuffer* InitWithText(std::string_view strName, std::string_view strText);
 
     ZepMode* GetGlobalMode();
     void RegisterGlobalMode(std::shared_ptr<ZepMode> spMode);
@@ -304,6 +306,10 @@ public:
     void Display();
 
     void RegisterSyntaxFactory(const std::vector<std::string>& mappings, SyntaxProvider factory);
+    std::shared_ptr<SyntaxProvider> GetSyntaxProviderByID(std::string_view syntaxID) const;
+    std::shared_ptr<SyntaxProvider> GetSyntaxProviderByExtension(std::string_view extension) const;
+    const std::map<std::string, std::shared_ptr<SyntaxProvider>>& GetSyntaxProviders() const { return m_mapSyntaxProviders; }
+
     bool Broadcast(std::shared_ptr<ZepMessage> payload);
     void DispatchMouseEvent(std::shared_ptr<ZepMessage> message);
     const NVec2f& GetMousePos() const { return m_mousePos; }
@@ -321,16 +327,19 @@ public:
     ZepBuffer* GetMRUBuffer() const;
     void SaveBuffer(ZepBuffer& buffer);
     ZepBuffer* GetFileBuffer(const ZepPath& filePath, uint32_t fileFlags = 0, bool create = true);
-    ZepBuffer* GetEmptyBuffer(const std::string& name, uint32_t fileFlags = 0);
+    ZepBuffer* GetEmptyBuffer(std::string_view name, uint32_t fileFlags = 0);
     void RemoveBuffer(ZepBuffer* pBuffer);
     std::vector<ZepWindow*> FindBufferWindows(const ZepBuffer* pBuffer) const;
+    ZepBuffer* GetActiveBuffer() const;
+    ZepBuffer* FindFileBuffer(const ZepPath& filePath);
+    ZepWindow* EnsureWindow(ZepBuffer* buffer);
 
     void SetRegister(const std::string& reg, const Register& val);
     void SetRegister(const char reg, const Register& val);
     void SetRegister(const std::string& reg, const char* pszText);
     void SetRegister(const char reg, const char* pszText);
-    Register& GetRegister(const std::string& reg);
-    Register& GetRegister(const char reg);
+    const Register& GetRegister(const std::string& reg);
+    const Register& GetRegister(const char reg);
     const tRegisters& GetRegisters();
 
     void ReadClipboard();
@@ -366,6 +375,7 @@ public:
     ZepTabWindow* AddTabWindow();
     void RemoveTabWindow(ZepTabWindow* pTabWindow);
     const tTabWindows& GetTabWindows() const;
+    ZepWindow* GetActiveWindow() const;
 
     void UpdateTabs();
 
@@ -388,6 +398,7 @@ public:
     {
         return m_commandLines;
     }
+    bool HasCommandText() const;
 
     void UpdateWindowState();
 
@@ -433,6 +444,9 @@ public:
 
     ZepBuffer* GetBufferFromHandle(uint64_t handle);
 
+    // Ensure there is a valid tab window and return it
+    ZepTabWindow* EnsureTab();
+
 private:
     void Init();
 
@@ -443,9 +457,6 @@ private:
     void InitBuffer(ZepBuffer& buffer);
     void InitDataGrid(ZepBuffer& buffer, const NVec2i& dimensions);
 
-    // Ensure there is a valid tab window and return it
-    ZepTabWindow* EnsureTab();
-
 private:
     ZepDisplay* m_pDisplay = nullptr;
     IZepFileSystem* m_pFileSystem = nullptr;
@@ -454,7 +465,8 @@ private:
     mutable tRegisters m_registers;
 
     std::shared_ptr<ZepTheme> m_spTheme;
-    std::map<std::string, SyntaxProvider> m_mapSyntax;
+    std::map<std::string, std::shared_ptr<SyntaxProvider>> m_mapSyntax;
+    std::map<std::string, std::shared_ptr<SyntaxProvider>> m_mapSyntaxProviders;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;

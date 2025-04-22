@@ -58,8 +58,11 @@ int GetKeyRingCount(KeyRingType keyRingType)
 	case eIllusion:
 	case eFamiliar:
 	case eHeroForge:
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+#if HAS_TELEPORTATION_KEYRING
 	case eTeleportationItem:
+#endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+	case eActivatedItem:
 #endif
 		break;
 	default: return 0;
@@ -72,9 +75,23 @@ int GetMountCount() { return GetKeyRingCount(eMount); }
 int GetIllusionCount() { return GetKeyRingCount(eIllusion); }
 int GetFamiliarCount() { return GetKeyRingCount(eFamiliar); }
 int GetHeroForgeCount() { return GetKeyRingCount(eHeroForge); }
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
-int GetTeleportationItemCount() { return GetKeyRingCount(eTeleportationItem); }
+int GetTeleportationItemCount()
+{
+#if HAS_TELEPORTATION_KEYRING
+	return GetKeyRingCount(eTeleportationItem);
+#else
+	return 0;
 #endif
+}
+
+int GetActivatedItemCount()
+{
+#if HAS_ACTIVATED_ITEM_KEYRING
+	return GetKeyRingCount(eActivatedItem);
+#else
+	return 0;
+#endif
+}
 
 static bool gbDidUpdateKeyRing = false;
 static uint64_t gLastKeyRingUpdate = 0;
@@ -418,6 +435,11 @@ public:
 #if HAS_TELEPORTATION_KEYRING
 		case eItemContainerTeleportationKeyRingItems:
 			ImGui::Text("Teleportation Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eTeleportationItem]);
+			break;
+#endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+		case eItemContainerActivatedKeyRingItems:
+			ImGui::Text("Activated Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eActivatedItem]);
 			break;
 #endif
 #endif

@@ -1,3 +1,88 @@
+April 17, 2025:
+- live: Update for live hotfix patch
+
+April 17, 2025:
+- Fix broken AdvancedLootItem
+
+April 16, 2025:
+- live: Update for live patch
+
+April 12, 2025:
+- test: Update for test patch
+
+March 26, 2025:
+- test: Update for test patch
+
+March 18, 2025:
+- live: Update for live patch
+
+March 12, 2025:
+- test: Update for test patch
+- live: Update for live patch
+- Improve file permission checks to reduce the number of false positives
+
+Feb 15, 2025:
+- Fix EverQuest.WinTitle not returning the window title
+
+Feb 12, 2025:
+- live: Update for patch
+
+Feb 10, 2025:
+- test: Update for patch
+
+Jan 29, 2025:
+- test: Update for patch
+
+Jan 15, 2025:
+- live: Update for patch
+- lua: Add error handling to mq.delay, failures inside the callback should now propagate to the caller properly
+
+Jan 12, 2025:
+- test: Update for patch
+- Added ${Pet.ProcHold} and ${Pet.Resume}
+
+Jan 11, 2025:
+- ImGui has been updated to version 1.91.6
+- Fix date format string of output from /mqlog
+
+Dec 13, 2024:
+- test: Update for test patch
+
+Dec 5, 2024:
+- live: Update for patch
+
+Dec 3, 2024:
+- live: Update for TOB expansion patch
+- Fix /useitem not interacting with activated item keyring
+
+Dec 1, 2024:
+- test: Update for TOB expansion patch
+
+Nov 21, 2024:
+- Fix a couple crashes
+
+Nov 20, 2024:
+- live: Update for live patch
+- test: Update for test patch
+
+Note to plugin authors: the name labels of CGiveWnd and CTradeWnd changed from CLabel to CStmlWnd
+For compatibility between versions of the client, a new GetText() method is added to both to get
+the widget's text.
+
+Nov 17, 2024:
+- lua: Fix issues with mq.getFilteredSpawns returning nil or taking multiple frames.
+  This reverts back to the previous behavior before optimizations were implemented, but retains some of those optimizations.
+
+Nov 10, 2024:
+- lua: New Zep text editor and console widgets are now integrated. (See the updated console and texteditor
+  lua example in the lua/examples folder)
+
+Nov 8, 2024:
+- live: Update for live patch
+
+Oct 30, 2024:
+- test: Update for test patch
+
 Oct 24, 2024:
 - Fix new spawns getting mq captions applied when mqcaptions are disabled
 - Fix crash that could occur when using /lua stop in some circumstances (#906)

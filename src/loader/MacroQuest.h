@@ -116,6 +116,15 @@ void RefreshInjections();
 void ShutdownInjector();
 std::string GetInjecteePath();
 
+enum class InjectResult {
+	Success = 0,
+	FailedRetry,
+	FailedPermanent,
+	FailedElevationRequired,
+};
+
+void ReportFailedInjection(InjectResult result, DWORD pid);
+
 
 // Utility
 std::string GetVersionStringLocal(const std::filesystem::path& filePath);

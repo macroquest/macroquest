@@ -822,7 +822,7 @@ static bool IsRecursiveEffect(int spa)
 	return false;
 }
 
-static void PopulateTriggeredMap(EQ_Spell* pSpell)
+static void PopulateTriggeredMap(const EQ_Spell* pSpell)
 {
 	if (!pSpell || pSpell->CannotBeScribed)
 		return;
@@ -856,7 +856,7 @@ void PopulateSpellMap()
 	s_triggeredSpells.clear();
 	s_spellNameMap.clear();
 
-	for (auto pSpell : pSpellMgr->Spells)
+	for (EQ_Spell* pSpell : pSpellMgr->Spells)
 	{
 		if (!pSpell || !pSpell->Name[0])
 			continue;
@@ -1935,35 +1935,35 @@ static char* FormatTimer(const char* szEffectName, float value, char(&szBuffer)[
 	return szBuffer;
 }
 
-int GetSpellAttrib(EQ_Spell* pSpell, int index)
+int GetSpellAttrib(const EQ_Spell* pSpell, int index)
 {
 	if (index < 0) index = 0;
 
 	return pSpell ? pSpell->GetEffectAttrib(index) : 0;
 }
 
-int64_t GetSpellBase(EQ_Spell* pSpell, int index)
+int64_t GetSpellBase(const EQ_Spell* pSpell, int index)
 {
 	if (index < 0) index = 0;
 
 	return pSpell ? pSpell->GetEffectBase(index) : 0;
 }
 
-int64_t GetSpellBase2(EQ_Spell* pSpell, int index)
+int64_t GetSpellBase2(const EQ_Spell* pSpell, int index)
 {
 	if (index < 0) index = 0;
 
 	return pSpell ? pSpell->GetEffectBase2(index) : 0;
 }
 
-int64_t GetSpellMax(EQ_Spell* pSpell, int index)
+int64_t GetSpellMax(const EQ_Spell* pSpell, int index)
 {
 	if (index < 0) index = 0;
 
 	return pSpell ? pSpell->GetEffectMax(index) : 0;
 }
 
-int GetSpellCalc(EQ_Spell* pSpell, int index)
+int GetSpellCalc(const EQ_Spell* pSpell, int index)
 {
 	if (index < 0) index = 0;
 

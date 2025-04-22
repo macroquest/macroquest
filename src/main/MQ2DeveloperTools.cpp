@@ -31,6 +31,7 @@
 #include <spdlog/spdlog.h>
 #include <imgui_internal.h>
 #include <cfenv>
+#include <inttypes.h>
 #include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
@@ -2703,7 +2704,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Expansion Flags");
-				ImGui::TableNextColumn(); ImGui::Text("%08X", eq.ExpansionsFlagBitmask);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ExpansionsFlagBitmask);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Attack On Assist");
@@ -2994,7 +2995,7 @@ public:
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Progression Expansions");
-				ImGui::TableNextColumn(); ImGui::Text("%08x", eq.ProgressionOpenExpansions);
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIX64, (int64_t)eq.ProgressionOpenExpansions);
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Flag");
@@ -3032,9 +3033,11 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Tutorial Enabled");
 				ImGui::TableNextColumn(); ImGui::SetNextItemWidth(-1); ImGui::Checkbox("##Tutorial", &eq.bIsTutorialEnabled);
 
+#if IS_CLIENT_DATE(20250203)
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Heroic Character Related");
-				ImGui::TableNextColumn(); ImGui::Text("%d", (int32_t)eq.bHeroicCharacterRelated);
+				ImGui::TableNextColumn(); ImGui::Text("%d, %d", (int32_t)eq.bHeroicCharacterRelated1, (int32_t)eq.bHeroicCharacterRelated2);
+#endif
 
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Head Start Char");
@@ -4599,9 +4602,7 @@ public:
 			}
 		}
 
-		ImPlot::SetNextAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
-		ImPlot::SetNextAxisLimits(ImAxis_Y1, 0, 20, ImGuiCond_Once);
-		ImPlot::SetNextAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+
 
 		if (ImPlot::BeginPlot("##Benchmarks", ImVec2(-1, -1), 0))
 		{
@@ -4609,13 +4610,16 @@ public:
 			ImPlot::SetupAxis(ImAxis_Y1, "Milliseconds", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y2, "Percent", ImPlotAxisFlags_LockMin);
 			ImPlot::SetupAxis(ImAxis_Y3, "Frames Per Second", ImPlotAxisFlags_LockMin | ImPlotAxisFlags_Opposite);
-
+			ImPlot::SetupAxisLimits(ImAxis_X1, static_cast<double>(m_time) - m_history, m_time, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 40, ImGuiCond_Appearing);
+			ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 100, ImGuiCond_Always);
+			ImPlot::SetupAxisLimits(ImAxis_Y3, 0, 60, ImGuiCond_Appearing);
 			ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+
 
 			for (const auto& p : m_data)
 			{
 				auto& data = p.second;
-
 				ImPlot::PlotLine(data->Name.c_str(), &data->Data[0].x, &data->Data[0].y,
 					data->Data.size(), ImPlotLineFlags_None, data->Offset, sizeof(ImVec2));
 			}

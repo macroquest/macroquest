@@ -9,8 +9,7 @@
 // This just saves using a library like glm (my personal preference)
 // - and it keeps the dependencies of Zep to just the source folder contents
 
-namespace Zep
-{
+namespace Zep {
 
 namespace detail
 {
@@ -69,7 +68,10 @@ struct ZepColor
     }
 
     constexpr ZepColor(const ZepColor& other)
-        : ABGR(other.ABGR)
+        : r(other.r)
+        , g(other.g)
+        , b(other.b)
+        , a(other.a)
     {
     }
 
@@ -77,6 +79,7 @@ struct ZepColor
         : r(static_cast<uint8_t>(detail::hexToDec(str[1]) << 4 | detail::hexToDec(str[2])) & 0xff)
         , g(static_cast<uint8_t>(detail::hexToDec(str[3]) << 4 | detail::hexToDec(str[4])) & 0xff)
         , b(static_cast<uint8_t>(detail::hexToDec(str[5]) << 4 | detail::hexToDec(str[6])) & 0xff)
+        , a(255)
     {
         if (str[0] != '#') throw detail::InvalidHexChar();
     }

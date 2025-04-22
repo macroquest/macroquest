@@ -3745,8 +3745,8 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case CharacterMembers::ExpansionFlags:
-		Dest.DWord = pLocalPC->ExpansionFlags;
-		Dest.Type = pIntType;
+		Dest.Set<int64_t>(static_cast<int64_t>(pLocalPC->ExpansionFlags));
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::BoundLocation:

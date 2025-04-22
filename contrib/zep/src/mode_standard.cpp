@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "zep/mode_standard.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"
@@ -22,8 +23,7 @@
 // control+Shift == select word
 // CTRL - CVX (copy paste, cut) + Delete Selection
 
-namespace Zep
-{
+namespace Zep {
 
 ZepMode_Standard::ZepMode_Standard(ZepEditor& editor)
     : ZepMode(editor)
@@ -61,8 +61,10 @@ void ZepMode_Standard::Init()
     keymap_add(keyMaps, { "<Right>" }, id_MotionStandardRight);
     keymap_add(keyMaps, { "<Up>" }, id_MotionStandardUp);
     keymap_add(keyMaps, { "<Down>" }, id_MotionStandardDown);
-    keymap_add(keyMaps, { "<Home>" }, id_MotionStandardLineBegin);
-    keymap_add(keyMaps, { "<End>" }, id_MotionStandardLineEnd);
+
+    keymap_add(keyMaps, { "<Home>" }, id_MotionLineHomeToggle);
+    keymap_add(keyMaps, { "<End>" }, id_MotionLineBeyondEnd);
+
     keymap_add(keyMaps, { "<PageUp>" }, id_MotionStandardPageBackward);
     keymap_add(keyMaps, { "<PageDown>" }, id_MotionStandardPageForward);
 
@@ -76,7 +78,7 @@ void ZepMode_Standard::Init()
     keymap_add(keyMaps, { "<S-Right>" }, id_MotionStandardRightSelect);
     keymap_add(keyMaps, { "<S-Up>" }, id_MotionStandardUpSelect);
     keymap_add(keyMaps, { "<S-Down>" }, id_MotionStandardDownSelect);
-    keymap_add(keyMaps, { "<S-Home>" }, id_MotionStandardLineBeginSelect);
+    keymap_add(keyMaps, { "<S-Home>" }, id_MotionStandardHomeToggleSelect);
     keymap_add(keyMaps, { "<S-End>" }, id_MotionStandardLineEndSelect);
     keymap_add(keyMaps, { "<S-PageUp>" }, id_MotionStandardPageBackwardSelect);
     keymap_add(keyMaps, { "<S-PageDown>" }, id_MotionStandardPageForwardSelect);

@@ -81,6 +81,9 @@
     <ClCompile Include="bindings\lua_ImPlot.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\lua_Zep.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LuaThread.h">

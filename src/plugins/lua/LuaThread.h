@@ -194,11 +194,11 @@ public:
 		m_namedDependencies.insert(name);
 	}
 
-	void InitializeSpawnTable();
+	sol::table GetSpawnTable();
 	void AddSpawn(eqlib::PlayerClient* spawn);
 	void RemoveSpawn(eqlib::PlayerClient* spawn);
 
-	void InitializeGroundItemTable();
+	sol::table GetGroundItemTable();
 	void AddGroundItem(eqlib::EQGroundItem* item);
 	void RemoveGroundItem(eqlib::EQGroundItem* item);
 

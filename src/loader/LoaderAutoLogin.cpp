@@ -22,6 +22,7 @@
 #include "routing/PostOffice.h"
 
 #include <fmt/format.h>
+#include <fmt/os.h>
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 #include <filesystem>
@@ -34,6 +35,8 @@ using namespace std::chrono_literals;
 static postoffice::Dropbox s_dropbox;
 static std::queue<std::pair<ProfileRecord, bool>> s_pendingLogins;
 static auto s_lastLoginTime = std::chrono::steady_clock::now();
+
+DWORD LaunchProcess(const std::string& process, const std::string& workingDir);
 
 namespace internal_paths
 {
@@ -134,14 +137,10 @@ void LaunchCleanSession()
 		// create command line arguments
 		std::string parameters = fmt::format(R"("{}" patchme)", eqgame.string());
 
-		STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-		si.wShowWindow = SW_SHOWNORMAL;
-		si.dwFlags = STARTF_USESHOWWINDOW;
-
-		wil::unique_process_information pi;
-		if (!CreateProcessA(nullptr, parameters.data(), nullptr, nullptr, FALSE, 0, nullptr, GetEQRoot().c_str(), &si, &pi) || pi.hProcess == nullptr)
+		if (!LaunchProcess(parameters, GetEQRoot()))
 		{
-			SPDLOG_ERROR("Failed to create new eqgame process");
+			SPDLOG_ERROR("{}",
+				fmt::windows_error(GetLastError(), "Failed to launch eqgame.exe").what());
 		}
 	}
 }

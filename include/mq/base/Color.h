@@ -77,10 +77,10 @@ public:
 	}
 
 	constexpr MQColor(abgr_t, uint32_t bgracolor)
-		: Alpha((bgracolor >> 24) & 0xff)
-		, Blue((bgracolor >> 16) & 0xff)
+		: Blue((bgracolor >> 16) & 0xff)
 		, Green((bgracolor >> 8) & 0xff)
 		, Red((bgracolor >> 0) & 0xff)
+		, Alpha((bgracolor >> 24) & 0xff)
 	{
 	}
 
@@ -95,26 +95,26 @@ public:
 	}
 
 	constexpr MQColor(const char* str)
-		: Red(static_cast<uint8_t>(detail::hexToDec(str[1]) << 4 | detail::hexToDec(str[2])) & 0xff)
+		: Blue(static_cast<uint8_t>(detail::hexToDec(str[5]) << 4 | detail::hexToDec(str[6])) & 0xff)
 		, Green(static_cast<uint8_t>(detail::hexToDec(str[3]) << 4 | detail::hexToDec(str[4])) & 0xff)
-		, Blue(static_cast<uint8_t>(detail::hexToDec(str[5]) << 4 | detail::hexToDec(str[6])) & 0xff)
+		, Red(static_cast<uint8_t>(detail::hexToDec(str[1]) << 4 | detail::hexToDec(str[2])) & 0xff)
 		, Alpha(255)
 	{
 		if (str[0] != '#') throw detail::InvalidHexChar();
 	}
 
 	constexpr MQColor(const ImColor& imColor)
-		: Red(static_cast<uint8_t>(imColor.Value.x * 255))
+		: Blue(static_cast<uint8_t>(imColor.Value.z * 255))
 		, Green(static_cast<uint8_t>(imColor.Value.y * 255))
-		, Blue(static_cast<uint8_t>(imColor.Value.z * 255))
+		, Red(static_cast<uint8_t>(imColor.Value.x * 255))
 		, Alpha(static_cast<uint8_t>(imColor.Value.w * 255))
 	{
 	}
 
 	constexpr MQColor(const ImVec4& imColor)
-		: Red(static_cast<uint8_t>(imColor.x * 255))
+		: Blue(static_cast<uint8_t>(imColor.z * 255))
 		, Green(static_cast<uint8_t>(imColor.y * 255))
-		, Blue(static_cast<uint8_t>(imColor.z * 255))
+		, Red(static_cast<uint8_t>(imColor.x * 255))
 		, Alpha(static_cast<uint8_t>(imColor.w * 255))
 	{
 	}
@@ -133,7 +133,7 @@ public:
 
 	constexpr operator eqlib::ARGBCOLOR() const
 	{
-		eqlib::ARGBCOLOR color = { 0 };
+		eqlib::ARGBCOLOR color = {};
 		color.ARGB = ARGB;
 		return color;
 	}

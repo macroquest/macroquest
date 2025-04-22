@@ -1,12 +1,11 @@
 #pragma once
 
+#include "zep/mcommon/math/color.h"
+
 #include <vector>
 #include <map>
 
-#include "zep/mcommon/math/color.h"
-
-namespace Zep
-{
+namespace Zep {
 
 enum class ThemeColor
 {
@@ -71,11 +70,19 @@ enum class ThemeColor
 
 enum class ThemeType
 {
-    Dark,
+    Dark = 1,
     Light,
     SolarizedDark,
     SolarizedLight,
+    VSCodeDefault,
 };
+
+struct ThemeName
+{
+    ThemeType type;
+    const char* name;
+};
+const std::vector<ThemeName>& GetThemeNames();
 
 class ZepTheme
 {
@@ -90,9 +97,11 @@ public:
     void SetThemeType(ThemeType type);
     ThemeType GetThemeType() const;
 
+
 private:
     void SetDarkTheme();
     void SetLightTheme();
+    void SetVSCodeDefaultTheme();
     void SetSolarizedDarkTheme();
     void SetSolarizedLightTheme();
 
