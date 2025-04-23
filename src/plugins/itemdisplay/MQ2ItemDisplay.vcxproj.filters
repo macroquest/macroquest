@@ -35,7 +35,7 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="AssemblyFunctions64.asm">
+    <NASM Include="AssemblyFunctions.asm">
       <Filter>Source Files</Filter>
     </NASM>
   </ItemGroup>
