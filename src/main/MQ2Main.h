@@ -254,7 +254,7 @@ MQLIB_API void DoFace(SPAWNINFO* pChar, CVector3 Position);
 MQLIB_API int64_t GetGuildIDByName(const char* szGuild);
 MQLIB_API const char* GetGuildByID(int64_t GuildID);
 
-MQLIB_API int GetBodyType(SPAWNINFO* pSpawn);
+MQLIB_API int GetBodyType(PlayerClient* pSpawn);
 MQLIB_API eSpawnType GetSpawnType(SPAWNINFO* pSpawn);
 MQLIB_API const char* GetLightForSpawn(SPAWNINFO* pSpawn);
 MQLIB_API int GetDeityTeamByID(int DeityID);
