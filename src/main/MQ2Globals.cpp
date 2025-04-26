@@ -448,7 +448,7 @@ BYTE LightBrightness[] = {
 };
 
 const char* szSkills[] = {
-#include "../eqdata/skills.h"
+#include "eqdata/skills.h"
 	nullptr
 };
 

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "../eqlib/EQLib.h"
+#include "eqlib/EQLib.h"
 #include "MQ2Internal.h"
 #include "mq/base/GlobalBuffer.h"
 

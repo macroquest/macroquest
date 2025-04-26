@@ -24,7 +24,8 @@
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
 #include "GraphicsResources.h"
-#include "EQLib/Logging.h"
+#include "eqlib/Logging.h"
+#include "eqlib/Startup.h"
 #include "mq/base/Logging.h"
 
 #include <fmt/format.h>
@@ -161,12 +162,12 @@ void InitializeLogging()
 	}
 
 	SPDLOG_DEBUG("Logging Initialized");
-	eqlib::InitializeLogging(new_logger);
+	//eqlib::InitializeLogging(new_logger);
 }
 
 void ShutdownLogging()
 {
-	eqlib::ShutdownLogging();
+	//eqlib::ShutdownLogging();
 	spdlog::shutdown();
 }
 
@@ -732,7 +733,7 @@ bool MQ2Initialize()
 		}
 	}
 
-	eqlib::InitializeEQLib();
+	eqlib::InitializeEQLib(nullptr);
 
 	if (!InitOffsets())
 	{

@@ -69,9 +69,6 @@
     <Filter Include="Header Files\extras\wil">
       <UniqueIdentifier>{398f05d1-d412-4d4d-8554-14f8255af25d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\eqdata">
-      <UniqueIdentifier>{2b7d5e30-e807-4d3b-ac81-56092830cb6a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\emu">
       <UniqueIdentifier>{7b5b93b4-0c81-41c2-92f0-45f73d2cc354}</UniqueIdentifier>
     </Filter>
@@ -627,24 +624,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\extras\wil\Constants.h">
       <Filter>Header Files\extras\wil</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\actordef.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\combines.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\dikeys.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\itemclasses.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\skills.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\spelleffects.h">
-      <Filter>Header Files\eqdata</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Abilities.h">
       <Filter>Header Files\mq\api</Filter>

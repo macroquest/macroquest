@@ -25,7 +25,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <PostBuildEvent>
-      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" "$(MQ2Root)data" "$(MQ2buildDirectory)bin\$(MQ2BinaryDirName)" $(Platform)</Command>
+      <Command>if exist "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), tools\build_scripts\MQ2Main_PostBuild.ps1))\tools\build_scripts\MQ2Main_PostBuild.ps1" "$(MQRoot)data" "$(MQBuildDirectory)bin\$(MQBinaryDirName)" $(Platform)</Command>
       <Message>Performing PostBuild for $(MSBuildProjectName)...</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -96,7 +96,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;$(MQ2Root)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQRoot)src\main;$(MQRoot)src;$(MQRoot)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -110,7 +110,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;$(MQ2Root)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQRoot)src\main;$(MQRoot)src;$(MQRoot)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
@@ -124,7 +124,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;$(MQ2Root)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQRoot)src\main;$(MQRoot)src;$(MQRoot)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>MQ2MAIN_EXPORTS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MQ2Root)src\main;$(MQ2Root)src;$(MQ2Root)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQRoot)src\main;$(MQRoot)src;$(MQRoot)contrib\mini-yaml\yaml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
@@ -618,12 +618,6 @@
     <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="..\common\MiscUtils.h" />
     <ClInclude Include="..\common\StringUtils.h" />
-    <ClInclude Include="..\eqdata\actordef.h" />
-    <ClInclude Include="..\eqdata\combines.h" />
-    <ClInclude Include="..\eqdata\dikeys.h" />
-    <ClInclude Include="..\eqdata\itemclasses.h" />
-    <ClInclude Include="..\eqdata\skills.h" />
-    <ClInclude Include="..\eqdata\spelleffects.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
