@@ -17,6 +17,7 @@
 #include "mq/base/Common.h"
 #include "mq/base/Traits.h"
 
+
 namespace mq {
 
 #if defined(_M_AMD64)
@@ -39,9 +40,6 @@ constexpr uint32_t DETOUR_BYTES_COUNT = 12;
 			return (name##_Ptr)(std::forward<Args>(args)...);                   \
 	}
 
-// TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
-#define DETOUR_TRAMPOLINE_EMPTY(...) \
-	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
 
 namespace detail
 {
