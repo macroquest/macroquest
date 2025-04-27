@@ -22,8 +22,6 @@
 
 #include "MQ2MainBase.h"
 
-using namespace eqlib;
-
 namespace mq {
 
 class CachedBuff;

@@ -815,7 +815,7 @@ HWND GetEQWindowHandleForProcessId(DWORD processId)
 			return TRUE;
 
 		char className[32];
-		if (!GetClassName(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
+		if (!::GetClassNameA(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
 			return TRUE;
 
 		param->outHWnd = hWnd;
@@ -840,7 +840,7 @@ std::vector<HWND> GetEQWindowHandles()
 		Param* param = reinterpret_cast<Param*>(lParam);
 
 		char className[32];
-		if (!GetClassName(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
+		if (!::GetClassNameA(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
 			return TRUE;
 
 		param->hWnds.push_back(hWnd);

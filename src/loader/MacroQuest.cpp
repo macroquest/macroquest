@@ -1904,7 +1904,7 @@ int WINAPI CALLBACK WinMain(
 	GetPrivateProfileString("MacroQuest", "MacroQuestWinName", "MacroQuest", gszWinName, lengthof(gszWinClassName), internal_paths::MQini);
 
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
-	HWND hWndRunning = FindWindow(gszWinClassName, gszWinName);
+	HWND hWndRunning = ::FindWindowA(gszWinClassName, gszWinName);
 	if (hWndRunning != nullptr)
 	{
 		SPDLOG_INFO("Closing because another window of class \"{}\" is open", gszWinClassName);

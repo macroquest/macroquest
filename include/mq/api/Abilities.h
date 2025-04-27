@@ -14,10 +14,13 @@
 
 #pragma once
 
-#include "eqlib/PcClient.h"
-#include "eqlib/EQClasses.h"
+#include "mq/base/Common.h"
 
-using namespace eqlib;
+#include "eqlib/game/EQClasses.h"
+#include "eqlib/game/Globals.h"
+#include "eqlib/game/PcClient.h"
+
+#include <string_view>
 
 namespace mq {
 
@@ -35,6 +38,8 @@ namespace mq {
  **/
 inline int GetAdjustedSkill(int nSkill)
 {
+	using namespace eqlib;
+
 	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
 }
 
@@ -52,6 +57,8 @@ inline int GetAdjustedSkill(int nSkill)
  **/
 inline int GetBaseSkill(int nSkill)
 {
+	using namespace eqlib;
+
 	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
 }
 
@@ -69,6 +76,8 @@ inline int GetBaseSkill(int nSkill)
  **/
 inline bool HasSkill(int nSkill)
 {
+	using namespace eqlib;
+
 	return pLocalPC && pLocalPC->HasSkill(nSkill);
 }
 
@@ -86,6 +95,8 @@ inline bool HasSkill(int nSkill)
  **/
 inline bool SkillIsActivatable(int nSkill)
 {
+	using namespace eqlib;
+
 	return nSkill < NUM_SKILLS && pSkillMgr && pSkillMgr->pSkill[nSkill]->Activated;
 }
 

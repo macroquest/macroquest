@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
-#include "eqlib/KeyCombo.h"
+#include "mq/base/Common.h"
+
+#include "eqlib/game/KeyCombo.h"
 
 namespace mq {
 

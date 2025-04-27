@@ -17,8 +17,9 @@
 // TODO: Move other inventory related functions here and remove MQ2Main.h include
 #include "MQ2Main.h"
 
-#include <mq/api/Inventory.h>
-#include "eqlib/Items.h"
+#include "mq/api/Inventory.h"
+
+#include "eqlib/game/Items.h"
 
 namespace mq {
 
@@ -30,7 +31,9 @@ namespace mq {
  */
 int GetBankSlotCount(int nSize, bool bEmptyOnly /* = false */)
 {
-	if (!eqlib::pLocalPC || !eqlib::pLocalPlayer)
+	using namespace eqlib;
+
+	if (!pLocalPC || !pLocalPlayer)
 		return 0;
 
 	int numSlots = 0;
@@ -41,7 +44,7 @@ int GetBankSlotCount(int nSize, bool bEmptyOnly /* = false */)
 
 	for (int slot = 0; slot < availableSlots; ++slot)
 	{
-		if (const eqlib::ItemPtr pItem = pLocalPC->BankItems.GetItem(slot))
+		if (const ItemPtr pItem = pLocalPC->BankItems.GetItem(slot))
 		{
 			if (pItem->IsContainer()
 				&& (nSize == 0 || pItem->GetItemDefinition()->SizeCapacity >= nSize))

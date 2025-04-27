@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include <mq/base/Deprecation.h>
-
-#include <stdexcept>
+#include "mq/base/Deprecation.h"
+#include "eqlib/BuildType.h"
 
 #include "imgui.h"
-#include "eqlib/BuildType.h"
+
+#include <stdexcept>
 
 #if HAS_DIRECTX_11
 #include <d3d11.h>

@@ -22,7 +22,7 @@
 #include <optional>
 #include <string>
 
-#include "eqlib/UITextures.h"
+#include "eqlib/game/UITextures.h"
 #include "mq/imgui/Widgets.h"
 
 namespace mq::lua::bindings {
