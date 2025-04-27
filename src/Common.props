@@ -6,8 +6,6 @@
     <MQBinaryDirName Condition="'$(Configuration)'=='Debug'">debug</MQBinaryDirName>
     <MQBinaryDirName Condition="'$(Configuration)'=='Release'">release</MQBinaryDirName>
 
-    <NASMPATH>$(MQRoot)tools\NASM\</NASMPATH>
-
     <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
     <MQBuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' == '1'">$(MQRoot)build\$(eqlibClientTarget)\</MQBuildDirectory>
     <MQBuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' != '1'">$(MQRoot)build\</MQBuildDirectory>
@@ -79,11 +77,6 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
-    <NASM>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">ARCH_X64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Platform)'=='Win32'">ARCH_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </NASM>
   </ItemDefinitionGroup>
   <ItemGroup />
   <Target Name="VcpkgMQInstallManifestDependencies" BeforeTargets="PreBuildEvent">
@@ -100,10 +93,8 @@
   </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(MQRoot)tools\build_scripts\protoc\protobuf.targets" />
-    <Import Project="$(MQRoot)tools\build_scripts\nasm\nasm.targets" />
   </ImportGroup>
   <ImportGroup Label="ExtensionSettings">
     <Import Project="$(MQRoot)tools\build_scripts\protoc\protobuf.props" />
-    <Import Project="$(MQRoot)tools\build_scripts\nasm\nasm.props" />
   </ImportGroup>
 </Project>
