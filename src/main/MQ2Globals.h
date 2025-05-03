@@ -41,8 +41,6 @@ namespace mq {
 MQLIB_VAR const double DegToRad;
 MQLIB_VAR const double PI;
 
-MQLIB_API uintptr_t baseAddress DEPRECATE("baseAddress is deprecated; use EQGameBaseAddress instead");
-
 bool InitOffsets();
 
 /* BENCHMARK HANDLES */
@@ -170,7 +168,7 @@ MQLIB_VAR bool gFilterDebug;
 MQLIB_VAR bool gFilterMoney;
 MQLIB_VAR bool gFilterFood;
 MQLIB_VAR bool gFilterMQ;
-MQLIB_VAR eFilterMacro gFilterMacro;
+MQLIB_VAR eqlib::eFilterMacro gFilterMacro;
 MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;
 MQLIB_VAR bool gFilterMQ2DataErrors;
@@ -222,10 +220,10 @@ MQLIB_VAR int EnviroTarget DEPRECATE("EnviroTarget is no longer supported. Use C
 MQLIB_VAR int PetSpawn DEPRECATE("PetSpawn is no longer supported. Get the pet spawn id through pLocalPlayer->PetID");
 MQLIB_VAR int MercenarySpawn DEPRECATE("MercenarySpawn is no longer supported. Get the spawn id through pMercManager and look it up instead");
 MQLIB_VAR Property<MQGroundObject> GroundObject DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
-MQLIB_VAR Property<GROUNDITEM*> pGroundTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
+MQLIB_VAR Property<eqlib::EQGroundItem*> pGroundTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR int DoorEnviroTarget DEPRECATE("DoorEnviroTarget has been deprecated and removed. Use pSwitchTarget instead.");
-MQLIB_VAR EQSwitch* pDoorTarget DEPRECATE("Use pSwitchTarget instead of pDoorTarget");
-MQLIB_VAR EQSwitch* pSwitchTarget;
+MQLIB_VAR eqlib::EQSwitch* pDoorTarget DEPRECATE("Use pSwitchTarget instead of pDoorTarget");
+MQLIB_VAR eqlib::EQSwitch* pSwitchTarget;
 MQLIB_VAR ITEMDB* gItemDB;
 MQLIB_VAR bool bRunNextCommand;
 MQLIB_VAR bool bAllowCommandParse;
@@ -247,7 +245,7 @@ MQLIB_VAR bool gMouseClickInProgress[8];
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
-MQLIB_VAR const char* szEQMappableCommands[nEQMappableCommands];
+MQLIB_VAR const char* szEQMappableCommands[eqlib::nEQMappableCommands];
 
 MQLIB_VAR const char* szHeading[];
 MQLIB_VAR const char* szHeadingShort[];
@@ -265,7 +263,7 @@ MQLIB_VAR const char* szInnates[];
 MQLIB_VAR const char* szZoneExpansionName[];
 
 MQLIB_API const char* GetZoneExpansionName(int expansion);
-MQLIB_API const char* GetHighestExpansionOwnedName(EQExpansionOwned expansionOwned);
+MQLIB_API const char* GetHighestExpansionOwnedName(eqlib::EQExpansionOwned expansionOwned);
 MQLIB_API uint32_t GetExpansionNumber(std::string_view expansionName);
 
 MQLIB_VAR const char* szWornLoc[];
@@ -290,7 +288,10 @@ MQLIB_VAR fEQCommand cmdPickZone;
 MQLIB_VAR fEQCommand cmdAssist;
 MQLIB_VAR fEQCommand cmdQuit;
 
+using fEQGetMelee = float(*)(eqlib::PlayerClient*, eqlib::PlayerClient*);
 MQLIB_VAR fEQGetMelee get_melee_range;
+
+using fEQW_GetDisplayWindow = HWND(CALLBACK*)();
 
 MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
 
@@ -298,7 +299,7 @@ MQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data
 MQLIB_VAR const char* szDmgBonusType[];
 MQLIB_VAR const char* szBodyType[];
 MQLIB_VAR const char* szAugRestrictions[];
-MQLIB_VAR const char* szItemSlot[InvSlot_Max + 1];
+MQLIB_VAR const char* szItemSlot[eqlib::InvSlot_Max + 1];
 MQLIB_VAR const char* szEquipmentSlot[];
 
 MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;

@@ -20,7 +20,10 @@
 #include "eqlib/WindowOverride.h"
 #include "imgui/ImGuiUtils.h"
 
+using namespace eqlib;
+
 #if IS_EMU_CLIENT
+
 namespace mq {
 
 static void EmuExtensions_Initialize();

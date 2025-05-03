@@ -16,6 +16,11 @@
 
 #include "mq/base/Common.h"
 
+namespace eqlib
+{
+	class EQ_Spell;
+}
+
 namespace mq {
 
 /**
@@ -24,6 +29,6 @@ namespace mq {
  * @param pSpell The spell
  * @return The minimum class level of the spell.
  */
-MQLIB_API int CalcMinSpellLevel(EQ_Spell* pSpell);
+MQLIB_API int CalcMinSpellLevel(eqlib::EQ_Spell* pSpell);
 
 } // namespace mq

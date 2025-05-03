@@ -14,11 +14,12 @@
 
 #include "pch.h"
 
-#include "eqlib/PcClient.h"
+#include "eqlib/game/PcClient.h"
 #include "mq/api/Spawns.h"
 
-namespace mq {
+using namespace eqlib;
 
+namespace mq {
 
 bool IsMarkedNPC(PlayerClient* pSpawn)
 {

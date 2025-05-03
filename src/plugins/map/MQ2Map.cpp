@@ -385,13 +385,13 @@ PLUGIN_API void OnPulse()
 	bool cleared = false;
 
 	// Clear MapLocs on zone
-	if (CHARINFO* charInfo = GetCharInfo())
+	if (pLocalPC)
 	{
-		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
+		if (currentZoneId != (pLocalPC->zoneId & 0x7FFF))
 		{
 			DeleteAllMapLocs();
 
-			currentZoneId = (charInfo->zoneId & 0x7FFF);
+			currentZoneId = (pLocalPC->zoneId & 0x7FFF);
 		}
 	}
 
@@ -444,7 +444,7 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-PLUGIN_API void OnAddSpawn(SPAWNINFO* pNewSpawn)
+PLUGIN_API void OnAddSpawn(PlayerClient* pNewSpawn)
 {
 	// your toon's spawn id changes and it's no longer zero to start don't added it all
 	if (pLocalPlayer != pNewSpawn && pNewSpawn->SpawnID != 0)
@@ -453,7 +453,7 @@ PLUGIN_API void OnAddSpawn(SPAWNINFO* pNewSpawn)
 	}
 }
 
-PLUGIN_API void OnRemoveSpawn(SPAWNINFO* pSpawn)
+PLUGIN_API void OnRemoveSpawn(PlayerClient* pSpawn)
 {
 	RemoveSpawn(pSpawn);
 }

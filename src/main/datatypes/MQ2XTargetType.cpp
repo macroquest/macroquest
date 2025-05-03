@@ -115,7 +115,7 @@ bool MQ2XTargetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type*
 {
 	if (toType == pSpawnType)
 	{
-		SPAWNINFO* pSpawn = nullptr;
+		PlayerClient* pSpawn = nullptr;
 
 		if (pLocalPC)
 		{

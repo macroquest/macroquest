@@ -19,6 +19,8 @@
 
 #include <fmt/format.h>
 
+using namespace eqlib;
+
 namespace mq {
 
 //void InjectMQ2Binds(COptionsWnd* pWnd);

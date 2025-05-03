@@ -19,6 +19,8 @@
 
 #include <fmt/chrono.h>
 
+using namespace eqlib;
+
 namespace mq {
 
 #if HAS_CHAT_TIMESTAMPS
@@ -225,7 +227,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 	return static_cast<uint32_t>(strlen(Value));
 }
 
-void FlashOnTells(SPAWNINFO* pChar, char* szLine)
+void FlashOnTells(PlayerClient* pChar, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{
@@ -253,7 +255,7 @@ void FlashOnTells(SPAWNINFO* pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
 }
 
-void BeepOnTells(SPAWNINFO* pChar, char* szLine)
+void BeepOnTells(PlayerClient* pChar, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{

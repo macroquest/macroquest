@@ -16,6 +16,8 @@
 #include "MQ2DataTypes.h"
 #include "MQDataAPI.h"
 
+using namespace eqlib;
+
 namespace mq::datatypes {
 
  //----------------------------------------------------------------------------

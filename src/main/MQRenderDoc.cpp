@@ -16,12 +16,14 @@
 #include "MQ2Main.h"
 #include "MQRenderDoc.h"
 
+#include "mq/base/WString.h"
+
 #include <renderdoc/renderdoc_app.h>
 #include <wil/resource.h>
 #include <atomic>
 #include <filesystem>
 
-#include "mq/base/WString.h"
+using namespace eqlib;
 
 namespace mq {
 

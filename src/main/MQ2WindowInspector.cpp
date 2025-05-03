@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
 
-
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/ImGuiMemoryEditor.h"
@@ -33,6 +32,7 @@
 #include <spdlog/spdlog.h>
 
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 

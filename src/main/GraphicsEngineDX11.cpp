@@ -29,6 +29,7 @@
 
 #include <wil/com.h>
 
+using namespace eqlib;
 namespace mq {
 
 IDXGISwapChain* gpDXGISwapChain = nullptr;

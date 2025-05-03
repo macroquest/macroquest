@@ -69,7 +69,7 @@ bool MQ2FellowshipType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (!VarPtr.Ptr)
 		return false;
 
-	SPAWNINFO* pMySpawn = pLocalPlayer;
+	PlayerClient* pMySpawn = pLocalPlayer;
 
 	switch (static_cast<FellowshipTypeMembers>(pMember->ID))
 	{

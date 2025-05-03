@@ -160,7 +160,7 @@ bool MQ2ItemSpellType::ToString(MQVarPtr VarPtr, char* Destination)
 
 	if (int spellid = data->SpellID)
 	{
-		if (SPELL* pSpell = GetSpellByID(spellid))
+		if (EQ_Spell* pSpell = GetSpellByID(spellid))
 		{
 			strcpy_s(Destination, MAX_STRING, pSpell->Name);
 			return true;

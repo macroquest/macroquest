@@ -20,8 +20,10 @@
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
 
+using namespace eqlib;
+using namespace mq::postoffice;
+
 namespace mq {
-using namespace postoffice;
 
 static void OnPostUnloadPluginActorAPI(const char*);
 

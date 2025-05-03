@@ -31,6 +31,8 @@ namespace mqplugin
 	mq::MQPluginHandle ThisPluginHandle;   // our unique handle for Main.
 }
 
+using namespace eqlib;
+
 namespace mq {
 
 #ifdef DEBUG_PLUGINS
@@ -586,7 +588,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 		// init spawns
 		if (pPlugin->AddSpawn)
 		{
-			SPAWNINFO* pSpawn = pSpawnList;
+			PlayerClient* pSpawn = pSpawnList;
 			while (pSpawn)
 			{
 				pPlugin->AddSpawn(pSpawn);
@@ -1337,7 +1339,7 @@ PluginInterface* GetPluginInterface(std::string_view PluginName)
 	return nullptr;
 }
 
-void PluginCommand(SPAWNINFO* pChar, char* szLine)
+void PluginCommand(PlayerClient* pChar, char* szLine)
 {
 	bool show_usage = false;
 	char szName[MAX_STRING] = { 0 };

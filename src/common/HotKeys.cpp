@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-#include "HotKeys.h"
+#include "mq/base/HotKeys.h"
 
 #include <fmt/format.h>
 #include <Windows.h>

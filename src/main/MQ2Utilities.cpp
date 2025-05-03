@@ -32,6 +32,8 @@
 
 #define IsNaN(x) (x != x)
 
+using namespace eqlib;
+
 namespace mq {
 
 //***************************************************************************
@@ -1354,7 +1356,7 @@ CAltAbilityData* GetAAById(int nAbilityId, int playerLevel)
 	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
 }
 
-SPELL* GetSpellByAAName(const char* szName)
+EQ_Spell* GetSpellByAAName(const char* szName)
 {
 	int level = pLocalPlayer ? pLocalPlayer->Level : -1;
 
@@ -1368,7 +1370,7 @@ SPELL* GetSpellByAAName(const char* szName)
 				{
 					if (!_stricmp(szName, pName))
 					{
-						if (SPELL* psp = GetSpellByID(pAbility->SpellID))
+						if (EQ_Spell* psp = GetSpellByID(pAbility->SpellID))
 						{
 							return psp;
 						}
@@ -1429,7 +1431,7 @@ int64_t GetGuildIDByName(const char* szGuild)
 	return pGuild->GetGuildIndex(szGuild);
 }
 
-const char* GetLightForSpawn(SPAWNINFO* pSpawn)
+const char* GetLightForSpawn(PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
@@ -1448,7 +1450,7 @@ const char* GetLightForSpawn(SPAWNINFO* pSpawn)
 // Function:    DistanceToSpawn3D
 // Description: Return the distance between two spawns, including Z
 // ***************************************************************************
-float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+float DistanceToSpawn3D(PlayerClient* pChar, PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
@@ -1465,7 +1467,7 @@ float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // Function:    DistanceToSpawn
 // Description: Return the distance between two spawns
 // ***************************************************************************
-float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+float EstimatedDistanceToSpawn(PlayerClient* pChar, PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
@@ -1482,7 +1484,7 @@ float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 // Function:    ConColor
 // Description: Returns the con color for a spawn's level
 // ***************************************************************************
-int ConColor(SPAWNINFO* pSpawn)
+int ConColor(PlayerClient* pSpawn)
 {
 	if (!pLocalPlayer || !pLocalPC || !pSpawn)
 		return CONCOLOR_WHITE;
@@ -1526,12 +1528,12 @@ CContainerWnd* FindContainerForContents(ItemClient* pContents)
 }
 
 // ***************************************************************************
-// FindSpeed(SPAWNINFO*) - Used to find the speed of a Spawn taking a mount into
-//                               consideration.
+// FindSpeed(PlayerClient*) - Used to find the speed of a Spawn taking a mount into
+//                            consideration.
 // ***************************************************************************
-float FindSpeed(SPAWNINFO* pSpawn)
+float FindSpeed(PlayerClient* pSpawn)
 {
-	SPAWNINFO* pMount = nullptr;
+	PlayerClient* pMount = nullptr;
 	float fRunSpeed = 0;
 	pMount = FindMount(pSpawn);
 
@@ -1741,7 +1743,7 @@ void ClearSearchSpawn(MQSpawnSearch* pSearchSpawn)
 // Function:    DistanceToPoint
 // Description: Return the distance between a spawn and the specified point
 // ***************************************************************************
-float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc)
+float DistanceToPoint(PlayerClient* pSpawn, float xLoc, float yLoc)
 {
 	if (pSpawn != nullptr)
 	{
@@ -1757,7 +1759,7 @@ float DistanceToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc)
 // Function:    Distance3DToPoint
 // Description: Return the distance between a spawn and the specified point
 // ***************************************************************************
-float Distance3DToPoint(SPAWNINFO* pSpawn, float xLoc, float yLoc, float zLoc)
+float Distance3DToPoint(PlayerClient* pSpawn, float xLoc, float yLoc, float zLoc)
 {
 	if (pSpawn != nullptr)
 	{
@@ -2552,9 +2554,9 @@ int GetAAIndexByID(int ID)
 	return 0;
 }
 
-bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
+bool IsPCNear(PlayerClient* pSpawn, float Radius)
 {
-	SPAWNINFO* pClose = pSpawnList;
+	PlayerClient* pClose = pSpawnList;
 	while (pClose)
 	{
 		if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
@@ -2570,7 +2572,7 @@ bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 /*
  * Returns group member including self
  */
-bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse /* = false */)
+bool IsInGroup(PlayerClient* pSpawn, bool bCorpse /* = false */)
 {
 	if (pSpawn == nullptr)
 		return false;
@@ -2608,7 +2610,7 @@ bool IsInGroup(SPAWNINFO* pSpawn, bool bCorpse /* = false */)
 	return false;
 }
 
-bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
+bool IsInRaid(PlayerClient* pSpawn, bool bCorpse)
 {
 	if (pSpawn == nullptr)
 		return false;
@@ -2645,7 +2647,7 @@ bool IsInRaid(SPAWNINFO* pSpawn, bool bCorpse)
 	return false;
 }
 
-bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
+bool IsInFellowship(PlayerClient* pSpawn, bool bCorpse)
 {
 	if (pSpawn == nullptr)
 		return false;
@@ -2681,7 +2683,7 @@ bool IsInFellowship(SPAWNINFO* pSpawn, bool bCorpse)
 	return false;
 }
 
-bool IsNamed(SPAWNINFO* pSpawn)
+bool IsNamed(PlayerClient* pSpawn)
 {
 	if (pSpawn)
 	{
@@ -2953,7 +2955,7 @@ char* FormatSearchSpawn(char* Buffer, size_t BufferSize, MQSpawnSearch* pSearchS
 	return Buffer;
 }
 
-SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOrigin, bool IncludeOrigin)
+PlayerClient* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, PlayerClient* pOrigin, bool IncludeOrigin)
 {
 	if (!pSearchSpawn || Nth == 0 || !pOrigin)
 		return nullptr;
@@ -2963,7 +2965,7 @@ SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOri
 
 	for (const MQSpawnArrayItem& item : gSpawnsArray)
 	{
-		SPAWNINFO* pSpawn = item.GetSpawn();
+		PlayerClient* pSpawn = item.GetSpawn();
 
 		if (!IncludeOrigin && pSpawn == pOrigin)
 			continue;
@@ -2990,13 +2992,13 @@ SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOri
 	return spawnSet[Nth - 1].GetSpawn();
 }
 
-int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool IncludeOrigin)
+int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, PlayerClient* pOrigin, bool IncludeOrigin)
 {
 	if (!pSearchSpawn || !pOrigin)
 		return 0;
 
 	int TotalMatching = 0;
-	SPAWNINFO* pSpawn = pSpawnList;
+	PlayerClient* pSpawn = pSpawnList;
 
 	if (IncludeOrigin)
 	{
@@ -3024,9 +3026,9 @@ int CountMatchingSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pOrigin, bool In
 	return TotalMatching;
 }
 
-SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
+PlayerClient* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, PlayerClient* pChar)
 {
-	SPAWNINFO* pFromSpawn = nullptr;
+	PlayerClient* pFromSpawn = nullptr;
 
 	if (pSearchSpawn->FromSpawnID > 0 && (pSearchSpawn->bTargNext || pSearchSpawn->bTargPrev))
 	{
@@ -3043,7 +3045,7 @@ SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 					index--;
 					for (; index >= 0; index--)
 					{
-						SPAWNINFO* pPrevSpawn = gSpawnsArray[index].GetSpawn();
+						PlayerClient* pPrevSpawn = gSpawnsArray[index].GetSpawn();
 
 						if (pPrevSpawn
 							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, pPrevSpawn))
@@ -3057,7 +3059,7 @@ SPAWNINFO* SearchThroughSpawns(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar)
 					index++;
 					for (; index < (int)gSpawnsArray.size(); index++)
 					{
-						SPAWNINFO* pNextSpawn = gSpawnsArray[index].GetSpawn();
+						PlayerClient* pNextSpawn = gSpawnsArray[index].GetSpawn();
 
 						if (pNextSpawn
 							&& SpawnMatchesSearch(pSearchSpawn, pFromSpawn, pNextSpawn))
@@ -3190,7 +3192,7 @@ bool SearchSpawnMatchesSearchSpawn(MQSpawnSearch* pSearchSpawn1, MQSpawnSearch* 
 	return true;
 }
 
-bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, PlayerClient* pChar, PlayerClient* pSpawn)
 {
 	if (pSearchSpawn == nullptr || pChar == nullptr || pSpawn == nullptr || !pLocalPC)
 		return false;
@@ -3204,7 +3206,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 
 		if (pSearchSpawn->SpawnType == NPCPET || pSearchSpawn->SpawnType == PCPET || pSearchSpawn->SpawnType == NPC)
 		{
-			if (SPAWNINFO* pTheMaster = GetSpawnByID(pSpawn->MasterID))
+			if (PlayerClient* pTheMaster = GetSpawnByID(pSpawn->MasterID))
 			{
 				if (pTheMaster->Type != SPAWN_PLAYER)
 				{
@@ -3355,7 +3357,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 				&& xts.XTargetSlotStatus != eXTSlotEmpty
 				&& xts.SpawnID != 0)
 			{
-				SPAWNINFO* pXTargetSpawn = GetSpawnByID(xts.SpawnID);
+				PlayerClient* pXTargetSpawn = GetSpawnByID(xts.SpawnID);
 				if (pXTargetSpawn != nullptr
 					&& pXTargetSpawn->SpawnID == pSpawn->SpawnID)
 				{
@@ -3871,12 +3873,12 @@ void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 	}
 }
 
-bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
+bool GetClosestAlert(PlayerClient* pChar, uint32_t id)
 {
 	if (!pSpawnManager) return false;
 	if (!pSpawnList) return false;
 
-	SPAWNINFO* pClosest = nullptr;
+	PlayerClient* pClosest = nullptr;
 
 	float ClosestDistance = 50000.0f;
 
@@ -3885,7 +3887,7 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 	{
 		for (auto& s : search)
 		{
-			if (SPAWNINFO* pSpawn = SearchThroughSpawns(&s, pChar))
+			if (PlayerClient* pSpawn = SearchThroughSpawns(&s, pChar))
 			{
 				const float SpawnDistance = Distance3DToSpawn(pChar, pSpawn);
 				if (SpawnDistance < ClosestDistance)
@@ -3900,7 +3902,7 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 	return pClosest != nullptr;
 }
 
-bool IsAlert(SPAWNINFO* pChar, SPAWNINFO* pSpawn, uint32_t id)
+bool IsAlert(PlayerClient* pChar, PlayerClient* pSpawn, uint32_t id)
 {
 	if (pSpawn == nullptr)
 		return false;
@@ -4062,7 +4064,7 @@ char* CleanupName(char* szName, size_t BufferSize, bool Article, bool ForWhoList
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
-void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
+void SuperWhoDisplay(PlayerClient* pSpawn, DWORD Color)
 {
 	if (pSpawn == nullptr)
 		return;
@@ -4302,13 +4304,13 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 
 struct SuperWhoSortPredicate
 {
-	SuperWhoSortPredicate(SearchSortBy sortBy, SPAWNINFO* pSeachOrigin)
+	SuperWhoSortPredicate(SearchSortBy sortBy, PlayerClient* pSeachOrigin)
 		: m_sortBy(sortBy)
 		, m_pOrigin(pSeachOrigin)
 	{
 	}
 
-	bool operator()(SPAWNINFO* SpawnA, SPAWNINFO* SpawnB)
+	bool operator()(PlayerClient* SpawnA, PlayerClient* SpawnB)
 	{
 		switch (m_sortBy)
 		{
@@ -4355,18 +4357,18 @@ struct SuperWhoSortPredicate
 
 private:
 	SearchSortBy m_sortBy;
-	SPAWNINFO* m_pOrigin;
+	PlayerClient* m_pOrigin;
 };
 
-void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
+void SuperWhoDisplay(PlayerClient* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 {
 	if (!pSearchSpawn)
 		return;
 
-	std::vector<SPAWNINFO*> SpawnSet;
+	std::vector<PlayerClient*> SpawnSet;
 
-	SPAWNINFO* pSpawn = pSpawnList;
-	SPAWNINFO* pOrigin = nullptr;
+	PlayerClient* pSpawn = pSpawnList;
+	PlayerClient* pOrigin = nullptr;
 
 	if (pSearchSpawn->FromSpawnID)
 		pOrigin = GetSpawnByID(pSearchSpawn->FromSpawnID);
@@ -4396,7 +4398,7 @@ void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color)
 		WriteChatColor("List of matching spawns", USERCOLOR_WHO);
 		WriteChatColor("--------------------------------", USERCOLOR_WHO);
 
-		for (SPAWNINFO* spawn : SpawnSet)
+		for (PlayerClient* spawn : SpawnSet)
 		{
 			SuperWhoDisplay(spawn, Color);
 		}
@@ -4631,7 +4633,7 @@ int GetWorldState()
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
 // ***************************************************************************
-bool LargerEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bTriggeredEffectCheck)
+bool LargerEffectTest(EQ_Spell* aSpell, EQ_Spell* bSpell, int i, bool bTriggeredEffectCheck)
 {
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : SPA_NOSPELL;
 	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : SPA_NOSPELL;
@@ -4645,7 +4647,7 @@ bool LargerEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bTriggeredEffect
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
 // ***************************************************************************
-bool TriggeringEffectSpell(SPELL* aSpell, int i)
+bool TriggeringEffectSpell(EQ_Spell* aSpell, int i)
 {
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
 	return (aAttrib == SPA_MELEE_PROC      // Add Proc
@@ -4658,7 +4660,7 @@ bool TriggeringEffectSpell(SPELL* aSpell, int i)
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
 // ***************************************************************************
-bool SpellEffectTest(SPELL* aSpell, SPELL* bSpell, int i, bool bIgnoreTriggeringEffects, bool bTriggeredEffectCheck = false)
+bool SpellEffectTest(EQ_Spell* aSpell, EQ_Spell* bSpell, int i, bool bIgnoreTriggeringEffects, bool bTriggeredEffectCheck = false)
 {
 	int aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
 	int bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
@@ -4716,7 +4718,7 @@ inline void StackingDebugLog(const char* string, Args&& ...args)
 //                ${Spell[xxx].WillStack[yyy]}, ${Spell[xxx].StacksWith[yyy]}
 // Author:      Pinkfloydx33
 // ***************************************************************************
-bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, bool bTriggeredEffectCheck)
+bool BuffStackTest(EQ_Spell* aSpell, EQ_Spell* bSpell, bool bIgnoreTriggeringEffects, bool bTriggeredEffectCheck)
 {
 	if (!pLocalPlayer)
 		return true;
@@ -4767,8 +4769,8 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
 
 		if (bTriggerA || bTriggerB)
 		{
-			SPELL* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == SPA_TRIGGER_SPELL ? (int)aBase2 : (int)aBase) : aSpell->ID);
-			SPELL* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == SPA_TRIGGER_SPELL ? (int)bBase2 : (int)bBase) : bSpell->ID);
+			EQ_Spell* pRetSpellA = GetSpellByID(bTriggerA ? (aAttrib == SPA_TRIGGER_SPELL ? (int)aBase2 : (int)aBase) : aSpell->ID);
+			EQ_Spell* pRetSpellB = GetSpellByID(bTriggerB ? (bAttrib == SPA_TRIGGER_SPELL ? (int)bBase2 : (int)bBase) : bSpell->ID);
 
 			if (!pRetSpellA || !pRetSpellB)
 			{
@@ -4946,7 +4948,7 @@ uint32_t GetSpellGemTimer2(int nGem)
 	if (bValidSlot)
 	{
 		int memspell = GetMemorizedSpell(nGem);
-		if (SPELL* pSpell = GetSpellByID(memspell))
+		if (EQ_Spell* pSpell = GetSpellByID(memspell))
 		{
 			int ReuseTimerIndex = pSpell->ReuseTimerIndex;
 			unsigned int linkedtimer = pLocalPC->GetLinkedSpellReuseTimer(ReuseTimerIndex);
@@ -6684,7 +6686,7 @@ int GetCharMaxLevel()
 }
 
 
-int GetBodyType(SPAWNINFO* pSpawn)
+int GetBodyType(PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr && pSpawn->BodyType != nullptr)
 	{
@@ -6709,7 +6711,7 @@ int GetBodyType(SPAWNINFO* pSpawn)
 	return 0;
 }
 
-eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
+eSpawnType GetSpawnType(PlayerClient* pSpawn)
 {
 	if (pSpawn == nullptr)
 		return NONE;
@@ -6832,7 +6834,7 @@ int GetRaidMemberIndex(const char* SpawnName)
 	return -1;
 }
 
-bool IsRaidMember(SPAWNINFO* pSpawn)
+bool IsRaidMember(PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
@@ -6846,7 +6848,7 @@ bool IsRaidMember(SPAWNINFO* pSpawn)
 	return false;
 }
 
-int GetRaidMemberIndex(SPAWNINFO* pSpawn)
+int GetRaidMemberIndex(PlayerClient* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
@@ -6885,7 +6887,7 @@ bool IsGroupMember(const char* SpawnName)
 /*
  * Returns Group Member that is not self
  */
-bool IsGroupMember(SPAWNINFO* pSpawn)
+bool IsGroupMember(PlayerClient* pSpawn)
 {
 	if (!pLocalPC || !pLocalPC->Group)
 		return false;
@@ -6909,7 +6911,7 @@ bool IsGroupMember(SPAWNINFO* pSpawn)
 
 bool IsFellowshipMember(const char* SpawnName)
 {
-	SPAWNINFO* pSpawn = pLocalPlayer;
+	PlayerClient* pSpawn = pLocalPlayer;
 	if (!pSpawn)
 		return false;
 
@@ -6953,12 +6955,12 @@ int GetGroupMercenaryCount(uint32_t ClassMASK)
 	return count;
 }
 
-SPAWNINFO* GetRaidMember(int index)
+PlayerClient* GetRaidMember(int index)
 {
 	if (index >= MAX_RAID_SIZE)
 		return nullptr;
 
-	EQRAIDMEMBER* pRaidMember = &pRaid->RaidMember[index];
+	RaidMember* pRaidMember = &pRaid->RaidMember[index];
 
 	if (!pRaidMember)
 		return nullptr;
@@ -6966,7 +6968,7 @@ SPAWNINFO* GetRaidMember(int index)
 	return GetSpawnByName(pRaidMember->Name);
 }
 
-inline SPAWNINFO* GetGroupMember(int index)
+inline PlayerClient* GetGroupMember(int index)
 {
 	if (index >= MAX_GROUP_SIZE || index <= 0)
 		return nullptr;
@@ -7011,7 +7013,7 @@ uint32_t GetRaidMarkedTargetID(int index)
 	return pLocalPlayer->RaidMarkNPC[index];
 }
 
-void DoFace(SPAWNINFO* pChar, CVector3 Position)
+void DoFace(PlayerClient* pChar, const CVector3& Position)
 {
 	gFaceAngle = atan2(Position.X - pChar->X, Position.Y - pChar->Y) * 256.f / PI;
 
@@ -7287,7 +7289,7 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 	}
 }
 
-bool HasBuffCastByPlayer(SPAWNINFO* pBuffOwner, const char* szBuffName, const char* casterName)
+bool HasBuffCastByPlayer(PlayerClient* pBuffOwner, const char* szBuffName, const char* casterName)
 {
 	auto predicate = [szBuffName, casterName](const CachedBuff& buff)
 	{
@@ -7362,7 +7364,7 @@ MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn)
 	return MQGameObject();
 }
 
-MQGameObject ToGameObject(const SPAWNINFO* pSpawn)
+MQGameObject ToGameObject(const PlayerClient* pSpawn)
 {
 	MQGameObject temp;
 

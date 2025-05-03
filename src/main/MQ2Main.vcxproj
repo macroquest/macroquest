@@ -593,11 +593,11 @@
     <ClInclude Include="..\..\include\mq\base\Config.h" />
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
+    <ClInclude Include="..\..\include\mq\base\HotKeys.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
     <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
-    <ClInclude Include="..\..\include\mq\base\SimpleLexer.h" />
     <ClInclude Include="..\..\include\mq\base\String.h" />
     <ClInclude Include="..\..\include\mq\base\Threading.h" />
     <ClInclude Include="..\..\include\mq\base\Vector.h" />
@@ -613,11 +613,7 @@
     <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
     <ClInclude Include="..\..\include\mq\utils\OS.h" />
-    <ClInclude Include="..\common\Common.h" />
-    <ClInclude Include="..\common\ConfigUtils.h" />
-    <ClInclude Include="..\common\HotKeys.h" />
-    <ClInclude Include="..\common\MiscUtils.h" />
-    <ClInclude Include="..\common\StringUtils.h" />
+    <ClInclude Include="..\..\include\mq\utils\SimpleLexer.h" />
     <ClInclude Include="datatypes\DataTypeList.h" />
     <ClInclude Include="datatypes\MQ2DataTypes.h" />
     <ClInclude Include="CrashHandler.h" />
@@ -641,7 +637,6 @@
     <ClInclude Include="MQ2Main.h" />
     <ClInclude Include="MQ2MainBase.h" />
     <ClInclude Include="MQ2Mercenaries.h" />
-    <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
     <ClInclude Include="MQDetourAPI.h" />

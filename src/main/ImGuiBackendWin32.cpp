@@ -96,7 +96,6 @@
 
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
-#include "../common/Common.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

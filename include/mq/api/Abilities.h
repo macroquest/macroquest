@@ -38,9 +38,7 @@ namespace mq {
  **/
 inline int GetAdjustedSkill(int nSkill)
 {
-	using namespace eqlib;
-
-	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetAdjustedSkill(nSkill) : 0;
 }
 
 /**
@@ -57,9 +55,7 @@ inline int GetAdjustedSkill(int nSkill)
  **/
 inline int GetBaseSkill(int nSkill)
 {
-	using namespace eqlib;
-
-	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetBaseSkill(nSkill) : 0;
 }
 
 /**
@@ -76,9 +72,7 @@ inline int GetBaseSkill(int nSkill)
  **/
 inline bool HasSkill(int nSkill)
 {
-	using namespace eqlib;
-
-	return pLocalPC && pLocalPC->HasSkill(nSkill);
+	return eqlib::pLocalPC && eqlib::pLocalPC->HasSkill(nSkill);
 }
 
 /**
@@ -95,9 +89,9 @@ inline bool HasSkill(int nSkill)
  **/
 inline bool SkillIsActivatable(int nSkill)
 {
-	using namespace eqlib;
-
-	return nSkill < NUM_SKILLS && pSkillMgr && pSkillMgr->pSkill[nSkill]->Activated;
+	return nSkill < eqlib::NUM_SKILLS
+		&& eqlib::pSkillMgr
+		&& eqlib::pSkillMgr->pSkill[nSkill]->Activated;
 }
 
 /**

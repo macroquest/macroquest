@@ -23,6 +23,8 @@
 #include <detours/detours.h>
 #include <TlHelp32.h>
 
+using namespace eqlib;
+
 namespace mq {
 
 bool gbDoingSpellChecks = false;
@@ -109,7 +111,7 @@ public:
 //	if (!address) return;
 //	int Assistee = *(int*)address;
 //
-//	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+//	if (PlayerClient* pSpawn = GetSpawnByID(Assistee))
 //	{
 //		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
 //		gbAssistComplete = AS_AssistSent;

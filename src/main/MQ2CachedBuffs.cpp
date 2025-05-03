@@ -17,6 +17,8 @@
 
 #include <optional>
 
+using namespace eqlib;
+
 namespace mq {
 
 class SpawnBuffs
@@ -149,7 +151,7 @@ public:
 	}
 };
 
-std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
+std::optional<CachedBuff> GetCachedBuffAtSlot(PlayerClient* pSpawn, int slot)
 {
 	if (pSpawn)
 	{
@@ -163,7 +165,7 @@ std::optional<CachedBuff> GetCachedBuffAtSlot(SPAWNINFO* pSpawn, int slot)
 	return std::nullopt;
 }
 
-int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+int GetCachedBuff(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -178,7 +180,7 @@ int GetCachedBuff(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)
 	return -1;
 }
 
-int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
+int GetCachedBuffAt(PlayerClient* pSpawn, size_t index)
 {
 	if (pSpawn)
 	{
@@ -193,7 +195,7 @@ int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index)
 	return -1;
 }
 
-int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
+int GetCachedBuffAt(PlayerClient* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -205,7 +207,7 @@ int GetCachedBuffAt(SPAWNINFO* pSpawn, size_t index, const std::function<bool(co
 	return -1;
 }
 
-std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+std::vector<CachedBuff> FilterCachedBuffs(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -219,7 +221,7 @@ std::vector<CachedBuff> FilterCachedBuffs(SPAWNINFO* pSpawn, const std::function
 	return {};
 }
 
-DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+DWORD GetCachedBuffCount(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
 {
 	if (pSpawn)
 	{
@@ -234,7 +236,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn, const std::function<bool(const Cache
 	return 0U;
 }
 
-DWORD GetCachedBuffCount(SPAWNINFO* pSpawn)
+DWORD GetCachedBuffCount(PlayerClient* pSpawn)
 {
 	if (pSpawn)
 	{
@@ -249,7 +251,7 @@ DWORD GetCachedBuffCount(SPAWNINFO* pSpawn)
 	return 0U;
 }
 
-void ClearCachedBuffsSpawn(SPAWNINFO* pSpawn)
+void ClearCachedBuffsSpawn(PlayerClient* pSpawn)
 {
 	if (pSpawn)
 	{

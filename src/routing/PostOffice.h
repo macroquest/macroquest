@@ -72,11 +72,8 @@ class Dropbox
 	friend class PostOffice;
 
 public:
-	Dropbox()
-		: m_valid(false)
-	{}
-
-	~Dropbox() {}
+	Dropbox() = default;
+	~Dropbox() = default;
 
 	Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister);
 	Dropbox(const Dropbox& other);
@@ -203,7 +200,7 @@ private:
 	std::string m_localAddress;
 	PostCallback m_post;
 	DropboxDropper m_unregister;
-	bool m_valid;
+	bool m_valid = false;
 };
 
 
@@ -222,7 +219,7 @@ private:
 class PostOffice
 {
 public:
-	~PostOffice() {}
+	virtual ~PostOffice() {}
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation

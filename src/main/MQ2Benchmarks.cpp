@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
@@ -100,7 +102,7 @@ bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 	return false;
 }
 
-void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
+void Cmd_DumpBenchmarks(PlayerClient* pChar, char* szLine)
 {
 	if (szLine && szLine[0] == '/')
 	{

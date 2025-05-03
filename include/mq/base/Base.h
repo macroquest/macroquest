@@ -14,20 +14,23 @@
 
 #pragma once
 
-namespace mq {
+#define STRINGIFY_IMPL(x) #x
+#define STRINGIFY(x) STRINGIFY_IMPL(x)
 
-struct MQGroundSpawn;
+#ifndef UNUSED
+#define UNUSED(x) ((void)(x))
+#endif
 
-using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
+#if _M_AMD64
+#define FORCE_SYMBOL_REFERENCE(x) __pragma(comment (linker, "/export:" #x))
+#else
+#define FORCE_SYMBOL_REFERENCE(x) __pragma(comment (linker, "/export:_" #x))
+#endif
 
-// MQ2 Callback types
-using fMQCommand             = void   (*)(PlayerClient*, char* Buffer, size_t BuffLen);
-using fCascadeItemFunction   = void   (*)();
-struct TokenTextParam;
-using fMQTokenMessageCmd     = void   (*)(const TokenTextParam&);
+constexpr int MAX_STRING = 2048;
 
-
-// Misc Function types
-using fEQW_GetDisplayWindow  = HWND(CALLBACK*)();
-
-} // namespace mq
+template <typename T, size_t N>
+constexpr size_t lengthof(const T(&)[N])
+{
+	return N;
+}

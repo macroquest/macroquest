@@ -17,18 +17,19 @@
 #include "MQ2DeveloperTools.h"
 #include "MQ2ImGuiTools.h"
 #include "ImGuiManager.h"
-#include "mq/zep/ImGuiZepEditor.h"
-#include "mq/zep/ImGuiZepConsole.h"
-#include "mq/imgui/MQConsoleDelegate.h"
-#include "zep.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
+#include "imgui/imgui_internal.h"
 #include "mq/imgui/ConsoleWidget.h"
-
-#include <imgui/imgui_internal.h>
+#include "mq/imgui/MQConsoleDelegate.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "mq/zep/ImGuiZepConsole.h"
+#include "zep.h"
 
 #include <optional>
 #include "sqlite3.h"
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -985,7 +986,7 @@ void UpdateImGuiConsole()
 	}
 }
 
-void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
+void MQConsoleCommand(PlayerClient* pChar, char* Line)
 {
 	char szCommand[MAX_STRING] = { 0 };
 	GetArg(szCommand, Line, 1);

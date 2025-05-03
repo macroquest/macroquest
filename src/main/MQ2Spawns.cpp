@@ -17,6 +17,8 @@
 #include "MQDataAPI.h"
 #include "MQPluginHandler.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 static void Spawns_Initialize();

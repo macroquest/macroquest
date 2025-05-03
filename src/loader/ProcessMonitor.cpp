@@ -15,6 +15,8 @@
 #include "MacroQuest.h"
 #include "ProcessMonitor.h"
 
+#include "mq/base/String.h"
+
 #include <comutil.h>
 #include <fmt/os.h>
 #include <wrl.h>
@@ -22,6 +24,7 @@
 #include <wil/resource.h>
 #include <spdlog/spdlog.h>
 #include <chrono>
+#include <memory>
 
 using namespace std::chrono_literals;
 
@@ -340,7 +343,7 @@ void ToolHelpProcessMonitor::ThreadProc()
 			{
 				do
 				{
-					if (ci_equals(proc.szExeFile, "eqgame.exe"))
+					if (mq::ci_equals(proc.szExeFile, "eqgame.exe"))
 					{
 						processList.push_back(proc.th32ProcessID);
 					}

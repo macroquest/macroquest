@@ -52,6 +52,25 @@ using MQCommandHandler = std::function<void(eqlib::PlayerClient* pChar, const ch
 bool AddCommand(std::string_view command, MQCommandHandler handler, bool eq = false, bool parse = true, bool inGame = false);
 
 /**
+ * Adds a new chat command. If the command conflicts with an existing EverQuest command, then
+ * this command will take precedence. If the ocmmand conflicts with another MacroQuest command,
+ * then this call will fail.
+ *
+ * @param command The name of the command to register, including a leading forward slash, e.g. "/hello"
+ * @param handler The function that will be call when the command is executed.
+ * @param eq If true, the handler is ignored and the command will be forwarded to EQ.
+ * @param parse If true, any macro expressions will be parsed before passing the text to the handler.
+ * @param inGame If true, the command will only be registered while in the game world.
+ * @return True if the command is successfully added.
+ */
+inline bool AddCommand(std::string_view command, const std::function<void(const char* szLine)>& handler, bool eq = false, bool parse = true, bool inGame = false)
+{
+	return AddCommand(command, [handler](eqlib::PlayerClient*, const char* szLine) {
+		handler(szLine);
+	}, eq, parse, inGame);
+}
+
+/**
  * Remove a previously registered chat command.
  *
  * @param command The name of the command to remove, including leading forward slash, e.g. "/hello"

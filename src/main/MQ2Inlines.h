@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include "../common/Common.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
+#include "mq/base/Utility.h"
 
 #include "mq/api/Spawns.h"
 #include "mq/api/Abilities.h"
@@ -34,49 +36,49 @@ namespace mq {
 
 MQLIB_API char* CleanupName(char* szName, size_t BufferSize, bool Article = true, bool ForWhoList = true);
 
-inline PcClient* GetCharInfo()
+inline eqlib::PcClient* GetCharInfo()
 {
 	// FYI: pPCData and pCharData point to the same address as pLocalPC
-	return pLocalPC;
+	return eqlib::pLocalPC;
 }
 
-inline PcProfile* GetPcProfile()
+inline eqlib::PcProfile* GetPcProfile()
 {
-	return pLocalPC ? pLocalPC->GetCurrentPcProfile() : nullptr;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetCurrentPcProfile() : nullptr;
 }
 
 DEPRECATE("Use GetPcProfile instead of GetCharInfo2()")
-inline PcProfile* GetCharInfo2()
+inline eqlib::PcProfile* GetCharInfo2()
 {
 	return GetPcProfile();
 }
 
-inline PlayerClient* GetSpawnByID(DWORD dwSpawnID)
+inline eqlib::PlayerClient* GetSpawnByID(DWORD dwSpawnID)
 {
-	return pSpawnManager->GetSpawnByID(dwSpawnID);
+	return eqlib::pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
-inline PlayerClient* GetSpawnByName(const char* spawnName)
+inline eqlib::PlayerClient* GetSpawnByName(const char* spawnName)
 {
-	return pSpawnManager->GetSpawnByName(spawnName);
+	return eqlib::pSpawnManager->GetSpawnByName(spawnName);
 }
 
-inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* exclusion = nullptr)
+inline eqlib::PlayerClient* GetSpawnByPartialName(char const* spawnName, eqlib::PlayerBase* exclusion = nullptr)
 {
-	return pSpawnManager->GetPlayerFromPartialName(spawnName, exclusion);
+	return eqlib::pSpawnManager->GetPlayerFromPartialName(spawnName, exclusion);
 }
 
-inline EQ_Spell* GetSpellByID(int spellID)
+inline eqlib::EQ_Spell* GetSpellByID(int spellID)
 {
-	if (!pSpellMgr || spellID <= 0 || spellID >= pSpellMgr->GetMaxSpellID())
+	if (!eqlib::pSpellMgr || spellID <= 0 || spellID >= eqlib::pSpellMgr->GetMaxSpellID())
 		return nullptr;
 
-	return pSpellMgr->GetSpellByID(spellID);
+	return eqlib::pSpellMgr->GetSpellByID(spellID);
 }
 
 inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)
 {
-	if (BodyTypeID < CharacterProperty_Last && BodyTypeID >= CharacterProperty_None)
+	if (BodyTypeID < eqlib::CharacterProperty_Last && BodyTypeID >= eqlib::CharacterProperty_None)
 		return szBodyType[BodyTypeID];
 
 	return "*UNKNOWN BODYTYPE";
@@ -84,6 +86,8 @@ inline const char* GetBodyTypeDesc(uint32_t BodyTypeID)
 
 inline const char* GetClassDesc(int ClassID)
 {
+	using namespace eqlib;
+
 	switch (ClassID)
 	{
 	case Class_Adventure:
@@ -172,76 +176,76 @@ inline const char* GetTypeDesc(eSpawnType TypeID)
 
 inline int GetEnduranceRegen()
 {
-	return pLocalPC ? pLocalPC->GetEnduranceRegen(true, false) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetEnduranceRegen(true, false) : 0;
 }
 
 inline int GetHPRegen()
 {
 	// the client sets it to true on return if we are bleeding.
 	bool bBleed = false;
-	return pLocalPC ? pLocalPC->GetHPRegen(true, &bBleed, false) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetHPRegen(true, &bBleed, false) : 0;
 }
 
 inline int GetManaRegen()
 {
-	return pLocalPC ? pLocalPC->GetManaRegen(true, false) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetManaRegen(true, false) : 0;
 }
 
 inline int GetCurMana()
 {
-	return pLocalPC ? pLocalPC->Cur_Mana(true) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->Cur_Mana(true) : 0;
 }
 
 inline int GetCurHPS()
 {
-	return pLocalPC ? pLocalPC->Cur_HP(0) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->Cur_HP(0) : 0;
 }
 
 inline int GetMaxHPS()
 {
-	return pLocalPC ? pLocalPC->Max_HP(0) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->Max_HP(0) : 0;
 }
 
 inline int GetMaxEndurance()
 {
-	return pLocalPC ? pLocalPC->Max_Endurance() : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->Max_Endurance() : 0;
 }
 
 inline int GetCurEndurance()
 {
-	PcProfile* pProfile = GetPcProfile();
+	eqlib::PcProfile* pProfile = GetPcProfile();
 	return pProfile ? pProfile->Endurance : 0;
 }
 
 inline int GetMaxMana()
 {
-	return pLocalPC ? pLocalPC->Max_Mana() : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->Max_Mana() : 0;
 }
 
 inline int GetModCap(int index, bool bToggle = false)
 {
-	return pLocalPC ? pLocalPC->GetModCap(index, bToggle) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetModCap(index, bToggle) : 0;
 }
 
-inline const int GetCastingTimeModifier(const EQ_Spell* cSpell)
+inline int GetCastingTimeModifier(const eqlib::EQ_Spell* cSpell)
 {
-	return pLocalPC ? pLocalPC->GetCastingTimeModifier(cSpell) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetCastingTimeModifier(cSpell) : 0;
 }
 
-inline int GetFocusCastingTimeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut, bool bEvalOnly)
+inline int GetFocusCastingTimeModifier(const eqlib::EQ_Spell* pSpell, eqlib::ItemPtr& pItemOut, bool bEvalOnly)
 {
-	return pLocalPC ? pLocalPC->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetFocusCastingTimeModifier(pSpell, pItemOut, bEvalOnly) : 0;
 }
 
-inline int GetFocusRangeModifier(const EQ_Spell* pSpell, ItemPtr& pItemOut)
+inline int GetFocusRangeModifier(const eqlib::EQ_Spell* pSpell, eqlib::ItemPtr& pItemOut)
 {
-	return pLocalPC ? pLocalPC->GetFocusRangeModifier(pSpell, pItemOut) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetFocusRangeModifier(pSpell, pItemOut) : 0;
 }
 
 inline float GetDistance(float X1, float Y1)
 {
-	float dX = X1 - pControlledPlayer->X;
-	float dY = Y1 - pControlledPlayer->Y;
+	float dX = X1 - eqlib::pControlledPlayer->X;
+	float dY = Y1 - eqlib::pControlledPlayer->Y;
 	return sqrtf(dX * dX + dY * dY);
 }
 
@@ -271,14 +275,14 @@ inline float GetDistance3D(float X1, float Y1, float Z1, float X2, float Y2, flo
 // Function:    DistanceToSpawn
 // Description: Return the distance between two spawns
 // ***************************************************************************
-inline float GetDistance(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline float GetDistance(eqlib::PlayerClient* pChar, eqlib::PlayerClient* pSpawn)
 {
 	float X = pChar->X - pSpawn->X;
 	float Y = pChar->Y - pSpawn->Y;
 	return sqrtf(X * X + Y * Y);
 }
 
-inline float GetDistanceSquared(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline float GetDistanceSquared(eqlib::PlayerClient* pChar, eqlib::PlayerClient* pSpawn)
 {
 	float X = pChar->X - pSpawn->X;
 	float Y = pChar->Y - pSpawn->Y;
@@ -301,7 +305,7 @@ inline float Get3DDistanceSquared(float X1, float Y1, float Z1, float X2, float 
 	return dX * dX + dY * dY + dZ * dZ;
 }
 
-inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline float DistanceToSpawn(eqlib::PlayerClient* pChar, eqlib::PlayerClient* pSpawn)
 {
 	return GetDistance(pChar, pSpawn);
 }
@@ -339,10 +343,10 @@ inline bool _FileExists(const char* filename)
 }
 
 // ***************************************************************************
-// FindMount(SPAWNINFO*) - Used to find the mount of a spawn, if one
-//                         exists. returns the spawn if one does not.
+// FindMount(PlayerClient*) - Used to find the mount of a spawn, if one
+//                            exists. returns the spawn if one does not.
 // ***************************************************************************
-inline SPAWNINFO* FindMount(SPAWNINFO* pSpawn)
+inline eqlib::PlayerClient* FindMount(eqlib::PlayerClient* pSpawn)
 {
 	return (pSpawn->Mount ? pSpawn->Mount : pSpawn);
 }
@@ -393,7 +397,7 @@ inline bool IsNumberToComma(const char* String)
 	return true;
 }
 
-inline bool LineOfSight(SPAWNINFO* Origin, const CVector3& position)
+inline bool LineOfSight(eqlib::PlayerClient* Origin, const eqlib::CVector3& position)
 {
 	if (!Origin)
 		return false;
@@ -401,7 +405,7 @@ inline bool LineOfSight(SPAWNINFO* Origin, const CVector3& position)
 	return Origin->CanSee(position);
 }
 
-inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)
+inline bool LineOfSight(eqlib::PlayerClient* Origin, eqlib::PlayerClient* CanISeeThis)
 {
 	if (!Origin || !CanISeeThis)
 		return false;
@@ -409,7 +413,7 @@ inline bool LineOfSight(SPAWNINFO* Origin, SPAWNINFO* CanISeeThis)
 	return Origin->CanSee(*CanISeeThis);
 }
 
-inline bool IsMobFleeing(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline bool IsMobFleeing(eqlib::PlayerClient* pChar, eqlib::PlayerClient* pSpawn)
 {
 	float HeadingTo = (float)(atan2f(pChar->Y - pSpawn->Y, pSpawn->X - pChar->X) * 180.0f / PI + 90.0f);
 	float Heading = pSpawn->Heading * 0.703125f;
@@ -426,21 +430,6 @@ inline bool IsMobFleeing(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 	else return ((Heading < LB) && (Heading > UB));
 }
 
-// TODO: Move this elsewhere
-inline uintptr_t FixOffset(uintptr_t nOffset)
-{
-	return ((nOffset - EQGamePreferredAddress) + eqlib::EQGameBaseAddress);
-}
-
-inline bool endsWith(const char* base, const char* str)
-{
-	if (!base || !str)
-		return false;
-	size_t blen = strlen(base);
-	size_t slen = strlen(str);
-	return (blen >= slen) && (0 == strcmp(base + blen - slen, str));
-}
-
 // ***************************************************************************
 // Function:    MQGetTickCount64
 // Description: Returns Uptime in milliseconds. Minimum Resolution is 15ms
@@ -455,65 +444,59 @@ inline int GetMemorizedSpell(int index)
 	if (index < 0 || index > 15)
 		return -1;
 
-	return pLocalPC ? pLocalPC->GetMemorizedSpell(index) : -1;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetMemorizedSpell(index) : -1;
 }
 
-inline int GetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
+inline int GetSpellDuration(eqlib::EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
-	return pLocalPC ? pLocalPC->SpellDuration(pSpell, casterLevel, isItemEffect) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->SpellDuration(pSpell, casterLevel, isItemEffect) : 0;
 }
 
-inline int GetSpellDuration(EQ_Spell* pSpell, PlayerClient* pSpawn)
+inline int GetSpellDuration(eqlib::EQ_Spell* pSpell, eqlib::PlayerClient* pSpawn)
 {
 	return GetSpellDuration(pSpell, pSpawn ? pSpawn->Level : 0, false);
 }
 
 DEPRECATE("Use GetSpellDuration instead of EQGetSpellDuration")
-inline int EQGetSpellDuration(EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
+inline int EQGetSpellDuration(eqlib::EQ_Spell* pSpell, unsigned char casterLevel, bool isItemEffect)
 {
 	return GetSpellDuration(pSpell, casterLevel, isItemEffect);
 }
 
-inline int GetMySpellDuration(EQ_Spell* pSpell)
+inline int GetMySpellDuration(eqlib::EQ_Spell* pSpell)
 {
-	if (!pLocalPlayer)
+	if (!eqlib::pLocalPlayer)
 		return 0;
 	if (!pSpell)
 		return 0;
 
-	int origDuration = GetSpellDuration(pSpell, pLocalPlayer->Level, false);
+	int origDuration = GetSpellDuration(pSpell, eqlib::pLocalPlayer->Level, false);
 
 	int out1 = 0, out2 = 0;
-	ItemPtr pContents;
+	eqlib::ItemPtr pContents;
 
-	int durationMod = pLocalPC->GetFocusDurationMod(pSpell, pContents, pLocalPlayer, origDuration, &out1, &out2);
+	int durationMod = eqlib::pLocalPC->GetFocusDurationMod(pSpell, pContents, eqlib::pLocalPlayer, origDuration, &out1, &out2);
 
 	return origDuration + durationMod;
 }
 
-DEPRECATE("Use GetMySpellDuration instead of EQGetMySpellDuration")
-inline int EQGetMySpellDuration(EQ_Spell* pSpell)
-{
-	GetMySpellDuration(pSpell);
-}
-
-inline int GetSpellNumEffects(SPELL* pSpell)
+inline int GetSpellNumEffects(eqlib::EQ_Spell* pSpell)
 {
 	return pSpell ? pSpell->GetNumEffects() : 0;
 }
 
 inline bool IsPlayerClass(int Class)
 {
-	return Class >= Warrior && Class <= Berserker;
+	return Class >= eqlib::Warrior && Class <= eqlib::Berserker;
 }
 
 inline bool CanTank(int Class)
 {
 	switch (Class)
 	{
-	case Warrior:
-	case Shadowknight:
-	case Paladin:
+	case eqlib::Warrior:
+	case eqlib::Shadowknight:
+	case eqlib::Paladin:
 		return true;
 	}
 
@@ -535,28 +518,28 @@ inline const char* GetSpellString(int ID, int SpellIndex)
 		}
 	}
 #else
-	if (EQ_Spell* pSpell = GetSpellByID(ID))
+	if (eqlib::EQ_Spell* pSpell = GetSpellByID(ID))
 	{
 		switch (SpellIndex)
 		{
-		case SpellStringCastByMe:
+		case eqlib::SpellStringCastByMe:
 		//	if (pSpell->CastByMe[0])
 		//		return pSpell->CastByMe;
 		//	break;
 		//
-		case SpellStringCastByOther:
+		case eqlib::SpellStringCastByOther:
 		//	if (pSpell->CastByOther[0])
 		//		return pSpell->CastByOther;
 
-		case SpellStringCastOnYou:
+		case eqlib::SpellStringCastOnYou:
 		//	if (pSpell->CastOnYou[0])
 		//		return pSpell->CastOnYou;
 		//	break;
-		case SpellStringCastOnAnother:
+		case eqlib::SpellStringCastOnAnother:
 		//	if (pSpell->CastOnAnother[0])
 		//		return pSpell->CastOnAnother;
 		//	break;
-		case SpellStringWearOff:
+		case eqlib::SpellStringWearOff:
 		//	if (pSpell->WearOff[0])
 		//		return pSpell->WearOff;
 		//	break;
@@ -611,7 +594,7 @@ inline bool StringCompare(std::string_view haystack, std::string_view needle,
 }
 
 DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used like a std::string")
-inline CXStr::size_type GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
+inline eqlib::CXStr::size_type GetCXStr(eqlib::CXStr* pCXStr, char* szBuffer, uint32_t length = MAX_STRING)
 {
 	if (!szBuffer)
 		return 0;
@@ -633,14 +616,14 @@ inline CXStr::size_type GetCXStr(CXStr* pCXStr, char* szBuffer, uint32_t length 
 }
 
 DEPRECATE("GetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
-inline CXStr::size_type GetCXStr(CXStr& str, char* szBuffer, uint32_t length = MAX_STRING)
+inline eqlib::CXStr::size_type GetCXStr(eqlib::CXStr& str, char* szBuffer, uint32_t length = MAX_STRING)
 {
 #pragma warning(suppress: 4996)
 	return GetCXStr(&str, szBuffer, length);
 }
 
 DEPRECATE("SetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
-inline void SetCXStr(CXStr* pCXStr, const char* text)
+inline void SetCXStr(eqlib::CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
 	{
@@ -649,14 +632,14 @@ inline void SetCXStr(CXStr* pCXStr, const char* text)
 }
 
 DEPRECATE("SetCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
-inline void SetCXStr(CXStr& str, const char* text)
+inline void SetCXStr(eqlib::CXStr& str, const char* text)
 {
 #pragma warning(suppress: 4996)
 	return SetCXStr(&str, text);
 }
 
 DEPRECATE("AppendCXStr: This function is no longer needed. CXStr can now be used normally like a std::string")
-inline void AppendCXStr(CXStr* pCXStr, const char* text)
+inline void AppendCXStr(eqlib::CXStr* pCXStr, const char* text)
 {
 	if (pCXStr)
 	{
@@ -664,7 +647,7 @@ inline void AppendCXStr(CXStr* pCXStr, const char* text)
 	}
 }
 
-inline bool IsEvolvingItem(ItemClient* pContents)
+inline bool IsEvolvingItem(eqlib::ItemClient* pContents)
 {
 	return pContents->pEvolutionData != nullptr;
 }

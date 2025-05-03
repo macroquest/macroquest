@@ -24,6 +24,7 @@
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
 #include "GraphicsResources.h"
+
 #include "eqlib/Logging.h"
 #include "eqlib/Startup.h"
 #include "mq/base/Logging.h"
@@ -87,7 +88,9 @@
 #endif
 
 namespace fs = std::filesystem;
+
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 
@@ -169,6 +172,11 @@ void ShutdownLogging()
 {
 	//eqlib::ShutdownLogging();
 	spdlog::shutdown();
+}
+
+static void MainStartup()
+{
+	
 }
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)

@@ -16,12 +16,13 @@
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
 
-#include <mq/imgui/ImGuiUtils.h>
-#include <mq/imgui/Widgets.h>
+#include "mq/imgui/ImGuiUtils.h"
+#include "mq/imgui/Widgets.h"
 
 #include <chrono>
 
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 

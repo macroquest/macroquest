@@ -16,7 +16,7 @@
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include "NamedPipes.h"
-#include "common/Common.h"
+#include "mq/base/Base.h"
 #include "mq/base/WString.h"
 
 #include <windows.h>
@@ -29,6 +29,8 @@
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>
 #include <sddl.h>
+
+#include <numeric>
 
 using namespace std::chrono_literals;
 

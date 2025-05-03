@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
+
 #include <algorithm>
 #include <charconv>
 #include <string>

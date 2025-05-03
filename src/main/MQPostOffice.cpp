@@ -20,15 +20,18 @@
 
 #include "routing/PostOffice.h"
 
+using namespace eqlib;
+using namespace mq::postoffice;
+
 namespace mq {
-using namespace postoffice;
 
 // MQModule forward declarations
-namespace pipeclient {
-static void InitializePostOffice();
-static void ShutdownPostOffice();
-static void PulsePostOffice();
-static void SetGameStatePostOffice(int);
+namespace pipeclient
+{
+	static void InitializePostOffice();
+	static void ShutdownPostOffice();
+	static void PulsePostOffice();
+	static void SetGameStatePostOffice(int);
 }
 
 static MQModule s_PostOfficeModule = {

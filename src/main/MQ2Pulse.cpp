@@ -14,22 +14,21 @@
 
 #include "pch.h"
 
-#include <random>
 
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
-
 #include "MQCommandAPI.h"
 #include "MQPluginHandler.h"
 #include "MQPostOffice.h"
 
 #include <wil/resource.h>
+#include <random>
 
 #include "argon2.h"
 #pragma comment(lib, "argon2")
 
-#pragma warning(disable : 4091) // 'keyword' : ignored on left of 'type' when no variable is declared
+using namespace eqlib;
 
 namespace mq {
 
@@ -78,8 +77,8 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 	if (!pControlledPlayer || !pLocalPC)
 		return false;
 
-	SPAWNINFO* pCharOrMount = nullptr;
-	SPAWNINFO* pChar = pCharOrMount = pControlledPlayer;
+	PlayerClient* pCharOrMount = nullptr;
+	PlayerClient* pChar = pCharOrMount = pControlledPlayer;
 
 	if (pLocalPlayer)
 		pChar = pLocalPlayer;
@@ -203,43 +202,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 	return false;
 }
 
-void NaturalTurnOld(PSPAWNINFO pCharOrMount, PSPAWNINFO pChar)
-{
-	if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f)
-	{
-		pCharOrMount->Heading = (float)gFaceAngle;
-		pCharOrMount->SpeedHeading = 0.0f;
-		gFaceAngle = 10000.0f;
-	}
-	else
-	{
-		TurnNotDone = true;
-		double c1 = pCharOrMount->Heading + 256.0;
-		double c2 = gFaceAngle;
-
-		if (c2 < pChar->Heading) c2 += 512.0f;
-		double turn = (double)(rand() % 200) / 10;
-
-		if (c2 < c1)
-		{
-			pCharOrMount->Heading += (float)turn;
-			pCharOrMount->SpeedHeading = 12.0f;
-
-			if (pCharOrMount->Heading >= 512.0f)
-				pCharOrMount->Heading -= 512.0f;
-		}
-		else
-		{
-			pCharOrMount->Heading -= (float)turn;
-			pCharOrMount->SpeedHeading = -12.0f;
-
-			if (pCharOrMount->Heading < 0.0f)
-				pCharOrMount->Heading += 512.0f;
-		}
-	}
-}
-
-void NaturalTurn(SPAWNINFO* pCharOrMount, SPAWNINFO* pChar)
+void NaturalTurn(PlayerClient* pCharOrMount, PlayerClient* pChar)
 {
 	// calc the turn rate
 	float TurnRate = 4.0f;
@@ -469,9 +432,9 @@ static void Pulse()
 
 	if (!pControlledPlayer) return;
 
-	SPAWNINFO* pCharOrMount = nullptr;
+	PlayerClient* pCharOrMount = nullptr;
 	PcProfile* pProfile = GetPcProfile();
-	SPAWNINFO* pChar = pCharOrMount = pControlledPlayer;
+	PlayerClient* pChar = pCharOrMount = pControlledPlayer;
 
 	// Drop out here if we're waiting for something.
 	if (!pChar || gZoning) return;
@@ -481,7 +444,7 @@ static void Pulse()
 		pChar = pLocalPlayer;
 
 	static int16_t LastZone = -1;
-	static SPAWNINFO* pCharOld = nullptr;
+	static PlayerClient* pCharOld = nullptr;
 	static float LastX = 0.0f;
 	static float LastY = 0.0f;
 	static uint64_t LastMoveTick = 0;

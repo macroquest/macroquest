@@ -14,10 +14,14 @@
 
 #pragma once
 
-#include "../common/Common.h"
+#include "MQConfig.h"
 
-#include <mq/base/Common.h>
-#include <mq/base/Threading.h>
-#include <mq/base/BuildInfo.h>
+#include "mq/base/Common.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
+#include "mq/base/StringFormat.h"
+#include "mq/base/Threading.h"
+#include "mq/base/Utility.h"
+#include "mq/base/BuildInfo.h"
 
 #include <functional>

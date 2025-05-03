@@ -806,7 +806,7 @@ void MapHighlightCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssHighlight;
 		ClearSearchSpawn(&ssHighlight);
@@ -853,7 +853,7 @@ void MapHideCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssHide;
 		ClearSearchSpawn(&ssHide);
@@ -895,7 +895,7 @@ void MapShowCmd(PlayerClient* pChar, const char* szLine)
 		return;
 	}
 
-	if (CHARINFO* pCharInfo = GetCharInfo())
+	if (pLocalPC)
 	{
 		MQSpawnSearch ssShow;
 		ClearSearchSpawn(&ssShow);

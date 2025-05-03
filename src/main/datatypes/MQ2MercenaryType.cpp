@@ -65,7 +65,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	if (!pMercManager)
 		return false;
 
-	SPAWNINFO* pMercenary = nullptr;
+	PlayerClient* pMercenary = nullptr;
 	if (pMercManager->mercenarySpawnId)
 	{
 		pMercenary = GetSpawnByID(pMercManager->mercenarySpawnId);
@@ -148,7 +148,7 @@ bool MQ2MercenaryType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Typ
 {
 	if (toType == pSpawnType)
 	{
-		SPAWNINFO* pMercenary = pMercManager->mercenarySpawnId ? GetSpawnByID(pMercManager->mercenarySpawnId) : nullptr;
+		PlayerClient* pMercenary = pMercManager->mercenarySpawnId ? GetSpawnByID(pMercManager->mercenarySpawnId) : nullptr;
 		toVar = pSpawnType->MakeVarPtr(pMercenary);
 		return true;
 	}

@@ -18,12 +18,6 @@
     <Filter Include="Header Files\contrib">
       <UniqueIdentifier>{37f552ce-de79-4c09-bc69-6022bc7cedd3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Contrib\fmt">
-      <UniqueIdentifier>{ae7f2c4e-8df7-487e-96e0-7725daa2921e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\common">
-      <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\datatypes">
       <UniqueIdentifier>{4082d230-146c-4090-ba35-9c9784d918c4}</UniqueIdentifier>
     </Filter>
@@ -430,23 +424,11 @@
     <ClInclude Include="MQ2Main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Prototypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\Common.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\ConfigUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\StringUtils.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
@@ -466,9 +448,6 @@
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MiscUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2DataContainers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -477,9 +456,6 @@
     </ClInclude>
     <ClInclude Include="MQ2MainBase.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\HotKeys.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="MQ2DeveloperTools.h">
       <Filter>Header Files</Filter>
@@ -530,9 +506,6 @@
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Deprecation.h">
-      <Filter>Header Files\mq\base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\mq\base\SimpleLexer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Achievements.h">
@@ -669,6 +642,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
       <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\HotKeys.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\SimpleLexer.h">
+      <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

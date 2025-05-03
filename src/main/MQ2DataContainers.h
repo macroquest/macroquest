@@ -16,6 +16,8 @@
 
 #include "mq/base/Traits.h"
 
+#include <memory>
+
 // this header is to create containers used for passing data around
 // try to make them generic and reusable
 
@@ -24,10 +26,14 @@ namespace mq {
 class MQSlotInItem
 {
 public:
-	ItemGlobalIndex GlobalIndex;
+	MQSlotInItem(const eqlib::ItemGlobalIndex& GlobalIndex, int Slot)
+		: GlobalIndex(GlobalIndex)
+		, Slot(Slot)
+	{
+	}
+
+	eqlib::ItemGlobalIndex GlobalIndex;
 	int Slot;
-	MQSlotInItem(const ItemGlobalIndex& GlobalIndex, int Slot)
-		: GlobalIndex(GlobalIndex), Slot(Slot) {}
 };
 
 class MQTransient : public std::enable_shared_from_this<MQTransient>

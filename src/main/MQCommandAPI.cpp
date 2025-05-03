@@ -19,6 +19,8 @@
 #include "MQCommandAPI.h"
 #include "mq/base/ScopeExit.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 struct MQTimedCommand
@@ -53,8 +55,8 @@ MQCommandAPI* pCommandAPI = nullptr;
 class CEverQuest_CommandHook
 {
 public:
-	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (SPAWNINFO* pChar, const char* szFullLine))
-	void InterpretCmd_Detour(SPAWNINFO* pChar, const char* szFullLine)
+	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (PlayerClient* pChar, const char* szFullLine))
+	void InterpretCmd_Detour(PlayerClient* pChar, const char* szFullLine)
 	{
 		DebugSpew("CCommandHook::Detour(%s)", szFullLine);
 

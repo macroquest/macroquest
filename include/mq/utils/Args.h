@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/StringFormat.h"
+
 #include <args/args.hxx>
 
 namespace mq {
@@ -66,4 +68,5 @@ public:
 	HelpArgument() = delete;
 	HelpArgument(args::Group& base) : HelpFlag(base, "help", "displays this help text", { 'h', '?', "p" }) {}
 };
-}
+
+} // namespace mq

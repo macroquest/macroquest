@@ -12,7 +12,6 @@
  * GNU General Public License for more details.
  */
 
-#define MQLIB_OBJECT
 #include "PostOffice.h"
 
 namespace mq::postoffice {
@@ -61,9 +60,9 @@ ProtoMessagePtr Mailbox::Open(proto::routing::Envelope&& envelope, const PipeMes
 }
 
 Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister)
-	: m_localAddress(localAddress)
-	, m_post(post)
-	, m_unregister(unregister)
+	: m_localAddress(std::move(localAddress))
+	, m_post(std::move(post))
+	, m_unregister(std::move(unregister))
 	, m_valid(true)
 {}
 

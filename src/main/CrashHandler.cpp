@@ -526,7 +526,7 @@ void CrashHandler_SetLastMacroData(const char* macroData)
 
 static crashpad::StringAnnotation<32> s_synthesizedAnnotation("synthesized");
 
-void DoCrash(PlayerClient*, const char* szLine)
+void DoCrash(const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);

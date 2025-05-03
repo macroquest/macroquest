@@ -193,9 +193,9 @@ void Initialize()
 				const CXRect rect = GetCXRectTBLRFromString(ExtDistanceLoc, 0, -20, 70, 0);
 
 				int max_targets = MAX_EXTENDED_TARGET_SIZE;
-				if (CHARINFO* pChar = GetCharInfo())
+				if (pLocalPC)
 				{
-					if (ExtendedTargetList* xtm = pChar->pXTargetMgr)
+					if (ExtendedTargetList* xtm = pLocalPC->pXTargetMgr)
 					{
 						max_targets = xtm->XTargetSlots.Count;
 					}

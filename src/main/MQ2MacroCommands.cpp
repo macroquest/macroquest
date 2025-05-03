@@ -23,6 +23,8 @@
 #include <fstream>
 #include <regex>
 
+using namespace eqlib;
+
 namespace mq {
 
 // Defined in MQ2DataVars.cpp
@@ -266,7 +268,7 @@ void ProfileCmd(PlayerClient* pChar, const char* szLine)
 	g_pProfile->Call("Main", std::move(args));
 }
 
-void FailIf(SPAWNINFO* pChar, const char* szCommand, int StartLine, bool All = false)
+void FailIf(PlayerClient* pChar, const char* szCommand, int StartLine, bool All = false)
 {
 	int Scope = 1;
 
@@ -895,7 +897,7 @@ void EndAllMacros()
 
 	for (const auto& name : names)
 	{
-		EndMacro((PSPAWNINFO)pLocalPlayer, (char*)name.c_str());
+		EndMacro(pLocalPlayer, name.c_str());
 	}
 }
 

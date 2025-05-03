@@ -509,7 +509,7 @@ bool MQ2GroupMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* In
 	if (!pLocalPC || !pLocalPC->Group)
 		return false;
 
-	SPAWNINFO* pGroupMember = nullptr;
+	PlayerClient* pGroupMember = nullptr;
 	CGroupMember* pGroupMemberData = nullptr;
 
 	char MemberName[MAX_STRING] = { 0 };
@@ -749,7 +749,7 @@ bool MQ2GroupMemberType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2T
 	if (toType != pSpawnType)
 		return false;
 
-	SPAWNINFO* pGroupMember = nullptr;
+	PlayerClient* pGroupMember = nullptr;
 	uint32_t nMember = static_cast<uint32_t>(fromVar.Int);
 
 	if (nMember == 0)

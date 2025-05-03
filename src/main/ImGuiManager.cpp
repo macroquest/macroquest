@@ -14,26 +14,22 @@
 
 #include "pch.h"
 #include "ImGuiManager.h"
-
-#include "GraphicsEngine.h"
-#include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
+#include "GraphicsEngine.h"
 #include "MQPluginHandler.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include "imgui/implot/implot.h"
-
- // I was trying to avoid including main, but we just got too many globals
-#include "MQ2Main.h"
-
-// move to mq/utils? or do we need a new static lib?
-#include "common/HotKeys.h"
-#include <mq/base/WString.h>
-#include <mq/utils/Benchmarks.h>
-
-#include "imgui/implot/implot_internal.h"
+#include "mq/base/HotKeys.h"
+#include "mq/base/WString.h"
+#include "mq/utils/Benchmarks.h"
 #include "mq/imgui/Widgets.h"
+#include "imgui/ImGuiUtils.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/implot/implot.h"
+#include "imgui/implot/implot_internal.h"
+
+using namespace eqlib;
 
 namespace ImGui
 {

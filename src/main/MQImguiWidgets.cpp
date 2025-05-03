@@ -20,6 +20,8 @@
 #include "imgui/imgui_internal.h"
 #include "mq/imgui/Widgets.h"
 
+using namespace eqlib;
+
 namespace mq::imgui {
 
 //

@@ -17,10 +17,13 @@
 #include "MQDataAPI.h"
 
 #include "mq/utils/Args.h"
+#include "mq/base/StringFormat.h"
 
 #include <regex>
 #include <memory>
 #include <Yaml.hpp>
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -157,7 +160,7 @@ public:
 		build_regex();
 	}
 
-	anon_replacer(SPAWNINFO* pSpawn, Anonymization strategy, std::string_view target = "")
+	anon_replacer(PlayerClient* pSpawn, Anonymization strategy, std::string_view target = "")
 		: name(pSpawn->Lastname[0] ? fmt::format("{}\\s{}", pSpawn->Name, pSpawn->Lastname) : pSpawn->Name),
 		  strategy(strategy),
 		  target(target)
@@ -217,7 +220,7 @@ public:
 
 		case Anonymization::Class:
 		{
-			SPAWNINFO* spawn = GetSpawnByName(name.c_str());
+			PlayerClient* spawn = GetSpawnByName(name.c_str());
 			// If no spawn is found, check to see if we have regex whitespace in our name.  This can collide, but that's acceptable for our use case.
 			if (spawn == nullptr)
 			{
@@ -741,7 +744,7 @@ public:
 //              Controls the anonymization filtering of text
 // ***************************************************************************
 
-void MQAnon(SPAWNINFO* pChar, char* szLine)
+void MQAnon(PlayerClient* pChar, char* szLine)
 {
 	if (!pChar)
 		return;
@@ -776,7 +779,7 @@ void MQAnon(SPAWNINFO* pChar, char* szLine)
 			args::Positional<std::string> name(arguments, "name", "the name to anonymize");
 			args::PositionalList<std::string> replacers(arguments, "replacers", "the text to anonymize with");
 			parser.Parse();
-			if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, join(replacers.Get(), " "));
+			if (name && replacers) AddAnonymization(name.Get(), Anonymization::Custom, mq::join(replacers.Get(), " "));
 		});
 
 	args::Command drop(commands, "drop", "drops anonymization name from list of filtered names",

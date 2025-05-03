@@ -15,7 +15,10 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2SpellSearch.h"
-#include "mq/base/SimpleLexer.h"
+
+#include "mq/utils/SimpleLexer.h"
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -3741,7 +3744,7 @@ int GetSpellCategory(EQ_Spell* pSpell)
 	{
 		if (pSpell->CannotBeScribed)
 		{
-			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			if (EQ_Spell* pTrigger = GetSpellParent(pSpell->ID))
 			{
 				return pTrigger->Category;
 			}
@@ -3763,7 +3766,7 @@ int GetSpellSubcategory(EQ_Spell* pSpell)
 	{
 		if (pSpell->CannotBeScribed)
 		{
-			if (SPELL* pTrigger = GetSpellParent(pSpell->ID))
+			if (EQ_Spell* pTrigger = GetSpellParent(pSpell->ID))
 			{
 				return pTrigger->Subcategory;
 			}
@@ -3886,7 +3889,7 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 	return GetCachedBuff(pTarget, SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
 }
 
-bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, void*, DWORD classmask)
+bool HasCachedTargetBuffSubCat(const char* subcat, PlayerClient* pSpawn, void*, DWORD classmask)
 {
 	return GetCachedBuffCount(pSpawn, [subcat, classmask](const CachedBuff& buff)
 		{
@@ -3902,7 +3905,7 @@ bool HasCachedTargetBuffSubCat(const char* subcat, SPAWNINFO* pSpawn, void*, DWO
 		}) > 0;
 }
 
-bool HasCachedTargetBuffSPA(int spa, bool bIncrease, SPAWNINFO* pSpawn, void*)
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PlayerClient* pSpawn, void*)
 {
 	return GetCachedBuffCount(pSpawn, [spa, bIncrease](const CachedBuff& buff)
 		{
@@ -3977,72 +3980,74 @@ int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
 int GetSpellRankByName(const char* SpellName)
 {
 	// uppercase the string
-	char szTemp[256];
-	strcpy_s(szTemp, SpellName);
-	_strupr_s(szTemp);
+	char szTemp_[256];
+	strcpy_s(szTemp_, SpellName);
+	_strupr_s(szTemp_);
 
-	if (endsWith(szTemp, " II"))
+	std::string_view szTemp = szTemp_;
+
+	if (mq::ends_with(szTemp, " II"))
 		return 2;
-	if (endsWith(szTemp, " III"))
+	if (mq::ends_with(szTemp, " III"))
 		return 3;
-	if (endsWith(szTemp, " IV"))
+	if (mq::ends_with(szTemp, " IV"))
 		return 4;
-	if (endsWith(szTemp, " V"))
+	if (mq::ends_with(szTemp, " V"))
 		return 5;
-	if (endsWith(szTemp, " VI"))
+	if (mq::ends_with(szTemp, " VI"))
 		return 6;
-	if (endsWith(szTemp, " VII"))
+	if (mq::ends_with(szTemp, " VII"))
 		return 7;
-	if (endsWith(szTemp, " VIII"))
+	if (mq::ends_with(szTemp, " VIII"))
 		return 8;
-	if (endsWith(szTemp, " IX"))
+	if (mq::ends_with(szTemp, " IX"))
 		return 9;
-	if (endsWith(szTemp, " X"))
+	if (mq::ends_with(szTemp, " X"))
 		return 10;
-	if (endsWith(szTemp, " XI"))
+	if (mq::ends_with(szTemp, " XI"))
 		return 11;
-	if (endsWith(szTemp, " XII"))
+	if (mq::ends_with(szTemp, " XII"))
 		return 12;
-	if (endsWith(szTemp, " XIII"))
+	if (mq::ends_with(szTemp, " XIII"))
 		return 13;
-	if (endsWith(szTemp, " XIV"))
+	if (mq::ends_with(szTemp, " XIV"))
 		return 14;
-	if (endsWith(szTemp, " XV"))
+	if (mq::ends_with(szTemp, " XV"))
 		return 15;
-	if (endsWith(szTemp, " XVI"))
+	if (mq::ends_with(szTemp, " XVI"))
 		return 16;
-	if (endsWith(szTemp, " XVII"))
+	if (mq::ends_with(szTemp, " XVII"))
 		return 17;
-	if (endsWith(szTemp, " XVIII"))
+	if (mq::ends_with(szTemp, " XVIII"))
 		return 18;
-	if (endsWith(szTemp, " XIX"))
+	if (mq::ends_with(szTemp, " XIX"))
 		return 19;
-	if (endsWith(szTemp, " XX"))
+	if (mq::ends_with(szTemp, " XX"))
 		return 20;
-	if (endsWith(szTemp, " XXI"))
+	if (mq::ends_with(szTemp, " XXI"))
 		return 21;
-	if (endsWith(szTemp, " XXII"))
+	if (mq::ends_with(szTemp, " XXII"))
 		return 22;
-	if (endsWith(szTemp, " XXIII"))
+	if (mq::ends_with(szTemp, " XXIII"))
 		return 23;
-	if (endsWith(szTemp, " XXIV"))
+	if (mq::ends_with(szTemp, " XXIV"))
 		return 24;
-	if (endsWith(szTemp, " XXV"))
+	if (mq::ends_with(szTemp, " XXV"))
 		return 25;
-	if (endsWith(szTemp, " XXVI"))
+	if (mq::ends_with(szTemp, " XXVI"))
 		return 26;
-	if (endsWith(szTemp, " XXVII"))
+	if (mq::ends_with(szTemp, " XXVII"))
 		return 27;
-	if (endsWith(szTemp, " XXVIII"))
+	if (mq::ends_with(szTemp, " XXVIII"))
 		return 28;
-	if (endsWith(szTemp, " XXIX"))
+	if (mq::ends_with(szTemp, " XXIX"))
 		return 29;
-	if (endsWith(szTemp, " XXX"))
+	if (mq::ends_with(szTemp, " XXX"))
 		return 30;
 
-	if (endsWith(szTemp, ".II"))
+	if (mq::ends_with(szTemp, ".II"))
 		return 2;
-	if (endsWith(szTemp, ".III"))
+	if (mq::ends_with(szTemp, ".III"))
 		return 3;
 
 	return 0;

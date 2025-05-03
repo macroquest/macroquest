@@ -17,7 +17,6 @@
 
 namespace mq::datatypes {
 
-
 //============================================================================
 
 enum class AchievementManagerTypeMembers

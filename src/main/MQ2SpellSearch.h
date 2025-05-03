@@ -113,27 +113,27 @@ struct SpellAttributeValue
 };
 
 // this is here to be able to strongly type the enum while still allowing easy integral values for eqgame functions
-struct SpellAffect : public SpellAttribute<SpellAffect>, SpellAttributeValue<eEQSPA>
+struct SpellAffect : public SpellAttribute<SpellAffect>, SpellAttributeValue<eqlib::eEQSPA>
 {
 	bool Increase;
-	SpellAffect(eEQSPA value, bool increase = true) : SpellAttributeValue(value), Increase(increase) {}
+	SpellAffect(eqlib::eEQSPA value, bool increase = true) : SpellAttributeValue(value), Increase(increase) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return HasSPA(buff, Value, Increase); }
 };
 
 // both category and subcategory can take the same enumeration, so this allows us to separate the types
-struct SpellCategory : public SpellAttribute<SpellCategory>, SpellAttributeValue<eEQSPELLCAT>
+struct SpellCategory : public SpellAttribute<SpellCategory>, SpellAttributeValue<eqlib::eEQSPELLCAT>
 {
-	SpellCategory(eEQSPELLCAT value) : SpellAttributeValue(value) {}
+	SpellCategory(eqlib::eEQSPELLCAT value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return GetSpellCategory(buff) == Value; }
 };
 
-struct SpellSubCat : public SpellAttribute<SpellSubCat>, SpellAttributeValue<eEQSPELLCAT>
+struct SpellSubCat : public SpellAttribute<SpellSubCat>, SpellAttributeValue<eqlib::eEQSPELLCAT>
 {
-	SpellSubCat(eEQSPELLCAT value) : SpellAttributeValue(value) {}
+	SpellSubCat(eqlib::eEQSPELLCAT value) : SpellAttributeValue(value) {}
 
 	template <typename Buff>
 	bool operator()(const Buff& buff) const { return GetSpellSubcategory(buff) == Value; }
@@ -248,25 +248,25 @@ public:
 // file anyway to create the predicates
 
 template <typename T>
-int GetCachedBuff(PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
+int GetCachedBuff(eqlib::PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
 {
 	return GetCachedBuff(pSpawn, [&fPredicate](const CachedBuff& buff) { return fPredicate(buff); });
 }
 
 template <typename T>
-int GetCachedBuffAt(PlayerClient* pSpawn, size_t index, const SpellAttribute<T>& fPredicate)
+int GetCachedBuffAt(eqlib::PlayerClient* pSpawn, size_t index, const SpellAttribute<T>& fPredicate)
 {
 	return GetCachedBuffAt(pSpawn, index, [&fPredicate](const CachedBuff& buff) { return fPredicate(buff); });
 }
 
 template <typename T>
-int FilterCachedBuffs(PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
+int FilterCachedBuffs(eqlib::PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
 {
 	return FilterCachedBuffs(pSpawn, [&fPredicate](const CachedBuff& buff) { return fPredicate(buff); });
 }
 
 template <typename T>
-int GetCachedBuffCount(PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
+int GetCachedBuffCount(eqlib::PlayerClient* pSpawn, const SpellAttribute<T>& fPredicate)
 {
 	return GetCachedBuffCount(pSpawn, [&fPredicate](const CachedBuff& buff) { return fPredicate(buff); });
 }
@@ -277,8 +277,8 @@ int GetSelfBuff(const SpellAttribute<T>& fPredicate, int minSlot = 0, int maxSlo
 	return GetSelfBuff([&fPredicate](const EQ_Affect& buff) { return fPredicate(buff); }, minSlot, maxSlot);
 }
 
-MQLIB_OBJECT SpellAttributePredicate<EQ_Affect> EvaluateBuffPredicate(std::string_view dsl);
-MQLIB_OBJECT SpellAttributePredicate<EQ_Affect> EvaluatePetBuffPredicate(std::string_view dsl);
+MQLIB_OBJECT SpellAttributePredicate<eqlib::EQ_Affect> EvaluateBuffPredicate(std::string_view dsl);
+MQLIB_OBJECT SpellAttributePredicate<eqlib::EQ_Affect> EvaluatePetBuffPredicate(std::string_view dsl);
 MQLIB_OBJECT SpellAttributePredicate<CachedBuff> EvaluateCachedBuffPredicate(std::string_view dsl);
 
 } // namespace mq

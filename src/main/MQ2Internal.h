@@ -86,7 +86,7 @@ enum class SearchSortBy
 struct MQSpawnSearch
 {
 	int MinLevel = 0;
-	int MaxLevel = MAX_NPC_LEVEL;
+	int MaxLevel = eqlib::MAX_NPC_LEVEL;
 	eSpawnType SpawnType = NONE;
 	uint32_t SpawnID = 0;
 	uint32_t FromSpawnID = 0;
@@ -354,7 +354,7 @@ using PFILTER DEPRECATE("use MQFilter* instead of PFILTER") = MQFilter*;
 
 struct MQGroundPending
 {
-	GROUNDITEM* pGroundItem = nullptr;
+	eqlib::EQGroundItem* pGroundItem = nullptr;
 	MQGroundPending* pLast = nullptr;
 	MQGroundPending* pNext = nullptr;
 };
@@ -364,22 +364,22 @@ struct MQModule
 {
 	char                 name[64] = { 0 };
 	bool                 canUnload = false;
-	fMQInitializePlugin  Initialize = 0;
-	fMQShutdownPlugin    Shutdown = 0;
-	fMQPulse             Pulse = 0;
-	fMQSetGameState      SetGameState = 0;
-	fMQUpdateImGui       UpdateImGui = 0;
-	fMQZoned             Zoned = 0;
-	fMQWriteChatColor    WriteChatColor = 0;
-	fMQSpawn             SpawnAdded = 0;
-	fMQSpawn             SpawnRemoved = 0;
-	fMQBeginZone         BeginZone = 0;
-	fMQEndZone           EndZone = 0;
-	fMQLoadPlugin        LoadPlugin = 0;
-	fMQUnloadPlugin      UnloadPlugin = 0;
-	fMQCleanUI           CleanUI = 0;
-	fMQReloadUI          ReloadUI = 0;
-	fMQPostUnloadPlugin  OnPostUnloadPlugin = 0;
+	fMQInitializePlugin  Initialize = nullptr;
+	fMQShutdownPlugin    Shutdown = nullptr;
+	fMQPulse             Pulse = nullptr;
+	fMQSetGameState      SetGameState = nullptr;
+	fMQUpdateImGui       UpdateImGui = nullptr;
+	fMQZoned             Zoned = nullptr;
+	fMQWriteChatColor    WriteChatColor = nullptr;
+	fMQSpawn             SpawnAdded = nullptr;
+	fMQSpawn             SpawnRemoved = nullptr;
+	fMQBeginZone         BeginZone = nullptr;
+	fMQEndZone           EndZone = nullptr;
+	fMQLoadPlugin        LoadPlugin = nullptr;
+	fMQUnloadPlugin      UnloadPlugin = nullptr;
+	fMQCleanUI           CleanUI = nullptr;
+	fMQReloadUI          ReloadUI = nullptr;
+	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
 
 	bool                 loaded = false;
 	bool                 manualUnload = false;
@@ -404,17 +404,9 @@ struct ModuleInitializer
 	MQModule* module = nullptr;
 };
 
-#if _M_AMD64
-#define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:" #x))
-#else
-#define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
-#endif
-
 #define DECLARE_MODULE_INITIALIZER(moduleRecord) \
 	extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
-	FORCE_UNDEFINED_SYMBOL(s_moduleInitializer ## moduleRecord);
-
-
+	FORCE_SYMBOL_REFERENCE(s_moduleInitializer ## moduleRecord);
 
 //============================================================================
 
@@ -441,17 +433,17 @@ private:
 
 //============================================================================
 
-// TODO: Move to MQ2Windows.h (doesn't exist yet)
-class CCustomWnd : public CSidlScreenWnd
+class CCustomWnd : public eqlib::CSidlScreenWnd
 {
 public:
-	explicit CCustomWnd(const CXStr& screenpiece)
-		: CSidlScreenWnd(nullptr, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const eqlib::CXStr& screenpiece)
+		: CSidlScreenWnd(nullptr, screenpiece, eqlib::eIniFlag_All)
 	{
 		Init();
 	}
 
-	explicit CCustomWnd(const char* screenpiece) : CSidlScreenWnd(0, screenpiece, eIniFlag_All)
+	explicit CCustomWnd(const char* screenpiece)
+		: CSidlScreenWnd(nullptr, screenpiece, eqlib::eIniFlag_All)
 	{
 		Init();
 	}
@@ -473,11 +465,11 @@ private:
 
 //============================================================================
 
-// TODO: Move to MQ2Windows.h (doesn't exist yet)
-class CCustomMenu : public CContextMenu
+class CCustomMenu : public eqlib::CContextMenu
 {
 public:
-	CCustomMenu(CXWnd* pParent, uint32_t MenuID, const CXRect& rect) : CContextMenu(pParent, MenuID, rect)
+	CCustomMenu(CXWnd* pParent, uint32_t MenuID, const eqlib::CXRect& rect)
+		: CContextMenu(pParent, MenuID, rect)
 	{
 	}
 
@@ -592,16 +584,16 @@ private:
 
 struct MQRank
 {
-	MQRank(SPAWNINFO* pSpawn, float distanceSquared)
+	MQRank(eqlib::PlayerClient* pSpawn, float distanceSquared)
 		: VarPtr(pSpawn)
 		, Value(distanceSquared)
 	{}
 
 	struct MQRankSpawnPtr
 	{
-		MQRankSpawnPtr(SPAWNINFO* pSpawn) : Ptr(pSpawn) {}
+		MQRankSpawnPtr(eqlib::PlayerClient* pSpawn) : Ptr(pSpawn) {}
 
-		SPAWNINFO* Ptr = nullptr;
+		eqlib::PlayerClient* Ptr = nullptr;
 	};
 	MQRankSpawnPtr VarPtr;
 
@@ -644,7 +636,7 @@ static bool MQRankFloatCompare(const MQRank& A, const MQRank& B)
 // compatability until the deprecated parts are removed.
 struct MQSpawnArrayItem : public MQRank
 {
-	MQSpawnArrayItem(SPAWNINFO* pSpawn, float DistanceSquared)
+	MQSpawnArrayItem(eqlib::PlayerClient* pSpawn, float DistanceSquared)
 		: MQRank(pSpawn, DistanceSquared)
 	{
 	}
@@ -652,7 +644,7 @@ struct MQSpawnArrayItem : public MQRank
 	float GetDistanceSquared() const { return Value.DistSq; }
 	float GetDistance() const { return Value.get_Distance(); }
 
-	SPAWNINFO* GetSpawn() const { return VarPtr.Ptr; }
+	eqlib::PlayerClient* GetSpawn() const { return VarPtr.Ptr; }
 };
 
 struct MQLoop
@@ -722,10 +714,10 @@ enum eGroundObjectType
 
 struct MQGroundObject
 {
-/*0x00*/ eGroundObjectType  Type;
-/*0x04*/ EQGroundItem       GroundItem;         // for conversion between switch and grounditems
-/*0x84*/ void*              ObjPtr;             // EQPlacedItem *
-/*0x88*/ EQGroundItem*      pGroundItem;
+/*0x00*/ eGroundObjectType    Type;
+/*0x04*/ eqlib::EQGroundItem  GroundItem;         // for conversion between switch and grounditems
+/*0x84*/ void*                ObjPtr;             // EQPlacedItem *
+/*0x88*/ eqlib::EQGroundItem* pGroundItem;
 /*0x8c*/
 
 	// Currently necessary because of MQ2DataTypes
@@ -770,7 +762,7 @@ struct MQGameObject
 	float velocityX = 0.f;
 	float velocityZ = 0.f;
 	float height = 0.f;
-	CActorInterface* actor = nullptr;
+	eqlib::CActorInterface* actor = nullptr;
 
 	bool valid = false;
 
@@ -783,16 +775,18 @@ struct MQGameObject
 	}
 };
 
-MQGameObject ToGameObject(const EQGroundItem& groundItem);
-MQGameObject ToGameObject(const EQPlacedItem& placedItem);
+struct MQGroundSpawn;
+
+MQGameObject ToGameObject(const eqlib::EQGroundItem& groundItem);
+MQGameObject ToGameObject(const eqlib::EQPlacedItem& placedItem);
 MQGameObject ToGameObject(const MQGroundSpawn& groundSpawn);
-MQGameObject ToGameObject(const SPAWNINFO* spawnInfo);
+MQGameObject ToGameObject(const eqlib::PlayerClient* spawnInfo);
 MQGameObject ToGameObject(float y, float x, float z);
-MQGameObject ToGameObject(const EQSwitch* pSwitch);
+MQGameObject ToGameObject(const eqlib::EQSwitch* pSwitch);
 
 //----------------------------------------------------------------------------
 
-int GetTriggerSPA(SPELL* pSpell);
+int GetTriggerSPA(eqlib::EQ_Spell* pSpell);
 
 // this is a helper class to help us deprecate global variables
 template <typename T>

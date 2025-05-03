@@ -17,6 +17,8 @@
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 
+using namespace eqlib;
+
 namespace mq::datatypes {
 
 bool dataSelect(const char* szIndex, MQTypeVar& Ret)

@@ -19,8 +19,9 @@
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/implot/implot.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui/imgui_internal.h"
 
-#include <mq/imgui/Widgets.h>
+#include "mq/imgui/Widgets.h"
 
 #include <algorithm>
 #include <memory>
@@ -29,12 +30,12 @@
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
-#include <imgui_internal.h>
 #include <cfenv>
 #include <inttypes.h>
 #include <glm/glm.hpp>
 
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 
@@ -4290,8 +4291,8 @@ public:
 			ImGui::InputText("Spell 2", searchText2, 256);
 		}
 
-		SPELL* pSpell = nullptr;
-		SPELL* pSpell2 = nullptr;
+		EQ_Spell* pSpell = nullptr;
+		EQ_Spell* pSpell2 = nullptr;
 
 		if (searchText[0])
 		{
@@ -4321,7 +4322,7 @@ public:
 
 		if (pSpell2)
 		{
-			SPAWNINFO* pPlayer = pLocalPlayer;
+			PlayerClient* pPlayer = pLocalPlayer;
 			PcClient* pPcClient = pPlayer->GetPcClient();
 
 			EQ_Affect affect;

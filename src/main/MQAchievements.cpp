@@ -17,6 +17,8 @@
 #include "mq/api/Achievements.h"
 #include "mq/base/String.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 static std::unordered_map<const eqlib::Achievement*, int> pointerToIndexMap;

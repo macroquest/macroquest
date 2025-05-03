@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include "common/StringUtils.h"
+#include "mq/base/String.h"
+#include "mq/base/StringFormat.h"
+
 #include <optional>
 
 namespace mq {

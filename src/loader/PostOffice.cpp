@@ -12,11 +12,14 @@
  * GNU General Public License for more details.
  */
 
+#include "loader/ImGui.h"
 #include "loader/MacroQuest.h"
 #include "loader/PostOffice.h"
 #include "loader/Crashpad.h"
 #include "loader/LoaderAutoLogin.h"
 #include "routing/PostOffice.h"
+
+#include "mq/base/String.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -24,14 +27,13 @@
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <shellapi.h>
+#include <memory>
 
-#include "ImGui.h"
+using namespace mq;
+using namespace mq::postoffice;
 
-
-using namespace postoffice;
 class LauncherPostOffice : public PostOffice
 {
-private:
 	struct ClientIdentification
 	{
 		uint32_t pid;
@@ -41,7 +43,7 @@ private:
 	};
 
 	std::unordered_map<uint32_t, ClientIdentification> m_identities;
-	ci_unordered::map<std::string, uint32_t> m_names;
+	mq::ci_unordered::map<std::string, uint32_t> m_names;
 	bool m_running = false;
 	std::thread m_thread;
 	std::thread::id m_threadId;
@@ -50,12 +52,12 @@ private:
 	std::mutex m_processMutex;
 	std::condition_variable m_needsProcessing;
 
-	class PipeEventsHandler : public NamedPipeEvents
+	class PipeEventsHandler : public mq::NamedPipeEvents
 	{
 	public:
 		PipeEventsHandler(LauncherPostOffice* postOffice) : m_postOffice(postOffice) {}
 
-		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
+		virtual void OnIncomingMessage(mq::PipeMessagePtr&& message) override
 		{
 			using namespace mq::proto;
 			SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
@@ -681,4 +683,3 @@ void ShutdownNamedPipeServer()
 }
 
 //----------------------------------------------------------------------------
-

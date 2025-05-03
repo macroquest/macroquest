@@ -15,9 +15,11 @@
 #include <mq/plugin/pluginapi.h>
 #include <mq/api/Main.h>
 
-char INIFileName[MAX_STRING] = { 0 };
-
 #pragma comment(lib, "detours.lib")
+
+using namespace eqlib;
+
+char INIFileName[MAX_STRING] = { 0 };
 
 namespace mqplugin {
 

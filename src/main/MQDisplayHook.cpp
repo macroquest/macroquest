@@ -18,6 +18,8 @@
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 const char* g_customCaption = "MacroQuest: Even when you're loading.";
@@ -146,7 +148,7 @@ public:
 	}
 };
 
-static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
+static void Cmd_NetStatusXPos(PlayerClient* pChar, char* szLine)
 {
 	if (szLine[0])
 	{
@@ -158,7 +160,7 @@ static void Cmd_NetStatusXPos(SPAWNINFO* pChar, char* szLine)
 	}
 }
 
-static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
+static void Cmd_NetStatusYPos(PlayerClient* pChar, char* szLine)
 {
 	if (szLine[0])
 	{

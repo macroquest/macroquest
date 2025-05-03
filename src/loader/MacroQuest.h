@@ -16,9 +16,6 @@
 
 #define MQ_NO_EXPORTS
 
-#include "../common/Common.h"
-#include "../common/HotKeys.h"
-
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
@@ -47,8 +44,6 @@
 #include <windef.h>
 #include <wincrypt.h>
 #include <filesystem>
-
-using namespace mq;
 
 // Constants
 

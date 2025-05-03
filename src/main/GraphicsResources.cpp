@@ -17,6 +17,8 @@
 
 #include "MQ2Main.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 //============================================================================

@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 static void SetGameStateGroundSpawns(int);
@@ -61,7 +63,7 @@ public:
 		return Instance().m_valid;
 	}
 
-	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn)
+	static GroundSpawnSearch& Search(PlayerClient* pSpawn)
 	{
 		if (!Instance().m_valid)
 		{
@@ -72,7 +74,7 @@ public:
 		return Instance();
 	}
 
-	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, std::string_view Name)
+	static GroundSpawnSearch& Search(PlayerClient* pSpawn, std::string_view Name)
 	{
 		if (!Instance().m_valid)
 		{
@@ -83,7 +85,7 @@ public:
 		return Instance();
 	}
 
-	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, int ID)
+	static GroundSpawnSearch& Search(PlayerClient* pSpawn, int ID)
 	{
 		if (!Instance().m_valid)
 		{
@@ -94,7 +96,7 @@ public:
 		return Instance();
 	}
 
-	static GroundSpawnSearch& Search(SPAWNINFO* pSpawn, const MQGroundSpawn& groundSpawn)
+	static GroundSpawnSearch& Search(PlayerClient* pSpawn, const MQGroundSpawn& groundSpawn)
 	{
 		if (!Instance().m_valid)
 		{
@@ -106,7 +108,7 @@ public:
 	}
 
 	template <typename GroundPred, typename PlacedPred>
-	void Filter(SPAWNINFO* pSpawn, GroundPred GroundPredicate, PlacedPred PlacedPredicate)
+	void Filter(PlayerClient* pSpawn, GroundPred GroundPredicate, PlacedPred PlacedPredicate)
 	{
 		m_searchResults.clear();
 
@@ -137,7 +139,7 @@ public:
 		m_valid = true;
 	}
 
-	void Filter(SPAWNINFO* pSpawn, int ID)
+	void Filter(PlayerClient* pSpawn, int ID)
 	{
 		Filter(pSpawn,
 			[&ID](EQGroundItem* ground)
@@ -150,7 +152,7 @@ public:
 			});
 	}
 
-	void Filter(SPAWNINFO* pSpawn, std::string_view Name)
+	void Filter(PlayerClient* pSpawn, std::string_view Name)
 	{
 		if (Name.empty())
 		{
@@ -170,7 +172,7 @@ public:
 		}
 	}
 
-	void Filter(SPAWNINFO* pSpawn, const MQGroundSpawn& groundSpawn)
+	void Filter(PlayerClient* pSpawn, const MQGroundSpawn& groundSpawn)
 	{
 		Filter(pSpawn,
 			[&groundSpawn](EQGroundItem* ground)
@@ -183,15 +185,15 @@ public:
 			});
 	}
 
-	void Filter(SPAWNINFO* pSpawn)
+	void Filter(PlayerClient* pSpawn)
 	{
 		Filter(pSpawn, [](EQGroundItem*) { return true; }, [](EQPlacedItem*) { return true; });
 	}
 
-	void Sort(SPAWNINFO* pSpawn)
+	void Sort(PlayerClient* pSpawn)
 	{
 		DistanceSort(pSpawn, m_searchResults,
-			[](SPAWNINFO* pSpawn, const MQGroundSpawn& ground)
+			[](PlayerClient* pSpawn, const MQGroundSpawn& ground)
 			{
 				if (ground)
 				{
@@ -487,7 +489,7 @@ char* GetFriendlyNameForGroundItem(PGROUNDITEM pItem, char* szName, size_t Buffe
 	return szName;
 }
 
-float MQGroundSpawn::Distance(SPAWNINFO* pSpawn) const
+float MQGroundSpawn::Distance(PlayerClient* pSpawn) const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{
@@ -505,7 +507,7 @@ float MQGroundSpawn::Distance(SPAWNINFO* pSpawn) const
 	return std::numeric_limits<float>::max();
 }
 
-float MQGroundSpawn::Distance3D(SPAWNINFO* pSpawn) const
+float MQGroundSpawn::Distance3D(PlayerClient* pSpawn) const
 {
 	if (Type == MQGroundSpawnType::Ground)
 	{

@@ -28,6 +28,7 @@
 #include <utility>
 
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 
@@ -1221,7 +1222,7 @@ static void SetFrameLimiterFloat(args::Subparser& parser)
 	}
 }
 
-void FrameLimiterCommand(SPAWNINFO* pChar, char* szLine)
+void FrameLimiterCommand(PlayerClient* pChar, char* szLine)
 {
 	MQ2Args arg_parser("Frame limiter tool: allows adjusting internal frame limiter settings.");
 	arg_parser.Prog("/framelimiter");

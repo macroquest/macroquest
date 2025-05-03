@@ -20,6 +20,8 @@
 
 #include <DirectXMath.h>
 
+using namespace eqlib;
+
 namespace mq {
 
 static void InputAPI_Initialize();

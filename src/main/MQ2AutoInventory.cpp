@@ -20,6 +20,8 @@
 #include <map>
 #include <string>
 
+using namespace eqlib;
+
 namespace mq {
 
 #if HAS_FIND_ITEM_WINDOW

@@ -23,6 +23,8 @@
 
 // Once login is completed, this dll is unloaded and the functions are no longer available.
 
+using namespace eqlib;
+
 namespace mq {
 
 //============================================================================

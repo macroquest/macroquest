@@ -34,7 +34,7 @@ static bool gbBindsLoaded = false;
 static void ExecuteCustomBind(const char* Name, bool Down);
 static void LoadCustomBinds();
 static void SaveCustomBinds();
-static void CustomBindCmd(SPAWNINFO* pChar, char* szLine);
+static void CustomBindCmd(const char* szLine);
 
 static int FindCustomBind(const char* Name)
 {
@@ -165,27 +165,23 @@ void ExecuteCustomBind(const char* Name, bool Down)
 	if (N < 0)
 		return;
 
-	CHARINFO* pCharInfo = GetCharInfo();
-	if (!pCharInfo)
-		return;
-
 	if (CustomBind* pBind = sCustomBinds[N].get())
 	{
 		if (Down)
 		{
 			if (!pBind->commandDown.empty())
 			{
-				DoCommand(pCharInfo->pSpawn, pBind->commandDown.c_str());
+				DoCommand(pBind->commandDown.c_str());
 			}
 		}
 		else if (!pBind->commandUp.empty())
 		{
-			DoCommand(pCharInfo->pSpawn, pBind->commandUp.c_str());
+			DoCommand(pBind->commandUp.c_str());
 		}
 	}
 }
 
-void CustomBindCmd(SPAWNINFO* pChar, char* szLine)
+static void CustomBindCmd(const char* szLine)
 {
 	if (szLine[0] == 0)
 	{

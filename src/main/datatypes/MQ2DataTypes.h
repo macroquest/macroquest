@@ -292,7 +292,7 @@ public:
 
 	MQLIB_OBJECT MQTypeVar MakeTypeVar(int year, int month, int day, int hour, int minute,
 		int seconds, int milliseconds = 0, int dayOfWeek = -1);
-	MQLIB_OBJECT MQTypeVar MakeTypeVar(eqtime_t eqtime);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(eqlib::eqtime_t eqtime);
 };
 
 //============================================================================
@@ -342,7 +342,7 @@ public:
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
-	MQLIB_OBJECT static const Achievement* GetAchievement(const MQVarPtr& VarPtr);
+	MQLIB_OBJECT static const eqlib::Achievement* GetAchievement(const MQVarPtr& VarPtr);
 };
 
 
@@ -404,9 +404,9 @@ public:
 	static bool dataNearestSpawn(const char* szIndex, MQTypeVar& Ret);
 
 	// This is for use in retrieving the spawn that is pointed to by the MQVarPtr.
-	MQLIB_OBJECT static SPAWNINFO* GetSpawnPtr(const MQVarPtr& VarPtr);
+	MQLIB_OBJECT static eqlib::PlayerClient* GetSpawnPtr(const MQVarPtr& VarPtr);
 
-	static inline MQVarPtr MakeVarPtr(SPAWNINFO* pSpawn)
+	static MQVarPtr MakeVarPtr(eqlib::PlayerClient* pSpawn)
 	{
 		MQVarPtr VarPtr;
 
@@ -418,7 +418,7 @@ public:
 		return VarPtr;
 	}
 
-	inline MQTypeVar MakeTypeVar(SPAWNINFO* pSpawn = nullptr, MQ2Type* typeOverride = nullptr)
+	MQTypeVar MakeTypeVar(eqlib::PlayerClient* pSpawn = nullptr, MQ2Type* typeOverride = nullptr)
 	{
 		MQTypeVar Dest;
 
@@ -431,7 +431,7 @@ public:
 		return Dest;
 	}
 
-	MQLIB_OBJECT bool GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
+	MQLIB_OBJECT bool GetMember(eqlib::PlayerClient* pSpawn, const char* Member, char* Index, MQTypeVar& Dest);
 };
 
 //============================================================================
@@ -479,7 +479,7 @@ public:
 	bool FromData(MQVarPtr& VarPtr, const MQTypeVar& Source) override;
 	bool FromString(MQVarPtr& VarPtr, const char* Source) override;
 
-	MQLIB_OBJECT static EQ_Spell* GetSpell(const MQVarPtr& VarPtr);
+	MQLIB_OBJECT static eqlib::EQ_Spell* GetSpell(const MQVarPtr& VarPtr);
 
 	static bool dataSpell(const char* szIndex, MQTypeVar& Ret);
 };
@@ -528,11 +528,11 @@ public:
 
 	struct Data
 	{
-		ItemPtr pItem;
-		ItemSpellTypes spellType;
+		eqlib::ItemPtr pItem;
+		eqlib::ItemSpellTypes spellType;
 	};
 
-	static inline MQVarPtr MakeVarPtr(const ItemPtr& pItem, ItemSpellTypes spellType)
+	static MQVarPtr MakeVarPtr(const eqlib::ItemPtr& pItem, eqlib::ItemSpellTypes spellType)
 	{
 		MQVarPtr VarPtr;
 		VarPtr.Set<Data>({ pItem, spellType });
@@ -540,7 +540,7 @@ public:
 		return VarPtr;
 	}
 
-	inline MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr, ItemSpellTypes spellType = ItemSpellType_Clicky)
+	MQTypeVar MakeTypeVar(const eqlib::ItemPtr& pItem = nullptr, eqlib::ItemSpellTypes spellType = eqlib::ItemSpellType_Clicky)
 	{
 		MQTypeVar Dest;
 		Dest.Type = this;
@@ -549,21 +549,21 @@ public:
 		return Dest;
 	}
 
-	inline ItemPtr GetItem(const MQVarPtr& VarPtr) const
+	eqlib::ItemPtr GetItem(const MQVarPtr& VarPtr) const
 	{
 		auto pData = VarPtr.Get<Data>();
 
 		return pData ? pData->pItem : nullptr;
 	}
 
-	inline ItemSpellTypes GetItemSpellType(const MQVarPtr& VarPtr) const
+	eqlib::ItemSpellTypes GetItemSpellType(const MQVarPtr& VarPtr) const
 	{
 		auto pData = VarPtr.Get<Data>();
 
-		return pData ? pData->spellType : ItemSpellType_Clicky;
+		return pData ? pData->spellType : eqlib::ItemSpellType_Clicky;
 	}
 
-	ItemSpellData::SpellData* GetItemSpellData(const MQVarPtr& VarPtr) const
+	eqlib::ItemSpellData::SpellData* GetItemSpellData(const MQVarPtr& VarPtr) const
 	{
 		auto pData = VarPtr.Get<Data>();
 
@@ -596,11 +596,11 @@ public:
 	static bool dataFindItemCount(const char* szIndex, MQTypeVar& Ret);
 	static bool dataFindItemBankCount(const char* szIndex, MQTypeVar& Ret);
 
-	MQLIB_OBJECT static MQVarPtr MakeVarPtr(const ItemPtr& pItem);
-	MQLIB_OBJECT MQTypeVar MakeTypeVar(const ItemPtr& pItem = nullptr);
-	MQLIB_OBJECT ItemPtr GetItem(const MQVarPtr& VarPtr) const;
+	MQLIB_OBJECT static MQVarPtr MakeVarPtr(const eqlib::ItemPtr& pItem);
+	MQLIB_OBJECT MQTypeVar MakeTypeVar(const eqlib::ItemPtr& pItem = nullptr);
+	MQLIB_OBJECT eqlib::ItemPtr GetItem(const MQVarPtr& VarPtr) const;
 
-	inline bool IsValid(const MQVarPtr& VarPtr) const { return VarPtr.Item != nullptr; }
+	bool IsValid(const MQVarPtr& VarPtr) const { return VarPtr.Item != nullptr; }
 };
 
 //============================================================================

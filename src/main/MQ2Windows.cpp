@@ -23,6 +23,8 @@
 
 #include <spdlog/spdlog.h>
 
+using namespace eqlib;
+
 namespace mq {
 
 static void Windows_Initialize();
@@ -284,10 +286,10 @@ FILE* fopen_eqgraphics_detour(const char* filename, const char* mode)
 	return fopen_eqgraphics_trampoline(filename, mode);
 }
 
-void ListWindows(PSPAWNINFO pChar, char* szLine);
-void WndNotify(PSPAWNINFO pChar, char* szLine);
-void ItemNotify(PSPAWNINFO pChar, char* szLine);
-void ListItemSlots(PSPAWNINFO pChar, char* szLine);
+void ListWindows(PlayerClient* pChar, char* szLine);
+void WndNotify(PlayerClient* pChar, char* szLine);
+void ItemNotify(PlayerClient* pChar, char* szLine);
+void ListItemSlots(PlayerClient* pChar, char* szLine);
 
 #define WSF_AUTOSTRETCHH    0x00400000
 #define WSF_CLIENTMOVABLE   0x00200000
@@ -1064,7 +1066,7 @@ int RecurseAndListWindows(CXWnd* pWnd)
 	return Count;
 }
 
-void ListWindows(PSPAWNINFO pChar, char* szLine)
+void ListWindows(PlayerClient* pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -1202,7 +1204,7 @@ const char* szWndNotification[] = {
 	"resetdefaultposition",   // 29
 };
 
-void WndNotify(PSPAWNINFO pChar, char* szLine)
+void WndNotify(PlayerClient* pChar, char* szLine)
 {
 	int Data = 0;
 
@@ -1371,7 +1373,7 @@ bool CheckLootArg(char* arg, char* search, int argcnt, int* slot)
 	return false;
 }
 
-void ItemNotify(PSPAWNINFO pChar, char* szLine)
+void ItemNotify(PlayerClient* pChar, char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
@@ -1687,7 +1689,7 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 	}
 }
 
-void ListItemSlots(SPAWNINFO* pChar, char* szLine)
+void ListItemSlots(PlayerClient* pChar, char* szLine)
 {
 	WriteChatColor("List of available item slots");
 	WriteChatColor("-------------------------");

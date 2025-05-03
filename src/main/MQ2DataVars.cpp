@@ -19,6 +19,8 @@
 #include <variant>
 
 using namespace mq::datatypes;
+using namespace eqlib;
+
 namespace mq {
 
 static std::recursive_mutex s_dataVarMutex;
@@ -805,7 +807,7 @@ static void TellCheck(const char* szClean)
 	// don't perform action if its our pet
 	if (pLocalPlayer->PetID != -1)
 	{
-		if (SPAWNINFO* pPet = GetSpawnByID(pLocalPlayer->PetID))
+		if (PlayerClient* pPet = GetSpawnByID(pLocalPlayer->PetID))
 		{
 			if (!_stricmp(pPet->DisplayedName, name))
 				return;
@@ -813,7 +815,7 @@ static void TellCheck(const char* szClean)
 	}
 
 	// only react to player tells
-	SPAWNINFO* pNpc = GetSpawnByPartialName(name);
+	PlayerClient* pNpc = GetSpawnByPartialName(name);
 	if (!pNpc && pControlledPlayer != nullptr)
 	{
 		// try to use spawn search to find it.

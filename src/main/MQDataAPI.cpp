@@ -21,6 +21,8 @@
 #include "CrashHandler.h"
 #include "mq/base/ScopeExit.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 std::vector<std::weak_ptr<MQTransient>> s_objectMap;

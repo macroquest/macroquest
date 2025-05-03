@@ -26,22 +26,22 @@ void DeveloperTools_DrawMenu();
 class ImGuiWindowBase;
 
 // Some constants for creating menus.
-const char s_menuNameInspectors[] = "Inspectors";
-const char s_menuNameTools[] = "Tools";
+constexpr const char* s_menuNameInspectors = "Inspectors";
+constexpr const char* s_menuNameTools = "Tools";
 
 // Register inspector window
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName = nullptr);
 void DeveloperTools_UnregisterMenuItem(ImGuiWindowBase* window);
 
 // Developer Tools - Window Inspector panel
-void DeveloperTools_WindowInspector_Show(CXWnd* pWnd);
-void DeveloperTools_WindowInspector_RemoveWindow(CXWnd* pWnd);
-void DeveloperTools_WindowInspector_SetSelectedWindow(CXWnd* pWnd);
+void DeveloperTools_WindowInspector_Show(eqlib::CXWnd* pWnd);
+void DeveloperTools_WindowInspector_RemoveWindow(eqlib::CXWnd* pWnd);
+void DeveloperTools_WindowInspector_SetSelectedWindow(eqlib::CXWnd* pWnd);
 
 bool DeveloperTools_WindowInspector_HandleClick(int mouseButton, bool clicked);
 
 // Misc helper functions
-void DeveloperTools_DrawHotButtonData(const HotButtonData& data);
+void DeveloperTools_DrawHotButtonData(const eqlib::HotButtonData& data);
 
 //----------------------------------------------------------------------------
 

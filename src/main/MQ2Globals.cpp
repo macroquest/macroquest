@@ -15,12 +15,13 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 const double DegToRad = 57.295779513082320876846364344191;
 const double PI = 3.1415926535;
 
-uintptr_t baseAddress = (uintptr_t)GetModuleHandle(nullptr);
 bool InitOffsets()
 {
 	return true;

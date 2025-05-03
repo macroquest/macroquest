@@ -48,7 +48,7 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	if (static_cast<int>(VarPtr.HighPart) == -1)
 		return false;
 
-	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	auto pSpawn = static_cast<PlayerClient*>(VarPtr.Ptr);
 	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
 	if (!buff || buff->spellId <= 0)
 		return false;
@@ -56,7 +56,7 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 	MQTypeMember* pMember = MQ2CachedBuffType::FindMember(Member);
 	if (!pMember)
 	{
-		if (SPELL* pSpell = GetSpellByID(buff->spellId))
+		if (EQ_Spell* pSpell = GetSpellByID(buff->spellId))
 		{
 			MQVarPtr spellVar;
 			spellVar.Ptr = pSpell;
@@ -124,12 +124,12 @@ bool MQ2CachedBuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 
 bool MQ2CachedBuffType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+	auto pSpawn = static_cast<PlayerClient*>(VarPtr.Ptr);
 	auto buff = GetCachedBuffAtSlot(pSpawn, VarPtr.HighPart);
 	if (!buff || buff->spellId <= 0)
 		return false;
 
-	if (PSPELL pSpell = GetSpellByID(buff->spellId))
+	if (EQ_Spell* pSpell = GetSpellByID(buff->spellId))
 	{
 		strcpy_s(Destination, MAX_STRING, pSpell->Name);
 		return true;

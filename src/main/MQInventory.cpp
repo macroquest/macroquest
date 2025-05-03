@@ -18,8 +18,9 @@
 #include "MQ2Main.h"
 
 #include "mq/api/Inventory.h"
-
 #include "eqlib/game/Items.h"
+
+using namespace eqlib;
 
 namespace mq {
 

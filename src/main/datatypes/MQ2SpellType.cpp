@@ -737,7 +737,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!Index[0] || !pLocalPlayer)
 			return false;
 
-		SPELL* tmpSpell = GetSpellByName(Index);
+		EQ_Spell* tmpSpell = GetSpellByName(Index);
 
 		if (!tmpSpell)
 			return false;

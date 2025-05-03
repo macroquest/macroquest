@@ -14,18 +14,18 @@
 
 #include "pch.h"
 
-#include "common/StringUtils.h"
 #include "MQ2DeveloperTools.h"
 #include "MQ2ImGuiTools.h"
 #include "MQ2KeyBinds.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "imgui/ImGuiTextEditor.h"
-#include <imgui/imgui_internal.h>
+#include "imgui/imgui_internal.h"
 
 #include <fmt/format.h>
 
 using namespace std::chrono_literals;
+using namespace eqlib;
 
 namespace mq {
 
@@ -98,7 +98,7 @@ void UpdateSettingsUI()
 	}
 }
 
-void MQSettingsCommand(PSPAWNINFO pLPlayer, char* szLine)
+static void MQSettingsCommand(const char* szLine)
 {
 	std::string_view arg{ szLine };
 	if (!arg.empty())

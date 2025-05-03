@@ -23,10 +23,9 @@
 
 #include "mq/base/WString.h"
 
-#pragma warning(push)
-#pragma warning(disable: 4244)
 #include <fmt/chrono.h>
-#pragma warning(pop)
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -158,8 +157,8 @@ const char* szSortBy[] =
 	nullptr
 };
 
-void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
-void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
+void SuperWhoDisplay(PlayerClient* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
+void SuperWhoDisplay(PlayerClient* pSpawn, DWORD Color);
 
 void SuperWho(PlayerClient* pChar, const char* szLine)
 {
@@ -714,7 +713,7 @@ void CharInfo(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 void SpellSlotInfo(PlayerClient* pChar, const char* szLine)
 {
-	SPELL* pSpell = nullptr;
+	EQ_Spell* pSpell = nullptr;
 
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
@@ -2094,7 +2093,7 @@ void SuperWhoTarget(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
-	SPAWNINFO* psTarget = nullptr;
+	PlayerClient* psTarget = nullptr;
 
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdWhoTarget(pChar, szLine);
@@ -2504,7 +2503,7 @@ void Face(PlayerClient* pChar, const char* szLine)
 		// if spawn search args provided, try using them.
 		if (spawnSearchArgs)
 		{
-			SPAWNINFO* pFacingSpawn = SearchThroughSpawns(&SearchSpawn, pChar);
+			PlayerClient* pFacingSpawn = SearchThroughSpawns(&SearchSpawn, pChar);
 			faceTarget = ToGameObject(pFacingSpawn);
 		}
 		// otherwise try using the current target
@@ -2589,7 +2588,7 @@ void Where(PlayerClient* pChar, const char* szLine)
 		szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 	}
 
-	SPAWNINFO* pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
+	PlayerClient* pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 
 	if (!pSpawnClosest)
 	{
@@ -2658,7 +2657,7 @@ void DoAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
 			{
-				if (SPELL* pCA = GetSpellByID(pLocalPC->GetCombatAbility(Index)))
+				if (EQ_Spell* pCA = GetSpellByID(pLocalPC->GetCombatAbility(Index)))
 				{
 					WriteChatf("<\ag%s\ax>", pCA->Name);
 				}
@@ -2699,7 +2698,7 @@ void DoAbility(PlayerClient* pChar, const char* szLine)
 	{
 		if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
 		{
-			if (SPELL* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
+			if (EQ_Spell* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
 			{
 				if (!_stricmp(pCA->Name, szBuffer))
 				{
@@ -2796,10 +2795,10 @@ void LoadSpells(PlayerClient* pChar, const char* szLine)
 	}
 }
 
-static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
+static void CastSplash(int Index, EQ_Spell* pSpell, const CVector3* pos)
 {
 	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), ItemSpellType_Clicky);
-	SPAWNINFO* pMySpawn = pLocalPlayer;
+	PlayerClient* pMySpawn = pLocalPlayer;
 
 	if (pEverQuest->freeTargetTracker)
 	{
@@ -2874,7 +2873,7 @@ void Cast(PlayerClient* pChar, const char* szLine)
 
 		if (Index >= 0 && Index < NUM_SPELL_GEMS)
 		{
-			if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(Index)))
+			if (EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(Index)))
 			{
 				if (pSpell->TargetType == TT_SPLASH)
 				{
@@ -3023,7 +3022,7 @@ void Target(PlayerClient* pChar, const char* szLine)
 	ClearSearchSpawn(&SearchSpawn);
 
 	bool DidTarget = false;
-	SPAWNINFO* pSpawnClosest = nullptr;
+	PlayerClient* pSpawnClosest = nullptr;
 
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
@@ -4472,7 +4471,7 @@ void PetCmd(PlayerClient* pChar, const char* szLine)
 
 		if (IsNumber(szID))
 		{
-			if (SPAWNINFO* pSpawn = GetSpawnByID(GetIntFromString(szID, 0)))
+			if (PlayerClient* pSpawn = GetSpawnByID(GetIntFromString(szID, 0)))
 			{
 				pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
 				return;
@@ -5305,7 +5304,7 @@ void ForeGroundCmd(PlayerClient* pChar, const char* szLine)
 // Author:      ChatWithThisName
 // ***************************************************************************
 
-static bool HasLevSPA(SPELL* pBuff)
+static bool HasLevSPA(EQ_Spell* pBuff)
 {
 	int effects = GetSpellNumEffects(pBuff);
 
