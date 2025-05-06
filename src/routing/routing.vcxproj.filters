@@ -33,9 +33,15 @@
     <ClInclude Include="NamedPipesProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto">
+      <Filter>Proto Files</Filter>
+    </ProtocolBuffer>
+    <ProtocolBuffer Include="Network.proto">
       <Filter>Proto Files</Filter>
     </ProtocolBuffer>
   </ItemGroup>
@@ -47,6 +53,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NamedPipes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
