@@ -1,3 +1,6 @@
+May 16, 2025:
+- test: Fix broken group members (#931)
+
 May 15, 2025:
 - test: update for test patch
 
