@@ -21,15 +21,24 @@
   <ItemGroup>
     <ClInclude Include="NamedPipes.h" />
     <ClInclude Include="NamedPipesProtocol.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProtoPipes.h" />
     <ClInclude Include="Routing.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProtocolBuffer Include="Network.proto" />
     <ProtocolBuffer Include="Routing.proto" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NamedPipes.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Network.pb.cc">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="Routing.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
