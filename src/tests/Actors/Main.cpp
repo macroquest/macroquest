@@ -49,8 +49,9 @@ void RequestActivateWindow(HWND hWnd, bool sendMessage) {}
 } // namespace mq
 
 struct ImGuiViewport;
+struct ImVec2;
 namespace LauncherImGui {
-	void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title) {}
+	void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title, const ImVec2& size) {}
 }
 
 void InitializePostOfficeImgui() {}
