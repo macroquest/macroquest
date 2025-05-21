@@ -56,6 +56,8 @@ DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 extern std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
+static inline void  TreeAdvanceToLabelPos() { ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing()); }
+
 //----------------------------------------------------------------------------
 
 PersistedBool::PersistedBool(std::string_view section, std::string_view key, bool init)
@@ -1956,8 +1958,122 @@ public:
 				ImGui::TreePop();
 			}
 #endif
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			if (ImGui::TreeNode("Group"))
+			{
+				ImGui::TableNextRow();
+
+				if (pLocalPC->Group)
+				{
+					ImGui::TableNextColumn(); ImGui::Text("ID");
+					ImGui::TableNextColumn(); ImGui::Text("%d", pLocalPC->Group->GetID());
+
+					DrawGroupMember("Leader", pLocalPC->Group->GetGroupLeader());
+
+					for (uint32_t i = 0; i < pLocalPC->Group->GetMaxGroupSize(); ++i)
+					{
+						CGroupMember* groupMember = pLocalPC->Group->GetGroupMember(i);
+
+						char label[32] = {};
+						sprintf_s(label, "Member %d", i);
+						DrawGroupMember(label, groupMember);
+					}
+				}
+				else
+				{
+					ImGui::TableNextColumn(); ImGui::Text("No Group");
+				}
+
+				ImGui::TreePop();
+			}
 
 			ImGui::EndTable();
+		}
+	}
+
+	void DrawGroupMember(const char* text, CGroupMember* groupMember)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+
+		if (groupMember)
+		{
+			bool expand = ImGui::TreeNode(text);
+			ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->GetName());
+
+			if (expand)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Name");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->GetName());
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Type");
+				ImGui::TableNextColumn(); ImGui::Text("%d", (int)groupMember->Type);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Owner Name");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->GetOwnerName());
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Level");
+				ImGui::TableNextColumn(); ImGui::Text("%d", groupMember->GetLevel());
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Offline");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsOffline() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Unique Player ID");
+				ImGui::TableNextColumn(); ImGui::Text("%d", groupMember->UniquePlayerID);
+
+#if IS_CLIENT_DATE(20250513u)
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Unknown 0x30");
+				ImGui::TableNextColumn(); ImGui::Text("%" PRIx64, groupMember->Unknown0x30);
+#endif
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Main Tank");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsMainTank() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Main Assist");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsMainAssist() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Puller");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsPuller() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Mark NPC");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsMarkNPC() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Is Master Looter");
+				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsMasterLooter() ? "Yes" : "No");
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Role Bits");
+				ImGui::TableNextColumn(); ImGui::Text("0x%08x", groupMember->CurrentRoleBits);
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Online Timestamp");
+				ImGui::TableNextColumn(); ImGui::Text("%" PRId64, groupMember->GetOnlineTimestamp());
+
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("Group Index");
+				ImGui::TableNextColumn(); ImGui::Text("%d", groupMember->GroupIndex);
+
+				ImGui::TreePop();
+			}
+		}
+		else
+		{
+			TreeAdvanceToLabelPos(); ImGui::Text("%s", text);
+			ImGui::TableNextColumn(); ImGui::TextColored(ImColor(1.0f, 1.0f, 1.0f, .5f), "None");
 		}
 	}
 };
