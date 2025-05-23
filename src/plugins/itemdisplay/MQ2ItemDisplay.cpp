@@ -1549,16 +1549,6 @@ public:
 	{
 		Update();
 
-		if (GetGameState() == GAMESTATE_INGAME && s_settings.PersistWindowBounds())
-		{
-			CXRect rc = GetLocation();
-			rc.left = s_settings.GetWindowX();
-			rc.top = s_settings.GetWindowY();
-			rc.right = s_settings.GetWindowX() + s_settings.GetWindowWidth();
-			rc.bottom = s_settings.GetWindowY() + s_settings.GetWindowHeight();
-
-			((CItemDisplayWnd*)this)->UpdateGeometry(rc, true, true, true, true);
-		}
 		return Super::AboutToShow();
 	}
 
@@ -1706,6 +1696,17 @@ public:
 		SetItem_Trampoline(pItem, flags);
 
 		s_inSetItem = false;
+
+		if (GetGameState() == GAMESTATE_INGAME && s_settings.PersistWindowBounds())
+		{
+			CXRect rc = GetLocation();
+			rc.left = s_settings.GetWindowX();
+			rc.top = s_settings.GetWindowY();
+			rc.right = s_settings.GetWindowX() + s_settings.GetWindowWidth();
+			rc.bottom = s_settings.GetWindowY() + s_settings.GetWindowHeight();
+
+			((CItemDisplayWnd*)this)->UpdateGeometry(rc, true, true, true, true);
+		}
 	}
 
 	//----------------------------------------------------------------------------
