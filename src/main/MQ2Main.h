@@ -148,8 +148,8 @@ MQLIB_API void DeleteMQ2NewsWindow();
 MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
 
 /* CLEAN UI */
-MQLIB_API void DrawHUD();
-
+void DrawHUD();
+void ResetHUD();
 
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
@@ -615,10 +615,7 @@ MQLIB_API    eqlib::eEQSPA      GetSPAFromName(const char* spa);
 MQLIB_API    const char* GetTeleportName(DWORD id);
 
 MQLIB_API HMODULE GetCurrentModule();
-MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
-MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
-void MQ2Shutdown();
-MQLIB_API HANDLE hUnloadComplete;
+void DoMainThreadShutdown();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
@@ -642,20 +639,6 @@ constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61
 //#define MAX_ITEMTYPES		71
 //#define MAX_SPELLEFFECTS	487
-
-constexpr int GAMESTATE_PRECHARSELECT  = -1;
-constexpr int GAMESTATE_CHARSELECT     = 1;
-constexpr int GAMESTATE_CHARCREATE     = 2;
-constexpr int GAMESTATE_POSTCHARSELECT = 3;
-constexpr int GAMESTATE_SOMETHING      = 4;
-constexpr int GAMESTATE_INGAME         = 5;
-constexpr int GAMESTATE_LOGGINGIN      = 253;
-constexpr int GAMESTATE_UNLOADING      = 255;
-
-#define XKF_SHIFT               1
-#define XKF_CTRL                2
-#define XKF_LALT                4
-#define XKF_RALT                8
 
 MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(eqlib::ItemClient* pContent);

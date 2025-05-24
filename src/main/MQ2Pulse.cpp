@@ -44,7 +44,7 @@ void PulseMQ2AutoInventory();
 
 std::vector<std::function<void()>> s_queuedEvents;
 std::recursive_mutex s_queuedEventMutex;
-extern wil::unique_event g_hLoadComplete;
+extern wil::unique_event g_loadComplete;
 
 void PostToMainThread(std::function<void()>&& callback)
 {
@@ -608,30 +608,12 @@ static void FixStringTable()
 	}
 }
 
-
-enum HeartbeatState
-{
-	HeartbeatNormal = 0,
-	HeartbeatUnload = 1,
-	HeartbeatLoad = 2,
-};
-
-static HeartbeatState Heartbeat()
+void Heartbeat()
 {
 	if (!s_isValid && s_hasNotified)
 	{
 		gbUnload = true;
-	}
-
-	if (gbUnload)
-	{
-		return HeartbeatUnload;
-	}
-
-	if (gbLoad)
-	{
-		gbLoad = false;
-		return HeartbeatLoad;
+		return;
 	}
 
 	static uint64_t LastGetTick = 0;
@@ -666,25 +648,6 @@ static HeartbeatState Heartbeat()
 		gStringTableFixed = true;
 	}
 
-	DebugTry(int GameState = GetGameState());
-	if (GameState != -1)
-	{
-		if (GameState != gGameState)
-		{
-			DebugSpew("GetGameState()=%d vs %d", GameState, gGameState);
-			gGameState = GameState;
-			gbInZone = (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE);
-			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState)));
-		}
-
-		// they "zoned" to charselect...
-		if (gZoning && (GameState == GAMESTATE_CHARSELECT || GameState == GAMESTATE_CHARCREATE))
-		{
-			gZoning = false;
-			PluginsEndZone();
-		}
-	}
-
 	UpdateMQ2SpawnSort();
 
 	DebugTry(DrawHUD());
@@ -704,36 +667,30 @@ static HeartbeatState Heartbeat()
 
 	ImGuiManager_Pulse();
 
-	if (gGameState == -1)
+	if (gGameState != -1)
 	{
-		pCommandAPI->PulseCommands();
+		int CurTurbo = 0;
 
-		return HeartbeatNormal;
-	}
+		MQMacroBlockPtr pBlock = GetNextMacroBlock();
+		while (bRunNextCommand)
+		{
+			if (!pBlock)
+				break;
+			if (!DoNextCommand(pBlock))
+				break;
+			if (gbUnload)
+				return;
+			if (!gTurbo)
+				break;
+			if (++CurTurbo > gMaxTurbo)
+				break;
 
-	int CurTurbo = 0;
-
-	MQMacroBlockPtr pBlock = GetNextMacroBlock();
-	while (bRunNextCommand)
-	{
-		if (!pBlock)
-			break;
-		if (!DoNextCommand(pBlock))
-			break;
-		if (gbUnload)
-			return HeartbeatUnload;
-		if (!gTurbo)
-			break;
-		if (++CurTurbo > gMaxTurbo)
-			break;
-
-		// re-fetch current macro block in case one of the previous instructions changed it
-		pBlock = GetCurrentMacroBlock();
+			// re-fetch current macro block in case one of the previous instructions changed it
+			pBlock = GetCurrentMacroBlock();
+		}
 	}
 
 	pCommandAPI->PulseCommands();
-
-	return HeartbeatNormal;
 }
 
 // ***************************************************************************
@@ -741,60 +698,17 @@ static HeartbeatState Heartbeat()
 // Description: Our ProcessGameEvents Hook
 // ***************************************************************************
 
-void SetMainThreadId();
 void DoMainThreadInitialization();
 
 bool DoGameEventsPulse(int (*pEventFunc)())
 {
-	SetMainThreadId();
-	HeartbeatState hbState;
-
-	{
-		std::scoped_lock lock(s_pulseMutex);
-		hbState = Heartbeat();
-	}
-
 	int processGameEventsResult = 0;
 	if (pEventFunc)
 		processGameEventsResult = pEventFunc();
 
-	if (hbState == HeartbeatLoad && !IsPluginsInitialized())
-	{
-		OutputDebugString("I am loading in ProcessGameEvents");
-
-		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-		DoMainThreadInitialization();
-		ScreenMode = oldscreenmode;
-
-		g_hLoadComplete.SetEvent();
-	}
-	else if (hbState == HeartbeatUnload && g_Loaded)
-	{
-		// we are unloading stuff
-		OutputDebugString("I am unloading in ProcessGameEvents");
-
-		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-		WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
-		DebugSpewAlways("%s", UnloadedString);
-
-		// cant unload these here there are detours still in use that call functions from plugins...
-		//UnloadMQ2Plugins();
-
-		MQ2Shutdown();
-
-		g_Loaded = false;
-		ScreenMode = oldscreenmode;
-		SetEvent(hUnloadComplete);
-	}
-
 	return processGameEventsResult;
 }
 
-DETOUR_TRAMPOLINE_DEF(int, ProcessGameEvents_Trampoline, ());
-int ProcessGameEvents_Detour()
-{
-	return DoGameEventsPulse(ProcessGameEvents_Trampoline);
-}
 
 void DoLoginPulse()
 {
@@ -804,14 +718,6 @@ void DoLoginPulse()
 class CEverQuestHook
 {
 public:
-	DETOUR_TRAMPOLINE_DEF(void, SetGameState_Trampoline, (DWORD GameState))
-	void SetGameState_Detour(DWORD GameState)
-	{
-		SetGameState_Trampoline(GameState);
-
-		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
-	}
-
 	DETOUR_TRAMPOLINE_DEF(void, CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline, ())
 	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
 	{
@@ -827,10 +733,6 @@ void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
-	std::scoped_lock lock(s_pulseMutex);
-
-	EzDetour(__ProcessGameEvents, ProcessGameEvents_Detour, ProcessGameEvents_Trampoline);
-	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
@@ -841,10 +743,6 @@ void InitializeMQ2Pulse()
 
 void ShutdownMQ2Pulse()
 {
-	std::scoped_lock lock(s_pulseMutex);
-
-	RemoveDetour(__ProcessGameEvents);
-	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 }
 

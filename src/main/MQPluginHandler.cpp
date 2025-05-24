@@ -965,8 +965,9 @@ void PluginsSetGameState(int GameState)
 	static bool AutoExec = false;
 	static bool CharSelect = true;
 
-	DrawHUDParams[0] = 0;
+	ResetHUD();
 	gGameState = GameState;
+	gbInZone = (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT || gGameState == GAMESTATE_CHARCREATE);
 
 	if (GameState != GAMESTATE_INGAME && GameState != GAMESTATE_LOGGINGIN)
 	{
@@ -1159,12 +1160,23 @@ void PluginsBeginZone()
 
 void PluginsEndZone()
 {
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+	if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
+	{
+		// unload
+		WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
+		DoCommand("/unload", false);
+	}
+#endif
+
 	if (!s_pluginsInitialized)
 		return;
 
 	PluginDebug("PluginsEndZone()");
 
 	gbInZone = true;
+	gZoning = false;
+
 	WereWeZoning = true;
 	LastEnteredZone = MQGetTickCount64();
 

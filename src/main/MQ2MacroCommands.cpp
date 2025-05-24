@@ -19,6 +19,7 @@
 #include "MQDataAPI.h"
 #include "MQPluginHandler.h"
 #include "MQ2KeyBinds.h"
+#include "MacroSystem.h"
 
 #include <fstream>
 #include <regex>
@@ -895,9 +896,9 @@ void EndAllMacros()
 		names.push_back(macroBlock.first);
 	}
 
-	for (const auto& name : names)
+	for (const std::string& name : names)
 	{
-		EndMacro(pLocalPlayer, name.c_str());
+		EndMacro(nullptr, name.c_str());
 	}
 }
 
@@ -1318,7 +1319,7 @@ void DumpStack(PlayerClient* pChar, const char* szLine)
 // Description: Our '/endmacro' command
 // Usage:       /endmacro
 // ***************************************************************************
-void EndMacro(PlayerClient* pChar, const char* szLine)
+void EndMacro(PlayerClient*, const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char MacroName[MAX_STRING] = { 0 };
@@ -1351,41 +1352,44 @@ void EndMacro(PlayerClient* pChar, const char* szLine)
 	// was returned from the GetMacroBlock
 	strcpy_s(MacroName, pBlock->Name.c_str());
 
-	// Code allowing for a routine for "OnExit"
-	for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); ++i)
+	if (!gbUnload)
 	{
-		if (!_strnicmp(i->second.Command.c_str(), ":OnExit", 7))
+		// Code allowing for a routine for "OnExit"
+		for (auto i = pBlock->Line.begin(); i != pBlock->Line.end(); ++i)
 		{
-			pBlock->CurrIndex = i->first;
-			// Force unpause to finish processing
-			pBlock->Paused = false;
-			// Return to the macro the first time around
-			if (gReturn)
+			if (!_strnicmp(i->second.Command.c_str(), ":OnExit", 7))
 			{
-				// While there are more items in the global macro stack
-				while (gMacroStack->pNext)
+				pBlock->CurrIndex = i->first;
+				// Force unpause to finish processing
+				pBlock->Paused = false;
+				// Return to the macro the first time around
+				if (gReturn)
 				{
-					if (gMacroStack->LocalVariables)
-						ClearMQ2DataVariables(&gMacroStack->LocalVariables);
-					if (gMacroStack->Parameters)
-						ClearMQ2DataVariables(&gMacroStack->Parameters);
+					// While there are more items in the global macro stack
+					while (gMacroStack->pNext)
+					{
+						if (gMacroStack->LocalVariables)
+							ClearMQ2DataVariables(&gMacroStack->LocalVariables);
+						if (gMacroStack->Parameters)
+							ClearMQ2DataVariables(&gMacroStack->Parameters);
 
-					// Save the next pointer before deleting the current stack item
-					MQMacroStack* pNext = gMacroStack->pNext;
+						// Save the next pointer before deleting the current stack item
+						MQMacroStack* pNext = gMacroStack->pNext;
 
-					// Delete the current stack item
-					delete gMacroStack;
+						// Delete the current stack item
+						delete gMacroStack;
 
-					// Move to the next item in the stack
-					gMacroStack = pNext;
+						// Move to the next item in the stack
+						gMacroStack = pNext;
+					}
+
+					// We don't want to return the 2nd time
+					gReturn = false;
+					return;
 				}
 
-				// We don't want to return the 2nd time
-				gReturn = false;
-				return;
+				break;
 			}
-
-			break;
 		}
 	}
 

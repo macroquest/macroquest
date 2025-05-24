@@ -22,11 +22,6 @@ namespace mq {
 const double DegToRad = 57.295779513082320876846364344191;
 const double PI = 3.1415926535;
 
-bool InitOffsets()
-{
-	return true;
-}
-
 /* PickZone */
 HANDLE ghInitializeSpellDbThread = nullptr;
 
@@ -42,21 +37,9 @@ MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
 
 ePVPServer PVPServer = PVP_NONE;
-char gszVersion[32] = __ExpectedVersionDate;
-char gszTime[32] = __ExpectedVersionTime;
-
-#if defined(EMULATOR)
-int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)
-#elif defined(TEST)
-int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
-#else
-int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
-#endif
 
 int gGameState = 0;
-bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
-bool g_Loaded = false;
 bool gbWriteAllConfig = false;
 bool gStringTableFixed = false;
 
@@ -66,8 +49,6 @@ HWND ghInjectorWnd = nullptr;
 bool gbUnload = false;
 bool gbForceUnload = false;
 bool gBindInProgress = false;
-bool gbLoad = true;
-DWORD gpHook = 0;
 MQMacroBlockPtr gMacroBlock = nullptr;
 int BlockIndex = 0;
 MQMacroStack* gMacroStack = nullptr;
@@ -75,45 +56,17 @@ decltype(gMacroSubLookupMap) gMacroSubLookupMap;
 decltype(gUndeclaredVars) gUndeclaredVars;
 MQEventQueue* gEventQueue = nullptr;
 int gEventFunc[NUM_EVENTS] = { 0 };
-UCHAR gLastFind = 0;
 double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
 bool gbSpelldbLoaded = false;
-char gszEQPath[MAX_STRING] = { 0 }; // Deprecate
-char gszMacroPath[MAX_STRING] = { 0 }; // Deprecate
-char gszLogPath[MAX_STRING] = { 0 }; // Deprecate
-char gszINIPath[MAX_STRING] = { 0 }; // Deprecate
-char gszINIFilename[MAX_STRING] = { 0 }; // Deprecate
-char gszItemDB[MAX_STRING] = { 0 }; // Deprecate
 char gszMacroName[MAX_STRING] = { 0 };
 char szLastCommand[MAX_STRING] = { 0 };
 char gUISkin[MAX_PATH] = "default";
-char gPathMQRoot[MAX_PATH] = { 0 };
-char gPathConfig[MAX_PATH] = { 0 };
-char gPathMQini[MAX_PATH] = { 0 };
-char gPathMacros[MAX_PATH] = { 0 };
-char gPathLogs[MAX_PATH] = { 0 };
-char gPathCrashDumps[MAX_PATH] = { 0 };
-char gPathPlugins[MAX_PATH] = { 0 };
-char gPathResources[MAX_PATH] = { 0 };
-char gPathEverQuest[MAX_PATH] = { 0 }; // Although the working directory is EverQuest, the WIN_API calls source to %WINDIR%
-std::string mq::internal_paths::MQRoot = ".";
-std::string mq::internal_paths::Config = "Config";
-std::string mq::internal_paths::MQini = mq::internal_paths::Config + "\\MacroQuest.ini";
-std::string mq::internal_paths::Macros = "Macros";
-std::string mq::internal_paths::Logs = "Logs";
-std::string mq::internal_paths::CrashDumps = mq::internal_paths::Logs + "\\Dumps";
-std::string mq::internal_paths::Plugins = "Plugins";
-std::string mq::internal_paths::Resources = "Resources";
-std::string mq::internal_paths::EverQuest = "%PUBLIC%\\Daybreak Game Company\\Installed Games\\EverQuest"; // Although the working directory is EverQuest, the WIN_API calls source to %WINDIR%
 
 char gszLastNormalError[MAX_STRING] = { 0 };
 char gszLastSyntaxError[MAX_STRING] = { 0 };
 char gszLastMQ2DataError[MAX_STRING] = { 0 };
-
-// TODO: uintptr is the biggest actual type, but this should be a struct
-uintptr_t DrawHUDParams[4] = { 0, 0, 0, 0 };
 
 Blech *pMQ2Blech = nullptr;
 char EventMsg[MAX_STRING] = { 0 };
@@ -241,14 +194,10 @@ bool gTurbo = false;
 bool gWarning = false;
 MQDefine* pDefines = nullptr;
 MQBindList* pBindList = nullptr;
-char gLastFindSlot[MAX_STRING] = { 0 };
 MQFilter* gpFilters = nullptr;
 
 // Deprecated
-int PetSpawn = 0;
-int MercenarySpawn = 0;
 int DoorEnviroTarget = 0;
-int EnviroTarget = 0;
 
 EQSwitch* pDoorTarget = nullptr;
 
@@ -279,7 +228,6 @@ fEQCommand cmdPickZone = nullptr;
 fEQCommand cmdAssist = nullptr;
 fEQCommand cmdQuit = nullptr;
 
-const char* szEQMappableCommands[nEQMappableCommands];
 decltype(ItemSlotMap) ItemSlotMap;
 
 SGlobalBuffer DataTypeTemp;
@@ -752,7 +700,6 @@ bool gbExactSearchCleanNames = false;
 
 std::map<std::string, MQDataVar*> VariableMap;
 
-size_t g_eqgameimagesize = 0;
 bool gUseTradeOnTarget = true;
 bool gbBeepOnTells = false;
 bool gbFlashOnTells = true;

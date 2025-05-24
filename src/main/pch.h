@@ -37,6 +37,7 @@
 #endif
 #define WINVER                 0x0601
 
+#include "eqlib/EQLib.h"
 
 #include <cstdio>
 #include <cstdint>
@@ -44,8 +45,8 @@
 #include <cmath>
 
 #include <algorithm>
-#include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <list>
 #include <map>

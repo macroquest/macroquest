@@ -90,7 +90,7 @@ bool IsCommand(std::string_view command);
  * Execute a chat command
  *
  * @param command The chat command to execute
- * @param delayed If true, this function will return immediate and the command will be.
+ * @param delayed If true, this function will return immediately and the command will be.
  * executed on the next Pulse.
  */
 void DoCommand(const char* command, bool delayed = true);

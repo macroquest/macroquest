@@ -39,7 +39,8 @@ public:
 #endif
 	{
 		gbInChat = true;
-		if (dwColor != 269)
+
+		if (dwColor != USERCOLOR_BROADCAST)
 		{
 			CheckChatForEvent(szMsg);
 		}
@@ -67,8 +68,11 @@ public:
 
 		if (!Filtered)
 		{
-			bool SkipTrampoline = false;
-			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, dwColor));
+			bool SkipTrampoline;
+			{
+				MQScopedBenchmark bm(bmPluginsIncomingChat);
+				SkipTrampoline = PluginsIncomingChat(szMsg, dwColor);
+			}
 
 #if HAS_CHAT_TIMESTAMPS
 			if (gbTimeStampChat)
@@ -121,7 +125,11 @@ public:
 		{
 			sprintf_s(szMsg, len, "%s tells you, '%s'", from, message);
 			CheckChatForEvent(szMsg);
-			Benchmark(bmPluginsIncomingChat, SkipTrampoline = PluginsIncomingChat(szMsg, color));
+
+			{
+				MQScopedBenchmark bm(bmPluginsIncomingChat);
+				SkipTrampoline = PluginsIncomingChat(szMsg, color);
+			}
 		}
 
 #if HAS_CHAT_TIMESTAMPS

@@ -71,36 +71,6 @@ public:
 };
 
 //============================================================================
-
-class CDisplay_Detours
-{
-public:
-	void ZoneMainUI_Detour()
-	{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
-		{
-			// unload
-			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
-			DoCommand("/unload", false);
-		}
-#endif
-
-		PluginsEndZone();
-		ZoneMainUI_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
-
-	void PreZoneMainUI_Detour()
-	{
-		PluginsBeginZone();
-		PreZoneMainUI_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
-};
-
 	
 #if 0
 // TODO: Maybe someday revisit detection of assist completion...
@@ -329,23 +299,6 @@ uint64_t decompress_block_detour(uint64_t ctx)
 	return 0;
 }
 
-void TryInitializeLogin();
-
-DETOUR_TRAMPOLINE_DEF(void* WINAPI, GetProcAddress_Trampoline, (HMODULE, LPCSTR))
-void* WINAPI GetProcAddress_Detour(HMODULE hModule, LPCSTR lpProcName)
-{
-	if (void* result = GetProcAddress_Trampoline(hModule, lpProcName))
-	{
-		// This is the trigger for loading the eqmain.dll
-		if (hModule == *ghEQMainInstance && std::string_view{ lpProcName } == "new_dll_main")
-			TryInitializeLogin();
-
-		return result;
-	}
-
-	return nullptr;
-}
-
 DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindModules_Trampoline, (HANDLE, HMODULE*, DWORD, DWORD*))
 BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
@@ -465,8 +418,6 @@ void HookMemChecker(bool Patch)
 		EzDetour(__decompress_block, decompress_block_detour, decompress_block_trampoline);
 
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
-		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
-		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
 	}
 	else
 	{
@@ -486,8 +437,6 @@ void HookMemChecker(bool Patch)
 
 		//RemoveDetour(CPacketScrambler__ntoh);
 		RemoveDetour(Spellmanager__LoadTextSpells);
-		RemoveDetour(CDisplay__ZoneMainUI);
-		RemoveDetour(CDisplay__PreZoneMainUI);
 	}
 }
 
@@ -516,8 +465,6 @@ static void InitializeDetours()
 
 	HookMemChecker(true);
 
-	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
-	EzDetour(GetProcAddress_Addr, &GetProcAddress_Detour, &GetProcAddress_Trampoline);
 	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
 	EzDetour(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
 
@@ -535,8 +482,6 @@ static void InitializeDetours()
 
 static void ShutdownDetours()
 {
-	uintptr_t GetProcAddress_Addr = (uintptr_t)&::GetProcAddress;
-	RemoveDetour(GetProcAddress_Addr);
 	RemoveDetour(__ModuleList);
 	RemoveDetour(__ProcessList);
 	RemoveDetour(__Module32First);

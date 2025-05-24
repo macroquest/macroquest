@@ -597,13 +597,8 @@ PLUGIN_API void OnDrawHUD()
 	}
 	if (!bEQHasFocus) return;
 
-	DWORD SX = 0;
-	DWORD SY = 0;
-	if (pScreenX && pScreenY)
-	{
-		SX = ScreenX;
-		SY = ScreenY;
-	}
+	int SX = pEverQuestInfo->Render_MaxX;
+	int SY = pEverQuestInfo->Render_MaxY;
 
 	HUDELEMENT* pElement = pHud;
 	bool bCheckParse = !(FrameCount % SkipParse);

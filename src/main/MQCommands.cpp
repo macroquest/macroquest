@@ -40,7 +40,7 @@ int GetPluginUnloadFailedCount();
 //              Triggers the DLL to unload itself
 // Usage:       /unload [force]
 // ***************************************************************************
-void Unload(PlayerClient* pChar, const char* szLine)
+void Unload(PlayerClient*, const char* szLine)
 {
 	if (const int failed_count = GetPluginUnloadFailedCount(); failed_count > 0)
 	{
@@ -56,18 +56,12 @@ void Unload(PlayerClient* pChar, const char* szLine)
 		gbForceUnload = true;
 	}
 
-	if (!pChar)
-		pChar = pLocalPlayer;
+	gbUnload = true;
 
-	bRunNextCommand = true;
-	if (GetCurrentMacroBlock())
-	{
-		EndAllMacros();
-	}
+	EndAllMacros();
 
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
-	gbUnload = true;
 }
 
 // ***************************************************************************

@@ -230,54 +230,6 @@ struct MQWhoSort
 using WHOSORT DEPRECATE("Use MQWhoSort instead of WHOSORT") = MQWhoSort;
 using PWHOSORT DEPRECATE("Use MQWhoSort* instead PWHOSORT") = MQWhoSort*;
 
-struct MQMacroLine
-{
-	std::string Command;
-
-	int LoopStart = 0;
-	// used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated.
-	int LoopEnd = 0;
-
-	std::string SourceFile;
-	int LineNumber = 0;
-
-#ifdef MQ2_PROFILING
-	int ExecutionCount = 0;
-	uint64_t ExecutionTime = 0;
-#endif
-
-	MQMacroLine(std::string Line, std::string sourceFile, int lineNumber)
-		: Command(std::move(Line))
-		, SourceFile(std::move(sourceFile))
-		, LineNumber(lineNumber)
-	{}
-
-	MQMacroLine(const MQMacroLine&) = delete;
-	MQMacroLine& operator=(const MQMacroLine&) = delete;
-};
-using MACROLINE DEPRECATE("Use MQMacroLine instead MACROLINE") = MQMacroLine;
-using PMACROLINE DEPRECATE("Use MQMacroLine* instead of PMACROLINE") = MQMacroLine;
-
-struct MQMacroBlock
-{
-	std::string Name;                           // our macro Name
-	bool Paused = false;
-	int CurrIndex = 0;                          // the current macro line we are on
-	int BindStackIndex = -1;                    // where we were at before calling the bind.
-	std::string BindCmd;                        // the actual command including parameters
-	std::map<int, MQMacroLine> Line;
-	bool Removed = false;
-
-	MQMacroBlock(std::string name) : Name(std::move(name)) {}
-
-	MQMacroBlock(const MQMacroBlock&) = delete;
-	MQMacroBlock& operator=(const MQMacroBlock&) = delete;
-};
-using MQMacroBlockPtr = std::shared_ptr<MQMacroBlock>;
-
-using PMACROBLOCK DEPRECATE("Use MQMacroBlockPtr instead of PMACROBLOCK") = MQMacroBlockPtr;
-using MACROBLOCK DEPRECATE("Use MQMacroBlock instead MACROBLOCK") = MQMacroBlock;
-
 struct MQTimer
 {
 	std::string Name;
@@ -305,35 +257,6 @@ struct ITEMDB {
 	char szName[256];
 };
 using PITEMDB DEPRECATE("Use ITEMDB* instead of PITEMDB") = ITEMDB*;
-
-struct MQDefine
-{
-	char szName[MAX_STRING];
-	char szReplace[MAX_STRING];
-
-	MQDefine* pNext = nullptr;
-};
-
-struct MQEventList
-{
-	char szName[MAX_STRING];
-	char szMatch[MAX_STRING];
-	int pEventFunc = 0;
-	DWORD BlechID = 0;
-
-	MQEventList* pNext = nullptr;
-};
-using EVENTLIST DEPRECATE("Use MQEventList instead of EVENTLIST") = MQEventList;
-using PEVENTLIST DEPRECATE("Use MQEventList* instead PEVENTLIST") = MQEventList *;
-
-struct MQBindList
-{
-	char szName[MAX_STRING];
-	char szFuncName[MAX_STRING];
-	bool Parse = true;
-
-	MQBindList* pNext = nullptr;
-};
 
 struct MQFilter
 {
@@ -646,61 +569,6 @@ struct MQSpawnArrayItem : public MQRank
 
 	eqlib::PlayerClient* GetSpawn() const { return VarPtr.Ptr; }
 };
-
-struct MQLoop
-{
-	enum Type { None, For, While };
-	Type type = None;
-	int	firstLine = 0;
-	int lastLine = 0;
-	std::string forVariable;
-};
-
-struct MQMacroStack
-{
-	bool bIsBind = false;
-	int LocationIndex = 0;
-	MQDataVar* Parameters = nullptr;
-	MQDataVar* LocalVariables = nullptr;
-	std::vector<MQLoop> loopStack;
-	std::string Return;
-
-	MQMacroStack* pNext = nullptr;
-
-	MQMacroStack(int locationIndex)
-		: LocationIndex(locationIndex)
-	{}
-
-	MQMacroStack(const MQMacroStack&) = delete;
-	MQMacroStack& operator=(const MQMacroStack&) = delete;
-};
-using PMACROSTACK DEPRECATE("Use MQMacroStack* instead of PMACROSTACK") = MQMacroStack *;
-using MACROSTACK DEPRECATE("Use MQMacroStack instead of MACROSTACK") = MQMacroStack;
-
-enum MQEventType {
-	EVENT_CHAT = 0,
-	EVENT_TIMER,
-	EVENT_CUSTOM,
-	EVENT_EVAL,
-	EVENT_EXEC,
-	EVENT_PULSE,
-	EVENT_SHUTDOWN,
-	EVENT_BREAK,
-
-	NUM_EVENTS
-};
-
-struct MQEventQueue
-{
-	MQEventQueue* pPrev = nullptr;
-	MQEventQueue* pNext = nullptr;
-	MQEventType   Type = EVENT_CHAT;
-	std::string   Name;
-	MQEventList*  pEventList = nullptr;
-	MQDataVar*    Parameters = nullptr;
-};
-using EVENTQUEUE DEPRECATE("Use MQEventQueue instead of EVENTQUEUE") = MQEventQueue;
-using PEVENTQUEUE DEPRECATE("Use MQEventQueue* instead of PEVENTQUEUE") = MQEventQueue *;
 
 //----------------------------------------------------------------------------
 

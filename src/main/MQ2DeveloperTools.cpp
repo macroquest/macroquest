@@ -21,6 +21,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_internal.h"
 
+#include "mq/base/Iterator.h"
 #include "mq/imgui/Widgets.h"
 
 #include <algorithm>

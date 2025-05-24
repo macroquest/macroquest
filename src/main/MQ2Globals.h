@@ -16,18 +16,12 @@
 
 #include "eqlib/EQLib.h"
 #include "MQ2Internal.h"
-#include "mq/base/GlobalBuffer.h"
+
+#include "MacroSystem.h"
 
 #include <memory>
 #include <unordered_map>
 
-struct CaseInsensitiveLess
-{
-	bool operator()(const std::string& lhs, const std::string& rhs) const noexcept
-	{
-		return (::_stricmp(lhs.c_str(), rhs.c_str()) < 0);
-	}
-};
 
 // Probably move these to eqlib but for now these are all contained within MQ
 #if defined(EMULATOR)
@@ -40,8 +34,6 @@ namespace mq {
 
 MQLIB_VAR const double DegToRad;
 MQLIB_VAR const double PI;
-
-bool InitOffsets();
 
 /* BENCHMARK HANDLES */
 
@@ -65,13 +57,6 @@ MQLIB_API uint32_t bmAnonymizer;
 
 /* OTHER */
 
-MQLIB_VAR MQDataVar* pGlobalVariables;
-MQLIB_VAR MQDataVar* pMacroVariables;
-
-MQLIB_VAR bool bAllErrorsFatal;
-MQLIB_VAR bool bAllErrorsDumpStack;
-MQLIB_VAR bool bAllErrorsLog;
-MQLIB_API SGlobalBuffer DataTypeTemp;
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;
@@ -79,34 +64,22 @@ MQLIB_API int gBuild;
 MQLIB_API ePVPServer PVPServer;
 MQLIB_API HANDLE ghInitializeSpellDbThread;
 
-MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
 
 MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
-
-MQLIB_VAR bool gAnonymize DEPRECATE("Anonymize is now handled at display, see MQ2Anonymize wiki for more information.");
 
 MQLIB_VAR HMODULE ghModule;
 MQLIB_VAR HINSTANCE ghInstance;
 MQLIB_VAR HWND ghInjectorWnd;
 MQLIB_VAR bool gbUnload;
 MQLIB_VAR bool gbForceUnload;
-MQLIB_VAR bool gBindInProgress;
-MQLIB_VAR bool gbLoad;
-MQLIB_VAR DWORD gpHook;
-MQLIB_VAR MQMacroBlockPtr gMacroBlock;
-MQLIB_VAR int BlockIndex;
-MQLIB_VAR MQMacroStack* gMacroStack;
-MQLIB_VAR std::map<std::string, int, CaseInsensitiveLess> gMacroSubLookupMap;
-MQLIB_VAR std::map<std::string, int> gUndeclaredVars;
-MQLIB_VAR MQEventQueue* gEventQueue;
-MQLIB_VAR int gEventFunc[NUM_EVENTS];
-MQLIB_VAR UCHAR gLastFind;
+
 MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
 MQLIB_VAR bool gbSpelldbLoaded;
+
 MQLIB_VAR char gszEQPath[MAX_STRING] DEPRECATE("Use gPathEverQuest in Plugins.  Except for WIN_API calls your relative path from the working directory is already the EQ Path.");
 MQLIB_VAR char gszMacroPath[MAX_STRING] DEPRECATE("Use gPathMacros in Plugins");
 MQLIB_VAR char gszLogPath[MAX_STRING] DEPRECATE("Use gPathLogs in Plugins");
@@ -115,6 +88,7 @@ MQLIB_VAR char gszINIFilename[MAX_STRING] DEPRECATE("Use gPathMQini in Plugins")
 MQLIB_VAR char gszItemDB[MAX_STRING] DEPRECATE("Use gResourcesPath / ItemDB.txt in Plugins");
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
+
 MQLIB_VAR char gUISkin[MAX_PATH];
 
 // FIXME:  Convert this to a Global Object. Include setting of gPathX (and remove from Init).
@@ -140,19 +114,8 @@ MQLIB_VAR char gPathPlugins[MAX_PATH];
 MQLIB_VAR char gPathResources[MAX_PATH];
 MQLIB_VAR char gPathEverQuest[MAX_PATH];
 
-MQLIB_VAR char gszLastNormalError[MAX_STRING];// QUIT USING THIS DIRECTLY, USE MacroError, FatalError, ETC
-MQLIB_VAR char gszLastSyntaxError[MAX_STRING];
-MQLIB_VAR char gszLastMQ2DataError[MAX_STRING];
-
-MQLIB_VAR uintptr_t DrawHUDParams[4];
-
-MQLIB_VAR DWORD gEventChat;
-MQLIB_VAR uint64_t gRunning;
 MQLIB_VAR bool gbMoving;
-MQLIB_VAR int gMaxTurbo;
-MQLIB_VAR int gTurboLimit;
 
-MQLIB_VAR bool gReturn;
 MQLIB_VAR bool gTargetbuffs;
 MQLIB_VAR bool gItemsReceived;
 MQLIB_VAR bool gbInZone;
@@ -168,14 +131,11 @@ MQLIB_VAR bool gFilterDebug;
 MQLIB_VAR bool gFilterMoney;
 MQLIB_VAR bool gFilterFood;
 MQLIB_VAR bool gFilterMQ;
-MQLIB_VAR eqlib::eFilterMacro gFilterMacro;
 MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;
 MQLIB_VAR bool gFilterMQ2DataErrors;
 MQLIB_VAR bool gSpewToFile;
 MQLIB_VAR bool gbDoAutoRun;
-MQLIB_VAR bool gMQPauseOnChat;
-MQLIB_VAR bool gKeepKeys;
 MQLIB_VAR bool gLClickedObject;
 MQLIB_VAR MQWhoFilter gFilterSWho;
 MQLIB_VAR bool gCreateMQ2NewsWindow;
@@ -184,10 +144,6 @@ MQLIB_VAR bool gbInForeground;
 
 MQLIB_VAR bool gbHUDUnderUI;
 MQLIB_VAR bool gbAlwaysDrawMQHUD;
-
-
-MQLIB_VAR char gIfDelimiter;
-MQLIB_VAR char gIfAltDelimiter;
 
 MQLIB_VAR int gNetStatusXPos;
 MQLIB_VAR int gNetStatusYPos;
@@ -208,29 +164,12 @@ enum eAssistStage
 };
 MQLIB_VAR eAssistStage gbAssistComplete;
 
-extern Blech* pMQ2Blech;
-MQLIB_VAR char EventMsg[MAX_STRING];
-MQLIB_VAR Blech* pEventBlech;
-MQLIB_VAR MQEventList* pEventList;
-
-MQLIB_VAR MQTimer* gTimer;
-MQLIB_VAR int gDelay;
-MQLIB_VAR char gDelayCondition[MAX_STRING];
-MQLIB_VAR int EnviroTarget DEPRECATE("EnviroTarget is no longer supported. Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
-MQLIB_VAR int PetSpawn DEPRECATE("PetSpawn is no longer supported. Get the pet spawn id through pLocalPlayer->PetID");
-MQLIB_VAR int MercenarySpawn DEPRECATE("MercenarySpawn is no longer supported. Get the spawn id through pMercManager and look it up instead");
 MQLIB_VAR Property<MQGroundObject> GroundObject DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
 MQLIB_VAR Property<eqlib::EQGroundItem*> pGroundTarget DEPRECATE("Use CurrentGroundSpawn() and the various GetGroundSpawnByX() functions instead");
-MQLIB_VAR int DoorEnviroTarget DEPRECATE("DoorEnviroTarget has been deprecated and removed. Use pSwitchTarget instead.");
 MQLIB_VAR eqlib::EQSwitch* pDoorTarget DEPRECATE("Use pSwitchTarget instead of pDoorTarget");
 MQLIB_VAR eqlib::EQSwitch* pSwitchTarget;
 MQLIB_VAR ITEMDB* gItemDB;
 MQLIB_VAR bool bRunNextCommand;
-MQLIB_VAR bool bAllowCommandParse;
-MQLIB_VAR bool gTurbo;
-MQLIB_VAR bool gWarning;
-MQLIB_VAR MQDefine* pDefines;
-MQLIB_VAR MQBindList* pBindList;
 MQLIB_VAR MQFilter* gpFilters;
 
 // TODO: Change to use case insensitive comparison
@@ -245,7 +184,6 @@ MQLIB_VAR bool gMouseClickInProgress[8];
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
-MQLIB_VAR const char* szEQMappableCommands[eqlib::nEQMappableCommands];
 
 MQLIB_VAR const char* szHeading[];
 MQLIB_VAR const char* szHeadingShort[];
@@ -302,7 +240,6 @@ MQLIB_VAR const char* szAugRestrictions[];
 MQLIB_VAR const char* szItemSlot[eqlib::InvSlot_Max + 1];
 MQLIB_VAR const char* szEquipmentSlot[];
 
-MQLIB_VAR std::map<std::string, MQDataVar*> VariableMap;
 MQLIB_VAR MQPlugin* pPlugins;
 
 // Prefer using gSpawnArray over these for internal usage
@@ -315,19 +252,12 @@ extern std::vector<MQSpawnArrayItem> gSpawnsArray;
 extern bool gbTimeStampChat;
 #endif
 
-MQLIB_VAR size_t g_eqgameimagesize;
-
 MQLIB_VAR bool gUseTradeOnTarget;
 MQLIB_VAR bool gbBeepOnTells;
 MQLIB_VAR bool gbFlashOnTells;
 MQLIB_VAR bool gbShowCurrentCamera;
 MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;
-
-const std::string PARSE_PARAM_BEG = "${Parse[";
-const std::string PARSE_PARAM_END = "]}";
-
-MQLIB_VAR int gParserVersion;
 
 /* DEPRECATION GLOBALS */
 MQLIB_VAR int gbGroundDeprecateCount;

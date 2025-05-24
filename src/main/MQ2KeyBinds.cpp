@@ -336,9 +336,6 @@ int FindMappableCommand(const char* name)
 {
 	for (int i = 0; i < nEQMappableCommands; i++)
 	{
-		if (szEQMappableCommands[i] == nullptr || szEQMappableCommands[i] > reinterpret_cast<const char*>(g_eqgameimagesize))
-			continue;
-
 		if (!_stricmp(name, szEQMappableCommands[i]))
 			return i;
 	}
@@ -446,9 +443,6 @@ void MQ2KeyBindCommand(PlayerClient* pChar, const char* szLine)
 		// eq binds
 		for (int i = 0; i < nEQMappableCommands; i++)
 		{
-			if (szEQMappableCommands[i] == nullptr || szEQMappableCommands[i] > reinterpret_cast<const char*>(g_eqgameimagesize))
-				continue;
-
 			if (pKeypressHandler->AltKey[i] == newCombo && SetEQKeyBindByNumber(i, true, ClearCombo))
 			{
 				WriteChatf( "Alternate %s cleared", szEQMappableCommands[i]);
@@ -525,9 +519,6 @@ bool DumpBinds(const char* Filename)
 
 	for (int index = 0; index < nEQMappableCommands; index++)
 	{
-		if (szEQMappableCommands[index] == nullptr || szEQMappableCommands[index] > reinterpret_cast<const char*>(g_eqgameimagesize))
-			continue;
-
 		fprintf(file, "/bind %s %s\n", szEQMappableCommands[index],
 			DescribeKeyCombo(pKeypressHandler->NormalKey[index], szBuffer, sizeof(szBuffer)));
 		fprintf(file, "/bind ~%s %s\n", szEQMappableCommands[index],

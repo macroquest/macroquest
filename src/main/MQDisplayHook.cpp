@@ -86,19 +86,37 @@ public:
 	}
 };
 
+struct DrawNetStatusParams
+{
+	bool valid;
+	uint16_t x;
+	uint16_t y;
+	void* udpConnection;
+	uint32_t bps;
+};
+static DrawNetStatusParams s_drawNetStatusParams = { false, 0, 0, nullptr, 0 };
+
 DETOUR_TRAMPOLINE_DEF(void, DrawNetStatus_Trampoline, (uint16_t x, uint16_t y, void* udpConnection, uint32_t bps))
 void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t bps)
 {
-	DrawHUDParams[0] = x + gNetStatusXPos;
-	DrawHUDParams[1] = y + gNetStatusYPos;
-	DrawHUDParams[2] = (uintptr_t)udpConnection;
-	DrawHUDParams[3] = bps;
-
 	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
+	{
+		s_drawNetStatusParams.valid = true;
+		s_drawNetStatusParams.x = x;
+		s_drawNetStatusParams.y = y;
+		s_drawNetStatusParams.udpConnection = udpConnection;
+		s_drawNetStatusParams.bps = bps;
 		return;
+	}
 
-	DrawNetStatus_Trampoline(x, y, udpConnection, bps);
-	Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
+	s_drawNetStatusParams.valid = false;
+
+	DrawNetStatus_Trampoline(x + gNetStatusXPos, y + gNetStatusXPos, udpConnection, bps);
+
+	{
+		MQScopedBenchmark bm(bmPluginsDrawHUD);
+		PluginsDrawHUD();
+	}
 }
 
 void DrawHUD()
@@ -108,19 +126,28 @@ void DrawHUD()
 	{
 		if (gbAlwaysDrawMQHUD || (gGameState == GAMESTATE_INGAME && gbHUDUnderUI && pEverQuestInfo->bNetstat))
 		{
-			if (DrawHUDParams[0] && gGameState == GAMESTATE_INGAME && pEverQuestInfo->bNetstat)
+			if (s_drawNetStatusParams.valid && gGameState == GAMESTATE_INGAME && pEverQuestInfo->bNetstat)
 			{
-				DrawNetStatus_Trampoline((uint16_t)DrawHUDParams[0], (uint16_t)DrawHUDParams[1], (void*)DrawHUDParams[2], (uint32_t)DrawHUDParams[3]);
-				DrawHUDParams[0] = 0;
+				DrawNetStatus_Trampoline(s_drawNetStatusParams.x + gNetStatusXPos, s_drawNetStatusParams.y + gNetStatusYPos,
+					s_drawNetStatusParams.udpConnection, s_drawNetStatusParams.bps);
+				s_drawNetStatusParams.valid = false;
 			}
 
-			Benchmark(bmPluginsDrawHUD, PluginsDrawHUD());
+			{
+				MQScopedBenchmark bm(bmPluginsDrawHUD);
+				PluginsDrawHUD();
+			}
 		}
 		else
 		{
-			DrawHUDParams[0] = 0;
+			s_drawNetStatusParams.valid = false;
 		}
 	}
+}
+
+void ResetHUD()
+{
+	s_drawNetStatusParams.valid = false;
 }
 
 void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)

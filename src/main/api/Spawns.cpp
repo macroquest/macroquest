@@ -15,6 +15,7 @@
 #include "pch.h"
 
 #include "eqlib/game/PcClient.h"
+#include "eqlib/game/PlayerClient.h"
 #include "mq/api/Spawns.h"
 
 using namespace eqlib;

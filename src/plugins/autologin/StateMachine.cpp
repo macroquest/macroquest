@@ -262,9 +262,6 @@ public:
 			{
 				SetProfileRecord(record);
 
-				DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-				SetEditWndText(pUsernameEditWnd, m_record->accountName);
-
 				// Update the last account. This won't be updated by the client until we reach character select.
 				m_lastAccount = m_record->accountName;
 
@@ -275,8 +272,6 @@ public:
 					if (CButtonWnd* pConnectButton = GetChildWindow<CButtonWnd>(m_currentWindow, "LOGIN_ConnectButton"))
 						SendWndNotification(pConnectButton, pConnectButton, XWM_LCLICK);
 				}
-
-				ScreenMode = oldscreenmode;
 			}
 		}
 
