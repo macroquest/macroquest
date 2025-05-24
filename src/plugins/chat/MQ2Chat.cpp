@@ -50,7 +50,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	if (output.size() > MAX_STRING)
 		output.erase(MAX_STRING - 1);
 
-	dsp_chat_no_events(output.c_str(), Color, 1);
+	dsp_chat_no_events(output.c_str(), Color);
 	return 0;
 }
 

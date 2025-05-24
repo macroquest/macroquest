@@ -33,12 +33,11 @@ public:
 
 	virtual void OnGameStateChanged(uint32_t newGameState, uint32_t oldGameState) = 0;
 
+	virtual void OnCleanUI() = 0;
+	virtual void OnReloadUI() = 0;
 	virtual void OnPreZoneUI() = 0;
 	virtual void OnPostZoneUI() = 0;
 	virtual void OnZoned() = 0;
-
-	virtual void OnDestroyUI() = 0;
-	virtual void OnCreateUI() = 0;
 
 	virtual void OnPluginLoaded(const char* pluginName) = 0;
 	virtual void OnPluginUnloaded(const char* pluginName) = 0;
@@ -80,13 +79,13 @@ protected:
 	virtual void OnGameStateChanged(int newGameState) override;
 	virtual void OnLoginFrontendEntered() override;
 	virtual void OnLoginFrontendExited() override;
-	virtual void OnCreateUI() override;
-	virtual void OnDestroyUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+	virtual void OnCleanUI() override;
 	virtual void OnPreZoneUI() override;
 	virtual void OnPostZoneUI() override;
 	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override;
 	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override;
-	virtual void OnUniversalChatNotification(eqlib::UniversalChatMessageParams& params) override;
+	virtual void OnUniversalChatNotification(const eqlib::UniversalChatMessageParams& params) override;
 	virtual bool OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params) override;
 	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
 	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;

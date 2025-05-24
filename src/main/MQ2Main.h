@@ -145,7 +145,7 @@ MQLIB_API void CreateMQ2NewsWindow();
 MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
-MQLIB_API void dsp_chat_no_events(const char* Text, int Color, bool EqLog = true, bool dopercentsubst = true);
+MQLIB_API void dsp_chat_no_events(const char* message, int color = USERCOLOR_DEFAULT, bool allowLog = true, bool doPercentConvert = true);
 
 /* CLEAN UI */
 void DrawHUD();

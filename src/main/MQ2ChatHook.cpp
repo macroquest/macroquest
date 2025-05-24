@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 
 #include "MQPluginHandler.h"
+#include "eqlib/Events.h"
 
 #include <fmt/chrono.h>
 
@@ -26,114 +27,50 @@ namespace mq {
 #if HAS_CHAT_TIMESTAMPS
 bool gbTimeStampChat = false;
 #endif
+static bool s_noFilterChat = false;
 
-class CChatHook
+bool HandleChatMessage(eqlib::ChatMessageParams& params)
 {
-public:
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool, bool))
-	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst, bool makeStmlSafe)
-#else
-	DETOUR_TRAMPOLINE_DEF(void, Trampoline, (const char* szMsg, DWORD dwColor, bool, bool))
-	void Detour(const char* szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)
-#endif
+	if (s_noFilterChat)
+		return true;
+
+	gbInChat = true;
+
+	if (params.color != USERCOLOR_BROADCAST)
 	{
-		gbInChat = true;
-
-		if (dwColor != USERCOLOR_BROADCAST)
-		{
-			CheckChatForEvent(szMsg);
-		}
-
-		bool Filtered = false;
-		MQFilter* Filter = gpFilters;
-
-		while (Filter && !Filtered)
-		{
-			if (!Filter->pEnabled || *Filter->pEnabled)
-			{
-				if (*Filter->FilterText == '*')
-				{
-					if (strstr(szMsg, Filter->FilterText + 1))
-						Filtered = true;
-				}
-				else
-				{
-					if (!_strnicmp(szMsg, Filter->FilterText, Filter->Length))
-						Filtered = true;
-				}
-			}
-			Filter = Filter->pNext;
-		}
-
-		if (!Filtered)
-		{
-			bool SkipTrampoline;
-			{
-				MQScopedBenchmark bm(bmPluginsIncomingChat);
-				SkipTrampoline = PluginsIncomingChat(szMsg, dwColor);
-			}
-
-#if HAS_CHAT_TIMESTAMPS
-			if (gbTimeStampChat)
-			{
-				time_t curr_time;
-				time(&curr_time);
-
-				std::tm local_tm;
-				localtime_s(&local_tm, &curr_time);
-
-				fmt::memory_buffer buffer;
-				auto out = fmt::format_to(fmt::appender(buffer),
-					"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
-				*out = 0;
-
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst, makeStmlSafe);
-#else
-				Trampoline(buffer.data(), dwColor, EqLog, dopercentsubst);
-#endif
-				SkipTrampoline = true;
-			}
-#endif // HAS_CHAT_TIMESTAMPS
-
-			if (!SkipTrampoline)
-			{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-				Trampoline(szMsg, dwColor, EqLog, dopercentsubst, makeStmlSafe);
-#else
-				Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
-#endif
-			}
-		}
-
-		gbInChat = false;
+		CheckChatForEvent(params.message);
 	}
 
-	// ChatManagerClient::DisplayTellText
-	DETOUR_TRAMPOLINE_DEF(void, TellWnd_Trampoline, (const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk))
-	void TellWnd_Detour(const char* message, const char* from, const char* windowtitle, const char* text, int color, bool bLogOk)
+	bool filtered = false;
+	MQFilter* filter = gpFilters;
+
+	while (filter && !filtered)
 	{
-		gbInChat = true;
-		bool SkipTrampoline = false;
-
-		size_t len = strlen(message) + 64;
-		auto pBuffer = std::make_unique<char[]>(len);
-		char* szMsg = pBuffer.get();
-
-		if (szMsg)
+		if (!filter->pEnabled || *filter->pEnabled)
 		{
-			sprintf_s(szMsg, len, "%s tells you, '%s'", from, message);
-			CheckChatForEvent(szMsg);
-
+			if (*filter->FilterText == '*')
 			{
-				MQScopedBenchmark bm(bmPluginsIncomingChat);
-				SkipTrampoline = PluginsIncomingChat(szMsg, color);
+				if (strstr(params.message, filter->FilterText + 1))
+					filtered = true;
 			}
+			else
+			{
+				if (!_strnicmp(params.message, filter->FilterText, filter->Length))
+					filtered = true;
+			}
+		}
+		filter = filter->pNext;
+	}
+
+	if (!filtered)
+	{
+		{
+			MQScopedBenchmark bm(bmPluginsIncomingChat);
+			filtered = PluginsIncomingChat(params.message, params.color);
 		}
 
 #if HAS_CHAT_TIMESTAMPS
-		if (gbTimeStampChat)
+		if (gbTimeStampChat && !filtered)
 		{
 			time_t curr_time;
 			time(&curr_time);
@@ -143,57 +80,76 @@ public:
 
 			fmt::memory_buffer buffer;
 			auto out = fmt::format_to(fmt::appender(buffer),
-				"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szMsg);
+				"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, params.message);
 			*out = 0;
 
-			TellWnd_Trampoline(buffer.data(), from, windowtitle, text, color, bLogOk);
-			SkipTrampoline = true;
+			params.message = buffer.data();
+			params.handleMessage(params);
+
+			filtered = true; // not technically filtered, but we don't want to display it twice.
 		}
 #endif // HAS_CHAT_TIMESTAMPS
 
-		if (!SkipTrampoline)
+		// Call original chat handler here so we can close it off by resetting gbInChat.
+		if (!filtered)
 		{
-			// TODO: do we need to filter `text`?
-			TellWnd_Trampoline(message, from, windowtitle, text, color, bLogOk);
+			params.handleMessage(params);
 		}
-
-		gbInChat = false;
 	}
 
-	// CEverQuest::UniversalChatProxyNotificationFlush
-	DETOUR_TRAMPOLINE_DEF(void, UPCNotificationFlush_Trampoline, ())
-	void UPCNotificationFlush_Detour()
+	gbInChat = false;
+	return false;
+}
+
+bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
+{
+	if (s_noFilterChat)
+		return true;
+
+	gbInChat = true;
+
+	fmt::memory_buffer buffer;
+	auto iter = fmt::format_to(fmt::appender(buffer), "{} tells you, '{}'", params.senderName, params.message);
+	*iter = 0;
+
+	CheckChatForEvent(buffer.data());
+
+	bool filtered;
 	{
-		CEverQuest* eq = (CEverQuest*)this;
-		char szBuf[MAX_STRING] = { 0 };
-
-		if (eq->ucNotificationCount > 0)
-		{
-			sprintf_s(szBuf, "* %s has %s channel ", eq->ucNotificationPlayerName, eq->ucNotificationEntering ? "entered" : "left");
-
-			char szTemp[MAX_STRING] = { 0 };
-			int max = std::min<int>(eq->ucNotificationCount, 9);
-
-			for (int index = 0; index < max; index++)
-			{
-				if (index)
-				{
-					sprintf_s(szTemp, ", %s:%d", eq->ucNotificationChannelName[index], eq->ucNotificationChannelNumber[index] + 1);
-				}
-				else
-				{
-					sprintf_s(szTemp, "%s:%d", eq->ucNotificationChannelName[index], eq->ucNotificationChannelNumber[index] + 1);
-				}
-
-				strcat_s(szBuf, szTemp);
-			}
-
-			CheckChatForEvent(szBuf);
-		}
-
-		UPCNotificationFlush_Trampoline();
+		MQScopedBenchmark bm(bmPluginsIncomingChat);
+		filtered = PluginsIncomingChat(buffer.data(), params.color);
 	}
-};
+
+#if HAS_CHAT_TIMESTAMPS
+	if (gbTimeStampChat)
+	{
+		time_t curr_time;
+		time(&curr_time);
+
+		std::tm local_tm;
+		localtime_s(&local_tm, &curr_time);
+
+		buffer.clear();
+		auto out = fmt::format_to(fmt::appender(buffer),
+			"[{:02d}:{:02d}:{:02d}] {}", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, params.message);
+		*out = 0;
+
+		params.message = buffer.data();
+		params.handleMessage(params);
+
+		filtered = true; // not technically filtered, but we don't want to display it twice.
+	}
+#endif // HAS_CHAT_TIMESTAMPS
+
+	// Call original chat handler here so we can close it off by resetting gbInChat.
+	if (!filtered)
+	{
+		params.handleMessage(params);
+	}
+
+	gbInChat = false;
+	return filtered;
+}
 
 #if HAS_CHAT_TIMESTAMPS
 DETOUR_TRAMPOLINE_DEF(void, OutputTextToLog_Trampoline, (const char*));
@@ -214,13 +170,13 @@ void OutputTextToLog_Detour(const char* szMsg)
 }
 #endif // HAS_CHAT_TIMESTAMPS
 
-void dsp_chat_no_events(const char* Text, int Color, bool doLog, bool doPercentConvert)
+void dsp_chat_no_events(const char* message, int color, bool allowLog, bool doPercentConvert)
 {
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert, false);
-#else
-	pEverQuest.get_as<CChatHook>()->Trampoline(Text, Color, doLog, doPercentConvert);
-#endif
+	s_noFilterChat = true;
+
+	pEverQuest->dsp_chat(message, color, allowLog, doPercentConvert);
+
+	s_noFilterChat = false;
 }
 
 unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
@@ -336,10 +292,6 @@ void InitializeChatHook()
 	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
 	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 
-	EzDetour(CEverQuest__dsp_chat, &CChatHook::Detour, &CChatHook::Trampoline);
-	EzDetour(CEverQuest__DoTellWindow, &CChatHook::TellWnd_Detour, &CChatHook::TellWnd_Trampoline);
-	EzDetour(CEverQuest__UPCNotificationFlush, &CChatHook::UPCNotificationFlush_Detour, &CChatHook::UPCNotificationFlush_Trampoline);
-
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
 
@@ -362,10 +314,6 @@ void ShutdownChatHook()
 
 	RemoveSettingsPanel("Chat");
 #endif
-
-	RemoveDetour(CEverQuest__dsp_chat);
-	RemoveDetour(CEverQuest__DoTellWindow);
-	RemoveDetour(CEverQuest__UPCNotificationFlush);
 
 	delete pEventBlech;
 	pEventBlech = nullptr;

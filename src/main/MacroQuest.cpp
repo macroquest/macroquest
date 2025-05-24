@@ -138,6 +138,8 @@ void SetMainThreadId();
 void PluginsSetGameState(int GameState);
 void PluginsEndZone();
 void PluginsBeginZone();
+void PluginsCleanUI();
+void PluginsReloadUI();
 
 struct MQStartupParams
 {
@@ -593,14 +595,22 @@ void MacroQuest::OnLoginFrontendExited()
 
 }
 
-void MacroQuest::OnCreateUI()
+void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 {
-	
+	MQScopedBenchmark bm(bmPluginsReloadUI);
+
+	if (params.fastReload)
+	{
+		//gDrawWindowFrameSkipCount = 2;
+	}
+
+	PluginsReloadUI();
 }
 
-void MacroQuest::OnDestroyUI()
+void MacroQuest::OnCleanUI()
 {
-	
+	MQScopedBenchmark bm(bmPluginsCleanUI);
+	PluginsCleanUI();
 }
 
 void MacroQuest::OnPreZoneUI()
@@ -623,7 +633,7 @@ bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 	return false;
 }
 
-void MacroQuest::OnUniversalChatNotification(eqlib::UniversalChatMessageParams& params)
+void MacroQuest::OnUniversalChatNotification(const eqlib::UniversalChatMessageParams& params)
 {
 }
 

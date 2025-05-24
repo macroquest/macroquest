@@ -24,68 +24,6 @@ namespace mq {
 
 const char* g_customCaption = "MacroQuest: Even when you're loading.";
 
-class CDisplayHook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(void, CleanUI_Trampoline, ())
-	void CleanUI_Detour()
-	{
-		{
-			MQScopedBenchmark bm(bmPluginsCleanUI);
-			PluginsCleanUI();
-		}
-
-		CleanUI_Trampoline();
-	}
-
-	void ReloadUI_Hook()
-	{
-		InitializeInGameUI();
-
-		{
-			MQScopedBenchmark bm(bmPluginsReloadUI);
-			PluginsReloadUI();
-		}
-	}
-
-#ifdef CDisplay__RestartUI_x
-	DETOUR_TRAMPOLINE_DEF(void, RestartUI_Trampoline, ())
-	void RestartUI_Detour()
-	{
-		RestartUI_Trampoline();
-
-		gDrawWindowFrameSkipCount = 2;
-
-		// This is similar to ReloadUI, but it doesn't reload XML. This is the function
-		// that is used to restart the UI after swapping personas.
-		ReloadUI_Hook();
-	}
-#endif // CDisplay__RestartUI_x
-
-#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool))
-	void ReloadUI_Detour(bool UseINI)
-	{
-		ReloadUI_Trampoline(UseINI);
-		ReloadUI_Hook();
-	}
-#else
-	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
-	void ReloadUI_Detour(bool UseINI, bool bUnknown)
-	{
-		ReloadUI_Trampoline(UseINI, bUnknown);
-		ReloadUI_Hook();
-	}
-#endif
-
-	DETOUR_TRAMPOLINE_DEF(void, InitCharSelectUI_Trampoline, ())
-	void InitCharSelectUI_Detour()
-	{
-		InitCharSelectUI_Trampoline();
-		InitializeInGameUI();
-	}
-};
-
 struct DrawNetStatusParams
 {
 	bool valid;
@@ -220,21 +158,10 @@ void InitializeDisplayHook()
 	}
 #endif
 
-	EzDetour(CDisplay__CleanGameUI, &CDisplayHook::CleanUI_Detour, &CDisplayHook::CleanUI_Trampoline);
-	EzDetour(CDisplay__ReloadUI, &CDisplayHook::ReloadUI_Detour, &CDisplayHook::ReloadUI_Trampoline);
-	EzDetour(CDisplay__InitCharSelectUI, &CDisplayHook::InitCharSelectUI_Detour, &CDisplayHook::InitCharSelectUI_Trampoline);
 	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
-#ifdef CDisplay__RestartUI_x
-	EzDetour(CDisplay__RestartUI, &CDisplayHook::RestartUI_Detour, &CDisplayHook::RestartUI_Trampoline);
-#endif
 
 	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
 	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
-
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
-		InitializeInGameUI();
-	}
 }
 
 void ShutdownDisplayHook()
@@ -260,13 +187,7 @@ void ShutdownDisplayHook()
 	RemoveCommand("/netstatusxpos");
 	RemoveCommand("/netstatusypos");
 
-	RemoveDetour(CDisplay__CleanGameUI);
-	RemoveDetour(CDisplay__ReloadUI);
-	RemoveDetour(CDisplay__InitCharSelectUI);
 	RemoveDetour(DrawNetStatus);
-#ifdef CDisplay__RestartUI_x
-	RemoveDetour(CDisplay__RestartUI);
-#endif
 }
 
 } // namespace mq
