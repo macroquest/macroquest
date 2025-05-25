@@ -85,11 +85,10 @@ protected:
 	virtual void OnPostZoneUI() override;
 	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override;
 	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override;
-	virtual void OnUniversalChatNotification(const eqlib::UniversalChatMessageParams& params) override;
 	virtual bool OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params) override;
 	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
 	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;
-	virtual void OnGroundItemAdded(eqlib::EQGroundItem* item) override;
+	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem) override;
 	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* groundItem) override;
 
 public:

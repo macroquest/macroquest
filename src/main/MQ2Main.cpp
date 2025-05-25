@@ -52,10 +52,6 @@ namespace mq {
 
 //============================================================================
 
-// From MQ2LoginFrontend.cpp
-void InitializeLoginFrontend();
-void ShutdownLoginFrontend();
-
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
@@ -115,7 +111,6 @@ void DoMainThreadShutdown()
 	ShutdownDisplayHook();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
-	ShutdownLoginFrontend();
 	ShutdownMQ2AutoInventory();
 	ShutdownAnonymizer();
 	ShutdownPlugins();

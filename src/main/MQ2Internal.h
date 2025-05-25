@@ -275,13 +275,6 @@ struct MQFilter
 using FILTER DEPRECATE("use MQFilter instead FILTER") = MQFilter;
 using PFILTER DEPRECATE("use MQFilter* instead of PFILTER") = MQFilter*;
 
-struct MQGroundPending
-{
-	eqlib::EQGroundItem* pGroundItem = nullptr;
-	MQGroundPending* pLast = nullptr;
-	MQGroundPending* pNext = nullptr;
-};
-
 // Like lightweight plugins, but these are internal to mq2main
 struct MQModule
 {

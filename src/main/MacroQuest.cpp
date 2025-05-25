@@ -38,6 +38,8 @@
 
 #include <Psapi.h>
 
+#include "MQPluginHandler.h"
+
 namespace fs = std::filesystem;
 
 #if IS_LIVE_CLIENT
@@ -132,14 +134,8 @@ static HANDLE s_backgroundThread = nullptr;
 
 // FIXME: Remove these forward declarations
 void InitializePluginHandle();
-void InitializeLoginFrontend();
 void Heartbeat();
 void SetMainThreadId();
-void PluginsSetGameState(int GameState);
-void PluginsEndZone();
-void PluginsBeginZone();
-void PluginsCleanUI();
-void PluginsReloadUI();
 
 struct MQStartupParams
 {
@@ -448,7 +444,6 @@ bool MacroQuest::Initialize()
 
 	// These two sub-systems will get us onto the main thread.
 	InitializeMQ2Pulse();
-	InitializeLoginFrontend();
 
 	// We will wait for pulse from the game to init on main thread.
 	return g_loadComplete.wait();
@@ -633,10 +628,6 @@ bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 	return false;
 }
 
-void MacroQuest::OnUniversalChatNotification(const eqlib::UniversalChatMessageParams& params)
-{
-}
-
 bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params)
 {
 	return false;
@@ -644,18 +635,22 @@ bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& param
 
 void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 {
+	PluginsAddSpawn(player);
 }
 
 void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 {
+	PluginsRemoveSpawn(player);
 }
 
-void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* item)
+void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 {
+	PluginsAddGroundItem(groundItem);
 }
 
 void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 {
+	PluginsRemoveGroundItem(groundItem);
 }
 
 

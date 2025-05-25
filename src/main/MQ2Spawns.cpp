@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQDataAPI.h"
-#include "MQPluginHandler.h"
 
 using namespace eqlib;
 
@@ -428,86 +427,6 @@ static void CaptionColorCmd(PlayerClient*, const char* szLine)
 	}
 }
 
-static unsigned int lastRemovedSpawnID = 0;
-
-class PlayerManagerBaseHook : public eqlib::PlayerManagerBase
-{
-public:
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_LS)
-	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*, bool b))
-		PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn, bool b)
-	{
-		// PrepForDestroyPlayer can be called twice through the same code path
-		if (lastRemovedSpawnID != spawn->GetId())
-		{
-			lastRemovedSpawnID = spawn->GetId();
-			PluginsRemoveSpawn(spawn);
-		}
-		return PrepForDestroyPlayer_Trampoline(spawn, b);
-	}
-#else
-	DETOUR_TRAMPOLINE_DEF(PlayerClient*, PrepForDestroyPlayer_Trampoline, (PlayerClient*))
-	PlayerClient* PrepForDestroyPlayer_Detour(PlayerClient* spawn)
-	{
-		// PrepForDestroyPlayer can be called twice through the same code path
-		if (lastRemovedSpawnID != spawn->GetId())
-		{
-			lastRemovedSpawnID = spawn->GetId();
-			PluginsRemoveSpawn(spawn);
-		}
-		return PrepForDestroyPlayer_Trampoline(spawn);
-	}
-#endif
-
-#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	DETOUR_TRAMPOLINE_DEF(void, DestroyAllPlayers_Trampoline, ())
-		void DestroyAllPlayers_Detour()
-	{
-		PlayerClient* pSpawn = FirstSpawn;
-		while (pSpawn)
-		{
-			PluginsRemoveSpawn(pSpawn);
-			pSpawn = pSpawn->pNext;
-		}
-
-		return DestroyAllPlayers_Trampoline();
-	}
-#endif
-};
-
-
-class PlayerManagerClientHook
-{
-public:
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*, void*))
-	PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g, void* h)
-	{
-		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g, h);
-		PluginsAddSpawn(spawn);
-		// Set the last removed spawn to zero if the ID was reused
-		if (lastRemovedSpawnID == spawn->GetId())
-		{
-			lastRemovedSpawnID = 0;
-		}
-		return spawn;
-	}
-#else
-	DETOUR_TRAMPOLINE_DEF(PlayerClient*, CreatePlayer_Trampoline, (CUnSerializeBuffer*, void*, void*, void*, void*, void*, void*, void*))
-		PlayerClient* CreatePlayer_Detour(CUnSerializeBuffer* buf, void* a, void* b, void* c, void* d, void* e, void* f, void* g)
-	{
-		PlayerClient* spawn = CreatePlayer_Trampoline(buf, a, b, c, d, e, f, g);
-		PluginsAddSpawn(spawn);
-		// Set the last removed spawn to zero if the ID was reused
-		if (lastRemovedSpawnID == spawn->GetId())
-		{
-			lastRemovedSpawnID = 0;
-		}
-		return spawn;
-	}
-#endif
-};
-
 class PlayerClientHook
 {
 public:
@@ -782,125 +701,6 @@ static void LoadCaptionSettings()
 
 #pragma endregion
 
-#pragma region Ground Item Management
-//----------------------------------------------------------------------------
-// ground item management
-//----------------------------------------------------------------------------
-
-static MQGroundPending* pPendingGrounds = nullptr;
-static bool ProcessPending = false;
-static std::recursive_mutex s_groundsMutex;
-
-static void AddGroundItem()
-{
-	if (EQGroundItem* pGroundItem = pItemList->Top)
-	{
-		std::scoped_lock lock(s_groundsMutex);
-
-		MQGroundPending* pPending = new MQGroundPending;
-		pPending->pGroundItem = pGroundItem;
-		pPending->pNext = pPendingGrounds;
-		pPending->pLast = nullptr;
-		if (pPendingGrounds)
-			pPendingGrounds->pLast = pPending;
-		pPendingGrounds = pPending;
-	}
-}
-
-static void RemoveGroundItem(EQGroundItem* pGroundItem)
-{
-	InvalidateObservedEQObject(pGroundItem);
-
-	if (pPendingGrounds)
-	{
-		std::scoped_lock lock(s_groundsMutex);
-
-		MQGroundPending* pPending = pPendingGrounds;
-		while (pPending)
-		{
-			if (pGroundItem == pPending->pGroundItem)
-			{
-				if (pPending->pNext)
-					pPending->pNext->pLast = pPending->pLast;
-				if (pPending->pLast)
-					pPending->pLast->pNext = pPending->pNext;
-				else
-					pPendingGrounds = pPending->pNext;
-
-				delete pPending;
-				break;
-			}
-			pPending = pPending->pNext;
-		}
-	}
-
-	PluginsRemoveGroundItem(pGroundItem);
-}
-
-class MyEQGroundItemListManager
-{
-public:
-	GROUNDITEM* m_pGroundItemList;
-
-	DETOUR_TRAMPOLINE_DEF(void, FreeItemList_Trampoline, ())
-	void FreeItemList_Detour()
-	{
-		EQGroundItem* pItem = pItemList->Top;
-
-		while (pItem)
-		{
-			RemoveGroundItem(pItem);
-
-			pItem = pItem->pNext;
-		}
-
-		FreeItemList_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, Add_Trampoline, (EQGroundItem*))
-	void Add_Detour(EQGroundItem* pItem)
-	{
-		if (m_pGroundItemList)
-		{
-			m_pGroundItemList->pPrev = pItem;
-			pItem->pNext = m_pGroundItemList;
-		}
-		m_pGroundItemList = pItem;
-
-		// if you drop something on the ground and this doesnt get called... you have the wrong offset
-
-		// dont call the trampoline, we just did the exact same thing the trampoline would do.
-		// for some reason, if we call the trampoline we will crash. and nobody has figured out why.
-		AddGroundItem();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, DeleteItem_Trampoline, (EQGroundItem*))
-	void DeleteItem_Detour(EQGroundItem* pItem)
-	{
-		RemoveGroundItem(pItem);
-		return DeleteItem_Trampoline(pItem);
-	}
-};
-
-static void ProcessPendingGroundItems()
-{
-	if (!ProcessPending)
-		return;
-
-	std::scoped_lock lock(s_groundsMutex);
-
-	while (pPendingGrounds)
-	{
-		MQGroundPending* pNext = pPendingGrounds->pNext;
-		PluginsAddGroundItem(pPendingGrounds->pGroundItem);
-
-		delete pPendingGrounds;
-		pPendingGrounds = pNext;
-	}
-}
-
-#pragma endregion
-
 void UpdateMQ2SpawnSort()
 {
 	EnterMQ2Benchmark(bmUpdateSpawnSort);
@@ -954,21 +754,11 @@ static void Spawns_Initialize()
 	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
 
-	EzDetour(PlayerManagerClient__CreatePlayer, &PlayerManagerClientHook::CreatePlayer_Detour, &PlayerManagerClientHook::CreatePlayer_Trampoline);
-	EzDetour(PlayerManagerBase__PrepForDestroyPlayer, &PlayerManagerBaseHook::PrepForDestroyPlayer_Detour, &PlayerManagerBaseHook::PrepForDestroyPlayer_Trampoline);
-#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	EzDetour(PlayerManagerBase__DestroyAllPlayers, &PlayerManagerBaseHook::DestroyAllPlayers_Detour, &PlayerManagerBaseHook::DestroyAllPlayers_Trampoline);
-#endif
 	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
-	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
-	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
-	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
 
 	// Load Settings
 	LoadCaptionSettings();
-
-	ProcessPending = true;
 
 	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
@@ -1028,29 +818,11 @@ static void Spawns_Shutdown()
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");
 
-	RemoveDetour(PlayerManagerClient__CreatePlayer);
-	RemoveDetour(PlayerManagerBase__PrepForDestroyPlayer);
-#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	RemoveDetour(PlayerManagerBase__DestroyAllPlayers);
-#endif
 	RemoveDetour(PlayerClient__SetNameSpriteState);
 	RemoveDetour(PlayerClient__SetNameSpriteTint);
-	RemoveDetour(EQItemList__FreeItemList);
-	RemoveDetour(EQItemList__add_item);
-	RemoveDetour(EQItemList__delete_item);
-
-	ProcessPending = false;
-
-	{
-		std::scoped_lock lock(s_groundsMutex);
-
-		while (pPendingGrounds)
-		{
-			MQGroundPending* pNext = pPendingGrounds->pNext;
-			delete pPendingGrounds;
-			pPendingGrounds = pNext;
-		}
-	}
+	RemoveDetour(EQGroundItemListManager__Add);
+	RemoveDetour(EQGroundItemListManager__Clear);
+	RemoveDetour(EQGroundItemListManager__Delete);
 
 	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
@@ -1099,8 +871,6 @@ static void Spawns_Pulse()
 		pTarget.get_as<PlayerClientHook>()->SetNameSpriteTint_Trampoline();
 		UpdateNameSpriteState(pTarget, true);
 	}
-
-	ProcessPendingGroundItems();
 }
 
 static void Spawns_BeginZone()

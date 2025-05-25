@@ -1120,6 +1120,8 @@ void PluginsAddGroundItem(EQGroundItem* pNewGroundItem)
 
 void PluginsRemoveGroundItem(EQGroundItem* pGroundItem)
 {
+	InvalidateObservedEQObject(pGroundItem);
+
 	if (!s_pluginsInitialized)
 		return;
 
