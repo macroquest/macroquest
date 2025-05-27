@@ -232,14 +232,14 @@ PipeConnection::PipeConnection(NamedPipeEndpointBase* parent, wil::unique_hfile 
 
 	GetNamedPipeClientProcessId(m_hPipe.get(), (PULONG)&m_processId);
 
-	SPDLOG_DEBUG("Created PipeConnection: connectionId={} pid={}", m_connectionId, m_processId);
+	SPDLOG_TRACE("Created PipeConnection: connectionId={} pid={}", m_connectionId, m_processId);
 }
 
 PipeConnection::~PipeConnection()
 {
 	Close();
 
-	SPDLOG_DEBUG("Destroyed PipeConnection: connectionId={} pid={}", m_connectionId, m_processId);
+	SPDLOG_TRACE("Destroyed PipeConnection: connectionId={} pid={}", m_connectionId, m_processId);
 }
 
 void PipeConnection::InternalBeginRead()
@@ -332,13 +332,13 @@ void PipeConnection::HandleReadComplete(uint32_t errorCode, uint32_t bytesRead)
 	{
 	case ERROR_BROKEN_PIPE:
 		// The pipe was closed. Abandon the request.
-		SPDLOG_DEBUG("PipeConnection::HandleReadComplete: pipe closed. connectionId={}", m_connectionId);
+		SPDLOG_TRACE("PipeConnection::HandleReadComplete: pipe closed. connectionId={}", m_connectionId);
 		Close();
 		return;
 
 	case ERROR_OPERATION_ABORTED:
 		// The request has been canceled. Abandon the request.
-		SPDLOG_DEBUG("PipeConnection::HandleReadComplete: operation canceled. connectionId={}", m_connectionId);
+		SPDLOG_TRACE("PipeConnection::HandleReadComplete: operation canceled. connectionId={}", m_connectionId);
 		Close();
 		return;
 
@@ -375,6 +375,8 @@ void PipeConnection::SendMessage(MQMessageId messageId, const void* data, size_t
 void PipeConnection::SendMessage(PipeMessagePtr&& message)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
+
+	SPDLOG_TRACE("{}: Posting message to pipe thread", m_connectionId);
 
 	m_parent->PostToPipeThread([message = message.release(), weakPtr]() mutable
 		{
@@ -425,6 +427,8 @@ void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
 	// this function *must* be called on the named pipe server thread
 	assert(std::this_thread::get_id() == m_parent->pipe_thread_id());
 
+	SPDLOG_TRACE("{}: Sending message across pipe", m_connectionId);
+
 	// If we're not connected anymore, bail out early
 	if (!m_hPipe)
 	{
@@ -448,7 +452,7 @@ void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
 		&& callback != nullptr)
 	{
 		// If we have a callback, create a request object to track the response.
-		RpcRequest request;
+		RpcRequest<PipeMessageResponseCb> request;
 		request.callback = callback;
 		request.sequenceId = message->GetSequenceId();
 		request.sendTime = std::chrono::steady_clock::now();
@@ -513,7 +517,7 @@ void PipeConnection::HandleWriteComplete(QueuedOp* op, uint32_t dwErrorCode, uin
 
 	if (dwErrorCode == ERROR_OPERATION_ABORTED)
 	{
-		SPDLOG_INFO("PipeConnection::HandleWriteComplete: operation canceled");
+		SPDLOG_TRACE("PipeConnection::HandleWriteComplete: operation canceled");
 
 		m_parent->CloseConnection(this);
 		return;
@@ -608,7 +612,7 @@ void NamedPipeEndpointBase::Start()
 		return;
 
 	m_mainThreadId = std::this_thread::get_id();
-	SPDLOG_INFO("Starting {} thread for {}", m_threadName, m_pipeName);
+	SPDLOG_TRACE("Starting {} thread for {}", m_threadName, m_pipeName);
 
 	m_running = true;
 	m_thread = std::thread(
@@ -632,7 +636,7 @@ void NamedPipeEndpointBase::Start()
 				}
 				catch (const std::exception & error)
 				{
-					SPDLOG_ERROR("{} thread aborted: {}", error.what());
+					SPDLOG_ERROR("{} thread aborted: {}", m_threadName, error.what());
 				}
 			} while (m_running);
 		}
@@ -644,7 +648,7 @@ void NamedPipeEndpointBase::Stop()
 	if (!m_running)
 		return;
 
-	SPDLOG_INFO("Stopping {} thread for {}", m_threadName, m_pipeName);
+	SPDLOG_TRACE("Stopping {} thread for {}", m_threadName, m_pipeName);
 
 	m_running = false;
 	m_interruptEvent.SetEvent();
@@ -833,12 +837,12 @@ void NamedPipeServer::NamedPipeThread()
 		std::unique_lock<std::mutex> lock(m_mutex);
 		if (!m_connections.empty())
 		{
-			SPDLOG_INFO("Starting to cancel {} connections...", m_connections.size());
+			SPDLOG_TRACE("Starting to cancel {} connections...", m_connections.size());
 
 			// close all the pipes
 			for (auto& connection : m_connections)
 			{
-				SPDLOG_INFO("Canceling connection {}", connection->GetConnectionId());
+				SPDLOG_TRACE("Canceling connection {}", connection->GetConnectionId());
 				connection->InternalClose(true);
 			}
 		}
@@ -846,7 +850,7 @@ void NamedPipeServer::NamedPipeThread()
 
 	if (m_hPipe)
 	{
-		SPDLOG_INFO("Canceling pending connect requests");
+		SPDLOG_TRACE("Canceling pending connect requests");
 		::CancelIoEx(m_hPipe.get(), &m_oConnect);
 
 		if (!::DisconnectNamedPipe(m_hPipe.get()))
@@ -950,7 +954,7 @@ void NamedPipeServer::CloseConnection(PipeConnection* connection)
 	// close the connection
 	if (connection->InternalClose(true))
 	{
-		SPDLOG_DEBUG("Closing connection. connectionId={0}", connection->GetConnectionId());
+		SPDLOG_TRACE("Closing connection. connectionId={0}", connection->GetConnectionId());
 	}
 
 	std::scoped_lock<std::mutex> lock(m_mutex);
@@ -1107,7 +1111,7 @@ void NamedPipeClient::NamedPipeThread()
 			// If the pipe handle is valid, we're ready to roll.
 			if (hPipe.is_valid())
 			{
-				SPDLOG_INFO("Connected to named pipe server.", m_pipeName);
+				SPDLOG_TRACE("Connected to named pipe server.", m_pipeName);
 
 				// Switch pipe to message mode.
 				DWORD dwMessageMode = PIPE_READMODE_MESSAGE;
@@ -1223,7 +1227,7 @@ bool NamedPipeClient::IsConnected() const
 
 void NamedPipeClient::CloseConnection(PipeConnection* connection)
 {
-	SPDLOG_DEBUG("Closing connection. connectionId={0}", connection->GetConnectionId());
+	SPDLOG_TRACE("Closing connection. connectionId={0}", connection->GetConnectionId());
 
 	// close the connection
 	connection->InternalClose(false);
