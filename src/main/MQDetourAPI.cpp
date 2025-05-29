@@ -20,7 +20,8 @@
 #include "CrashHandler.h"
 #include "mq/base/WString.h"
 
-#include <detours/detours.h>
+#include "eqlib/MemoryPatcher.h"
+
 #include <TlHelp32.h>
 
 using namespace eqlib;
@@ -142,6 +143,72 @@ DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_
 int WINAPI memcheck4(unsigned char* buffer, size_t* count);
 #endif
 
+struct OrderedPatchSet
+{
+	OrderedPatchSet(std::vector<eqlib::MemoryPatch*> patches)
+		: patches(std::move(patches))
+	{
+		if (!patches.empty())
+		{
+			lastAddress = patches.back()->GetAddress() + patches.back()->GetBytesSize();
+		}
+	}
+
+	// assumes patches is sorted and addresses are accessed in increasing order. Optimized
+	uint8_t GetPatchedByte(uintptr_t address, uint8_t originalByte)
+	{
+		// Early out if there are no patches
+		if (patches.empty())
+			return originalByte;
+
+		// Early out if address is out of range
+		if (lastPatchIndex >= patches.size() || address < patches[lastPatchIndex]->GetAddress() || address >= lastAddress)
+			return originalByte;
+
+		// If this fails, the address has gone past the patch.
+		if (!patches[lastPatchIndex]->IsAddressInRange(address))
+		{
+			++lastPatchIndex;
+
+			// We've exhausted all of our patches.
+			if (lastPatchIndex >= patches.size())
+				return originalByte;
+
+			// We haven't caught up to the next one yet.
+			if (address < patches[lastPatchIndex]->GetAddress())
+				return originalByte;
+		}
+
+		// At this point we are expecting a patch covering the current range. (It isn't possible to go from
+		// one patch to another without going through the address range of the next patch)
+		return patches[lastPatchIndex]->ReadOriginalByte(address);
+	}
+
+private:
+	size_t lastPatchIndex = 0;
+	uintptr_t lastAddress = 0;
+	std::vector<eqlib::MemoryPatch*> patches;
+};
+
+static uint32_t DetourAwareHash(uint8_t* origBytes, size_t count, uint32_t value = 0xffffffff)
+{
+	uintptr_t addr = reinterpret_cast<uintptr_t>(origBytes);
+	OrderedPatchSet patches{ pDetourAPI->FindPatches(addr, count) };
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		// Feed in bytes to the hash algorithm using the source bytes of a detour
+		// if the data range overlaps an active detour.
+		uint8_t newByte = patches.GetPatchedByte(addr + i, origBytes[i]);
+
+		int temp = static_cast<int>(newByte) ^ (value & 0xff);
+		value = (static_cast<int>(value) >> 8) & 0xffffff;
+
+		value ^= extern_array0[temp];
+	}
+
+	return value;
+}
 
 int memcheck0(unsigned char* buffer, size_t count)
 {
@@ -154,21 +221,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 		return memcheck0_tramp(buffer, count);
 	}
 
-	unsigned int crc32 = 0xffffffff;
-
-	for (size_t i = 0; i < count; i++)
-	{
-		// Feed in bytes to the hash algorithm using the source bytes of a detour
-		// if the data range overlaps an active detour.
-		uint8_t value = pDetourAPI->GetDetouredByte(addr + i, buffer[i]);
-
-		int x = (int)value ^ (crc32 & 0xff);
-		crc32 = ((int)crc32 >> 8) & 0xffffff;
-		x = extern_array0[x];
-		crc32 ^= x;
-	}
-
-	return crc32;
+	return DetourAwareHash(buffer, count);
 }
 
 int memcheck1(unsigned char* buffer, size_t count, mckey key)
@@ -199,14 +252,8 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 		eax = 0xffffffff;
 	}
 
-	for (size_t i = 0; i < count; i++)
-	{
-		uint8_t value = pDetourAPI->GetDetouredByte(addr + i, buffer[i]);
+	eax = ~DetourAwareHash(buffer, count, eax);
 
-		ebx = ((int)value ^ eax) & 0xff;
-		eax = ((int)eax >> 8) & 0xffffff;
-		eax ^= extern_array0[ebx];
-	}
 	ebx = ~eax;
 	return ebx;
 }
@@ -236,14 +283,7 @@ int memcheck2(unsigned char* buffer, size_t count, mckey key)
 	edx = ((int)edx >> 8) & 0xffffff;
 	edx ^= extern_array0[ebx];
 
-	for (size_t i = 0; i < count; i++)
-	{
-		uint8_t value = GetDetouredByte(addr + i, buffer[i]);
-
-		ebx = ((int)value ^ edx) & 0xff;
-		edx = ((int)edx >> 8) & 0xffffff;
-		edx ^= extern_array0[ebx];
-	}
+	edx = ~DetourAwareHash(buffer, count, eax);
 
 	eax = ~edx;
 	return eax;
@@ -272,17 +312,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 
 	unsigned int crc32 = 0xffffffff;
 
-	for (size_t i = 0; i < count; i++)
-	{
-		// Feed in bytes to the hash algorithm using the source bytes of a detour
-		// if the data range overlaps an active detour.
-		uint8_t value = pDetourAPI->GetDetouredByte(addr + i, buffer[i]);
-
-		int x = (int)value ^ (crc32 & 0xff);
-		crc32 = ((int)crc32 >> 8) & 0xffffff;
-		x = extern_array0[x];
-		crc32 ^= x;
-	}
+	crc32 = DetourAwareHash(buffer, count, crc32);
 
 	*gpMemCheckBitmask = bmask;
 
@@ -495,107 +525,41 @@ static void ShutdownDetours()
 //============================================================================
 //============================================================================
 
-static MQDetour* s_detourList = nullptr;
-
 MQDetourAPI* pDetourAPI = nullptr;
 
-MQDetour::MQDetour(uintptr_t address, void** target, void* detour, std::string_view name,
-	const MQPluginHandle& pluginHandle)
-	: m_address(address)
-	, m_name(name)
-	, m_target(target)
-	, m_detour(detour)
-	, m_pluginHandle(pluginHandle)
+MQDetourAPI::MQDetourAPI(eqlib::MemoryPatcher* memoryPatcher)
+	: m_memoryPatcher(memoryPatcher)
 {
-	m_bytes.resize(m_width);
-	memcpy(m_bytes.data(), reinterpret_cast<uint8_t*>(address), m_width);
-
-	*m_target = reinterpret_cast<void*>(address);
-
-	DetourTransactionBegin();
-	DetourAttach(m_target, m_detour);
-	LONG result = DetourTransactionCommit();
-	if (result != NO_ERROR)
-	{
-		SPDLOG_ERROR("Failed to commit detour: {} -> {}", m_name, result);
-	}
-}
-
-MQDetour::MQDetour(uintptr_t address, std::string_view name, size_t width, const MQPluginHandle& pluginHandle)
-	: m_address(address)
-	, m_name(name)
-	, m_pluginHandle(pluginHandle)
-	, m_width(width)
-{
-	m_bytes.resize(m_width);
-	memcpy(m_bytes.data(), reinterpret_cast<uint8_t*>(address), m_width);
-}
-
-MQDetour::~MQDetour()
-{
-	DetourTransactionBegin();
-	DetourDetach(m_target, m_detour);
-	DetourTransactionCommit();
-}
-
-//============================================================================
-
-static void AddDetourToList(MQDetour*& head, MQDetour* detour)
-{
-	detour->prev = nullptr;
-	detour->next = head;
-	head = detour;
-
-	if (detour->next != nullptr)
-		detour->next->prev = detour;
-}
-
-static void RemoveDetourFromList(MQDetour*& head, MQDetour* detour)
-{
-	if (detour->prev != nullptr)
-		detour->prev->next = detour->next;
-	else
-		head = detour->next;
-
-	if (detour->next != nullptr)
-		detour->next->prev = detour->prev;
-}
-
-//============================================================================
-
-MQDetourAPI::MQDetourAPI()
-{
+	// TODO: Decouple detours from the memory patcher
 	InitializeDetours();
 }
 
 MQDetourAPI::~MQDetourAPI()
 {
 	ShutdownDetours();
-
-	RemoveDetours();
-
-	s_detourList = nullptr;
 }
 
-bool MQDetourAPI::ValidateNewDetour(uintptr_t address, std::string_view name, const MQPluginHandle& pluginHandle) const
+bool MQDetourAPI::ValidateNewPatch(uintptr_t address, std::string_view name, const MQPluginHandle& pluginHandle) const
 {
-	if (MQDetour* existingDetour = FindDetour(address))
-	{
-		MQPlugin* plugin = GetPluginByHandle(existingDetour->GetPluginHandle());
-		MQPlugin* thisPlugin = GetPluginByHandle(pluginHandle);
+	eqlib::MemoryPatch* existingPatch = nullptr;
 
-		if (pluginHandle == mqplugin::ThisPluginHandle)
+	if (m_memoryPatcher->FindPatches(address, eqlib::DETOUR_BYTES_COUNT, &existingPatch, 1) != 0)
+	{
+		if (pluginHandle == mqplugin::ThisPluginHandle || existingPatch->GetUserData() == 0)
 			return false;
 
-		if (existingDetour->GetAddress() == address)
+		MQPlugin* otherPlugin = GetPluginByHandle(MQPluginHandle{ existingPatch->GetUserData() });
+		MQPlugin* thisPlugin = GetPluginByHandle(pluginHandle);
+
+		if (existingPatch->GetAddress() == address)
 		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address {} (\"{}\") but it already exists as another detour created by {}",
-				thisPlugin->name, (void*)address, name, plugin ? std::string_view(plugin->name) : std::string_view("(NULL)"));
+			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
 		}
 		else
 		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address {} (\"{}\") but it conflicts with another detour created by {}",
-				thisPlugin->name, (void*)address, name, plugin ? std::string_view(plugin->name) : std::string_view("(NULL)"));
+			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
 		}
 
 		return false;
@@ -607,94 +571,68 @@ bool MQDetourAPI::ValidateNewDetour(uintptr_t address, std::string_view name, co
 bool MQDetourAPI::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
 	const MQPluginHandle& pluginHandle)
 {
-	if (!ValidateNewDetour(address, name, pluginHandle))
+	if (!ValidateNewPatch(address, name, pluginHandle))
 		return false;
 
-	MQDetour* newDetour = new MQDetour(address, target, detour, name, pluginHandle);
-	AddDetourToList(s_detourList, newDetour);
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, target, detour, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
 
-	//SPDLOG_DEBUG("Add detour: {} at {}: {} -> {}", m_name, (void*)m_address,
-	//	(void*)m_target, (void*)m_detour);
+		return true;
+	}
 
-	return true;
+	return false;
 }
 
 bool MQDetourAPI::CreateDetour(uintptr_t address, size_t width, std::string_view name,
 	const MQPluginHandle& pluginHandle)
 {
-	if (!ValidateNewDetour(address, name, pluginHandle))
+	if (!ValidateNewPatch(address, name, pluginHandle))
 		return false;
 
-	MQDetour* newDetour = new MQDetour(address, name, width, pluginHandle);
-	AddDetourToList(s_detourList, newDetour);
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, width, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
 
-	//SPDLOG_DEBUG("Add detour (patch): {} at {}", m_name, (void*)m_address);
+		return true;
+	}
 
-	return true;
+	return false;
 }
 
 bool MQDetourAPI::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
 {
-	MQDetour* detour = FindDetourExact(address);
+	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
 
-	if (!detour)
+	if (!patch || patch->GetType() != MemoryPatch::Type::Detour)
 	{
-		SPDLOG_WARN("Failed to remove detour at {}: Detour not found", (void*)address);
+		SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
 
 		return false;
 	}
 
-	if (detour->GetPluginHandle() != pluginHandle)
+	if (patch->GetUserData() != pluginHandle.pluginID)
 	{
-		MQPlugin* plugin = GetPluginByHandle(detour->GetPluginHandle());
+		if (patch->GetUserData() == 0)
+		{
+			SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
+		}
+		else
+		{
+			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
 
-		SPDLOG_WARN("Failed to remove detour at {}: Detour is owned by {}", (void*)address, plugin->name);
+			if (plugin)
+			{
+				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
+			}
+			else
+			{
+				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
+			}
+		}
 	}
 
-	//SPDLOG_DEBUG("Remove detour: {} at {}", detour->name, (void*)detour->address);
-
-	RemoveDetourFromList(s_detourList, detour);
-	delete detour;
-	return true;
-}
-
-void MQDetourAPI::RemoveDetours()
-{
-	auto detour = s_detourList;
-	while (detour != nullptr)
-	{
-		auto next = detour->next;
-		delete detour;
-		detour = next;
-	}
-}
-
-MQDetour* MQDetourAPI::FindDetour(uintptr_t address, size_t width) const
-{
-	MQDetour* detour = s_detourList;
-	while (detour != nullptr)
-	{
-		if (detour->IsAddressInRange(address, width))
-			return detour;
-
-		detour = detour->next;
-	}
-
-	return nullptr;
-}
-
-MQDetour* MQDetourAPI::FindDetourExact(uintptr_t address) const
-{
-	MQDetour* detour = s_detourList;
-	while (detour != nullptr)
-	{
-		if (detour->GetAddress() == address)
-			return detour;
-
-		detour = detour->next;
-	}
-
-	return nullptr;
+	return m_memoryPatcher->RemovePatch(address);
 }
 
 AddressDetourState MQDetourAPI::IsAddressDetoured(uintptr_t address, size_t width) const
@@ -707,33 +645,45 @@ AddressDetourState MQDetourAPI::IsAddressDetoured(uintptr_t address, size_t widt
 	if (address && width >= 4 && *(DWORD*)address == 0x00905a4d)
 		return AddressDetourState::KnownSkippable;
 
-	MQDetour* detour = s_detourList;
-	while (detour != nullptr)
-	{
-		if (detour->IsAddressInRange(address, width))
-			return AddressDetourState::CodeDetour;
-
-		detour = detour->next;
-	}
+	if (m_memoryPatcher->IsAddressPatched(address, width))
+		return AddressDetourState::CodeDetour;
 
 	return AddressDetourState::None;
 }
 
-uint8_t MQDetourAPI::GetDetouredByte(uintptr_t address, uint8_t original) const
+std::vector<eqlib::MemoryPatch*> MQDetourAPI::FindPatches(uintptr_t address, size_t width)
 {
-	MQDetour* detour = s_detourList;
-	while (detour != nullptr)
-	{
-		if (detour->IsAddressInRange(address))
-		{
-			uint8_t* bytes = detour->GetBytes();
-			return *(bytes + address - detour->GetAddress());
-		}
+	std::vector<eqlib::MemoryPatch*> result;
+	uintptr_t endAddress = address + width;
+	size_t offset = 0;
 
-		detour = detour->next;
+	// Ferry list of patches across dll boundary...
+	constexpr uint32_t MAX_PER_ITERATION = 100;
+	eqlib::MemoryPatch* patches[MAX_PER_ITERATION];
+
+	uint32_t count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+	if (count == 0)
+		return result;
+
+	// Count is the total number of patches found, so we can resize as soon as we know.
+	result.resize(count);
+
+	// Now we iterate through results until we have all the patches.
+	memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
+
+	while (count > MAX_PER_ITERATION)
+	{
+		offset += MAX_PER_ITERATION;
+
+		address = result.back()->GetAddress() + result.back()->GetBytesSize();
+		width = endAddress - address;
+
+		count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+
+		memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
 	}
 
-	return original;
+	return result;
 }
 
 //============================================================================

@@ -439,7 +439,7 @@ bool MacroQuest::Initialize()
 
 	InitializePluginHandle();
 
-	pDetourAPI = new MQDetourAPI();
+	pDetourAPI = new MQDetourAPI(m_eqlib->GetMemoryPatcher());
 	pCommandAPI = new MQCommandAPI();
 
 	// These two sub-systems will get us onto the main thread.

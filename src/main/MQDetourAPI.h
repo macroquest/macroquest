@@ -21,46 +21,13 @@
 #include "mq/api/DetourAPI.h"
 #include "mq/base/PluginHandle.h"
 
-namespace mq {
-
-class MQDetour final
+namespace eqlib
 {
-public:
-	MQDetour(uintptr_t address, void** target, void* detour, std::string_view name,
-		const MQPluginHandle& pluginHandle);
-	MQDetour(uintptr_t address, std::string_view name, size_t width, const MQPluginHandle& pluginHandle);
+	class MemoryPatcher;
+	class MemoryPatch;
+}
 
-	~MQDetour();
-
-	uintptr_t GetAddress() const { return m_address; }
-	MQPluginHandle GetPluginHandle() const { return m_pluginHandle; }
-
-	const uint8_t* GetBytes() const { return m_bytes.data(); }
-	uint8_t* GetBytes() { return m_bytes.data(); }
-
-	bool IsAddressInRange(uintptr_t address, size_t width) const
-	{
-		return std::max(m_address, address) < std::min(m_address + m_width, address + width);
-	}
-
-	bool IsAddressInRange(uintptr_t address) const
-	{
-		return address >= m_address && address < m_address + m_width;
-	}
-
-	MQDetour* next = nullptr;
-	MQDetour* prev = nullptr;
-
-private:
-	const uintptr_t m_address;
-	const std::string m_name;
-	std::vector<uint8_t> m_bytes;
-	void** m_target = nullptr;
-	void* m_detour = nullptr;
-	MQPluginHandle m_pluginHandle;
-	size_t m_width = DETOUR_BYTES_COUNT;
-};
-
+namespace mq {
 
 enum class AddressDetourState {
 	None = 0,
@@ -68,11 +35,10 @@ enum class AddressDetourState {
 	KnownSkippable = 2,
 };
 
-
 class MQDetourAPI
 {
 public:
-	MQDetourAPI();
+	MQDetourAPI(eqlib::MemoryPatcher* memoryPatcher);
 	~MQDetourAPI();
 
 	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
@@ -83,18 +49,15 @@ public:
 	bool RemoveDetour(uintptr_t address,
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
-	void RemoveDetours();
-
 	AddressDetourState IsAddressDetoured(uintptr_t address, size_t width) const;
 
-	MQDetour* FindDetour(uintptr_t address, size_t width = DETOUR_BYTES_COUNT) const;
-	MQDetour* FindDetourExact(uintptr_t addrss) const;
-
-	uint8_t GetDetouredByte(uintptr_t address, uint8_t original) const;
+	std::vector<eqlib::MemoryPatch*> FindPatches(uintptr_t address, size_t width);
 
 private:
-	bool ValidateNewDetour(uintptr_t address, std::string_view name,
+	bool ValidateNewPatch(uintptr_t address, std::string_view name,
 		const MQPluginHandle& pluginHandle) const;
+
+	eqlib::MemoryPatcher* m_memoryPatcher = nullptr;
 };
 
 extern MQDetourAPI* pDetourAPI;
