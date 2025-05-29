@@ -154,7 +154,7 @@ protected:
 	bool m_deviceAcquired = false;
 
 	// Last game state, used to check for changes to the current game state
-	int m_lastGameState = GAMESTATE_PRECHARSELECT;
+	int m_lastGameState = -1;
 
 	// Indicates that we need to reset the overlay next frame
 	bool m_needResetOverlay = false;

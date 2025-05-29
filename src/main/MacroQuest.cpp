@@ -901,96 +901,96 @@ bool MacroQuest::AddTopLevelObject(const char* name, MQTopLevelObjectFunction ca
 	return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
 }
 
-bool MainImpl::RemoveTopLevelObject(const char* name, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveTopLevelObject(const char* name, const MQPluginHandle& pluginHandle)
 {
 	return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
 }
 
-MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
+MQTopLevelObject* MacroQuest::FindTopLevelObject(const char* name)
 {
 	return pDataAPI->FindTopLevelObject(name);
 }
 
 // ActorAPI functions
 
-void MainImpl::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, const std::string& data,
+void MacroQuest::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback, const MQPluginHandle& pluginHandle)
 {
 	pActorAPI->SendToActor(dropbox, address, data, callback, pluginHandle);
 }
 
-void MainImpl::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message,
+void MacroQuest::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message,
 	const std::string& data, uint8_t status, const MQPluginHandle& pluginHandle)
 {
 	pActorAPI->ReplyToActor(dropbox, message, data, status, pluginHandle);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive,
+postoffice::Dropbox* MacroQuest::AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive,
 	const MQPluginHandle& pluginHandle)
 {
 	return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
 }
 
-void MainImpl::RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle& pluginHandle)
+void MacroQuest::RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle& pluginHandle)
 {
 	pActorAPI->RemoveActor(dropbox, pluginHandle);
 }
 
 // CommandAPI functions
 
-bool MainImpl::AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame, const MQPluginHandle& pluginHandle)
+bool MacroQuest::AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
 }
 
-bool MainImpl::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->RemoveCommand(command, pluginHandle);
 }
 
-bool MainImpl::IsCommand(std::string_view command) const
+bool MacroQuest::IsCommand(std::string_view command) const
 {
 	return pCommandAPI->IsCommand(command);
 }
 
-void MainImpl::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
+void MacroQuest::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
 {
 	pCommandAPI->DoCommand(command, delayed, pluginHandle);
 }
 
-void MainImpl::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
+void MacroQuest::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
 {
 	pCommandAPI->TimedCommand(command, msDelay, pluginHandle);
 }
 
-bool MainImpl::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
+bool MacroQuest::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
 }
 
-bool MainImpl::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
 }
 
-bool MainImpl::IsAlias(const std::string& alias) const
+bool MacroQuest::IsAlias(const std::string& alias) const
 {
 	return pCommandAPI->IsAlias(alias);
 }
 
 // DetourAPI functions
 
-bool MainImpl::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
+bool MacroQuest::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
 {
 	return pDetourAPI->CreateDetour(address, target, detour, name, pluginHandle);
 }
 
-bool MainImpl::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
+bool MacroQuest::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
 {
 	return pDetourAPI->CreateDetour(address, width, name, pluginHandle);
 }
 
-bool MainImpl::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
 {
 	return pDetourAPI->RemoveDetour(address, pluginHandle);
 }
