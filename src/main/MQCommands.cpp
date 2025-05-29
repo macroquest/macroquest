@@ -158,6 +158,9 @@ const char* szSortBy[] =
 	nullptr
 };
 
+void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
+void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
+
 void SuperWho(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
@@ -3736,21 +3739,9 @@ void UseItemCmd(PlayerClient* pChar, const char* szLine)
 	else if (itemLocation.IsKeyRingLocation())
 	{
 		// Check if this item qualifies to be on a keyring
-		KeyRingType keyRingType;
-
-		switch (itemLocation.GetLocation())
-		{
-		case eItemContainerMountKeyRingItems: keyRingType = eMount; break;
-		case eItemContainerIllusionKeyRingItems: keyRingType = eIllusion; break;
-		case eItemContainerFamiliarKeyRingItems: keyRingType = eFamiliar; break;
-#if HAS_TELEPORTATION_KEYRING
-		case eItemContainerTeleportationKeyRingItems: keyRingType = eTeleportationItem; break;
-#endif
-#if HAS_ACTIVATED_ITEM_KEYRING
-		case eItemContainerActivatedKeyRingItems: keyRingType = eActivatedItem; break;
-#endif
-		default: return;
-		}
+		KeyRingType keyRingType = CKeyRingWnd::GetKeyRingType(itemLocation.GetLocation());
+		if (keyRingType == eKeyRingTypeInvalid)
+			return;
 
 		CKeyRingWnd::ExecuteRightClick(keyRingType, pItem, itemLocation.GetTopSlot());
 	}
@@ -5509,8 +5500,8 @@ void ListProcessesCommand(PlayerClient* pChar, const char* szLine)
 	processIDs.resize(1024);
 
 	DWORD cbNeeded = 0;
-	BOOL result = GetFilteredProcesses(processIDs.data(), static_cast<DWORD>(processIDs.size()) * sizeof(DWORD), &cbNeeded,
-		[&](char process_name[MAX_PATH]) -> bool
+	bool result = GetFilteredProcesses(processIDs.data(), static_cast<DWORD>(processIDs.size()) * sizeof(DWORD), &cbNeeded,
+		[&](std::string_view process_name) -> bool
 		{
 			return IsMacroQuestProcess(process_name) || (szLine != nullptr && szLine[0] != '\0' && ci_find_substr(process_name, szLine) == -1);
 		});

@@ -80,11 +80,14 @@ namespace comment_update
             {
                 Console.WriteLine("Updating comments for x86");
                 includePaths.Add("contrib/vcpkg/installed/x86-windows-static/include");
+                includePaths.Add("contrib/vcpkg/installed/x86-windows/include");
+                compilerArguments.Add("-m32");
             }
             else
             {
                 Console.WriteLine("Updating comments for x64");
                 includePaths.Add("contrib/vcpkg/installed/x64-windows-static/include");
+                includePaths.Add("contrib/vcpkg/installed/x64-windows/include");
                 compilerArguments.Add("-m64");
                 compilerArguments.Add("-D_WIN64");
             }

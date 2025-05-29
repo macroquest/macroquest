@@ -70,8 +70,6 @@ static const char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersi
 // load failure string for reporting error message out of the plugin load command.
 static std::string s_pluginLoadFailure;
 
-static bool s_hotReloadEnabled = true;
-
 //----------------------------------------------------------------------------
 
 uint32_t bmWriteChatColor = 0;
@@ -92,6 +90,8 @@ extern bool gbManualResetRequired;
 
 // Defined in MQ2Utilities.cpp
 DWORD CALLBACK InitializeMQ2SpellDb(void* pData);
+
+extern std::set<HMODULE> g_knownModules;
 
 //----------------------------------------------------------------------------
 // Module handling
@@ -331,23 +331,80 @@ std::string FindPluginFile(std::string_view name)
 	return {};
 }
 
-//class HotReloadModule
-//{
-//public:
-//};
-//static ci_unordered::map<std::string, std::shared_ptr<HotReloadModule>> s_hotReloadMap;
-//
-//std::shared_ptr<HotReloadModule> HotReload_SetupPlugin(std::string_view pluginName, std::string pluginPath)
-//{
-//
-//}
-//
-//void HotReload_CleanupPlugin(std::string_view pluginName)
-//{
-//}
+class ScopedModuleTracker
+{
+	struct TrackerData
+	{
+		std::set<HMODULE> modules;
 
+		void Start();
+		void Finish();
+	};
+	static inline TrackerData* s_activeTracker = nullptr;
 
-std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view name)
+public:
+	ScopedModuleTracker()
+	{
+		if (s_activeTracker == nullptr)
+		{
+			s_activeTracker = &m_data;
+			m_data.Start();
+		}
+	}
+
+	~ScopedModuleTracker()
+	{
+		if (s_activeTracker == &m_data)
+		{
+			m_data.Finish();
+			s_activeTracker = nullptr;
+		}
+	}
+
+private:
+	TrackerData m_data;
+};
+
+void ScopedModuleTracker::TrackerData::Start()
+{
+	::SetDllDirectoryA(gPathMQRoot);
+
+	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId()));
+	if (!hSnapshot)
+		return;
+
+	MODULEENTRY32 me32 = { sizeof(MODULEENTRY32) };
+	if (!Module32First(hSnapshot.get(), &me32))
+		return;
+
+	do {
+		modules.insert(me32.hModule);
+	} while (Module32Next(hSnapshot.get(), &me32));
+}
+
+void ScopedModuleTracker::TrackerData::Finish()
+{
+	::SetDllDirectoryA(nullptr);
+
+	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId()));
+	if (!hSnapshot)
+		return;
+
+	MODULEENTRY32 me32 = { sizeof(MODULEENTRY32) };
+	if (!Module32First(hSnapshot.get(), &me32))
+		return;
+
+	std::vector<HMODULE> newModules;
+	do {
+		if (modules.find(me32.hModule) == end(modules))
+		{
+			SPDLOG_DEBUG("Module loaded: {}", me32.szExePath);
+			newModules.push_back(me32.hModule);
+		}
+	} while (Module32Next(hSnapshot.get(), &me32));
+}
+
+static std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view name)
 {
 	namespace fs = std::filesystem;
 
@@ -365,10 +422,6 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 	}
 
 	const fs::path pathToPlugin = fs::path(mq::internal_paths::Plugins) / fileName;
-
-	if (s_hotReloadEnabled)
-	{
-	}
 
 	wil::unique_hmodule hModule{ ::LoadLibraryA(pathToPlugin.string().c_str()) };
 	if (!hModule)
@@ -403,7 +456,8 @@ std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view na
 		s_pluginLoadFailure = "Plugin was not built for this version of EverQuest";
 		return {};
 	}
-	else if (strcmp(eqVersion, EverQuestVersion) != 0)
+
+	if (strcmp(eqVersion, EverQuestVersion) != 0)
 	{
 		s_pluginLoadFailure = fmt::format("Plugin was not built for this version of EverQuest (was built for {})",
 			eqVersion);
@@ -462,6 +516,8 @@ int LoadPlugin(std::string_view pluginName, bool save)
 
 		return 3;
 	}
+
+	ScopedModuleTracker moduleTracker;
 
 	auto [hModule, pluginPath] = LoadPluginModule(pluginName);
 	if (!hModule)
@@ -1395,6 +1451,8 @@ void PluginCommand(SPAWNINFO* pChar, char* szLine)
 			// If we're showing usage, then we had something syntactically wrong earlier
 			if (!show_usage)
 			{
+				s_pluginLoadFailure.clear();
+
 				if (dounload)
 				{
 					const std::string origPluginName = plugin ? plugin->szFilename : szName;
@@ -1474,6 +1532,7 @@ void InitializePlugins()
 	s_pluginsInitialized = true;
 
 	DebugSpew("Initializing plugins");
+	ScopedModuleTracker moduleTracker;
 
 	const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
 	for (const std::string& pluginName : plugins)

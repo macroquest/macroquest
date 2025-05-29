@@ -112,6 +112,9 @@ MQModule* GetPostOfficeModule();
 MQModule* GetEmuExtensionsModule();
 #endif
 
+void InitializeMQ2AutoInventory();
+void ShutdownMQ2AutoInventory();
+
 DWORD WINAPI MQ2Start(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
@@ -129,7 +132,7 @@ void InitializeLogging()
 
 	if (IsDebuggerPresent())
 	{
-		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
+		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
 	}
 
 #if LOG_FILENAMES
@@ -189,8 +192,10 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	{
 		if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 		{
+			::SetDllDirectoryA(nullptr);
+
 			// Get path to the dll and strip off the filename
-			GetModuleFileName(ghModule, szFilename, MAX_STRING);
+			::GetModuleFileNameA(ghModule, szFilename, MAX_STRING);
 			szProcessName = strrchr(szFilename, '\\');
 			szProcessName[0] = '\0';
 

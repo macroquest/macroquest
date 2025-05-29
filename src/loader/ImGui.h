@@ -42,6 +42,6 @@ bool RemoveContextGroup(const std::string& name);
 void Run(const std::function<bool()>& mainLoop);
 void OpenMainWindow();
 void OpenContextMenu();
-void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title);
+void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title, const ImVec2& size = ImVec2(320.0f, 200.0f));
 
 } // namespace LauncherImGui

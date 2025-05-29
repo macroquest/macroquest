@@ -271,6 +271,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return true;
 
 	case EverQuestMembers::WinTitle: {
+		Dest.Type = pStringType;
 		HWND hEQWnd = GetEQWindowHandle();
 		if (hEQWnd)
 		{
