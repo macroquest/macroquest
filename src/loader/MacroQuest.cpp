@@ -25,15 +25,18 @@
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
 #include "mq/base/Logging.h"
+#include "mq/base/WString.h"
+#include "loader/WinToastLib.h"
 
 #include "resource.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
+#include <spdlog/sinks/wincolor_sink.h>
 #include <extras/wil/Constants.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
@@ -41,21 +44,33 @@
 #include <tuple>
 #include <shellapi.h>
 #include <fcntl.h>
+#include <shlwapi.h>
+#include <shlobj.h>
+#include <aclapi.h>
+#include <sddl.h>
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "shlwapi.lib")
+
+#ifdef ShellExecute
+#undef ShellExecute
+#endif
 
 namespace fs = std::filesystem;
 using namespace std::chrono_literals;
+
+using namespace WinToastLib;
 
 namespace LauncherImGui {
 	bool HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wParam, intptr_t lParam);
 }
 
 HWND hMainWnd;
+bool s_isElevated = false;
 
 PROCESS_INFORMATION pInfo = { 0 };
 STARTUPINFO sInfo = { 0 };
@@ -97,6 +112,9 @@ static uint32_t s_logCleanupMaxAgeDays = 14;        // Default to 14 days before
 static uint32_t s_logFileCleanupIntervalMins = 360; // Default to 6 hours between cleanings
 
 static std::chrono::steady_clock::time_point s_lastLogFileCleanupRun;
+static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> s_ringBufferSink;
+static std::shared_ptr<spdlog::sinks::wincolor_stdout_sink_mt> s_stdOutSink;
+static bool s_dumpsPathOK = true;
 
 //----------------------------------------------------------------------------
 
@@ -131,6 +149,31 @@ void InitializeConsole()
 
 	gbConsoleVisible = true;
 	gbConsoleCreated = true;
+
+	// create the std out logger.
+	s_stdOutSink = std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>();
+
+	if (s_ringBufferSink)
+	{
+		// The logger already exists, so replace ring buffer sink with stdout sink.
+		auto logger = spdlog::default_logger();
+		
+		// Erase the ring buffer sink from the logger's list of sinks.
+		auto& sinks = logger->sinks();
+		sinks.erase(std::remove_if(sinks.begin(), sinks.end(), [](const auto& sink) { return sink == s_ringBufferSink; }), sinks.end());
+		sinks.push_back(s_stdOutSink);
+
+		auto storedItems = s_ringBufferSink->last_raw();
+		SPDLOG_INFO("Console opened, only showing {} most recent messages...", storedItems.size());
+
+		for (const auto& item : storedItems)
+		{
+			if (s_stdOutSink->should_log(item.level))
+				s_stdOutSink->log(item);
+		}
+
+		s_ringBufferSink.reset();
+	}
 }
 
 void ShutdownConsole()
@@ -239,7 +282,7 @@ static void PerformLoggingCleanup()
 			std::copy_n(std::begin(dirItems), dirItems.size() - countCutoff, std::back_inserter(removeItems));
 		}
 
-		if (firstTime)
+		if (firstTime && !removeItems.empty())
 		{
 			SPDLOG_INFO("Performing log file cleanup, found {} files to remove.", removeItems.size());
 		}
@@ -284,8 +327,21 @@ static void CheckPruneLogging()
 
 void InitializeLogging()
 {
-	// create color multi threaded logger
-	auto logger = spdlog::create<spdlog::sinks::wincolor_stdout_sink_mt>("MQ");
+	std::shared_ptr<spdlog::sinks::sink> baseSink;
+
+	// If we don't have a stdout sink yet, create a ring buffer to hold messages in case we get one later.
+	if (!s_stdOutSink)
+	{
+		s_ringBufferSink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(20);
+		baseSink = s_ringBufferSink;
+	}
+	else
+	{
+		baseSink = s_stdOutSink;
+	}
+
+	auto logger = std::make_shared<spdlog::logger>("MQ", baseSink);
+	spdlog::details::registry::instance().initialize_logger(logger);
 	spdlog::set_default_logger(logger);
 	spdlog::flush_on(spdlog::level::trace);
 	spdlog::set_level(spdlog::level::trace);
@@ -1293,6 +1349,7 @@ void InitializeWindows()
 
 	s_taskbarRestart = ::RegisterWindowMessageW(L"TaskbarCreated");
 
+	LauncherImGui::AddMainPanel("Crash Reporting", ShowCrashReportingPanel);
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
 	LauncherImGui::AddMainPanel("Logging", ShowLoggingSettings);
 	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
@@ -1337,10 +1394,345 @@ void InitializeVersionInfo()
 	ServerType = GetBuildTargetName(
 		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
 
-	fmt::format_to(NID.szTip, "{} [{} ({})]\0", gszWinName, szVersion, ServerType);
+	fmt::format_to(NID.szTip, "{}{} [{} ({})]\0", gszWinName, s_isElevated ? " (Elevated)" : "", szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
 
 	to_lower(ServerType);
+}
+
+//------------------------------------------------------------------------------------------------------
+// Gross block of COM code to make this launch de-elevated
+
+HRESULT GetShellViewForDesktop(REFIID riid, void** ppv)
+{
+	*ppv = NULL;
+
+	IShellWindows* psw;
+	HRESULT hr = CoCreateInstance(CLSID_ShellWindows, NULL, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&psw));
+	if (SUCCEEDED(hr))
+	{
+		HWND hwnd;
+		IDispatch* pdisp;
+		VARIANT vEmpty = {}; // VT_EMPTY
+		if (S_OK == psw->FindWindowSW(&vEmpty, &vEmpty, SWC_DESKTOP, (long*)&hwnd, SWFO_NEEDDISPATCH, &pdisp))
+		{
+			IShellBrowser* psb;
+			hr = IUnknown_QueryService(pdisp, SID_STopLevelBrowser, IID_PPV_ARGS(&psb));
+			if (SUCCEEDED(hr))
+			{
+				IShellView* psv;
+				hr = psb->QueryActiveShellView(&psv);
+				if (SUCCEEDED(hr))
+				{
+					hr = psv->QueryInterface(riid, ppv);
+					psv->Release();
+				}
+				psb->Release();
+			}
+			pdisp->Release();
+		}
+		else
+		{
+			hr = E_FAIL;
+		}
+		psw->Release();
+	}
+	return hr;
+}
+
+// From a shell view object gets its automation interface and from that gets the shell
+// application object that implements IShellDispatch2 and related interfaces.
+
+HRESULT GetShellDispatchFromView(IShellView* psv, REFIID riid, void** ppv)
+{
+	*ppv = NULL;
+
+	IDispatch* pdispBackground;
+	HRESULT hr = psv->GetItemObject(SVGIO_BACKGROUND, IID_PPV_ARGS(&pdispBackground));
+	if (SUCCEEDED(hr))
+	{
+		IShellFolderViewDual* psfvd;
+		hr = pdispBackground->QueryInterface(IID_PPV_ARGS(&psfvd));
+		if (SUCCEEDED(hr))
+		{
+			IDispatch* pdisp;
+			hr = psfvd->get_Application(&pdisp);
+			if (SUCCEEDED(hr))
+			{
+				hr = pdisp->QueryInterface(riid, ppv);
+				pdisp->Release();
+			}
+			psfvd->Release();
+		}
+		pdispBackground->Release();
+	}
+	return hr;
+}
+
+bool ShellExecInExplorerProcess(PCWSTR pszFile, PCWSTR pszArgs, PCWSTR pszDir)
+{
+	IShellView* psv;
+	HRESULT hr = GetShellViewForDesktop(IID_PPV_ARGS(&psv));
+	if (SUCCEEDED(hr))
+	{
+		IShellDispatch2* psd;
+		hr = GetShellDispatchFromView(psv, IID_PPV_ARGS(&psd));
+		if (SUCCEEDED(hr))
+		{
+			BSTR bstrFile = SysAllocString(pszFile);
+			VARIANT vtArgs = {};
+			vtArgs.bstrVal = SysAllocString(pszArgs);
+			vtArgs.vt = VT_BSTR;
+			VARIANT vtDir = {};
+			vtDir.bstrVal = SysAllocString(pszDir);
+			vtDir.vt = VT_BSTR;
+			
+			VARIANT vtEmpty = {}; // VT_EMPTY
+			hr = psd->ShellExecute(bstrFile, vtArgs, vtDir, vtEmpty, vtEmpty);
+
+			SysFreeString(bstrFile);
+			SysFreeString(vtArgs.bstrVal);
+			SysFreeString(vtDir.bstrVal);
+
+			psd->Release();
+		}
+		psv->Release();
+	}
+
+	return hr == S_OK;
+}
+
+bool IsElevated()
+{
+	bool isElevated = false;
+	wil::unique_handle hToken;
+
+	if (::OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, hToken.addressof()))
+	{
+		TOKEN_ELEVATION elevation;
+		DWORD size;
+
+		if (::GetTokenInformation(hToken.get(), TokenElevation, &elevation, sizeof(elevation), &size))
+		{
+			isElevated = elevation.TokenIsElevated;
+		}
+	}
+
+	return isElevated;
+}
+
+//------------------------------------------------------------------------------------------------------
+
+wil::unique_handle GetImpersonationToken()
+{
+	wil::unique_handle hToken;
+	wil::unique_handle hImpersonationToken;
+
+	if (!::OpenProcessToken(GetCurrentProcess(), TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ, hToken.addressof()))
+	{
+		SPDLOG_WARN("OpenProcessToken failed with error: {}", ::GetLastError());
+		return nullptr;
+	}
+
+	// Duplicate the token for impersonation
+	if (!DuplicateToken(hToken.get(), SecurityImpersonation, hImpersonationToken.addressof()))
+	{
+		SPDLOG_WARN("DuplicateToken failed with error: {}", ::GetLastError());
+		return nullptr;
+	}
+
+	return hImpersonationToken;
+}
+
+bool HasWriteAccess(HANDLE hToken, const fs::path& directoryPath, DWORD dwAccessDesired = GENERIC_WRITE)
+{
+	// In event of error just treat it as ok.
+
+	constexpr SECURITY_INFORMATION si = OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION;
+	DWORD length = 0;
+
+	if (::GetFileSecurityW(directoryPath.wstring().c_str(), si, nullptr, 0, &length) != 0
+		|| ::GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+	{
+		SPDLOG_WARN("Unexpected result while querying GetFileSecurity for buffer size, path={} error={}",
+			directoryPath.string(), ::GetLastError());
+		return true;
+	}
+
+	wil::unique_any<PSECURITY_DESCRIPTOR, decltype(&::free), free> pSD(::malloc(length));
+
+	if (!::GetFileSecurityW(directoryPath.wstring().c_str(), si, pSD.get(), length, &length))
+	{
+		SPDLOG_WARN("Failed to get security descriptor for path={} error={}",
+			directoryPath.string(), ::GetLastError());
+		return true;
+	}
+
+	PRIVILEGE_SET PrivilegeSet;
+	DWORD PrivilegeSetLength = sizeof(PrivilegeSet);
+	DWORD dwAccessGranted = 0;
+	BOOL accessStatus = FALSE;
+
+	GENERIC_MAPPING mapping;
+	mapping.GenericRead = FILE_GENERIC_READ;
+	mapping.GenericWrite = FILE_GENERIC_WRITE;
+	mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+	mapping.GenericAll = FILE_ALL_ACCESS;
+	::MapGenericMask(&dwAccessDesired, &mapping);
+
+	if (!::AccessCheck(pSD.get(), hToken, dwAccessDesired, &mapping,
+		&PrivilegeSet, &PrivilegeSetLength, &dwAccessGranted, &accessStatus))
+	{
+		SPDLOG_WARN("AccessCheck failed: path={} error={}", directoryPath.string(), ::GetLastError());
+		return true;
+	}
+
+	return (dwAccessGranted & dwAccessDesired) == dwAccessDesired;
+}
+
+class PermissionNotificationHandler : public IWinToastHandler
+{
+public:
+	PermissionNotificationHandler(const std::vector<std::string>& failedPaths, const std::string& message)
+		: m_failedPaths(failedPaths), m_message(message)
+	{
+	}
+
+	void toastActivated() override
+	{
+	}
+
+	void toastActivated(int actionIndex) override
+	{
+		if (actionIndex == 0)
+		{
+			// "More Info" clicked. Throw up a dialog with more info.
+			DisplayMessageBox();
+		}
+	}
+
+	void toastActivated(const char* response) override
+	{
+	}
+
+	void toastDismissed(WinToastDismissalReason state) override
+	{
+	}
+
+	void toastFailed() override
+	{
+	}
+
+	void DisplayMessageBox()
+	{
+		fmt::memory_buffer buf;
+		fmt::appender it(buf);
+
+		fmt::format_to(it, "MacroQuest is unable to write to the following paths in the MacroQuest directory:\n\n");
+		for (const std::string& path : m_failedPaths)
+		{
+			fmt::format_to(it, "{}\n", path);
+		}
+
+		fmt::format_to(it, "\nThis means that files in the MacroQuest directory are not writable, and this "
+			"may cause issues. This commonly happens as a result of running EverQuest or MacroQuest as Administrator, but may also "
+			"be caused by an incorrect installation. Note: running EverQuest as Administrator is STRONGLY discouraged.\n\n"
+			"MacroQuest Path: {}", internal_paths::MQRoot);
+
+		LauncherImGui::OpenMessageBox(nullptr, to_string(buf), "MacroQuest File Permission Errors",
+			ImVec2(600, 400));
+	}
+
+	std::vector<std::string> m_failedPaths;
+	std::string m_message;
+};
+
+void CheckPaths()
+{
+	if (GetPrivateProfileBool("MacroQuest", "DisableFilePermissionsCheck", false, internal_paths::MQini))
+		return;
+
+	wil::unique_handle hToken = GetImpersonationToken();
+	if (!hToken)
+	{
+		SPDLOG_WARN("Failed to get impersonation token");
+		return;
+	}
+
+	// Get list of paths to check
+	const std::vector<fs::path> paths = {
+		internal_paths::MQRoot,
+		internal_paths::MQini,
+		internal_paths::Config,
+		internal_paths::Logs,
+		internal_paths::Macros,
+		internal_paths::Plugins,
+		internal_paths::Resources,
+	};
+
+	std::vector<std::string> failedPaths;
+
+	for (const auto& path : paths)
+	{
+		if (!HasWriteAccess(hToken.get(), path))
+			failedPaths.push_back(path.string());
+	}
+
+	if (!HasWriteAccess(hToken.get(), internal_paths::CrashDumps))
+	{
+		failedPaths.push_back(internal_paths::CrashDumps);
+		s_dumpsPathOK = false;
+	}
+
+	if (!failedPaths.empty())
+	{
+		for (const std::string& path : failedPaths)
+		{
+			SPDLOG_WARN("No write access to path: {}", path);
+		}
+
+
+		std::string message = "MacroQuest is unable to write to paths in the MacroQuest directory.\n\n"
+			"MacroQuest may not run properly (or may not run at all).";
+		std::shared_ptr<PermissionNotificationHandler> handler = std::make_shared<PermissionNotificationHandler>(failedPaths, message);
+
+		if (WinToast::instance()->isInitialized())
+		{
+			WinToastTemplate templ(WinToastTemplate::Text02);
+			templ.setFirstLine("File Permission Problems Detected");
+			templ.setSecondLine(message);
+			templ.addAction("More Info");
+
+			WinToast::instance()->showToast(templ, handler);
+		}
+		else
+		{
+			handler->DisplayMessageBox();
+		}
+	}
+
+	::RevertToSelf();
+}
+
+void ShowBalloonTip(HWND hwnd, const wchar_t* title, const wchar_t* msg)
+{
+	NOTIFYICONDATAW nid = {};
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = hwnd;
+	nid.uID = WM_USER_SYSTRAY;
+	nid.uFlags = NIF_INFO;
+	wcscpy_s(nid.szInfoTitle, title);
+	wcscpy_s(nid.szInfo, msg);
+	::Shell_NotifyIconW(NIM_MODIFY, &nid);
+}
+
+void ReportFailedInjection(InjectResult result, DWORD pid)
+{
+	if (result == InjectResult::FailedElevationRequired)
+	{
+		std::string message = fmt::format("Access denied - PID {}", pid);
+		ShowBalloonTip(hMainWnd, L"Failed to inject", mq::utf8_to_wstring(message).c_str());
+	}
 }
 
 // ***************************************************************************
@@ -1364,14 +1756,12 @@ int WINAPI CALLBACK WinMain(
 	// Initialize Logging
 	InitializeLogging();
 
-	SPDLOG_INFO("Starting MacroQuest Loader. Built " __TIMESTAMP__);
+	s_isElevated = IsElevated();
 
-	// Initialize crash handler
-	gCrashPadInitialized = InitializeCrashpad();
-	if (!gCrashPadInitialized && gEnableCrashpad)
-		SPDLOG_WARN("Crashpad handler failed to initialize.");
-	else if (!gEnableCrashpad)
-		SPDLOG_INFO("Crashpad is disabled.");
+	SPDLOG_INFO("Starting MacroQuest Loader{}. Built {}", s_isElevated ? " (Elevated)" : "", __TIMESTAMP__);
+
+	// Initialize COM
+	auto coCleanup = wil::CoInitializeEx(COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
 
 	// TODO:  Allow argument processing of passing ini file so the file can be launched from anywhere
 	std::string fullCommandLine = "";
@@ -1414,7 +1804,7 @@ int WINAPI CALLBACK WinMain(
 		GetModuleFileName(nullptr, szFileName, MAX_PATH);
 		std::filesystem::path thisProgramPath = szFileName;
 
-		if(!thisProgramPath.is_absolute())
+		if (!thisProgramPath.is_absolute())
 		{
 			std::error_code ec;
 			thisProgramPath = absolute(thisProgramPath, ec);
@@ -1422,7 +1812,7 @@ int WINAPI CALLBACK WinMain(
 
 		std::filesystem::path ProgramPath;
 
-		const std::string oldProcessName = GetPrivateProfileValue("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
+		const std::string oldProcessName = GetPrivateProfileString("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
 		if (oldProcessName.empty())
 		{
 			ProgramPath = GetUniqueFileName(thisProgramPath.parent_path(), "exe");
@@ -1435,10 +1825,12 @@ int WINAPI CALLBACK WinMain(
 		// Launch a new process if this process isn't the renamed process
 		if (!ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
 		{
+			std::string programPathStr = ProgramPath.string();
+
 			std::error_code ec;
 			if (exists(ProgramPath, ec))
 			{
-				if (IsProcessRunning(oldProcessName.c_str()))
+				if (IsProcessRunning(oldProcessName))
 				{
 					if (!file_equals(thisProgramPath, ProgramPath))
 					{
@@ -1446,54 +1838,63 @@ int WINAPI CALLBACK WinMain(
 					}
 					else
 					{
-						SPDLOG_WARN("Alternate loader is already running: " + ProgramPath.string());
+						SPDLOG_WARN("Alternate loader is already running: {}", programPathStr);
 						exit(0);
 					}
 				}
 				if (!file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
 				{
-					ShowErrorBlocking("Could not delete alternate loader: " + ProgramPath.string());
+					ShowErrorBlocking("Could not delete alternate loader: " + programPathStr);
 					exit(1);
 				}
 			}
 			if (!exists(ProgramPath, ec) && !std::filesystem::copy_file(thisProgramPath, ProgramPath, ec))
 			{
-				ShowErrorBlocking("Could not create duplicate of this program at: " + ProgramPath.string());
+				ShowErrorBlocking("Could not create duplicate of this program at: " + programPathStr);
 				exit(1);
 			}
 
-			fullCommandLine = fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine);
-
-			STARTUPINFO si = {};
-			wil::unique_process_information pi;
-
+			std::wstring arguments = utf8_to_wstring(fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine));
 			SPDLOG_INFO("Relaunching as spawned process");
 
-			if (CreateProcess(ProgramPath.string().c_str(), // Application Name - Null says use command line processor
-					&fullCommandLine[0], // Command line to run
-					nullptr,             // Process Attributes - handle not inheritable
-					nullptr,             // Thread Attributes - handle not inheritable
-					false,               // Set handle inheritance to FALSE
-					CREATE_NEW_CONSOLE,  // Creation Flags - Create a new console window instead of running in the existing console
-					nullptr,             // Use parent's environment block
-					nullptr,             // Use parent's starting directory
-					&si,                 // Pointer to STARTUPINFO structure
-					&pi)                 // Pointer to PROCESS_INFORMATION structure
-				)
+			STARTUPINFOW si = {};
+			wil::unique_process_information pi;
+
+			if (::CreateProcessW(ProgramPath.wstring().c_str(), &arguments[0], nullptr, nullptr, false, CREATE_NEW_CONSOLE,
+				nullptr, nullptr, &si, &pi))
 			{
-				WritePrivateProfileValue("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini.c_str());
+				WritePrivateProfileString("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini);
 			}
 			else
 			{
-				ShowErrorBlocking("Could not launch alternate loader at: " + ProgramPath.string());
+				ShowErrorBlocking("Could not launch alternate loader at: " + programPathStr);
 				exit(1);
 			}
 			exit(0);
 		}
 	}
 
-	// Initialize COM
-	auto coCleanup = wil::CoInitializeEx();
+	WinToast::instance()->setAppName(L"MacroQuest");
+	WinToast::instance()->setAppUserModelId(L"MacroQuest.MacroQuest");
+	if (!WinToast::instance()->initialize())
+	{
+		SPDLOG_WARN("System does not support windows notifications");
+	}
+
+	CheckPaths();
+
+	// Initialize crash handler
+	if (!s_dumpsPathOK)
+		SPDLOG_ERROR("Permission Error with Crashpad path, not initializing crashpad");
+	else
+	{
+		gCrashPadInitialized = InitializeCrashpad();
+
+		if (!gCrashPadInitialized && gEnableCrashpad)
+			SPDLOG_WARN("Crashpad handler failed to initialize.");
+		else if (!gEnableCrashpad)
+			SPDLOG_INFO("Crashpad is disabled.");
+	}
 
 	INITCOMMONCONTROLSEX ccex = { sizeof(INITCOMMONCONTROLSEX) };
 	ccex.dwICC = ICC_STANDARD_CLASSES | ICC_HOTKEY_CLASS;
@@ -1624,6 +2025,8 @@ int WINAPI CALLBACK WinMain(
 
 	UnregisterClass(gszWinClassName, hInstance);
 
+	s_ringBufferSink.reset();
+	s_stdOutSink.reset();
 	spdlog::shutdown();
 
 	return (int)msg.wParam;

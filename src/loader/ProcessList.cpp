@@ -908,13 +908,6 @@ std::string GetLocalPlayer(DWORD pid)
 	return {};
 }
 
-enum class InjectResult {
-	Success = 0,
-	FailedRetry,
-	FailedPermanent,
-	FailedElevationRequired,
-};
-
 static InjectResult DoInject(uint32_t PID)
 {
 	SPDLOG_DEBUG("Injecting MQ into eqgame.exe: pid={0}", PID);
@@ -932,6 +925,7 @@ static InjectResult DoInject(uint32_t PID)
 		if (lastErr == ERROR_ACCESS_DENIED)
 		{
 			SPDLOG_ERROR("Failed to inject: Access Denied. This usually means that EQ is being launched as Administrator");
+			ReportFailedInjection(InjectResult::FailedElevationRequired, PID);
 			return InjectResult::FailedElevationRequired;
 		}
 

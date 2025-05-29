@@ -3998,6 +3998,7 @@ bool CheckAlertForRecursion(MQSpawnSearch* pSearchSpawn, uint32_t id)
 
 	return false;
 }
+
 // ***************************************************************************
 // Function:    CleanupName
 // Description: Cleans up NPC names
@@ -4932,13 +4933,6 @@ float GetMeleeRange(PlayerClient* pSpawn1, PlayerClient* pSpawn2)
 	return 14.0f;
 }
 
-bool IsValidSpellIndex(int index)
-{
-	if ((index < 1) || (index > TOTAL_SPELL_COUNT))
-		return false;
-	return true;
-}
-
 inline bool IsValidSpellSlot(int nGem)
 {
 	return nGem >= 0 && nGem < 16;
@@ -5552,23 +5546,36 @@ bool ItemOnCursor()
 	return pProfile->InventoryContainer.GetItem(InvSlot_Cursor) != nullptr;
 }
 
+static bool CanUseMultiItemManager(const ItemGlobalIndex& globalIndex)
+{
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 bool PickupItem(const ItemGlobalIndex& globalIndex)
 {
 	if (!pInvSlotMgr) return false;
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return false;
 
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not pick up item: index is invalid");
+		return false;
+	}
+
 	ItemPtr pItem = FindItemByGlobalIndex(globalIndex);
 	if (!pItem)
 	{
 		WriteChatf("Could not pick up item: no item found.");
-		return false;
-	}
-
-	if (globalIndex.GetLocation() == eItemContainerPossessions
-		&& globalIndex.GetTopSlot() == InvSlot_Cursor)
-	{
-		WriteChatf("Cannot pick up an item from the cursor slot!");
 		return false;
 	}
 
@@ -5591,26 +5598,118 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot pick up an item from the cursor slot!");
+			return false;
+		}
+		break;
+
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
+
+	case eItemContainerTrade:
+		WriteChatf("Cannot pick up items from trade slots");
+		return false;
+
+	default: break;
+	}
+
+	// Make sure we're not trying to pick up an augment in a socket.
+	ItemGlobalIndex parentIndex = globalIndex.GetParent();
+	if (parentIndex.IsValidIndex())
+	{
+		if (ItemPtr pParentItem = FindItemByGlobalIndex(parentIndex))
+		{
+			if (!pParentItem->IsContainer())
+			{
+				// We're not trying to pick up an item from a bag, we're trying to pick up
+				// an augment from an item
+				WriteChatf("Cannot pick up an augment socketed in an item");
+				return false;
+			}
+		}
+	}
+
 	bool isCtrl = pWndMgr->GetKeyboardFlags() & KeyboardFlags_Ctrl;
 
 #if HAS_MULTIPLE_ITEM_MOVE_MANAGER
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = globalIndex;
-	moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = isCtrl ? 1 : 0;
-	moveArray.Add(moveItem);
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = globalIndex;
+		moveItem.to = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = isCtrl ? 1 : 0;
+		moveArray.Add(moveItem);
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif
+
+#if HAS_KEYRING_WINDOW
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+#if 0
+		if (pCursorAttachment->IsActive())
+		{
+			WriteChatf("Cannot pick up an item from a keyring while something else is on the cursor");
+			return false;
+		}
+
+		KeyRingType keyRingType = CKeyRingWnd::GetKeyRingType(globalIndex.GetLocation());
+		ECursorAttachmentType linkType = CKeyRingWnd::GetLinkType(keyRingType);
+		if (linkType == eCursorAttachment_None)
+		{
+			WriteChatf("Cannot interact with keyring container: %s", GetNameForContainerInstance(globalIndex.GetLocation()));
+			return false;
+		}
+
+		if (!pCursorAttachment->IsOkToActivate(linkType))
+		{
+			WriteChatf("Failed to pick up keyring item");
+			return false;
+		}
+
+		// Note: The item is not in the held slot, it is only attached to the cursor until we move it somewhere else.
+		pCursorAttachment->AttachToCursor(nullptr, nullptr, linkType, -1, pItem->ItemGUID, pItem->ID, "", nullptr, -1, -1);
+		return true;
 #else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+		WriteChatf("Cannot pick up items from keyrings");
+		return false;
+#endif
+	}
+#endif // HAS_KEYRING_WINDOW
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemGlobalIndex To = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
 	ItemGlobalIndex From = globalIndex;
 
-	// This is just a a top level slot. We should have invslots for all of these.
+	// This is just a top level slot. We should have invslots for all of these.
 	if (globalIndex.GetIndex().GetSlot(1) == -1)
 	{
 		// If ctrl was pressed, and its a stackable item, we need to use the InvSlot in order to
@@ -5682,7 +5781,6 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
 
 bool DropItem(const ItemGlobalIndex& globalIndex)
@@ -5696,11 +5794,17 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	ItemPtr pItem = pProfile->GetInventorySlot(InvSlot_Cursor);
 	if (!pItem)
 	{
+		// TODO: Handle case where item link is on the cursor
 		WriteChatf("Cannot drop item into inventory slot: no item is on the cursor.");
 		return false;
 	}
 
-	bool bSelectSlot = false;
+	if (!globalIndex.IsValidIndex())
+	{
+		WriteChatf("Could not drop item: index is invalid");
+		return false;
+	}
+
 	if (pMerchantWnd && pMerchantWnd->IsVisible())
 	{
 		// If this is merchant selection, we cannot do it anywhere other than our inventory.
@@ -5720,23 +5824,68 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 		return true;
 	}
 
+	switch (globalIndex.GetLocation())
+	{
+	case eItemContainerPossessions:
+		if (globalIndex.GetTopSlot() == InvSlot_Cursor)
+		{
+			WriteChatf("Cannot top an item into the cursor slot!");
+			return false;
+		}
+		break;
+
+	case eItemContainerBank:
+	case eItemContainerSharedBank:
+	case eItemContainerDragonHoard:
+	case eItemContainerTradeskillDepot:
+		if (!pBankWnd || !pBankWnd->IsVisible())
+		{
+			WriteChatf("Can only interact with bank items if the bank window is open");
+			return false;
+		}
+		break;
+
+	default: break;
+	}
+
 #if HAS_MULTIPLE_ITEM_MOVE_MANAGER
-	MultipleItemMoveManager::MoveItemArray moveArray;
-	MultipleItemMoveManager::MoveItem moveItem;
-	moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
-	moveItem.to = globalIndex;
-	moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
-	moveItem.count = 0;
-	moveArray.Add(moveItem);
+	if (CanUseMultiItemManager(globalIndex))
+	{
+		MultipleItemMoveManager::MoveItemArray moveArray;
+		MultipleItemMoveManager::MoveItem moveItem;
+		moveItem.from = pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor);
+		moveItem.to = globalIndex;
+		moveItem.flags = MultipleItemMoveManager::MoveItemFlagSwapEnabled;
+		moveItem.count = 0;
+		moveArray.Add(moveItem);
 
-	// Deactivate the cursor attachment. This will ensure that the new item (if any)
-	// will replace it on the cursor.
-	pCursorAttachment->Deactivate();
+		// Deactivate the cursor attachment. This will ensure that the new item (if any)
+		// will replace it on the cursor.
+		pCursorAttachment->Deactivate();
 
-	auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
-	return result == MultipleItemMoveManager::ErrorOk;
-#else
-	// We don't have the MultipleItemMoveManager available to use, so do this the old fashioned way.
+		auto result = MultipleItemMoveManager::ProcessMove(pLocalPC, moveArray);
+		if (result != MultipleItemMoveManager::ErrorOk)
+		{
+			char indexStr[64] = {};
+			WriteChatf("Failed to move item from cursor to %s[%s]: %d", GetNameForContainerInstance(globalIndex.GetLocation()),
+				globalIndex.GetIndex().FormatItemIndex(indexStr, 64), static_cast<int>(result));
+			return false;
+		}
+
+		return true;
+	}
+#endif // HAS_MULTIPLE_ITEM_MOVE_MANAGER
+
+#if HAS_KEYRING_WINDOW
+	// If this is a keyring slot, we need to use a different method to pick up the item.
+	if (globalIndex.IsKeyRingLocation())
+	{
+		WriteChatf("Dropping items into keyring slots is not currently supported");
+		return false;
+	}
+#endif // HAS_KEYRING_WINDOW
+
+	// We don't have the MultipleItemMoveManager available to use, so do this the old-fashioned way.
 
 	ItemContainerInstance type = globalIndex.GetLocation();
 	short ToInvSlot = globalIndex.GetTopSlot();
@@ -5776,9 +5925,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 	}
 
 	return true;
-#endif // !HAS_MULTIPLE_ITEM_MOVE_MANAGER
 }
-
 
 bool StripQuotes(char* str)
 {
@@ -6536,30 +6683,34 @@ int GetCharMaxLevel()
 	return MaxLevel;
 }
 
-
-int GetBodyType(SPAWNINFO* pSpawn)
+int GetBodyType(PlayerClient* pSpawn)
 {
-	if (pSpawn != nullptr && pSpawn->BodyType != nullptr)
+	if (pSpawn == nullptr)
+		return 0;
+
+	// BodyTypes are stored in a hash table. They can include more than one.
+	// For the purposes of this function we only return the first one (sorted numerically).
+	int minProperty = 0;
+
+	const int* property = pSpawn->Properties.WalkFirst();
+	while (property)
 	{
-		for (int i = 0; i < CharacterProperty_Last; i++)
-		{
-			if (pSpawn->HasProperty(i))
-			{
-				if (i == CharacterProperty_Utility)
-				{
-					if (pSpawn->HasProperty(i, CharacterProperty_Trap))
-						return CharacterProperty_Trap;
-					if (pSpawn->HasProperty(i, CharacterProperty_Companion))
-						return CharacterProperty_Companion;
-					if (pSpawn->HasProperty(i, CharacterProperty_Suicide))
-						return CharacterProperty_Suicide;
-				}
-				return i;
-			}
-		}
+		minProperty = minProperty == 0 || *property < minProperty ? *property : minProperty;
+
+		property = pSpawn->Properties.WalkNext(property);
 	}
 
-	return 0;
+	if (minProperty == CharacterProperty_Utility)
+	{
+		if (pSpawn->HasProperty(CharacterProperty_Trap))
+			return CharacterProperty_Trap;
+		if (pSpawn->HasProperty(CharacterProperty_Companion))
+			return CharacterProperty_Companion;
+		if (pSpawn->HasProperty(CharacterProperty_Suicide))
+			return CharacterProperty_Suicide;
+	}
+
+	return minProperty;
 }
 
 eSpawnType GetSpawnType(SPAWNINFO* pSpawn)
@@ -7348,13 +7499,13 @@ bool IsMacroQuestModule(HMODULE hModule, bool getMacroQuestModules)
 
 	if (getMacroQuestModules)
 	{
-		if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == 0)
+		if (ci_find_substr(szModulePath, s_macroQuestDirW) == 0)
 		{
 			g_knownModules.insert(hModule);
 			return true;
 		}
 	}
-	else if (ci_find_substr_w(szModulePath, s_macroQuestDirW) == -1)
+	else if (ci_find_substr(szModulePath, s_macroQuestDirW) == -1)
 	{
 		return true;
 	}
@@ -7426,7 +7577,7 @@ bool IsMacroQuestProcess(std::string_view path, bool getMacroQuestProcesses)
 	}
 
 	std::wstring wpath = mq::utf8_to_wstring(path);
-	int substr_pos = ci_find_substr_w(wpath, s_macroQuestDirW);
+	int substr_pos = ci_find_substr(wpath, s_macroQuestDirW);
 
 	bool inList = IsLauncherExtra(path);
 	return !getMacroQuestProcesses ? (substr_pos == -1 && !inList) : (substr_pos == 0 || inList);
@@ -7458,7 +7609,7 @@ bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString)
 	wchar_t szModulePath[MAX_PATH];
 	::GetModuleFileNameW(hModule, szModulePath, MAX_PATH);
 
-	return ci_find_substr_w(szModulePath, searchString) != -1;
+	return ci_find_substr(szModulePath, searchString) != -1;
 }
 
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,

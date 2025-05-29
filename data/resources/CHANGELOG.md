@@ -1,3 +1,50 @@
+May 21, 2025:
+- live: Update for live patch
+
+May 16, 2025:
+- test: Fix broken group members (#931)
+
+May 15, 2025:
+- test: update for test patch
+
+April 23, 2025:
+- test: update for test patch
+
+April 17, 2025:
+- live: Update for live hotfix patch
+
+April 17, 2025:
+- Fix broken AdvancedLootItem
+
+April 16, 2025:
+- live: Update for live patch
+
+April 12, 2025:
+- test: Update for test patch
+
+March 26, 2025:
+- test: Update for test patch
+
+March 18, 2025:
+- live: Update for live patch
+
+March 12, 2025:
+- test: Update for test patch
+- live: Update for live patch
+- Improve file permission checks to reduce the number of false positives
+
+Feb 15, 2025:
+- Fix EverQuest.WinTitle not returning the window title
+
+Feb 12, 2025:
+- live: Update for patch
+
+Feb 10, 2025:
+- test: Update for patch
+
+Jan 29, 2025:
+- test: Update for patch
+
 Jan 15, 2025:
 - live: Update for patch
 - lua: Add error handling to mq.delay, failures inside the callback should now propagate to the caller properly

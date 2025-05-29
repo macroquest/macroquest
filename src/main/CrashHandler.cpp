@@ -115,6 +115,8 @@ bool ShouldUploadCrash()
 	return gEnableCrashSubmissions && !gCrashpadSubmissionURL.empty() && MQMAIN_VERSION_BUILD != 0;
 }
 
+std::unique_ptr<crashpad::CrashReportDatabase> s_database;
+
 // Use this function to start crashpad with a new crashpad process.
 bool InitializeCrashpad()
 {
@@ -145,9 +147,9 @@ bool InitializeCrashpad()
 
 	const base::FilePath db(dbPath);
 	const base::FilePath handler(handlerPath);
-	const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(db);
+	s_database = crashpad::CrashReportDatabase::Initialize(db);
 
-	if (database == nullptr || database->GetSettings() == nullptr)
+	if (s_database == nullptr || s_database->GetSettings() == nullptr)
 	{
 		SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
 		return false;
@@ -155,16 +157,16 @@ bool InitializeCrashpad()
 
 	if (ShouldUploadCrash())
 	{
-		database->GetSettings()->SetUploadsEnabled(true);
+		s_database->GetSettings()->SetUploadsEnabled(true);
 		SPDLOG_INFO("Crash report submission is: enabled");
 
 		crashpad::UUID uuid;
-		database->GetSettings()->GetClientID(&uuid);
+		s_database->GetSettings()->GetClientID(&uuid);
 		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 	else
 	{
-		database->GetSettings()->SetUploadsEnabled(false);
+		s_database->GetSettings()->SetUploadsEnabled(false);
 		SPDLOG_INFO("Crash report submission is: disabled");
 	}
 
