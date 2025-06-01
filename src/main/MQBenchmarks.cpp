@@ -13,6 +13,8 @@
  */
 
 #include "pch.h"
+
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 
 using namespace eqlib;
@@ -21,9 +23,9 @@ namespace mq {
 
 std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
-uint32_t AddMQ2Benchmark(const char* Name)
+uint32_t AddBenchmark(const char* Name)
 {
-	DebugSpew("AddMQ2Benchmark(%s)", Name);
+	SPDLOG_TRACE("AddBenchmark({})", Name);
 
 	// find an unused index from members.
 	int index = -1;
@@ -46,9 +48,9 @@ uint32_t AddMQ2Benchmark(const char* Name)
 	return index;
 }
 
-void RemoveMQ2Benchmark(uint32_t BMHandle)
+void RemoveBenchmark(uint32_t BMHandle)
 {
-	DebugSpewAlways("RemoveMQ2Benchmark()");
+	SPDLOG_TRACE("RemoveBenchmark({})", BMHandle);
 
 	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
@@ -56,11 +58,11 @@ void RemoveMQ2Benchmark(uint32_t BMHandle)
 	}
 	else
 	{
-		DebugSpewAlways("RemoveMQ2Benchmark() failed.");
+		SPDLOG_WARN("RemoveBenchmark({}) failed", BMHandle);
 	}
 }
 
-void EnterMQ2Benchmark(uint32_t BMHandle)
+void EnterBenchmark(uint32_t BMHandle)
 {
 	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
@@ -68,7 +70,7 @@ void EnterMQ2Benchmark(uint32_t BMHandle)
 	}
 }
 
-void ExitMQ2Benchmark(uint32_t BMHandle)
+void ExitBenchmark(uint32_t BMHandle)
 {
 	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
@@ -91,7 +93,7 @@ void ExitMQ2Benchmark(uint32_t BMHandle)
 	}
 }
 
-bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
+bool GetBenchmark(uint32_t BMHandle, MQBenchmark& Dest)
 {
 	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
@@ -102,7 +104,7 @@ bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 	return false;
 }
 
-void Cmd_DumpBenchmarks(PlayerClient* pChar, char* szLine)
+void Cmd_DumpBenchmarks(PlayerClient*, char* szLine)
 {
 	if (szLine && szLine[0] == '/')
 	{
@@ -114,7 +116,7 @@ void Cmd_DumpBenchmarks(PlayerClient* pChar, char* szLine)
 	}
 	else
 	{
-		WriteChatColor("MQ2 Benchmarks");
+		WriteChatColor("MacroQuest Benchmarks");
 		WriteChatColor("--------------");
 
 		for (auto& pBenchmark : gBenchmarks)
@@ -138,7 +140,7 @@ void Cmd_DumpBenchmarks(PlayerClient* pChar, char* szLine)
 
 void DumpBenchmarks()
 {
-	DebugSpewAlways("MQ2 Benchmarks");
+	DebugSpewAlways("MacroQuest Benchmarks");
 	DebugSpewAlways("--------------");
 
 	for (auto& pBenchmark : gBenchmarks)
@@ -159,21 +161,30 @@ void DumpBenchmarks()
 	DebugSpewAlways("End Benchmarks");
 }
 
-void InitializeMQ2Benchmarks()
+//=================================================================================================
+
+class BenchmarksModule : public MQModuleBase
 {
-	DebugSpew("Initializing MQ2 Benchmarks");;
+public:
+	BenchmarksModule() : MQModuleBase("Benchmarks")
+	{
+	}
 
-	AddCommand("/benchmark", Cmd_DumpBenchmarks, false, false);
-}
+	virtual void Initialize() override
+	{
+		AddCommand("/benchmark", Cmd_DumpBenchmarks, false, false);
+	}
 
-void ShutdownMQ2Benchmarks()
-{
-	DebugSpew("Shutting down MQ2 Benchmarks");
+	virtual void Shutdown() override
+	{
+		DumpBenchmarks();
 
-	DumpBenchmarks();
-	RemoveCommand("/benchmark");
+		RemoveCommand("/benchmark");
 
-	gBenchmarks.clear();
-}
+		gBenchmarks.clear();
+	}
+};
+
+DECLARE_MODULE_FACTORY(BenchmarksModule);
 
 } // namespace mq

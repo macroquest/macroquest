@@ -89,7 +89,6 @@ void DoMainThreadInitialization()
 #if IS_EMU_CLIENT
 	AddInternalModule(GetEmuExtensionsModule());
 #endif
-	InitializeMQ2Benchmarks();
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializePlugins();
@@ -112,7 +111,6 @@ void DoMainThreadShutdown()
 	ImGuiManager_Shutdown();
 	GraphicsResources_Shutdown();
 	ShutdownStringDB();
-	ShutdownMQ2Benchmarks();
 }
 
 HMODULE GetCurrentModule()

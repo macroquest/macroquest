@@ -190,4 +190,6 @@ void ShutdownDisplayHook()
 	RemoveDetour(DrawNetStatus);
 }
 
+
+
 } // namespace mq

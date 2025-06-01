@@ -135,13 +135,13 @@ MQDataAPI* pDataAPI = nullptr;
 
 MQDataAPI::MQDataAPI()
 {
-	bmParseMacroData = AddMQ2Benchmark("ParseMacroParameter");
+	bmParseMacroData = AddBenchmark("ParseMacroParameter");
 }
 
 MQDataAPI::~MQDataAPI()
 {
 	datatypes::UnregisterDataTypes();
-	RemoveMQ2Benchmark(bmParseMacroData);
+	RemoveBenchmark(bmParseMacroData);
 }
 
 void MQDataAPI::Initialize()

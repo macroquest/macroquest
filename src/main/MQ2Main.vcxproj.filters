@@ -74,7 +74,7 @@
     <ClCompile Include="MQ2AutoInventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Benchmarks.cpp">
+    <ClCompile Include="MQBenchmarks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2ChatHook.cpp">

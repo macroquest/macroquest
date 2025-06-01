@@ -1393,17 +1393,17 @@ void InitializePlugins()
 {
 	AddCommand("/plugin", PluginCommand, false, true, false);
 
-	bmWriteChatColor = AddMQ2Benchmark("WriteChatColor");
-	bmPluginsIncomingChat = AddMQ2Benchmark("PluginsIncomingChat");
-	bmPluginsPulse = AddMQ2Benchmark("PluginsPulse");
-	bmPluginsOnZoned = AddMQ2Benchmark("PluginsOnZoned");
-	bmPluginsCleanUI = AddMQ2Benchmark("PluginsCleanUI");
-	bmPluginsReloadUI = AddMQ2Benchmark("PluginsReloadUI");
-	bmPluginsDrawHUD = AddMQ2Benchmark("PluginsDrawHUD");
-	bmPluginsSetGameState = AddMQ2Benchmark("PluginsSetGameState");
-	bmCalculate = AddMQ2Benchmark("Calculate");
-	bmBeginZone = AddMQ2Benchmark("BeginZone");
-	bmEndZone = AddMQ2Benchmark("EndZone");
+	bmWriteChatColor = AddBenchmark("WriteChatColor");
+	bmPluginsIncomingChat = AddBenchmark("PluginsIncomingChat");
+	bmPluginsPulse = AddBenchmark("PluginsPulse");
+	bmPluginsOnZoned = AddBenchmark("PluginsOnZoned");
+	bmPluginsCleanUI = AddBenchmark("PluginsCleanUI");
+	bmPluginsReloadUI = AddBenchmark("PluginsReloadUI");
+	bmPluginsDrawHUD = AddBenchmark("PluginsDrawHUD");
+	bmPluginsSetGameState = AddBenchmark("PluginsSetGameState");
+	bmCalculate = AddBenchmark("Calculate");
+	bmBeginZone = AddBenchmark("BeginZone");
+	bmEndZone = AddBenchmark("EndZone");
 
 	MainPlugin.name = "main";
 	MainPlugin.hModule = ghModule;

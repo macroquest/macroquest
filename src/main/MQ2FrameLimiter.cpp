@@ -1291,9 +1291,9 @@ static void InitializeFrameLimiter()
 {
 	AddSettingsPanel("Frame Limiter", FrameLimiterSettings);
 
-	bmRenderScene = AddMQ2Benchmark("Render_Scene");
-	bmRealRenderWorld = AddMQ2Benchmark("Render_Simulation");
-	bmThrottleTime = AddMQ2Benchmark("Render_Throttle");
+	bmRenderScene = AddBenchmark("Render_Scene");
+	bmRealRenderWorld = AddBenchmark("Render_Simulation");
+	bmThrottleTime = AddBenchmark("Render_Throttle");
 
 	// Hook UI render function
 	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);
@@ -1336,9 +1336,9 @@ static void ShutdownFrameLimiter()
 	RemoveDetour(CDisplay__RealRender_World);
 	RemoveDetour(__ThrottleFrameRate);
 
-	RemoveMQ2Benchmark(bmRenderScene);
-	RemoveMQ2Benchmark(bmRealRenderWorld);
-	RemoveMQ2Benchmark(bmThrottleTime);
+	RemoveBenchmark(bmRenderScene);
+	RemoveBenchmark(bmRealRenderWorld);
+	RemoveBenchmark(bmThrottleTime);
 }
 
 static void PulseFrameLimiter()

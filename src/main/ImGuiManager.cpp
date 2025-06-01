@@ -1418,8 +1418,8 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 
 void ImGuiManager_Initialize()
 {
-	bmUpdateImGui = AddMQ2Benchmark("UpdateImGui");
-	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
+	bmUpdateImGui = AddBenchmark("UpdateImGui");
+	bmPluginsUpdateImGui = AddBenchmark("UpdateImGuiPlugins");
 
 	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
 	s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
@@ -1480,8 +1480,8 @@ void ImGuiManager_Shutdown()
 {
 	RemoveCommand("/mqoverlay");
 
-	RemoveMQ2Benchmark(bmUpdateImGui);
-	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
+	RemoveBenchmark(bmUpdateImGui);
+	RemoveBenchmark(bmPluginsUpdateImGui);
 
 	ShutdownOverlayComponents();
 }

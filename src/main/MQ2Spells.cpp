@@ -4350,14 +4350,14 @@ public:
 
 	virtual void Initialize() override
 	{
-		bmSpellLoad = AddMQ2Benchmark("SpellLoad");
-		bmSpellAccess = AddMQ2Benchmark("SpellAccess");
+		bmSpellLoad = AddBenchmark("SpellLoad");
+		bmSpellAccess = AddBenchmark("SpellAccess");
 	}
 
 	virtual void Shutdown() override
 	{
-		RemoveMQ2Benchmark(bmSpellLoad);
-		RemoveMQ2Benchmark(bmSpellAccess);
+		RemoveBenchmark(bmSpellLoad);
+		RemoveBenchmark(bmSpellAccess);
 	}
 
 	virtual void OnGameStateChanged(int gameState) override

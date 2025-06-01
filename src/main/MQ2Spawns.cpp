@@ -703,7 +703,7 @@ static void LoadCaptionSettings()
 
 void UpdateMQ2SpawnSort()
 {
-	EnterMQ2Benchmark(bmUpdateSpawnSort);
+	EnterBenchmark(bmUpdateSpawnSort);
 
 	EQP_DistArray = nullptr;
 	gSpawnCount = 0;
@@ -734,7 +734,7 @@ void UpdateMQ2SpawnSort()
 	gSpawnCount = static_cast<int>(gSpawnsArray.size());
 	EQP_DistArray = gSpawnCount > 0 ? &gSpawnsArray[0] : nullptr;
 
-	ExitMQ2Benchmark(bmUpdateSpawnSort);
+	ExitBenchmark(bmUpdateSpawnSort);
 }
 
 bool IsTargetable(PlayerClient* pSpawn)
@@ -751,8 +751,8 @@ static void Spawns_Initialize()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
 
-	bmUpdateSpawnSort = AddMQ2Benchmark("UpdateSpawnSort");
-	bmUpdateSpawnCaptions = AddMQ2Benchmark("UpdateSpawnCaptions");
+	bmUpdateSpawnSort = AddBenchmark("UpdateSpawnSort");
+	bmUpdateSpawnCaptions = AddBenchmark("UpdateSpawnCaptions");
 
 	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
@@ -828,8 +828,8 @@ static void Spawns_Shutdown()
 	gSpawnCount = 0;
 	gSpawnsArray.clear();
 
-	RemoveMQ2Benchmark(bmUpdateSpawnSort);
-	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
+	RemoveBenchmark(bmUpdateSpawnSort);
+	RemoveBenchmark(bmUpdateSpawnCaptions);
 }
 
 static void Spawns_Pulse()

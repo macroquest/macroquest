@@ -143,14 +143,13 @@ static HANDLE s_backgroundThread = nullptr;
 // FIXME: Remove these forward declarations
 void Heartbeat();
 void SetMainThreadId();
-void InitializeDetours();
-void ShutdownDetours();
 
+class BenchmarksModule;
 class CrashHandlerModule;
 class DetoursModule;
-class SpellsModule;
 class PostOfficeModule;
 class RenderDocModule;
+class SpellsModule;
 
 struct MQStartupParams
 {
@@ -472,7 +471,6 @@ bool MacroQuest::Initialize()
 
 	// This will populate our list of modules, but we won't initialize them yet.
 	LoadModules();
-	InitializeDetours();
 
 	pCommandAPI = new MQCommandAPI();
 
@@ -587,8 +585,6 @@ void MacroQuest::Shutdown()
 	delete pActorAPI;
 	pActorAPI = nullptr;
 
-	ShutdownDetours();
-
 	eqlib::Shutdown(m_eqlib);
 	m_eqlib = nullptr;
 
@@ -603,8 +599,10 @@ void MacroQuest::Shutdown()
 void MacroQuest::LoadModules()
 {
 	AddModule(CreateModule<CrashHandlerModule>());
+	AddModule(CreateModule<DetoursModule>());
 	AddModule(CreateModule<SpellsModule>());
 	AddModule(CreateModule<PostOfficeModule>());
+	AddModule(CreateModule<BenchmarksModule>());
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
@@ -1562,7 +1560,6 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 	// Renderdoc requires very early startup which needs the MQRoot directory, so set
 	// a provisional MQRoot and start up RenderDoc integration.
 	mq::internal_paths::MQRoot = GetModuleDirectory();
-	RenderDoc_Startup();
 
 	g_loadComplete.create(wil::EventOptions::ManualReset);
 	g_unloadComplete.create(wil::EventOptions::ManualReset);

@@ -75,10 +75,6 @@
 
 namespace mq {
 
-// Initialize/shutdown subsystems
-void ShutdownMQ2Benchmarks();
-void InitializeMQ2Benchmarks();
-
 void InitializeDisplayHook();
 void ShutdownDisplayHook();
 

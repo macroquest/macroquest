@@ -470,7 +470,7 @@ void HookMemChecker(bool Patch)
 	}
 }
 
-void InitializeDetours()
+static void InitializeDetours()
 {
 #if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
@@ -510,7 +510,7 @@ void InitializeDetours()
 	EzDetour(__Process32Next, &Process32Next_Detour, &Process32Next_Trampoline);
 }
 
-void ShutdownDetours()
+static void ShutdownDetours()
 {
 	RemoveDetour(__ModuleList);
 	RemoveDetour(__ProcessList);

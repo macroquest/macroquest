@@ -569,7 +569,7 @@ CXStr Anonymize(const CXStr& Text)
 	if (!pLocalPlayer || !pLocalPC)
 		return Text;
 
-	EnterMQ2Benchmark(bmAnonymizer);
+	EnterBenchmark(bmAnonymizer);
 
 	auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
 		[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
@@ -684,7 +684,7 @@ CXStr Anonymize(const CXStr& Text)
 		}
 	}
 
-	ExitMQ2Benchmark(bmAnonymizer);
+	ExitBenchmark(bmAnonymizer);
 
 	return CXStr(new_text);
 }
@@ -949,7 +949,7 @@ static void RemoveAnonDetours()
 
 void InitializeAnonymizer()
 {
-	bmAnonymizer = AddMQ2Benchmark("Anonymizer");
+	bmAnonymizer = AddBenchmark("Anonymizer");
 
 	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
 	Deserialize(); // always load on initialization
@@ -971,7 +971,7 @@ void ShutdownAnonymizer()
 
 	RemoveCommand("/mqanon");
 
-	RemoveMQ2Benchmark(bmAnonymizer);
+	RemoveBenchmark(bmAnonymizer);
 }
 
 } // namespace mq
