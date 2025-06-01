@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2DeveloperTools.h"
+#include "ModuleSystem.h"
 
 #include "imgui/ImGuiUtils.h"
 #include "imgui/fonts/IconsFontAwesome.h"
@@ -39,22 +40,6 @@ using namespace std::chrono_literals;
 using namespace eqlib;
 
 namespace mq {
-
-static void DeveloperTools_Initialize();
-static void DeveloperTools_Shutdown();
-static void DeveloperTools_SetGameState(int gameState);
-static void DeveloperTools_UpdateImGui();
-
-static MQModule s_developerToolsModule = {
-	"DeveloperTools",              // Name
-	true,                          // CanUnload
-	DeveloperTools_Initialize,
-	DeveloperTools_Shutdown,
-	nullptr,
-	DeveloperTools_SetGameState,
-	DeveloperTools_UpdateImGui,
-};
-DECLARE_MODULE_INITIALIZER(s_developerToolsModule);
 
 extern std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
@@ -5978,5 +5963,35 @@ static void DeveloperTools_UpdateImGui()
 
 	//s_windowDebugPanel.Draw();
 }
+
+//============================================================================
+
+class DeveloperToolsModule : public MQModuleBase
+{
+public:
+	DeveloperToolsModule() : MQModuleBase("DeveloperTools", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		DeveloperTools_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		DeveloperTools_Shutdown();
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		DeveloperTools_SetGameState(gameState);
+	}
+
+	virtual void OnUpdateImGui() override
+	{
+		DeveloperTools_UpdateImGui();
+	}
+};
 
 } // namespace mq

@@ -69,14 +69,12 @@ void ShutdownMQ2AutoInventory();
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
-	InitializeDisplayHook();
 	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
 	// this needs to be done before anything that would need to add a callback to string message parsing
 	InitializeStringDB();
 
-	InitializeChatHook();
 	InitializeAnonymizer();
 	//InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
@@ -100,8 +98,6 @@ void DoMainThreadShutdown()
 {
 	ShutdownCachedBuffs();
 	ShutdownMQ2KeyBinds();
-	ShutdownDisplayHook();
-	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownMQ2AutoInventory();
 	ShutdownAnonymizer();

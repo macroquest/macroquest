@@ -78,7 +78,6 @@ bool gZoning = false;
 uint64_t OldLastEnteredZone = 0;
 uint64_t LastEnteredZone = 0;
 bool WereWeZoning = true;
-bool gbInChat = false;
 bool gFilterSkillsAll = false;
 bool gFilterSkillsIncrease = false;
 bool gFilterTarget = false;
@@ -99,8 +98,7 @@ bool gFilterMQ2DataErrors = false;
 bool gCreateMQ2NewsWindow = true;
 char gIfDelimiter = ',';
 char gIfAltDelimiter = '~';
-int gNetStatusXPos = 0;
-int gNetStatusYPos = 0;
+
 eStackingDebug gStackingDebug = STACKINGDEBUG_OFF;
 bool gUseNewNamedTest = false;
 bool gbInForeground = false;
@@ -685,16 +683,12 @@ const char* szItemSlot[InvSlot_Max + 1] = {
 bool bAllErrorsFatal = false;
 bool bAllErrorsDumpStack = true;
 bool bAllErrorsLog = false;
-bool gbHUDUnderUI = true;
-bool gbAlwaysDrawMQHUD = false;
-bool gbMQ2LoadingMsg = true;
+
 bool gbExactSearchCleanNames = false;
 
 std::map<std::string, MQDataVar*> VariableMap;
 
 bool gUseTradeOnTarget = true;
-bool gbBeepOnTells = false;
-bool gbFlashOnTells = true;
 bool gbIgnoreAlertRecursion = false;
 bool gbShowCurrentCamera = false;
 int  gOldCameraType = -1;

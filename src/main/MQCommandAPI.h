@@ -18,6 +18,8 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
+#include "ModuleSystem.h"
+
 #include "mq/base/PluginHandle.h"
 #include "mq/base/String.h"
 #include "mq/api/CommandAPI.h"
@@ -32,13 +34,11 @@ struct MQTimedCommand;
 struct MQCommand;
 struct MQPlugin;
 
-class MQCommandAPI
+class MQCommandAPI : public MQModuleBase
 {
 public:
 	MQCommandAPI();
-	~MQCommandAPI();
-
-	void PulseCommands();
+	~MQCommandAPI() override;
 
 	// Commands
 	bool AddCommand(std::string_view command, MQCommandHandler handler,
@@ -72,6 +72,10 @@ public:
 	void Cmd_Alias(const char* szLine);
 
 private:
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+
 	void LoadAliases();
 	void RewriteAliases();
 
@@ -110,6 +114,8 @@ private:
 };
 
 extern MQCommandAPI* pCommandAPI;
+
+DECLARE_MODULE_FACTORY(MQCommandAPI);
 
 //============================================================================
 

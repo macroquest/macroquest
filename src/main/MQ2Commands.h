@@ -51,7 +51,6 @@ MQLIB_API void EchoClean                           (eqlib::PlayerClient* pChar, 
 MQLIB_API void NoParseCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void NoModKeyCmd                         (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Where                               (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void HudCmd                              (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DropCmd                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void CombineCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ClearErrorsCmd                      (eqlib::PlayerClient* pChar, const char* szLine);

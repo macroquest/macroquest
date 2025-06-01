@@ -742,8 +742,6 @@ bool PluginsIncomingChat(const char* Line, uint32_t Color)
 	if (!Line[0])
 		return false;
 
-	PluginDebug("PluginsIncomingChat()");
-
 	bool Ret = false;
 
 	ForEachPlugin([&](const MQPlugin* plugin) mutable
@@ -854,8 +852,6 @@ void PluginsSetGameState(int GameState)
 
 	static bool AutoExec = false;
 	static bool CharSelect = true;
-
-	ResetHUD();
 
 	if (GameState == GAMESTATE_INGAME)
 	{

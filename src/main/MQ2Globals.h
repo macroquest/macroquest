@@ -117,7 +117,6 @@ MQLIB_VAR bool gZoning;
 MQLIB_VAR uint64_t OldLastEnteredZone;
 MQLIB_VAR uint64_t LastEnteredZone;
 MQLIB_VAR bool WereWeZoning;
-MQLIB_VAR bool gbInChat;
 MQLIB_VAR bool gFilterSkillsAll;
 MQLIB_VAR bool gFilterSkillsIncrease;
 MQLIB_VAR bool gFilterTarget;
@@ -135,12 +134,6 @@ MQLIB_VAR MQWhoFilter gFilterSWho;
 MQLIB_VAR bool gCreateMQ2NewsWindow;
 MQLIB_VAR bool gUseNewNamedTest;
 MQLIB_VAR bool gbInForeground;
-
-MQLIB_VAR bool gbHUDUnderUI;
-MQLIB_VAR bool gbAlwaysDrawMQHUD;
-
-MQLIB_VAR int gNetStatusXPos;
-MQLIB_VAR int gNetStatusYPos;
 
 enum eStackingDebug
 {
@@ -170,7 +163,6 @@ MQLIB_VAR MQFilter* gpFilters;
 MQLIB_VAR std::map<std::string, uint32_t> ItemSlotMap;
 
 MQLIB_VAR int gGameState;
-MQLIB_VAR bool gbMQ2LoadingMsg;
 MQLIB_VAR bool gbExactSearchCleanNames;
 
 MQLIB_VAR bool gMouseClickInProgress[8];
@@ -247,8 +239,6 @@ extern bool gbTimeStampChat;
 #endif
 
 MQLIB_VAR bool gUseTradeOnTarget;
-MQLIB_VAR bool gbBeepOnTells;
-MQLIB_VAR bool gbFlashOnTells;
 MQLIB_VAR bool gbShowCurrentCamera;
 MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;

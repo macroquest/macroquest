@@ -150,6 +150,9 @@ class DetoursModule;
 class PostOfficeModule;
 class RenderDocModule;
 class SpellsModule;
+class LoadingScreenModule;
+class DisplayHookModule;
+class ChatHookModule;
 
 struct MQStartupParams
 {
@@ -472,8 +475,6 @@ bool MacroQuest::Initialize()
 	// This will populate our list of modules, but we won't initialize them yet.
 	LoadModules();
 
-	pCommandAPI = new MQCommandAPI();
-
 	// These two sub-systems will get us onto the main thread.
 	InitializeMQ2Pulse();
 
@@ -598,11 +599,16 @@ void MacroQuest::Shutdown()
 
 void MacroQuest::LoadModules()
 {
+	AddModule(CreateModule<MQCommandAPI>());
 	AddModule(CreateModule<CrashHandlerModule>());
+
 	AddModule(CreateModule<DetoursModule>());
 	AddModule(CreateModule<SpellsModule>());
 	AddModule(CreateModule<PostOfficeModule>());
 	AddModule(CreateModule<BenchmarksModule>());
+	AddModule(CreateModule<DisplayHookModule>());
+	AddModule(CreateModule<LoadingScreenModule>());
+	AddModule(CreateModule<ChatHookModule>());
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
@@ -659,8 +665,6 @@ void MacroQuest::InitializeModules()
 void MacroQuest::InitializeModule(MQModuleBase* module)
 {
 	module->Initialize();
-
-	module->LoadSettings();
 
 	module->OnGameStateChanged(gGameState);
 
@@ -943,6 +947,8 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 
 bool MacroQuest::OnIncomingChat(const char* message, int color)
 {
+	MQScopedBenchmark bm(bmPluginsIncomingChat);
+
 	bool result = false;
 
 	for (const auto& module : m_modules)
@@ -983,6 +989,8 @@ void MacroQuest::OnZoned()
 
 void MacroQuest::OnDrawHUD()
 {
+	MQScopedBenchmark bm(bmPluginsDrawHUD);
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnDrawHUD))
@@ -1079,17 +1087,12 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 	gKeepKeys = GetPrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
 	bAllErrorsDumpStack = GetPrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
 	bAllErrorsFatal = GetPrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
-	gbMQ2LoadingMsg = GetPrivateProfileBool("MacroQuest", "MQ2LoadingMsg", gbMQ2LoadingMsg, iniFile);
 	gbExactSearchCleanNames = GetPrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 	gUseTradeOnTarget = GetPrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
-	gbBeepOnTells = GetPrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, iniFile);
-	gbFlashOnTells = GetPrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, iniFile);
 	gbIgnoreAlertRecursion = GetPrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
 	gbShowCurrentCamera = GetPrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 	gTurboLimit = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 	gCreateMQ2NewsWindow = GetPrivateProfileBool("MacroQuest", "CreateMQ2NewsWindow", gCreateMQ2NewsWindow, iniFile);
-	gNetStatusXPos = GetPrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, iniFile);
-	gNetStatusYPos = GetPrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, iniFile);
 	gStackingDebug = (eStackingDebug)GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 	gUseNewNamedTest = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
 	gParserVersion = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
@@ -1114,17 +1117,12 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 		WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
 		WritePrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
 		WritePrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
-		WritePrivateProfileBool("MacroQuest", "MQ2LoadingMsg", gbMQ2LoadingMsg, iniFile);
 		WritePrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
-		WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, iniFile);
-		WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, iniFile);
 		WritePrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
 		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 		WritePrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 		WritePrivateProfileBool("MacroQuest", "CreateMQ2NewsWindow", gCreateMQ2NewsWindow, iniFile);
-		WritePrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, iniFile);
-		WritePrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, iniFile);
 		WritePrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
 		WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile);
@@ -1133,33 +1131,7 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 #if HAS_CHAT_TIMESTAMPS
 		WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
 #endif
-
 	}
-
-	GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", szBuffer, MAX_STRING, iniFile);
-
-	if (ci_equals(szBuffer, "normal"))
-	{
-		gbAlwaysDrawMQHUD = false;
-		gbHUDUnderUI = false;
-	}
-	else
-	{
-		if (ci_equals(szBuffer, "always"))
-		{
-			gbAlwaysDrawMQHUD = true;
-			gbHUDUnderUI = true;
-		}
-		else
-		{
-			strcpy_s(szBuffer, "UnderUI");
-			gbAlwaysDrawMQHUD = false;
-			gbHUDUnderUI = true;
-		}
-	}
-
-	if (gbWriteAllConfig)
-		WritePrivateProfileString("MacroQuest", "HUDMode", szBuffer, iniFile);
 
 	gFilterSWho.Lastname = GetPrivateProfileBool("SWho Filter", "Lastname", gFilterSWho.Lastname, iniFile);
 	gFilterSWho.Class = GetPrivateProfileBool("SWho Filter", "Class", gFilterSWho.Class, iniFile);

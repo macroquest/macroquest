@@ -14,15 +14,22 @@
 
 #include "pch.h"
 
-#include "ImGuiManager.h"
+#include "MacroQuest.h"
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
-#include "MQPluginHandler.h"
 
 using namespace eqlib;
 
 namespace mq {
 
-const char* g_customCaption = "MacroQuest: Even when you're loading.";
+//=================================================================================================
+//=================================================================================================
+// HUD/DrawNetStatus Hook
+
+bool gbHUDUnderUI = true;
+bool gbAlwaysDrawMQHUD = false;
+int gNetStatusXPos = 0;
+int gNetStatusYPos = 0;
 
 struct DrawNetStatusParams
 {
@@ -51,13 +58,10 @@ void DrawNetStatus_Detour(uint16_t x, uint16_t y, void* udpConnection, uint32_t 
 
 	DrawNetStatus_Trampoline(x + gNetStatusXPos, y + gNetStatusXPos, udpConnection, bps);
 
-	{
-		MQScopedBenchmark bm(bmPluginsDrawHUD);
-		PluginsDrawHUD();
-	}
+	g_mq->OnDrawHUD();
 }
 
-void DrawHUD()
+static void DrawHUD()
 {
 	// no point in drawing hud anywhere else
 	if (gGameState == GAMESTATE_INGAME || gGameState == GAMESTATE_CHARSELECT)
@@ -71,21 +75,13 @@ void DrawHUD()
 				s_drawNetStatusParams.valid = false;
 			}
 
-			{
-				MQScopedBenchmark bm(bmPluginsDrawHUD);
-				PluginsDrawHUD();
-			}
+			g_mq->OnDrawHUD();
 		}
 		else
 		{
 			s_drawNetStatusParams.valid = false;
 		}
 	}
-}
-
-void ResetHUD()
-{
-	s_drawNetStatusParams.valid = false;
 }
 
 void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
@@ -100,20 +96,7 @@ void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font)
 	pFont->DrawWrappedText(Text, X, Y, sX - X, { X, Y, sX, sY }, Argb, 1, 0);
 }
 
-class EQ_LoadingSHook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(void, SetProgressBar_Trampoline, (int, char const*))
-	void SetProgressBar_Detour(int A, char const* B)
-	{
-		if (gbMQ2LoadingMsg)
-			SetProgressBar_Trampoline(A, g_customCaption);
-		else
-			SetProgressBar_Trampoline(A, B);
-	}
-};
-
-static void Cmd_NetStatusXPos(PlayerClient* pChar, char* szLine)
+static void Cmd_NetStatusXPos(PlayerClient*, char* szLine)
 {
 	if (szLine[0])
 	{
@@ -125,7 +108,7 @@ static void Cmd_NetStatusXPos(PlayerClient* pChar, char* szLine)
 	}
 }
 
-static void Cmd_NetStatusYPos(PlayerClient* pChar, char* szLine)
+static void Cmd_NetStatusYPos(PlayerClient*, char* szLine)
 {
 	if (szLine[0])
 	{
@@ -137,59 +120,188 @@ static void Cmd_NetStatusYPos(PlayerClient* pChar, char* szLine)
 	}
 }
 
-static std::vector<std::string> s_oldStrings;
-
-void InitializeDisplayHook()
+static void Cmd_Hud(PlayerClient*, const char* szLine)
 {
-	DebugSpew("Initializing Display Hooks");
-
-	// TODO: Fix custom loading screen strings
-#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
-	if (gbMQ2LoadingMsg)
+	if (!szLine[0])
 	{
-		s_oldStrings.clear();
-		const char** ptr = (const char**)EQ_LoadingS__Array;
-
-		for (int i = 0; i < EQ_LoadingS__ArraySize; i++)
-		{
-			s_oldStrings.emplace_back(ptr[i]);
-			ptr[i] = g_customCaption;
-		}
+		SyntaxError("Usage: /hud <normal|underui|always>");
+		WriteChatColor("Note: 'always' forces 'underui' also. The Network Status indicator is not 'always' drawn and is toggled with F11.");
+		return;
 	}
-#endif
 
-	EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
-
-	AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
-	AddCommand("/netstatusypos", Cmd_NetStatusYPos);
+	if (!_stricmp(szLine, "normal"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "Normal", mq::internal_paths::MQini);
+		gbAlwaysDrawMQHUD = false;
+		gbHUDUnderUI = false;
+	}
+	else if (!_stricmp(szLine, "underui"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "UnderUI", mq::internal_paths::MQini);
+		gbHUDUnderUI = true;
+		gbAlwaysDrawMQHUD = false;
+	}
+	else if (!_stricmp(szLine, "always"))
+	{
+		WritePrivateProfileString("MacroQuest", "HUDMode", "Always", mq::internal_paths::MQini);
+		gbHUDUnderUI = true;
+		gbAlwaysDrawMQHUD = true;
+	}
 }
 
-void ShutdownDisplayHook()
+class DisplayHookModule : public MQModuleBase
 {
-	DebugSpew("Shutting down Display Hooks");
-
-	// TODO: Fix custom loading screen strings
-#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
-	if (gbMQ2LoadingMsg)
+public:
+	DisplayHookModule() : MQModuleBase("DisplayHook", static_cast<int>(ModulePriority::HUD), ModuleFlags::CanUnload)
 	{
-		const char** ptr = (const char**)EQ_LoadingS__Array;
-		int j = 0;
+	}
 
-		for (const std::string& str : s_oldStrings)
+	void LoadSettings()
+	{
+		gNetStatusXPos = GetPrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, mq::internal_paths::MQini);
+		gNetStatusYPos = GetPrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, mq::internal_paths::MQini);
+
+		std::string hudMode = GetPrivateProfileString("MacroQuest", "HUDMode", "UnderUI", mq::internal_paths::MQini);
+
+		if (ci_equals(hudMode, "normal"))
 		{
-			ptr[j++] = str.c_str();
+			gbAlwaysDrawMQHUD = false;
+			gbHUDUnderUI = false;
+		}
+		else if (ci_equals(hudMode, "always"))
+		{
+			gbAlwaysDrawMQHUD = true;
+			gbHUDUnderUI = true;
+		}
+		else
+		{
+			hudMode = "UnderUI";
+			gbAlwaysDrawMQHUD = false;
+			gbHUDUnderUI = true;
+		}
+
+		if (gbWriteAllConfig)
+		{
+			WritePrivateProfileString("MacroQuest", "HUDMode", hudMode, mq::internal_paths::MQini);
+			WritePrivateProfileInt("MacroQuest", "NetStatusXPos", gNetStatusXPos, mq::internal_paths::MQini);
+			WritePrivateProfileInt("MacroQuest", "NetStatusYPos", gNetStatusYPos, mq::internal_paths::MQini);
 		}
 	}
+
+	virtual void Initialize() override
+	{
+		LoadSettings();
+
+		EzDetour(DrawNetStatus, DrawNetStatus_Detour, DrawNetStatus_Trampoline);
+
+		AddCommand("/hud", Cmd_Hud);
+		AddCommand("/netstatusxpos", Cmd_NetStatusXPos);
+		AddCommand("/netstatusypos", Cmd_NetStatusYPos);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveCommand("/hud");
+		RemoveCommand("/netstatusxpos");
+		RemoveCommand("/netstatusypos");
+
+		RemoveDetour(DrawNetStatus);
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		UNUSED(gameState);
+	
+		s_drawNetStatusParams.valid = false;
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		DrawHUD();
+	}
+};
+
+DECLARE_MODULE_FACTORY(DisplayHookModule);
+
+//=================================================================================================
+//=================================================================================================
+
+// LoadingScreen Hook
+
+static const char* s_customCaption = "MacroQuest: Even when you're loading.";
+static bool s_customLoadingMsg = true;
+
+class EQ_LoadingSHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(void, SetProgressBar_Trampoline, (int, char const*))
+		void SetProgressBar_Detour(int A, char const* B)
+	{
+		if (s_customLoadingMsg)
+			SetProgressBar_Trampoline(A, s_customCaption);
+		else
+			SetProgressBar_Trampoline(A, B);
+	}
+};
+
+class LoadingScreenModule : public MQModuleBase
+{
+public:
+	LoadingScreenModule() : MQModuleBase("LoadingScreen", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	{
+	}
+
+	void LoadSettings()
+	{
+		s_customLoadingMsg = GetPrivateProfileBool("MacroQuest", "MQ2LoadingMsg", s_customLoadingMsg, mq::internal_paths::MQini);
+
+		if (gbWriteAllConfig)
+		{
+			WritePrivateProfileBool("MacroQuest", "MQ2LoadingMsg", s_customLoadingMsg, mq::internal_paths::MQini);
+		}
+	}
+
+	virtual void Initialize() override
+	{
+		LoadSettings();
+
+		// TODO: Fix/improve custom loading screen strings
+#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
+		if (s_customLoadingMsg)
+		{
+			m_oldStrings.clear();
+			const char** ptr = (const char**)EQ_LoadingS__Array;
+
+			for (int i = 0; i < EQ_LoadingS__ArraySize; i++)
+			{
+				m_oldStrings.emplace_back(ptr[i]);
+				ptr[i] = s_customCaption;
+			}
+		}
 #endif
+	}
 
-	PluginsCleanUI();
+	virtual void Shutdown() override
+	{
+		// TODO: Fix/improve custom loading screen strings
+#if defined(EQ_LoadingS__Array_x) && IS_EXPANSION_LEVEL(EXPANSION_LEVEL_ROF)
+		if (s_customLoadingMsg)
+		{
+			const char** ptr = (const char**)EQ_LoadingS__Array;
+			int j = 0;
 
-	RemoveCommand("/netstatusxpos");
-	RemoveCommand("/netstatusypos");
+			for (const std::string& str : m_oldStrings)
+			{
+				ptr[j++] = str.c_str();
+			}
+		}
+#endif
+	}
 
-	RemoveDetour(DrawNetStatus);
-}
+private:
+	std::vector<std::string> m_oldStrings;
+};
 
-
+DECLARE_MODULE_FACTORY(LoadingScreenModule);
 
 } // namespace mq

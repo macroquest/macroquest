@@ -4090,34 +4090,6 @@ void DropCmd(PlayerClient*, const char*)
 		pEverQuest->DropHeldItemOnGround(1);
 }
 
-void HudCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /hud <normal|underui|always>");
-		WriteChatColor("Note: 'always' forces 'underui' also. The Network Status indicator is not 'always' drawn and is toggled with F11.");
-		return;
-	}
-	else if (!_stricmp(szLine, "normal"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "Normal", mq::internal_paths::MQini);
-		gbAlwaysDrawMQHUD = false;
-		gbHUDUnderUI = false;
-	}
-	else if (!_stricmp(szLine, "underui"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "UnderUI", mq::internal_paths::MQini);
-		gbHUDUnderUI = true;
-		gbAlwaysDrawMQHUD = false;
-	}
-	else if (!_stricmp(szLine, "always"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "Always", mq::internal_paths::MQini);
-		gbHUDUnderUI = true;
-		gbAlwaysDrawMQHUD = true;
-	}
-}
-
 void NoParseCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])

@@ -771,179 +771,65 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 	}
 }
 
-static DWORD CALLBACK BeepOnTellThread(void* pData)
+void MacroSystem_CheckChatForEvent(const char* szClean)
 {
-	Beep(750, 200);
-	return 0;
-}
-
-static void TellCheck(const char* szClean)
-{
-	if (!gbFlashOnTells && !gbBeepOnTells)
-		return;
-
-	if (!pLocalPlayer) return;
-
-	char name[MAX_STRING] = { 0 };
-	bool isTell = false;
-	if (const char* pDest = strstr(szClean, " tells you, "))
-	{
-		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
-		isTell = true;
-	}
-	else if (pDest = strstr(szClean, " told you, "))
-	{
-		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
-		isTell = true;
-	}
-
-	if (!isTell || strlen(name) >= EQ_MAX_NAME)
-		return;
-
-	// don't perform action if its us doing the tell
-	if (!_stricmp(pLocalPlayer->Name, name))
-		return;
-
-	// don't perform action if its our pet
-	if (pLocalPlayer->PetID != -1)
-	{
-		if (PlayerClient* pPet = GetSpawnByID(pLocalPlayer->PetID))
-		{
-			if (!_stricmp(pPet->DisplayedName, name))
-				return;
-		}
-	}
-
-	// only react to player tells
-	PlayerClient* pNpc = GetSpawnByPartialName(name);
-	if (!pNpc && pControlledPlayer != nullptr)
-	{
-		// try to use spawn search to find it.
-		char szSearch[256] = { 0 };
-		sprintf_s(szSearch, "npc %s", name);
-
-		MQSpawnSearch ssSpawn;
-		ClearSearchSpawn(&ssSpawn);
-		ParseSearchSpawn(szSearch, &ssSpawn);
-
-		pNpc = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
-	}
-
-	if (pNpc)
-	{
-		// its not a player
-		if (pNpc->Type != SPAWN_PLAYER)
-		{
-			return;
-		}
-
-		// its a merchantplayer...
-		if (pNpc->Trader || pNpc->Buyer)
-		{
-			return;
-		}
-	}
-
-	if (gbFlashOnTells)
-	{
-		HWND hEQWnd = GetEQWindowHandle();
-
-		if (hEQWnd)
-		{
-			FLASHWINFO fwi = { sizeof(FLASHWINFO) };
-			fwi.dwFlags = FLASHW_ALL;
-			fwi.hwnd = hEQWnd;
-			fwi.uCount = 3;
-			fwi.dwTimeout = 0;
-			FlashWindowEx(&fwi);
-		}
-	}
-
-	if (gbBeepOnTells)
-	{
-		CreateThread(nullptr, 0, BeepOnTellThread, nullptr, 0, nullptr);
-	}
-}
-
-void CheckChatForEvent(const char* szMsg)
-{
-	size_t len = strlen(szMsg);
-
-	auto pszCleanOrg = std::make_unique<char[]>(len + 64);
-	char* szClean = pszCleanOrg.get();
-
-	strcpy_s(szClean, len + 64, szMsg);
-
-	if (strchr(szClean, '\x12'))
-	{
-		CXStr out = CleanItemTags(szClean, false);
-		strcpy_s(szClean, len + 64, out.c_str());
-	}
-
-	strncpy_s(EventMsg, szClean, MAX_STRING - 1);
-	EventMsg[MAX_STRING - 1] = 0;
-	if (pMQ2Blech)
-		pMQ2Blech->Feed(EventMsg);
-	EventMsg[0] = 0;
-	TellCheck(szClean);
-
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))
 	{
-		char SpeakerName[MAX_STRING] = { 0 };
 		char Content[MAX_STRING] = { 0 };
 		char Channel[MAX_STRING] = { 0 };
-		char* pDest = nullptr;
+		const char* pDest = nullptr;
 
 		int StartCopyAt = 0;
 
-		if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean, " tells the guild, ")))
+		if (CHATEVENT(CHAT_GUILD) && ((pDest = strstr(szClean, " tells the guild, "))))
 		{
 			strcpy_s(Channel, "guild");
 		}
-		else if ((CHATEVENT(CHAT_GROUP)) && (pDest = strstr(szClean, " tells the group, ")))
+		else if (CHATEVENT(CHAT_GROUP) && ((pDest = strstr(szClean, " tells the group, "))))
 		{
 			strcpy_s(Channel, "group");
 		}
-		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " tells you, ")))
+		else if (CHATEVENT(CHAT_TELL) && ((pDest = strstr(szClean, " tells you, "))))
 		{
 			strcpy_s(Channel, "tell");
 		}
-		else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean, " told you, ")))
+		else if (CHATEVENT(CHAT_TELL) && ((pDest = strstr(szClean, " told you, "))))
 		{
 			strcpy_s(Channel, "tell");
 		}
 		// Cannot be said in another language, so we can match through the single quote here
-		else if ((CHATEVENT(CHAT_OOC)) && (pDest = strstr(szClean, " says out of character, '")))
+		else if (CHATEVENT(CHAT_OOC) && ((pDest = strstr(szClean, " says out of character, '"))))
 		{
 			strcpy_s(Channel, "ooc");
 		}
-		else if ((CHATEVENT(CHAT_SHOUT)) && (pDest = strstr(szClean, " shouts, ")))
+		else if (CHATEVENT(CHAT_SHOUT) && ((pDest = strstr(szClean, " shouts, "))))
 		{
 			strcpy_s(Channel, "shout");
 		}
-		else if ((CHATEVENT(CHAT_AUC)) && (pDest = strstr(szClean, " auctions, ")))
+		else if (CHATEVENT(CHAT_AUC) && ((pDest = strstr(szClean, " auctions, "))))
 		{
 			strcpy_s(Channel, "auc");
 		}
 		// What scenario misses the comma?  This is the only reason we require the StartCopyAt check
-		else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean, " says '")))
+		else if (CHATEVENT(CHAT_SAY) && ((pDest = strstr(szClean, " says '"))))
 		{
 			StartCopyAt = 7;
 			strcpy_s(Channel, "say");
 		}
-		else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean, " says, ")))
+		else if (CHATEVENT(CHAT_SAY) && ((pDest = strstr(szClean, " says, "))))
 		{
 			strcpy_s(Channel, "say");
 		}
-		else if ((CHATEVENT(CHAT_RAID)) && (pDest = strstr(szClean, " tells the raid, ")))
+		else if (CHATEVENT(CHAT_RAID) && ((pDest = strstr(szClean, " tells the raid, "))))
 		{
 			strcpy_s(Channel, "raid");
 		}
-		else if ((CHATEVENT(CHAT_CHAT)) && (strstr(szClean, "You told ") == nullptr)
-			&& (pDest = strstr(szClean, " tells "))
-			&& (strstr(szClean, ":"))
-			&& (strstr(szClean, ", '")))
+		else if (CHATEVENT(CHAT_CHAT)
+			&& strstr(szClean, "You told ") == nullptr
+			&& ((pDest = strstr(szClean, " tells ")))
+			&& strstr(szClean, ":")
+			&& strstr(szClean, ", '"))
 		{
 			strcpy_s(Channel, pDest + 7);
 			Channel[strlen(Channel) - 1] = 0;
@@ -956,6 +842,7 @@ void CheckChatForEvent(const char* szMsg)
 
 		if (pDest != nullptr)
 		{
+			char SpeakerName[MAX_STRING] = { 0 };
 			strncpy_s(SpeakerName, szClean, pDest - szClean);
 			if (StartCopyAt == 0)
 			{

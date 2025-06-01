@@ -17,6 +17,7 @@
 
 #include "CrashHandler.h"
 #include "MQCommandAPI.h"
+
 #include "mq/base/ScopeExit.h"
 
 using namespace eqlib;
@@ -58,7 +59,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (PlayerClient* pChar, const char* szFullLine))
 	void InterpretCmd_Detour(PlayerClient* pChar, const char* szFullLine)
 	{
-		DebugSpew("CCommandHook::Detour(%s)", szFullLine);
+		SPDLOG_DEBUG("CCommandHook::Detour(%s)", szFullLine);
 
 		auto eqHandler = [this](eqlib::PlayerClient* pChar_, const char* szFullLine_) { InterpretCmd_Trampoline(pChar_, szFullLine_); };
 
@@ -74,8 +75,19 @@ public:
 //============================================================================
 
 MQCommandAPI::MQCommandAPI()
+	: MQModuleBase("Commands", static_cast<int>(ModulePriority::Commands))
 {
-	DebugSpew("Initializing Commands");
+	pCommandAPI = this;
+}
+
+MQCommandAPI::~MQCommandAPI()
+{
+	pCommandAPI = nullptr;
+}
+
+void MQCommandAPI::Initialize()
+{
+	SPDLOG_TRACE("Initializing Commands");
 
 	EzDetour(CEverQuest__InterpretCmd, &CEverQuest_CommandHook::InterpretCmd_Detour, &CEverQuest_CommandHook::InterpretCmd_Trampoline);
 
@@ -187,7 +199,6 @@ MQCommandAPI::MQCommandAPI()
 		{ "/goto",              Goto,                       true,  false },
 		{ "/help",              Help,                       true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },
-		{ "/hud",               HudCmd,                     true,  false },
 		{ "/identify",          Identify,                   true,  true  },
 		{ "/if",                MacroIfCmd,                 true,  false },
 		{ "/ini",               IniOutput,                  true,  false },
@@ -276,7 +287,7 @@ MQCommandAPI::MQCommandAPI()
 	LoadAliases();
 }
 
-MQCommandAPI::~MQCommandAPI()
+void MQCommandAPI::Shutdown()
 {
 	RemoveDetour(CEverQuest__InterpretCmd);
 
@@ -865,7 +876,7 @@ void MQCommandAPI::LoadAliases()
 //============================================================================
 //============================================================================
 
-void MQCommandAPI::PulseCommands()
+void MQCommandAPI::OnProcessFrame()
 {
 	if (m_delayedCommands.empty() && !m_pTimedCommands)
 	{

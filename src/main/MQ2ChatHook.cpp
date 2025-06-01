@@ -13,10 +13,10 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
-#include "MQPluginHandler.h"
-#include "eqlib/Events.h"
+#include "MacroQuest.h"
+#include "ModuleSystem.h"
+#include "MQ2Main.h"
 
 #include <fmt/chrono.h>
 
@@ -29,7 +29,11 @@ bool gbTimeStampChat = false;
 #endif
 static bool s_noFilterChat = false;
 
-bool HandleChatMessage(eqlib::ChatMessageParams& params)
+bool gbBeepOnTells = false;
+bool gbFlashOnTells = true;
+bool gbInChat = false;
+
+static bool HandleChatMessage(eqlib::ChatMessageParams& params)
 {
 	if (s_noFilterChat)
 		return true;
@@ -64,10 +68,7 @@ bool HandleChatMessage(eqlib::ChatMessageParams& params)
 
 	if (!filtered)
 	{
-		{
-			MQScopedBenchmark bm(bmPluginsIncomingChat);
-			filtered = PluginsIncomingChat(params.message, params.color);
-		}
+		filtered = g_mq->OnIncomingChat(params.message, params.color);
 
 #if HAS_CHAT_TIMESTAMPS
 		if (gbTimeStampChat && !filtered)
@@ -101,7 +102,7 @@ bool HandleChatMessage(eqlib::ChatMessageParams& params)
 	return false;
 }
 
-bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
+static bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
 {
 	if (s_noFilterChat)
 		return true;
@@ -114,11 +115,7 @@ bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
 
 	CheckChatForEvent(buffer.data());
 
-	bool filtered;
-	{
-		MQScopedBenchmark bm(bmPluginsIncomingChat);
-		filtered = PluginsIncomingChat(buffer.data(), params.color);
-	}
+	bool filtered = g_mq->OnIncomingChat(buffer.data(), params.color);
 
 #if HAS_CHAT_TIMESTAMPS
 	if (gbTimeStampChat)
@@ -179,7 +176,7 @@ void dsp_chat_no_events(const char* message, int color, bool allowLog, bool doPe
 	s_noFilterChat = false;
 }
 
-unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
+static unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
 {
 	strcpy_s(Value, ValueLen, VarName);
 
@@ -191,7 +188,7 @@ unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t V
 	return static_cast<uint32_t>(strlen(Value));
 }
 
-void FlashOnTells(PlayerClient* pChar, char* szLine)
+static void Cmd_FlashOnTells(PlayerClient*, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{
@@ -219,7 +216,7 @@ void FlashOnTells(PlayerClient* pChar, char* szLine)
 	WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
 }
 
-void BeepOnTells(PlayerClient* pChar, char* szLine)
+static void Cmd_BeepOnTells(PlayerClient*, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{
@@ -248,7 +245,7 @@ void BeepOnTells(PlayerClient* pChar, char* szLine)
 }
 
 #if HAS_CHAT_TIMESTAMPS
-void TimeStampChat(PlayerClient* pChar, char* szLine)
+static void Cmd_TimestampChat(PlayerClient*, char* szLine)
 {
 	if (szLine[0] != '\0')
 	{
@@ -277,7 +274,7 @@ void TimeStampChat(PlayerClient* pChar, char* szLine)
 }
 
 // TODO: When non-emu has settings, pull this out of the ifdef block
-void ChatSettingsPannel()
+static void ChatSettingsPannel()
 {
 	if (ImGui::Checkbox("Show Timestamps in Chat", &gbTimeStampChat))
 	{
@@ -286,39 +283,201 @@ void ChatSettingsPannel()
 }
 #endif // HAS_CHAT_TIMESTAMPS
 
-void InitializeChatHook()
+static DWORD CALLBACK BeepOnTellThread(void*)
 {
-	// initialize Blech
-	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
-	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
-
-	AddCommand("/beepontells", BeepOnTells);
-	AddCommand("/flashontells", FlashOnTells);
-
-#if HAS_CHAT_TIMESTAMPS
-	AddCommand("/timestamp", TimeStampChat);
-	EzDetour(CEverQuest__OutputTextToLog, OutputTextToLog_Detour, OutputTextToLog_Trampoline);
-
-	AddSettingsPanel("Chat", ChatSettingsPannel);
-#endif
+	Beep(750, 200);
+	return 0;
 }
 
-void ShutdownChatHook()
+static void TellCheck(const char* szClean)
 {
-	RemoveCommand("/flashontells");
-	RemoveCommand("/beepontells");
+	if (!gbFlashOnTells && !gbBeepOnTells)
+		return;
+
+	if (!pLocalPlayer) return;
+
+	char name[MAX_STRING] = { 0 };
+	bool isTell = false;
+	const char* pDest;
+
+	if ((pDest = strstr(szClean, " tells you, ")))
+	{
+		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
+		isTell = true;
+	}
+	else if ((pDest = strstr(szClean, " told you, ")))
+	{
+		strncpy_s(name, szClean, static_cast<int>(pDest - szClean));
+		isTell = true;
+	}
+
+	if (!isTell || strlen(name) >= EQ_MAX_NAME)
+		return;
+
+	// don't perform action if its us doing the tell
+	if (!_stricmp(pLocalPlayer->Name, name))
+		return;
+
+	// don't perform action if its our pet
+	if (pLocalPlayer->PetID != -1)
+	{
+		if (PlayerClient* pPet = GetSpawnByID(pLocalPlayer->PetID))
+		{
+			if (!_stricmp(pPet->DisplayedName, name))
+				return;
+		}
+	}
+
+	// only react to player tells
+	PlayerClient* pNpc = GetSpawnByPartialName(name);
+	if (!pNpc && pControlledPlayer != nullptr)
+	{
+		// try to use spawn search to find it.
+		char szSearch[256] = { 0 };
+		sprintf_s(szSearch, "npc %s", name);
+
+		MQSpawnSearch ssSpawn;
+		ClearSearchSpawn(&ssSpawn);
+		ParseSearchSpawn(szSearch, &ssSpawn);
+
+		pNpc = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
+	}
+
+	if (pNpc)
+	{
+		// its not a player
+		if (pNpc->Type != SPAWN_PLAYER)
+		{
+			return;
+		}
+
+		// its a merchantplayer...
+		if (pNpc->Trader || pNpc->Buyer)
+		{
+			return;
+		}
+	}
+
+	if (gbFlashOnTells)
+	{
+		HWND hEQWnd = GetEQWindowHandle();
+
+		if (hEQWnd)
+		{
+			FLASHWINFO fwi = { sizeof(FLASHWINFO) };
+			fwi.dwFlags = FLASHW_ALL;
+			fwi.hwnd = hEQWnd;
+			fwi.uCount = 3;
+			fwi.dwTimeout = 0;
+			FlashWindowEx(&fwi);
+		}
+	}
+
+	if (gbBeepOnTells)
+	{
+		CreateThread(nullptr, 0, BeepOnTellThread, nullptr, 0, nullptr);
+	}
+}
+
+void MacroSystem_CheckChatForEvent(const char* szMsg);
+
+void CheckChatForEvent(const char* szMsg)
+{
+	size_t len = strlen(szMsg);
+
+	// TODO: Remove dynamic allocation
+	auto pszCleanOrg = std::make_unique<char[]>(len + 64);
+	char* szClean = pszCleanOrg.get();
+
+	strcpy_s(szClean, len + 64, szMsg);
+
+	if (strchr(szClean, '\x12'))
+	{
+		CXStr out = CleanItemTags(szClean, false);
+		strcpy_s(szClean, len + 64, out.c_str());
+	}
+
+	strncpy_s(EventMsg, szClean, MAX_STRING - 1);
+	EventMsg[MAX_STRING - 1] = 0;
+	if (pMQ2Blech)
+		pMQ2Blech->Feed(EventMsg);
+	EventMsg[0] = 0;
+
+	TellCheck(szClean);
+
+	// TODO: Dispatch to macro system if it is enabled
+	MacroSystem_CheckChatForEvent(szClean);
+}
+
+//============================================================================
+
+class ChatHookModule : public MQModuleBase
+{
+public:
+	ChatHookModule() : MQModuleBase("ChatHook")
+	{
+	}
+
+	void LoadSettings()
+	{
+		gbBeepOnTells = GetPrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
+		gbFlashOnTells = GetPrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
+
+		if (gbWriteAllConfig)
+		{
+			WritePrivateProfileBool("MacroQuest", "BeepOnTells", gbBeepOnTells, mq::internal_paths::MQini);
+			WritePrivateProfileBool("MacroQuest", "FlashOnTells", gbFlashOnTells, mq::internal_paths::MQini);
+		}
+	}
+
+	virtual void Initialize() override
+	{
+		LoadSettings();
+
+		// initialize Blech
+		pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);  // TODO: Move to macro system
+		pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);    // TODO: Conditional check for macro system
+
+		AddCommand("/beepontells", Cmd_BeepOnTells);
+		AddCommand("/flashontells", Cmd_FlashOnTells);
 
 #if HAS_CHAT_TIMESTAMPS
-	RemoveCommand("/timestamp");
-	RemoveDetour(CEverQuest__OutputTextToLog);
+		AddCommand("/timestamp", Cmd_TimestampChat);
+		EzDetour(CEverQuest__OutputTextToLog, OutputTextToLog_Detour, OutputTextToLog_Trampoline);
 
-	RemoveSettingsPanel("Chat");
+		AddSettingsPanel("Chat", ChatSettingsPannel);
+#endif
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveCommand("/flashontells");
+		RemoveCommand("/beepontells");
+
+#if HAS_CHAT_TIMESTAMPS
+		RemoveCommand("/timestamp");
+		RemoveDetour(CEverQuest__OutputTextToLog);
+
+		RemoveSettingsPanel("Chat");
 #endif
 
-	delete pEventBlech;
-	pEventBlech = nullptr;
-	delete pMQ2Blech;
-	pMQ2Blech = nullptr;
-}
+		delete pEventBlech;
+		pEventBlech = nullptr;
+		delete pMQ2Blech;
+		pMQ2Blech = nullptr;
+	}
+
+	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override
+	{
+		return HandleChatMessage(params);
+	}
+
+	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override
+	{
+		return HandleTellWindowMessage(params);
+	}
+};
+
+DECLARE_MODULE_FACTORY(ChatHookModule);
 
 } // namespace mq

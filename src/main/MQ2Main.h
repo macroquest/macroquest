@@ -75,14 +75,8 @@
 
 namespace mq {
 
-void InitializeDisplayHook();
-void ShutdownDisplayHook();
-
 void InitializeMQ2Pulse();
 void ShutdownMQ2Pulse();
-
-void InitializeChatHook();
-void ShutdownChatHook();
 
 // Logging / Console output
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
@@ -143,10 +137,6 @@ MQLIB_API void DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 MQLIB_API void dsp_chat_no_events(const char* message, int color = USERCOLOR_DEFAULT, bool allowLog = true, bool doPercentConvert = true);
 
-/* CLEAN UI */
-void DrawHUD();
-void ResetHUD();
-
 /* MOUSE */
 MQLIB_API bool IsMouseWaiting();
 MQLIB_API bool IsMouseWaitingForButton();
@@ -159,8 +149,9 @@ void MouseConsume(int mouseButton, bool pressed);
 
 /* UTILITIES */
 MQLIB_API void ConvertCR(char* Text, size_t LineLen);
-MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 
+/** Draw text on the HUD */
+MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 
 //----------------------------------------------------------------------------
 // Argument string parsing
@@ -190,7 +181,13 @@ MQLIB_API bool CompareTimes(char* RealTime, char* ExpectedTime);
 MQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
 MQLIB_API void DefaultFilters();
 MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
+
+/**
+ * Checks a line of chat for events and fires off any events that should be
+ * triggered as a result.
+ */
 MQLIB_API void CheckChatForEvent(const char* szMsg);
+
 MQLIB_API int FindInvSlotForContents(eqlib::ItemClient* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);
 MQLIB_API int FindNextInvSlot(const char* Name, bool Exact);

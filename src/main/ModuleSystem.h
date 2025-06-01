@@ -56,6 +56,10 @@ enum class ModulePriority
 {
 	CrashHandler = 0,
 
+	Commands = 10,
+
+	HUD = 90,
+
 	Default = 100,
 
 	PluginsDefault = 1000,
@@ -65,8 +69,9 @@ enum class ModuleFlags : uint32_t
 {
 	None                       = 0,
 	CanUnload                  = 1 << 0,         // Module can be unloaded
-	Hidden                     = 1 << 1,         // Module is hidden from ui
-	IsPlugin                   = 1 << 2,         // Module is a plugin
+	DefaultDisabled            = 1 << 1,         // Module is disabled by default
+	Hidden                     = 1 << 2,         // Module is hidden from ui
+	IsPlugin                   = 1 << 3,         // Module is a plugin
 
 	SkipOnProcessFrame         = 1 << 19,        // Module has callback for this event
 	SkipOnDrawHUD              = 1 << 20,        // ... and so on
@@ -95,9 +100,9 @@ protected:
 	/** Protected constructor. This class should be subclassed to implement module functionality. */
 	MQModuleBase(std::string_view name, int priority = static_cast<int>(ModulePriority::Default), ModuleFlags flags = ModuleFlags::None);
 
+public:
 	virtual ~MQModuleBase() = default;
 
-public:
 	/**
 	 * Gets the name of the module.
 	 *
@@ -127,10 +132,6 @@ public:
 	}
 
 	virtual void Shutdown()
-	{
-	}
-
-	virtual void LoadSettings()
 	{
 	}
 
