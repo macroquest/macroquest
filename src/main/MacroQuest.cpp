@@ -19,10 +19,14 @@
 #include "MQActorAPI.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
-#include "MQDetourAPI.h"
-#include "MQRenderDoc.h"
+
+#include "MQPluginHandler.h"
+
+#include "ModuleSystem.h"
 
 #include "mq/base/Logging.h"
+
+#include "eqlib/MemoryPatcher.h"
 #include "eqlib/game/Globals.h"
 
 #include "MQ2Globals.h"
@@ -37,8 +41,7 @@
 #include <fstream>
 
 #include <Psapi.h>
-
-#include "MQPluginHandler.h"
+#include <random>
 
 namespace fs = std::filesystem;
 
@@ -81,6 +84,11 @@ namespace fs = std::filesystem;
 #endif
 
 #define CLIENT_OVERRIDE 0
+
+namespace mqplugin
+{
+	mq::MQPluginHandle ThisPluginHandle;   // our unique handle for Main.
+}
 
 namespace mq {
 
@@ -133,9 +141,16 @@ wil::unique_event g_unloadComplete;
 static HANDLE s_backgroundThread = nullptr;
 
 // FIXME: Remove these forward declarations
-void InitializePluginHandle();
 void Heartbeat();
 void SetMainThreadId();
+void InitializeDetours();
+void ShutdownDetours();
+
+class CrashHandlerModule;
+class DetoursModule;
+class SpellsModule;
+class PostOfficeModule;
+class RenderDocModule;
 
 struct MQStartupParams
 {
@@ -378,9 +393,27 @@ static bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::stri
 	return false;
 }
 
+//=================================================================================================
+
+MQModuleBase::MQModuleBase(std::string_view name, int priority, ModuleFlags flags)
+	: m_priority(priority)
+	, m_name(name)
+	, m_flags(flags)
+{
+}
+
+//=================================================================================================
+//=================================================================================================
+
 MacroQuest::MacroQuest()
 {
 	srand(static_cast<uint32_t>(time(nullptr)));
+
+#if HAS_DIRECTX_11
+	// Special case for RenderDoc integration - this has to go before anything else to give RenderDoc
+	// the earliest chance to inject. Especially before we wait for lavishsoft stuff.
+	AddModule(CreateModule<RenderDocModule>());
+#endif
 }
 
 MacroQuest::~MacroQuest()
@@ -399,8 +432,8 @@ bool MacroQuest::Initialize()
 
 	// note: CLIENT_OVERRIDE is always #defined as 1 or 0
 #if !CLIENT_OVERRIDE
-	if (strncmp(__ExpectedVersionDate, actualVersionDate, strlen(__ExpectedVersionDate)) ||
-		strncmp(__ExpectedVersionTime, actualVersionTime, strlen(__ExpectedVersionTime)))
+	if (strncmp(__ExpectedVersionDate, actualVersionDate, strlen(__ExpectedVersionDate))
+		|| strncmp(__ExpectedVersionTime, actualVersionTime, strlen(__ExpectedVersionTime)))
 	{
 		::MessageBoxA(nullptr, "Incorrect client version", "MacroQuest", MB_OK);
 		return false;
@@ -435,11 +468,12 @@ bool MacroQuest::Initialize()
 		return false;
 	}
 
-	CrashHandler_Startup();
+	mqplugin::ThisPluginHandle = CreateModuleHandle();
 
-	InitializePluginHandle();
+	// This will populate our list of modules, but we won't initialize them yet.
+	LoadModules();
+	InitializeDetours();
 
-	pDetourAPI = new MQDetourAPI(m_eqlib->GetMemoryPatcher());
 	pCommandAPI = new MQCommandAPI();
 
 	// These two sub-systems will get us onto the main thread.
@@ -507,10 +541,13 @@ bool MacroQuest::InitializeEQLib()
 
 void DoMainThreadInitialization();
 
-bool MacroQuest::FirstFrameInitialize()
+bool MacroQuest::MainThreadInitialize()
 {
 	// initialize main thread id
 	dwMainThreadId = ::GetCurrentThreadId();
+
+	// UI Exists if we're in any of the ingame states.
+	m_createdUI = gGameState >= eqlib::GAMESTATE_CHARSELECT && gGameState <= eqlib::GAMESTATE_INGAME;
 
 	// MainImpl::DoMainThreadInitialization()
 	pDataAPI = new MQDataAPI();
@@ -523,6 +560,23 @@ bool MacroQuest::FirstFrameInitialize()
 	return true;
 }
 
+void MacroQuest::MainThreadShutdown()
+{
+	gbUnload = false;
+	m_shuttingDown = true;
+
+	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
+	DebugSpewAlways("%s", UnloadedString);
+
+	// cant unload these here there are detours still in use that call functions from plugins...
+	//UnloadMQ2Plugins();
+
+	DoMainThreadShutdown();
+
+	m_initializedFirstFrame = false;
+	g_unloadComplete.SetEvent();
+}
+
 void MacroQuest::Shutdown()
 {
 	DoMainThreadShutdown();
@@ -533,8 +587,7 @@ void MacroQuest::Shutdown()
 	delete pActorAPI;
 	pActorAPI = nullptr;
 
-	delete pDetourAPI;
-	pDetourAPI = nullptr;
+	ShutdownDetours();
 
 	eqlib::Shutdown(m_eqlib);
 	m_eqlib = nullptr;
@@ -544,50 +597,203 @@ void MacroQuest::Shutdown()
 	DebugSpew("Shutdown completed");
 }
 
+//============================================================================
+//============================================================================
+
+void MacroQuest::LoadModules()
+{
+	AddModule(CreateModule<CrashHandlerModule>());
+	AddModule(CreateModule<SpellsModule>());
+	AddModule(CreateModule<PostOfficeModule>());
+}
+
+void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
+{
+	MQModuleBase* m = module.get();
+
+	m->m_handle = CreateModuleHandle();
+
+	// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
+	auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
+		[](const std::unique_ptr<MQModuleBase>& a, const MQModuleBase* b)
+		{ return a->GetPriority() < b->GetPriority(); });
+
+	m_modules.emplace(it, std::move(module));
+	m_moduleHandleMap[m->m_handle.pluginID] = m;
+
+	if (m_initializedModules)
+	{
+		InitializeModule(m);
+	}
+}
+
+MQPluginHandle MacroQuest::CreateModuleHandle()
+{
+	static std::mt19937_64 rng(std::random_device{}());
+
+	// Generate plugin ID
+	uint64_t pluginID = 0;
+
+	std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
+
+	do
+	{
+		pluginID = dist(rng);
+	} while (m_moduleHandleMap.count(pluginID) != 0);
+
+	return MQPluginHandle(pluginID);
+}
+
+
+void MacroQuest::InitializeModules()
+{
+	if (m_initializedModules)
+		return;
+
+	for (const auto& module : m_modules)
+	{
+		InitializeModule(module.get());
+	}
+
+	m_initializedModules = true;
+}
+
+void MacroQuest::InitializeModule(MQModuleBase* module)
+{
+	module->Initialize();
+
+	module->LoadSettings();
+
+	module->OnGameStateChanged(gGameState);
+
+	if (m_createdUI)
+	{
+		eqlib::ReloadUIParams params;
+		params.loadIni = true;
+		params.fastReload = false;
+
+		module->OnReloadUI(params);
+	}
+
+	if (gGameState == eqlib::GAMESTATE_INGAME)
+	{
+		if (!(module->GetFlags() & ModuleFlags::SkipOnSpawnAdded))
+		{
+			// init spawns
+			eqlib::PlayerClient* pSpawn = eqlib::pSpawnList;
+			while (pSpawn)
+			{
+				module->OnSpawnAdded(pSpawn);
+
+				pSpawn = pSpawn->GetNext();
+			}
+		}
+
+		if (!(module->GetFlags() & ModuleFlags::SkipOnGroundItemAdded))
+		{
+			// init ground items
+			eqlib::EQGroundItem* pItem = eqlib::pItemList->Top;
+			while (pItem)
+			{
+				module->OnGroundItemAdded(pItem);
+
+				pItem = pItem->pNext;
+			}
+		}
+	}
+}
+
+void MacroQuest::ShutdownModules()
+{
+	if (!m_initializedModules)
+		return;
+
+	// Iterate modules in reverse order, shutting down each one.
+	for (auto iter = m_modules.rbegin(); iter != m_modules.rend(); ++iter)
+	{
+		ShutdownModule(iter->get());
+	}
+	m_modules.clear();
+
+	m_initializedModules = false;
+}
+
+void MacroQuest::ShutdownModule(MQModuleBase* module)
+{
+	if (m_createdUI)
+	{
+		module->OnCleanUI();
+	}
+
+	module->Shutdown();
+}
+
+//============================================================================
+//============================================================================
+
 void MacroQuest::OnProcessFrame()
 {
+	if (m_shuttingDown)
+		return;
+
 	if (!m_initializedFirstFrame)
 	{
-		FirstFrameInitialize();
+		MainThreadInitialize();
 
 		m_initializedFirstFrame = true;
 	}
 	else if (gbUnload)
 	{
-		gbUnload = false;
-
-		WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
-		DebugSpewAlways("%s", UnloadedString);
-
-		// cant unload these here there are detours still in use that call functions from plugins...
-		//UnloadMQ2Plugins();
-
-		DoMainThreadShutdown();
-
-		m_initializedFirstFrame = false;
-		g_unloadComplete.SetEvent();
+		MainThreadShutdown();
 	}
 	else
 	{
 		Heartbeat();
+
+		for (const auto& module : m_modules)
+		{
+			if (+(module->GetFlags() & ModuleFlags::SkipOnProcessFrame))
+				continue;
+
+			module->OnProcessFrame();
+		}
+
+		PulsePlugins();
 	}
 }
 
 void MacroQuest::OnGameStateChanged(int newGameState)
 {
-	MQScopedBenchmark bm(bmPluginsSetGameState);
+	gGameState = newGameState;
+	gbInZone = (gGameState == eqlib::GAMESTATE_INGAME || gGameState == eqlib::GAMESTATE_CHARSELECT || gGameState == eqlib::GAMESTATE_CHARCREATE);
+
+	if (newGameState == eqlib::GAMESTATE_INGAME)
+	{
+		gZoning = false;
+	}
+
+	for (const auto& module : m_modules)
+	{
+		module->OnGameStateChanged(newGameState);
+	}
 
 	PluginsSetGameState(newGameState);
 }
 
 void MacroQuest::OnLoginFrontendEntered()
 {
-	
+	for (const auto& module : m_modules)
+	{
+		module->OnLoginFrontendEntered();
+	}
 }
 
 void MacroQuest::OnLoginFrontendExited()
 {
-
+	for (const auto& module : m_modules)
+	{
+		module->OnLoginFrontendEntered();
+	}
 }
 
 void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
@@ -599,60 +805,252 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 		//gDrawWindowFrameSkipCount = 2;
 	}
 
+	for (const auto& module : m_modules)
+	{
+		module->OnReloadUI(params);
+	}
+
 	PluginsReloadUI();
 }
 
 void MacroQuest::OnCleanUI()
 {
 	MQScopedBenchmark bm(bmPluginsCleanUI);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnCleanUI();
+	}
+
 	PluginsCleanUI();
 }
 
 void MacroQuest::OnPreZoneUI()
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnPreZoneUI();
+	}
+
 	PluginsBeginZone();
 }
 
 void MacroQuest::OnPostZoneUI()
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnPostZoneUI();
+	}
+
 	PluginsEndZone();
 }
 
 bool MacroQuest::OnChatMessage(eqlib::ChatMessageParams& params)
 {
-	return false;
+	bool result = true;
+
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnChatMessage))
+			continue;
+
+		result = result && module->OnChatMessage(params);
+	}
+
+	return result;
 }
 
 bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 {
-	return false;
+	bool result = true;
+
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnTellWindowMessage))
+			continue;
+
+		result = result && module->OnTellWindowMessage(params);
+	}
+
+	return result;
 }
 
 bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params)
 {
-	return false;
+	bool result = true;
+
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnIncomingWorldMessage))
+			continue;
+
+		result = result && module->OnIncomingWorldMessage(params);
+	}
+
+	return result;
 }
 
 void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnSpawnAdded(player);
+	}
+
 	PluginsAddSpawn(player);
 }
 
 void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnSpawnRemoved(player);
+	}
+
 	PluginsRemoveSpawn(player);
 }
 
 void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnGroundItemAdded(groundItem);
+	}
+
 	PluginsAddGroundItem(groundItem);
 }
 
 void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 {
+	for (const auto& module : m_modules)
+	{
+		module->OnGroundItemRemoved(groundItem);
+	}
+
 	PluginsRemoveGroundItem(groundItem);
 }
 
+void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
+{
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnWriteChatColor))
+			continue;
+
+		module->OnWriteChatColor(message, color, filter);
+	}
+
+	PluginsWriteChatColor(message, color, filter);
+}
+
+bool MacroQuest::OnIncomingChat(const char* message, int color)
+{
+	bool result = false;
+
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnIncomingChat))
+			continue;
+
+		result = result || module->OnIncomingChat(message, color);
+	}
+
+	result = result || PluginsIncomingChat(message, color);
+
+	return result;
+}
+
+void MacroQuest::OnUpdateImGui()
+{
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnUpdateImGui))
+			continue;
+
+		module->OnUpdateImGui();
+	}
+
+	PluginsUpdateImGui();
+}
+
+void MacroQuest::OnZoned()
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnZoned();
+	}
+
+	PluginsZoned();
+}
+
+void MacroQuest::OnDrawHUD()
+{
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnDrawHUD))
+			continue;
+
+		module->OnDrawHUD();
+	}
+
+	PluginsDrawHUD();
+}
+
+void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnModuleLoaded(otherModule);
+	}
+}
+
+void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnBeforeModuleUnloaded(otherModule);
+	}
+}
+
+void MacroQuest::OnAfterModuleUnloaded(MQModuleBase* otherModule)
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnAfterModuleUnloaded(otherModule);
+	}
+}
+
+void MacroQuest::OnMacroStart(const char* macroName)
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnMacroStart(macroName);
+	}
+
+	PluginsMacroStart(macroName);
+}
+
+void MacroQuest::OnMacroStop(const char* macroName)
+{
+	for (const auto& module : m_modules)
+	{
+		module->OnMacroStop(macroName);
+	}
+
+	PluginsMacroStop(macroName);
+}
+
+void MacroQuest::OnPipeMessage(PipeMessagePtr message)
+{
+	for (const auto& module: m_modules)
+	{
+		if (module->OnPipeMessage(message.get()))
+			break;
+	}
+}
+
+//============================================================================
+//============================================================================
 
 bool MacroQuest::LoadPreferences(const std::string& iniFile)
 {
@@ -978,22 +1376,145 @@ bool MacroQuest::IsAlias(const std::string& alias) const
 	return pCommandAPI->IsAlias(alias);
 }
 
+#pragma endregion
+
 // DetourAPI functions
+#pragma region Detour functions
+
+bool MacroQuest::ValidateNewPatch(uintptr_t address, std::string_view name, const MQPluginHandle& pluginHandle) const
+{
+	eqlib::MemoryPatch* existingPatch = nullptr;
+
+	if (m_memoryPatcher->FindPatches(address, eqlib::DETOUR_BYTES_COUNT, &existingPatch, 1) != 0)
+	{
+		if (pluginHandle == mqplugin::ThisPluginHandle || existingPatch->GetUserData() == 0)
+			return false;
+
+		MQPlugin* otherPlugin = GetPluginByHandle(MQPluginHandle{ existingPatch->GetUserData() });
+		MQPlugin* thisPlugin = GetPluginByHandle(pluginHandle);
+
+		if (existingPatch->GetAddress() == address)
+		{
+			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
+		}
+		else
+		{
+			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
+		}
+
+		return false;
+	}
+
+	return true;
+}
 
 bool MacroQuest::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
 {
-	return pDetourAPI->CreateDetour(address, target, detour, name, pluginHandle);
+	if (!ValidateNewPatch(address, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, target, detour, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
 }
 
 bool MacroQuest::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
 {
-	return pDetourAPI->CreateDetour(address, width, name, pluginHandle);
+	if (!ValidateNewPatch(address, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, width, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
 }
 
 bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
 {
-	return pDetourAPI->RemoveDetour(address, pluginHandle);
+	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
+
+	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Detour)
+	{
+		SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
+
+		return false;
+	}
+
+	if (patch->GetUserData() != pluginHandle.pluginID)
+	{
+		if (patch->GetUserData() == 0)
+		{
+			SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
+		}
+		else
+		{
+			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
+
+			if (plugin)
+			{
+				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
+			}
+			else
+			{
+				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
+			}
+		}
+	}
+
+	return m_memoryPatcher->RemovePatch(address);
 }
+
+std::vector<eqlib::MemoryPatch*> MacroQuest::FindPatches(uintptr_t address, size_t width)
+{
+	std::vector<eqlib::MemoryPatch*> result;
+	uintptr_t endAddress = address + width;
+	size_t offset = 0;
+
+	// Ferry list of patches across dll boundary...
+	constexpr uint32_t MAX_PER_ITERATION = 100;
+	eqlib::MemoryPatch* patches[MAX_PER_ITERATION];
+
+	uint32_t count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+	if (count == 0)
+		return result;
+
+	// Count is the total number of patches found, so we can resize as soon as we know.
+	result.resize(count);
+
+	// Now we iterate through results until we have all the patches.
+	memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
+
+	while (count > MAX_PER_ITERATION)
+	{
+		offset += MAX_PER_ITERATION;
+
+		address = result.back()->GetAddress() + result.back()->GetBytesSize();
+		width = endAddress - address;
+
+		count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+
+		memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
+	}
+
+	return result;
+}
+
+bool MacroQuest::IsAddressPatched(uintptr_t address, size_t width)
+{
+	return m_memoryPatcher->IsAddressPatched(address, width);
+}
+
 
 #pragma endregion
 
@@ -1061,6 +1582,8 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 		::MessageBoxA(nullptr, "Failed to Initialize MQ.", "MQ Error", MB_OK);
 	}
 
+	g_mq->Shutdown();
+
 	UninstallUnhandledExceptionFilter();
 
 	FreeLibraryAndExitThread(ghModule, 0);
@@ -1115,6 +1638,22 @@ MainInterface* GetMainInterface()
 {
 	return g_mq;
 }
+
+bool detail::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name)
+{
+	return g_mq->CreateDetour(address, target, detour, name, mqplugin::ThisPluginHandle);
+}
+
+bool detail::CreateDetour(uintptr_t address, size_t width, std::string_view name)
+{
+	return g_mq->CreateDetour(address, width, name, mqplugin::ThisPluginHandle);
+}
+
+bool RemoveDetour(uintptr_t address)
+{
+	return g_mq->RemoveDetour(address, mqplugin::ThisPluginHandle);
+}
+
 
 } // namespace mq
 

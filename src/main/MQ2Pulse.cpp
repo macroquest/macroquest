@@ -463,16 +463,6 @@ static void Pulse()
 		LastMoveTick = MQGetTickCount64();
 		SetSwitchTarget(nullptr);
 
-		// see if we're on a pvp server
-		if (!_strnicmp(GetServerShortName(), "zek", 3))
-		{
-			PVPServer = PVP_RALLOS;
-		}
-		else
-		{
-			PVPServer = PVP_NONE;
-		}
-
 		srand((unsigned int)time(nullptr)); // reseed
 
 		Benchmark(bmPluginsOnZoned, PluginsZoned());

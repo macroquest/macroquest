@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PipeMessage.h" />
     <ClInclude Include="NamedPipes.h" />
     <ClInclude Include="NamedPipesProtocol.h" />
     <ClInclude Include="PostOffice.h" />

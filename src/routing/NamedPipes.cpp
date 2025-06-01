@@ -15,22 +15,18 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "NamedPipes.h"
+#include "routing/NamedPipes.h"
 #include "mq/base/Base.h"
 #include "mq/base/WString.h"
 
-#include <windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <strsafe.h>
-#include <time.h>
+#include <numeric>
+
 #include <fmt/os.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>
 #include <sddl.h>
-
-#include <numeric>
+#include <windows.h>
 
 using namespace std::chrono_literals;
 

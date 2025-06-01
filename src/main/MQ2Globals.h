@@ -51,8 +51,6 @@ MQLIB_API uint32_t bmCalculate;
 MQLIB_API uint32_t bmBeginZone;
 MQLIB_API uint32_t bmEndZone;
 MQLIB_API uint32_t bmRenderScene;
-MQLIB_API uint32_t bmSpellLoad;
-MQLIB_API uint32_t bmSpellAccess;
 MQLIB_API uint32_t bmAnonymizer;
 
 /* OTHER */
@@ -60,9 +58,6 @@ MQLIB_API uint32_t bmAnonymizer;
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
 MQLIB_API int gBuild;
-
-MQLIB_API ePVPServer PVPServer;
-MQLIB_API HANDLE ghInitializeSpellDbThread;
 
 MQLIB_VAR DWORD ThreadID;
 
@@ -78,7 +73,6 @@ MQLIB_VAR bool gbForceUnload;
 MQLIB_VAR double gZFilter;
 MQLIB_VAR double gFaceAngle;
 MQLIB_VAR double gLookAngle;
-MQLIB_VAR bool gbSpelldbLoaded;
 
 MQLIB_VAR char gszEQPath[MAX_STRING] DEPRECATE("Use gPathEverQuest in Plugins.  Except for WIN_API calls your relative path from the working directory is already the EQ Path.");
 MQLIB_VAR char gszMacroPath[MAX_STRING] DEPRECATE("Use gPathMacros in Plugins");

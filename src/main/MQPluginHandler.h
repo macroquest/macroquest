@@ -32,13 +32,13 @@ void InitializePlugins();
 void UnloadPlugins();
 void ShutdownPlugins();
 void ShutdownFailedPlugins();
-void InitializePluginHandle();
 
 bool IsPluginsInitialized();
 
 void PulsePlugins();
 void PluginsZoned();
 bool PluginsIncomingChat(const char* Line, uint32_t Color);
+void PluginsWriteChatColor(const char* Line, int Color, int Filter);
 void PluginsCleanUI();
 void PluginsReloadUI();
 void PluginsSetGameState(int GameState);

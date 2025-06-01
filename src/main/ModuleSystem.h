@@ -1,0 +1,315 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-present MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#pragma once
+
+#include "mq/base/PluginHandle.h"
+#include "mq/base/Enum.h"
+
+#include "mq/api/PluginAPI.h"
+
+#include "eqlib/Events.h"
+
+namespace mq {
+
+class ModuleSystem;
+class PipeMessage;
+
+// Like lightweight plugins, but these are internal to mq2main
+struct MQModule
+{
+	char                 name[64] = { 0 };
+	bool                 canUnload = false;
+	fMQInitializePlugin  Initialize = nullptr;
+	fMQShutdownPlugin    Shutdown = nullptr;
+	fMQPulse             Pulse = nullptr;
+	fMQSetGameState      SetGameState = nullptr;
+	fMQUpdateImGui       UpdateImGui = nullptr;
+	fMQZoned             Zoned = nullptr; // plugins only?
+	fMQWriteChatColor    WriteChatColor = nullptr;
+	fMQSpawn             SpawnAdded = nullptr;
+	fMQSpawn             SpawnRemoved = nullptr;
+	fMQBeginZone         BeginZone = nullptr;
+	fMQEndZone           EndZone = nullptr;
+	fMQLoadPlugin        LoadPlugin = nullptr;
+	fMQUnloadPlugin      UnloadPlugin = nullptr;
+	fMQCleanUI           CleanUI = nullptr;
+	fMQReloadUI          ReloadUI = nullptr;
+	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
+
+	bool                 loaded = false;
+	bool                 manualUnload = false;
+};
+
+enum class ModulePriority
+{
+	CrashHandler = 0,
+
+	Default = 100,
+
+	PluginsDefault = 1000,
+};
+
+enum class ModuleFlags : uint32_t
+{
+	None                       = 0,
+	CanUnload                  = 1 << 0,         // Module can be unloaded
+	Hidden                     = 1 << 1,         // Module is hidden from ui
+	IsPlugin                   = 1 << 2,         // Module is a plugin
+
+	SkipOnProcessFrame         = 1 << 19,        // Module has callback for this event
+	SkipOnDrawHUD              = 1 << 20,        // ... and so on
+	SkipOnUpdateImGui          = 1 << 21,
+	SkipOnChatMessage          = 1 << 22,
+	SkipOnTellWindowMessage    = 1 << 23,
+	SkipOnIncomingWorldMessage = 1 << 24,
+	SkipOnWriteChatColor       = 1 << 25,
+	SkipOnIncomingChat         = 1 << 26,
+	SkipOnSpawnAdded           = 1 << 27,
+	SkipOnSpawnRemoved         = 1 << 28,
+	SkipOnGroundItemAdded      = 1 << 29,
+	SkipOnGroundItemRemoved    = 1 << 30,
+};
+constexpr bool has_bitwise_operations(ModuleFlags) { return true; }
+
+/**
+ * Base class representing a module in the MacroQuest framework. A module is a basic unit of functionality,
+ * providing a suite of events that can be overridden to implement custom behavior.
+ */
+class MQModuleBase
+{
+	friend class MacroQuest;
+
+protected:
+	/** Protected constructor. This class should be subclassed to implement module functionality. */
+	MQModuleBase(std::string_view name, int priority = static_cast<int>(ModulePriority::Default), ModuleFlags flags = ModuleFlags::None);
+
+	virtual ~MQModuleBase() = default;
+
+public:
+	/**
+	 * Gets the name of the module.
+	 *
+	 * @return The name of the module.
+	 */
+	const std::string& GetName() const { return m_name; }
+
+	/**
+	 * Get the module's priority value. Module callbacks are executed in order of priority,
+	 * with lower values executed first.
+	 *
+	 * @return The module's priority value.
+	 */
+	int GetPriority() const { return m_priority; }
+
+	/**
+	 * Get the module's flags. See `ModuleFlags` for the available flags.
+	 *
+	 * @return The module's flags value
+	 */
+	ModuleFlags GetFlags() const { return m_flags; }
+
+	//----------------------------------------------------------------------------
+
+	virtual void Initialize()
+	{
+	}
+
+	virtual void Shutdown()
+	{
+	}
+
+	virtual void LoadSettings()
+	{
+	}
+
+	virtual void OnProcessFrame()
+	{
+		m_flags |= ModuleFlags::SkipOnProcessFrame;
+	}
+
+	virtual void OnGameStateChanged(int gameState)
+	{
+		UNUSED(gameState);
+	}
+
+	virtual void OnUpdateImGui()
+	{
+		m_flags |= ModuleFlags::SkipOnUpdateImGui;
+	}
+
+	virtual void OnLoginFrontendEntered()
+	{
+	}
+
+	virtual void OnLoginFrontendExited()
+	{
+	}
+
+	virtual void OnCleanUI()
+	{
+	}
+
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params)
+	{
+	}
+
+	virtual void OnPreZoneUI()
+	{
+	}
+
+	virtual void OnPostZoneUI()
+	{
+	}
+
+	virtual bool OnChatMessage(eqlib::ChatMessageParams& params)
+	{
+		UNUSED(params);
+
+		m_flags |= ModuleFlags::SkipOnChatMessage;
+
+		return true;
+	}
+
+	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
+	{
+		UNUSED(params);
+
+		m_flags |= ModuleFlags::SkipOnTellWindowMessage;
+
+		return true;
+	}
+
+	virtual bool OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params)
+	{
+		UNUSED(params);
+
+		m_flags |= ModuleFlags::SkipOnIncomingWorldMessage;
+		
+		return false;
+	}
+
+	virtual void OnWriteChatColor(const char* message, int color, int filter)
+	{
+		UNUSED(message);
+		UNUSED(color);
+		UNUSED(filter);
+
+		m_flags |= ModuleFlags::SkipOnWriteChatColor;
+	}
+
+	virtual bool OnIncomingChat(const char* message, int color)
+	{
+		UNUSED(message);
+		UNUSED(color);
+
+		m_flags |= ModuleFlags::SkipOnIncomingChat;
+
+		return false;
+	}
+
+	virtual void OnZoned()
+	{
+	}
+
+	virtual void OnDrawHUD()
+	{
+		m_flags |= ModuleFlags::SkipOnDrawHUD;
+	}
+
+	virtual void OnSpawnAdded(eqlib::PlayerClient* player)
+	{
+		UNUSED(player);
+
+		m_flags |= ModuleFlags::SkipOnSpawnAdded;
+	}
+
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* player)
+	{
+		UNUSED(player);
+
+		m_flags |= ModuleFlags::SkipOnSpawnRemoved;
+	}
+
+	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
+	{
+		UNUSED(groundItem);
+
+		m_flags |= ModuleFlags::SkipOnGroundItemAdded;
+	}
+
+	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
+	{
+		UNUSED(groundItem);
+
+		m_flags |= ModuleFlags::SkipOnGroundItemRemoved;
+	}
+
+	virtual void OnModuleLoaded(MQModuleBase* module)
+	{
+		UNUSED(module);
+	}
+
+	virtual void OnBeforeModuleUnloaded(MQModuleBase* module)
+	{
+		UNUSED(module);
+	}
+
+	virtual void OnAfterModuleUnloaded(MQModuleBase* module)
+	{
+		UNUSED(module);
+	}
+
+	virtual void OnMacroStart(const char* macroName)
+	{
+		UNUSED(macroName);
+	}
+
+	virtual void OnMacroStop(const char* macroName)
+	{
+		UNUSED(macroName);
+	}
+
+	virtual bool OnPipeMessage(PipeMessage* message)
+	{
+		UNUSED(message);
+
+		return false;
+	}
+
+	MQModuleBase(const MQModuleBase&) = delete;
+	MQModuleBase(MQModuleBase&&) = delete;
+
+	MQModuleBase& operator=(const MQModuleBase&) = delete;
+	MQModuleBase& operator=(MQModuleBase&&) = delete;
+
+protected:
+	int m_priority;
+	std::string m_name;
+	ModuleFlags m_flags = ModuleFlags::None;
+
+private:
+	MQPluginHandle m_handle;
+};
+
+template <typename ModuleType>
+std::unique_ptr<MQModuleBase> CreateModule();
+
+#define DECLARE_MODULE_FACTORY(ModuleType) \
+	template <> std::unique_ptr<MQModuleBase> mq::CreateModule<ModuleType>() \
+	{ \
+		return std::make_unique<ModuleType>(); \
+	}
+
+} // namespace mq

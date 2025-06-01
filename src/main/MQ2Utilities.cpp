@@ -17,6 +17,7 @@
 
 #include "MQ2Mercenaries.h"
 #include "MQ2Utilities.h"
+#include "MQPluginHandler.h"
 
 #include <mq/api/Items.h>
 #include <mq/base/WString.h>
@@ -123,24 +124,6 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
 
 	DebugSpewImpl(true, false, szFormat, vaList);
 #endif
-}
-
-// Implemented in MQ2PluginHandler.cpp
-void PluginsWriteChatColor(const char* Line, int Color, int Filter);
-
-static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, int Filter)
-{
-	if (IsMainThread())
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	}
-
-	// Queue it up to run on the main thread
-	PostToMainThread(
-		[Ptr = std::shared_ptr<char[]>{ std::move(Ptr) }, Color, Filter]()
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	});
 }
 
 void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)

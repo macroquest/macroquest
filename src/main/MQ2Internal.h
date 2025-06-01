@@ -37,14 +37,6 @@ enum eAdventureTheme
 	eAT_Takish,
 };
 
-enum ePVPServer
-{
-	PVP_NONE = 0,
-	PVP_TEAM = 1,
-	PVP_RALLOS = 2, // the only PVP server type still alive
-	PVP_SULLON = 3,
-};
-
 enum eSpawnType
 {
 	NONE = 0,
@@ -274,55 +266,6 @@ struct MQFilter
 };
 using FILTER DEPRECATE("use MQFilter instead FILTER") = MQFilter;
 using PFILTER DEPRECATE("use MQFilter* instead of PFILTER") = MQFilter*;
-
-// Like lightweight plugins, but these are internal to mq2main
-struct MQModule
-{
-	char                 name[64] = { 0 };
-	bool                 canUnload = false;
-	fMQInitializePlugin  Initialize = nullptr;
-	fMQShutdownPlugin    Shutdown = nullptr;
-	fMQPulse             Pulse = nullptr;
-	fMQSetGameState      SetGameState = nullptr;
-	fMQUpdateImGui       UpdateImGui = nullptr;
-	fMQZoned             Zoned = nullptr;
-	fMQWriteChatColor    WriteChatColor = nullptr;
-	fMQSpawn             SpawnAdded = nullptr;
-	fMQSpawn             SpawnRemoved = nullptr;
-	fMQBeginZone         BeginZone = nullptr;
-	fMQEndZone           EndZone = nullptr;
-	fMQLoadPlugin        LoadPlugin = nullptr;
-	fMQUnloadPlugin      UnloadPlugin = nullptr;
-	fMQCleanUI           CleanUI = nullptr;
-	fMQReloadUI          ReloadUI = nullptr;
-	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
-
-	bool                 loaded = false;
-	bool                 manualUnload = false;
-};
-
-void InitializeInternalModules();
-void AddInternalModule(MQModule* module, bool manualUnload = false);
-void RemoveInternalModule(MQModule* module);
-
-struct ModuleInitializer;
-void AddStaticInitializationModule(ModuleInitializer* module);
-
-struct ModuleInitializer
-{
-	ModuleInitializer(MQModule* thisModule)
-		: module(thisModule)
-	{
-		AddStaticInitializationModule(this);
-	}
-
-	ModuleInitializer* next = nullptr;
-	MQModule* module = nullptr;
-};
-
-#define DECLARE_MODULE_INITIALIZER(moduleRecord) \
-	extern "C" ModuleInitializer s_moduleInitializer ## moduleRecord { &moduleRecord } \
-	FORCE_SYMBOL_REFERENCE(s_moduleInitializer ## moduleRecord);
 
 //============================================================================
 

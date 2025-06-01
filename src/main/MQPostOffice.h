@@ -19,6 +19,7 @@
 #endif
 
 #include "MQ2MainBase.h"
+#include "routing/NamedPipesProtocol.h"
 
 namespace mq {
 
@@ -27,6 +28,8 @@ namespace pipeclient {
 void NotifyIsForegroundWindow(bool isForeground);
 void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
 void SendNotification(const std::string& message, const std::string& title);
+
+void SendPipeMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 } // namespace pipeclient
 

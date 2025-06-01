@@ -13,6 +13,8 @@
  */
 
 #include "pch.h"
+
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 #include "MQ2SpellSearch.h"
 
@@ -22,9 +24,15 @@ using namespace eqlib;
 
 namespace mq {
 
-ci_unordered::multimap<std::string_view, EQ_Spell*> s_spellNameMap;
-std::map<int, int> s_triggeredSpells;
-std::recursive_mutex s_initializeSpellsMutex;
+static ci_unordered::multimap<std::string_view, EQ_Spell*> s_spellNameMap;
+static std::map<int, int> s_triggeredSpells;
+static std::recursive_mutex s_initializeSpellsMutex;
+
+static uint32_t bmSpellLoad = 0;
+static uint32_t bmSpellAccess = 0;
+
+static bool s_spellDBLoaded = false;
+static HANDLE s_initializeSpellDBThread = nullptr;
 
 static const ci_unordered::map<std::string_view, eEQSPELLCAT> s_spellCatLookup = {
 { "Aegolism"            , SPELLCAT_AEGOLISM },
@@ -735,20 +743,6 @@ static const ci_unordered::map<std::string_view, eEQSPA> s_spaLookup = {
 { "DURATION_ENDURANCE_PCT"            , SPA_DURATION_ENDURANCE_PCT },
 };
 
-static void InitializeSpells();
-static void ShutdownSpells();
-static void PulseSpells();
-
-static MQModule gSpellsModule = {
-	"Spells",                      // Name
-	false,                         // CanUnload
-	InitializeSpells,
-	ShutdownSpells,
-	PulseSpells
-};
-MQModule* GetSpellsModule() { return &gSpellsModule; }
-
-
 EQ_Spell* GetHighestLearnedSpellByGroupID(int dwSpellGroupID)
 {
 	PcProfile* pProfile = GetPcProfile();
@@ -854,7 +848,7 @@ void PopulateSpellMap()
 {
 	std::scoped_lock lock(s_initializeSpellsMutex);
 
-	gbSpelldbLoaded = false;
+	s_spellDBLoaded = false;
 
 	s_triggeredSpells.clear();
 	s_spellNameMap.clear();
@@ -869,14 +863,11 @@ void PopulateSpellMap()
 		s_spellNameMap.emplace(pSpell->Name, pSpell);
 	}
 
-	gbSpelldbLoaded = true;
+	s_spellDBLoaded = true;
 }
 
-DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
+DWORD CALLBACK InitializeSpellDB(void* pData)
 {
-	bmSpellLoad = AddMQ2Benchmark("SpellLoad");
-	bmSpellAccess = AddMQ2Benchmark("SpellAccess");
-
 	while (GetGameState() != GAMESTATE_CHARSELECT && GetGameState() != GAMESTATE_INGAME)
 	{
 		Sleep(10);
@@ -887,10 +878,13 @@ DWORD CALLBACK InitializeMQ2SpellDb(void* pData)
 		Sleep(10);
 	}
 
-	// ok everything checks out lets fill our own map with spells
-	Benchmark(bmSpellLoad, PopulateSpellMap());
+	// Everything checks out, lets fill our own map with spells
+	{
+		MQScopedBenchmark bm(bmSpellLoad);
+		PopulateSpellMap();
+	}
 
-	ghInitializeSpellDbThread = nullptr;
+	s_initializeSpellDBThread = nullptr;
 	return 0;
 }
 
@@ -995,11 +989,11 @@ EQ_Spell* GetSpellByName(std::string_view name)
 	if (spellID >= 0)
 		return GetSpellByID(spellID);
 
-	if (gbSpelldbLoaded == false)
+	if (!s_spellDBLoaded)
 	{
-		InitializeMQ2SpellDb(nullptr);
+		InitializeSpellDB(nullptr);
 
-		if (gbSpelldbLoaded == false)
+		if (!s_spellDBLoaded)
 		{
 			return nullptr;
 		}
@@ -1009,9 +1003,12 @@ EQ_Spell* GetSpellByName(std::string_view name)
 	if (s_spellNameMap.empty())
 		return nullptr;
 
-	EnterMQ2Benchmark(bmSpellAccess);
-	auto pSpell = GetSpellFromMap(name);
-	ExitMQ2Benchmark(bmSpellAccess);
+	EQ_Spell* pSpell;
+	{
+		MQScopedBenchmark bm(bmSpellAccess);
+		// Check if the spell is in our map
+		pSpell = GetSpellFromMap(name);
+	}
 
 	return pSpell;
 }
@@ -1044,10 +1041,10 @@ bool IsSPAEffect(EQ_Spell* pSpell, int EffectID)
 
 // ***************************************************************************
 // Function:    GetClassesFromMask
-// Description: Return a comma delimited list of player short class names
+// Description: Return a comma-delimited list of player short class names
 //              If ALL classes are in the mask it will return "ALL",
 //              if 4 or less are missing it will return "ALL EXCEPT: " and the
-//              comma delimited list of play short class names that are excluded
+//              comma-delimited list of play short class names that are excluded
 // ***************************************************************************
 const std::string GetClassesFromMask(int mask)
 {
@@ -4327,33 +4324,60 @@ static SpellAttributePredicate<Buff> InternalBuffEvaluate(std::string_view dsl)
 	}
 }
 
-SpellAttributePredicate<EQ_Affect> mq::EvaluateBuffPredicate(std::string_view dsl)
+SpellAttributePredicate<EQ_Affect> EvaluateBuffPredicate(std::string_view dsl)
 {
-    return InternalBuffEvaluate<EQ_Affect>(dsl);
+	return InternalBuffEvaluate<EQ_Affect>(dsl);
 }
 
-SpellAttributePredicate<EQ_Affect> mq::EvaluatePetBuffPredicate(std::string_view dsl)
+SpellAttributePredicate<EQ_Affect> EvaluatePetBuffPredicate(std::string_view dsl)
 {
-    return InternalBuffEvaluate<EQ_Affect, PetSpellCasterAttribute>(dsl);
+	return InternalBuffEvaluate<EQ_Affect, PetSpellCasterAttribute>(dsl);
 }
 
-SpellAttributePredicate<CachedBuff> mq::EvaluateCachedBuffPredicate(std::string_view dsl)
+SpellAttributePredicate<CachedBuff> EvaluateCachedBuffPredicate(std::string_view dsl)
 {
-    return InternalBuffEvaluate<CachedBuff>(dsl);
+	return InternalBuffEvaluate<CachedBuff>(dsl);
 }
 
 //============================================================================
 
-static void InitializeSpells()
+class SpellsModule : public MQModuleBase
 {
-}
+public:
+	SpellsModule() : MQModuleBase("Spells")
+	{
+	}
 
-static void ShutdownSpells()
-{
-}
+	virtual void Initialize() override
+	{
+		bmSpellLoad = AddMQ2Benchmark("SpellLoad");
+		bmSpellAccess = AddMQ2Benchmark("SpellAccess");
+	}
 
-static void PulseSpells()
-{
-}
+	virtual void Shutdown() override
+	{
+		RemoveMQ2Benchmark(bmSpellLoad);
+		RemoveMQ2Benchmark(bmSpellAccess);
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		if (gameState != GAMESTATE_INGAME && gameState != GAMESTATE_LOGGINGIN)
+		{
+			s_spellDBLoaded = false;
+			s_initializeSpellDBThread = nullptr;
+		}
+
+		if (gameState == GAMESTATE_INGAME)
+		{
+			if (!s_spellDBLoaded && s_initializeSpellDBThread == nullptr)
+			{
+				s_initializeSpellDBThread = CreateThread(nullptr, 0, InitializeSpellDB, nullptr, 0, nullptr);
+			}
+		}
+	}
+};
+
+DECLARE_MODULE_FACTORY(SpellsModule);
 
 } // namespace mq

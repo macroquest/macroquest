@@ -14,49 +14,23 @@
 
 #include "pch.h"
 #include "MQPostOffice.h"
-#include "CrashHandler.h"
+#include "ModuleSystem.h"
 
 #include "MQ2Main.h"
 
 #include "routing/PostOffice.h"
+
+#ifdef SendMessage
+#undef SendMessage
+#endif
 
 using namespace eqlib;
 using namespace mq::postoffice;
 
 namespace mq {
 
-// MQModule forward declarations
-namespace pipeclient
-{
-	static void InitializePostOffice();
-	static void ShutdownPostOffice();
-	static void PulsePostOffice();
-	static void SetGameStatePostOffice(int);
-}
-
-static MQModule s_PostOfficeModule = {
-	"PostOffice",
-	false,
-	pipeclient::InitializePostOffice,          // Initialize
-	pipeclient::ShutdownPostOffice,            // Shutdown
-	pipeclient::PulsePostOffice,               // Pulse
-	pipeclient::SetGameStatePostOffice,        // SetGameState
-	nullptr,                                   // UpdateImGui
-	nullptr,                                   // Zoned
-	nullptr,                                   // WriteChatColor
-	nullptr,                                   // SpawnAdded
-	nullptr,                                   // SpawnRemoved
-	nullptr,                                   // BeginZone
-	nullptr,                                   // EndZone
-	nullptr,                                   // LoadPlugin
-	nullptr                                    // UnloadPlugin
-};
-MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
-
 class MQPostOffice : public PostOffice
 {
-private:
-
 	struct ClientIdentification
 	{
 		uint32_t pid;
@@ -75,12 +49,14 @@ private:
 
 		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
 		{
-			switch (message->GetMessageId())
+			switch (message->GetMessageId())  // NOLINT(clang-diagnostic-switch-enum)
 			{
 			case MQMessageId::MSG_ROUTE:
 			{
-				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				auto address = envelope.has_address() ? std::make_optional(envelope.address()) : std::nullopt;
+				proto::routing::Envelope envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+				std::optional<proto::routing::Address> address = envelope.has_address()
+					? std::make_optional(envelope.address()) : std::nullopt;
+
 				// either this message is coming off the pipe, so assume it was routed correctly by the server,
 				// or it was routed internally after checking to make sure that the destination of the message
 				// was within the client. In either case, we can safely assume that we should route it to an
@@ -164,24 +140,8 @@ private:
 				}
 
 				// TODO: forward the message to all mailboxes
-			}
-
-			case MQMessageId::MSG_MAIN_CRASHPAD_CONFIG:
-				// Message needs to at least have some substance...
-				if (message->size() > 0)
-				{
-					std::string pipeName{ message->get<const char>() };
-
-					if (pipeName.empty())
-					{
-						InitializeCrashpad();
-					}
-					else
-					{
-						InitializeCrashpadPipe(pipeName);
-					}
-				}
 				break;
+			}
 
 			case MQMessageId::MSG_MAIN_REQ_UNLOAD:
 				DoCommand("/unload", true);
@@ -359,6 +319,11 @@ public:
 		Process(1000); // make this large just to prevent overflows
 	}
 
+	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength)
+	{
+		m_pipeClient.SendMessage(messageId, data, dataLength);
+	}
+
 	void NotifyIsForegroundWindow(bool isForeground)
 	{
 		MQMessageFocusRequest request;
@@ -502,26 +467,43 @@ void SendNotification(const std::string& message, const std::string& title)
 	static_cast<MQPostOffice&>(GetPostOffice()).SendNotification(message, title);
 }
 
-void InitializePostOffice()
+void SendPipeMessage(MQMessageId messageId, const void* data, size_t dataLength)
 {
-	static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
-}
-
-void ShutdownPostOffice()
-{
-	static_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
-}
-
-void PulsePostOffice()
-{
-	static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
-}
-
-void SetGameStatePostOffice(int GameState)
-{
-	static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(GameState);
+	static_cast<MQPostOffice&>(GetPostOffice()).SendMessage(messageId, data, dataLength);
 }
 
 } // namespace pipeclient
+
+//============================================================================
+
+class PostOfficeModule : public MQModuleBase
+{
+public:
+	PostOfficeModule() : MQModuleBase("PostOffice")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		static_cast<MQPostOffice&>(GetPostOffice()).Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		static_cast<MQPostOffice&>(GetPostOffice()).Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		static_cast<MQPostOffice&>(GetPostOffice()).ProcessPipeClient();
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		static_cast<MQPostOffice&>(GetPostOffice()).SetGameStatePostOffice(gameState);
+	}
+};
+
+DECLARE_MODULE_FACTORY(PostOfficeModule);
 
 } // namespace mq

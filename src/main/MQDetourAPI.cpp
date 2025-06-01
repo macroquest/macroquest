@@ -13,7 +13,10 @@
  */
 
 #include "pch.h"
-#include "MQDetourAPI.h"
+#include "MacroQuest.h"
+
+#include "mq/api/DetourAPI.h"
+#include "mq/base/PluginHandle.h"
 
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
@@ -24,12 +27,15 @@
 
 #include <TlHelp32.h>
 
+namespace eqlib
+{
+	class MemoryPatcher;
+	class MemoryPatch;
+}
+
 using namespace eqlib;
 
 namespace mq {
-
-bool gbDoingSpellChecks = false;
-int gbInMemCheck4 = 0;
 
 // this is the memory checker key struct
 struct mckey
@@ -43,7 +49,10 @@ struct mckey
 };
 
 // pointer to encryption pad for memory checker
-unsigned int* extern_array0 = nullptr;
+static unsigned int* extern_array0 = nullptr;
+
+static bool s_doingSpellChecks = false;
+static int s_inMemCheck4 = 0;
 
 //============================================================================
 
@@ -54,9 +63,9 @@ public:
 	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*))
 	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray)
 	{
-		gbDoingSpellChecks = true;
+		s_doingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray);
-		gbDoingSpellChecks = false;
+		s_doingSpellChecks = false;
 		return ret;
 	}
 #else
@@ -88,41 +97,32 @@ public:
 //		gbAssistComplete = AS_AssistSent;
 //	}
 //}
-
-// Defined in AssemblyFunctions.asm, need the forward declare
-//void GetAssistParam();
+#endif
 
 //============================================================================
 
-class CPacketScrambler_Detours
+enum class AddressDetourState
 {
-public:
-	int ntoh_Detour(int nopcode);
-	DETOUR_TRAMPOLINE_DEF(int, ntoh_Trampoline, (int))
+	None = 0,
+	CodeDetour = 1,
+	KnownSkippable = 2,
 };
 
-// ntoh_detour actually climbs into the stack and pulls data out from the caller's
-// stack frame. Because of this we need to avoid optimizing this function as it
-// changes the layout of the stack. Keep optimizations off for this function or
-// it will break.
-
-#pragma optimize("", off)
-int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
+static AddressDetourState IsAddressDetoured(uintptr_t address, size_t width)
 {
-	int hopcode = ntoh_Trampoline(nopcode);
+	if (s_doingSpellChecks || s_inMemCheck4 > 0)
+		return AddressDetourState::KnownSkippable;
 
-#if 0
-	if (hopcode == EQ_ASSIST)
-	{
-		GetAssistParam();
-	}
-#endif
+	// Executables start with a header that has 'MZ\x90\x00'. This is checking for this
+	// magic value and skipping the crc32 of an executable since we don't care about those.
+	if (address && width >= 4 && *(DWORD*)address == 0x00905a4d)
+		return AddressDetourState::KnownSkippable;
 
-	return hopcode;
+	if (g_mq->IsAddressPatched(address, width))
+		return AddressDetourState::CodeDetour;
+
+	return AddressDetourState::None;
 }
-#pragma optimize("", on)
-#endif
-
 
 DETOUR_TRAMPOLINE_DEF(int, memcheck0_tramp, (unsigned char* buffer, size_t count))
 int memcheck0(unsigned char* buffer, size_t count);
@@ -193,7 +193,7 @@ private:
 static uint32_t DetourAwareHash(uint8_t* origBytes, size_t count, uint32_t value = 0xffffffff)
 {
 	uintptr_t addr = reinterpret_cast<uintptr_t>(origBytes);
-	OrderedPatchSet patches{ pDetourAPI->FindPatches(addr, count) };
+	OrderedPatchSet patches{ g_mq->FindPatches(addr, count) };
 
 	for (size_t i = 0; i < count; ++i)
 	{
@@ -215,7 +215,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
-	AddressDetourState detourState = pDetourAPI->IsAddressDetoured(addr, count);
+	AddressDetourState detourState = IsAddressDetoured(addr, count);
 	if (detourState != AddressDetourState::CodeDetour)
 	{
 		return memcheck0_tramp(buffer, count);
@@ -301,7 +301,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 		*gpMemCheckBitmask |= 1;
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
-	AddressDetourState detourState = pDetourAPI->IsAddressDetoured(addr, count);
+	AddressDetourState detourState = g_mq->IsAddressDetoured(addr, count);
 	if (detourState != AddressDetourState::CodeDetour)
 	{
 		gbInMemCheck4 = 1;
@@ -323,7 +323,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 DETOUR_TRAMPOLINE_DEF(uint64_t, decompress_block_trampoline, (uint64_t ctx))
 uint64_t decompress_block_detour(uint64_t ctx)
 {
-	if (gbInMemCheck4)
+	if (s_inMemCheck4)
 		return decompress_block_trampoline(ctx);
 
 	return 0;
@@ -332,24 +332,24 @@ uint64_t decompress_block_detour(uint64_t ctx)
 DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindModules_Trampoline, (HANDLE, HMODULE*, DWORD, DWORD*))
 BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
-	if (gbInMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
-	++gbInMemCheck4;
+	if (s_inMemCheck4 != 1) return FindModules_Trampoline(hProcess, hModule, cb, lpcbNeeded);
+	++s_inMemCheck4;
 	bool getMacroQuestModules = true;
 	bool result = GetFilteredModules(hProcess, hModule, cb, lpcbNeeded,
 		[&getMacroQuestModules](HMODULE hModule) -> bool { return IsMacroQuestModule(hModule, getMacroQuestModules); }) ? TRUE : FALSE;
-	--gbInMemCheck4;
+	--s_inMemCheck4;
 	return result ? 1 : 0;
 }
 
 DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindProcesses_Trampoline, (DWORD*, DWORD, DWORD*))
 BOOL WINAPI FindProcesses_Detour(DWORD* lpidProcess, DWORD cb, DWORD* lpcbNeeded)
 {
-	if (gbInMemCheck4 != 1) return FindProcesses_Trampoline(lpidProcess, cb, lpcbNeeded);
-	++gbInMemCheck4;
+	if (s_inMemCheck4 != 1) return FindProcesses_Trampoline(lpidProcess, cb, lpcbNeeded);
+	++s_inMemCheck4;
 	bool getMacroQuestProcesses = true;
 	bool result = GetFilteredProcesses(lpidProcess, cb, lpcbNeeded,
 		[&getMacroQuestProcesses](std::string_view process_name) -> bool { return IsMacroQuestProcess(process_name, getMacroQuestProcesses); }) ? TRUE : FALSE;
-	--gbInMemCheck4;
+	--s_inMemCheck4;
 	return result ? 1 : 0;
 }
 
@@ -427,8 +427,6 @@ uintptr_t __Process32Next = 0;
 
 void HookMemChecker(bool Patch)
 {
-	DebugSpew("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
-
 	if (Patch)
 	{
 #if !defined(EMULATOR)
@@ -465,12 +463,14 @@ void HookMemChecker(bool Patch)
 #endif
 #endif
 
-		//RemoveDetour(CPacketScrambler__ntoh);
+		RemoveDetour(__decompress_block);
+		RemoveDetour(__compress_block);
+
 		RemoveDetour(Spellmanager__LoadTextSpells);
 	}
 }
 
-static void InitializeDetours()
+void InitializeDetours()
 {
 #if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
@@ -510,7 +510,7 @@ static void InitializeDetours()
 	EzDetour(__Process32Next, &Process32Next_Detour, &Process32Next_Trampoline);
 }
 
-static void ShutdownDetours()
+void ShutdownDetours()
 {
 	RemoveDetour(__ModuleList);
 	RemoveDetour(__ProcessList);
@@ -522,185 +522,28 @@ static void ShutdownDetours()
 	HookMemChecker(false);
 }
 
-//============================================================================
-//============================================================================
+//----------------------------------------------------------------------------
 
-MQDetourAPI* pDetourAPI = nullptr;
-
-MQDetourAPI::MQDetourAPI(eqlib::MemoryPatcher* memoryPatcher)
-	: m_memoryPatcher(memoryPatcher)
+class DetoursModule : public MQModuleBase
 {
-	// TODO: Decouple detours from the memory patcher
-	InitializeDetours();
-}
-
-MQDetourAPI::~MQDetourAPI()
-{
-	ShutdownDetours();
-}
-
-bool MQDetourAPI::ValidateNewPatch(uintptr_t address, std::string_view name, const MQPluginHandle& pluginHandle) const
-{
-	eqlib::MemoryPatch* existingPatch = nullptr;
-
-	if (m_memoryPatcher->FindPatches(address, eqlib::DETOUR_BYTES_COUNT, &existingPatch, 1) != 0)
+public:
+	DetoursModule() : MQModuleBase("Detours")
 	{
-		if (pluginHandle == mqplugin::ThisPluginHandle || existingPatch->GetUserData() == 0)
-			return false;
-
-		MQPlugin* otherPlugin = GetPluginByHandle(MQPluginHandle{ existingPatch->GetUserData() });
-		MQPlugin* thisPlugin = GetPluginByHandle(pluginHandle);
-
-		if (existingPatch->GetAddress() == address)
-		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
-				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
-		}
-		else
-		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
-				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
-		}
-
-		return false;
 	}
 
-	return true;
-}
-
-bool MQDetourAPI::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
-	const MQPluginHandle& pluginHandle)
-{
-	if (!ValidateNewPatch(address, name, pluginHandle))
-		return false;
-
-	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, target, detour, name))
+	virtual void Initialize() override
 	{
-		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
-
-		return true;
+		InitializeDetours();
 	}
 
-	return false;
-}
-
-bool MQDetourAPI::CreateDetour(uintptr_t address, size_t width, std::string_view name,
-	const MQPluginHandle& pluginHandle)
-{
-	if (!ValidateNewPatch(address, name, pluginHandle))
-		return false;
-
-	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, width, name))
+	virtual void Shutdown() override
 	{
-		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
-
-		return true;
+		ShutdownDetours();
 	}
+};
 
-	return false;
-}
-
-bool MQDetourAPI::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
-{
-	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
-
-	if (!patch || patch->GetType() != MemoryPatch::Type::Detour)
-	{
-		SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
-
-		return false;
-	}
-
-	if (patch->GetUserData() != pluginHandle.pluginID)
-	{
-		if (patch->GetUserData() == 0)
-		{
-			SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
-		}
-		else
-		{
-			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
-
-			if (plugin)
-			{
-				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
-			}
-			else
-			{
-				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
-			}
-		}
-	}
-
-	return m_memoryPatcher->RemovePatch(address);
-}
-
-AddressDetourState MQDetourAPI::IsAddressDetoured(uintptr_t address, size_t width) const
-{
-	if (gbDoingSpellChecks || gbInMemCheck4 > 0)
-		return AddressDetourState::KnownSkippable;
-
-	// Executables start with a header that has 'MZ\x90\x00'. This is checking for this
-	// magic value and skipping the crc32 of an executable since we don't care about those.
-	if (address && width >= 4 && *(DWORD*)address == 0x00905a4d)
-		return AddressDetourState::KnownSkippable;
-
-	if (m_memoryPatcher->IsAddressPatched(address, width))
-		return AddressDetourState::CodeDetour;
-
-	return AddressDetourState::None;
-}
-
-std::vector<eqlib::MemoryPatch*> MQDetourAPI::FindPatches(uintptr_t address, size_t width)
-{
-	std::vector<eqlib::MemoryPatch*> result;
-	uintptr_t endAddress = address + width;
-	size_t offset = 0;
-
-	// Ferry list of patches across dll boundary...
-	constexpr uint32_t MAX_PER_ITERATION = 100;
-	eqlib::MemoryPatch* patches[MAX_PER_ITERATION];
-
-	uint32_t count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
-	if (count == 0)
-		return result;
-
-	// Count is the total number of patches found, so we can resize as soon as we know.
-	result.resize(count);
-
-	// Now we iterate through results until we have all the patches.
-	memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
-
-	while (count > MAX_PER_ITERATION)
-	{
-		offset += MAX_PER_ITERATION;
-
-		address = result.back()->GetAddress() + result.back()->GetBytesSize();
-		width = endAddress - address;
-
-		count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
-
-		memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
-	}
-
-	return result;
-}
+DECLARE_MODULE_FACTORY(DetoursModule)
 
 //============================================================================
-
-bool detail::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name)
-{
-	return pDetourAPI->CreateDetour(address, target, detour, name, mqplugin::ThisPluginHandle);
-}
-
-bool detail::CreateDetour(uintptr_t address, size_t width, std::string_view name)
-{
-	return pDetourAPI->CreateDetour(address, width, name, mqplugin::ThisPluginHandle);
-}
-
-bool RemoveDetour(uintptr_t address)
-{
-	return pDetourAPI->RemoveDetour(address, mqplugin::ThisPluginHandle);
-}
 
 } // namespace mq

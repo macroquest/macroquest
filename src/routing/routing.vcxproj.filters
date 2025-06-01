@@ -33,6 +33,9 @@
     <ClInclude Include="NamedPipesProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PipeMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto">

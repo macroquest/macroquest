@@ -22,21 +22,14 @@ namespace mq {
 const double DegToRad = 57.295779513082320876846364344191;
 const double PI = 3.1415926535;
 
-/* PickZone */
-HANDLE ghInitializeSpellDbThread = nullptr;
-
 /* BENCHMARKS */
 uint32_t bmRenderScene = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
-uint32_t bmSpellLoad = 0;
-uint32_t bmSpellAccess = 0;
 uint32_t bmAnonymizer = 0;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
-
-ePVPServer PVPServer = PVP_NONE;
 
 int gGameState = 0;
 DWORD ThreadID = 0;
@@ -59,7 +52,6 @@ int gEventFunc[NUM_EVENTS] = { 0 };
 double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
-bool gbSpelldbLoaded = false;
 char gszMacroName[MAX_STRING] = { 0 };
 char szLastCommand[MAX_STRING] = { 0 };
 char gUISkin[MAX_PATH] = "default";

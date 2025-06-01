@@ -629,6 +629,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="MacroQuest.h" />
     <ClInclude Include="MacroSystem.h" />
+    <ClInclude Include="ModuleSystem.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQCommandAPI.h" />
@@ -646,9 +647,7 @@
     <ClInclude Include="MQ2Mercenaries.h" />
     <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
-    <ClInclude Include="MQDetourAPI.h" />
     <ClInclude Include="MQPluginHandler.h" />
-    <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="MQPostOffice.h" />

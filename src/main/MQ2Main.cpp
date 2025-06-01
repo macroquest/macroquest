@@ -18,8 +18,6 @@
 #include "MQActorAPI.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
-#include "MQDetourAPI.h"
-#include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
@@ -54,7 +52,6 @@ namespace mq {
 // From MQ2PluginHandler.cpp
 void ShutdownInternalModules();
 
-MQModule* GetSpellsModule();
 MQModule* GetImGuiToolsModule();
 MQModule* GetDataAPIModule();
 MQModule* GetActorAPIModule();
@@ -62,7 +59,6 @@ MQModule* GetGroundSpawnsModule();
 MQModule* GetSpawnsModule();
 MQModule* GetItemsModule();
 MQModule* GetWindowsModule();
-MQModule* GetPostOfficeModule();
 #if IS_EMU_CLIENT
 MQModule* GetEmuExtensionsModule();
 #endif
@@ -82,16 +78,14 @@ void DoMainThreadInitialization()
 
 	InitializeChatHook();
 	InitializeAnonymizer();
-	InitializeInternalModules();
+	//InitializeInternalModules();
 	AddInternalModule(GetWindowsModule());
 	AddInternalModule(GetImGuiToolsModule());
-	AddInternalModule(GetSpellsModule());
 	AddInternalModule(GetDataAPIModule());
 	AddInternalModule(GetActorAPIModule());
 	AddInternalModule(GetGroundSpawnsModule());
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
-	AddInternalModule(GetPostOfficeModule());
 #if IS_EMU_CLIENT
 	AddInternalModule(GetEmuExtensionsModule());
 #endif
