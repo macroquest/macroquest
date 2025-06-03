@@ -128,7 +128,6 @@ MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;
 MQLIB_VAR bool gFilterMQ2DataErrors;
 MQLIB_VAR bool gSpewToFile;
-MQLIB_VAR bool gbDoAutoRun;
 MQLIB_VAR bool gLClickedObject;
 MQLIB_VAR MQWhoFilter gFilterSWho;
 MQLIB_VAR bool gCreateMQ2NewsWindow;

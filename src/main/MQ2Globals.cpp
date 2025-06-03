@@ -89,7 +89,6 @@ bool gFilterMQ = false;
 bool gFilterEncumber = false;
 bool gFilterCustom = true;
 bool gSpewToFile = false;
-bool gbDoAutoRun = false;
 bool gMQPauseOnChat = false;
 bool gKeepKeys = true;
 bool gLClickedObject = false;

@@ -1098,14 +1098,14 @@ void ShutdownImGuiConsole()
 	RemoveCommand("/mqconsole");
 }
 
-DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
+void ImGuiConsoleAddText(const char* line, int color, int filter)
 {
+	UNUSED(filter);
+
 	MQColor col = GetColorForChatColor(color);
 
 	if (gMQConsole)
 		gMQConsole->AddWriteChatColorLog(line, col, true);
-
-	return 0;
 }
 
 } // namespace mq

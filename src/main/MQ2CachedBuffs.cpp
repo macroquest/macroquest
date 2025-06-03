@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "ModuleSystem.h"
 
 #include <optional>
 
@@ -39,7 +40,7 @@ public:
 	}
 
 	template <typename ...Args>
-	void Emplace(Args&& ... args)
+	void Emplace(Args&&...args)
 	{
 		// by virtue of how we add to this vector, we won't have duplicates since we always clear before
 		cachedBuffs.emplace_back(std::forward<Args>(args)...);
@@ -251,14 +252,11 @@ DWORD GetCachedBuffCount(PlayerClient* pSpawn)
 	return 0U;
 }
 
-void ClearCachedBuffsSpawn(PlayerClient* pSpawn)
+static void ClearCachedBuffsSpawn(PlayerClient* pSpawn)
 {
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-			buffs->second->Clear();
-	}
+	auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
+	if (buffs != std::end(gCachedBuffMap))
+		buffs->second->Clear();
 }
 
 void ClearCachedBuffs()
@@ -293,16 +291,39 @@ void CachedBuffsCommand(PlayerClient* pChar, const char* szLine)
 	WriteChatf("\ayUsage: /cachedbuffs [cleartarget | reset]");
 }
 
-void InitializeCachedBuffs()
-{
-	EzDetour(CTargetWnd__RefreshTargetBuffs,
-		&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour,
-		&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
-}
+//============================================================================
 
-void ShutdownCachedBuffs()
+class CachedBuffsModule : public MQModuleBase
 {
-	RemoveDetour(CTargetWnd__RefreshTargetBuffs);
-}
+public:
+	CachedBuffsModule() : MQModuleBase("CachedBuffs")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		EzDetour(CTargetWnd__RefreshTargetBuffs,
+			&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour,
+			&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
+
+		AddCommand("/cachedbuffs", CachedBuffsCommand, false, true, true);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveDetour(CTargetWnd__RefreshTargetBuffs);
+
+		RemoveCommand("/cachedbuffs");
+
+		ClearCachedBuffs();
+	}
+
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* pSpawn) override
+	{
+		ClearCachedBuffsSpawn(pSpawn);
+	}
+};
+
+DECLARE_MODULE_FACTORY(CachedBuffsModule);
 
 } // namespace mq

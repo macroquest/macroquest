@@ -632,6 +632,7 @@
     <ClInclude Include="ModuleSystem.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
+    <ClInclude Include="MQCfgFileHandler.cpp" />
     <ClInclude Include="MQCommandAPI.h" />
     <ClInclude Include="MQConfig.h" />
     <ClInclude Include="MQDataAPI.h" />

@@ -31,6 +31,6 @@ void InitializeImGuiConsole();
 void ShutdownImGuiConsole();
 void UpdateImGuiConsole();
 
-DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter);
+void ImGuiConsoleAddText(const char* line, int color, int filter);
 
 } // namespace mq

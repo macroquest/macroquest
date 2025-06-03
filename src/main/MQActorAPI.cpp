@@ -25,40 +25,38 @@ using namespace mq::postoffice;
 
 namespace mq {
 
-static void OnPostUnloadPluginActorAPI(const char*);
-
-static MQModule s_ActorAPIModule = {
-	"ActorAPI",                      // Name
-	false,                           // CanUnload
-	nullptr,                         // Initialize
-	nullptr,                         // Shutdown
-	nullptr,                         // Pulse
-	nullptr,                         // SetGameState
-	nullptr,                         // UpdateImGui
-	nullptr,                         // Zoned
-	nullptr,                         // WriteChatColor
-	nullptr,                         // SpawnAdded
-	nullptr,                         // SpawnRemoved
-	nullptr,                         // BeginZone
-	nullptr,                         // EndZone
-	nullptr,                         // LoadPlugin
-	nullptr,                         // UnloadPlugin
-	nullptr,                         // CleanUI
-	nullptr,                         // ReloadUI
-	OnPostUnloadPluginActorAPI,      // OnPostUnloadPlugin
-};
-MQModule* GetActorAPIModule() { return &s_ActorAPIModule; }
 MQActorAPI* pActorAPI = nullptr;
 
-std::unordered_map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
+// FIXME
+std::unordered_map<MQModuleBase*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
 
 // this is to allow for replies while not exposing message internals to the API
 std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
-static void OnPostUnloadPluginActorAPI(const char* pluginName)
+MQActorAPI::MQActorAPI()
+	: MQModuleBase("ActorAPI", static_cast<int>(ModulePriority::Actors))
 {
-	MQPlugin* plugin = GetPlugin(pluginName);
-	auto it = s_dropboxes.find(plugin);
+	pActorAPI = this;
+}
+
+MQActorAPI::~MQActorAPI()
+{
+	pActorAPI = nullptr;
+}
+
+void MQActorAPI::Initialize()
+{
+}
+
+void MQActorAPI::Shutdown()
+{
+}
+
+void MQActorAPI::OnBeforeModuleUnloaded(MQModuleBase* module)
+{
+	// FIXME
+	//MQPlugin* plugin = GetPlugin(module);
+	auto it = s_dropboxes.find(module);
 	if (it != s_dropboxes.end())
 	{
 		for (auto& dropbox : it->second)

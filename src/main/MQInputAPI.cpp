@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "ModuleSystem.h"
 
 #define DIRECTINPUT_VERSION    0x800
 #include <dinput.h>
@@ -23,19 +24,6 @@
 using namespace eqlib;
 
 namespace mq {
-
-static void InputAPI_Initialize();
-static void InputAPI_Shutdown();
-static void InputAPI_Pulse();
-
-static MQModule s_inputAPIModule = {
-	"InputAPI",                    // Name
-	true,                          // CanUnload
-	InputAPI_Initialize,
-	InputAPI_Shutdown,
-	InputAPI_Pulse,
-};
-DECLARE_MODULE_INITIALIZER(s_inputAPIModule);
 
 static bool s_inGetDeviceState = false;
 static bool s_inGetDeviceData = false;
@@ -737,47 +725,53 @@ static LRESULT WINAPI DispatchMessageA_Detour(const MSG* lpMsg)
 	return DispatchMessageA_Trampoline(lpMsg);
 }
 
-static void InputAPI_Initialize()
+//============================================================================
+
+class InputModule : public MQModuleBase
 {
-	DebugSpew("Initializing Input");
+public:
+	InputModule() : MQModuleBase("Input") {}
 
-	TranslateMessage_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "TranslateMessage");
-	EzDetour(TranslateMessage_Ptr, &TranslateMessage_Detour, &TranslateMessage_Trampoline);
-	DispatchMessageA_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "DispatchMessageA");
-	EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
-
-	EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
-}
-
-void InputAPI_Shutdown()
-{
-	DebugSpew("Shutting down Input");
-
-	RemoveDetour(CDisplay__GetClickedActor);
-	RemoveDetour(TranslateMessage_Ptr);
-	RemoveDetour(DispatchMessageA_Ptr);
-
-	if (s_dinputInitialized)
+	virtual void Initialize() override
 	{
-		RemoveDetour(GetDeviceData);
-		RemoveDetour(GetDeviceState);
+		TranslateMessage_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "TranslateMessage");
+		EzDetour(TranslateMessage_Ptr, &TranslateMessage_Detour, &TranslateMessage_Trampoline);
+		DispatchMessageA_Ptr = (uintptr_t)GetProcAddress(GetModuleHandleA("USER32"), "DispatchMessageA");
+		EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
+
+		EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
 	}
 
-	RemoveDetour(__ProcessDeviceEvents);
-}
-
-void InputAPI_Pulse()
-{
-	if (!s_dinputInitialized)
+	virtual void Shutdown() override
 	{
-		InstallDirectInputHooks();
+		RemoveDetour(CDisplay__GetClickedActor);
+		RemoveDetour(TranslateMessage_Ptr);
+		RemoveDetour(DispatchMessageA_Ptr);
 
-		// If we're initialized we do not need to pulse anymore.
 		if (s_dinputInitialized)
 		{
-			s_inputAPIModule.Pulse = nullptr;
+			RemoveDetour(GetDeviceData);
+			RemoveDetour(GetDeviceState);
+		}
+
+		RemoveDetour(__ProcessDeviceEvents);
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		// Keep trying to install hooks until we reach a frame where it succeeds.
+		if (!s_dinputInitialized)
+		{
+			InstallDirectInputHooks();
+
+			if (s_dinputInitialized)
+			{
+				m_flags |= ModuleFlags::SkipOnProcessFrame;
+			}
 		}
 	}
-}
+};
+
+DECLARE_MODULE_FACTORY(InputModule);
 
 } // namespace mq

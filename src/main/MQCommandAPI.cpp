@@ -159,7 +159,6 @@ void MQCommandAPI::Initialize()
 		{ "/bind",              MQ2KeyBindCommand,          true,  false },
 		{ "/break",             Break,                      true,  false },
 		{ "/buyitem",           BuyItem,                    true,  true  },
-		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
 		{ "/call",              Call,                       true,  false },
 		{ "/cast",              Cast,                       true,  true  },
 		{ "/cecho",             EchoClean,                  true,  false },
@@ -209,7 +208,6 @@ void MQCommandAPI::Initialize()
 		{ "/keepkeys",          KeepKeys,                   true,  false },
 		{ "/keypress",          DoMappable,                 true,  false },
 		{ "/listmacros",        ListMacros,                 true,  false },
-		{ "/loadcfg",           LoadCfgCommand,             true,  false },
 		{ "/loadspells",        LoadSpells,                 true,  true  },
 		{ "/location",          Location,                   true,  true  },
 		{ "/loginname",         DisplayLoginName,           true,  false },
@@ -310,32 +308,35 @@ void MQCommandAPI::Shutdown()
 	m_aliases.clear();
 }
 
-void MQCommandAPI::OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle)
+void MQCommandAPI::OnAfterModuleUnloaded(MQModuleBase* module)
 {
-	// Remove any commands that were created by this plugin.
-	MQCommand* pCommand = m_pCommands;
-
-	while (pCommand)
+	if (module->IsPlugin())
 	{
-		if (pCommand->pluginHandle == pluginHandle)
-		{
-			DebugSpew("Removing command left behind by %s: %s", plugin->name.c_str(), pCommand->command.c_str());
+		// Remove any commands that were created by this plugin.
+		MQCommand* pCommand = m_pCommands;
 
-			if (pCommand->pNext)
-				pCommand->pNext->pLast = pCommand->pLast;
-			if (pCommand->pLast)
-				pCommand->pLast->pNext = pCommand->pNext;
+		while (pCommand)
+		{
+			if (pCommand->pluginHandle == module->GetHandle())
+			{
+				DebugSpew("Removing command left behind by %s: %s", module->GetName().c_str(), pCommand->command.c_str());
+
+				if (pCommand->pNext)
+					pCommand->pNext->pLast = pCommand->pLast;
+				if (pCommand->pLast)
+					pCommand->pLast->pNext = pCommand->pNext;
+				else
+					m_pCommands = pCommand->pNext;
+
+				MQCommand* thisCmd = pCommand;
+				pCommand = pCommand->pNext;
+
+				delete thisCmd;
+			}
 			else
-				m_pCommands = pCommand->pNext;
-
-			MQCommand* thisCmd = pCommand;
-			pCommand = pCommand->pNext;
-
-			delete thisCmd;
-		}
-		else
-		{
-			pCommand = pCommand->pNext;
+			{
+				pCommand = pCommand->pNext;
+			}
 		}
 	}
 }

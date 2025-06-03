@@ -13,33 +13,25 @@
  */
 
 #include "pch.h"
+
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 
 using namespace eqlib;
 
 namespace mq {
 
-static void SetGameStateGroundSpawns(int);
-
-static MQModule s_GroundSpawnsModule = {
-	"GroundSpawns",                // Name
-	false,                         // CanUnload
-	nullptr,                       // Initialize
-	nullptr,                       // Shutdown
-	nullptr,                       // Pulse
-	SetGameStateGroundSpawns       // SetGameState
-};
-MQModule* GetGroundSpawnsModule() { return &s_GroundSpawnsModule; }
-
 class GroundSpawnSearch
 {
-private:
 	// make this private because _all access_ to ground spawns should be through the list
 	std::vector<MQGroundSpawn> m_searchResults;
 	std::vector<MQGroundSpawn>::iterator m_currentResult;
-	bool m_valid;
+	bool m_valid = false;
 
-	GroundSpawnSearch() : m_searchResults(), m_currentResult(m_searchResults.end()), m_valid(false) {}
+	GroundSpawnSearch()
+		: m_currentResult(m_searchResults.end())
+	{
+	}
 
 public:
 	GroundSpawnSearch(const GroundSpawnSearch&) = delete;
@@ -279,7 +271,6 @@ public:
 
 static void SetGameStateGroundSpawns(int)
 {
-	GroundSpawnSearch::Reset();
 }
 
 MQGroundSpawn GetGroundSpawnByName(std::string_view Name)
@@ -421,7 +412,7 @@ CVector3 MQGroundSpawn::Position() const
 		std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::max()
-		);
+	);
 }
 
 void SetGroundSpawn(std::string_view Name)
@@ -646,5 +637,22 @@ void MQGroundSpawn::Reset()
 	Type = MQGroundSpawnType::None;
 	Object = {};
 }
+
+//============================================================================
+
+class GroundSpawnsModule : public MQModuleBase
+{
+public:
+	GroundSpawnsModule() : MQModuleBase("GroundSpawns")
+	{
+	}
+
+	virtual void OnGameStatechanged(int gameState)
+	{
+		GroundSpawnSearch::Reset();
+	}
+};
+
+DECLARE_MODULE_FACTORY(GroundSpawnsModule);
 
 } // namespace mq

@@ -60,7 +60,6 @@ MQLIB_API void DoCtrlCmd                           (eqlib::PlayerClient* pChar, 
 MQLIB_API void DoAltCmd                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoCommandCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DumpBindsCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void LoadCfgCommand                      (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RangedCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoMappable                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MQ2KeyBindCommand                   (eqlib::PlayerClient* pChar, const char* szLine);
@@ -131,7 +130,6 @@ MQLIB_API void ForeGroundCmd                       (eqlib::PlayerClient* pChar, 
 MQLIB_API void QuitCmd                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RemoveLevCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void EngineCommand                       (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void CachedBuffsCommand                  (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MQCopyLayout                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ListModulesCommand                  (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ListProcessesCommand                (eqlib::PlayerClient* pChar, const char* szLine);

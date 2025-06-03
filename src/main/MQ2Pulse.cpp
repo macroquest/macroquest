@@ -323,30 +323,6 @@ static void Pulse()
 	if (pMerchantWnd && !pMerchantWnd->IsVisible())
 		gItemsReceived = false;
 
-	if (gbDoAutoRun && pChar && pLocalPC)
-	{
-		gbDoAutoRun = false;
-
-		char szAutoRun[MAX_STRING] = { 0 };
-		char* pAutoRun = szAutoRun;
-
-		// autorun command for everyone
-		GetPrivateProfileString("AutoRun", "ALL", "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
-		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
-		if (szAutoRun[0] != 0)
-			DoCommand(pAutoRun, false);
-
-		// autorun command for toon
-		szAutoRun[0] = 0;
-		pAutoRun = szAutoRun;
-		char szServerAndName[128] = { 0 };
-		sprintf_s(szServerAndName, "%s.%s", GetServerShortName(), pLocalPC->Name);
-		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, mq::internal_paths::MQini);
-		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
-		if (szAutoRun[0] != 0)
-			DoCommand(pAutoRun, false);
-	}
-
 	if (gbShowCurrentCamera)
 	{
 		if (pWndMgr && pSelectorWnd)

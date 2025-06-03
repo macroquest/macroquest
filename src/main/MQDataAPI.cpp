@@ -29,34 +29,10 @@ std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 std::mutex s_objectMapMutex;
 uint32_t bmParseMacroData;
 
-static void SetGameStateDataAPI(int);
-static void OnPulseDataAPI();
-static void UnloadPluginDataAPI(const char*);
-
-static MQModule s_DataAPIModule = {
-	"DataAPI",                      // Name
-	false,                          // CanUnload
-	nullptr,
-	nullptr,
-	OnPulseDataAPI,
-	SetGameStateDataAPI,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	UnloadPluginDataAPI
-};
-MQModule* GetDataAPIModule() { return &s_DataAPIModule; }
-
 struct MQDataTypeRegistration
 {
 	std::string Name;
 	MQ2Type* Type;
-
 };
 
 //============================================================================
@@ -77,23 +53,6 @@ static void PruneObservedEQObjects()
 		std::end(s_objectMap));
 }
 
-static void OnPulseDataAPI()
-{
-	const auto now = std::chrono::steady_clock::now();
-	static std::chrono::steady_clock::time_point next_check = now + std::chrono::seconds(30);
-
-	if (now > next_check)
-	{
-		next_check = now + std::chrono::seconds(30);
-		PruneObservedEQObjects();
-	}
-}
-
-static void SetGameStateDataAPI(int)
-{
-	PruneObservedEQObjects();
-}
-
 // don't need a dropper because it will remove itself once the shared_ptr destroys itself
 void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object)
 {
@@ -110,18 +69,51 @@ void InvalidateObservedEQObject(void* Object)
 	for (const auto& weak : s_objectMap)
 	{
 		if (auto ptr = weak.lock())
+		{
 			if (*ptr == Object)
 				ptr->Invalidate();
+		}
 	}
 }
 
-void UnloadPluginDataAPI(const char* Name)
+class ObservedObjectsModule : public MQModuleBase
 {
-	// if we attempt to prune objects held by plugins after the plugin
-	// is unloaded, we get a crash. Force a pruning every time a plugin
-	// is unloaded to prevent that.
-	PruneObservedEQObjects();
-}
+public:
+	ObservedObjectsModule() : MQModuleBase("ObservedObjects")
+	{
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		UNUSED(gameState);
+	
+		PruneObservedEQObjects();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		const auto now = std::chrono::steady_clock::now();
+		static std::chrono::steady_clock::time_point next_check = now + std::chrono::seconds(30);
+
+		if (now > next_check)
+		{
+			next_check = now + std::chrono::seconds(30);
+			PruneObservedEQObjects();
+		}
+	}
+
+	virtual void OnBeforeModuleUnloaded(MQModuleBase* module) override
+	{
+		UNUSED(module);
+
+		// if we attempt to prune objects held by plugins after the plugin
+		// is unloaded, we get a crash. Force a pruning every time a plugin
+		// is unloaded to prevent that.
+		PruneObservedEQObjects();
+	}
+};
+
+DECLARE_MODULE_FACTORY(ObservedObjectsModule);
 
 //============================================================================
 //============================================================================
@@ -133,21 +125,29 @@ namespace datatypes {
 
 MQDataAPI* pDataAPI = nullptr;
 
-MQDataAPI::MQDataAPI()
+MQDataAPI::MQDataAPI() : MQModuleBase("DataTypes", static_cast<int>(ModulePriority::DataTypes))
 {
 	bmParseMacroData = AddBenchmark("ParseMacroParameter");
+
+	pDataAPI = this;
 }
 
 MQDataAPI::~MQDataAPI()
 {
-	datatypes::UnregisterDataTypes();
 	RemoveBenchmark(bmParseMacroData);
+
+	pDataAPI = nullptr;
 }
 
 void MQDataAPI::Initialize()
 {
 	RegisterTopLevelObjects();
 	datatypes::RegisterDataTypes();
+}
+
+void MQDataAPI::Shutdown()
+{
+	datatypes::UnregisterDataTypes();
 }
 
 bool MQDataAPI::IsReservedName(const std::string& name) const
@@ -600,7 +600,6 @@ void MQDataAPI::RegisterTopLevelObjects()
 	AddTopLevelObject("Alert", datatypes::MQ2AlertType::dataAlert);
 	AddTopLevelObject("Alias", datatypes::dataAlias);
 	AddTopLevelObject("Defined", datatypes::dataDefined);
-	AddTopLevelObject("FrameLimiter", datatypes::MQ2FrameLimiterType::dataFrameLimiter);
 	AddTopLevelObject("If", datatypes::dataIf);
 	AddTopLevelObject("Ini", datatypes::MQIniType::dataIni);
 	AddTopLevelObject("Macro", datatypes::MQ2MacroType::dataMacro);
@@ -1920,6 +1919,5 @@ void SGlobalBuffer::pop_buffer()
 	ptr = m_stack.top();
 	m_stack.pop();
 }
-
 
 } // namespace mq

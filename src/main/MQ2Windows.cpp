@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 #include "MQ2DeveloperTools.h"
+#include "ModuleSystem.h"
 
 #include <algorithm>
 #include <string>
@@ -26,22 +27,6 @@
 using namespace eqlib;
 
 namespace mq {
-
-static void Windows_Initialize();
-static void Windows_Shutdown();
-static void Windows_Pulse();
-static void Windows_UpdateImGui();
-
-static MQModule gWindowsModule = {
-	"Windows",                  // Name
-	false,                      // CanUnload
-	Windows_Initialize,
-	Windows_Shutdown,
-	Windows_Pulse,
-	nullptr,
-	Windows_UpdateImGui,
-};
-MQModule* GetWindowsModule() { return &gWindowsModule; }
 
 char* szClickNotification[] = {
 	"leftmouse",        // 0
@@ -1954,8 +1939,6 @@ void UpdateCascadeMenu()
 
 static void Windows_Initialize()
 {
-	DebugSpew("Initializing MQ2 Windows");
-
 	strcpy_s(gUISkin, GetCurrentUI().c_str());
 
 	for (int i = 0; i < NUM_INV_SLOTS; i++)
@@ -2014,8 +1997,6 @@ static void Windows_Initialize()
 
 static void Windows_Shutdown()
 {
-	DebugSpew("Shutting down MQ2 Windows");
-
 	RemoveCascadeMenuItem("Toggle Overlay UI");
 
 	gCascadeItemData.clear();
@@ -2036,16 +2017,32 @@ static void Windows_Shutdown()
 	RemoveDetour(__CreateCascadeMenuItems);
 }
 
-static void Windows_Pulse()
+class WindowsModule : public MQModuleBase
 {
-	if (gbCascadeMenuNeedsUpdate)
+public:
+	WindowsModule() : MQModuleBase("Windows")
 	{
-		UpdateCascadeMenu();
 	}
-}
 
-static void Windows_UpdateImGui()
-{
-}
+	virtual void Initialize() override
+	{
+		Windows_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		Windows_Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		if (gbCascadeMenuNeedsUpdate)
+		{
+			UpdateCascadeMenu();
+		}
+	}
+};
+
+DECLARE_MODULE_FACTORY(WindowsModule);
 
 } // namespace mq

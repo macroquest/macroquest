@@ -153,6 +153,18 @@ class SpellsModule;
 class LoadingScreenModule;
 class DisplayHookModule;
 class ChatHookModule;
+class EmuExtensionsModule;
+class FrameLimiterModule;
+class WindowsModule;
+class ObservedObjectsModule;
+class SpawnsModule;
+class GroundSpawnsModule;
+class ItemsModule;
+class CachedBuffsModule;
+class DeveloperToolsModule;
+class ImGuiAPIModule;
+class InputModule;
+class MQCfgfileHandler;
 
 struct MQStartupParams
 {
@@ -548,11 +560,7 @@ bool MacroQuest::MainThreadInitialize()
 	// UI Exists if we're in any of the ingame states.
 	m_createdUI = gGameState >= eqlib::GAMESTATE_CHARSELECT && gGameState <= eqlib::GAMESTATE_INGAME;
 
-	// MainImpl::DoMainThreadInitialization()
-	pDataAPI = new MQDataAPI();
-	pDataAPI->Initialize();
-
-	pActorAPI = new MQActorAPI();
+	InitializeModules();
 
 	DoMainThreadInitialization();
 
@@ -580,12 +588,6 @@ void MacroQuest::Shutdown()
 {
 	DoMainThreadShutdown();
 
-	delete pDataAPI;
-	pDataAPI = nullptr;
-
-	delete pActorAPI;
-	pActorAPI = nullptr;
-
 	eqlib::Shutdown(m_eqlib);
 	m_eqlib = nullptr;
 
@@ -599,8 +601,11 @@ void MacroQuest::Shutdown()
 
 void MacroQuest::LoadModules()
 {
-	AddModule(CreateModule<MQCommandAPI>());
+	AddModule(CreateModule<MQCommandAPI>());           // Instantiates pCommandAPI
 	AddModule(CreateModule<CrashHandlerModule>());
+	AddModule(CreateModule<MQDataAPI>());              // Instantiates pDataAPI
+	AddModule(CreateModule<MQActorAPI>());             // Instantiates pActorAPI
+	AddModule(CreateModule<MQPluginHandler>());
 
 	AddModule(CreateModule<DetoursModule>());
 	AddModule(CreateModule<SpellsModule>());
@@ -609,6 +614,18 @@ void MacroQuest::LoadModules()
 	AddModule(CreateModule<DisplayHookModule>());
 	AddModule(CreateModule<LoadingScreenModule>());
 	AddModule(CreateModule<ChatHookModule>());
+	AddModule(CreateModule<EmuExtensionsModule>());
+	AddModule(CreateModule<FrameLimiterModule>());
+	AddModule(CreateModule<WindowsModule>());
+	AddModule(CreateModule<ObservedObjectsModule>());
+	AddModule(CreateModule<SpawnsModule>());
+	AddModule(CreateModule<GroundSpawnsModule>());
+	AddModule(CreateModule<ItemsModule>());
+	AddModule(CreateModule<CachedBuffsModule>());
+	AddModule(CreateModule<DeveloperToolsModule>());
+	AddModule(CreateModule<ImGuiAPIModule>());
+	AddModule(CreateModule<InputModule>());
+	AddModule(CreateModule<MQCfgfileHandler>());
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)

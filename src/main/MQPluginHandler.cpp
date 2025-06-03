@@ -518,10 +518,6 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	AddPluginToList(pPlugin);
 	s_pluginMap.emplace(std::string_view(pPlugin->name), rec);
 
-	// load cfg file if exists
-	std::string autoExec = fmt::format("{}-AutoExec", pPlugin->szFilename);
-	LoadCfgFile(autoExec.c_str(), false);
-
 	PluginsLoadPlugin(pPlugin->szFilename);
 
 	if (save)
@@ -545,9 +541,6 @@ static void ShutdownPlugin(const PluginInfoRec& rec)
 
 	// Allow other plugins to cleanup resources after plugin shutdown but before the dll is freed
 	PluginsPostUnloadPlugin(pPlugin->szFilename);
-
-	// Perform any additional de-registration as required
-	pCommandAPI->OnPluginUnloaded(pPlugin, rec.handle);
 }
 
 bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
@@ -850,55 +843,6 @@ void PluginsSetGameState(int GameState)
 
 	PluginDebug("PluginsSetGameState()");
 
-	static bool AutoExec = false;
-	static bool CharSelect = true;
-
-	if (GameState == GAMESTATE_INGAME)
-	{
-		gbDoAutoRun = true;
-
-		if (!AutoExec)
-		{
-			AutoExec = true;
-			LoadCfgFile("AutoExec", false);
-		}
-
-		if (CharSelect)
-		{
-			CharSelect = false;
-			char szBuffer[MAX_STRING] = { 0 };
-
-			DebugSpew("PluginsSetGameState(%s server)", GetServerShortName());
-
-			LoadCfgFile("InGame", false);
-
-			if (pLocalPC)
-			{
-				DebugSpew("PluginsSetGameState(%s name)", pLocalPC->Name);
-
-				sprintf_s(szBuffer, "%s_%s", GetServerShortName(), pLocalPC->Name);
-				LoadCfgFile(szBuffer, false);
-			}
-
-			if (PcProfile* pProfile = GetPcProfile())
-			{
-				DebugSpew("PluginsSetGameState(%d class)", pProfile->Class);
-
-				sprintf_s(szBuffer, "%s", GetClassDesc(pProfile->Class));
-				LoadCfgFile(szBuffer, false);
-			}
-		}
-	}
-	else if (GameState == GAMESTATE_CHARSELECT)
-	{
-		if (!AutoExec)
-		{
-			AutoExec = true;
-			LoadCfgFile("AutoExec", false);
-		}
-		CharSelect = true;
-		LoadCfgFile("CharSelect", false);
-	}
 
 	ForEachPlugin([GameState](const MQPlugin* plugin)
 		{
@@ -944,8 +888,6 @@ void PluginsRemoveSpawn(PlayerClient* pSpawn)
 		return;
 
 	PluginDebug("PluginsRemoveSpawn(%s)", pSpawn->Name);
-
-	ClearCachedBuffsSpawn(pSpawn);
 
 	//ForEachModule([pSpawn](const MQModule* module)
 	//	{
@@ -1054,12 +996,6 @@ void PluginsEndZone()
 				plugin->EndZone();
 			}
 		});
-
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
-		LoadCfgFile("zoned", true);
-		LoadCfgFile(pZoneInfo->ShortName, false);
-	}
 }
 
 void ModulesUpdateImGui()

@@ -1928,53 +1928,6 @@ char* DescribeKeyCombo(const KeyCombo& Combo, char* szDest, size_t BufferSize)
 	return &szDest[0];
 }
 
-bool LoadCfgFile(const char* Filename, bool Delayed)
-{
-	std::filesystem::path pathFilename = Filename;
-
-	// The original search order was: Configs\Filename.cfg, root\Filename.cfg, EQ\Filename.cfg, EQ\Filename
-	// The new search order is Config\Autoexec\Filename.cfg then Config\Filename.cfg.
-	if (!strchr(Filename, '.'))
-		pathFilename = std::string(Filename) + ".cfg";
-
-	std::error_code ec_exists;
-
-	if (pathFilename.is_relative())
-	{
-		const std::filesystem::path tmpPath = "Autoexec";
-		if (std::filesystem::exists(mq::internal_paths::Config / tmpPath / pathFilename, ec_exists))
-		{
-			pathFilename = mq::internal_paths::Config / tmpPath / pathFilename;
-		}
-		else if (std::filesystem::exists(mq::internal_paths::Config / pathFilename, ec_exists))
-		{
-			pathFilename = mq::internal_paths::Config / pathFilename;
-		}
-	}
-
-	if (std::filesystem::exists(pathFilename, ec_exists))
-	{
-		FILE* file = _fsopen(pathFilename.string().c_str(), "rt", _SH_DENYNO);
-		if (file)
-		{
-			char szBuffer[MAX_STRING] = { 0 };
-			while (fgets(szBuffer, MAX_STRING, file))
-			{
-				char* Next_Token1 = nullptr;
-				char* Cmd = strtok_s(szBuffer, "\r\n", &Next_Token1);
-				if (Cmd && Cmd[0] && Cmd[0] != ';')
-				{
-					DoCommand(Cmd, Delayed);
-				}
-			}
-
-			fclose(file);
-			return true;
-		}
-	}
-	return false;
-}
-
 enum eCalcOp
 {
 	CO_NUMBER = 0,

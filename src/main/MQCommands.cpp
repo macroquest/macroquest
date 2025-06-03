@@ -3569,21 +3569,6 @@ void RangedCmd(PlayerClient*, const char* szLine)
 	AttackRanged(pRangedTarget);
 }
 
-// /loadcfg
-void LoadCfgCommand(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /loadcfg <filename>");
-		return;
-	}
-
-	if (LoadCfgFile(szLine, false))
-		return;
-
-	MacroError("Could not /loadcfg '%s'", szLine);
-}
-
 // /dumpbinds
 void DumpBindsCommand(PlayerClient*, const char* szLine)
 {

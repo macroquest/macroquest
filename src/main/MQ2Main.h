@@ -543,9 +543,6 @@ public:
 	}
 };
 
-void InitializeCachedBuffs();
-void ShutdownCachedBuffs();
-
 MQLIB_API    int GetCachedBuff(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
 MQLIB_API    int GetCachedBuffAt(eqlib::PlayerClient* pSpawn, size_t index);
 MQLIB_OBJECT int GetCachedBuffAt(eqlib::PlayerClient* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate);
@@ -553,8 +550,6 @@ MQLIB_OBJECT std::optional<CachedBuff> GetCachedBuffAtSlot(eqlib::PlayerClient* 
 MQLIB_OBJECT std::vector<CachedBuff> FilterCachedBuffs(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
 MQLIB_API    DWORD GetCachedBuffCount(eqlib::PlayerClient* pSpawn);
 MQLIB_OBJECT DWORD GetCachedBuffCount(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
-MQLIB_API    void ClearCachedBuffsSpawn(eqlib::PlayerClient* pSpawn);
-MQLIB_API    void ClearCachedBuffs();
 
 MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") int GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
 MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") int GetTargetBuffBySubCat(const char* subcat, DWORD classmask = 0, int startslot = 0);

@@ -14,11 +14,12 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-
+#include "ModuleSystem.h"
+#include "MQ2DeveloperTools.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
 #include "imgui/ImGuiUtils.h"
-#include "MQ2DeveloperTools.h"
+
 
 #include "mq/api/RenderDoc.h"
 #include "mq/utils/Args.h"
@@ -1285,6 +1286,130 @@ void FrameLimiterCommand(PlayerClient* pChar, char* szLine)
 
 #pragma endregion
 
+#pragma region tlo
+
+enum class FrameLimiterTypeMembers
+{
+	Enabled,
+	SaveByChar,
+	Status,
+	CPU,
+	RenderFPS,
+	SimulationFPS,
+	BackgroundFPS,
+	ForegroundFPS,
+	MinSimulationFPS,
+	ClearScreen
+};
+
+class MQ2FrameLimiterType : public MQ2Type
+{
+public:
+	MQ2FrameLimiterType();
+
+	virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
+	virtual bool ToString(MQVarPtr VarPtr, char* Destination) override;
+
+	static bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
+};
+
+
+MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
+{
+	ScopedTypeMember(FrameLimiterTypeMembers, Enabled);
+	ScopedTypeMember(FrameLimiterTypeMembers, SaveByChar);
+	ScopedTypeMember(FrameLimiterTypeMembers, Status);
+	ScopedTypeMember(FrameLimiterTypeMembers, CPU);
+	ScopedTypeMember(FrameLimiterTypeMembers, RenderFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, SimulationFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, BackgroundFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, ForegroundFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, MinSimulationFPS);
+	ScopedTypeMember(FrameLimiterTypeMembers, ClearScreen);
+}
+
+bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
+{
+	auto pMember = MQ2FrameLimiterType::FindMember(Member);
+	if (pMember == nullptr)
+		return false;
+
+	switch (static_cast<FrameLimiterTypeMembers>(pMember->ID))
+	{
+	case FrameLimiterTypeMembers::Enabled:
+		Dest.Type = datatypes::pBoolType;
+		Dest.Set(s_frameLimiter.IsEnabled());
+		return true;
+
+	case FrameLimiterTypeMembers::SaveByChar:
+		Dest.Type = datatypes::pBoolType;
+		Dest.Set(s_frameLimiter.IsSavedByChar());
+		return true;
+
+	case FrameLimiterTypeMembers::Status:
+		Dest.Type = datatypes::pStringType;
+		strcpy_s(DataTypeTemp, s_frameLimiter.IsForeground() ? "Foreground" : "Background");
+		Dest.Ptr = &DataTypeTemp[0];
+		return true;
+
+	case FrameLimiterTypeMembers::CPU:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetCPUUsage());
+		return true;
+
+	case FrameLimiterTypeMembers::RenderFPS:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetRecordedRenderFPS());
+		return true;
+
+	case FrameLimiterTypeMembers::SimulationFPS:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetRecordedSimulationFPS());
+		return true;
+
+	case FrameLimiterTypeMembers::BackgroundFPS:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetTargetBackgroundFPS());
+		return true;
+
+	case FrameLimiterTypeMembers::ForegroundFPS:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetTargetForegroundFPS());
+		return true;
+
+	case FrameLimiterTypeMembers::MinSimulationFPS:
+		Dest.Type = datatypes::pFloatType;
+		Dest.Set(s_frameLimiter.GetMinimumSimulationFPS());
+		return true;
+
+	case FrameLimiterTypeMembers::ClearScreen:
+		Dest.Type = datatypes::pBoolType;
+		Dest.Set(s_frameLimiter.GetClearScreen());
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+MQ2FrameLimiterType* pFrameLimiterType = nullptr;
+
+
+bool MQ2FrameLimiterType::ToString(MQVarPtr VarPtr, char* Destination)
+{
+	strcpy_s(Destination, MAX_STRING, s_frameLimiter.IsEnabled() ? "TRUE" : "FALSE");
+	return true;
+}
+
+bool MQ2FrameLimiterType::dataFrameLimiter(const char* szIndex, MQTypeVar& Ret)
+{
+	Ret.Ptr = nullptr;
+	Ret.Type = pFrameLimiterType;
+	return true;
+}
+
+#pragma endregion
+
 #pragma region module
 
 static void InitializeFrameLimiter()
@@ -1294,6 +1419,8 @@ static void InitializeFrameLimiter()
 	bmRenderScene = AddBenchmark("Render_Scene");
 	bmRealRenderWorld = AddBenchmark("Render_Simulation");
 	bmThrottleTime = AddBenchmark("Render_Throttle");
+
+	AddTopLevelObject("FrameLimiter", MQ2FrameLimiterType::dataFrameLimiter);
 
 	// Hook UI render function
 	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);
@@ -1341,143 +1468,37 @@ static void ShutdownFrameLimiter()
 	RemoveBenchmark(bmThrottleTime);
 }
 
-static void PulseFrameLimiter()
+class FrameLimiterModule : public MQModuleBase
 {
-	s_frameLimiter.OnPulse();
-}
-
-static void SetGameStateFrameLimiter(int GameState)
-{
-	s_frameLimiter.PauseForZone();
-
-	s_frameLimiter.SetGameState(GameState);
-}
-
-static MQModule s_FrameLimiterModule = {
-	"FrameLimiter",                // Name
-	false,                         // CanUnload
-	InitializeFrameLimiter,        // Initialize
-	ShutdownFrameLimiter,          // Shutdown
-	PulseFrameLimiter,             // Pulse
-	SetGameStateFrameLimiter,      // SetGameState
-	nullptr,                       // UpdateImGui
-	nullptr,                       // Zoned
-	nullptr                        // WriteChatColor
-};
-DECLARE_MODULE_INITIALIZER(s_FrameLimiterModule);
-
-#pragma endregion
-
-#pragma region tlo
-
-namespace datatypes {
-enum class FrameLimiterTypeMembers
-{
-	Enabled,
-	SaveByChar,
-	Status,
-	CPU,
-	RenderFPS,
-	SimulationFPS,
-	BackgroundFPS,
-	ForegroundFPS,
-	MinSimulationFPS,
-	ClearScreen
-};
-
-MQ2FrameLimiterType::MQ2FrameLimiterType() : MQ2Type("framelimiter")
-{
-	ScopedTypeMember(FrameLimiterTypeMembers, Enabled);
-	ScopedTypeMember(FrameLimiterTypeMembers, SaveByChar);
-	ScopedTypeMember(FrameLimiterTypeMembers, Status);
-	ScopedTypeMember(FrameLimiterTypeMembers, CPU);
-	ScopedTypeMember(FrameLimiterTypeMembers, RenderFPS);
-	ScopedTypeMember(FrameLimiterTypeMembers, SimulationFPS);
-	ScopedTypeMember(FrameLimiterTypeMembers, BackgroundFPS);
-	ScopedTypeMember(FrameLimiterTypeMembers, ForegroundFPS);
-	ScopedTypeMember(FrameLimiterTypeMembers, MinSimulationFPS);
-	ScopedTypeMember(FrameLimiterTypeMembers, ClearScreen);
-}
-
-bool MQ2FrameLimiterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
-{
-	auto pMember = MQ2FrameLimiterType::FindMember(Member);
-	if (pMember == nullptr)
-		return false;
-
-	switch (static_cast<FrameLimiterTypeMembers>(pMember->ID))
+public:
+	FrameLimiterModule() : MQModuleBase("FrameLimiter", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
-	case FrameLimiterTypeMembers::Enabled:
-		Dest.Type = pBoolType;
-		Dest.Set(s_frameLimiter.IsEnabled());
-		return true;
-
-	case FrameLimiterTypeMembers::SaveByChar:
-		Dest.Type = pBoolType;
-		Dest.Set(s_frameLimiter.IsSavedByChar());
-		return true;
-
-	case FrameLimiterTypeMembers::Status:
-		Dest.Type = pStringType;
-		strcpy_s(DataTypeTemp, s_frameLimiter.IsForeground() ? "Foreground" : "Background");
-		Dest.Ptr = &DataTypeTemp[0];
-		return true;
-
-	case FrameLimiterTypeMembers::CPU:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetCPUUsage());
-		return true;
-
-	case FrameLimiterTypeMembers::RenderFPS:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetRecordedRenderFPS());
-		return true;
-
-	case FrameLimiterTypeMembers::SimulationFPS:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetRecordedSimulationFPS());
-		return true;
-
-	case FrameLimiterTypeMembers::BackgroundFPS:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetTargetBackgroundFPS());
-		return true;
-
-	case FrameLimiterTypeMembers::ForegroundFPS:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetTargetForegroundFPS());
-		return true;
-
-	case FrameLimiterTypeMembers::MinSimulationFPS:
-		Dest.Type = pFloatType;
-		Dest.Set(s_frameLimiter.GetMinimumSimulationFPS());
-		return true;
-
-	case FrameLimiterTypeMembers::ClearScreen:
-		Dest.Type = pBoolType;
-		Dest.Set(s_frameLimiter.GetClearScreen());
-		return true;
-
-	default:
-		return false;
 	}
-}
 
-bool MQ2FrameLimiterType::ToString(MQVarPtr VarPtr, char* Destination)
-{
-	strcpy_s(Destination, MAX_STRING, s_frameLimiter.IsEnabled() ? "TRUE" : "FALSE");
-	return true;
-}
+	virtual void Initialize() override
+	{
+		InitializeFrameLimiter();
+	}
 
-bool MQ2FrameLimiterType::dataFrameLimiter(const char* szIndex, MQTypeVar& Ret)
-{
-	Ret.Ptr = nullptr;
-	Ret.Type = pFrameLimiterType;
-	return true;
-}
+	virtual void Shutdown() override
+	{
+		ShutdownFrameLimiter();
+	}
 
+	virtual void OnProcessFrame() override
+	{
+		s_frameLimiter.OnPulse();
+	}
 
-} // namespace datatypes
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		s_frameLimiter.PauseForZone();
+
+		s_frameLimiter.SetGameState(gameState);
+	}
+};
+
+DECLARE_MODULE_FACTORY(FrameLimiterModule);
 
 #pragma endregion
 

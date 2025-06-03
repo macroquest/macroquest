@@ -26,37 +26,14 @@ namespace mq {
 class ModuleSystem;
 class PipeMessage;
 
-// Like lightweight plugins, but these are internal to mq2main
-struct MQModule
-{
-	char                 name[64] = { 0 };
-	bool                 canUnload = false;
-	fMQInitializePlugin  Initialize = nullptr;
-	fMQShutdownPlugin    Shutdown = nullptr;
-	fMQPulse             Pulse = nullptr;
-	fMQSetGameState      SetGameState = nullptr;
-	fMQUpdateImGui       UpdateImGui = nullptr;
-	fMQZoned             Zoned = nullptr; // plugins only?
-	fMQWriteChatColor    WriteChatColor = nullptr;
-	fMQSpawn             SpawnAdded = nullptr;
-	fMQSpawn             SpawnRemoved = nullptr;
-	fMQBeginZone         BeginZone = nullptr;
-	fMQEndZone           EndZone = nullptr;
-	fMQLoadPlugin        LoadPlugin = nullptr;
-	fMQUnloadPlugin      UnloadPlugin = nullptr;
-	fMQCleanUI           CleanUI = nullptr;
-	fMQReloadUI          ReloadUI = nullptr;
-	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
-
-	bool                 loaded = false;
-	bool                 manualUnload = false;
-};
-
 enum class ModulePriority
 {
 	CrashHandler = 0,
 
 	Commands = 10,
+	DataTypes = 11,
+
+	Actors = 20,
 
 	HUD = 90,
 
@@ -124,6 +101,16 @@ public:
 	 * @return The module's flags value
 	 */
 	ModuleFlags GetFlags() const { return m_flags; }
+
+	/**
+	 * Returns true if this module is a plugin
+	 */
+	bool IsPlugin() const { return +(m_flags & ModuleFlags::IsPlugin); }
+
+	/**
+	 * Retrieve the module's handle
+	 */
+	MQPluginHandle GetHandle() const { return m_handle; }
 
 	//----------------------------------------------------------------------------
 

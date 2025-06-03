@@ -1411,20 +1411,6 @@ public:
 };
 
 //============================================================================
-// MQ2FrameLimiterType
-
-class MQ2FrameLimiterType : public MQ2Type
-{
-public:
-	MQ2FrameLimiterType();
-
-	bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest) override;
-	bool ToString(MQVarPtr VarPtr, char* Destination) override;
-
-	static bool dataFrameLimiter(const char* szIndex, MQTypeVar& Ret);
-};
-
-//============================================================================
 // MQIniType
 
 class MQIniFileSectionKeyType : public MQ2Type

@@ -5994,4 +5994,6 @@ public:
 	}
 };
 
+DECLARE_MODULE_FACTORY(DeveloperToolsModule);
+
 } // namespace mq

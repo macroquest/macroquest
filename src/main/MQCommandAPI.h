@@ -38,7 +38,7 @@ class MQCommandAPI : public MQModuleBase
 {
 public:
 	MQCommandAPI();
-	~MQCommandAPI() override;
+	virtual ~MQCommandAPI() override;
 
 	// Commands
 	bool AddCommand(std::string_view command, MQCommandHandler handler,
@@ -66,7 +66,6 @@ public:
 
 	bool InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler);
 
-	void OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle);
 
 	void Cmd_Help(const char* szLine) const;
 	void Cmd_Alias(const char* szLine);
@@ -75,6 +74,7 @@ private:
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
 	virtual void OnProcessFrame() override;
+	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
 
 	void LoadAliases();
 	void RewriteAliases();
@@ -87,9 +87,9 @@ private:
 		std::string match;
 		std::string replacement;
 
-		const MQPluginHandle& pluginHandle;
+		MQPluginHandle pluginHandle;
 
-		RegisteredAlias(std::string match, std::string replacement, const MQPluginHandle& pluginHandle)
+		RegisteredAlias(std::string match, std::string replacement, MQPluginHandle pluginHandle)
 			: match(std::move(match)), replacement(std::move(replacement)), pluginHandle(std::move(pluginHandle)) {}
 	};
 
@@ -100,9 +100,9 @@ private:
 	struct DelayedCommand
 	{
 		std::string command;
-		const MQPluginHandle& pluginHandle;
+		MQPluginHandle pluginHandle;
 
-		DelayedCommand(std::string command, const MQPluginHandle& pluginHandle)
+		DelayedCommand(std::string command, MQPluginHandle pluginHandle)
 			: command(std::move(command)), pluginHandle(std::move(pluginHandle)) {}
 	};
 	std::vector<DelayedCommand> m_delayedCommands;

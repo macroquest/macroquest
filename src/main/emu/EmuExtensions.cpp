@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "emu/EmuExtensions.h"
 
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
 #include "eqlib/WindowOverride.h"
@@ -25,35 +26,6 @@ using namespace eqlib;
 #if IS_EMU_CLIENT
 
 namespace mq {
-
-static void EmuExtensions_Initialize();
-static void EmuExtensions_Shutdown();
-static void EmuExtensions_Pulse();
-static void EmuExtensions_UpdateImGui();
-static void EmuExtensions_CleanUI();
-static void EmuExtensions_ReloadUI();
-
-static MQModule gEmuExtensionsModule = {
-	"EmuExtensions",              // Name
-	true,                         // CanUnload
-	EmuExtensions_Initialize,     // Initialize
-	EmuExtensions_Shutdown,       // Shutdown
-	EmuExtensions_Pulse,          // Pulse
-	nullptr,                      // SetGameState
-	EmuExtensions_UpdateImGui,    // UpdateImGui
-	nullptr,                      // Zoned
-	nullptr,                      // WriteChatColor
-	nullptr,                      // SpawnAdded
-	nullptr,                      // SpawnRemoved
-	nullptr,                      // BeginZone
-	nullptr,                      // EndZone
-	nullptr,                      // LoadPlugin
-	nullptr,                      // UnloadPlugin
-	EmuExtensions_CleanUI,        // CleanUI
-	EmuExtensions_ReloadUI        // ReloadUI
-};
-MQModule* GetEmuExtensionsModule() { return &gEmuExtensionsModule; }
-
 
 //--------------------------------------------------------------------------
 // Emu Spell Link Support
@@ -450,10 +422,42 @@ static void EmuExtensions_CleanUI()
 #endif // EMU_SPELL_LINKS_ENABLED
 }
 
-void EmuExtensions_ReloadUI()
+
+class EmuExtensionsModule : public MQModuleBase
 {
-	
-}
+public:
+	EmuExtensionsModule() : MQModuleBase("EmuExtensions", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		EmuExtensions_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		EmuExtensions_Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		EmuExtensions_Pulse();
+	}
+
+	virtual void OnUpdateImGui() override
+	{
+		EmuExtensions_UpdateImGui();
+	}
+
+	virtual void OnCleanUI() override
+	{
+		EmuExtensions_CleanUI();
+	}
+};
+
+DECLARE_MODULE_FACTORY(EmuExtensionsModule);
 
 } // namespace mq
+
 #endif // IS_EMU_CLIENT

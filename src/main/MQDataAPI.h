@@ -29,13 +29,14 @@ namespace mq {
 
 //============================================================================
 
-class MQDataAPI
+class MQDataAPI : public MQModuleBase
 {
 public:
 	MQDataAPI();
-	~MQDataAPI();
+	~MQDataAPI() override;
 
-	void Initialize();
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
 
 	// Top Level Objects
 	bool AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
@@ -112,6 +113,8 @@ private:
 
 	mutable std::recursive_mutex m_mutex;
 };
+
+DECLARE_MODULE_FACTORY(MQDataAPI);
 
 extern MQDataAPI* pDataAPI;
 

@@ -49,20 +49,6 @@ namespace mq {
 
 //============================================================================
 
-// From MQ2PluginHandler.cpp
-void ShutdownInternalModules();
-
-MQModule* GetImGuiToolsModule();
-MQModule* GetDataAPIModule();
-MQModule* GetActorAPIModule();
-MQModule* GetGroundSpawnsModule();
-MQModule* GetSpawnsModule();
-MQModule* GetItemsModule();
-MQModule* GetWindowsModule();
-#if IS_EMU_CLIENT
-MQModule* GetEmuExtensionsModule();
-#endif
-
 void InitializeMQ2AutoInventory();
 void ShutdownMQ2AutoInventory();
 
@@ -76,34 +62,21 @@ void DoMainThreadInitialization()
 	InitializeStringDB();
 
 	InitializeAnonymizer();
-	//InitializeInternalModules();
-	AddInternalModule(GetWindowsModule());
-	AddInternalModule(GetImGuiToolsModule());
-	AddInternalModule(GetDataAPIModule());
-	AddInternalModule(GetActorAPIModule());
-	AddInternalModule(GetGroundSpawnsModule());
-	AddInternalModule(GetSpawnsModule());
-	AddInternalModule(GetItemsModule());
-#if IS_EMU_CLIENT
-	AddInternalModule(GetEmuExtensionsModule());
-#endif
+
 	InitializeMQ2AutoInventory();
 	InitializeMQ2KeyBinds();
 	InitializePlugins();
-	InitializeCachedBuffs();
 }
 
 // Do shutdown time stuff on the main thread.
 void DoMainThreadShutdown()
 {
-	ShutdownCachedBuffs();
 	ShutdownMQ2KeyBinds();
 	ShutdownMQ2Pulse();
 	ShutdownMQ2AutoInventory();
 	ShutdownAnonymizer();
 	ShutdownPlugins();
 	ShutdownFailedPlugins();
-	ShutdownInternalModules();
 	ImGuiManager_Shutdown();
 	GraphicsResources_Shutdown();
 	ShutdownStringDB();

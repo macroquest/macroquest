@@ -13,10 +13,11 @@
  */
 
 #include "pch.h"
+#include "MQ2ImGuiTools.h"
 
 #include "MQ2DeveloperTools.h"
-#include "MQ2ImGuiTools.h"
 #include "MQ2KeyBinds.h"
+#include "ModuleSystem.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -32,26 +33,6 @@ namespace mq {
 static bool gbShowSettingsWindow = false;
 imgui::ImGuiTreePanelWindow* gSettingsWindow = nullptr;
 std::map<const char*, fPanelDrawFunction> s_pendingPanels;
-
-static void InitializeMQ2ImGuiTools();
-static void ShutdownMQ2ImGuiTools();
-static void PulseMQ2ImGuiTools();
-static void UpdateSettingsUI();
-
-static int WriteChatColorImGuiAPI(const char* line, uint32_t color, uint32_t filter);
-
-static MQModule gImGuiModule = {
-	"ImGuiAPI",                   // Name
-	false,                        // CanUnload
-	InitializeMQ2ImGuiTools,      // Initialize
-	ShutdownMQ2ImGuiTools,        // Shutdown
-	PulseMQ2ImGuiTools,           // Pulse
-	nullptr,                      // SetGameState
-	UpdateSettingsUI,             // UpdateImGui
-	nullptr,                      // Zoned
-	WriteChatColorImGuiAPI,       // WriteChatColor
-};
-MQModule* GetImGuiToolsModule() { return &gImGuiModule; }
 
 //============================================================================
 
@@ -345,42 +326,53 @@ void DoKeybindSettings()
 
 //============================================================================
 
-static void InitializeMQ2ImGuiTools()
+class ImGuiAPIModule : public MQModuleBase
 {
-	// Add keybind to toggle imgui
-	AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
-
-	AddCommand("/mqsettings", MQSettingsCommand);
-
-	AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
-
-	gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings", ImVec2(600, 650));
-
-	AddSettingsPanel("Key Bindings", DoKeybindSettings);
-	for (const auto& pair : s_pendingPanels)
+public:
+	ImGuiAPIModule() : MQModuleBase("ImGuiAPI")
 	{
-		AddSettingsPanel(pair.first, pair.second);
 	}
 
-	s_pendingPanels.clear();
-}
+	virtual void Initialize() override
+	{
+		// Add keybind to toggle imgui
+		AddMQ2KeyBind("TOGGLE_IMGUI_OVERLAY", DoToggleImGuiOverlay);
 
-static void ShutdownMQ2ImGuiTools()
-{
-	delete gSettingsWindow;
-	gSettingsWindow = nullptr;
+		AddCommand("/mqsettings", MQSettingsCommand);
 
-	RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
-	RemoveCommand("/mqsettings");
-}
+		AddCascadeMenuItem("Settings", []() { gbShowSettingsWindow = true; }, 2);
 
-static void PulseMQ2ImGuiTools()
-{
-}
+		gSettingsWindow = new imgui::ImGuiTreePanelWindow("MacroQuest Settings", ImVec2(600, 650));
 
-static int WriteChatColorImGuiAPI(const char* line, uint32_t color, uint32_t filter)
-{
-	return ImGuiConsoleAddText(line, color, filter);
-}
+		AddSettingsPanel("Key Bindings", DoKeybindSettings);
+		for (const auto& pair : s_pendingPanels)
+		{
+			AddSettingsPanel(pair.first, pair.second);
+		}
+
+		s_pendingPanels.clear();
+	}
+
+	virtual void Shutdown() override
+	{
+		delete gSettingsWindow;
+		gSettingsWindow = nullptr;
+
+		RemoveMQ2KeyBind("TOGGLE_IMGUI_OVERLAY");
+		RemoveCommand("/mqsettings");
+	}
+
+	virtual void OnUpdateImGui() override
+	{
+		UpdateSettingsUI();
+	}
+
+	virtual void OnWriteChatColor(const char* message, int color, int filter) override
+	{
+		ImGuiConsoleAddText(message, color, filter);
+	}
+};
+
+DECLARE_MODULE_FACTORY(ImGuiAPIModule);
 
 } // namespace mq

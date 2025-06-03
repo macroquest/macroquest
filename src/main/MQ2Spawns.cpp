@@ -13,35 +13,14 @@
  */
 
 #include "pch.h"
+
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 #include "MQDataAPI.h"
 
 using namespace eqlib;
 
 namespace mq {
-
-static void Spawns_Initialize();
-static void Spawns_Shutdown();
-static void Spawns_Pulse();
-static void Spawns_BeginZone();
-static void Spawns_SpawnAdded(PlayerClient* pSpawn);
-static void Spawns_SpawnRemoved(PlayerClient* pSpawn);
-
-static MQModule gSpawnsModule = {
-	"Spawns",                     // Name
-	false,                        // CanUnload
-	Spawns_Initialize,            // Initialize
-	Spawns_Shutdown,              // Shutdown
-	Spawns_Pulse,                 // Pulse
-	nullptr,                      // SetGameState
-	nullptr,                      // UpdateImGui
-	nullptr,                      // Zoned
-	nullptr,                      // WriteChatColor
-	Spawns_SpawnAdded,            // SpawnAdded
-	Spawns_SpawnRemoved,          // SpawnRemoved
-	Spawns_BeginZone,             // BeginZone
-};
-MQModule* GetSpawnsModule() { return &gSpawnsModule; }
 
 // Global spawn array, sorted by distance.
 std::vector<MQSpawnArrayItem> gSpawnsArray;
@@ -918,5 +897,42 @@ PlayerClient* GetClosestBanker(bool forInteraction)
 
 	return nullptr;
 }
+
+//============================================================================
+
+class SpawnsModule : public MQModuleBase
+{
+public:
+	SpawnsModule() : MQModuleBase("Spawns")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		Spawns_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		Spawns_Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		Spawns_Pulse();
+	}
+
+	virtual void OnSpawnAdded(eqlib::PlayerClient* pSpawn) override
+	{
+		Spawns_SpawnAdded(pSpawn);
+	}
+
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* pSpawn) override
+	{
+		Spawns_SpawnRemoved(pSpawn);
+	}
+};
+
+DECLARE_MODULE_FACTORY(SpawnsModule);
 
 } // namespace mq

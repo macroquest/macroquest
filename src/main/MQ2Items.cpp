@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
+#include "ModuleSystem.h"
 
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
@@ -25,23 +26,6 @@ using namespace std::chrono_literals;
 using namespace eqlib;
 
 namespace mq {
-
-static void Items_Initialize();
-static void Items_Shutdown();
-static void Items_Pulse();
-static void Items_SetGameState(int gameState);
-static void Items_UpdateImGui();
-
-static MQModule gItemsModule = {
-	"Items",                      // Name
-	false,                        // CanUnload
-	Items_Initialize,             // Initialize
-	Items_Shutdown,               // Shutdown
-	Items_Pulse,                  // Pulse
-	Items_SetGameState,           // SetGameState
-	Items_UpdateImGui,            // UpdateImGui
-};
-MQModule* GetItemsModule() { return &gItemsModule; }
 
 //----------------------------------------------------------------------------
 // Keyring Handling
@@ -602,8 +586,34 @@ static void Items_SetGameState(int gameState)
 #endif // HAS_KEYRING_WINDOW
 }
 
-static void Items_UpdateImGui()
+class ItemsModule : public MQModuleBase
 {
-}
+public:
+	ItemsModule() : MQModuleBase("Items")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		Items_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		Items_Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		Items_Pulse();
+	}
+
+	virtual void OnGameStateChanged(int gameState) override
+	{
+		Items_SetGameState(gameState);
+	}
+};
+
+DECLARE_MODULE_FACTORY(ItemsModule);
 
 } // namespace mq
