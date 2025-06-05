@@ -623,29 +623,6 @@ static void Pulse()
 	}
 }
 
-// Trims trailing whitespace from strings in the string table.
-static void FixStringTable()
-{
-	for (int index = 0; index < pStringTable->Count; index++)
-	{
-		if (StringItem* pStr = pStringTable->StringItems[index])
-		{
-			if (char* p = pStr->String)
-			{
-				while (*p)
-					p++;
-				p--;
-				while (*p == ' ' && p != pStr->String)
-				{
-					*p = 0;
-					p--;
-				}
-			}
-		}
-	}
-}
-
-
 enum HeartbeatState
 {
 	HeartbeatNormal = 0,
@@ -695,12 +672,6 @@ static HeartbeatState Heartbeat()
 		TickDiff -= 100;
 		if (gDelay > 0) gDelay--;
 		DropTimers();
-	}
-
-	if (!gStringTableFixed && pStringTable)
-	{
-		FixStringTable();
-		gStringTableFixed = true;
 	}
 
 	DebugTry(int GameState = GetGameState());
