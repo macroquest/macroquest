@@ -27,6 +27,8 @@
 
 #include <TlHelp32.h>
 
+#include "MQPostOffice.h"
+
 namespace eqlib
 {
 	class MemoryPatcher;
@@ -53,6 +55,8 @@ static unsigned int* extern_array0 = nullptr;
 
 static bool s_doingSpellChecks = false;
 static int s_inMemCheck4 = 0;
+static bool s_isValid = true;
+static bool s_hasNotified = false;
 
 //============================================================================
 
@@ -708,9 +712,33 @@ public:
 
 	virtual void OnProcessFrame() override
 	{
+		if (!s_isValid && s_hasNotified)
+		{
+			gbUnload = true;
+			return;
+		}
+
 		CheckGameValidity();
 
-		// CheckGameState();
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+		if (!s_isValid && !s_hasNotified)
+		{
+			pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
+			s_hasNotified = true;
+		}
+#endif
+	}
+
+	virtual void OnPostZoneUI() override
+	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
+		{
+			// unload
+			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
+			DoCommand("/unload", false);
+		}
+#endif
 	}
 };
 

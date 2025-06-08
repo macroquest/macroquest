@@ -62,7 +62,7 @@ void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object)
 }
 
 // but we do need an invalidation method, which takes a void pointer because all we need to care about is the address of the object being invalidated
-void InvalidateObservedEQObject(void* Object)
+static void InvalidateObservedEQObject(void* Object)
 {
 	std::scoped_lock lock(s_objectMapMutex);
 
@@ -110,6 +110,16 @@ public:
 		// is unloaded, we get a crash. Force a pruning every time a plugin
 		// is unloaded to prevent that.
 		PruneObservedEQObjects();
+	}
+
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* pSpawn) override
+	{
+		InvalidateObservedEQObject(pSpawn);
+	}
+
+	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* pGroundItem) override
+	{
+		InvalidateObservedEQObject(pGroundItem);
 	}
 };
 

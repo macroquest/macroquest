@@ -14,6 +14,8 @@
  */
 
 #include "pch.h"
+
+#include "ModuleSystem.h"
 #include "MQ2Main.h"
 
 using namespace eqlib;
@@ -101,14 +103,24 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 	msgTokenTextParam__Trampoline(Data, Length);
 }
 
-void InitializeStringDB()
+class StringDBModule : public MQModuleBase
 {
-	EzDetour(__msgTokenTextParam, msgTokenTextParam__Detour, msgTokenTextParam__Trampoline);
-}
+public:
+	StringDBModule() : MQModuleBase("StringDB")
+	{
+	}
 
-void ShutdownStringDB()
-{
-	RemoveDetour(__msgTokenTextParam);
-}
+	virtual void Initialize() override
+	{
+		EzDetour(__msgTokenTextParam, msgTokenTextParam__Detour, msgTokenTextParam__Trampoline);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveDetour(__msgTokenTextParam);
+	}
+};
+
+DECLARE_MODULE_FACTORY(StringDBModule);
 
 } // namespace mq

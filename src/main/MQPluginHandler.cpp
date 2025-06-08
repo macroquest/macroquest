@@ -13,6 +13,8 @@
  */
 
 #include "pch.h"
+#include "MQPluginHandler.h"
+
 #include "MQ2Main.h"
 #include "ModuleSystem.h"
 #include "MQCommandAPI.h"
@@ -22,6 +24,8 @@
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 
+#include "MacroQuest.h"
+
 //#define DEBUG_PLUGINS
 
 
@@ -29,11 +33,7 @@ using namespace eqlib;
 
 namespace mq {
 
-#ifdef DEBUG_PLUGINS
-#define PluginDebug DebugSpew
-#else
 #define PluginDebug(...)
-#endif
 
 // This is the main plugin list. We use it to preserve some sort of order, thats about it.
 MQPlugin* pPlugins = nullptr;
@@ -68,17 +68,6 @@ static std::string s_pluginLoadFailure;
 
 //----------------------------------------------------------------------------
 
-uint32_t bmWriteChatColor = 0;
-uint32_t bmPluginsIncomingChat = 0;
-uint32_t bmPluginsPulse = 0;
-uint32_t bmPluginsOnZoned = 0;
-uint32_t bmPluginsCleanUI = 0;
-uint32_t bmPluginsReloadUI = 0;
-uint32_t bmPluginsDrawHUD = 0;
-uint32_t bmPluginsSetGameState = 0;
-uint32_t bmCalculate = 0;
-uint32_t bmBeginZone = 0;
-uint32_t bmEndZone = 0;
 
 //----------------------------------------------------------------------------
 // If true, imgui should not run on plugins.
@@ -86,16 +75,7 @@ extern bool gbManualResetRequired;
 
 extern std::set<HMODULE> g_knownModules;
 
-static void PluginsLoadPlugin(const char* Name);
-static void PluginsUnloadPlugin(const char* Name);
-static void PluginsPostUnloadPlugin(const char* Name);
-
 //----------------------------------------------------------------------------
-
-bool IsPluginsInitialized()
-{
-	return s_pluginsInitialized;
-}
 
 // Strips MQ2/MQ off of the name and returns it back
 std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension = true)
@@ -518,7 +498,7 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	AddPluginToList(pPlugin);
 	s_pluginMap.emplace(std::string_view(pPlugin->name), rec);
 
-	PluginsLoadPlugin(pPlugin->szFilename);
+	//g_mq->OnModuleLoaded(pPlugin);
 
 	if (save)
 	{
@@ -540,7 +520,8 @@ static void ShutdownPlugin(const PluginInfoRec& rec)
 		pPlugin->Shutdown();
 
 	// Allow other plugins to cleanup resources after plugin shutdown but before the dll is freed
-	PluginsPostUnloadPlugin(pPlugin->szFilename);
+	//g_mq->OnAfterModuleUnloaded(pPlugin);
+	//PluginsPostUnloadPlugin(pPlugin->szFilename);
 }
 
 bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
@@ -588,7 +569,8 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 		pPlugin = rec.instance;
 
 		// Inform other plugins that this plugin is being removed
-		PluginsUnloadPlugin(pPlugin->szFilename);
+		//g_mq->OnBeforeModuleUnloaded(pPlugin)
+		//PluginsUnloadPlugin(pPlugin->szFilename);
 
 		// Remove it from the list so that it can no longer be accessed
 		RemovePluginFromList(pPlugin);
@@ -680,448 +662,6 @@ void ShutdownFailedPlugins()
 	}
 }
 
-template <typename Callback>
-void ForEachPlugin(Callback&& callback)
-{
-	std::scoped_lock lock(s_pluginsMutex);
-
-	MQPlugin* pPlugin = pPlugins;
-	while (pPlugin)
-	{
-		callback(pPlugin);
-
-		pPlugin = pPlugin->pNext;
-	}
-}
-
-void PluginsWriteChatColor(const char* Line, int Color, int Filter)
-{
-	if (!s_pluginsInitialized)
-		return;
-	if (gFilterMQ)
-		return;
-
-	//SPDLOG_DEBUG("Begin WriteChatColor()");
-
-	MQScopedBenchmark bm(bmWriteChatColor);
-
-	if (size_t len = strlen(Line))
-	{
-		std::unique_ptr<char[]> plainText = std::make_unique<char[]>(len + 1);
-
-		StripMQChat(Line, plainText.get());
-		CheckChatForEvent(plainText.get());
-
-		DebugSpew("WriteChatColor(%s)", Line);
-	}
-
-	//ForEachModule([&](const MQModule* module)
-	//	{
-	//		if (module->WriteChatColor)
-	//			module->WriteChatColor(Line, Color, Filter);
-	//	});
-
-	ForEachPlugin([&](const MQPlugin* plugin)
-		{
-			if (plugin->WriteChatColor)
-				plugin->WriteChatColor(Line, Color, Filter);
-		});
-}
-
-bool PluginsIncomingChat(const char* Line, uint32_t Color)
-{
-	if (!s_pluginsInitialized)
-		return false;
-	if (!Line[0])
-		return false;
-
-	bool Ret = false;
-
-	ForEachPlugin([&](const MQPlugin* plugin) mutable
-		{
-			if (plugin->IncomingChat)
-				Ret = Ret || plugin->IncomingChat(Line, Color);
-		});
-
-	return Ret;
-}
-
-void PulsePlugins()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->Pulse)
-				plugin->Pulse();
-		});
-}
-
-void PluginsZoned()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsZoned()");
-
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->Zoned)
-	//			module->Zoned();
-	//	});
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->Zoned)
-			{
-				DebugSpew("%s->Zoned()", plugin->szFilename);
-				plugin->Zoned();
-			}
-		});
-
-
-	char szTemp[128];
-	sprintf_s(szTemp, "You have entered %s.", pZoneInfo->LongName);
-
-	CheckChatForEvent(szTemp);
-}
-
-void PluginsCleanUI()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsCleanUI()");
-
-	DeleteMQ2NewsWindow();
-	RemoveFindItemMenu();
-
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->CleanUI)
-	//			module->CleanUI();
-	//	});
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->CleanUI)
-			{
-				DebugSpew("%s->CleanUI()", plugin->szFilename);
-				plugin->CleanUI();
-			}
-		});
-}
-
-void PluginsReloadUI()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsReloadUI()");
-
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->CleanUI)
-	//			module->ReloadUI();
-	//	});
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->ReloadUI)
-			{
-				DebugSpew("%s->ReloadUI()", plugin->szFilename);
-				plugin->ReloadUI();
-			}
-		});
-}
-
-void PluginsSetGameState(int GameState)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsSetGameState()");
-
-
-	ForEachPlugin([GameState](const MQPlugin* plugin)
-		{
-			if (plugin->SetGameState)
-			{
-				DebugSpew("%s->SetGameState(%d)", plugin->szFilename, GameState);
-				plugin->SetGameState(GameState);
-			}
-		});
-}
-
-void PluginsDrawHUD()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->DrawHUD)
-				plugin->DrawHUD();
-		});
-}
-
-void PluginsAddSpawn(PlayerClient* pNewSpawn)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsAddSpawn(%s,%d,%d)", pNewSpawn->Name, pNewSpawn->GetRace());
-
-	ForEachPlugin([pNewSpawn](const MQPlugin* plugin)
-		{
-			if (plugin->AddSpawn)
-				plugin->AddSpawn(pNewSpawn);
-		});
-}
-
-void PluginsRemoveSpawn(PlayerClient* pSpawn)
-{
-	InvalidateObservedEQObject(pSpawn);
-
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsRemoveSpawn(%s)", pSpawn->Name);
-
-	//ForEachModule([pSpawn](const MQModule* module)
-	//	{
-	//		if (module->SpawnRemoved)
-	//			module->SpawnRemoved(pSpawn);
-	//	});
-
-	ForEachPlugin([pSpawn](const MQPlugin* plugin)
-		{
-			if (plugin->RemoveSpawn)
-				plugin->RemoveSpawn(pSpawn);
-		});
-}
-
-void PluginsAddGroundItem(EQGroundItem* pNewGroundItem)
-{
-	if (!s_pluginsInitialized)
-		return;
-	if (!pNewGroundItem)
-		return;
-
-	DebugSpew("PluginsAddGroundItem(%s) %.1f,%.1f,%.1f", pNewGroundItem->Name, pNewGroundItem->X, pNewGroundItem->Y, pNewGroundItem->Z);
-
-	ForEachPlugin([pNewGroundItem](const MQPlugin* plugin)
-		{
-			if (plugin->AddGroundItem)
-				plugin->AddGroundItem(pNewGroundItem);
-		});
-}
-
-void PluginsRemoveGroundItem(EQGroundItem* pGroundItem)
-{
-	InvalidateObservedEQObject(pGroundItem);
-
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsRemoveGroundItem()");
-
-	ForEachPlugin([pGroundItem](const MQPlugin* plugin)
-		{
-			if (plugin->RemoveGroundItem)
-				plugin->RemoveGroundItem(pGroundItem);
-		});
-}
-
-void PluginsBeginZone()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsBeginZone()");
-
-	gbInZone = false;
-	gZoning = true;
-
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->BeginZone)
-	//			module->BeginZone();
-	//	});
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->BeginZone)
-			{
-				DebugSpew("%s->BeginZone()", plugin->szFilename);
-				plugin->BeginZone();
-			}
-		});
-}
-
-void PluginsEndZone()
-{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-	if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
-	{
-		// unload
-		WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
-		DoCommand("/unload", false);
-	}
-#endif
-
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsEndZone()");
-
-	gbInZone = true;
-	gZoning = false;
-
-	WereWeZoning = true;
-	LastEnteredZone = MQGetTickCount64();
-
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->EndZone)
-	//			module->EndZone();
-	//	});
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->EndZone)
-			{
-				DebugSpew("%s->EndZone()", plugin->szFilename);
-				plugin->EndZone();
-			}
-		});
-}
-
-void ModulesUpdateImGui()
-{
-	//ForEachModule([](const MQModule* module)
-	//	{
-	//		if (module->UpdateImGui)
-	//			module->UpdateImGui();
-	//	});
-}
-
-void PluginsUpdateImGui()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->UpdateImGui)
-				plugin->UpdateImGui();
-		});
-}
-
-void PluginsMacroStart(const char* Name)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsMacroStart(%s)", Name);
-
-	ForEachPlugin([Name](const MQPlugin* plugin)
-		{
-			if (plugin->MacroStart)
-			{
-				DebugSpew("%s->MacroStart(%s)", plugin->szFilename, Name);
-				plugin->MacroStart(Name);
-			}
-		});
-}
-
-void PluginsMacroStop(const char* Name)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsMacroStop(%s)", Name);
-
-	ForEachPlugin([Name](const MQPlugin* plugin)
-		{
-			if (plugin->MacroStop)
-			{
-				DebugSpew("%s->MacroStop(%s)", plugin->szFilename, Name);
-				plugin->MacroStop(Name);
-			}
-		});
-}
-
-static void PluginsLoadPlugin(const char* Name)
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	PluginDebug("PluginsLoadPlugin(%s)", Name);
-
-	ForEachPlugin([Name](const MQPlugin* plugin)
-		{
-			if (plugin->LoadPlugin)
-			{
-				DebugSpew("%s->LoadPlugin(%s)", plugin->szFilename, Name);
-				plugin->LoadPlugin(Name);
-			}
-		});
-
-	//ForEachModule([Name](const MQModule* mod)
-	//	{
-	//		if (mod->LoadPlugin)
-	//		{
-	//			mod->LoadPlugin(Name);
-	//		}
-	//	});
-}
-
-static void PluginsUnloadPlugin(const char* Name)
-{
-	PluginDebug("PluginsUnloadPlugin(%s)", Name);
-
-	ForEachPlugin([Name](const MQPlugin* plugin)
-		{
-			if (plugin->UnloadPlugin)
-			{
-				DebugSpew("%s->UnloadPlugin(%s)", plugin->szFilename, Name);
-				plugin->UnloadPlugin(Name);
-			}
-		});
-
-	//ForEachModule([Name](const MQModule* mod)
-	//	{
-	//		if (mod->UnloadPlugin)
-	//		{
-	//			mod->UnloadPlugin(Name);
-	//		}
-	//	});
-}
-
-static void PluginsPostUnloadPlugin(const char* Name)
-{
-	PluginDebug("PluginsPostUnloadPlugin(%s)", Name);
-
-	ForEachPlugin([Name](const MQPlugin* plugin)
-		{
-			if (plugin->OnPostUnloadPlugin)
-			{
-				DebugSpew("%s->OnPostUnloadPlugin(%s)", plugin->szFilename, Name);
-				plugin->OnPostUnloadPlugin(Name);
-			}
-		});
-
-	//ForEachModule([Name](const MQModule* mod)
-	//	{
-	//		if (mod->OnPostUnloadPlugin)
-	//		{
-	//			mod->OnPostUnloadPlugin(Name);
-	//		}
-	//	});
-}
-
 void* GetPluginProc(const char* plugin, const char* proc)
 {
 	size_t uiLength = strlen(plugin) + 1;
@@ -1147,7 +687,7 @@ PluginInterface* GetPluginInterface(std::string_view PluginName)
 	return nullptr;
 }
 
-void PluginCommand(PlayerClient* pChar, char* szLine)
+void PluginCommand(PlayerClient*, char* szLine)
 {
 	bool show_usage = false;
 	char szName[MAX_STRING] = { 0 };
@@ -1321,21 +861,20 @@ void PluginCommand(PlayerClient* pChar, char* szLine)
 
 //----------------------------------------------------------------------------
 
-void InitializePlugins()
+MQPluginHandler::MQPluginHandler()
+	: MQModuleBase("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
+{
+}
+
+MQPluginHandler::~MQPluginHandler()
+{
+}
+
+void MQPluginHandler::Initialize()
 {
 	AddCommand("/plugin", PluginCommand, false, true, false);
 
-	bmWriteChatColor = AddBenchmark("WriteChatColor");
-	bmPluginsIncomingChat = AddBenchmark("PluginsIncomingChat");
-	bmPluginsPulse = AddBenchmark("PluginsPulse");
-	bmPluginsOnZoned = AddBenchmark("PluginsOnZoned");
-	bmPluginsCleanUI = AddBenchmark("PluginsCleanUI");
-	bmPluginsReloadUI = AddBenchmark("PluginsReloadUI");
-	bmPluginsDrawHUD = AddBenchmark("PluginsDrawHUD");
-	bmPluginsSetGameState = AddBenchmark("PluginsSetGameState");
 	bmCalculate = AddBenchmark("Calculate");
-	bmBeginZone = AddBenchmark("BeginZone");
-	bmEndZone = AddBenchmark("EndZone");
 
 	MainPlugin.name = "main";
 	MainPlugin.hModule = ghModule;
@@ -1360,7 +899,7 @@ void InitializePlugins()
 	}
 }
 
-void ShutdownPlugins()
+void MQPluginHandler::Shutdown()
 {
 	s_pluginsInitialized = false;
 

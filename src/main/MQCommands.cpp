@@ -3569,24 +3569,6 @@ void RangedCmd(PlayerClient*, const char* szLine)
 	AttackRanged(pRangedTarget);
 }
 
-// /dumpbinds
-void DumpBindsCommand(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage /dumpbinds <filename>");
-		return;
-	}
-
-	if (!DumpBinds(szLine))
-	{
-		MacroError("Could not dump binds to %s", szLine);
-		return;
-	}
-
-	WriteChatColor("Binds dumped to file.");
-}
-
 // /docommand
 void DoCommandCmd(PlayerClient*, const char* szLine)
 {

@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQDataAPI.h"
+#include "ModuleSystem.h"
 
 #include "mq/utils/Args.h"
 #include "mq/base/StringFormat.h"
@@ -31,6 +32,7 @@ namespace mq {
 static std::string anon_config_path;
 static Yaml::Node anon_config;
 static bool anon_enabled = false;
+static uint32_t bmAnonymizer = 0;
 
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
@@ -551,7 +553,6 @@ bool IsAnonymized()
 	return anon_enabled;
 }
 
-
 // process string to anonymize
 CXStr& PluginAnonymize(CXStr& Text)
 {
@@ -569,7 +570,7 @@ CXStr Anonymize(const CXStr& Text)
 	if (!pLocalPlayer || !pLocalPC)
 		return Text;
 
-	EnterBenchmark(bmAnonymizer);
+	MQScopedBenchmark bm(bmAnonymizer);
 
 	auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
 		[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
@@ -684,8 +685,6 @@ CXStr Anonymize(const CXStr& Text)
 		}
 	}
 
-	ExitBenchmark(bmAnonymizer);
-
 	return CXStr(new_text);
 }
 
@@ -744,7 +743,7 @@ public:
 //              Controls the anonymization filtering of text
 // ***************************************************************************
 
-void MQAnon(PlayerClient* pChar, char* szLine)
+void MQAnonCommand(PlayerClient* pChar, char* szLine)
 {
 	if (!pChar)
 		return;
@@ -947,31 +946,41 @@ static void RemoveAnonDetours()
 	RemoveDetour(CTextureFont__DrawWrappedText2);
 }
 
-void InitializeAnonymizer()
+class AnonymizerModule : public MQModuleBase
 {
-	bmAnonymizer = AddBenchmark("Anonymizer");
-
-	anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
-	Deserialize(); // always load on initialization
-
-	AddCommand("/mqanon", MQAnon, false, false, false);
-
-	if (anon_enabled)
+public:
+	AnonymizerModule() : MQModuleBase("Anonymizer")
 	{
-		InstallAnonDetours();
-	}
-}
-
-void ShutdownAnonymizer()
-{
-	if (anon_enabled)
-	{
-		RemoveAnonDetours();
 	}
 
-	RemoveCommand("/mqanon");
+	virtual void Initialize() override
+	{
+		bmAnonymizer = AddBenchmark("Anonymizer");
 
-	RemoveBenchmark(bmAnonymizer);
-}
+		anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
+		Deserialize(); // always load on initialization
+
+		AddCommand("/mqanon", MQAnonCommand, false, false, false);
+
+		if (anon_enabled)
+		{
+			InstallAnonDetours();
+		}
+	}
+
+	virtual void Shutdown() override
+	{
+		if (anon_enabled)
+		{
+			RemoveAnonDetours();
+		}
+
+		RemoveCommand("/mqanon");
+
+		RemoveBenchmark(bmAnonymizer);
+	}
+};
+
+DECLARE_MODULE_FACTORY(AnonymizerModule);
 
 } // namespace mq

@@ -75,9 +75,6 @@
 
 namespace mq {
 
-void InitializeMQ2Pulse();
-void ShutdownMQ2Pulse();
-
 // Logging / Console output
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 MQLIB_API void WriteChatf(const char* Format, ...);
@@ -130,9 +127,6 @@ MQLIB_API bool SendComboSelect(const char* WindowName, const char* ScreenID, int
 MQLIB_API bool SendListSelect(const char* WindowName, const char* ScreenID, int Value);
 MQLIB_API bool SendListSelect2(eqlib::CXWnd* pList, int ListIndex);
 MQLIB_API bool SendWndClick2(eqlib::CXWnd* pWnd, const char* ClickNotification);
-
-MQLIB_API void CreateMQ2NewsWindow();
-MQLIB_API void DeleteMQ2NewsWindow();
 
 /* CHAT HOOK */
 MQLIB_API void dsp_chat_no_events(const char* message, int color = USERCOLOR_DEFAULT, bool allowLog = true, bool doPercentConvert = true);
@@ -424,7 +418,6 @@ inline auto EQObjectID(eqlib::PlayerClient* pSpawn) { return pSpawn->SpawnID; }
 using ObservedSpawnPtr = MQEQObjectPtr<eqlib::PlayerClient>;
 
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
-MQLIB_API void InvalidateObservedEQObject(void* Object);
 
 // A.k.a. "Door target"
 MQLIB_API void SetSwitchTarget(eqlib::EQSwitch* pSwitch);
@@ -603,7 +596,6 @@ MQLIB_API    eqlib::eEQSPA      GetSPAFromName(const char* spa);
 MQLIB_API    const char* GetTeleportName(DWORD id);
 
 MQLIB_API HMODULE GetCurrentModule();
-void DoMainThreadShutdown();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
@@ -628,13 +620,10 @@ constexpr int LIGHT_COUNT = 13;
 //#define MAX_ITEMTYPES		71
 //#define MAX_SPELLEFFECTS	487
 
-MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(eqlib::ItemClient* pContent);
 MQLIB_API bool WillFitInInventory(eqlib::ItemClient* pContent);
 
 /* MQ2ANONYMIZE */
-void InitializeAnonymizer();
-void ShutdownAnonymizer();
 MQLIB_API bool IsAnonymized();
 MQLIB_OBJECT eqlib::CXStr Anonymize(const eqlib::CXStr& Text);
 MQLIB_OBJECT eqlib::CXStr& PluginAnonymize(eqlib::CXStr& Text);
@@ -658,10 +647,6 @@ struct TokenTextParam
 	TokenTextParam(const char* Data, DWORD Length);
 };
 
-void InitializeStringDB();
-void ShutdownStringDB();
-
-struct TokenTextParam;
 using fMQTokenMessageCmd = void(*)(const TokenTextParam&);
 
 MQLIB_OBJECT int AddTokenMessageCmd(int StringID, fMQTokenMessageCmd Command);

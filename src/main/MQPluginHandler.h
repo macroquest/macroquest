@@ -18,6 +18,8 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
+#include "ModuleSystem.h"
+
 #include <cstdint>
 
 namespace eqlib
@@ -33,25 +35,51 @@ void UnloadPlugins();
 void ShutdownPlugins();
 void ShutdownFailedPlugins();
 
-bool IsPluginsInitialized();
+class MQPluginModule : public MQModuleBase
+{
+public:
+	MQPluginModule();
+	virtual ~MQPluginModule() override;
 
-void PulsePlugins();
-void PluginsZoned();
-bool PluginsIncomingChat(const char* Line, uint32_t Color);
-void PluginsWriteChatColor(const char* Line, int Color, int Filter);
-void PluginsCleanUI();
-void PluginsReloadUI();
-void PluginsSetGameState(int GameState);
-void PluginsDrawHUD();
-void PluginsAddSpawn(eqlib::PlayerClient* pNewSpawn);
-void PluginsRemoveSpawn(eqlib::PlayerClient* pSpawn);
-void PluginsAddGroundItem(eqlib::EQGroundItem* pNewGroundItem);
-void PluginsRemoveGroundItem(eqlib::EQGroundItem* pGroundItem);
-void PluginsBeginZone();
-void PluginsEndZone();
-void PluginsUpdateImGui();
-void ModulesUpdateImGui();
-void PluginsMacroStart(const char* Name);
-void PluginsMacroStop(const char* Name);
+protected:
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+
+	virtual void OnProcessFrame() override;
+	virtual void OnGameStateChanged(int gameState) override;
+	virtual void OnUpdateImGui() override;
+	virtual void OnCleanUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+	virtual void OnPreZoneUI() override;
+	virtual void OnPostZoneUI() override;
+	virtual void OnWriteChatColor(const char* message, int color, int filter) override;
+	virtual bool OnIncomingChat(const char* message, int color) override;
+	virtual void OnZoned() override;
+	virtual void OnDrawHUD() override;
+	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;
+	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem) override;
+	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* groundItem) override;
+	virtual void OnModuleLoaded(MQModuleBase* module) override;
+	virtual void OnBeforeModuleUnloaded(MQModuleBase* module) override;
+	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
+	virtual void OnMacroStart(const char* macroName) override;
+	virtual void OnMacroStop(const char* macroName) override;
+
+private:
+	MQPlugin m_plugin;
+};
+
+class MQPluginHandler : MQModuleBase
+{
+public:
+	MQPluginHandler();
+	virtual ~MQPluginHandler() override;
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+};
+
+DECLARE_MODULE_FACTORY(MQPluginHandler)
 
 } // namespace mq

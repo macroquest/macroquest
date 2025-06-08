@@ -74,6 +74,10 @@ public:
 
 //============================================================================
 
+// Note: module priority on this has it load early, but we used to pulse it late.
+// re-evaluate if this is a problem because now we pulse it at start of frame instead
+// of end.
+
 MQCommandAPI::MQCommandAPI()
 	: MQModuleBase("Commands", static_cast<int>(ModulePriority::Commands))
 {
@@ -156,7 +160,6 @@ void MQCommandAPI::Initialize()
 		{ "/assist",            AssistCmd,                  true,  true  },
 		{ "/banklist",          BankList,                   true,  true  },
 		{ "/beep",              MacroBeep,                  true,  false },
-		{ "/bind",              MQ2KeyBindCommand,          true,  false },
 		{ "/break",             Break,                      true,  false },
 		{ "/buyitem",           BuyItem,                    true,  true  },
 		{ "/call",              Call,                       true,  false },
@@ -183,7 +186,6 @@ void MQCommandAPI::Initialize()
 		{ "/doortarget",        DoorTarget,                 true,  true  },
 		{ "/dosocial",          DoSocial,                   true,  true  },
 		{ "/drop",              DropCmd,                    true,  true  },
-		{ "/dumpbinds",         DumpBindsCommand,           true,  false },
 		{ "/dumpstack",         DumpStack,                  true,  false },
 		{ "/echo",              Echo,                       true,  false },
 		{ "/endmacro",          EndMacro,                   true,  false },

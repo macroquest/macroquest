@@ -59,10 +59,8 @@ MQLIB_API void DoShiftCmd                          (eqlib::PlayerClient* pChar, 
 MQLIB_API void DoCtrlCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoAltCmd                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoCommandCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void DumpBindsCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RangedCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoMappable                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MQ2KeyBindCommand                   (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MultilineCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Alert                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Alias                               (eqlib::PlayerClient* pChar, const char* szLine);

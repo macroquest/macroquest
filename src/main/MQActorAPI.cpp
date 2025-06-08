@@ -34,7 +34,7 @@ std::unordered_map<MQModuleBase*, std::vector<std::unique_ptr<postoffice::Dropbo
 std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
 
 MQActorAPI::MQActorAPI()
-	: MQModuleBase("ActorAPI", static_cast<int>(ModulePriority::Actors))
+	: MQModuleBase("ActorAPI", static_cast<int>(ModulePriority::PostOffice))
 {
 	pActorAPI = this;
 }

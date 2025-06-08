@@ -34,40 +34,7 @@ namespace mq {
 
 bool TurnNotDone = false;
 static std::recursive_mutex s_pulseMutex;
-static bool s_isValid = true;
-static bool s_hasNotified = false;
 
-void UpdateMQ2SpawnSort();
-void PulseMQ2AutoInventory();
-
-//----------------------------------------------------------------------------
-
-std::vector<std::function<void()>> s_queuedEvents;
-std::recursive_mutex s_queuedEventMutex;
-extern wil::unique_event g_loadComplete;
-
-void PostToMainThread(std::function<void()>&& callback)
-{
-	std::scoped_lock lock(s_queuedEventMutex);
-
-	s_queuedEvents.push_back(std::move(callback));
-}
-
-static void ProcessQueuedEvents()
-{
-	std::unique_lock lock(s_queuedEventMutex);
-
-	if (s_queuedEvents.empty())
-		return;
-
-	std::vector<std::function<void()>> events;
-	events.swap(s_queuedEvents);
-
-	lock.unlock();
-
-	for (auto& ev : events)
-		std::invoke(ev);
-}
 
 //----------------------------------------------------------------------------
 extern uint64_t s_commandCount;
@@ -254,29 +221,14 @@ static void Pulse()
 		pipeclient::NotifyIsForegroundWindow(gbInForeground);
 	}
 
-	// handle queued events.
-	ProcessQueuedEvents();
-
-	//CheckGameState();
-
-	if (!s_isValid && !s_hasNotified)
-	{
-		pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
-		s_hasNotified = true;
-	}
-
 	if (!pControlledPlayer) return;
 
-	PlayerClient* pCharOrMount = nullptr;
 	PcProfile* pProfile = GetPcProfile();
-	PlayerClient* pChar = pCharOrMount = pControlledPlayer;
+	PlayerClient* pCharOrMount = pControlledPlayer;
 
 	// Drop out here if we're waiting for something.
-	if (!pChar || gZoning) return;
+	if (!pLocalPlayer || gZoning) return;
 	if (!pLocalPC) return;
-
-	if (pLocalPlayer)
-		pChar = pLocalPlayer;
 
 	static int16_t LastZone = -1;
 	static PlayerClient* pCharOld = nullptr;
@@ -285,29 +237,29 @@ static void Pulse()
 	static uint64_t LastMoveTick = 0;
 	static uint32_t MapDelay = 0;
 
-	if (pChar != pCharOld && WereWeZoning)
+	if (pLocalPlayer != pCharOld && WereWeZoning)
 	{
 		// Reset after zoning completes
 		WereWeZoning = false;
-		pCharOld = pChar;
+		pCharOld = pLocalPlayer;
 		gFaceAngle = 10000.0f;
 		gLookAngle = 10000.0f;
 		gbMoving = false;
-		LastX = pChar->X;
-		LastY = pChar->Y;
+		LastX = pLocalPlayer->X;
+		LastY = pLocalPlayer->Y;
 		LastMoveTick = MQGetTickCount64();
 		SetSwitchTarget(nullptr);
 
 		srand((unsigned int)time(nullptr)); // reseed
 
-		Benchmark(bmPluginsOnZoned, PluginsZoned());
+		//PluginsZoned();
 	}
-	else if ((LastX != pChar->X) || (LastY != pChar->Y) || LastMoveTick > MQGetTickCount64() - 100)
+	else if ((LastX != pLocalPlayer->X) || (LastY != pLocalPlayer->Y) || LastMoveTick > MQGetTickCount64() - 100)
 	{
-		if ((LastX != pChar->X) || (LastY != pChar->Y)) LastMoveTick = MQGetTickCount64();
+		if ((LastX != pLocalPlayer->X) || (LastY != pLocalPlayer->Y)) LastMoveTick = MQGetTickCount64();
 		gbMoving = true;
-		LastX = pChar->X;
-		LastY = pChar->Y;
+		LastX = pLocalPlayer->X;
+		LastY = pLocalPlayer->Y;
 	}
 	else
 	{
@@ -346,34 +298,34 @@ static void Pulse()
 
 		if (gFaceAngle != 10000.0f)
 		{
-			NaturalTurn(pCharOrMount, pChar);
+			NaturalTurn(pCharOrMount, pLocalPlayer);
 		}
 
 		if (gLookAngle != 10000.0f)
 		{
-			if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f)
+			if (abs((INT)(pLocalPlayer->CameraAngle - gLookAngle)) < 5.0f)
 			{
-				pChar->CameraAngle = (float)gLookAngle;
+				pLocalPlayer->CameraAngle = (float)gLookAngle;
 				gLookAngle = 10000.0f;
 				TurnNotDone = false;
 			}
 			else
 			{
 				TurnNotDone = true;
-				float c1 = pChar->CameraAngle;
+				float c1 = pLocalPlayer->CameraAngle;
 				float c2 = (float)gLookAngle;
 
 				double turn = (double)(rand() % 200) / 20;
 
 				if (c1 < c2)
 				{
-					pChar->CameraAngle += (float)turn;
-					if (pChar->CameraAngle >= 128.0f) pChar->CameraAngle -= 128.0f;
+					pLocalPlayer->CameraAngle += (float)turn;
+					if (pLocalPlayer->CameraAngle >= 128.0f) pLocalPlayer->CameraAngle -= 128.0f;
 				}
 				else
 				{
-					pChar->CameraAngle -= (float)turn;
-					if (pChar->CameraAngle <= -128.0f) pChar->CameraAngle += 128.0f;
+					pLocalPlayer->CameraAngle -= (float)turn;
+					if (pLocalPlayer->CameraAngle <= -128.0f) pLocalPlayer->CameraAngle += 128.0f;
 				}
 			}
 		}
@@ -387,36 +339,8 @@ static void Pulse()
 	}
 }
 
-// Trims trailing whitespace from strings in the string table.
-static void FixStringTable()
-{
-	for (int index = 0; index < pStringTable->Count; index++)
-	{
-		if (StringItem* pStr = pStringTable->StringItems[index])
-		{
-			if (char* p = pStr->String)
-			{
-				while (*p)
-					p++;
-				p--;
-				while (*p == ' ' && p != pStr->String)
-				{
-					*p = 0;
-					p--;
-				}
-			}
-		}
-	}
-}
-
 void Heartbeat()
 {
-	if (!s_isValid && s_hasNotified)
-	{
-		gbUnload = true;
-		return;
-	}
-
 	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
 	static uint64_t TickDiff = 0;
@@ -443,29 +367,9 @@ void Heartbeat()
 		DropTimers();
 	}
 
-	if (!gStringTableFixed && pStringTable)
-	{
-		FixStringTable();
-		gStringTableFixed = true;
-	}
-
-	UpdateMQ2SpawnSort();
-
-	DebugTry(PulseMQ2AutoInventory());
-
 	bRunNextCommand = true;
-	DebugTry(Pulse());
-	DebugTry(Benchmark(bmPluginsPulse, DebugTry(PulsePlugins())));
 
-	static bool ShownNews = false;
-	if (gGameState == GAMESTATE_CHARSELECT && !ShownNews)
-	{
-		ShownNews = true;
-		if (gCreateMQ2NewsWindow)
-			CreateMQ2NewsWindow();
-	}
-
-	ImGuiManager_Pulse();
+	Pulse();
 
 	if (gGameState != -1)
 	{
@@ -496,8 +400,6 @@ void Heartbeat()
 // Description: Our ProcessGameEvents Hook
 // ***************************************************************************
 
-void DoMainThreadInitialization();
-
 bool DoGameEventsPulse(int (*pEventFunc)())
 {
 	int processGameEventsResult = 0;
@@ -513,35 +415,53 @@ void DoLoginPulse()
 	DoGameEventsPulse(nullptr);
 }
 
-class CEverQuestHook
-{
-public:
-	DETOUR_TRAMPOLINE_DEF(void, CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline, ())
-	void CMerchantWnd__PurchasePageHandler__UpdateList_Detour()
-	{
-		gItemsReceived = false;
-
-		CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline();
-
-		gItemsReceived = true;
-	}
-};
-
 void InitializeMQ2Pulse()
 {
-	DebugSpew("Initializing Pulse");
-
-	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
-
 	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
 	{
 		EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
 	}
 }
 
-void ShutdownMQ2Pulse()
+//=================================================================================================
+
+class CMerchantWnd_Detours
 {
-	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
-}
+public:
+	DETOUR_TRAMPOLINE_DEF(void, PurchasePageHandler__UpdateList_Trampoline, ())
+		void PurchasePageHandler__UpdateList_Detour()
+	{
+		gItemsReceived = false;
+
+		PurchasePageHandler__UpdateList_Trampoline();
+
+		gItemsReceived = true;
+	}
+};
+
+// This tracks the state of the merchant window to know if we've received items for it.
+class MerchantWindowTracker : public MQModuleBase
+{
+public:
+	MerchantWindowTracker() : MQModuleBase("MerchantWindowTracker")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList,
+			&CMerchantWnd_Detours::PurchasePageHandler__UpdateList_Detour,
+			&CMerchantWnd_Detours::PurchasePageHandler__UpdateList_Trampoline);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
+	}
+
+	virtual void OnProcessFrame() override
+	{
+	}
+};
 
 } // namespace mq

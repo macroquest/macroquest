@@ -33,13 +33,22 @@ enum class ModulePriority
 	Commands = 10,
 	DataTypes = 11,
 
-	Actors = 20,
+	PostOffice = 20,
+
+	Graphics = 50,
+	ImGui = 51,
 
 	HUD = 90,
 
 	Default = 100,
 
+	PluginHandler = 150,
+
+	// plugins occupy a range of priority starting at PluginsDefault and ending at PluginsEnd
 	PluginsDefault = 1000,
+	PluginsEnd = 9999,
+
+	Macros = 2000, // Macro system should be lower priority than all plugins
 };
 
 enum class ModuleFlags : uint32_t

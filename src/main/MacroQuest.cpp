@@ -165,6 +165,14 @@ class DeveloperToolsModule;
 class ImGuiAPIModule;
 class InputModule;
 class MQCfgfileHandler;
+class KeyBindsModule;
+class StringDBModule;
+class AnonymizerModule;
+class AutoInventoryModule;
+class MQPluginHandler;
+class GraphicsResourcesModule;
+class ImGuiModule;
+class MQNewsWindowModule;
 
 struct MQStartupParams
 {
@@ -195,6 +203,33 @@ bool IsMainThread()
 
 	return dwMainThreadId == ::GetCurrentThreadId();
 }
+
+static std::vector<std::function<void()>> s_queuedEvents;
+static std::recursive_mutex s_queuedEventMutex;
+
+void PostToMainThread(std::function<void()>&& callback)
+{
+	std::scoped_lock lock(s_queuedEventMutex);
+
+	s_queuedEvents.push_back(std::move(callback));
+}
+
+static void ProcessQueuedEvents()
+{
+	std::unique_lock lock(s_queuedEventMutex);
+
+	if (s_queuedEvents.empty())
+		return;
+
+	std::vector<std::function<void()>> events;
+	events.swap(s_queuedEvents);
+
+	lock.unlock();
+
+	for (auto& ev : events)
+		std::invoke(ev);
+}
+
 
 /**
  * Immediately upon startup, make sure we've allowed enough time for InnerSpace/Lavish software to
@@ -484,12 +519,6 @@ bool MacroQuest::Initialize()
 
 	mqplugin::ThisPluginHandle = CreateModuleHandle();
 
-	// This will populate our list of modules, but we won't initialize them yet.
-	LoadModules();
-
-	// These two sub-systems will get us onto the main thread.
-	InitializeMQ2Pulse();
-
 	// We will wait for pulse from the game to init on main thread.
 	return g_loadComplete.wait();
 }
@@ -550,9 +579,9 @@ bool MacroQuest::InitializeEQLib()
 	return m_eqlib != nullptr;
 }
 
-void DoMainThreadInitialization();
+//=================================================================================================
 
-bool MacroQuest::MainThreadInitialize()
+void MacroQuest::MainThreadInitialize()
 {
 	// initialize main thread id
 	dwMainThreadId = ::GetCurrentThreadId();
@@ -560,11 +589,26 @@ bool MacroQuest::MainThreadInitialize()
 	// UI Exists if we're in any of the ingame states.
 	m_createdUI = gGameState >= eqlib::GAMESTATE_CHARSELECT && gGameState <= eqlib::GAMESTATE_INGAME;
 
+	// This will populate our list of modules, but we won't initialize them yet.
+	LoadModules();
+
+	bmWriteChatColor = AddBenchmark("WriteChatColor");
+	bmPluginsIncomingChat = AddBenchmark("PluginsIncomingChat");
+	bmPluginsPulse = AddBenchmark("PluginsPulse");
+	bmPluginsOnZoned = AddBenchmark("PluginsOnZoned");
+	bmPluginsCleanUI = AddBenchmark("PluginsCleanUI");
+	bmPluginsReloadUI = AddBenchmark("PluginsReloadUI");
+	bmPluginsDrawHUD = AddBenchmark("PluginsDrawHUD");
+	bmPluginsSetGameState = AddBenchmark("PluginsSetGameState");
+	bmBeginZone = AddBenchmark("BeginZone");
+	bmEndZone = AddBenchmark("EndZone");
+	bmPluginsUpdateImGui = AddBenchmark("PluginsUpdateImGui");
+
+	// Ok now initializez everything
 	InitializeModules();
 
-	DoMainThreadInitialization();
-
-	return true;
+	m_initializedFirstFrame = true;
+	g_loadComplete.SetEvent();
 }
 
 void MacroQuest::MainThreadShutdown()
@@ -575,10 +619,10 @@ void MacroQuest::MainThreadShutdown()
 	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 	DebugSpewAlways("%s", UnloadedString);
 
-	// cant unload these here there are detours still in use that call functions from plugins...
-	//UnloadMQ2Plugins();
+	ShutdownPlugins();
+	ShutdownFailedPlugins();
 
-	DoMainThreadShutdown();
+	ShutdownModules();
 
 	m_initializedFirstFrame = false;
 	g_unloadComplete.SetEvent();
@@ -586,7 +630,9 @@ void MacroQuest::MainThreadShutdown()
 
 void MacroQuest::Shutdown()
 {
-	DoMainThreadShutdown();
+	// We get called on the injection thread. The modules should have already been
+	// shutdown on the main thread (or never initialized).
+	assert(m_initializedModules == false);
 
 	eqlib::Shutdown(m_eqlib);
 	m_eqlib = nullptr;
@@ -606,6 +652,7 @@ void MacroQuest::LoadModules()
 	AddModule(CreateModule<MQDataAPI>());              // Instantiates pDataAPI
 	AddModule(CreateModule<MQActorAPI>());             // Instantiates pActorAPI
 	AddModule(CreateModule<MQPluginHandler>());
+	AddModule(CreateModule<KeyBindsModule>());
 
 	AddModule(CreateModule<DetoursModule>());
 	AddModule(CreateModule<SpellsModule>());
@@ -626,6 +673,14 @@ void MacroQuest::LoadModules()
 	AddModule(CreateModule<ImGuiAPIModule>());
 	AddModule(CreateModule<InputModule>());
 	AddModule(CreateModule<MQCfgfileHandler>());
+	AddModule(CreateModule<StringDBModule>());
+	AddModule(CreateModule<AnonymizerModule>());
+	AddModule(CreateModule<AutoInventoryModule>());
+	AddModule(CreateModule<GraphicsResourcesModule>());
+	AddModule(CreateModule<ImGuiModule>());
+	AddModule(CreateModule<MQNewsWindowModule>());
+
+	AddModule(CreateModule<MQPluginHandler>());
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
@@ -755,11 +810,11 @@ void MacroQuest::OnProcessFrame()
 	if (m_shuttingDown)
 		return;
 
+	MQScopedBenchmark bm(bmPluginsPulse);
+
 	if (!m_initializedFirstFrame)
 	{
 		MainThreadInitialize();
-
-		m_initializedFirstFrame = true;
 	}
 	else if (gbUnload)
 	{
@@ -768,6 +823,15 @@ void MacroQuest::OnProcessFrame()
 	else
 	{
 		Heartbeat();
+		ProcessQueuedEvents();
+
+		if (eqlib::pLocalPlayer != m_lastPlayer && WereWeZoning)
+		{
+			WereWeZoning = false;
+			m_lastPlayer = eqlib::pLocalPlayer;
+
+			OnZoned();
+		}
 
 		for (const auto& module : m_modules)
 		{
@@ -776,8 +840,6 @@ void MacroQuest::OnProcessFrame()
 
 			module->OnProcessFrame();
 		}
-
-		PulsePlugins();
 	}
 }
 
@@ -795,8 +857,6 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 	{
 		module->OnGameStateChanged(newGameState);
 	}
-
-	PluginsSetGameState(newGameState);
 }
 
 void MacroQuest::OnLoginFrontendEntered()
@@ -819,17 +879,10 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 {
 	MQScopedBenchmark bm(bmPluginsReloadUI);
 
-	if (params.fastReload)
-	{
-		//gDrawWindowFrameSkipCount = 2;
-	}
-
 	for (const auto& module : m_modules)
 	{
 		module->OnReloadUI(params);
 	}
-
-	PluginsReloadUI();
 }
 
 void MacroQuest::OnCleanUI()
@@ -840,28 +893,31 @@ void MacroQuest::OnCleanUI()
 	{
 		module->OnCleanUI();
 	}
-
-	PluginsCleanUI();
 }
 
 void MacroQuest::OnPreZoneUI()
 {
+	gbInZone = false;
+	gZoning = true;
+
 	for (const auto& module : m_modules)
 	{
 		module->OnPreZoneUI();
 	}
-
-	PluginsBeginZone();
 }
 
 void MacroQuest::OnPostZoneUI()
 {
+	// update zoning states
+	gbInZone = true;
+	gZoning = false;
+	WereWeZoning = true;
+	LastEnteredZone = MQGetTickCount64();
+
 	for (const auto& module : m_modules)
 	{
 		module->OnPostZoneUI();
 	}
-
-	PluginsEndZone();
 }
 
 bool MacroQuest::OnChatMessage(eqlib::ChatMessageParams& params)
@@ -915,8 +971,6 @@ void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 	{
 		module->OnSpawnAdded(player);
 	}
-
-	PluginsAddSpawn(player);
 }
 
 void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
@@ -925,8 +979,6 @@ void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 	{
 		module->OnSpawnRemoved(player);
 	}
-
-	PluginsRemoveSpawn(player);
 }
 
 void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
@@ -935,8 +987,6 @@ void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 	{
 		module->OnGroundItemAdded(groundItem);
 	}
-
-	PluginsAddGroundItem(groundItem);
 }
 
 void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
@@ -945,12 +995,23 @@ void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 	{
 		module->OnGroundItemRemoved(groundItem);
 	}
-
-	PluginsRemoveGroundItem(groundItem);
 }
 
 void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 {
+	if (gFilterMQ)
+		return;
+
+	MQScopedBenchmark bm(bmWriteChatColor);
+
+	if (size_t len = strlen(message))
+	{
+		std::unique_ptr<char[]> plainText = std::make_unique<char[]>(len + 1);
+
+		StripMQChat(message, plainText.get());
+		CheckChatForEvent(plainText.get());
+	}
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnWriteChatColor))
@@ -958,12 +1019,14 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 
 		module->OnWriteChatColor(message, color, filter);
 	}
-
-	PluginsWriteChatColor(message, color, filter);
 }
 
 bool MacroQuest::OnIncomingChat(const char* message, int color)
 {
+	// Ignore empty messages
+	if (message[0] == 0)
+		return false;
+
 	MQScopedBenchmark bm(bmPluginsIncomingChat);
 
 	bool result = false;
@@ -976,32 +1039,38 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 		result = result || module->OnIncomingChat(message, color);
 	}
 
-	result = result || PluginsIncomingChat(message, color);
-
 	return result;
 }
 
-void MacroQuest::OnUpdateImGui()
+void MacroQuest::OnUpdateImGui(bool internalOnly)
 {
+	MQScopedBenchmark bm(bmPluginsUpdateImGui);
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnUpdateImGui))
 			continue;
 
+		if (internalOnly && +(module->GetFlags() & ModuleFlags::IsPlugin))
+			continue;
+
 		module->OnUpdateImGui();
 	}
-
-	PluginsUpdateImGui();
 }
 
 void MacroQuest::OnZoned()
 {
+	MQScopedBenchmark bm(bmPluginsOnZoned);
+
+	char szTemp[128];
+	sprintf_s(szTemp, "You have entered %s.", eqlib::pZoneInfo->LongName);
+
+	CheckChatForEvent(szTemp);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnZoned();
 	}
-
-	PluginsZoned();
 }
 
 void MacroQuest::OnDrawHUD()
@@ -1015,8 +1084,6 @@ void MacroQuest::OnDrawHUD()
 
 		module->OnDrawHUD();
 	}
-
-	PluginsDrawHUD();
 }
 
 void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
@@ -1049,8 +1116,6 @@ void MacroQuest::OnMacroStart(const char* macroName)
 	{
 		module->OnMacroStart(macroName);
 	}
-
-	PluginsMacroStart(macroName);
 }
 
 void MacroQuest::OnMacroStop(const char* macroName)
@@ -1059,8 +1124,6 @@ void MacroQuest::OnMacroStop(const char* macroName)
 	{
 		module->OnMacroStop(macroName);
 	}
-
-	PluginsMacroStop(macroName);
 }
 
 void MacroQuest::OnPipeMessage(PipeMessagePtr message)
@@ -1109,7 +1172,6 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 	gbIgnoreAlertRecursion = GetPrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
 	gbShowCurrentCamera = GetPrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 	gTurboLimit = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
-	gCreateMQ2NewsWindow = GetPrivateProfileBool("MacroQuest", "CreateMQ2NewsWindow", gCreateMQ2NewsWindow, iniFile);
 	gStackingDebug = (eStackingDebug)GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 	gUseNewNamedTest = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
 	gParserVersion = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
@@ -1139,7 +1201,6 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 		WritePrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
 		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 		WritePrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
-		WritePrivateProfileBool("MacroQuest", "CreateMQ2NewsWindow", gCreateMQ2NewsWindow, iniFile);
 		WritePrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
 		WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile);

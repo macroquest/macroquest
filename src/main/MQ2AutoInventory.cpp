@@ -20,6 +20,8 @@
 #include <map>
 #include <string>
 
+#include "ModuleSystem.h"
+
 using namespace eqlib;
 
 namespace mq {
@@ -994,12 +996,12 @@ void RemoveFindItemMenu()
 #endif // HAS_FIND_ITEM_WINDOW
 }
 
+#if HAS_FIND_ITEM_WINDOW
 static void FindItemPulse()
 {
 	if (!pLocalPC)
 		return;
 
-#if HAS_FIND_ITEM_WINDOW
 	if (pMerchantWnd)
 	{
 		if (pMerchantWnd->IsVisible())
@@ -1113,50 +1115,68 @@ static void FindItemPulse()
 				gbStartDeleting = false;
 		}
 	}
-
-#endif // HAS_FIND_ITEM_WINDOW
 }
-
-void InitializeMQ2AutoInventory()
-{
-#if HAS_FIND_ITEM_WINDOW
-	EzDetour(CFindItemWnd__WndNotification,
-		&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
-		&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
-	EzDetour(CFindItemWnd__Update,
-		&AutoInventory::FindItemWnd_Hook::Update_Detour,
-		&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
 #endif // HAS_FIND_ITEM_WINDOW
-	EzDetour(CBarterSearchWnd__WndNotification,
-		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
-		&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
-	EzDetour(CBarterSearchWnd__UpdateInventoryList,
-		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Detour,
-		&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline);
-	EzDetour(CBarterWnd__WndNotification,
-		&AutoInventory::CBarterWnd_Hook::WndNotification_Detour,
-		&AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline);
-}
 
-void ShutdownMQ2AutoInventory()
+// Maybe this should become a plugin?
+
+class AutoInventoryModule : public MQModuleBase
 {
-	RemoveDetour(CBarterWnd__WndNotification);
-	RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
-	RemoveDetour(CBarterSearchWnd__WndNotification);
+public:
+	AutoInventoryModule() : MQModuleBase("AutoInventory")
+	{
+	}
+
+	virtual void Initialize() override
+	{
 #if HAS_FIND_ITEM_WINDOW
-	RemoveDetour(CFindItemWnd__WndNotification);
-	RemoveDetour(CFindItemWnd__Update);
+		EzDetour(CFindItemWnd__WndNotification,
+			&AutoInventory::FindItemWnd_Hook::WndNotification_Detour,
+			&AutoInventory::FindItemWnd_Hook::WndNotification_Trampoline);
+		EzDetour(CFindItemWnd__Update,
+			&AutoInventory::FindItemWnd_Hook::Update_Detour,
+			&AutoInventory::FindItemWnd_Hook::Update_Trampoline);
+#endif // HAS_FIND_ITEM_WINDOW
+		EzDetour(CBarterSearchWnd__WndNotification,
+			&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Detour,
+			&AutoInventory::CBarterSearchWnd_Hook::WndNotification_Trampoline);
+		EzDetour(CBarterSearchWnd__UpdateInventoryList,
+			&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Detour,
+			&AutoInventory::CBarterSearchWnd_Hook::UpdateInventoryList_Trampoline);
+		EzDetour(CBarterWnd__WndNotification,
+			&AutoInventory::CBarterWnd_Hook::WndNotification_Detour,
+			&AutoInventory::CBarterWnd_Hook::WndNotification_Trampoline);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveDetour(CBarterWnd__WndNotification);
+		RemoveDetour(CBarterSearchWnd__UpdateInventoryList);
+		RemoveDetour(CBarterSearchWnd__WndNotification);
+#if HAS_FIND_ITEM_WINDOW
+		RemoveDetour(CFindItemWnd__WndNotification);
+		RemoveDetour(CFindItemWnd__Update);
 #endif
-	RemoveFindItemMenu();
-}
+		RemoveFindItemMenu();
+	}
 
-void PulseMQ2AutoInventory()
-{
-	if (gGameState != GAMESTATE_INGAME)
-		return;
+	virtual void OnProcessFrame() override
+	{
+		if (gGameState != GAMESTATE_INGAME)
+			return;
 
-	AddFindItemMenu();
-	FindItemPulse();
-}
+		AddFindItemMenu();
+#if HAS_FIND_ITEM_WINDOW
+		FindItemPulse();
+#endif
+	}
+
+	virtual void OnCleanUI() override
+	{
+		RemoveFindItemMenu();
+	}
+};
+
+DECLARE_MODULE_FACTORY(AutoInventoryModule);
 
 } // namespace mq

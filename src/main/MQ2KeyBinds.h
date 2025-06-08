@@ -14,10 +14,9 @@
 
 #pragma once
 
-#include <mq/utils/Keybinds.h>
+#include "mq/utils/Keybinds.h"
 
 #include <functional>
-#include <map>
 #include <string>
 
 namespace mq {
@@ -49,8 +48,5 @@ void EnumerateKeyBinds(const std::function<void(const MQKeyBind& keyBind)>& func
 
 // Get the total number of keybinds
 int GetKeyBindsCount();
-
-void InitializeMQ2KeyBinds();
-void ShutdownMQ2KeyBinds();
 
 } // namespace mq

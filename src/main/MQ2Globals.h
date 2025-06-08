@@ -37,21 +37,10 @@ MQLIB_VAR const double PI;
 
 /* BENCHMARK HANDLES */
 
-MQLIB_API uint32_t bmWriteChatColor;
-MQLIB_API uint32_t bmPluginsIncomingChat;
-MQLIB_API uint32_t bmPluginsPulse;
-MQLIB_API uint32_t bmPluginsOnZoned;
-MQLIB_API uint32_t bmPluginsCleanUI;
-MQLIB_API uint32_t bmPluginsReloadUI;
-MQLIB_API uint32_t bmPluginsDrawHUD;
-MQLIB_API uint32_t bmPluginsSetGameState;
 MQLIB_API uint32_t bmUpdateSpawnSort;
 MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;
-MQLIB_API uint32_t bmBeginZone;
-MQLIB_API uint32_t bmEndZone;
 MQLIB_API uint32_t bmRenderScene;
-MQLIB_API uint32_t bmAnonymizer;
 
 /* OTHER */
 
@@ -61,7 +50,6 @@ MQLIB_API int gBuild;
 
 MQLIB_VAR DWORD ThreadID;
 
-MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
 MQLIB_VAR HMODULE ghModule;
@@ -130,7 +118,6 @@ MQLIB_VAR bool gFilterMQ2DataErrors;
 MQLIB_VAR bool gSpewToFile;
 MQLIB_VAR bool gLClickedObject;
 MQLIB_VAR MQWhoFilter gFilterSWho;
-MQLIB_VAR bool gCreateMQ2NewsWindow;
 MQLIB_VAR bool gUseNewNamedTest;
 MQLIB_VAR bool gbInForeground;
 

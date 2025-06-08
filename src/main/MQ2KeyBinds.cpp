@@ -14,8 +14,8 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
-
 #include "MQ2KeyBinds.h"
+#include "ModuleSystem.h"
 
 #include <fmt/format.h>
 
@@ -23,13 +23,12 @@ using namespace eqlib;
 
 namespace mq {
 
-//void InjectMQ2Binds(COptionsWnd* pWnd);
-//void EjectMQ2Binds(COptionsWnd* pWnd);
+//=================================================================================================
 
 using KeybindMap = std::map<std::string, int, ci_less>;
 
-KeybindMap gKeybindMap;
-std::vector<std::unique_ptr<MQKeyBind>> gKeyBinds;
+static KeybindMap gKeybindMap;
+static std::vector<std::unique_ptr<MQKeyBind>> gKeyBinds;
 
 void EnumerateKeyBinds(const std::function<void(const MQKeyBind& keyBind)>& func)
 {
@@ -185,39 +184,6 @@ public:
 	}
 };
 
-static void DoRangedBind(const char* Name, bool Down);
-
-void InitializeMQ2KeyBinds()
-{
-	AddMQ2KeyBind("RANGED", DoRangedBind);
-
-	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
-
-	// Validate that our constants are correct
-	assert(ci_equals(szEQMappableCommands[CMD_AUTORUN], "autorun"));
-	assert(ci_equals(szEQMappableCommands[CMD_JUMP], "jump"));
-	assert(ci_equals(szEQMappableCommands[CMD_FORWARD], "forward"));
-	assert(ci_equals(szEQMappableCommands[CMD_BACK], "back"));
-	assert(ci_equals(szEQMappableCommands[CMD_RIGHT], "right"));
-	assert(ci_equals(szEQMappableCommands[CMD_LEFT], "left"));
-	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_LEFT], "strafe_left"));
-	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_RIGHT], "strafe_right"));
-	assert(ci_equals(szEQMappableCommands[CMD_DUCK], "duck"));
-	assert(ci_equals(szEQMappableCommands[CMD_RUN_WALK], "run_walk"));
-}
-
-void ShutdownMQ2KeyBinds()
-{
-	gKeyBinds.clear();
-	gKeybindMap.clear();
-
-	RemoveDetour(KeypressHandler__ClearCommandStateArray);
-	RemoveDetour(KeypressHandler__HandleKeyDown);
-	RemoveDetour(KeypressHandler__HandleKeyUp);
-}
-
 bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 {
 	DebugSpew("AddMQ2KeyBind(%s)", name);
@@ -343,7 +309,7 @@ int FindMappableCommand(const char* name)
 	return -1;
 }
 
-void MQ2KeyBindCommand(PlayerClient* pChar, const char* szLine)
+static void KeyBindCommand(PlayerClient*, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -539,5 +505,74 @@ bool DumpBinds(const char* Filename)
 	fclose(file);
 	return true;
 }
+
+// /dumpbinds
+static void DumpBindsCommand(PlayerClient*, const char* szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage /dumpbinds <filename>");
+		return;
+	}
+
+	if (!DumpBinds(szLine))
+	{
+		MacroError("Could not dump binds to %s", szLine);
+		return;
+	}
+
+	WriteChatColor("Binds dumped to file.");
+}
+
+//=================================================================================================
+
+class KeyBindsModule : public MQModuleBase
+{
+public:
+	KeyBindsModule() : MQModuleBase("KeyBinds")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		AddCommand("/bind", KeyBindCommand);
+		AddCommand("/dumpbinds", DumpBindsCommand);
+
+		AddMQ2KeyBind("RANGED", DoRangedBind);
+
+		EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+		EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
+		EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
+
+		// Validate that our constants are correct
+		assert(ci_equals(szEQMappableCommands[CMD_AUTORUN], "autorun"));
+		assert(ci_equals(szEQMappableCommands[CMD_JUMP], "jump"));
+		assert(ci_equals(szEQMappableCommands[CMD_FORWARD], "forward"));
+		assert(ci_equals(szEQMappableCommands[CMD_BACK], "back"));
+		assert(ci_equals(szEQMappableCommands[CMD_RIGHT], "right"));
+		assert(ci_equals(szEQMappableCommands[CMD_LEFT], "left"));
+		assert(ci_equals(szEQMappableCommands[CMD_STRAFE_LEFT], "strafe_left"));
+		assert(ci_equals(szEQMappableCommands[CMD_STRAFE_RIGHT], "strafe_right"));
+		assert(ci_equals(szEQMappableCommands[CMD_DUCK], "duck"));
+		assert(ci_equals(szEQMappableCommands[CMD_RUN_WALK], "run_walk"));
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveCommand("/bind");
+		RemoveCommand("/dumpbinds");
+	
+		RemoveMQ2KeyBind("RANGED");
+
+		gKeyBinds.clear();
+		gKeybindMap.clear();
+
+		RemoveDetour(KeypressHandler__ClearCommandStateArray);
+		RemoveDetour(KeypressHandler__HandleKeyDown);
+		RemoveDetour(KeypressHandler__HandleKeyUp);
+	}
+};
+
+DECLARE_MODULE_FACTORY(KeyBindsModule);
 
 } // namespace mq

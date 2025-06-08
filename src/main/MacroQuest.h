@@ -47,7 +47,7 @@ private:
 	void InitializeLogging();
 
 	// Initialization in the first frame of the main game loop
-	bool MainThreadInitialize();
+	void MainThreadInitialize();
 	void MainThreadShutdown();
 
 	// Load Preferences from disk
@@ -79,7 +79,7 @@ public:
 	void OnWriteChatColor(const char* message, int color, int filter);
 	bool OnIncomingChat(const char* message, int color);
 
-	void OnUpdateImGui();
+	void OnUpdateImGui(bool internalOnly);
 
 	void OnZoned();
 	void OnDrawHUD();
@@ -153,6 +153,23 @@ private:
 
 	bool m_initializedModules = false;
 	bool m_createdUI = false;
+	bool m_zoningInProgress = true;
+
+	// Benchmark handles
+	uint32_t bmWriteChatColor;
+	uint32_t bmPluginsIncomingChat;
+	uint32_t bmPluginsPulse;
+	uint32_t bmPluginsOnZoned;
+	uint32_t bmPluginsCleanUI;
+	uint32_t bmPluginsReloadUI;
+	uint32_t bmPluginsDrawHUD;
+	uint32_t bmPluginsSetGameState;
+	uint32_t bmPluginsUpdateImGui;
+	uint32_t bmBeginZone;
+	uint32_t bmEndZone;
+
+	// State tracking across frames
+	eqlib::PlayerClient* m_lastPlayer = nullptr;
 };
 
 extern MacroQuest* g_mq;

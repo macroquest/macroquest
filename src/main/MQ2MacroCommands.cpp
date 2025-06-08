@@ -24,6 +24,8 @@
 #include <fstream>
 #include <regex>
 
+#include "MacroQuest.h"
+
 using namespace eqlib;
 
 namespace mq {
@@ -1109,7 +1111,7 @@ void Macro(PlayerClient* pChar, const char* szLine)
 	}
 
 	DebugSpew("Macro - Starting macro with '/call %s'", szTemp);
-	PluginsMacroStart(szLine);
+	g_mq->OnMacroStart(szLine);
 	gbGroundDeprecateCount = 0;
 	Call(pChar, szTemp);
 
@@ -1157,6 +1159,7 @@ void Macro(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 void Cleanup(PlayerClient* pChar, const char* szLine)
 {
+	// TODO: Replace with just simply closing the windows that are closable with escape.
 	KeyCombo Escape;
 	ParseKeyCombo("Esc", Escape);
 
@@ -1529,7 +1532,7 @@ void EndMacro(PlayerClient*, const char* szLine)
 	if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)
 		WriteChatColor("The current macro has ended.", USERCOLOR_DEFAULT);
 
-	PluginsMacroStop(MacroName);
+	g_mq->OnMacroStop(MacroName);
 	gbGroundDeprecateCount = -1;
 
 	if (g_pProfile)

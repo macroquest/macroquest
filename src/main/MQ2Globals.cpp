@@ -26,7 +26,6 @@ const double PI = 3.1415926535;
 uint32_t bmRenderScene = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
-uint32_t bmAnonymizer = 0;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
@@ -34,7 +33,6 @@ MQDataVar* pMacroVariables = nullptr;
 int gGameState = 0;
 DWORD ThreadID = 0;
 bool gbWriteAllConfig = false;
-bool gStringTableFixed = false;
 
 HMODULE ghModule = nullptr;
 HINSTANCE ghInstance = nullptr;
@@ -94,7 +92,6 @@ bool gKeepKeys = true;
 bool gLClickedObject = false;
 MQWhoFilter gFilterSWho;
 bool gFilterMQ2DataErrors = false;
-bool gCreateMQ2NewsWindow = true;
 char gIfDelimiter = ',';
 char gIfAltDelimiter = '~';
 

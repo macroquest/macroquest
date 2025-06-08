@@ -15,6 +15,8 @@
 #include "pch.h"
 #include "MQ2Main.h"
 
+#include "MacroQuest.h"
+
 #include "MQ2Mercenaries.h"
 #include "MQ2Utilities.h"
 #include "MQPluginHandler.h"
@@ -133,7 +135,7 @@ void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int F
 
 	if (IsMainThread())
 	{
-		PluginsWriteChatColor(Line, Color, Filter);
+		g_mq->OnWriteChatColor(Line, Color, Filter);
 		return;
 	}
 
@@ -147,7 +149,7 @@ void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int F
 	PostToMainThread(
 		[Ptr, Color, Filter]()
 	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
+			g_mq->OnWriteChatColor(Ptr.get(), Color, Filter);
 	});
 }
 

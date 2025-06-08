@@ -410,6 +410,9 @@
     <ClCompile Include="MacroQuest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQNewsWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -590,9 +593,6 @@
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="MQActorAPI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsResources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">

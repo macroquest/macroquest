@@ -545,6 +545,7 @@
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
+    <ClCompile Include="MQNewsWindow.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQPluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
@@ -624,7 +625,6 @@
     <ClCompile Include="ImGuiManager.cpp" />
     <ClInclude Include="emu\EmuExtensions.h" />
     <ClInclude Include="GraphicsEngine.h" />
-    <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="MacroQuest.h" />

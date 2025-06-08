@@ -18,10 +18,6 @@
 
 namespace mq {
 
-void ImGuiManager_Initialize();
-void ImGuiManager_Shutdown();
-void ImGuiManager_Pulse();
-
 void ImGuiManager_DrawFrame();
 void ImGuiManager_DrawCursorAttachment();
 
