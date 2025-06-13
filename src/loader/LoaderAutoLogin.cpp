@@ -85,7 +85,7 @@ void Post(uint32_t pid, const proto::login::MessageId& messageId, const std::str
 
 	proto::routing::Address address;
 	if (pid != 0)
-		address.set_pid(pid);
+		address.mutable_process()->set_pid(pid);
 	address.set_mailbox("autologin:autologin");
 
 	s_dropbox.Post(address, message);
@@ -223,73 +223,78 @@ std::string GetEQRoot()
 	return "";
 }
 
-static void ReceivedMessageHandler(const ProtoMessagePtr& message)
+static void ReceivedMessageHandler(postoffice::MessagePtr message)
 {
-	const auto login_message = message->Parse<proto::login::LoginMessage>();
-	switch (login_message.id())
+	proto::login::LoginMessage login_message;
+	if (login_message.ParseFromString(message->payload()))
 	{
-	case proto::login::MessageId::ProfileLoaded:
-		// this message needs to come from the client after it has injected,
-		// this acts as an ack or an update
-		if (login_message.has_payload())
+		switch (login_message.id())
 		{
-			proto::login::NotifyLoadedMissive loaded;
-			loaded.ParseFromString(login_message.payload());
-
-			// only set the hotkey if the instance reports successfully loaded
-			ProfileRecord profile = ParseProfileFromMessage(loaded);
-			const LoginInstance* login = UpdateInstance(loaded.pid(), profile, true);
-
-			if (login != nullptr && login->Hotkey)
+		case proto::login::MessageId::ProfileLoaded:
+			// this message needs to come from the client after it has injected,
+			// this acts as an ack or an update
+			if (login_message.has_payload())
 			{
-				SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}", login->PID, *login->Hotkey);
+				proto::login::NotifyLoadedMissive loaded;
+				loaded.ParseFromString(login_message.payload());
 
-				RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login->PID), *login->Hotkey);
+				// only set the hotkey if the instance reports successfully loaded
+				ProfileRecord profile = ParseProfileFromMessage(loaded);
+				const LoginInstance* login = UpdateInstance(loaded.pid(), profile, true);
+
+				if (login != nullptr && login->Hotkey)
+				{
+					SPDLOG_DEBUG("Register Global Hotkey: pid={} hotkey={}", login->PID, *login->Hotkey);
+
+					RegisterGlobalHotkey(GetEQWindowHandleForProcessId(login->PID), *login->Hotkey);
+				}
 			}
+
+			break;
+
+		case proto::login::MessageId::ProfileUnloaded:
+			if (login_message.has_payload())
+			{
+				proto::login::StopInstanceMissive stop;
+				stop.ParseFromString(login_message.payload());
+
+				RemoveInstance(stop.pid());
+			}
+
+			break;
+
+		case proto::login::MessageId::ProfileCharInfo:
+			if (login_message.has_payload())
+			{
+				proto::login::CharacterInfoMissive charinfo;
+				charinfo.ParseFromString(login_message.payload());
+
+				ProfileRecord profile;
+				profile.serverName = charinfo.server();
+				profile.characterName = charinfo.character();
+				profile.characterClass = GetClassShortName(charinfo.class_());
+				profile.characterLevel = static_cast<int>(charinfo.level());
+				login::db::CreatePersona(profile);
+			}
+
+			break;
+
+		case proto::login::MessageId::StartInstance:
+			if (login_message.has_payload())
+			{
+				proto::login::StartInstanceMissive start;
+				start.ParseFromString(login_message.payload());
+				ProfileRecord profile = ParseProfileFromMessage(start);
+				LoadCharacter(profile, true);
+			}
+
+			break;
+
+		default: break;
 		}
-
-		break;
-
-	case proto::login::MessageId::ProfileUnloaded:
-		if (login_message.has_payload())
-		{
-			proto::login::StopInstanceMissive stop;
-			stop.ParseFromString(login_message.payload());
-
-			RemoveInstance(stop.pid());
-		}
-
-		break;
-
-	case proto::login::MessageId::ProfileCharInfo:
-		if (login_message.has_payload())
-		{
-			proto::login::CharacterInfoMissive charinfo;
-			charinfo.ParseFromString(login_message.payload());
-
-			ProfileRecord profile;
-			profile.serverName = charinfo.server();
-			profile.characterName = charinfo.character();
-			profile.characterClass = GetClassShortName(charinfo.class_());
-			profile.characterLevel = static_cast<int>(charinfo.level());
-			login::db::CreatePersona(profile);
-		}
-
-		break;
-
-	case proto::login::MessageId::StartInstance:
-		if (login_message.has_payload())
-		{
-			proto::login::StartInstanceMissive start;
-			start.ParseFromString(login_message.payload());
-			ProfileRecord profile = ParseProfileFromMessage(start);
-			LoadCharacter(profile, true);
-		}
-
-		break;
-
-	default: break;
 	}
+	else
+		SPDLOG_ERROR("Failed to parse login message from routed proto");
 }
 
 void InitializeAutoLogin()
