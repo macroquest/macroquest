@@ -140,10 +140,6 @@ wil::unique_event g_unloadComplete;
 
 static HANDLE s_backgroundThread = nullptr;
 
-// FIXME: Remove these forward declarations
-void Heartbeat();
-void SetMainThreadId();
-
 class BenchmarksModule;
 class CrashHandlerModule;
 class DetoursModule;
@@ -1099,7 +1095,7 @@ void MacroQuest::OnPostZoneUI()
 	// update zoning states
 	gbInZone = true;
 	gZoning = false;
-	WereWeZoning = true;
+	m_zoningInProgress = true;
 	LastEnteredZone = MQGetTickCount64();
 
 	ScopedIteratingModules s(this);

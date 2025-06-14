@@ -14,6 +14,8 @@
 
 #include "pch.h"
 #include "MQPostOffice.h"
+
+#include "MacroQuest.h"
 #include "ModuleSystem.h"
 
 #include "MQ2Main.h"
@@ -173,7 +175,9 @@ class MQPostOffice : public PostOffice
 				}
 				break;
 
-			default: break;
+			default:
+				g_mq->HandlePipeMessage(std::move(message));
+				break;
 			}
 		}
 

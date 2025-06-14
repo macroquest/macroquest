@@ -75,7 +75,6 @@ bool gbInZone = false;
 bool gZoning = false;
 uint64_t OldLastEnteredZone = 0;
 uint64_t LastEnteredZone = 0;
-bool WereWeZoning = true;
 bool gFilterSkillsAll = false;
 bool gFilterSkillsIncrease = false;
 bool gFilterTarget = false;
