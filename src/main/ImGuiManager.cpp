@@ -852,7 +852,7 @@ void ImGuiManager_DrawFrame()
 	DoImGuiUpdateInternal();
 
 	// Plugins will get disabled if an error occurs.
-	g_mq->OnUpdateImGui(gbManualResetRequired);
+	g_mq->HandleUpdateImGui(gbManualResetRequired);
 
 	if (gbManualResetRequired)
 	{

@@ -131,11 +131,11 @@ MQLIB_OBJECT bool UnloadPlugin(std::string_view pluginName, bool save = false);
 /**
  * Get the address of an exported symbol from a loaded plugin.
  *
- * @param plugin Name of the plugin
- * @param proc Name of the exported symbol.
+ * @param pluginName Name of the plugin
+ * @param procName Name of the exported symbol.
  * @return Address to the exported symbol, or nullptr if not found.
  */
-MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
+MQLIB_API void* GetPluginProc(std::string_view pluginName, const char* procName);
 
 /**
  * Get a plugin object by name.

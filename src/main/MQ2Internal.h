@@ -673,8 +673,4 @@ bool IsMacroQuestProcess(DWORD dwProcessID, bool getMacroQuestProcesses = false)
 bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 std::string GetCurrentUI();
 
-//----------------------------------------------------------------------------
-
-MQPluginHandle CreatePluginHandle();
-
 } // namespace mq
