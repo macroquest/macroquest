@@ -49,7 +49,7 @@ public:
 	 *
 	 * @param message the message to deliver
 	 */
-	void Deliver(PipeMessagePtr&& message) const;
+	void Deliver(PipeMessagePtr message) const;
 
 	/**
 	 * Process some messages that have been delivered
@@ -118,7 +118,7 @@ public:
 	 * @param status a return status, sometimes used by reply handling logic
 	 */
 	template <typename T>
-	void PostReply(PipeMessagePtr&& message, const T& obj, uint8_t status = 0)
+	void PostReply(PipeMessagePtr message, const T& obj, uint8_t status = 0)
 	{
 		if (IsValid())
 		{
@@ -227,7 +227,7 @@ public:
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
 	 * @param callback an optional callback for RPC responses
 	 */
-	virtual void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) = 0;
+	virtual void RouteMessage(PipeMessagePtr message, const PipeMessageResponseCb& callback) = 0;
 
 	/**
 	 * The interface to route a message, to be implemented in the post office instantiation
@@ -324,7 +324,7 @@ public:
 	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
-	bool DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed = [](int, const auto&) {});
+	bool DeliverTo(const std::string& localAddress, PipeMessagePtr message, const std::function<void(int, PipeMessagePtr)>& failed = [](int, const auto&) {});
 
 	/**
 	 * Delivers a message to all local mailboxes, optionally excluding self

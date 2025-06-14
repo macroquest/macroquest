@@ -57,7 +57,7 @@ class LauncherPostOffice : public PostOffice
 	public:
 		PipeEventsHandler(LauncherPostOffice* postOffice) : m_postOffice(postOffice) {}
 
-		virtual void OnIncomingMessage(mq::PipeMessagePtr&& message) override
+		virtual void OnIncomingMessage(mq::PipeMessagePtr message) override
 		{
 			using namespace mq::proto;
 			SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
@@ -79,7 +79,7 @@ class LauncherPostOffice : public PostOffice
 				const auto& address = envelope.address();
 				if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
 				{
-					auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
+					auto routing_failed = [&envelope](int status, PipeMessagePtr message)
 						{
 							RoutingFailed(envelope, status, std::move(message), nullptr);
 						};
@@ -362,7 +362,7 @@ public:
 	static void RoutingFailed(
 		const proto::routing::Envelope& envelope,
 		int status,
-		PipeMessagePtr&& message,
+		PipeMessagePtr message,
 		const PipeMessageResponseCb& callback)
 	{
 		// we can't assume that the mailbox exists here, so manually create the reply
@@ -393,7 +393,7 @@ public:
 			{ return IsRecipient(address, pair.second); });
 	}
 
-	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
+	void RouteMessage(PipeMessagePtr message, const PipeMessageResponseCb& callback) override
 	{
 		if (callback == nullptr) // simple message, just route it
 			RouteMessage(std::move(message));
@@ -402,12 +402,12 @@ public:
 			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 			const auto& address = envelope.address();
 
-			auto routing_failed = [&envelope, callback](int status, PipeMessagePtr&& message)
+			auto routing_failed = [&envelope, callback](int status, PipeMessagePtr message)
 				{
 					RoutingFailed(envelope, status, std::move(message), callback);
 				};
 
-			auto single_send = [callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+			auto single_send = [callback](const PipeConnectionPtr& connection, PipeMessagePtr message)
 				{
 					connection->SendMessageWithResponse(std::move(message), callback);
 				};
@@ -445,17 +445,17 @@ public:
 		}
 	}
 
-	void RouteMessage(
-		PipeMessagePtr&& message)
+	void RouteMessage(PipeMessagePtr message)
 	{
 		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 		const auto& address = envelope.address();
-		auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
+
+		auto routing_failed = [&envelope](int status, PipeMessagePtr message)
 			{
 				RoutingFailed(envelope, status, std::move(message), nullptr);
 			};
 
-		auto single_send = [](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
+		auto single_send = [](const PipeConnectionPtr& connection, PipeMessagePtr message)
 			{
 				connection->SendMessage(std::move(message));
 			};
@@ -624,9 +624,9 @@ private:
 
 	bool SendMessageToPID(
 		uint32_t pid,
-		PipeMessagePtr&& message,
-		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr&&)> send,
-		const std::function<void(int, PipeMessagePtr&&)>& failed)
+		PipeMessagePtr message,
+		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr)> send,
+		const std::function<void(int, PipeMessagePtr)>& failed)
 	{
 		if (pid == GetCurrentProcessId())
 		{
