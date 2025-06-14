@@ -18,8 +18,6 @@
 #include "eqlib/BuildType.h"
 #include "MQ2Main.h"
 
-#include "GraphicsResources.h"
-
 #if HAS_DIRECTX_9
 #include <d3d9.h>
 #endif // HAS_DIRECTX_9

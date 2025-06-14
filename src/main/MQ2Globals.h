@@ -104,7 +104,6 @@ MQLIB_VAR bool gbInZone;
 MQLIB_VAR bool gZoning;
 MQLIB_VAR uint64_t OldLastEnteredZone;
 MQLIB_VAR uint64_t LastEnteredZone;
-MQLIB_VAR bool WereWeZoning;
 MQLIB_VAR bool gFilterSkillsAll;
 MQLIB_VAR bool gFilterSkillsIncrease;
 MQLIB_VAR bool gFilterTarget;

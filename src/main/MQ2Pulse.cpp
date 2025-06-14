@@ -16,16 +16,12 @@
 
 
 #include "MQ2Main.h"
-#include "CrashHandler.h"
-#include "ImGuiManager.h"
 #include "MQCommandAPI.h"
 #include "MQPluginHandler.h"
 #include "MQPostOffice.h"
 
-#include <wil/resource.h>
 #include <random>
 
-#include "argon2.h"
 #pragma comment(lib, "argon2")
 
 using namespace eqlib;
@@ -33,8 +29,6 @@ using namespace eqlib;
 namespace mq {
 
 bool TurnNotDone = false;
-static std::recursive_mutex s_pulseMutex;
-
 
 //----------------------------------------------------------------------------
 extern uint64_t s_commandCount;
@@ -237,10 +231,10 @@ static void Pulse()
 	static uint64_t LastMoveTick = 0;
 	static uint32_t MapDelay = 0;
 
-	if (pLocalPlayer != pCharOld && WereWeZoning)
+	if (pLocalPlayer != pCharOld && m_zoningInProgress)
 	{
 		// Reset after zoning completes
-		WereWeZoning = false;
+		m_zoningInProgress = false;
 		pCharOld = pLocalPlayer;
 		gFaceAngle = 10000.0f;
 		gLookAngle = 10000.0f;
@@ -339,7 +333,7 @@ static void Pulse()
 	}
 }
 
-void Heartbeat()
+static void Heartbeat()
 {
 	static uint64_t LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
@@ -395,33 +389,26 @@ void Heartbeat()
 	}
 }
 
-// ***************************************************************************
-// Function:    ProcessGameEvents
-// Description: Our ProcessGameEvents Hook
-// ***************************************************************************
-
-bool DoGameEventsPulse(int (*pEventFunc)())
+class PulseModule : public MQModuleBase
 {
-	int processGameEventsResult = 0;
-	if (pEventFunc)
-		processGameEventsResult = pEventFunc();
-
-	return processGameEventsResult;
-}
-
-
-void DoLoginPulse()
-{
-	DoGameEventsPulse(nullptr);
-}
-
-void InitializeMQ2Pulse()
-{
-	if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+public:
+	PulseModule() : MQModuleBase("Pulse")
 	{
-		EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
 	}
-}
+
+	virtual void Initialize() override
+	{
+		if (HMODULE EQWhMod = GetModuleHandle("eqw.dll"))
+		{
+			EQW_GetDisplayWindow = (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
+		}
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		Heartbeat();
+	}
+};
 
 //=================================================================================================
 
