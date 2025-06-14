@@ -230,6 +230,25 @@ static void ProcessQueuedEvents()
 		std::invoke(ev);
 }
 
+struct MacroQuest::ScopedIteratingModules
+{
+	ScopedIteratingModules(MacroQuest* mq)
+		: m_mq(mq)
+	{
+		++m_mq->m_iteratingModules;
+	}
+
+	~ScopedIteratingModules()
+	{
+		if (--m_mq->m_iteratingModules == 0 && !m_mq->m_pendingWork.empty())
+		{
+			m_mq->HandlePendingWork();
+		}
+	}
+
+private:
+	MacroQuest* m_mq;
+};
 
 /**
  * Immediately upon startup, make sure we've allowed enough time for InnerSpace/Lavish software to
@@ -239,16 +258,16 @@ static void ProcessQueuedEvents()
 static void WaitForLavishSoftware()
 {
 	// IsBoxer/InnerSpace
-	HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
+	HMODULE hISModule = ::GetModuleHandleA("InnerSpace.dll");
 	if (!hISModule)
 	{
 		// Joe MultiBoxer / WinEQ2022
-		hISModule = GetModuleHandle("JMB.dll");
+		hISModule = ::GetModuleHandleA("JMB.dll");
 	}
 	if (!hISModule)
 	{
 		// WinEQ?
-		hISModule = GetModuleHandle("Lavish.dll");
+		hISModule = ::GetModuleHandleA("Lavish.dll");
 	}
 	if (hISModule)
 	{
@@ -256,10 +275,10 @@ static void WaitForLavishSoftware()
 		uintptr_t endAddress = 0;
 
 		MODULEINFO moduleInfo;
-		HMODULE hKernelModule = GetModuleHandleA("kernel32.dll");
+		HMODULE hKernelModule = ::GetModuleHandleA("kernel32.dll");
 
 		if (hISModule
-			&& GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
+			&& ::K32GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
 		{
 			baseAddressLS = (uintptr_t)moduleInfo.lpBaseOfDll;
 			endAddress = baseAddressLS + (uintptr_t)moduleInfo.SizeOfImage;
@@ -452,9 +471,23 @@ MQModuleBase::MQModuleBase(std::string_view name, int priority, ModuleFlags flag
 }
 
 //=================================================================================================
+
+MQDynamicModule::MQDynamicModule(std::string_view name, HMODULE hModule, ModuleFlags flags)
+	: MQModuleBase(std::move(name), static_cast<int>(ModulePriority::Plugins), flags)
+	, m_hModule(hModule)
+{
+}
+
+MQDynamicModule::~MQDynamicModule()
+{
+}
+
+
+//=================================================================================================
 //=================================================================================================
 
-MacroQuest::MacroQuest()
+MacroQuest::MacroQuest(HMODULE hModule)
+	: MQDynamicModule("main", hModule, ModuleFlags::Hidden)
 {
 	srand(static_cast<uint32_t>(time(nullptr)));
 
@@ -469,7 +502,7 @@ MacroQuest::~MacroQuest()
 {
 }
 
-bool MacroQuest::Initialize()
+bool MacroQuest::CoreInitialize()
 {
 	WaitForLavishSoftware();
 
@@ -517,10 +550,37 @@ bool MacroQuest::Initialize()
 		return false;
 	}
 
+	// Construct our module handle
 	mqplugin::ThisPluginHandle = CreateModuleHandle();
+	m_handle = mqplugin::ThisPluginHandle;
+
+	m_plugin.name = m_name;
+	m_plugin.hModule = m_hModule;
+
+	char szFilename[MAX_STRING] = {};
+	::GetModuleFileNameA(m_hModule, szFilename, MAX_STRING);
+
+	char* szModuleName = strrchr(szFilename, '.');
+	szModuleName[0] = '\0';
+	strcpy_s(m_plugin.szFilename, strrchr(szFilename, '\\') + 1);
+	m_moduleHandleMap.emplace(m_handle.pluginID, this);
 
 	// We will wait for pulse from the game to init on main thread.
 	return g_loadComplete.wait();
+}
+
+void MacroQuest::CoreShutdown()
+{
+	// We get called on the injection thread. The modules should have already been
+	// shutdown on the main thread (or never initialized).
+	assert(m_initializedModules == false);
+
+	eqlib::Shutdown(m_eqlib);
+	m_eqlib = nullptr;
+
+	spdlog::shutdown();
+
+	DebugSpew("Shutdown completed");
 }
 
 void MacroQuest::InitializeLogging()
@@ -581,7 +641,7 @@ bool MacroQuest::InitializeEQLib()
 
 //=================================================================================================
 
-void MacroQuest::MainThreadInitialize()
+void MacroQuest::Initialize()
 {
 	// initialize main thread id
 	dwMainThreadId = ::GetCurrentThreadId();
@@ -592,26 +652,14 @@ void MacroQuest::MainThreadInitialize()
 	// This will populate our list of modules, but we won't initialize them yet.
 	LoadModules();
 
-	bmWriteChatColor = AddBenchmark("WriteChatColor");
-	bmPluginsIncomingChat = AddBenchmark("PluginsIncomingChat");
-	bmPluginsPulse = AddBenchmark("PluginsPulse");
-	bmPluginsOnZoned = AddBenchmark("PluginsOnZoned");
-	bmPluginsCleanUI = AddBenchmark("PluginsCleanUI");
-	bmPluginsReloadUI = AddBenchmark("PluginsReloadUI");
-	bmPluginsDrawHUD = AddBenchmark("PluginsDrawHUD");
-	bmPluginsSetGameState = AddBenchmark("PluginsSetGameState");
-	bmBeginZone = AddBenchmark("BeginZone");
-	bmEndZone = AddBenchmark("EndZone");
-	bmPluginsUpdateImGui = AddBenchmark("PluginsUpdateImGui");
-
-	// Ok now initializez everything
+	// Ok now initialize everything
 	InitializeModules();
 
 	m_initializedFirstFrame = true;
 	g_loadComplete.SetEvent();
 }
 
-void MacroQuest::MainThreadShutdown()
+void MacroQuest::Shutdown()
 {
 	gbUnload = false;
 	m_shuttingDown = true;
@@ -619,27 +667,10 @@ void MacroQuest::MainThreadShutdown()
 	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
 	DebugSpewAlways("%s", UnloadedString);
 
-	ShutdownPlugins();
-	ShutdownFailedPlugins();
-
 	ShutdownModules();
 
 	m_initializedFirstFrame = false;
 	g_unloadComplete.SetEvent();
-}
-
-void MacroQuest::Shutdown()
-{
-	// We get called on the injection thread. The modules should have already been
-	// shutdown on the main thread (or never initialized).
-	assert(m_initializedModules == false);
-
-	eqlib::Shutdown(m_eqlib);
-	m_eqlib = nullptr;
-
-	spdlog::shutdown();
-
-	DebugSpew("Shutdown completed");
 }
 
 //============================================================================
@@ -681,26 +712,111 @@ void MacroQuest::LoadModules()
 	AddModule(CreateModule<MQNewsWindowModule>());
 
 	AddModule(CreateModule<MQPluginHandler>());
+	// TODO:
+	// AddModule(CreateModule<MacroSystem>());
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 {
-	MQModuleBase* m = module.get();
-
-	m->m_handle = CreateModuleHandle();
-
-	// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
-	auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
-		[](const std::unique_ptr<MQModuleBase>& a, const MQModuleBase* b)
-		{ return a->GetPriority() < b->GetPriority(); });
-
-	m_modules.emplace(it, std::move(module));
-	m_moduleHandleMap[m->m_handle.pluginID] = m;
-
-	if (m_initializedModules)
+	if (m_iteratingModules)
 	{
-		InitializeModule(m);
+		m_pendingModuleAdds.push_back(std::move(module));
 	}
+	else
+	{
+		MQModuleBase* m = module.get();
+
+		m->m_handle = CreateModuleHandle();
+
+		// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
+		auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
+			[](const std::unique_ptr<MQModuleBase>& a, const MQModuleBase* b)
+			{ return a->GetPriority() < b->GetPriority(); });
+
+		m_modules.emplace(it, std::move(module));
+		m_moduleHandleMap[m->m_handle.pluginID] = m;
+
+		if (m_initializedModules)
+		{
+			InitializeModule(m);
+		}
+	}
+}
+
+std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
+{
+	if (handle.pluginID == 0)
+		return nullptr;
+
+	// check if module is still in the list of pending adds. Removing it from here means
+	// it hasn't been initialized yet, so we don't need to shut it down.
+	{
+		auto iter = std::find_if(m_pendingModuleAdds.begin(), m_pendingModuleAdds.end(),
+			[handle](const std::unique_ptr<MQModuleBase>& module) { return module->GetHandle() == handle; });
+		if (iter != m_pendingModuleAdds.end())
+		{
+			std::unique_ptr<MQModuleBase> module = std::move(*iter);
+			m_pendingModuleAdds.erase(iter);
+
+			return std::move(module);
+		}
+	}
+
+	// Check main list of loaded modules
+	auto iter = m_moduleHandleMap.find(handle.pluginID);
+	if (iter != m_moduleHandleMap.end())
+	{
+		auto iter2 = std::find_if(m_modules.begin(), m_modules.end(),
+			[handle](const std::unique_ptr<MQModuleBase>& module) { return module->GetHandle() == handle; });
+
+		if (iter2 != m_modules.end())
+		{
+			// Before we actually move the module from the list, give other modules an opportunity to do any last actions with it.
+			OnBeforeModuleUnloaded(iter2->get());
+
+			std::unique_ptr<MQModuleBase> module = std::move(*iter2);
+
+			// We need to remove this module from the list before we issue callbacks, or it'll end up notifying itself
+			// of shutdown events.
+			//
+			// If we're iterating modules, we can't remove it from the list now. Instead, we will swap it with a dummy module,
+			// which won't interfere with the shutdown process. After we leave the module list, we can remove the dummy.
+
+			if (m_iteratingModules)
+			{
+				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQModuleBase>(
+					module->GetName(), module->GetPriority(), ModuleFlags::IsDummy | ModuleFlags::SkipAll);
+				*iter2 = std::move(dummyModule);
+
+				m_pendingWork.push_back([this]()
+					{
+						// Remove the dummy
+						auto dummyIter = std::find_if(m_modules.begin(), m_modules.end(),
+							[](const std::unique_ptr<MQModuleBase>& module) { return module->GetFlags() & ModuleFlags::IsDummy; });
+						if (dummyIter != m_modules.end())
+						{
+							m_modules.erase(dummyIter);
+						}
+					});
+			}
+			else
+			{
+				m_modules.erase(iter2);
+			}
+
+			ShutdownModule(module.get());
+
+			// This is safe to remove now.
+			m_moduleHandleMap.erase(iter);
+
+			return std::move(module);
+		}
+		
+		// This is safe to remove now.
+		m_moduleHandleMap.erase(iter);
+	}
+
+	return nullptr;
 }
 
 MQPluginHandle MacroQuest::CreateModuleHandle()
@@ -720,11 +836,37 @@ MQPluginHandle MacroQuest::CreateModuleHandle()
 	return MQPluginHandle(pluginID);
 }
 
+MQModuleBase* MacroQuest::GetModuleByHandle(MQPluginHandle handle, bool noMain /* = false */) const
+{
+	if (handle.pluginID == 0)
+		return nullptr;
+
+	if (noMain && handle == mqplugin::ThisPluginHandle)
+		return nullptr;
+
+	auto iter = m_moduleHandleMap.find(handle.pluginID);
+	return iter == m_moduleHandleMap.end() ? nullptr : iter->second;
+}
 
 void MacroQuest::InitializeModules()
 {
 	if (m_initializedModules)
 		return;
+
+	bmWriteChatColor = AddBenchmark("WriteChatColor");
+	bmPluginsIncomingChat = AddBenchmark("PluginsIncomingChat");
+	bmPluginsPulse = AddBenchmark("PluginsPulse");
+	bmPluginsOnZoned = AddBenchmark("PluginsOnZoned");
+	bmPluginsCleanUI = AddBenchmark("PluginsCleanUI");
+	bmPluginsReloadUI = AddBenchmark("PluginsReloadUI");
+	bmPluginsDrawHUD = AddBenchmark("PluginsDrawHUD");
+	bmPluginsSetGameState = AddBenchmark("PluginsSetGameState");
+	bmBeginZone = AddBenchmark("BeginZone");
+	bmEndZone = AddBenchmark("EndZone");
+	bmPluginsUpdateImGui = AddBenchmark("PluginsUpdateImGui");
+
+	// Why is this here?
+	bmCalculate = AddBenchmark("Calculate");
 
 	for (const auto& module : m_modules)
 	{
@@ -737,7 +879,6 @@ void MacroQuest::InitializeModules()
 void MacroQuest::InitializeModule(MQModuleBase* module)
 {
 	module->Initialize();
-
 	module->OnGameStateChanged(gGameState);
 
 	if (m_createdUI)
@@ -775,6 +916,8 @@ void MacroQuest::InitializeModule(MQModuleBase* module)
 			}
 		}
 	}
+
+	OnModuleLoaded(module);
 }
 
 void MacroQuest::ShutdownModules()
@@ -782,12 +925,21 @@ void MacroQuest::ShutdownModules()
 	if (!m_initializedModules)
 		return;
 
-	// Iterate modules in reverse order, shutting down each one.
-	for (auto iter = m_modules.rbegin(); iter != m_modules.rend(); ++iter)
+	// Iterate over modules in reverse order to gracefully shut everything down.
+	// We do it without using iterators so we can safely remove stuff from the list.
+	while (!m_modules.empty())
 	{
-		ShutdownModule(iter->get());
+		// Call OnBeforeModuleUnloaded while the module is still in the list.
+		OnBeforeModuleUnloaded(m_modules.back().get());
+
+		// Remove it from the list then shut it down.
+		std::unique_ptr<MQModuleBase> module = std::move(m_modules.back());
+		m_modules.pop_back();
+
+		ShutdownModule(module.get());
+
+		// Module is destroyed by leaving scope.
 	}
-	m_modules.clear();
 
 	m_initializedModules = false;
 }
@@ -800,6 +952,31 @@ void MacroQuest::ShutdownModule(MQModuleBase* module)
 	}
 
 	module->Shutdown();
+
+	OnAfterModuleUnloaded(module);
+}
+
+void MacroQuest::HandlePendingWork()
+{
+	if (!m_pendingWork.empty())
+	{
+		for (const auto& work : m_pendingWork)
+		{
+			work();
+		}
+
+		m_pendingWork.clear();
+	}
+
+	if (!m_pendingModuleAdds.empty())
+	{
+		for (auto&& ptr : m_pendingModuleAdds)
+		{
+			AddModule(std::move(ptr));
+		}
+
+		m_pendingModuleAdds.clear();
+	}
 }
 
 //============================================================================
@@ -814,24 +991,25 @@ void MacroQuest::OnProcessFrame()
 
 	if (!m_initializedFirstFrame)
 	{
-		MainThreadInitialize();
+		Initialize();
 	}
 	else if (gbUnload)
 	{
-		MainThreadShutdown();
+		Shutdown();
 	}
 	else
 	{
-		Heartbeat();
 		ProcessQueuedEvents();
 
-		if (eqlib::pLocalPlayer != m_lastPlayer && WereWeZoning)
+		if (eqlib::pLocalPlayer != m_lastPlayer && m_zoningInProgress)
 		{
-			WereWeZoning = false;
+			m_zoningInProgress = false;
 			m_lastPlayer = eqlib::pLocalPlayer;
 
 			OnZoned();
 		}
+
+		ScopedIteratingModules s(this);
 
 		for (const auto& module : m_modules)
 		{
@@ -853,6 +1031,8 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 		gZoning = false;
 	}
 
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnGameStateChanged(newGameState);
@@ -861,6 +1041,8 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 
 void MacroQuest::OnLoginFrontendEntered()
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnLoginFrontendEntered();
@@ -869,6 +1051,8 @@ void MacroQuest::OnLoginFrontendEntered()
 
 void MacroQuest::OnLoginFrontendExited()
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnLoginFrontendEntered();
@@ -878,6 +1062,7 @@ void MacroQuest::OnLoginFrontendExited()
 void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 {
 	MQScopedBenchmark bm(bmPluginsReloadUI);
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -888,6 +1073,7 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 void MacroQuest::OnCleanUI()
 {
 	MQScopedBenchmark bm(bmPluginsCleanUI);
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -899,6 +1085,8 @@ void MacroQuest::OnPreZoneUI()
 {
 	gbInZone = false;
 	gZoning = true;
+
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -914,6 +1102,8 @@ void MacroQuest::OnPostZoneUI()
 	WereWeZoning = true;
 	LastEnteredZone = MQGetTickCount64();
 
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnPostZoneUI();
@@ -923,6 +1113,8 @@ void MacroQuest::OnPostZoneUI()
 bool MacroQuest::OnChatMessage(eqlib::ChatMessageParams& params)
 {
 	bool result = true;
+
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -939,6 +1131,8 @@ bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 {
 	bool result = true;
 
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnTellWindowMessage))
@@ -954,6 +1148,8 @@ bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& param
 {
 	bool result = true;
 
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnIncomingWorldMessage))
@@ -967,6 +1163,8 @@ bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& param
 
 void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnSpawnAdded(player);
@@ -975,6 +1173,8 @@ void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 
 void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnSpawnRemoved(player);
@@ -983,6 +1183,8 @@ void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 
 void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnGroundItemAdded(groundItem);
@@ -991,6 +1193,8 @@ void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 
 void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 {
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnGroundItemRemoved(groundItem);
@@ -1012,6 +1216,8 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 		CheckChatForEvent(plainText.get());
 	}
 
+	ScopedIteratingModules s(this);
+
 	for (const auto& module : m_modules)
 	{
 		if (+(module->GetFlags() & ModuleFlags::SkipOnWriteChatColor))
@@ -1027,9 +1233,10 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 	if (message[0] == 0)
 		return false;
 
-	MQScopedBenchmark bm(bmPluginsIncomingChat);
-
 	bool result = false;
+
+	MQScopedBenchmark bm(bmPluginsIncomingChat);
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -1042,9 +1249,102 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 	return result;
 }
 
-void MacroQuest::OnUpdateImGui(bool internalOnly)
+void MacroQuest::OnZoned()
+{
+	MQScopedBenchmark bm(bmPluginsOnZoned);
+
+	char szTemp[128];
+	sprintf_s(szTemp, "You have entered %s.", eqlib::pZoneInfo->LongName);
+
+	CheckChatForEvent(szTemp);
+
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnZoned();
+	}
+}
+
+void MacroQuest::OnDrawHUD()
+{
+	MQScopedBenchmark bm(bmPluginsDrawHUD);
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		if (+(module->GetFlags() & ModuleFlags::SkipOnDrawHUD))
+			continue;
+
+		module->OnDrawHUD();
+	}
+}
+
+void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnModuleLoaded(otherModule);
+	}
+}
+
+void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnBeforeModuleUnloaded(otherModule);
+	}
+}
+
+void MacroQuest::OnAfterModuleUnloaded(MQModuleBase* otherModule)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnAfterModuleUnloaded(otherModule);
+	}
+}
+
+void MacroQuest::OnMacroStart(const char* macroName)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnMacroStart(macroName);
+	}
+}
+
+void MacroQuest::OnMacroStop(const char* macroName)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module : m_modules)
+	{
+		module->OnMacroStop(macroName);
+	}
+}
+
+void MacroQuest::HandlePipeMessage(PipeMessagePtr message)
+{
+	ScopedIteratingModules s(this);
+
+	for (const auto& module: m_modules)
+	{
+		if (module->OnPipeMessage(message.get()))
+			break;
+	}
+}
+
+void MacroQuest::HandleUpdateImGui(bool internalOnly)
 {
 	MQScopedBenchmark bm(bmPluginsUpdateImGui);
+	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
 	{
@@ -1058,90 +1358,11 @@ void MacroQuest::OnUpdateImGui(bool internalOnly)
 	}
 }
 
-void MacroQuest::OnZoned()
-{
-	MQScopedBenchmark bm(bmPluginsOnZoned);
-
-	char szTemp[128];
-	sprintf_s(szTemp, "You have entered %s.", eqlib::pZoneInfo->LongName);
-
-	CheckChatForEvent(szTemp);
-
-	for (const auto& module : m_modules)
-	{
-		module->OnZoned();
-	}
-}
-
-void MacroQuest::OnDrawHUD()
-{
-	MQScopedBenchmark bm(bmPluginsDrawHUD);
-
-	for (const auto& module : m_modules)
-	{
-		if (+(module->GetFlags() & ModuleFlags::SkipOnDrawHUD))
-			continue;
-
-		module->OnDrawHUD();
-	}
-}
-
-void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
-{
-	for (const auto& module : m_modules)
-	{
-		module->OnModuleLoaded(otherModule);
-	}
-}
-
-void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
-{
-	for (const auto& module : m_modules)
-	{
-		module->OnBeforeModuleUnloaded(otherModule);
-	}
-}
-
-void MacroQuest::OnAfterModuleUnloaded(MQModuleBase* otherModule)
-{
-	for (const auto& module : m_modules)
-	{
-		module->OnAfterModuleUnloaded(otherModule);
-	}
-}
-
-void MacroQuest::OnMacroStart(const char* macroName)
-{
-	for (const auto& module : m_modules)
-	{
-		module->OnMacroStart(macroName);
-	}
-}
-
-void MacroQuest::OnMacroStop(const char* macroName)
-{
-	for (const auto& module : m_modules)
-	{
-		module->OnMacroStop(macroName);
-	}
-}
-
-void MacroQuest::OnPipeMessage(PipeMessagePtr message)
-{
-	for (const auto& module: m_modules)
-	{
-		if (module->OnPipeMessage(message.get()))
-			break;
-	}
-}
-
 //============================================================================
 //============================================================================
 
 bool MacroQuest::LoadPreferences(const std::string& iniFile)
 {
-	char szBuffer[MAX_STRING] = { 0 };
-
 	// TODO: Break these out per feature
 
 	gFilterSkillsAll = GetPrivateProfileBool("MacroQuest", "FilterSkills", gFilterSkillsAll, iniFile);
@@ -1614,10 +1835,10 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 	g_loadComplete.create(wil::EventOptions::ManualReset);
 	g_unloadComplete.create(wil::EventOptions::ManualReset);
 
-	g_mq = new MacroQuest();
+	g_mq = new MacroQuest(ghModule);
 
 	// Initialize will block until the first frame is handled.
-	if (g_mq->Initialize())
+	if (g_mq->CoreInitialize())
 	{
 		DebugSpewAlways("%s", "MacroQuest Loaded.");
 
@@ -1629,7 +1850,7 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 		::MessageBoxA(nullptr, "Failed to Initialize MQ.", "MQ Error", MB_OK);
 	}
 
-	g_mq->Shutdown();
+	g_mq->CoreShutdown();
 
 	UninstallUnhandledExceptionFilter();
 

@@ -33,52 +33,19 @@ using namespace eqlib;
 
 namespace mq {
 
-#define PluginDebug(...)
-
-// This is the main plugin list. We use it to preserve some sort of order, thats about it.
+// This is the main plugin list. We use it to preserve some sort of order, that's about it.
+// It's exposed to plugins, and a lot of plugins use it even though they shouldn't, so we still
+// havw to keep it around even though it does almost nothing.
 MQPlugin* pPlugins = nullptr;
-
-// This is a plugin entry for Main, but we don't fill its pointers.
-MQPlugin MainPlugin;
-
-static std::atomic_bool s_pluginsInitialized = false;
-static std::recursive_mutex s_pluginsMutex;
-
-struct PluginInfoRec
-{
-	MQPlugin* instance;
-	MQPluginHandle handle;
-};
-
-// a map of plugin names to plugins. The string_view is a reference to the name in the
-// MQPlugin instance.
-using PluginMap = ci_unordered::map<std::string_view, PluginInfoRec>;
-static PluginMap s_pluginMap;
-static PluginMap s_pluginUnloadFailedMap;
-
-using PluginHandleMap = std::unordered_map<uint64_t, MQPlugin*>;
-static PluginHandleMap s_pluginHandleMap;
 
 // String constant used to bake in the version of everquest when performing
 // version checks against plugins.
 static constexpr char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedVersionTime;
 
-// load failure string for reporting error message out of the plugin load command.
-static std::string s_pluginLoadFailure;
-
-//----------------------------------------------------------------------------
-
-
-//----------------------------------------------------------------------------
-// If true, imgui should not run on plugins.
-extern bool gbManualResetRequired;
-
-extern std::set<HMODULE> g_knownModules;
-
 //----------------------------------------------------------------------------
 
 // Strips MQ2/MQ off of the name and returns it back
-std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension = true)
+static std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension = true)
 {
 	if (stripExtension && name.length() >= 5)
 	{
@@ -107,7 +74,7 @@ std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtensi
 	return name;
 }
 
-void PrintModules()
+static void PrintModules()
 {
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, GetCurrentProcessId());
 	if (hProcess)
@@ -128,48 +95,8 @@ void PrintModules()
 	}
 }
 
-// Returns true if the plugin is loaded by checking its canonical name.
-bool IsPluginLoaded(std::string_view name)
-{
-	return s_pluginMap.count(GetCanonicalPluginName(name)) != 0;
-}
-
-bool IsPluginUnloadFailed(std::string_view name)
-{
-	return s_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
-}
-
-int GetPluginUnloadFailedCount()
-{
-	return static_cast<int>(s_pluginUnloadFailedMap.size());
-}
-
-MQPlugin* GetPlugin(std::string_view name)
-{
-	auto iter = s_pluginMap.find(GetCanonicalPluginName(name));
-	return iter == s_pluginMap.end() ? nullptr : iter->second.instance;
-}
-
-PluginInfoRec* GetPluginInfoRec(std::string_view name)
-{
-	auto iter = s_pluginMap.find(GetCanonicalPluginName(name));
-	return iter == s_pluginMap.end() ? nullptr : &iter->second;
-}
-
-MQPlugin* GetPluginByHandle(MQPluginHandle handle, bool noMain /* = false */)
-{
-	if (handle.pluginID == 0)
-		return nullptr;
-
-	if (noMain && handle == mqplugin::ThisPluginHandle)
-		return nullptr;
-
-	auto iter = s_pluginHandleMap.find(handle.pluginID);
-	return iter == s_pluginHandleMap.end() ? nullptr : iter->second;
-}
-
 // Locate a plugin dll that matches the given name (canonical or otherwise).
-std::string FindPluginFile(std::string_view name)
+static std::string FindPluginFile(std::string_view name)
 {
 	namespace fs = std::filesystem;
 	std::error_code ec;
@@ -293,73 +220,8 @@ void ScopedModuleTracker::TrackerData::Finish()
 	} while (Module32Next(hSnapshot.get(), &me32));
 }
 
-static std::pair<wil::unique_hmodule, std::string> LoadPluginModule(std::string_view name)
+static void AddPluginToList(MQPlugin* pPlugin)
 {
-	namespace fs = std::filesystem;
-
-	// Our job here is to return the module handle if we found a plugin matching
-	// the name requested. If we fail for whatever reason, we return a null hmodule
-	// and set the reason in szPluginLoadFailure.
-
-	DebugSpew("LoadPlugin(%.*s)", name.length(), name.data());
-
-	std::string fileName = FindPluginFile(name);
-	if (fileName.empty())
-	{
-		s_pluginLoadFailure = "Plugin not found";
-		return {};
-	}
-
-	const fs::path pathToPlugin = fs::path(mq::internal_paths::Plugins) / fileName;
-
-	wil::unique_hmodule hModule{ ::LoadLibraryA(pathToPlugin.string().c_str()) };
-	if (!hModule)
-	{
-		DWORD lastError = ::GetLastError();
-		char* szError = nullptr;
-
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			nullptr,
-			lastError,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&szError,
-			0,
-			nullptr);
-
-		s_pluginLoadFailure = fmt::format("LoadLibrary failed with error {:#08x}: {}", lastError, szError);
-		return {};
-	}
-
-	// Perform MQNext version check
-	void* isBuildForNext = GetProcAddress(hModule.get(), "IsBuiltForNext");
-	if (isBuildForNext == nullptr)
-	{
-		s_pluginLoadFailure = "Plugin was not built for this version of MacroQuest";
-		return {};
-	}
-
-	// Perform EQ version check
-	const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hModule.get(), "EverQuestVersion"));
-	if (eqVersion == nullptr)
-	{
-		s_pluginLoadFailure = "Plugin was not built for this version of EverQuest";
-		return {};
-	}
-
-	if (strcmp(eqVersion, EverQuestVersion) != 0)
-	{
-		s_pluginLoadFailure = fmt::format("Plugin was not built for this version of EverQuest (was built for {})",
-			eqVersion);
-		return {};
-	}
-
-	return { std::move(hModule), std::move(fileName) };
-}
-
-void AddPluginToList(MQPlugin* pPlugin)
-{
-	std::scoped_lock lock(s_pluginsMutex);
-
 	// add to plugin list
 	pPlugin->pLast = nullptr;
 	pPlugin->pNext = pPlugins;
@@ -368,10 +230,8 @@ void AddPluginToList(MQPlugin* pPlugin)
 	pPlugins = pPlugin;
 }
 
-void RemovePluginFromList(MQPlugin* pPlugin)
+static void RemovePluginFromList(MQPlugin* pPlugin)
 {
-	std::scoped_lock lock(s_pluginsMutex);
-
 	// unlink from list
 	if (pPlugin->pLast)
 		pPlugin->pLast->pNext = pPlugin->pNext;
@@ -381,29 +241,383 @@ void RemovePluginFromList(MQPlugin* pPlugin)
 		pPlugin->pNext->pLast = pPlugin->pLast;
 }
 
-// 0 - failed
-// 1 - success
-// 2 - already loaded
-// 3 - previous load of plugin is still unloading
-int LoadPlugin(std::string_view pluginName, bool save)
+//=================================================================================================
+//=================================================================================================
+
+MQPluginModule::MQPluginModule(MQPluginProvider* provider, HMODULE hModule, std::string path)
+	: MQDynamicModule(GetCanonicalPluginName(path), hModule)
+	, m_path(std::move(path))
+	, m_provider(provider)
+{
+}
+
+MQPluginModule::~MQPluginModule()
+{
+}
+
+//=================================================================================================
+
+MQPluginV1Module::MQPluginV1Module(MQPluginProvider* provider, HMODULE hModule, std::string path)
+	: MQPluginModule(provider, hModule, std::move(path))
+{
+	strcpy_s(m_plugin.szFilename, m_path.c_str());
+	m_plugin.name = GetName();
+	m_plugin.hModule = m_hModule;
+
+	m_plugin.Initialize = (fMQInitializePlugin)GetProcAddress(hModule, "InitializePlugin");
+	m_plugin.Shutdown = (fMQShutdownPlugin)GetProcAddress(hModule, "ShutdownPlugin");
+	m_plugin.IncomingChat = (fMQIncomingChat)GetProcAddress(hModule, "OnIncomingChat");
+	if (!m_plugin.IncomingChat)
+		m_flags |= ModuleFlags::SkipOnIncomingChat;
+	m_plugin.Pulse = (fMQPulse)GetProcAddress(hModule, "OnPulse");
+	if (!m_plugin.Pulse)
+		m_flags |= ModuleFlags::SkipOnProcessFrame;
+	m_plugin.WriteChatColor = (fMQWriteChatColor)GetProcAddress(hModule, "OnWriteChatColor");
+	if (!m_plugin.WriteChatColor)
+		m_flags |= ModuleFlags::SkipOnWriteChatColor;
+	m_plugin.Zoned = (fMQZoned)GetProcAddress(hModule, "OnZoned");
+	m_plugin.CleanUI = (fMQCleanUI)GetProcAddress(hModule, "OnCleanUI");
+	m_plugin.ReloadUI = (fMQReloadUI)GetProcAddress(hModule, "OnReloadUI");
+	m_plugin.DrawHUD = (fMQDrawHUD)GetProcAddress(hModule, "OnDrawHUD");
+	if (!m_plugin.DrawHUD)
+		m_flags |= ModuleFlags::SkipOnDrawHUD;
+	m_plugin.SetGameState = (fMQSetGameState)GetProcAddress(hModule, "SetGameState");
+	m_plugin.AddSpawn = (fMQSpawn)GetProcAddress(hModule, "OnAddSpawn");
+	if (!m_plugin.AddSpawn)
+		m_flags |= ModuleFlags::SkipOnSpawnAdded;
+	m_plugin.RemoveSpawn = (fMQSpawn)GetProcAddress(hModule, "OnRemoveSpawn");
+	if (!m_plugin.RemoveSpawn)
+		m_flags |= ModuleFlags::SkipOnSpawnRemoved;
+	m_plugin.AddGroundItem = (fMQGroundItem)GetProcAddress(hModule, "OnAddGroundItem");
+	if (!m_plugin.AddGroundItem)
+		m_flags |= ModuleFlags::SkipOnGroundItemAdded;
+	m_plugin.RemoveGroundItem = (fMQGroundItem)GetProcAddress(hModule, "OnRemoveGroundItem");
+	if (!m_plugin.RemoveGroundItem)
+		m_flags |= ModuleFlags::SkipOnGroundItemRemoved;
+	m_plugin.BeginZone = (fMQBeginZone)GetProcAddress(hModule, "OnBeginZone");
+	m_plugin.EndZone = (fMQEndZone)GetProcAddress(hModule, "OnEndZone");
+	m_plugin.UpdateImGui = (fMQUpdateImGui)GetProcAddress(hModule, "OnUpdateImGui");
+	if (!m_plugin.UpdateImGui)
+		m_flags |= ModuleFlags::SkipOnUpdateImGui;
+	m_plugin.MacroStart = (fMQMacroStart)GetProcAddress(hModule, "OnMacroStart");
+	m_plugin.MacroStop = (fMQMacroStop)GetProcAddress(hModule, "OnMacroStop");
+	m_plugin.LoadPlugin = (fMQLoadPlugin)GetProcAddress(hModule, "OnLoadPlugin");
+	m_plugin.UnloadPlugin = (fMQUnloadPlugin)GetProcAddress(hModule, "OnUnloadPlugin");
+	m_plugin.OnPostUnloadPlugin = (fMQPostUnloadPlugin)GetProcAddress(hModule, "OnPostUnloadPlugin");
+	m_plugin.GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(hModule, "GetPluginInterface");
+
+	if (float* pVersion = reinterpret_cast<float*>(GetProcAddress(hModule, "?MQ2Version@@3MA")))
+		m_plugin.fpVersion = *pVersion;
+	else
+		m_plugin.fpVersion = 1.0;
+}
+
+MQPluginV1Module::~MQPluginV1Module()
+{
+}
+
+void MQPluginV1Module::Initialize()
+{
+	// Pass the plugin instance and handle to the plugin
+	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
+
+	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(m_hModule, "InitPluginHandle"));
+	initPluginFunc(&m_plugin, GetHandle());
+
+	if (m_plugin.Initialize)
+	{
+		m_plugin.Initialize();
+	}
+
+	m_provider->OnPluginInitialized(this);
+}
+
+void MQPluginV1Module::Shutdown()
+{
+	m_provider->OnBeforePluginShutdown(this);
+
+	if (m_plugin.Shutdown)
+	{
+		m_plugin.Shutdown();
+	}
+
+	m_provider->OnAfterPluginShutdown(this);
+}
+
+void MQPluginV1Module::OnProcessFrame()
+{
+	if (m_plugin.Pulse)
+	{
+		m_plugin.Pulse();
+	}
+}
+
+void MQPluginV1Module::OnGameStateChanged(int gameState)
+{
+	if (m_plugin.SetGameState)
+	{
+		m_plugin.SetGameState(gameState);
+	}
+}
+
+void MQPluginV1Module::OnUpdateImGui()
+{
+	if (m_plugin.UpdateImGui)
+	{
+		m_plugin.UpdateImGui();
+	}
+}
+
+void MQPluginV1Module::OnCleanUI()
+{
+	if (m_plugin.CleanUI)
+	{
+		m_plugin.CleanUI();
+	}
+}
+
+void MQPluginV1Module::OnReloadUI(const eqlib::ReloadUIParams& params)
+{
+	UNUSED(params);
+
+	if (m_plugin.ReloadUI)
+	{
+		m_plugin.ReloadUI();
+	}
+}
+
+void MQPluginV1Module::OnPreZoneUI()
+{
+	if (m_plugin.BeginZone)
+	{
+		m_plugin.BeginZone();
+	}
+}
+
+void MQPluginV1Module::OnPostZoneUI()
+{
+	if (m_plugin.EndZone)
+	{
+		m_plugin.EndZone();
+	}
+}
+
+void MQPluginV1Module::OnWriteChatColor(const char* message, int color, int filter)
+{
+	if (m_plugin.WriteChatColor)
+	{
+		m_plugin.WriteChatColor(message, color, filter);
+	}
+}
+
+bool MQPluginV1Module::OnIncomingChat(const char* message, int color)
+{
+	if (m_plugin.IncomingChat)
+	{
+		return m_plugin.IncomingChat(message, color);
+	}
+
+	return false;
+}
+
+void MQPluginV1Module::OnZoned()
+{
+	if (m_plugin.Zoned)
+	{
+		m_plugin.Zoned();
+	}
+}
+
+void MQPluginV1Module::OnDrawHUD()
+{
+	if (m_plugin.DrawHUD)
+	{
+		m_plugin.DrawHUD();
+	}
+}
+
+void MQPluginV1Module::OnSpawnAdded(eqlib::PlayerClient* player)
+{
+	if (m_plugin.AddSpawn)
+	{
+		m_plugin.AddSpawn(player);
+	}
+}
+
+void MQPluginV1Module::OnSpawnRemoved(eqlib::PlayerClient* player)
+{
+	if (m_plugin.RemoveSpawn)
+	{
+		m_plugin.RemoveSpawn(player);
+	}
+}
+
+void MQPluginV1Module::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
+{
+	if (m_plugin.AddGroundItem)
+	{
+		m_plugin.AddGroundItem(groundItem);
+	}
+}
+
+void MQPluginV1Module::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
+{
+	if (m_plugin.RemoveGroundItem)
+	{
+		m_plugin.RemoveGroundItem(groundItem);
+	}
+}
+
+void MQPluginV1Module::OnModuleLoaded(MQModuleBase* module)
+{
+	if (m_plugin.LoadPlugin && module->IsPlugin())
+	{
+		m_plugin.LoadPlugin(module->GetName().c_str());
+	}
+}
+
+void MQPluginV1Module::OnBeforeModuleUnloaded(MQModuleBase* module)
+{
+	if (m_plugin.UnloadPlugin && module->IsPlugin())
+	{
+		m_plugin.UnloadPlugin(module->GetName().c_str());
+	}
+}
+
+void MQPluginV1Module::OnAfterModuleUnloaded(MQModuleBase* module)
+{
+	if (m_plugin.OnPostUnloadPlugin && module->IsPlugin())
+	{
+		m_plugin.OnPostUnloadPlugin(module->GetName().c_str());
+	}
+}
+
+void MQPluginV1Module::OnMacroStart(const char* macroName)
+{
+	if (m_plugin.MacroStart)
+	{
+		m_plugin.MacroStart(macroName);
+	}
+}
+
+void MQPluginV1Module::OnMacroStop(const char* macroName)
+{
+	if (m_plugin.MacroStop)
+	{
+		m_plugin.MacroStop(macroName);
+	}
+}
+
+PluginInterface* MQPluginV1Module::GetPluginInterface()
+{
+	if (m_plugin.GetPluginInterface)
+	{
+		return m_plugin.GetPluginInterface();
+	}
+
+	return nullptr;
+}
+
+//=================================================================================================
+
+MQPluginHandler* g_pluginHandler = nullptr;
+
+MQPluginHandler::MQPluginHandler()
+	: MQModuleBase("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
+{
+	g_pluginHandler = this;
+}
+
+MQPluginHandler::~MQPluginHandler()
+{
+	g_pluginHandler = nullptr;
+}
+
+void MQPluginHandler::Initialize()
+{
+	AddCommand("/plugin",
+		[this](PlayerClient*, const char* szLine) { PluginCommand(szLine); }, false, true, false);
+
+	LoadPlugins();
+}
+
+void MQPluginHandler::OnPluginInitialized(MQPluginModule* plugin)
+{
+	
+}
+
+void MQPluginHandler::OnBeforePluginShutdown(MQPluginModule* plugin)
+{
+	// This is called immediately before the plugin's Shutdown function is called,
+	// allow us to prepare before shutdown.
+
+	// Remove it from the list so that it can no longer be accessed
+	RemovePluginFromList(plugin->GetPlugin());
+
+	auto iter = m_pluginMap.find(plugin->GetName());
+	if (iter != m_pluginMap.end())
+	{
+		m_pluginMap.erase(iter);
+	}
+}
+
+void MQPluginHandler::OnAfterPluginShutdown(MQPluginModule* plugin)
+{
+	if (!m_unloadingModule)
+	{
+		// This is called immediately after the plugin's Shutdown function is called,
+		// allow us to perform cleanup in response.
+
+		CleanupPlugin(plugin);
+	}
+}
+
+void MQPluginHandler::Shutdown()
+{
+	// Unload plugins
+	while (pPlugins)
+	{
+		UnloadPlugin(pPlugins->szFilename);
+	}
+
+	ShutdownFailedPlugins();
+
+	RemoveCommand("/plugin");
+}
+
+void MQPluginHandler::LoadPlugins()
+{
+	ScopedModuleTracker moduleTracker;
+
+	const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
+	for (const std::string& pluginName : plugins)
+	{
+		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
+		{
+			LoadPlugin(pluginName.c_str(), false);
+		}
+	}
+}
+
+LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool save)
 {
 	// Clear the load error message;
-	s_pluginLoadFailure.clear();
+	m_pluginLoadFailure.clear();
 
 	if (IsPluginLoaded(pluginName))
 	{
 		DebugSpew("LoadPlugin(%.*s) already loaded", pluginName.length(), pluginName.data());
-		s_pluginLoadFailure = "Plugin is already loaded";
+		m_pluginLoadFailure = "Plugin is already loaded";
 
-		return 2;
+		return LoadPluginResult_AlreadyLoaded;
 	}
 
 	if (IsPluginUnloadFailed(pluginName))
 	{
 		DebugSpew("LoadPlugin(%.*s) previous instance failed unload", pluginName.length(), pluginName.data());
-		s_pluginLoadFailure = "Plugin failed unload from a previous instance, cannot load";
+		m_pluginLoadFailure = "Plugin failed unload from a previous instance, cannot load";
 
-		return 3;
+		return LoadPluginResult_PreviousUnloadFailed;
 	}
 
 	ScopedModuleTracker moduleTracker;
@@ -412,127 +626,34 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	if (!hModule)
 	{
 		// szPluginLoadFailure is set in LoadPluginModule
-		DebugSpew("LoadPlugin(%.*s) failed: %s", pluginName.length(), pluginName.data(), s_pluginLoadFailure.c_str());
-		return 0;
+		DebugSpew("LoadPlugin(%.*s) failed: %s", pluginName.length(), pluginName.data(), m_pluginLoadFailure.c_str());
+		return LoadPluginResult_Failed;
 	}
 
-	MQPlugin* pPlugin = new MQPlugin();
-	PluginInfoRec rec;
-	rec.instance = pPlugin;
-	rec.handle = CreatePluginHandle();
-	strcpy_s(pPlugin->szFilename, pluginPath.c_str());
-	pPlugin->name              = std::string{ GetCanonicalPluginName(pluginPath) };
-	pPlugin->hModule           = hModule.release();
+	std::unique_ptr<MQPluginModule> plugin = std::make_unique<MQPluginV1Module>(this, hModule.release(), pluginPath);
+	MQPlugin* pluginInst = plugin->GetPlugin();
 
-	s_pluginHandleMap.emplace(rec.handle.pluginID, rec.instance);
+	m_pluginMap.emplace(plugin->GetName(), PluginInfoRec{ pluginInst, plugin->GetHandle() });
 
-	// Pass the plugin instance and handle to the plugin
-	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
+	// Add the plugin to the plugin list.
+	AddPluginToList(pluginInst);
 
-	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(pPlugin->hModule, "InitPluginHandle"));
-	initPluginFunc(rec.instance, rec.handle);
-
-	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(pPlugin->hModule, "InitializePlugin");
-	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(pPlugin->hModule, "ShutdownPlugin");
-	pPlugin->IncomingChat      = (fMQIncomingChat)GetProcAddress(pPlugin->hModule, "OnIncomingChat");
-	pPlugin->Pulse             = (fMQPulse)GetProcAddress(pPlugin->hModule, "OnPulse");
-	pPlugin->WriteChatColor    = (fMQWriteChatColor)GetProcAddress(pPlugin->hModule, "OnWriteChatColor");
-	pPlugin->Zoned             = (fMQZoned)GetProcAddress(pPlugin->hModule, "OnZoned");
-	pPlugin->CleanUI           = (fMQCleanUI)GetProcAddress(pPlugin->hModule, "OnCleanUI");
-	pPlugin->ReloadUI          = (fMQReloadUI)GetProcAddress(pPlugin->hModule, "OnReloadUI");
-	pPlugin->DrawHUD           = (fMQDrawHUD)GetProcAddress(pPlugin->hModule, "OnDrawHUD");
-	pPlugin->SetGameState      = (fMQSetGameState)GetProcAddress(pPlugin->hModule, "SetGameState");
-	pPlugin->AddSpawn          = (fMQSpawn)GetProcAddress(pPlugin->hModule, "OnAddSpawn");
-	pPlugin->RemoveSpawn       = (fMQSpawn)GetProcAddress(pPlugin->hModule, "OnRemoveSpawn");
-	pPlugin->AddGroundItem     = (fMQGroundItem)GetProcAddress(pPlugin->hModule, "OnAddGroundItem");
-	pPlugin->RemoveGroundItem  = (fMQGroundItem)GetProcAddress(pPlugin->hModule, "OnRemoveGroundItem");
-	pPlugin->BeginZone         = (fMQBeginZone)GetProcAddress(pPlugin->hModule, "OnBeginZone");
-	pPlugin->EndZone           = (fMQEndZone)GetProcAddress(pPlugin->hModule, "OnEndZone");
-	pPlugin->UpdateImGui       = (fMQUpdateImGui)GetProcAddress(pPlugin->hModule, "OnUpdateImGui");
-	pPlugin->MacroStart        = (fMQMacroStart)GetProcAddress(pPlugin->hModule, "OnMacroStart");
-	pPlugin->MacroStop         = (fMQMacroStop)GetProcAddress(pPlugin->hModule, "OnMacroStop");
-	pPlugin->LoadPlugin        = (fMQLoadPlugin)GetProcAddress(pPlugin->hModule, "OnLoadPlugin");
-	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnUnloadPlugin");
-	pPlugin->GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(pPlugin->hModule, "GetPluginInterface");
-	pPlugin->OnPostUnloadPlugin = (fMQPostUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnPostUnloadPlugin");
-
-	float* ftmp = (float*)GetProcAddress(pPlugin->hModule, "?MQ2Version@@3MA");
-	if (ftmp)
-		pPlugin->fpVersion = *ftmp;
-	else
-		pPlugin->fpVersion = 1.0;
-
-	// initialize plugin
-	if (pPlugin->Initialize)
-		pPlugin->Initialize();
-
-	// init gamestate
-	if (pPlugin->SetGameState)
-		pPlugin->SetGameState(GetGameState());
-
-	if (GetGameState() == GAMESTATE_INGAME)
-	{
-		// init spawns
-		if (pPlugin->AddSpawn)
-		{
-			PlayerClient* pSpawn = pSpawnList;
-			while (pSpawn)
-			{
-				pPlugin->AddSpawn(pSpawn);
-				pSpawn = pSpawn->pNext;
-			}
-		}
-
-		// init ground items
-		if (pPlugin->AddGroundItem)
-		{
-			EQGroundItem* pItem = pItemList->Top;
-			while (pItem)
-			{
-				pPlugin->AddGroundItem(pItem);
-				pItem = pItem->pNext;
-			}
-		}
-	}
-
-	AddPluginToList(pPlugin);
-	s_pluginMap.emplace(std::string_view(pPlugin->name), rec);
-
-	//g_mq->OnModuleLoaded(pPlugin);
+	g_mq->AddModule(std::move(plugin));
 
 	if (save)
 	{
-		WritePrivateProfileBool("Plugins", pPlugin->szFilename, true, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Plugins", pluginInst->szFilename, true, mq::internal_paths::MQini);
 	}
-	return 1;
+	return LoadPluginResult_Success;
 }
 
-static void ShutdownPlugin(const PluginInfoRec& rec)
+bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 {
-	MQPlugin* pPlugin = rec.instance;
-
-	// call Plugin:CleanUI
-	if (pPlugin->CleanUI)
-		pPlugin->CleanUI();
-
-	// call Plugin:Shutdown
-	if (pPlugin->Shutdown)
-		pPlugin->Shutdown();
-
-	// Allow other plugins to cleanup resources after plugin shutdown but before the dll is freed
-	//g_mq->OnAfterModuleUnloaded(pPlugin);
-	//PluginsPostUnloadPlugin(pPlugin->szFilename);
-}
-
-bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
-{
-	DebugSpew("UnloadPlugin(%.*s)", pluginName.length(), pluginName.data());
+	SPDLOG_DEBUG("UnloadPlugin({})", pluginName);
 
 	// Clear the load error message;
-	s_pluginLoadFailure.clear();
+	m_pluginLoadFailure.clear();
 
-	PluginInfoRec rec;
-	MQPlugin* pPlugin;
 	std::string_view canonicalName = GetCanonicalPluginName(pluginName);
 
 	if (save)
@@ -547,59 +668,69 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 		}
 	}
 
-	if (IsPluginUnloadFailed(canonicalName))
+	// If this is already a failed-to-unload plugin, try to clean it up again.
+	auto failedIter = m_pluginUnloadFailedMap.find(canonicalName);
+	if (failedIter != m_pluginUnloadFailedMap.end())
 	{
-		auto iter = s_pluginUnloadFailedMap.find(canonicalName);
-		// We know this exists because we just checked it, but in case that changes later...
-		if (iter == s_pluginUnloadFailedMap.end())
-			return false;
+		// Try to clean it up again.
+		std::unique_ptr<MQPluginModule> plugin = std::move(failedIter->second);
 
-		rec = iter->second;
-		pPlugin = rec.instance;
-
-		s_pluginUnloadFailedMap.erase(iter);
-	}
-	else
-	{
-		auto iter = s_pluginMap.find(canonicalName);
-		if (iter == s_pluginMap.end())
-			return false;
-
-		rec = iter->second;
-		pPlugin = rec.instance;
-
-		// Inform other plugins that this plugin is being removed
-		//g_mq->OnBeforeModuleUnloaded(pPlugin)
-		//PluginsUnloadPlugin(pPlugin->szFilename);
-
-		// Remove it from the list so that it can no longer be accessed
-		RemovePluginFromList(pPlugin);
-
-		s_pluginMap.erase(iter);
-		s_pluginHandleMap.erase(rec.handle.pluginID);
-	}
-
-	ShutdownPlugin(rec);
-
-	// Cleanup
-	if (FreeLibrary(pPlugin->hModule))
-	{
-		if (IsInModuleList(pPlugin->szFilename))
+		if (CleanupPlugin(plugin.get()))
 		{
-			s_pluginLoadFailure = "Plugin files still loaded.";
-			DebugSpew("UnloadPlugin(%s) failed: %.*s", s_pluginLoadFailure.c_str(), pluginName.length(), pluginName.data());
+			m_pluginUnloadFailedMap.erase(failedIter);
+			return true;
+		}
 
-			s_pluginUnloadFailedMap.emplace(canonicalName, rec);
+		return false;
+	}
+
+	auto iter = m_pluginMap.find(canonicalName);
+	if (iter != m_pluginMap.end())
+	{
+		MQPluginHandle handle = iter->second.handle;
+
+		m_unloadingModule = true;
+
+		// Calling RemoveModule will result in our OnPluginShutdown callback getting called.
+		std::unique_ptr<MQPluginModule> pluginModule(static_cast<MQPluginModule*>(g_mq->RemoveModule(handle).release()));
+
+		m_unloadingModule = false;
+
+		if (!CleanupPlugin(pluginModule.get()))
+		{
+			m_pluginUnloadFailedMap.emplace(pluginModule->GetName(), std::move(pluginModule));
 			return false;
 		}
-		delete pPlugin;
+
+		// Destroy the module
+		pluginModule.reset();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MQPluginHandler::CleanupPlugin(MQPluginModule* pluginModule)
+{
+	const std::string& pluginName = pluginModule->GetFilename();
+
+	if (FreeLibrary(pluginModule->GetHModule()))
+	{
+		if (!IsInModuleList(pluginName.c_str()))
+		{
+			return true;
+		}
+
+		m_pluginLoadFailure = "Plugin files still loaded.";
+		DebugSpew("UnloadPlugin(%s) failed: %s", pluginName.c_str(), m_pluginLoadFailure.c_str());
 	}
 	else
 	{
 		DWORD lastError = ::GetLastError();
 		char* szError = nullptr;
 
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			nullptr,
 			lastError,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
@@ -607,87 +738,56 @@ bool UnloadPlugin(std::string_view pluginName, bool save /* = false */)
 			0,
 			nullptr);
 
-		s_pluginLoadFailure = fmt::format("FreeLibrary failed with error {:#08x}: {}", lastError, szError);
-		DebugSpew("UnloadPlugin(%s) failed: %.*s", pluginName.length(), pluginName.data(), s_pluginLoadFailure.c_str());
-
-		s_pluginUnloadFailedMap.emplace(canonicalName, rec);
-		return false;
+		m_pluginLoadFailure = fmt::format("FreeLibrary failed with error {:#08x}: {}", lastError, szError);
+		DebugSpew("UnloadPlugin(%s) failed: %s", pluginName.c_str(), m_pluginLoadFailure.c_str());
 	}
 
-	return true;
+	return false;
 }
 
-void UnloadPlugins()
+bool MQPluginHandler::IsPluginLoaded(std::string_view pluginName) const
 {
-	while (pPlugins)
-	{
-		DebugSpew("%s->Unload()", pPlugins->szFilename);
-		UnloadPlugin(pPlugins->szFilename);
-	}
+	return m_pluginMap.count(GetCanonicalPluginName(pluginName)) != 0;
 }
 
-bool UnloadFailedPlugins()
+MQPlugin* MQPluginHandler::GetPlugin(std::string_view name)
 {
-	// UnloadPlugin modifies the global map, so use a copy here.
-	const PluginMap pluginUnloadFailedCopy = s_pluginUnloadFailedMap;
-	for (auto& [key, rec] : pluginUnloadFailedCopy)
+	auto iter = m_pluginMap.find(GetCanonicalPluginName(name));
+
+	if (iter != m_pluginMap.end())
 	{
-		DebugSpew("UnloadFailedPlugins(%s)", rec.instance->name.c_str());
-		UnloadPlugin(rec.instance->szFilename);
-	}
-
-	return GetPluginUnloadFailedCount() == 0;
-}
-
-void ShutdownFailedPlugins()
-{
-	if (!UnloadFailedPlugins() && !gbForceUnload)
-	{
-		int msgReturn = IDRETRY;
-		while (msgReturn == IDRETRY && !UnloadFailedPlugins())
-		{
-			msgReturn = MessageBox(nullptr,
-				"You have plugins that failed to unload. Unloading MacroQuest now would be unsafe.\n"
-				"\n"
-				"RETRY to try unloading again.\n"
-				"ABORT to kill the game.\n"
-				"IGNORE to accept the risk and continue unloading.\n",
-				"UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
-		}
-
-		if (msgReturn == IDABORT)
-		{
-			std::quick_exit(EXIT_FAILURE);
-		}
-	}
-}
-
-void* GetPluginProc(const char* plugin, const char* proc)
-{
-	size_t uiLength = strlen(plugin) + 1;
-	auto pLook = pPlugins;
-	while (pLook)
-	{
-		if (!_strnicmp(plugin, pLook->szFilename, uiLength))
-			return GetProcAddress(pLook->hModule, proc);
-		pLook = pLook->pNext;
+		return iter->second.instance;
 	}
 
 	return nullptr;
 }
 
-PluginInterface* GetPluginInterface(std::string_view PluginName)
+void* MQPluginHandler::GetPluginProc(std::string_view pluginName, const char* proc)
 {
-	if (MQPlugin* pPlugin = GetPlugin(PluginName))
+	if (MQPlugin* plugin = GetPlugin(pluginName))
+	{
+		return GetProcAddress(plugin->hModule, proc);
+	}
+
+	return nullptr;
+}
+
+PluginInterface* MQPluginHandler::GetPluginInterface(std::string_view pluginName)
+{
+	if (MQPlugin* pPlugin = GetPlugin(pluginName))
 	{
 		if (pPlugin->GetPluginInterface)
+		{
 			return pPlugin->GetPluginInterface();
+		}
 	}
 
 	return nullptr;
 }
 
-void PluginCommand(PlayerClient*, char* szLine)
+//=================================================================================================
+
+void MQPluginHandler::PluginCommand(const char* szLine)
 {
 	bool show_usage = false;
 	char szName[MAX_STRING] = { 0 };
@@ -732,17 +832,18 @@ void PluginCommand(PlayerClient*, char* szLine)
 			{
 				WriteChatColor("Plugins that Failed to Unload", USERCOLOR_WHO);
 				WriteChatColor("-----------------------------", USERCOLOR_WHO);
-				if (s_pluginUnloadFailedMap.empty())
+				if (m_pluginUnloadFailedMap.empty())
 				{
 					WriteChatColor("No Failed Plugins.", USERCOLOR_WHO);
 				}
 				else
 				{
-					for (auto const& [key, rec] : s_pluginUnloadFailedMap)
+					for (auto const& [key, module] : m_pluginUnloadFailedMap)
 					{
-						WriteChatColorf("%s", USERCOLOR_WHO, rec.instance->szFilename);
+						WriteChatColorf("%s", USERCOLOR_WHO, module->GetFilename().c_str());
 					}
-					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload", USERCOLOR_WHO, s_pluginUnloadFailedMap.size());
+					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload",
+						USERCOLOR_WHO, m_pluginUnloadFailedMap.size());
 				}
 			}
 			else if (ci_equals(szCommand, "dlls"))
@@ -801,7 +902,7 @@ void PluginCommand(PlayerClient*, char* szLine)
 			// If we're showing usage, then we had something syntactically wrong earlier
 			if (!show_usage)
 			{
-				s_pluginLoadFailure.clear();
+				m_pluginLoadFailure.clear();
 
 				if (dounload)
 				{
@@ -812,9 +913,9 @@ void PluginCommand(PlayerClient*, char* szLine)
 						{
 							WriteChatf("Plugin '%s' unloaded.", origPluginName.c_str());
 						}
-						else if (s_pluginLoadFailure.empty())
+						else if (m_pluginLoadFailure.empty())
 						{
-							s_pluginLoadFailure = "Unknown Error";
+							m_pluginLoadFailure = "Unknown Error";
 						}
 					}
 					else
@@ -836,18 +937,18 @@ void PluginCommand(PlayerClient*, char* szLine)
 							plugin = GetPlugin(szName);
 							WriteChatf("Plugin '%s' loaded.", plugin->szFilename);
 						}
-						else if (s_pluginLoadFailure.empty())
+						else if (m_pluginLoadFailure.empty())
 						{
-							s_pluginLoadFailure = "Unknown Error";
+							m_pluginLoadFailure = "Unknown Error";
 						}
 					}
 				}
 
-				if (!s_pluginLoadFailure.empty())
+				if (!m_pluginLoadFailure.empty())
 				{
-					MacroError("Plugin '%s' could not be %sloaded: %s", szName, dounload ? "un" : "", s_pluginLoadFailure.c_str());
+					MacroError("Plugin '%s' could not be %sloaded: %s", szName, dounload ? "un" : "", m_pluginLoadFailure.c_str());
 
-					s_pluginLoadFailure.clear();
+					m_pluginLoadFailure.clear();
 				}
 			}
 		}
@@ -859,52 +960,211 @@ void PluginCommand(PlayerClient*, char* szLine)
 	}
 }
 
-//----------------------------------------------------------------------------
-
-MQPluginHandler::MQPluginHandler()
-	: MQModuleBase("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
+std::pair<wil::unique_hmodule, std::string> MQPluginHandler::LoadPluginModule(std::string_view name)
 {
-}
+	namespace fs = std::filesystem;
 
-MQPluginHandler::~MQPluginHandler()
-{
-}
+	// Our job here is to return the module handle if we found a plugin matching
+	// the name requested. If we fail for whatever reason, we return a null hmodule
+	// and set the reason in szPluginLoadFailure.
 
-void MQPluginHandler::Initialize()
-{
-	AddCommand("/plugin", PluginCommand, false, true, false);
+	DebugSpew("LoadPlugin(%.*s)", name.length(), name.data());
 
-	bmCalculate = AddBenchmark("Calculate");
-
-	MainPlugin.name = "main";
-	MainPlugin.hModule = ghModule;
-	strcpy_s(MainPlugin.szFilename, "MQ2Main.dll"); // TODO: Replace with actual filename.
-
-	s_pluginHandleMap.emplace(mqplugin::ThisPluginHandle.pluginID, &MainPlugin);
-
-	// lock plugin list before manipulating it
-	std::scoped_lock lock(s_pluginsMutex);
-	s_pluginsInitialized = true;
-
-	DebugSpew("Initializing plugins");
-	ScopedModuleTracker moduleTracker;
-
-	const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
-	for (const std::string& pluginName : plugins)
+	std::string fileName = FindPluginFile(name);
+	if (fileName.empty())
 	{
-		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
+		m_pluginLoadFailure = "Plugin not found";
+		return {};
+	}
+
+	const fs::path pathToPlugin = fs::path(mq::internal_paths::Plugins) / fileName;
+
+	wil::unique_hmodule hModule{ ::LoadLibraryA(pathToPlugin.string().c_str()) };
+	if (!hModule)
+	{
+		DWORD lastError = ::GetLastError();
+		char* szError = nullptr;
+
+		::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			nullptr,
+			lastError,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&szError,
+			0,
+			nullptr);
+
+		m_pluginLoadFailure = fmt::format("LoadLibrary failed with error {:#08x}: {}", lastError, szError);
+		return {};
+	}
+
+	// Perform MQNext version check
+	void* isBuildForNext = GetProcAddress(hModule.get(), "IsBuiltForNext");
+	if (isBuildForNext == nullptr)
+	{
+		m_pluginLoadFailure = "Plugin was not built for this version of MacroQuest";
+		return {};
+	}
+
+	// Perform EQ version check
+	const char* eqVersion = reinterpret_cast<const char*>(GetProcAddress(hModule.get(), "EverQuestVersion"));
+	if (eqVersion == nullptr)
+	{
+		m_pluginLoadFailure = "Plugin was not built for this version of EverQuest";
+		return {};
+	}
+
+	if (strcmp(eqVersion, EverQuestVersion) != 0)
+	{
+		m_pluginLoadFailure = fmt::format("Plugin was not built for this version of EverQuest (was built for {})",
+			eqVersion);
+		return {};
+	}
+
+	return { std::move(hModule), std::move(fileName) };
+}
+
+bool MQPluginHandler::UnloadFailedPlugins()
+{
+	// UnloadPlugin modifies the global map, so we need to make a copy of the values we need.
+	std::vector<MQPluginModule*> failedModules;
+	failedModules.reserve(m_pluginUnloadFailedMap.size());
+
+	for (const auto& [_, module] : m_pluginUnloadFailedMap)
+	{
+		failedModules.push_back(module.get());
+	}
+
+	for (MQPluginModule* module : failedModules)
+	{
+		DebugSpew("UnloadFailedPlugins(%s)", module->GetName().c_str());
+		UnloadPlugin(module->GetName().c_str());
+	}
+
+	return GetPluginUnloadFailedCount() == 0;
+}
+  
+void MQPluginHandler::ShutdownFailedPlugins()
+{
+	if (!UnloadFailedPlugins() && !gbForceUnload)
+	{
+		int msgReturn = IDRETRY;
+		while (msgReturn == IDRETRY && !UnloadFailedPlugins())
 		{
-			LoadPlugin(pluginName.c_str(), false);
+			msgReturn = ::MessageBoxA(nullptr,
+				"You have plugins that failed to unload. Unloading MacroQuest now would be unsafe.\n"
+				"\n"
+				"RETRY to try unloading again.\n"
+				"ABORT to kill the game.\n"
+				"IGNORE to accept the risk and continue unloading.\n",
+				"UNLOAD FAILURE", MB_ICONWARNING | MB_ABORTRETRYIGNORE);
+		}
+
+		if (msgReturn == IDABORT)
+		{
+			std::quick_exit(EXIT_FAILURE);
 		}
 	}
 }
 
-void MQPluginHandler::Shutdown()
+bool MQPluginHandler::IsPluginUnloadFailed(std::string_view name)
 {
-	s_pluginsInitialized = false;
+	return m_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
+}
 
-	UnloadPlugins();
-	RemoveCommand("/plugin");
+//=================================================================================================
+// PluginAPI function implementations
+
+int LoadPlugin(std::string_view pluginName, bool save)
+{
+	if (g_pluginHandler)
+	{
+		return (int)g_pluginHandler->LoadPlugin(pluginName, save);
+	}
+
+	SPDLOG_ERROR("Attempt to call LoadPlugin without PluginHandler module loaded");
+	return LoadPluginResult_Failed;
+}
+
+bool UnloadPlugin(std::string_view pluginName, bool save)
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->UnloadPlugin(pluginName, save);
+	}
+
+	SPDLOG_ERROR("Attempt to call UnloadPlugin without PluginHandler module loaded");
+	return false;
+}
+
+void* GetPluginProc(std::string_view pluginName, const char* proc)
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->GetPluginProc(pluginName, proc);
+	}
+
+	SPDLOG_ERROR("Attempt to call GetPluginProc without PluginHandler module loaded");
+	return nullptr;
+}
+
+MQPlugin* GetPlugin(std::string_view pluginName)
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->GetPlugin(pluginName);
+	}
+
+	SPDLOG_ERROR("Attempt to call GetPlugin without PluginHandler module loaded");
+	return nullptr;
+}
+
+MQPlugin* GetPluginByHandle(MQPluginHandle handle, bool noMain /* = false */)
+{
+	// MQ has everything stored by handle, we just call into it there and
+	// filter the results
+	MQModuleBase* pModule = g_mq->GetModuleByHandle(handle, noMain);
+
+	if (pModule && pModule->IsPlugin())
+	{
+		MQPluginModule* pPluginModule = static_cast<MQPluginModule*>(pModule);
+
+		return pPluginModule->GetPlugin();
+	}
+
+	return nullptr;
+}
+
+PluginInterface* GetPluginInterface(std::string_view pluginName)
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->GetPluginInterface(pluginName);
+	}
+
+	SPDLOG_ERROR("Attempt to call GetPluginInterface without PluginHandler module loaded");
+	return nullptr;
+}
+
+// Returns true if the plugin is loaded by checking its canonical name.
+bool IsPluginLoaded(std::string_view pluginName)
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->IsPluginLoaded(pluginName);
+	}
+
+	SPDLOG_ERROR("Attempt to call IsPluginLoaded without PluginHandler module loaded");
+	return nullptr;
+}
+
+int GetPluginUnloadFailedCount()
+{
+	if (g_pluginHandler)
+	{
+		return g_pluginHandler->GetPluginUnloadFailedCount();
+	}
+
+	return 0;
 }
 
 } // namespace mq

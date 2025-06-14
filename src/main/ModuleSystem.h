@@ -42,13 +42,10 @@ enum class ModulePriority
 
 	Default = 100,
 
-	PluginHandler = 150,
+	Plugins = 150,
+	PluginHandler = 151,
 
-	// plugins occupy a range of priority starting at PluginsDefault and ending at PluginsEnd
-	PluginsDefault = 1000,
-	PluginsEnd = 9999,
-
-	Macros = 2000, // Macro system should be lower priority than all plugins
+	Macros = 200,
 };
 
 enum class ModuleFlags : uint32_t
@@ -58,6 +55,7 @@ enum class ModuleFlags : uint32_t
 	DefaultDisabled            = 1 << 1,         // Module is disabled by default
 	Hidden                     = 1 << 2,         // Module is hidden from ui
 	IsPlugin                   = 1 << 3,         // Module is a plugin
+	IsDummy                    = 1 << 4,         // Module is a dummy
 
 	SkipOnProcessFrame         = 1 << 19,        // Module has callback for this event
 	SkipOnDrawHUD              = 1 << 20,        // ... and so on
@@ -71,6 +69,8 @@ enum class ModuleFlags : uint32_t
 	SkipOnSpawnRemoved         = 1 << 28,
 	SkipOnGroundItemAdded      = 1 << 29,
 	SkipOnGroundItemRemoved    = 1 << 30,
+
+	SkipAll                    = 0xFFF80000,
 };
 constexpr bool has_bitwise_operations(ModuleFlags) { return true; }
 
@@ -299,6 +299,23 @@ protected:
 private:
 	MQPluginHandle m_handle;
 };
+
+class MQDynamicModule : public MQModuleBase
+{
+public:
+	static constexpr ModuleFlags DEFAULT_PLUGIN_FLAGS = ModuleFlags::CanUnload | ModuleFlags::IsPlugin
+		| ModuleFlags::SkipOnChatMessage | ModuleFlags::SkipOnTellWindowMessage | ModuleFlags::SkipOnIncomingWorldMessage;
+
+	MQDynamicModule(std::string_view name, HMODULE hModule, ModuleFlags flags = DEFAULT_PLUGIN_FLAGS);
+	virtual ~MQDynamicModule() override;
+
+	virtual MQPlugin* GetPlugin() = 0;
+	HMODULE GetHModule() const { return m_hModule; }
+
+protected:
+	HMODULE m_hModule;
+};
+
 
 template <typename ModuleType>
 std::unique_ptr<MQModuleBase> CreateModule();
