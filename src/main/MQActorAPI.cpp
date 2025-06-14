@@ -104,7 +104,7 @@ void MQActorAPI::SendToActor(
 	PipeMessageResponseCb pipe_callback = nullptr;
 	if (callback != nullptr)
 	{
-		pipe_callback = [callback, address](int status, PipeMessagePtr&& message)
+		pipe_callback = [callback, address](int status, PipeMessagePtr message)
 			{
 				// no need to store this message in the message storage since we know it
 				// can't be replied to -- which means we also don't need the custom deleter

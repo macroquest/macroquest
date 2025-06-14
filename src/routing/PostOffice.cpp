@@ -16,7 +16,7 @@
 
 namespace mq::postoffice {
 
-void Mailbox::Deliver(PipeMessagePtr&& message) const
+void Mailbox::Deliver(PipeMessagePtr message) const
 {
 	// Don't do anything if this isn't wrapped in an envelope
 	if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
@@ -126,7 +126,7 @@ bool PostOffice::RemoveMailbox(const std::string& localAddress)
 	return m_mailboxes.erase(localAddress) == 1;
 }
 
-bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr&& message, const std::function<void(int, PipeMessagePtr&&)>& failed)
+bool PostOffice::DeliverTo(const std::string& localAddress, PipeMessagePtr message, const std::function<void(int, PipeMessagePtr)>& failed)
 {
 	auto mailbox_it = m_mailboxes.find(localAddress);
 	if (mailbox_it != m_mailboxes.end())

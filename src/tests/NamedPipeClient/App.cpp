@@ -55,7 +55,7 @@ int main(int argc, TCHAR* argv[])
 			SPDLOG_INFO("Sending ECHO request: message={0} length={1}", message, message.length());
 
 			client.SendMessageWithResponse(mq::MQMessageId::MSG_ECHO, message.c_str(), (uint32_t)message.length() + 1,
-				[&](int result, mq::PipeMessagePtr&& response)
+				[&](int result, mq::PipeMessagePtr response)
 				{
 					--inFlight;
 					if (response)

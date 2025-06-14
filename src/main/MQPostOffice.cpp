@@ -47,7 +47,7 @@ class MQPostOffice : public PostOffice
 	public:
 		PipeEventsHandler(MQPostOffice* postOffice) : m_postOffice(postOffice) {}
 
-		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
+		virtual void OnIncomingMessage(PipeMessagePtr message) override
 		{
 			switch (message->GetMessageId())  // NOLINT(clang-diagnostic-switch-enum)
 			{
@@ -70,9 +70,9 @@ class MQPostOffice : public PostOffice
 						auto mailbox = m_postOffice->FindMailbox(*address, m_postOffice->m_mailboxes.begin());
 
 						if (mailbox == m_postOffice->m_mailboxes.end()) // no addresses
-							RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
+							RoutingFailed(envelope, MsgError_RoutingFailed, message, nullptr);
 						else if (m_postOffice->FindMailbox(*address, std::next(mailbox)) != m_postOffice->m_mailboxes.end()) // multiple addresses
-							RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
+							RoutingFailed(envelope, MsgError_AmbiguousRecipient, message, nullptr);
 						else // we have exactly one recipient, this is valid
 							m_postOffice->DeliverTo(address->mailbox(), std::move(message));
 					}
@@ -106,11 +106,12 @@ class MQPostOffice : public PostOffice
 					}
 					else
 					{
-						m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
-							id.pid(),
-							id.has_account() ? id.account() : "",
-							id.has_server() ? id.server() : "",
-							id.has_character() ? id.character() : ""
+						m_postOffice->m_identities.insert_or_assign(id.pid(),
+							ClientIdentification{
+								id.pid(),
+								id.has_account() ? id.account() : "",
+								id.has_server() ? id.server() : "",
+								id.has_character() ? id.character() : ""
 							});
 
 						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
@@ -216,7 +217,7 @@ public:
 	static void RoutingFailed(
 		const proto::routing::Envelope& envelope,
 		int status,
-		PipeMessagePtr&& message,
+		const PipeMessagePtr& message,
 		const PipeMessageResponseCb& callback)
 	{
 		// we can't assume that the mailbox exists here, so manually create the reply
@@ -243,11 +244,11 @@ public:
 			{ return ci_ends_with(pair.first, address.mailbox()); });
 	}
 
-	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
+	void RouteMessage(PipeMessagePtr message, const PipeMessageResponseCb& callback) override
 	{
 		if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
 		{
-			auto& envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
+			proto::routing::Envelope envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
 
 			// always enrich the return address if in game
 			if (pLocalPC)
@@ -287,9 +288,9 @@ public:
 					message->SetRequestMode(MQRequestMode::CallAndResponse);
 
 					if (mailbox == m_mailboxes.end()) // no addresses
-						RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
+						RoutingFailed(envelope, MsgError_RoutingFailed, message, callback);
 					else if (FindMailbox(address, std::next(mailbox)) != m_mailboxes.end()) // multiple addresses
-						RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
+						RoutingFailed(envelope, MsgError_AmbiguousRecipient, message, callback);
 					else // we have exactly one recipient, this is valid
 						m_pipeClient.SendMessageWithResponse(std::move(message), callback);
 				}
