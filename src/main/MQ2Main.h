@@ -36,9 +36,11 @@
 #include "mq/utils/Keybinds.h"
 
 #include "mq/api/Main.h"
+#include "mq/api/CachedBuffs.h"
 #include "mq/api/DetourAPI.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/api/PluginAPI.h"
+#include "mq/api/Textures.h"
 
 // Link up ImGui
 #include <imgui/imgui.h>
@@ -508,72 +510,16 @@ MQLIB_API int         GetHighestAvailableBagSlot();    // returns the InvSlot of
 MQLIB_API int         GetAvailableBankSlots();         // returns the number of bank slots that are enabled
 MQLIB_API int         GetAvailableSharedBankSlots();   // returns the number of shared bank slots that are enabled
 
-/* MQ2CACHEDBUFFS */
-class CachedBuff
-{
-public:
-	int slot;
-	int spellId;
-	int duration;            // in ticks...
-	int count;
-	char casterName[64];
-	DWORD timeStamp;
-
-	DWORD Duration() const
-	{
-		auto end = timeStamp + (duration * 6000);
-		auto now = eqlib::EQGetTime();
-
-		if (end > now)
-			return end - now;
-
-		return 0UL;
-	}
-
-	DWORD Staleness() const
-	{
-		return eqlib::EQGetTime() - timeStamp;
-	}
-};
-
-MQLIB_API    int GetCachedBuff(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
-MQLIB_API    int GetCachedBuffAt(eqlib::PlayerClient* pSpawn, size_t index);
-MQLIB_OBJECT int GetCachedBuffAt(eqlib::PlayerClient* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate);
-MQLIB_OBJECT std::optional<CachedBuff> GetCachedBuffAtSlot(eqlib::PlayerClient* pSpawn, int slot);
-MQLIB_OBJECT std::vector<CachedBuff> FilterCachedBuffs(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
-MQLIB_API    DWORD GetCachedBuffCount(eqlib::PlayerClient* pSpawn);
-MQLIB_OBJECT DWORD GetCachedBuffCount(eqlib::PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate);
-
-MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") int GetTargetBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") int GetTargetBuffBySubCat(const char* subcat, DWORD classmask = 0, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") bool HasCachedTargetBuffSubCat(const char* subcat, eqlib::PlayerClient* pSpawn, void*, DWORD classmask = 0);
-MQLIB_API DEPRECATE("Use GetCachedBuff with predicates instead") bool HasCachedTargetBuffSPA(int spa, bool bIncrease, eqlib::PlayerClient* pSpawn, void*);
-
-MQLIB_API bool HasBuffCastByPlayer(eqlib::PlayerClient* pBuffOwner, const char* szBuffName, const char* casterName);
-MQLIB_API DEPRECATE("Use HasBuffCastByPlayer instead of TargetBuffCastByMe") bool TargetBuffCastByMe(const char* szBuffName);
-
-MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(const eqlib::EQ_Affect&)>& fPredicate, int minSlot = 0, int maxSlot = -1);
-MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(eqlib::EQ_Spell*)>& fPredicate, int minSlot = 0, int maxSlot = -1);
-
-MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfBuffByCategory(DWORD category, DWORD classmask = 0, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask = 0, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-MQLIB_API DEPRECATE("Use GetSelfBuff with predicates instead") int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot = 0);
-
 MQLIB_API    bool        HasSPA(eqlib::EQ_Spell* pSpell, eqlib::eEQSPA eSPA, bool bIncrease = false);
 MQLIB_OBJECT bool        HasSPA(const eqlib::EQ_Affect& buff, eqlib::eEQSPA eSPA, bool bIncrease = false);
-MQLIB_OBJECT bool        HasSPA(const CachedBuff& buff, eqlib::eEQSPA eSPA, bool bIncrease = false);
+
 MQLIB_API    int         GetPlayerClass(const char* name);
 MQLIB_API    bool        IsSpellUsableForClass(eqlib::EQ_Spell* pSpell, unsigned int classmask = 0);
 MQLIB_OBJECT bool        IsSpellUsableForClass(const eqlib::EQ_Affect& buff, unsigned int classmask = 0);
-MQLIB_OBJECT bool        IsSpellUsableForClass(CachedBuff buff, unsigned int classmask = 0);
 MQLIB_API    int         GetSpellCategory(eqlib::EQ_Spell* pSpell);
 MQLIB_OBJECT int         GetSpellCategory(const eqlib::EQ_Affect& buff);
-MQLIB_OBJECT int         GetSpellCategory(CachedBuff buff);
 MQLIB_API    int         GetSpellSubcategory(eqlib::EQ_Spell* pSpell);
 MQLIB_OBJECT int         GetSpellSubcategory(const eqlib::EQ_Affect& buff);
-MQLIB_OBJECT int         GetSpellSubcategory(CachedBuff buff);
 MQLIB_API    eqlib::EQ_Spell*   GetSpellParent(int id);
 MQLIB_API    int64_t     GetSpellCounters(eqlib::eEQSPA spa, const eqlib::EQ_Affect& buff); // Get spell counters of given spa for the given buff.
 MQLIB_API    int64_t     GetMySpellCounters(eqlib::eEQSPA spa);                             // Get spell counters of given spa on my character.
@@ -581,17 +527,18 @@ MQLIB_API    int64_t     GetTotalSpellCounters(const eqlib::EQ_Affect& buff);   
 MQLIB_API    int64_t     GetMyTotalSpellCounters();                                         // Get total count of spell counters for my character.
 MQLIB_API    int         GetMeleeSpeedPctFromSpell(eqlib::EQ_Spell* pSpell, bool increase);
 MQLIB_API    eqlib::EQ_Spell*   GetHighestLearnedSpellByGroupID(int dwSpellGroupID);
-MQLIB_API    DWORD       GetSpellID(eqlib::EQ_Spell* spell);
-MQLIB_OBJECT DWORD       GetSpellID(const eqlib::EQ_Affect& buff);
-MQLIB_OBJECT DWORD       GetSpellID(const CachedBuff& buff);
+MQLIB_API    uint32_t    GetSpellID(eqlib::EQ_Spell* spell);
+MQLIB_OBJECT uint32_t    GetSpellID(const eqlib::EQ_Affect& buff);
 MQLIB_API    const char* GetSpellName(eqlib::EQ_Spell* spell);
 MQLIB_OBJECT const char* GetSpellName(const eqlib::EQ_Affect& buff);
-MQLIB_OBJECT const char* GetSpellName(const CachedBuff& buff);
 MQLIB_API    const char* GetSpellCaster(const eqlib::EQ_Affect& buff);
-MQLIB_OBJECT const char* GetSpellCaster(const CachedBuff& buff);
 MQLIB_API    const char* GetPetSpellCaster(const eqlib::EQ_Affect& buff);
 MQLIB_API    eqlib::eEQSPELLCAT GetSpellCategoryFromName(const char* category);
 MQLIB_API    eqlib::eEQSPA      GetSPAFromName(const char* spa);
+
+MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(const eqlib::EQ_Affect&)>& fPredicate, int minSlot = 0, int maxSlot = -1);
+MQLIB_OBJECT int      GetSelfBuff(const std::function<bool(eqlib::EQ_Spell*)>& fPredicate, int minSlot = 0, int maxSlot = -1);
+
 
 MQLIB_API    const char* GetTeleportName(DWORD id);
 

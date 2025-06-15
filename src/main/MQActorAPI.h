@@ -25,7 +25,7 @@
 
 namespace mq {
 
-class MQActorAPI : MQModuleBase
+class MQActorAPI : public MQModuleBase
 {
 	virtual void Initialize() override;
 

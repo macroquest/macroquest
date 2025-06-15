@@ -15,12 +15,21 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "ModuleSystem.h"
+#include "MQ2SpellSearch.h"
+
+#include "mq/api/CachedBuffs.h"
 
 #include <optional>
 
 using namespace eqlib;
 
 namespace mq {
+
+bool gTargetbuffs = false;
+
+// spawnID -> spawn buffs
+class SpawnBuffs;
+static std::unordered_map<int, std::unique_ptr<SpawnBuffs>> s_cachedBuffs;
 
 class SpawnBuffs
 {
@@ -60,6 +69,7 @@ public:
 	std::optional<CachedBuff> Get(const std::function<bool(CachedBuff)>& predicate)
 	{
 		Audit();
+
 		auto buff_it = std::find_if(std::begin(cachedBuffs), std::end(cachedBuffs),
 			[&predicate](CachedBuff buff) { return predicate(buff); });
 
@@ -72,7 +82,8 @@ public:
 	std::optional<CachedBuff> Get(size_t index)
 	{
 		Audit();
-		if (index >= 0 && index < cachedBuffs.size())
+	
+		if (index < cachedBuffs.size())
 			return cachedBuffs.at(index);
 
 		return std::nullopt;
@@ -91,9 +102,6 @@ public:
 		return ret;
 	}
 };
-
-// spawnID -> spawn buffs
-static std::map<int, std::unique_ptr<SpawnBuffs>> gCachedBuffMap;
 
 class CEverQuestHook
 {
@@ -128,7 +136,7 @@ public:
 		// full buff messages.
 		if (header.m_bComplete)
 		{
-			auto [it, result] = gCachedBuffMap.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
+			auto [it, result] = s_cachedBuffs.try_emplace(header.m_id, std::make_unique<SpawnBuffs>());
 			it->second->Clear();
 
 			for (int i = 0; i < header.m_count; i++)
@@ -152,145 +160,6 @@ public:
 	}
 };
 
-std::optional<CachedBuff> GetCachedBuffAtSlot(PlayerClient* pSpawn, int slot)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			return buffs->second->Get([&slot](const CachedBuff& buff) { return buff.slot == slot; });
-		}
-	}
-
-	return std::nullopt;
-}
-
-int GetCachedBuff(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			auto buff = buffs->second->Get(predicate);
-			if (buff) return buff->slot;
-		}
-	}
-
-	return -1;
-}
-
-int GetCachedBuffAt(PlayerClient* pSpawn, size_t index)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			auto buff = buffs->second->Get(index);
-			if (buff) return buff->slot;
-		}
-	}
-
-	return -1;
-}
-
-int GetCachedBuffAt(PlayerClient* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
-{
-	if (pSpawn)
-	{
-		auto buffs = FilterCachedBuffs(pSpawn, predicate);
-		if (index >= 0 && index < buffs.size())
-			return buffs.at(index).slot;
-	}
-
-	return -1;
-}
-
-std::vector<CachedBuff> FilterCachedBuffs(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			return buffs->second->Filter(predicate);
-		}
-	}
-
-	return {};
-}
-
-DWORD GetCachedBuffCount(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			buffs->second->Audit();
-			return static_cast<DWORD>(std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate));
-		}
-	}
-
-	return 0U;
-}
-
-DWORD GetCachedBuffCount(PlayerClient* pSpawn)
-{
-	if (pSpawn)
-	{
-		auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-		if (buffs != std::end(gCachedBuffMap))
-		{
-			buffs->second->Audit();
-			return static_cast<DWORD>(buffs->second->cachedBuffs.size());
-		}
-	}
-
-	return 0U;
-}
-
-static void ClearCachedBuffsSpawn(PlayerClient* pSpawn)
-{
-	auto buffs = gCachedBuffMap.find(pSpawn->SpawnID);
-	if (buffs != std::end(gCachedBuffMap))
-		buffs->second->Clear();
-}
-
-void ClearCachedBuffs()
-{
-	gCachedBuffMap.clear();
-}
-
-void CachedBuffsCommand(PlayerClient* pChar, const char* szLine)
-{
-	if (!strcmp(szLine, "cleartarget"))
-	{
-		if (!pTarget)
-		{
-			WriteChatf("Select a target before using /cachedbuffs cleartarget");
-			return;
-		}
-
-		ClearCachedBuffsSpawn(pTarget);
-		WriteChatf("Cached Buffs for Target cleared.");
-		return;
-	}
-
-	if (!strcmp(szLine, "reset"))
-	{
-		pTarget = nullptr;
-
-		ClearCachedBuffs();
-		WriteChatf("Cached Buffs for ALL Targets cleared.");
-		return;
-	}
-
-	WriteChatf("\ayUsage: /cachedbuffs [cleartarget | reset]");
-}
-
 //============================================================================
 
 class CachedBuffsModule : public MQModuleBase
@@ -306,7 +175,9 @@ public:
 			&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour,
 			&CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline);
 
-		AddCommand("/cachedbuffs", CachedBuffsCommand, false, true, true);
+		AddCommand("/cachedbuffs",
+			[this](eqlib::PlayerClient*, const char* szLine) { CachedBuffsCommand(szLine); },
+			false, true, true);
 	}
 
 	virtual void Shutdown() override
@@ -318,12 +189,307 @@ public:
 		ClearCachedBuffs();
 	}
 
+	virtual void OnProcessFrame() override
+	{
+		if (m_lastTarget != pTarget)
+		{
+			m_lastTarget = pTarget;
+
+			gTargetbuffs = false;
+		}
+	}
+
 	virtual void OnSpawnRemoved(eqlib::PlayerClient* pSpawn) override
 	{
 		ClearCachedBuffsSpawn(pSpawn);
 	}
+
+private:
+	void CachedBuffsCommand(const char* szLine)
+	{
+		if (!strcmp(szLine, "cleartarget"))
+		{
+			if (!pTarget)
+			{
+				WriteChatf("Select a target before using /cachedbuffs cleartarget");
+				return;
+			}
+
+			ClearCachedBuffsSpawn(pTarget);
+			WriteChatf("Cached Buffs for Target cleared.");
+			return;
+		}
+
+		if (!strcmp(szLine, "reset"))
+		{
+			pTarget = nullptr;
+
+			ClearCachedBuffs();
+			WriteChatf("Cached Buffs for ALL Targets cleared.");
+			return;
+		}
+
+		WriteChatf("\ayUsage: /cachedbuffs [cleartarget | reset]");
+	}
+
+	void ClearCachedBuffs()
+	{
+		s_cachedBuffs.clear();
+	}
+
+	static void ClearCachedBuffsSpawn(PlayerClient* pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+			buffs->second->Clear();
+	}
+
+	eqlib::PlayerClient* m_lastTarget = nullptr;
 };
 
 DECLARE_MODULE_FACTORY(CachedBuffsModule);
+
+//============================================================================
+
+std::optional<CachedBuff> GetCachedBuffAtSlot(PlayerClient* pSpawn, int slot)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			return buffs->second->Get([&slot](const CachedBuff& buff) { return buff.slot == slot; });
+		}
+	}
+
+	return std::nullopt;
+}
+
+int GetCachedBuff(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			auto buff = buffs->second->Get(predicate);
+			if (buff) return buff->slot;
+		}
+	}
+
+	return -1;
+}
+
+int GetCachedBuffAt(PlayerClient* pSpawn, size_t index)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			auto buff = buffs->second->Get(index);
+			if (buff) return buff->slot;
+		}
+	}
+
+	return -1;
+}
+
+int GetCachedBuffAt(PlayerClient* pSpawn, size_t index, const std::function<bool(const CachedBuff&)>& predicate)
+{
+	if (pSpawn)
+	{
+		auto buffs = FilterCachedBuffs(pSpawn, predicate);
+
+		if (index < buffs.size())
+		{
+			return buffs.at(index).slot;
+		}
+	}
+
+	return -1;
+}
+
+std::vector<CachedBuff> FilterCachedBuffs(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			return buffs->second->Filter(predicate);
+		}
+	}
+
+	return {};
+}
+
+uint32_t GetCachedBuffCount(PlayerClient* pSpawn, const std::function<bool(const CachedBuff&)>& predicate)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			buffs->second->Audit();
+
+			return static_cast<uint32_t>(std::count_if(std::begin(buffs->second->cachedBuffs), std::end(buffs->second->cachedBuffs), predicate));
+		}
+	}
+
+	return 0U;
+}
+
+uint32_t GetCachedBuffCount(PlayerClient* pSpawn)
+{
+	if (pSpawn)
+	{
+		auto buffs = s_cachedBuffs.find(pSpawn->SpawnID);
+		if (buffs != std::end(s_cachedBuffs))
+		{
+			buffs->second->Audit();
+
+			return static_cast<uint32_t>(buffs->second->cachedBuffs.size());
+		}
+	}
+
+	return 0U;
+}
+
+bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease)
+{
+	return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease);
+}
+
+int GetSpellCategory(const CachedBuff& buff)
+{
+	return GetSpellCategory(GetSpellByID(buff.spellId));
+}
+
+bool IsSpellUsableForClass(const CachedBuff& buff, unsigned int classmask)
+{
+	return IsSpellUsableForClass(GetSpellByID(buff.spellId), classmask);
+}
+
+int GetSpellSubcategory(const CachedBuff& buff)
+{
+	return GetSpellSubcategory(GetSpellByID(buff.spellId));
+}
+
+uint32_t GetSpellID(const CachedBuff& buff)
+{
+	return buff.spellId;
+}
+
+const char* GetSpellName(const CachedBuff& buff)
+{
+	return GetSpellNameByID(buff.spellId);
+}
+
+const char* GetSpellCaster(const CachedBuff& buff)
+{
+	return buff.casterName;
+}
+
+bool HasBuffCastByPlayer(PlayerClient* pBuffOwner, const char* szBuffName, const char* casterName)
+{
+	auto predicate = [szBuffName, casterName](const CachedBuff& buff)
+		{
+			return MaybeExactCompare(GetSpellNameByID(buff.spellId), szBuffName)
+				&& _stricmp(buff.casterName, casterName) == 0;
+		};
+
+	int slot = GetCachedBuff(pBuffOwner, predicate);
+	return slot != -1;
+}
+
+int GetTargetBuffByCategory(uint32_t category, uint32_t classmask, int startslot)
+{
+	return GetCachedBuff(pTarget, SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask));
+}
+
+int GetTargetBuffBySubCat(const char* subcat, uint32_t classmask, int startslot)
+{
+	return GetCachedBuff(pTarget, [subcat, classmask](const CachedBuff& buff)
+		{
+			auto spell = GetSpellByID(buff.spellId);
+			if (!spell) return false;
+
+			if (const char* ptr = pDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		});
+}
+
+int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetCachedBuff(pTarget, SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
+}
+
+bool HasCachedTargetBuffSubCat(const char* subcat, PlayerClient* pSpawn, void*, DWORD classmask)
+{
+	return GetCachedBuffCount(pSpawn, [subcat, classmask](const CachedBuff& buff)
+		{
+			auto spell = GetSpellByID(buff.spellId);
+			if (!spell) return false;
+
+			if (const char* ptr = pDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		}) > 0;
+}
+
+bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PlayerClient* pSpawn, void*)
+{
+	return GetCachedBuffCount(pSpawn, [spa, bIncrease](const CachedBuff& buff)
+		{
+			return HasSPA(buff, static_cast<eEQSPA>(spa), bIncrease);
+		}) > 0;
+}
+
+bool TargetBuffCastByMe(const char* szBuffName)
+{
+	if (!pLocalPlayer || !pTarget)
+		return false;
+
+	return HasBuffCastByPlayer(pTarget, szBuffName, pLocalPlayer->Name);
+}
+
+int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
+{
+	return GetSelfBuff(SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask), startslot);
+}
+
+int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
+{
+	return GetSelfBuff([subcat, classmask](const EQ_Affect& buff)
+		{
+			auto spell = GetSpellByID(buff.SpellID);
+			if (!spell) return false;
+
+			if (const char* ptr = pDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
+			{
+				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
+			}
+
+			return false;
+		}, startslot);
+}
+
+int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
+}
+
+int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
+}
 
 } // namespace mq

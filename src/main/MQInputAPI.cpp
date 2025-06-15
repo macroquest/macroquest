@@ -215,7 +215,7 @@ bool MoveMouse(int x, int y)
 	if (!g_pDIMouse)
 		return false;
 
-	HWND EQhWnd = *reinterpret_cast<HWND*>(EQADDR_HWND);
+	HWND EQhWnd = GetEQWindowHandle();
 	if (!EQhWnd)
 		return false;
 

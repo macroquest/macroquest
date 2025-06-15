@@ -23,15 +23,15 @@
 
 namespace mq::postoffice {
 
-using ReceiveCallback = std::function<void(ProtoMessagePtr&&)>;
+using ReceiveCallback = std::function<void(ProtoMessagePtr)>;
 using PostCallback = std::function<void(const std::string&, const PipeMessageResponseCb&)>;
 using DropboxDropper = std::function<void(const std::string&)>;
 
 class Mailbox
 {
 public:
-	Mailbox(std::string localAddress, ReceiveCallback&& receive)
-		: m_localAddress(localAddress)
+	Mailbox(std::string localAddress, ReceiveCallback receive)
+		: m_localAddress(std::move(localAddress))
 		, m_receive(std::move(receive))
 	{}
 
@@ -350,6 +350,6 @@ protected:
  *
  * @return the single post office that is used in this application
  */
-PostOffice& GetPostOffice();
+PostOffice* GetPostOffice();
 
 } // namespace mq::postoffice

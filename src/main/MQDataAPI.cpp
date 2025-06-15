@@ -135,6 +135,8 @@ namespace datatypes {
 
 MQDataAPI* pDataAPI = nullptr;
 
+DECLARE_MODULE_FACTORY(MQDataAPI);
+
 MQDataAPI::MQDataAPI() : MQModuleBase("DataTypes", static_cast<int>(ModulePriority::DataTypes))
 {
 	bmParseMacroData = AddBenchmark("ParseMacroParameter");

@@ -160,8 +160,6 @@ private:
 	bool m_unloadingModule = false;
 };
 
-DECLARE_MODULE_FACTORY(MQPluginHandler)
-
 extern MQPluginHandler* g_pluginHandler;
 
 } // namespace mq

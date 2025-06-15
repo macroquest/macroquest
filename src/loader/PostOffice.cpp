@@ -647,10 +647,10 @@ private:
 	}
 };
 
-PostOffice& postoffice::GetPostOffice()
+PostOffice* postoffice::GetPostOffice()
 {
 	static LauncherPostOffice s_postOffice;
-	return s_postOffice;
+	return &s_postOffice;
 }
 
 //----------------------------------------------------------------------------
@@ -659,27 +659,27 @@ PostOffice& postoffice::GetPostOffice()
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
-	return static_cast<LauncherPostOffice&>(GetPostOffice()).SendSetForegroundWindow(hWnd, processID);
+	return static_cast<LauncherPostOffice*>(GetPostOffice())->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).SendUnloadAllCommand();
+	static_cast<LauncherPostOffice*>(GetPostOffice())->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).SendForceUnloadAllCommand();
+	static_cast<LauncherPostOffice*>(GetPostOffice())->SendForceUnloadAllCommand();
 }
 
 void InitializeNamedPipeServer()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).Initialize();
+	static_cast<LauncherPostOffice*>(GetPostOffice())->Initialize();
 }
 
 void ShutdownNamedPipeServer()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).Shutdown();
+	static_cast<LauncherPostOffice*>(GetPostOffice())->Shutdown();
 }
 
 //----------------------------------------------------------------------------

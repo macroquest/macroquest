@@ -123,7 +123,6 @@ MQLIB_API void AssistCmd                           (eqlib::PlayerClient* pChar, 
 MQLIB_API void InvokeCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void SetProcessPriority                  (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ScreenModeCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void UserCameraCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ForeGroundCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void QuitCmd                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RemoveLevCmd                        (eqlib::PlayerClient* pChar, const char* szLine);

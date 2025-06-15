@@ -78,6 +78,8 @@ public:
 // re-evaluate if this is a problem because now we pulse it at start of frame instead
 // of end.
 
+DECLARE_MODULE_FACTORY(MQCommandAPI);
+
 MQCommandAPI::MQCommandAPI()
 	: MQModuleBase("Commands", static_cast<int>(ModulePriority::Commands))
 {
@@ -195,7 +197,6 @@ void MQCommandAPI::Initialize()
 		{ "/face",              Face,                       true,  true  },
 		{ "/filter",            Filter,                     true,  false },
 		{ "/for",               For,                        true,  false },
-		{ "/foreground",        ForeGroundCmd,              true,  false },
 		{ "/getwintitle",       GetWinTitle,                true,  false },
 		{ "/goto",              Goto,                       true,  false },
 		{ "/help",              Help,                       true,  false },
@@ -263,7 +264,6 @@ void MQCommandAPI::Initialize()
 		{ "/timed",             DoTimedCmd,                 false, false },
 		{ "/unload",            Unload,                     true,  false },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
-		{ "/usercamera",        UserCameraCmd,              true,  false },
 		{ "/varcalc",           VarCalcCmd,                 true,  false },
 		{ "/vardata",           VarDataCmd,                 true,  false },
 		{ "/varset",            VarSetCmd,                  true,  false },

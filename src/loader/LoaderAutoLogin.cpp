@@ -298,7 +298,7 @@ static void ReceivedMessageHandler(const mq::ProtoMessagePtr& message)
 
 void InitializeAutoLogin()
 {
-	s_dropbox = mq::postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
+	s_dropbox = mq::postoffice::GetPostOffice()->RegisterAddress("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	internal_paths::s_autoLoginIni = (fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini").string();

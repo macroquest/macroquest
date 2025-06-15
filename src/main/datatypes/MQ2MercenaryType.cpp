@@ -93,7 +93,7 @@ bool MQ2MercenaryType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case MercenaryMembers::Stance:
 		if (const MercenaryStanceInfo* pStance = pMercManager->GetActiveMercenaryStance())
 		{
-			strcpy_s(DataTypeTemp, pCDBStr->GetString(pStance->stanceStringId, eMercenaryStanceName));
+			strcpy_s(DataTypeTemp, pDBStr->GetString(pStance->stanceStringId, eMercenaryStanceName));
 		}
 		else
 		{

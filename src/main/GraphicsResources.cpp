@@ -212,6 +212,8 @@ public:
 	}
 };
 
+DECLARE_MODULE_FACTORY(GraphicsResourcesModule);
+
 //============================================================================
 
 } // namespace mq

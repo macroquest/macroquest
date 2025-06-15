@@ -1420,7 +1420,6 @@ public:
 	virtual void Initialize() override
 	{
 		bmUpdateImGui = AddBenchmark("UpdateImGui");
-		bmPluginsUpdateImGui = AddBenchmark("UpdateImGuiPlugins");
 
 		gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
 		s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
@@ -1482,7 +1481,6 @@ public:
 		RemoveCommand("/mqoverlay");
 
 		RemoveBenchmark(bmUpdateImGui);
-		RemoveBenchmark(bmPluginsUpdateImGui);
 
 		ShutdownOverlayComponents();
 	}
@@ -1502,5 +1500,7 @@ public:
 
 	}
 };
+
+DECLARE_MODULE_FACTORY(ImGuiModule);
 
 } // namespace mq

@@ -25,11 +25,36 @@ namespace mq {
 
 namespace pipeclient {
 
-void NotifyIsForegroundWindow(bool isForeground);
-void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
-void SendNotification(const std::string& message, const std::string& title);
+/**
+ * Returns true if the named pipe is connected.
+ */
+bool IsConnected();
 
+/**
+ * Sends a message over the named pipe connection.
+ */
 void SendPipeMessage(MQMessageId messageId, const void* data, size_t dataLength);
+
+/**
+ * Request that the specified window be activated. If the named pipe is connected
+ * and sendMessage is true, the request will be fulfilled by sending a request to
+ * the post office. If sendMessage is false, or the named pipe is not connected,
+ * the application will attempt to focus itself (which may not always work).
+ * 
+ * @param hWnd The window handle to request activation for.
+ * @param sendMessage If true, attempt to activate using the named pipe connection.
+ * @return True if the request was sent. False otherwise.
+ */
+bool RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+
+/**
+ * Request a notification be displayed from the launcher with the specified parameters.
+ *
+ * @param title Text to display in the notification title
+ * @param message Text to display in the notification message body
+ * @return True if the request was sent. False otherwise.
+ */
+bool SendTrayNotification(const std::string& title, const std::string& message);
 
 } // namespace pipeclient
 

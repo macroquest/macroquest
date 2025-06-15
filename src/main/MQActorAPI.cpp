@@ -17,6 +17,7 @@
 
 #include "MQActorAPI.h"
 
+#include "MacroQuest.h"
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
 
@@ -26,6 +27,8 @@ using namespace mq::postoffice;
 namespace mq {
 
 MQActorAPI* pActorAPI = nullptr;
+
+DECLARE_MODULE_FACTORY(MQActorAPI);
 
 // FIXME
 std::unordered_map<MQModuleBase*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
@@ -154,7 +157,7 @@ void MQActorAPI::SendToActor(
 	}
 	else
 	{
-		GetPostOffice().RouteMessage(addr, data, pipe_callback);
+		GetPostOffice()->RouteMessage(addr, data, pipe_callback);
 	}
 }
 
@@ -184,9 +187,9 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 	ReceiveCallbackAPI&& receive,
 	const MQPluginHandle& pluginHandle)
 {
-	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+	MQModuleBase* owner = g_mq->GetModuleByHandle(pluginHandle, true);
 
-	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
+	auto dropbox = std::make_unique<Dropbox>(GetPostOffice()->RegisterAddress(localAddress,
 		[receive = std::move(receive)](ProtoMessagePtr&& message)
 		{
 			//auto sender = message->GetSender().value_or(proto::routing::Address());
@@ -233,7 +236,7 @@ void MQActorAPI::RemoveActor(
 	{
 		dropbox->Remove();
 
-		MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+		MQModuleBase* owner = g_mq->GetModuleByHandle(pluginHandle, true);
 
 		auto dropboxes_it = s_dropboxes.find(owner);
 		if (dropboxes_it != s_dropboxes.end())

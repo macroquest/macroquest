@@ -333,7 +333,7 @@ static void RenderDoc_ImGuiDraw()
 				{
 					if (ImGui::Button("Stop Capture"))
 					{
-						s_renderDocAPI->EndFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->EndFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = false;
 					}
 
@@ -341,7 +341,7 @@ static void RenderDoc_ImGuiDraw()
 
 					if (ImGui::Button("Cancel Capture"))
 					{
-						s_renderDocAPI->DiscardFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->DiscardFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = false;
 					}
 				}
@@ -349,7 +349,7 @@ static void RenderDoc_ImGuiDraw()
 				{
 					if (ImGui::Button("Start Capture"))
 					{
-						s_renderDocAPI->StartFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->StartFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = true;
 					}
 				}

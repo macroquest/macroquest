@@ -115,8 +115,6 @@ private:
 
 extern MQCommandAPI* pCommandAPI;
 
-DECLARE_MODULE_FACTORY(MQCommandAPI);
-
 //============================================================================
 
 } // namespace mq

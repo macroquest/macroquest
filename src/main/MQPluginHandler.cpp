@@ -522,6 +522,8 @@ PluginInterface* MQPluginV1Module::GetPluginInterface()
 
 MQPluginHandler* g_pluginHandler = nullptr;
 
+DECLARE_MODULE_FACTORY(MQPluginHandler)
+
 MQPluginHandler::MQPluginHandler()
 	: MQModuleBase("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
 {

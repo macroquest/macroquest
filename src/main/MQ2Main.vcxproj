@@ -577,6 +577,7 @@
     <ClInclude Include="..\..\include\mq\api\Abilities.h" />
     <ClInclude Include="..\..\include\mq\api\Achievements.h" />
     <ClInclude Include="..\..\include\mq\api\ActorAPI.h" />
+    <ClInclude Include="..\..\include\mq\api\CachedBuffs.h" />
     <ClInclude Include="..\..\include\mq\api\CommandAPI.h" />
     <ClInclude Include="..\..\include\mq\api\DetourAPI.h" />
     <ClInclude Include="..\..\include\mq\api\Inventory.h" />
@@ -632,7 +633,7 @@
     <ClInclude Include="ModuleSystem.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
-    <ClInclude Include="MQCfgFileHandler.cpp" />
+    <ClCompile Include="MQCfgFileHandler.cpp" />
     <ClInclude Include="MQCommandAPI.h" />
     <ClInclude Include="MQConfig.h" />
     <ClInclude Include="MQDataAPI.h" />
@@ -684,6 +685,7 @@
     <None Include="..\..\data\resources\CHANGELOG.md" />
     <None Include="..\..\data\resources\Zones.ini" />
     <None Include="..\..\LICENSE.md" />
+    <None Include="ModuleList.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\data\resources\ItemDB.txt" />

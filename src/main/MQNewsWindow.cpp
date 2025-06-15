@@ -81,10 +81,10 @@ private:
 };
 
 
-class MQNewsWindowModule : public MQModuleBase
+class RecentChangesModule : public MQModuleBase
 {
 public:
-	MQNewsWindowModule() : MQModuleBase("NewsWindow",
+	RecentChangesModule() : MQModuleBase("RecentChanges",
 		static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}
@@ -213,5 +213,7 @@ private:
 	bool m_shownNews = false;
 	bool m_createNewsWindow = true;
 };
+
+DECLARE_MODULE_FACTORY(RecentChangesModule)
 
 } // namespace mq

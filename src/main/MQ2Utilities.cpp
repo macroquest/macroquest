@@ -1300,7 +1300,7 @@ int GetLanguageIDByName(const char* szName)
 void UpdateCurrencyCache(std::unordered_map<std::string, int>& cache, int value, eDatabaseStringType type)
 {
 	constexpr std::string_view chars_to_remove = "'`";
-	if (const char* ptr = pCDBStr->GetString(value, type))
+	if (const char* ptr = pDBStr->GetString(value, type))
 	{
 		const std::string currency = to_lower_copy(ptr);
 		if (currency.empty())
@@ -1351,7 +1351,7 @@ EQ_Spell* GetSpellByAAName(const char* szName)
 		{
 			if (pAbility->SpellID != -1)
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
 					if (!_stricmp(szName, pName))
 					{
@@ -2435,7 +2435,7 @@ int GetAAIndexByName(const char* AAName)
 	{
 		if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 		{
-			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+			if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
 				if (!_stricmp(AAName, pName))
 				{
@@ -2450,7 +2450,7 @@ int GetAAIndexByName(const char* AAName)
 	{
 		if (CAltAbilityData* pAbility = GetAAById(nAbility, level))
 		{
-			if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+			if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 			{
 				if (!_stricmp(AAName, pName))
 				{
@@ -5934,7 +5934,7 @@ std::vector<MercDesc> GetAllMercDesc()
 		MercDesc outDesc;
 
 		int descIdx = mercInfo.subtypeStringId;
-		std::string_view subcatDesc = pCDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
+		std::string_view subcatDesc = pDBStr->GetString(descIdx, eMercenarySubCategoryDescription);
 		size_t pos = 0;
 
 		if ((pos = subcatDesc.find("Race: ")) != std::string::npos)
@@ -6491,48 +6491,31 @@ ItemDefinition* GetItemFromContents(ItemClient* c)
 	return c->GetItemDefinition();
 }
 
-struct EnumWindowsData
+// Some sort of relic of the past. Unknown if this is still necessary, but at one
+// point it was used to make MQ work with WinEQ.
+using fEQW_GetDisplayWindow = HWND(CALLBACK*)();
+
+static fEQW_GetDisplayWindow GetEQWGetDisplayWindow()
 {
-	HWND outHWnd;
-	DWORD processId;
-};
-
-static BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
-{
-	EnumWindowsData* enumData = reinterpret_cast<EnumWindowsData*>(lParam);
-
-	// Get the process id for the window.
-	DWORD dwProcessId = 0;
-	GetWindowThreadProcessId(hWnd, &dwProcessId);
-
-	// Only check windows in the current process
-	if (enumData->processId == dwProcessId)
+	HMODULE EQWhMod = ::GetModuleHandleA("eqw.dll");
+	if (EQWhMod)
 	{
-		char szClass[24] = { 0 };
-		::GetClassNameA(hWnd, szClass, 23);
-
-		// If its the EverQuest window class, return it.
-		if (strcmp(szClass, "_EverQuestwndclass") == 0)
-		{
-			enumData->outHWnd = hWnd;
-			return false;
-		}
+		return (fEQW_GetDisplayWindow)GetProcAddress(EQWhMod, "EQW_GetDisplayWindow");
 	}
 
-	return true;
+	return nullptr;
 }
 
-MQLIB_API HWND GetEQWindowHandle()
+HWND GetEQWindowHandle()
 {
-	DWORD dwProcessId = GetCurrentProcessId();
+	static fEQW_GetDisplayWindow EQW_GetDisplayWindow = GetEQWGetDisplayWindow();
 
-	EnumWindowsData enumData;
-	enumData.outHWnd = nullptr;
-	enumData.processId = dwProcessId;
+	if (EQW_GetDisplayWindow)
+	{
+		return EQW_GetDisplayWindow();
+	}
 
-	EnumWindows(EnumWindowsProc, (LPARAM)&enumData);
-
-	return enumData.outHWnd;
+	return *(HWND*)EQADDR_HWND;
 }
 
 // ***************************************************************************
@@ -7225,26 +7208,6 @@ void FormatMoneyString(char* szBuffer, size_t bufferLength, uint64_t moneyAmount
 			sprintf_s(szTemp, "%I64dc", cp);
 		strcat_s(szBuffer, bufferLength, szTemp);
 	}
-}
-
-bool HasBuffCastByPlayer(PlayerClient* pBuffOwner, const char* szBuffName, const char* casterName)
-{
-	auto predicate = [szBuffName, casterName](const CachedBuff& buff)
-	{
-		return MaybeExactCompare(GetSpellNameByID(buff.spellId), szBuffName)
-			&& _stricmp(buff.casterName, casterName) == 0;
-	};
-
-	int slot = GetCachedBuff(pBuffOwner, predicate);
-	return slot != -1;
-}
-
-bool TargetBuffCastByMe(const char* szBuffName)
-{
-	if (!pLocalPlayer || !pTarget)
-		return false;
-
-	return HasBuffCastByPlayer(pTarget, szBuffName, pLocalPlayer->Name);
 }
 
 //----------------------------------------------------------------------------

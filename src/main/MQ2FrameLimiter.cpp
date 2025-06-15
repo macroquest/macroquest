@@ -28,6 +28,8 @@
 #include <chrono>
 #include <utility>
 
+#include "MQDataAPI.h"
+
 using namespace std::chrono_literals;
 using namespace eqlib;
 
@@ -1420,7 +1422,7 @@ static void InitializeFrameLimiter()
 	bmRealRenderWorld = AddBenchmark("Render_Simulation");
 	bmThrottleTime = AddBenchmark("Render_Throttle");
 
-	AddTopLevelObject("FrameLimiter", MQ2FrameLimiterType::dataFrameLimiter);
+	pDataAPI->AddTopLevelObject("FrameLimiter", MQ2FrameLimiterType::dataFrameLimiter);
 
 	// Hook UI render function
 	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);

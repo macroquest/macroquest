@@ -140,35 +140,14 @@ wil::unique_event g_unloadComplete;
 
 static HANDLE s_backgroundThread = nullptr;
 
-class BenchmarksModule;
-class CrashHandlerModule;
-class DetoursModule;
-class PostOfficeModule;
-class RenderDocModule;
-class SpellsModule;
-class LoadingScreenModule;
-class DisplayHookModule;
-class ChatHookModule;
-class EmuExtensionsModule;
-class FrameLimiterModule;
-class WindowsModule;
-class ObservedObjectsModule;
-class SpawnsModule;
-class GroundSpawnsModule;
-class ItemsModule;
-class CachedBuffsModule;
-class DeveloperToolsModule;
-class ImGuiAPIModule;
-class InputModule;
-class MQCfgfileHandler;
-class KeyBindsModule;
-class StringDBModule;
-class AnonymizerModule;
-class AutoInventoryModule;
-class MQPluginHandler;
-class GraphicsResourcesModule;
-class ImGuiModule;
-class MQNewsWindowModule;
+// Forward declare our modules
+#define MODULE(x) \
+	class x; \
+	extern std::unique_ptr<MQModuleBase> CreateModule_##x();
+
+#include "ModuleList.inl"
+
+#undef MODULE
 
 struct MQStartupParams
 {
@@ -478,6 +457,16 @@ MQDynamicModule::~MQDynamicModule()
 {
 }
 
+//=================================================================================================
+
+class MQDummyModule : public MQModuleBase
+{
+public:
+	MQDummyModule(std::string_view name, int priority)
+		: MQModuleBase(std::move(name), priority, ModuleFlags::IsDummy | ModuleFlags::SkipAll)
+	{
+	}
+};
 
 //=================================================================================================
 //=================================================================================================
@@ -559,7 +548,7 @@ bool MacroQuest::CoreInitialize()
 	char* szModuleName = strrchr(szFilename, '.');
 	szModuleName[0] = '\0';
 	strcpy_s(m_plugin.szFilename, strrchr(szFilename, '\\') + 1);
-	m_moduleHandleMap.emplace(m_handle.pluginID, this);
+	m_moduleHandleMap.emplace(m_handle.pluginID, static_cast<MQModuleBase*>(this));
 
 	// We will wait for pulse from the game to init on main thread.
 	return g_loadComplete.wait();
@@ -674,42 +663,14 @@ void MacroQuest::Shutdown()
 
 void MacroQuest::LoadModules()
 {
-	AddModule(CreateModule<MQCommandAPI>());           // Instantiates pCommandAPI
-	AddModule(CreateModule<CrashHandlerModule>());
-	AddModule(CreateModule<MQDataAPI>());              // Instantiates pDataAPI
-	AddModule(CreateModule<MQActorAPI>());             // Instantiates pActorAPI
-	AddModule(CreateModule<MQPluginHandler>());
-	AddModule(CreateModule<KeyBindsModule>());
-
-	AddModule(CreateModule<DetoursModule>());
-	AddModule(CreateModule<SpellsModule>());
-	AddModule(CreateModule<PostOfficeModule>());
-	AddModule(CreateModule<BenchmarksModule>());
-	AddModule(CreateModule<DisplayHookModule>());
-	AddModule(CreateModule<LoadingScreenModule>());
-	AddModule(CreateModule<ChatHookModule>());
-	AddModule(CreateModule<EmuExtensionsModule>());
-	AddModule(CreateModule<FrameLimiterModule>());
-	AddModule(CreateModule<WindowsModule>());
-	AddModule(CreateModule<ObservedObjectsModule>());
-	AddModule(CreateModule<SpawnsModule>());
-	AddModule(CreateModule<GroundSpawnsModule>());
-	AddModule(CreateModule<ItemsModule>());
-	AddModule(CreateModule<CachedBuffsModule>());
-	AddModule(CreateModule<DeveloperToolsModule>());
-	AddModule(CreateModule<ImGuiAPIModule>());
-	AddModule(CreateModule<InputModule>());
-	AddModule(CreateModule<MQCfgfileHandler>());
-	AddModule(CreateModule<StringDBModule>());
-	AddModule(CreateModule<AnonymizerModule>());
-	AddModule(CreateModule<AutoInventoryModule>());
-	AddModule(CreateModule<GraphicsResourcesModule>());
-	AddModule(CreateModule<ImGuiModule>());
-	AddModule(CreateModule<MQNewsWindowModule>());
-
-	AddModule(CreateModule<MQPluginHandler>());
-	// TODO:
-	// AddModule(CreateModule<MacroSystem>());
+	// Register our modules
+#if 1
+#define MODULE(x) AddModule(CreateModule<x>());
+#else
+#define MODULE(x) AddModule(CreateModule_##x());
+#endif
+#include "ModuleList.inl"
+#undef MODULE
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
@@ -780,15 +741,14 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 
 			if (m_iteratingModules)
 			{
-				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQModuleBase>(
-					module->GetName(), module->GetPriority(), ModuleFlags::IsDummy | ModuleFlags::SkipAll);
+				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQDummyModule>(module->GetName(), module->GetPriority());
 				*iter2 = std::move(dummyModule);
 
 				m_pendingWork.push_back([this]()
 					{
 						// Remove the dummy
 						auto dummyIter = std::find_if(m_modules.begin(), m_modules.end(),
-							[](const std::unique_ptr<MQModuleBase>& module) { return module->GetFlags() & ModuleFlags::IsDummy; });
+							[](const std::unique_ptr<MQModuleBase>& module) { return !!(module->GetFlags() & ModuleFlags::IsDummy); });
 						if (dummyIter != m_modules.end())
 						{
 							m_modules.erase(dummyIter);
@@ -983,8 +943,6 @@ void MacroQuest::OnProcessFrame()
 	if (m_shuttingDown)
 		return;
 
-	MQScopedBenchmark bm(bmPluginsPulse);
-
 	if (!m_initializedFirstFrame)
 	{
 		Initialize();
@@ -997,7 +955,9 @@ void MacroQuest::OnProcessFrame()
 	{
 		ProcessQueuedEvents();
 
-		if (eqlib::pLocalPlayer != m_lastPlayer && m_zoningInProgress)
+		if (eqlib::pLocalPlayer != m_lastPlayer
+			&& m_zoningInProgress
+			&& !gZoning)
 		{
 			m_zoningInProgress = false;
 			m_lastPlayer = eqlib::pLocalPlayer;
@@ -1006,6 +966,7 @@ void MacroQuest::OnProcessFrame()
 		}
 
 		ScopedIteratingModules s(this);
+		MQScopedBenchmark bm(bmPluginsPulse);
 
 		for (const auto& module : m_modules)
 		{
@@ -1247,7 +1208,7 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 
 void MacroQuest::OnZoned()
 {
-	MQScopedBenchmark bm(bmPluginsOnZoned);
+	srand((unsigned int)time(nullptr)); // reseed
 
 	char szTemp[128];
 	sprintf_s(szTemp, "You have entered %s.", eqlib::pZoneInfo->LongName);
@@ -1255,6 +1216,7 @@ void MacroQuest::OnZoned()
 	CheckChatForEvent(szTemp);
 
 	ScopedIteratingModules s(this);
+	MQScopedBenchmark bm(bmPluginsOnZoned);
 
 	for (const auto& module : m_modules)
 	{
@@ -1387,7 +1349,6 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 	gbExactSearchCleanNames = GetPrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 	gUseTradeOnTarget = GetPrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
 	gbIgnoreAlertRecursion = GetPrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
-	gbShowCurrentCamera = GetPrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 	gTurboLimit = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 	gStackingDebug = (eStackingDebug)GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 	gUseNewNamedTest = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
@@ -1416,7 +1377,6 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 		WritePrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
 		WritePrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
-		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, iniFile);
 		WritePrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 		WritePrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);

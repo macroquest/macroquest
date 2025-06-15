@@ -3692,7 +3692,6 @@ bool HasSPA(EQ_Spell* pSpell, eEQSPA eSPA, bool bIncrease)
 	}
 }
 bool HasSPA(const EQ_Affect& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.SpellID), eSPA, bIncrease); }
-bool HasSPA(const CachedBuff& buff, eEQSPA eSPA, bool bIncrease) { return HasSPA(GetSpellByID(buff.spellId), eSPA, bIncrease); }
 
 int GetPlayerClass(std::string_view name)
 {
@@ -3733,7 +3732,6 @@ bool IsSpellUsableForClass(EQ_Spell* pSpell, unsigned int classmask)
 	return true;
 }
 bool IsSpellUsableForClass(const EQ_Affect& buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.SpellID), classmask); }
-bool IsSpellUsableForClass(CachedBuff buff, unsigned int classmask) { return IsSpellUsableForClass(GetSpellByID(buff.spellId), classmask); }
 
 int GetSpellCategory(EQ_Spell* pSpell)
 {
@@ -3755,7 +3753,6 @@ int GetSpellCategory(EQ_Spell* pSpell)
 	return 0;
 }
 int GetSpellCategory(const EQ_Affect& buff) { return GetSpellCategory(GetSpellByID(buff.SpellID)); }
-int GetSpellCategory(CachedBuff buff) { return GetSpellCategory(GetSpellByID(buff.spellId)); }
 
 int GetSpellSubcategory(EQ_Spell* pSpell)
 {
@@ -3777,17 +3774,16 @@ int GetSpellSubcategory(EQ_Spell* pSpell)
 	return 0;
 }
 int GetSpellSubcategory(const EQ_Affect& buff) { return GetSpellSubcategory(GetSpellByID(buff.SpellID)); }
-int GetSpellSubcategory(CachedBuff buff) { return GetSpellSubcategory(GetSpellByID(buff.spellId)); }
 
-DWORD GetSpellID(EQ_Spell* spell)
+uint32_t GetSpellID(EQ_Spell* spell)
 {
 	if (spell == nullptr)
 		return false;
 
 	return spell->ID;
 }
-DWORD GetSpellID(const EQ_Affect& buff) { return buff.SpellID; }
-DWORD GetSpellID(const CachedBuff& buff) { return buff.spellId; }
+
+uint32_t GetSpellID(const EQ_Affect& buff) { return buff.SpellID; }
 
 const char* GetSpellName(EQ_Spell* spell)
 {
@@ -3797,7 +3793,6 @@ const char* GetSpellName(EQ_Spell* spell)
 	return spell->Name;
 }
 const char* GetSpellName(const EQ_Affect& buff) { return GetSpellNameByID(buff.SpellID); }
-const char* GetSpellName(const CachedBuff& buff) { return GetSpellNameByID(buff.spellId); }
 
 const char* GetSpellCaster(const EQ_Affect& buff)
 {
@@ -3814,11 +3809,6 @@ const char* GetSpellCaster(const EQ_Affect& buff)
 	}
 
 	return "";
-}
-
-const char* GetSpellCaster(const CachedBuff& buff)
-{
-	return buff.casterName;
 }
 
 const char* GetPetSpellCaster(const EQ_Affect& buff)
@@ -3860,56 +3850,6 @@ eEQSPA GetSPAFromName(const char* spa)
 	return GetSPAFromName(std::string_view(spa)); // explicit cast to disambiguate
 }
 
-int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
-{
-	return GetCachedBuff(pTarget, SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask));
-}
-
-int GetTargetBuffBySubCat(const char* subcat, DWORD classmask, int startslot)
-{
-	return GetCachedBuff(pTarget, [subcat, classmask](const CachedBuff& buff)
-		{
-			auto spell = GetSpellByID(buff.spellId);
-			if (!spell) return false;
-
-			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
-			{
-				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
-			}
-
-			return false;
-		});
-}
-
-int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
-{
-	return GetCachedBuff(pTarget, SpellAffect(static_cast<eEQSPA>(spa), bIncrease));
-}
-
-bool HasCachedTargetBuffSubCat(const char* subcat, PlayerClient* pSpawn, void*, DWORD classmask)
-{
-	return GetCachedBuffCount(pSpawn, [subcat, classmask](const CachedBuff& buff)
-		{
-			auto spell = GetSpellByID(buff.spellId);
-			if (!spell) return false;
-
-			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
-			{
-				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
-			}
-
-			return false;
-		}) > 0;
-}
-
-bool HasCachedTargetBuffSPA(int spa, bool bIncrease, PlayerClient* pSpawn, void*)
-{
-	return GetCachedBuffCount(pSpawn, [spa, bIncrease](const CachedBuff& buff)
-		{
-			return HasSPA(buff, static_cast<eEQSPA>(spa), bIncrease);
-		}) > 0;
-}
-
 int GetSelfBuff(const std::function<bool(const EQ_Affect&)>& fPredicate, int minSlot /* = 0 */, int maxSlot /* = -1 */)
 {
 	PcProfile* pProfile = GetPcProfile();
@@ -3941,37 +3881,6 @@ int GetSelfBuff(const std::function<bool(EQ_Spell*)>& fPredicate, int minSlot, i
 	};
 
 	return GetSelfBuff(predicate, minSlot, maxSlot);
-}
-
-int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
-{
-	return GetSelfBuff(SpellCategory(static_cast<eEQSPELLCAT>(category)) && SpellClassMask(classmask), startslot);
-}
-
-int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
-{
-	return GetSelfBuff([subcat, classmask](const EQ_Affect& buff)
-		{
-			auto spell = GetSpellByID(buff.SpellID);
-			if (!spell) return false;
-
-			if (const char* ptr = pCDBStr->GetString(GetSpellSubcategory(spell), eSpellCategory, NULL))
-			{
-				return !_stricmp(ptr, subcat) && IsSpellUsableForClass(spell, classmask);
-			}
-
-			return false;
-		}, startslot);
-}
-
-int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
-{
-	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
-}
-
-int GetSelfShortBuffBySPA(int spa, bool bIncrease, int startslot)
-{
-	return GetSelfBuff(SpellAffect(static_cast<eEQSPA>(spa), bIncrease), startslot);
 }
 
 int GetSpellRankByName(const char* SpellName)

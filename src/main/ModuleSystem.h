@@ -316,7 +316,7 @@ protected:
 	HMODULE m_hModule;
 };
 
-
+#if 1
 template <typename ModuleType>
 std::unique_ptr<MQModuleBase> CreateModule();
 
@@ -325,5 +325,12 @@ std::unique_ptr<MQModuleBase> CreateModule();
 	{ \
 		return std::make_unique<ModuleType>(); \
 	}
+#else
+#define DECLARE_MODULE_FACTORY(ModuleType) \
+	std::unique_ptr<MQModuleBase> CreateModule_##ModuleType() \
+	{ \
+		return std::make_unique<ModuleType>(); \
+	}
+#endif
 
 } // namespace mq

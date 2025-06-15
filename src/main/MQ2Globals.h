@@ -200,10 +200,6 @@ MQLIB_VAR fEQCommand cmdQuit;
 using fEQGetMelee = float(*)(eqlib::PlayerClient*, eqlib::PlayerClient*);
 MQLIB_VAR fEQGetMelee get_melee_range;
 
-using fEQW_GetDisplayWindow = HWND(CALLBACK*)();
-
-MQLIB_VAR fEQW_GetDisplayWindow EQW_GetDisplayWindow;
-
 MQLIB_VAR bool ExecuteCmd(unsigned int command, bool keydown = false, void* data = nullptr);
 MQLIB_VAR const char* szDmgBonusType[];
 MQLIB_VAR const char* szBodyType[];
@@ -225,7 +221,6 @@ extern bool gbTimeStampChat;
 
 MQLIB_VAR bool gUseTradeOnTarget;
 MQLIB_VAR bool gbShowCurrentCamera;
-MQLIB_VAR int  gOldCameraType;
 MQLIB_VAR bool gbIgnoreAlertRecursion;
 
 /* DEPRECATION GLOBALS */

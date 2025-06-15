@@ -4108,7 +4108,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 				if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 				{
 					WriteChatColorf("[ %d: %s ]", USERCOLOR_WHO, pAbility->ID,
-						pCDBStr->GetString(pAbility->nName, eAltAbilityName));
+						pDBStr->GetString(pAbility->nName, eAltAbilityName));
 				}
 			}
 		}
@@ -4126,7 +4126,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						if (pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, nullptr))
 						{
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready>", USERCOLOR_WHO,
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
+								pAbility->ID, pDBStr->GetString(pAbility->nName, eAltAbilityName),
 								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 						}
 						else
@@ -4135,7 +4135,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 							pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
-								USERCOLOR_WHO, pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
+								USERCOLOR_WHO, pAbility->ID, pDBStr->GetString(pAbility->nName, eAltAbilityName),
 								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility), i);
 						}
 					}
@@ -4154,7 +4154,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (CAltAbilityData* pAbility = GetAAById(nAbility))
 			{
-				const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName);
+				const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName);
 				if (!_stricmp(pName, szName))
 				{
 					WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
@@ -4167,7 +4167,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						if (!pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i))
 						{
 							// it's not ready
-							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
@@ -4187,7 +4187,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						}
 						else
 						{
-							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
@@ -4204,7 +4204,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						int i = 0;
 						pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
-						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityName));
+						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityName));
 						WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d", USERCOLOR_WHO,
 							pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
 
@@ -4227,7 +4227,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
 					if (!_stricmp(szName, pName))
 					{
@@ -5057,150 +5057,6 @@ void ScreenModeCmd(PlayerClient* pChar, const char* szLine)
 }
 
 // ***************************************************************************
-// Function:    UserCameraCmd
-// Description: '/usercamera' command
-// Purpose:     Adds the ability to load and save the User 1 Camera
-// Example:     /usercamera on/off toggle the camera text in the Window Selector on/off
-// Example:     /usercamera save saves the user 1 camera settings
-// Example:     /usercamera load loades the user 1 camera settings
-// Author:      EqMule
-// ***************************************************************************
-void UserCameraCmd(PlayerClient* pChar, const char* szLine)
-{
-	if (szLine && szLine[0] == '\0')
-	{
-		WriteChatf("Usage: /usercamera 0-7 sets camera to the number specified.");
-		WriteChatf("Usage: /usercamera save <optional charname> to save the user 1 camera");
-		WriteChatf("Usage: /usercamera load <optional charname> to load your saved user 1 camera");
-		WriteChatf("Usage: /usercamera on/off to toggle Window Selector Display of Current Camera");
-		return;
-	}
-
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
-
-	char szArg2[MAX_STRING] = { 0 };
-	GetArg(szArg2, szLine, 2);
-
-	if (!_stricmp(szArg1, "0"))
-	{
-		*CDisplay::cameraType = EQ_FIRST_PERSON_CAM;
-	}
-	else if (!_stricmp(szArg1, "1"))
-	{
-		*CDisplay::cameraType = EQ_OVERHEAD_CAM;
-	}
-	else if (!_stricmp(szArg1, "2"))
-	{
-		*CDisplay::cameraType = EQ_CHASE_CAM;
-	}
-	else if (!_stricmp(szArg1, "3"))
-	{
-		*CDisplay::cameraType = EQ_USER_CAM_1;
-	}
-	else if (!_stricmp(szArg1, "4"))
-	{
-		*CDisplay::cameraType = EQ_USER_CAM_2;
-	}
-	else if (!_stricmp(szArg1, "5"))
-	{
-		*CDisplay::cameraType = 5;
-	}
-	else if (!_stricmp(szArg1, "6"))
-	{
-		*CDisplay::cameraType = 6;
-	}
-	else if (!_stricmp(szArg1, "7"))
-	{
-		*CDisplay::cameraType = 7;
-	}
-	else if (!_stricmp(szArg1, "on"))
-	{
-		gbShowCurrentCamera = true;
-		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
-
-		if (pSelectorWnd)
-		{
-			char szOut[64] = { 0 };
-			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
-
-			pSelectorWnd->SetWindowText(szOut);
-		}
-	}
-	else if (!_stricmp(szArg1, "off"))
-	{
-		gbShowCurrentCamera = false;
-		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
-
-		if (pSelectorWnd)
-		{
-			pSelectorWnd->SetWindowText("Selector Window");
-		}
-	}
-	else if (!_stricmp(szArg1, "save"))
-	{
-		std::string pathIniFile = mq::internal_paths::MQini;
-
-		if (szArg2 && szArg2[0] != '\0')
-		{
-			const std::string tmpFileName =
-				fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
-			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
-		}
-
-		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
-
-		WritePrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
-		WritePrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
-		WritePrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
-	}
-	else if (!_stricmp(szArg1, "load"))
-	{
-		std::string pathIniFile = mq::internal_paths::MQini;
-
-		if (szArg2 && szArg2[0] != '\0')
-		{
-			const std::string tmpFileName = fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
-			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
-		}
-
-		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
-
-		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
-		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
-		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
-		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
-		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
-		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
-		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
-		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
-		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
-		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
-		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
-		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
-		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
-		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
-		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
-		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
-
-		*CDisplay::cameraType = EQ_USER_CAM_1;
-	}
-}
-
-// ***************************************************************************
 // Function:    ForeGroundCmd
 // Description: '/foreground' command
 // Purpose:     Adds the ability to move your eq window to the foreground.
@@ -5211,14 +5067,6 @@ void UserCameraCmd(PlayerClient* pChar, const char* szLine)
 void ForeGroundCmd(PlayerClient* pChar, const char* szLine)
 {
 	HWND EQhWnd = GetEQWindowHandle();
-
-	if (EQhWnd == nullptr)
-	{
-		if (EQW_GetDisplayWindow)
-			EQhWnd = EQW_GetDisplayWindow();
-		else
-			EQhWnd = *(HWND*)EQADDR_HWND;
-	}
 
 	if (EQhWnd == nullptr)
 	{

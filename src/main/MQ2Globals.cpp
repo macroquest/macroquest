@@ -26,6 +26,7 @@ const double PI = 3.1415926535;
 uint32_t bmRenderScene = 0;
 uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
+uint32_t bmCalculate;
 
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
@@ -69,7 +70,6 @@ bool gbMoving = false;
 int gMaxTurbo = 80;
 int gTurboLimit = 240;
 bool gReturn = true;
-bool gTargetbuffs = false;
 bool gItemsReceived = false;
 bool gbInZone = false;
 bool gZoning = false;
@@ -454,7 +454,7 @@ const char* GetZoneExpansionName(int expansion)
 {
 	if (expansion >= 0 && expansion <= NUM_EXPANSIONS)
 	{
-		if (const char* ptr = pCDBStr->GetString(expansion, eExpansionName, nullptr))
+		if (const char* ptr = pDBStr->GetString(expansion, eExpansionName, nullptr))
 			return ptr;
 	}
 
@@ -465,7 +465,7 @@ uint32_t GetExpansionNumber(std::string_view expansionName)
 {
 	for (int i = 0; i <= NUM_EXPANSIONS; ++i)
 	{
-		if (const char* ptr = pCDBStr->GetString(i, eExpansionName, nullptr))
+		if (const char* ptr = pDBStr->GetString(i, eExpansionName, nullptr))
 			if (ci_equals(ptr, expansionName))
 				return i;
 	}
@@ -685,11 +685,8 @@ std::map<std::string, MQDataVar*> VariableMap;
 
 bool gUseTradeOnTarget = true;
 bool gbIgnoreAlertRecursion = false;
-bool gbShowCurrentCamera = false;
-int  gOldCameraType = -1;
 
 fEQGetMelee get_melee_range = GetMeleeRange;
-fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
 bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
 {

@@ -18,6 +18,8 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
+#include "ModuleSystem.h"
+
 #include "mq/base/Common.h"
 #include "mq/base/PluginHandle.h"
 #include "mq/api/MacroAPI.h"
@@ -33,7 +35,7 @@ class MQDataAPI : public MQModuleBase
 {
 public:
 	MQDataAPI();
-	~MQDataAPI() override;
+	virtual ~MQDataAPI() override;
 
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
@@ -113,8 +115,6 @@ private:
 
 	mutable std::recursive_mutex m_mutex;
 };
-
-DECLARE_MODULE_FACTORY(MQDataAPI);
 
 extern MQDataAPI* pDataAPI;
 

@@ -413,6 +413,9 @@
     <ClCompile Include="MQNewsWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQCfgFileHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -667,8 +670,8 @@
     <ClInclude Include="ModuleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQCfgFileHandler.cpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="..\..\include\mq\api\CachedBuffs.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -690,6 +693,9 @@
     </None>
     <None Include="..\..\data\resources\Zones.ini">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ModuleList.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
