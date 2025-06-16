@@ -677,9 +677,6 @@ void MouseTo(PlayerClient* pChar, const char* szLine)
 
 static void InstallDirectInputHooks()
 {
-	// hook ProcessDeviceEvents
-	EzDetour(__ProcessDeviceEvents, ProcessDeviceEvents_Detour, ProcessDeviceEvents_Trampoline);
-
 	if (g_pDIKeyboard)
 	{
 		uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(g_pDIKeyboard.get());
@@ -740,6 +737,7 @@ public:
 		EzDetour(DispatchMessageA_Ptr, &DispatchMessageA_Detour, &DispatchMessageA_Trampoline);
 
 		EzDetour(CDisplay__GetClickedActor, &CDisplay_Detour::GetClickedActor_Detour, &CDisplay_Detour::GetClickedActor_Tramp);
+		EzDetour(__ProcessDeviceEvents, ProcessDeviceEvents_Detour, ProcessDeviceEvents_Trampoline);
 	}
 
 	virtual void Shutdown() override

@@ -215,7 +215,7 @@ struct MacroQuest::ScopedIteratingModules
 
 	~ScopedIteratingModules()
 	{
-		if (--m_mq->m_iteratingModules == 0 && !m_mq->m_pendingWork.empty())
+		if (--m_mq->m_iteratingModules == 0 && (!m_mq->m_pendingWork.empty() || !m_mq->m_pendingModuleAdds.empty()))
 		{
 			m_mq->HandlePendingWork();
 		}
@@ -535,6 +535,8 @@ bool MacroQuest::CoreInitialize()
 		return false;
 	}
 
+	m_memoryPatcher = m_eqlib->GetMemoryPatcher();
+
 	// Construct our module handle
 	mqplugin::ThisPluginHandle = CreateModuleHandle();
 	m_handle = mqplugin::ThisPluginHandle;
@@ -664,19 +666,23 @@ void MacroQuest::Shutdown()
 void MacroQuest::LoadModules()
 {
 	// Register our modules
-#if 1
 #define MODULE(x) AddModule(CreateModule<x>());
-#else
-#define MODULE(x) AddModule(CreateModule_##x());
-#endif
 #include "ModuleList.inl"
 #undef MODULE
 }
 
 void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 {
+	if (m_shuttingDown)
+	{
+		SPDLOG_DEBUG("AddModule ignored: shutting down! module={}", module->GetName());
+		return;
+	}
+
 	if (m_iteratingModules)
 	{
+		SPDLOG_DEBUG("AddModule deferred: module={}", module->GetName());
+
 		m_pendingModuleAdds.push_back(std::move(module));
 	}
 	else
@@ -684,6 +690,8 @@ void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 		MQModuleBase* m = module.get();
 
 		m->m_handle = CreateModuleHandle();
+
+		SPDLOG_DEBUG("AddModule: module={} handle={}", module->GetName(), module->GetHandle().pluginID);
 
 		// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
 		auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
@@ -705,6 +713,8 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 	if (handle.pluginID == 0)
 		return nullptr;
 
+	SPDLOG_DEBUG("RemoveModule: handle={}", handle.pluginID);
+
 	// check if module is still in the list of pending adds. Removing it from here means
 	// it hasn't been initialized yet, so we don't need to shut it down.
 	{
@@ -715,7 +725,9 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 			std::unique_ptr<MQModuleBase> module = std::move(*iter);
 			m_pendingModuleAdds.erase(iter);
 
-			return std::move(module);
+			SPDLOG_DEBUG("RemoveModule: module removed from pending list. handle={} module={}", handle.pluginID, module->GetName());
+
+			return module;
 		}
 	}
 
@@ -728,6 +740,14 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 
 		if (iter2 != m_modules.end())
 		{
+			if (m_shuttingDown)
+			{
+				SPDLOG_DEBUG("RemoveModule ignored: shutting down! module={}", (*iter2)->GetName());
+				return nullptr;
+			}
+
+			SPDLOG_DEBUG("RemoveModule: handle={} module={}", handle.pluginID, (*iter2)->GetName());
+
 			// Before we actually move the module from the list, give other modules an opportunity to do any last actions with it.
 			OnBeforeModuleUnloaded(iter2->get());
 
@@ -744,6 +764,8 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQDummyModule>(module->GetName(), module->GetPriority());
 				*iter2 = std::move(dummyModule);
 
+				SPDLOG_DEBUG("RemoveModule: module swapped with dummy");
+
 				m_pendingWork.push_back([this]()
 					{
 						// Remove the dummy
@@ -751,6 +773,8 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 							[](const std::unique_ptr<MQModuleBase>& module) { return !!(module->GetFlags() & ModuleFlags::IsDummy); });
 						if (dummyIter != m_modules.end())
 						{
+							SPDLOG_DEBUG("RemoveModule: removing dummy module for {}", (*dummyIter)->GetName());
+
 							m_modules.erase(dummyIter);
 						}
 					});
@@ -765,7 +789,7 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 			// This is safe to remove now.
 			m_moduleHandleMap.erase(iter);
 
-			return std::move(module);
+			return module;
 		}
 		
 		// This is safe to remove now.
@@ -824,18 +848,37 @@ void MacroQuest::InitializeModules()
 	// Why is this here?
 	bmCalculate = AddBenchmark("Calculate");
 
-	for (const auto& module : m_modules)
 	{
-		InitializeModule(module.get());
+		// Any modules that are loaded while we're within this scope will be deferred until
+		// after we leave the scope, but before we leave the function.
+		ScopedIteratingModules s(this);
+
+		SPDLOG_DEBUG("Initializing modules");
+
+		for (const auto& module : m_modules)
+		{
+			InitializeModule(module.get());
+		}
+
+		// Any modules that were added from inside InitializeModules will be added,
+		// and this will ensure they are also initialized before we leave
+		m_initializedModules = true;
 	}
 
-	m_initializedModules = true;
+	SPDLOG_DEBUG("Module initialization complete");
 }
 
 void MacroQuest::InitializeModule(MQModuleBase* module)
 {
+	SPDLOG_DEBUG("InitializeModule: module={}", module->GetName());
+
 	module->Initialize();
 	module->OnGameStateChanged(gGameState);
+
+	if (m_loginEntered)
+	{
+		module->OnLoginFrontendEntered();
+	}
 
 	if (m_createdUI)
 	{
@@ -874,12 +917,16 @@ void MacroQuest::InitializeModule(MQModuleBase* module)
 	}
 
 	OnModuleLoaded(module);
+
+	SPDLOG_DEBUG("InitializeModule completed: module={}", module->GetName());
 }
 
 void MacroQuest::ShutdownModules()
 {
 	if (!m_initializedModules)
 		return;
+
+	SPDLOG_DEBUG("Shutdown modules: count={}", m_modules.size());
 
 	// Iterate over modules in reverse order to gracefully shut everything down.
 	// We do it without using iterators so we can safely remove stuff from the list.
@@ -897,41 +944,62 @@ void MacroQuest::ShutdownModules()
 		// Module is destroyed by leaving scope.
 	}
 
+	SPDLOG_DEBUG("Done shutting down modules");
+
+	m_pendingModuleAdds.clear();
+	m_pendingWork.clear();
+	m_moduleHandleMap.clear();
+
 	m_initializedModules = false;
 }
 
 void MacroQuest::ShutdownModule(MQModuleBase* module)
 {
+	SPDLOG_DEBUG("ShutdownModule: module={}", module->GetName());
+
 	if (m_createdUI)
 	{
 		module->OnCleanUI();
 	}
 
+	if (m_loginEntered)
+	{
+		module->OnLoginFrontendExited();
+	}
+
 	module->Shutdown();
 
 	OnAfterModuleUnloaded(module);
+
+	SPDLOG_DEBUG("ShutdownModule completed: module={}", module->GetName());
 }
 
 void MacroQuest::HandlePendingWork()
 {
 	if (!m_pendingWork.empty())
 	{
-		for (const auto& work : m_pendingWork)
+		SPDLOG_DEBUG("Handle pending work: {} callbacks", m_pendingWork.size());
+
+		decltype(m_pendingWork) callbacks;
+		std::swap(callbacks, m_pendingWork);
+
+		for (const auto& work : callbacks)
 		{
 			work();
 		}
-
-		m_pendingWork.clear();
 	}
 
 	if (!m_pendingModuleAdds.empty())
 	{
-		for (auto&& ptr : m_pendingModuleAdds)
+		SPDLOG_DEBUG("Handle pending module adds: {} modules", m_pendingModuleAdds.size());
+
+		decltype(m_pendingModuleAdds) modules;
+		std::swap(modules, m_pendingModuleAdds);
+
+		for (auto&& ptr : modules)
 		{
 			AddModule(std::move(ptr));
 		}
-
-		m_pendingModuleAdds.clear();
 	}
 }
 
@@ -954,6 +1022,9 @@ void MacroQuest::OnProcessFrame()
 	else
 	{
 		ProcessQueuedEvents();
+
+		if (!m_initializedModules)
+			return;
 
 		if (eqlib::pLocalPlayer != m_lastPlayer
 			&& m_zoningInProgress
@@ -980,15 +1051,24 @@ void MacroQuest::OnProcessFrame()
 
 void MacroQuest::OnGameStateChanged(int newGameState)
 {
-	gGameState = newGameState;
-	gbInZone = (gGameState == eqlib::GAMESTATE_INGAME || gGameState == eqlib::GAMESTATE_CHARSELECT || gGameState == eqlib::GAMESTATE_CHARCREATE);
-
-	if (newGameState == eqlib::GAMESTATE_INGAME)
+	switch (newGameState)
 	{
+	case eqlib::GAMESTATE_INGAME:
 		gZoning = false;
+		[[fallthrough]];
+	case eqlib::GAMESTATE_CHARSELECT:
+	case eqlib::GAMESTATE_CHARCREATE:
+		gbInZone = true;
+		break;
+
+	default:
+		gbInZone = false;
 	}
 
+	gGameState = newGameState;
+
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnGameStateChanged gameState={}", newGameState);
 
 	for (const auto& module : m_modules)
 	{
@@ -998,7 +1078,13 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 
 void MacroQuest::OnLoginFrontendEntered()
 {
+	m_loginEntered = true;
+
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnLoginFrontendEntered");
 
 	for (const auto& module : m_modules)
 	{
@@ -1008,7 +1094,13 @@ void MacroQuest::OnLoginFrontendEntered()
 
 void MacroQuest::OnLoginFrontendExited()
 {
+	m_loginEntered = false;
+
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnLoginFrontendExited");
 
 	for (const auto& module : m_modules)
 	{
@@ -1019,7 +1111,11 @@ void MacroQuest::OnLoginFrontendExited()
 void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 {
 	MQScopedBenchmark bm(bmPluginsReloadUI);
+
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnReloadUI loadIni={} fastReload={}", params.loadIni, params.fastReload);
+
+	m_createdUI = true;
 
 	for (const auto& module : m_modules)
 	{
@@ -1030,12 +1126,16 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 void MacroQuest::OnCleanUI()
 {
 	MQScopedBenchmark bm(bmPluginsCleanUI);
+
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnCleanUI");
 
 	for (const auto& module : m_modules)
 	{
 		module->OnCleanUI();
 	}
+
+	m_createdUI = false;
 }
 
 void MacroQuest::OnPreZoneUI()
@@ -1044,6 +1144,7 @@ void MacroQuest::OnPreZoneUI()
 	gZoning = true;
 
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnPreZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1060,6 +1161,7 @@ void MacroQuest::OnPostZoneUI()
 	LastEnteredZone = MQGetTickCount64();
 
 	ScopedIteratingModules s(this);
+	SPDLOG_DEBUG("OnPostZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1242,6 +1344,8 @@ void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
 
+	SPDLOG_DEBUG("OnModuleLoaded: module={}", otherModule->GetName());
+
 	for (const auto& module : m_modules)
 	{
 		module->OnModuleLoaded(otherModule);
@@ -1252,6 +1356,8 @@ void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
 
+	SPDLOG_DEBUG("OnBeforeModuleUnloaded: module={}", otherModule->GetName());
+
 	for (const auto& module : m_modules)
 	{
 		module->OnBeforeModuleUnloaded(otherModule);
@@ -1261,6 +1367,8 @@ void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
 void MacroQuest::OnAfterModuleUnloaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
+
+	SPDLOG_DEBUG("OnAfterModuleUnloaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{

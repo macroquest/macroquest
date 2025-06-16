@@ -54,6 +54,7 @@ public:
 	virtual ~MQPluginModule() override;
 
 	virtual MQPlugin* GetPlugin() override { return &m_plugin; }
+	virtual const char* GetPluginFilename() const { return m_plugin.szFilename; }
 	virtual PluginInterface* GetPluginInterface() = 0;
 
 	const std::string& GetFilename() const { return m_path; }
@@ -139,12 +140,7 @@ private:
 	virtual void OnBeforePluginShutdown(MQPluginModule* plugin) override;
 	virtual void OnAfterPluginShutdown(MQPluginModule* plugin) override;
 
-	struct PluginInfoRec
-	{
-		MQPlugin* instance;
-		MQPluginHandle handle;
-	};
-	using PluginMap = ci_unordered::map<std::string_view, PluginInfoRec>;
+	using PluginMap = ci_unordered::map<std::string_view, MQPluginModule*>;
 
 	// a map of plugin names to plugins. The string_view is a reference to the name in the
 	// MQPlugin instance.

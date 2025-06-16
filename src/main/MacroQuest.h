@@ -175,11 +175,11 @@ private:
 	std::unordered_map<uint64_t, MQModuleBase*> m_moduleHandleMap;   // Modules indexed by handle
 
 	bool m_initializedFirstFrame = false;
-	bool m_shuttingDown = false;
-
 	bool m_initializedModules = false;
+	bool m_shuttingDown = false;
 	bool m_createdUI = false;
 	bool m_zoningInProgress = true;
+	bool m_loginEntered = false;
 
 	// Benchmark handles
 	uint32_t bmWriteChatColor = 0;

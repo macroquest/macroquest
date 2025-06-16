@@ -149,7 +149,7 @@ void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int F
 	PostToMainThread(
 		[Ptr, Color, Filter]()
 	{
-			g_mq->OnWriteChatColor(Ptr.get(), Color, Filter);
+		g_mq->OnWriteChatColor(Ptr.get(), Color, Filter);
 	});
 }
 

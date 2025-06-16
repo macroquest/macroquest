@@ -362,6 +362,8 @@ private:
 	uint64_t m_lastMoveTick = 0;
 };
 
+DECLARE_MODULE_FACTORY(PulseModule);
+
 //=================================================================================================
 
 #pragma region MerchantWindowTracker

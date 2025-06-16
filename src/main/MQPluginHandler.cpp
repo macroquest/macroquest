@@ -26,9 +26,6 @@
 
 #include "MacroQuest.h"
 
-//#define DEBUG_PLUGINS
-
-
 using namespace eqlib;
 
 namespace mq {
@@ -138,7 +135,7 @@ static std::string FindPluginFile(std::string_view name)
 
 		if (ci_equals(existingFile.string(), checkName1) || ci_equals(existingFile.string(), checkName2))
 		{
-			DebugSpew("Found non-exact plugin match: %.*s -> %s", name.length(), name.data(), existingFile.string().c_str());
+			SPDLOG_DEBUG("Found non-exact plugin match: {} -> {}", name, existingFile);
 			return existingFile.replace_extension().string();
 		}
 	}
@@ -545,7 +542,8 @@ void MQPluginHandler::Initialize()
 
 void MQPluginHandler::OnPluginInitialized(MQPluginModule* plugin)
 {
-	
+	// We want to insert into the plugin map here, but we actually need it sooner,
+	// because this call ends up being deferred until later.
 }
 
 void MQPluginHandler::OnBeforePluginShutdown(MQPluginModule* plugin)
@@ -596,7 +594,7 @@ void MQPluginHandler::LoadPlugins()
 	{
 		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
 		{
-			LoadPlugin(pluginName.c_str(), false);
+			LoadPlugin(pluginName, false);
 		}
 	}
 }
@@ -608,7 +606,7 @@ LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool s
 
 	if (IsPluginLoaded(pluginName))
 	{
-		DebugSpew("LoadPlugin(%.*s) already loaded", pluginName.length(), pluginName.data());
+		SPDLOG_INFO("LoadPlugin({}): Plugin is already loaded", pluginName);
 		m_pluginLoadFailure = "Plugin is already loaded";
 
 		return LoadPluginResult_AlreadyLoaded;
@@ -616,7 +614,7 @@ LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool s
 
 	if (IsPluginUnloadFailed(pluginName))
 	{
-		DebugSpew("LoadPlugin(%.*s) previous instance failed unload", pluginName.length(), pluginName.data());
+		SPDLOG_ERROR("LoadPlugin({}): previous instance failed unload", pluginName);
 		m_pluginLoadFailure = "Plugin failed unload from a previous instance, cannot load";
 
 		return LoadPluginResult_PreviousUnloadFailed;
@@ -628,23 +626,21 @@ LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool s
 	if (!hModule)
 	{
 		// szPluginLoadFailure is set in LoadPluginModule
-		DebugSpew("LoadPlugin(%.*s) failed: %s", pluginName.length(), pluginName.data(), m_pluginLoadFailure.c_str());
+		SPDLOG_ERROR("LoadPlugin({}) failed: {}", pluginName, m_pluginLoadFailure);
 		return LoadPluginResult_Failed;
 	}
 
 	std::unique_ptr<MQPluginModule> plugin = std::make_unique<MQPluginV1Module>(this, hModule.release(), pluginPath);
-	MQPlugin* pluginInst = plugin->GetPlugin();
-
-	m_pluginMap.emplace(plugin->GetName(), PluginInfoRec{ pluginInst, plugin->GetHandle() });
 
 	// Add the plugin to the plugin list.
-	AddPluginToList(pluginInst);
-
+	AddPluginToList(plugin->GetPlugin());
+	MQPluginModule* pluginModule = plugin.get();
 	g_mq->AddModule(std::move(plugin));
+	m_pluginMap.emplace(pluginModule->GetName(), pluginModule);
 
 	if (save)
 	{
-		WritePrivateProfileBool("Plugins", pluginInst->szFilename, true, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Plugins", pluginModule->GetPluginFilename(), true, mq::internal_paths::MQini);
 	}
 	return LoadPluginResult_Success;
 }
@@ -689,7 +685,7 @@ bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = f
 	auto iter = m_pluginMap.find(canonicalName);
 	if (iter != m_pluginMap.end())
 	{
-		MQPluginHandle handle = iter->second.handle;
+		MQPluginHandle handle = iter->second->GetHandle();
 
 		m_unloadingModule = true;
 
@@ -725,7 +721,7 @@ bool MQPluginHandler::CleanupPlugin(MQPluginModule* pluginModule)
 		}
 
 		m_pluginLoadFailure = "Plugin files still loaded.";
-		DebugSpew("UnloadPlugin(%s) failed: %s", pluginName.c_str(), m_pluginLoadFailure.c_str());
+		SPDLOG_ERROR("UnloadPlugin({}) failed: {}", pluginName, m_pluginLoadFailure);
 	}
 	else
 	{
@@ -741,7 +737,7 @@ bool MQPluginHandler::CleanupPlugin(MQPluginModule* pluginModule)
 			nullptr);
 
 		m_pluginLoadFailure = fmt::format("FreeLibrary failed with error {:#08x}: {}", lastError, szError);
-		DebugSpew("UnloadPlugin(%s) failed: %s", pluginName.c_str(), m_pluginLoadFailure.c_str());
+		SPDLOG_ERROR("UnloadPlugin({}) failed: {}", pluginName, m_pluginLoadFailure);
 	}
 
 	return false;
@@ -758,7 +754,7 @@ MQPlugin* MQPluginHandler::GetPlugin(std::string_view name)
 
 	if (iter != m_pluginMap.end())
 	{
-		return iter->second.instance;
+		return iter->second->GetPlugin();
 	}
 
 	return nullptr;
@@ -908,6 +904,7 @@ void MQPluginHandler::PluginCommand(const char* szLine)
 
 				if (dounload)
 				{
+					// Make a copy of the string since unloading it will also remove the string
 					const std::string origPluginName = plugin ? plugin->szFilename : szName;
 					if (plugin || IsPluginUnloadFailed(origPluginName))
 					{
@@ -970,7 +967,7 @@ std::pair<wil::unique_hmodule, std::string> MQPluginHandler::LoadPluginModule(st
 	// the name requested. If we fail for whatever reason, we return a null hmodule
 	// and set the reason in szPluginLoadFailure.
 
-	DebugSpew("LoadPlugin(%.*s)", name.length(), name.data());
+	SPDLOG_DEBUG("LoadPlugin({})", name);
 
 	std::string fileName = FindPluginFile(name);
 	if (fileName.empty())
@@ -1038,7 +1035,7 @@ bool MQPluginHandler::UnloadFailedPlugins()
 
 	for (MQPluginModule* module : failedModules)
 	{
-		DebugSpew("UnloadFailedPlugins(%s)", module->GetName().c_str());
+		SPDLOG_DEBUG("UnloadFailedPlugins({})", module->GetName());
 		UnloadPlugin(module->GetName().c_str());
 	}
 

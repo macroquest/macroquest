@@ -32,27 +32,6 @@ namespace mq {
 // From MQ2Overlay.cpp
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static bool gbDetoursInstalled = false;
-
-
-void OnLoginEntered()
-{
-	ReinitializeWindowList();
-}
-
-void OnPulse()
-{
-	if (g_pLoginController)
-	{
-		if (ImGui::GetCurrentContext() != nullptr)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-
-			g_pLoginController->bIsKeyboardActive = !io.WantCaptureKeyboard;
-			g_pLoginController->bIsMouseActive = !io.WantCaptureMouse;
-		}
-	}
-}
 
 // FIXME: Hook these when entering login
 
@@ -83,43 +62,86 @@ public:
 	}
 };
 
-void InitializeLoginDetours()
+class LoginModule : public MQModuleBase
 {
-	if (gbDetoursInstalled)
-		return;
+public:
+	LoginModule() : MQModuleBase("Login")
+	{
+	}
 
-	DebugSpewAlways("Initializing Login Detours");
+	virtual void Initialize() override
+	{
+	}
 
-	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
+	virtual void Shutdown() override
+	{
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		if (g_pLoginController)
+		{
+			if (ImGui::GetCurrentContext() != nullptr)
+			{
+				ImGuiIO& io = ImGui::GetIO();
+
+				g_pLoginController->bIsKeyboardActive = !io.WantCaptureKeyboard;
+				g_pLoginController->bIsMouseActive = !io.WantCaptureMouse;
+			}
+		}
+	}
+
+	virtual void OnLoginFrontendEntered() override
+	{
+		InstallLoginDetours();
+
+		ReinitializeWindowList();
+	}
+
+	virtual void OnLoginFrontendExited() override
+	{
+		DeveloperTools_CloseLoginFrontend();
+		RemoveLoginDetours();
+
+		ReinitializeWindowList();
+	}
+
+private:
+	void InstallLoginDetours()
+	{
+		if (!m_detoursInstalled)
+		{
+			SPDLOG_DEBUG("Initializing Login Detours");
+
+			EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
 #if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
-	if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
-	{
-		EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
-			&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
-	}
+			if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
+			{
+				EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
+					&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
+			}
 #endif
 
-	gbDetoursInstalled = true;
-}
+			m_detoursInstalled = true;
+		}
+	}
 
-void RemoveLoginDetours()
-{
-	if (!gbDetoursInstalled)
-		return;
+	void RemoveLoginDetours()
+	{
+		if (m_detoursInstalled)
+		{
+			SPDLOG_DEBUG("Removing Login Detours");
 
-	DebugSpewAlways("Removing Login Detours");
+			RemoveDetour(EQMain__WndProc);
 
-	RemoveDetour(EQMain__WndProc);
+			m_detoursInstalled = false;
+		}
+	}
 
-	gbDetoursInstalled = false;
-}
+	bool m_detoursInstalled = false;
+};
 
-void OnLoginExited()
-{
-	DeveloperTools_CloseLoginFrontend();
-	ReinitializeWindowList();
-	RemoveLoginDetours();
-}
+DECLARE_MODULE_FACTORY(LoginModule);
 
 } // namespace mq
