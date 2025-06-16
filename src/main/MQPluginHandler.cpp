@@ -135,7 +135,7 @@ static std::string FindPluginFile(std::string_view name)
 
 		if (ci_equals(existingFile.string(), checkName1) || ci_equals(existingFile.string(), checkName2))
 		{
-			SPDLOG_DEBUG("Found non-exact plugin match: {} -> {}", name, existingFile);
+			SPDLOG_DEBUG("Found non-exact plugin match: {} -> {}", name, existingFile.string());
 			return existingFile.replace_extension().string();
 		}
 	}
