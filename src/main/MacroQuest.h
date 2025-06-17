@@ -152,15 +152,19 @@ public:
 	//-----------------------------------------------------------------------------------------------------
 	// Detours
 	virtual bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle) override;
-	virtual bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
+
+	virtual bool AddPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle) override;
+	virtual bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes, const uint8_t* expectedBytes,
+		std::string_view name, const MQPluginHandle& pluginHandle) override;
+	virtual bool RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle) override;
 
 	std::vector<eqlib::MemoryPatch*> FindPatches(uintptr_t address, size_t width);
 
 	bool IsAddressPatched(uintptr_t address, size_t width);
 
 private:
-	bool ValidateNewPatch(uintptr_t address, std::string_view name,
+	bool ValidateNewPatch(uintptr_t address, size_t numBytes, std::string_view name,
 		const MQPluginHandle& pluginHandle) const;
 	void HandlePendingWork();
 

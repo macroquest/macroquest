@@ -446,7 +446,7 @@ void HookMemChecker(bool Patch)
 		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
 #endif
 #endif
-		mq::AddDetourBytes(__compress_block, __decompress_block - __compress_block + DETOUR_BYTES_COUNT, "__compress_block");
+		mq::AddPatch(__compress_block, __decompress_block - __compress_block + DETOUR_BYTES_COUNT, "__compress_block");
 		EzDetour(__decompress_block, decompress_block_detour, decompress_block_trampoline);
 
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);

@@ -574,6 +574,8 @@ void MQPluginHandler::OnAfterPluginShutdown(MQPluginModule* plugin)
 
 void MQPluginHandler::Shutdown()
 {
+	m_shutdown = true;
+
 	// Unload plugins
 	while (pPlugins)
 	{
@@ -694,7 +696,7 @@ bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = f
 
 		m_unloadingModule = false;
 
-		if (!CleanupPlugin(pluginModule.get()))
+		if (pluginModule && !CleanupPlugin(pluginModule.get()))
 		{
 			m_pluginUnloadFailedMap.emplace(pluginModule->GetName(), std::move(pluginModule));
 			return false;

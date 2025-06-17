@@ -1714,11 +1714,11 @@ bool MacroQuest::IsAlias(const std::string& alias) const
 // DetourAPI functions
 #pragma region Detour functions
 
-bool MacroQuest::ValidateNewPatch(uintptr_t address, std::string_view name, const MQPluginHandle& pluginHandle) const
+bool MacroQuest::ValidateNewPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle) const
 {
 	eqlib::MemoryPatch* existingPatch = nullptr;
 
-	if (m_memoryPatcher->FindPatches(address, eqlib::DETOUR_BYTES_COUNT, &existingPatch, 1) != 0)
+	if (m_memoryPatcher->FindPatches(address, numBytes, &existingPatch, 1) != 0)
 	{
 		if (pluginHandle == mqplugin::ThisPluginHandle || existingPatch->GetUserData() == 0)
 			return false;
@@ -1745,25 +1745,10 @@ bool MacroQuest::ValidateNewPatch(uintptr_t address, std::string_view name, cons
 
 bool MacroQuest::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
 {
-	if (!ValidateNewPatch(address, name, pluginHandle))
+	if (!ValidateNewPatch(address, eqlib::DETOUR_BYTES_COUNT, name, pluginHandle))
 		return false;
 
 	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, target, detour, name))
-	{
-		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
-
-		return true;
-	}
-
-	return false;
-}
-
-bool MacroQuest::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
-{
-	if (!ValidateNewPatch(address, name, pluginHandle))
-		return false;
-
-	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, width, name))
 	{
 		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
 
@@ -1801,6 +1786,72 @@ bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHan
 			else
 			{
 				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
+			}
+		}
+	}
+
+	return m_memoryPatcher->RemovePatch(address);
+}
+
+bool MacroQuest::AddPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	if (!ValidateNewPatch(address, numBytes, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, numBytes, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MacroQuest::AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes, const uint8_t* expectedBytes,
+	std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	if (!ValidateNewPatch(address, numBytes, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, newBytes, numBytes, expectedBytes, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MacroQuest::RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle)
+{
+	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
+
+	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Patch)
+	{
+		SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch not found", address);
+
+		return false;
+	}
+
+	if (patch->GetUserData() != pluginHandle.pluginID)
+	{
+		if (patch->GetUserData() == 0)
+		{
+			SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by MQ", address);
+		}
+		else
+		{
+			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
+
+			if (plugin)
+			{
+				SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by {}", address, plugin->name);
+			}
+			else
+			{
+				SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by an unknown plugin", address);
 			}
 		}
 	}
@@ -1976,14 +2027,25 @@ bool detail::CreateDetour(uintptr_t address, void** target, void* detour, std::s
 	return g_mq->CreateDetour(address, target, detour, name, mqplugin::ThisPluginHandle);
 }
 
-bool detail::CreateDetour(uintptr_t address, size_t width, std::string_view name)
-{
-	return g_mq->CreateDetour(address, width, name, mqplugin::ThisPluginHandle);
-}
-
 bool RemoveDetour(uintptr_t address)
 {
 	return g_mq->RemoveDetour(address, mqplugin::ThisPluginHandle);
+}
+
+bool AddPatch(uintptr_t address, size_t width, std::string_view name)
+{
+	return g_mq->AddPatch(address, width, name, mqplugin::ThisPluginHandle);
+}
+
+bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
+	const uint8_t* expectedBytes, std::string_view name)
+{
+	return g_mq->AddPatch(address, newBytes, numBytes, expectedBytes, name, mqplugin::ThisPluginHandle);
+}
+
+bool RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle)
+{
+	return g_mq->RemovePatch(address, pluginHandle);
 }
 
 

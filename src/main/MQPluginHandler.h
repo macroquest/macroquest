@@ -154,6 +154,7 @@ private:
 	std::string m_pluginLoadFailure;
 
 	bool m_unloadingModule = false;
+	bool m_shutdown = false;
 };
 
 extern MQPluginHandler* g_pluginHandler;
