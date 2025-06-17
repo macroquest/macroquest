@@ -510,9 +510,11 @@ static void Serialize()
 	WriteChatf("Done.");
 }
 
-static void Deserialize()
+static void Deserialize(bool init)
 {
-	WriteChatf("Loading MQ2Anonymize from config.");
+	if (!init)
+		WriteChatf("Loading MQ2Anonymize from config.");
+
 	try
 	{
 		Yaml::Parse(anon_config, anon_config_path.c_str());
@@ -545,7 +547,9 @@ static void Deserialize()
 	guild_memoization.clear();
 	raid_memoization.clear();
 	self_replacer.reset();
-	WriteChatf("Done.");
+
+	if (!init)
+		WriteChatf("Done.");
 }
 
 bool IsAnonymized()
@@ -883,7 +887,7 @@ void MQAnonCommand(PlayerClient* pChar, char* szLine)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			parser.Parse();
-			Deserialize();
+			Deserialize(false);
 		});
 
 	args::Command on(commands, "on", "turns anonymization on",
@@ -958,7 +962,7 @@ public:
 		bmAnonymizer = AddBenchmark("Anonymizer");
 
 		anon_config_path = mq::internal_paths::Config + "\\MQ2Anonymize.yaml";
-		Deserialize(); // always load on initialization
+		Deserialize(true); // always load on initialization
 
 		AddCommand("/mqanon", MQAnonCommand, false, false, false);
 
