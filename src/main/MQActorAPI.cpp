@@ -55,7 +55,7 @@ void MQActorAPI::Shutdown()
 {
 }
 
-void MQActorAPI::OnBeforeModuleUnloaded(MQModuleBase* module)
+void MQActorAPI::OnAfterModuleUnloaded(MQModuleBase* module)
 {
 	// FIXME
 	//MQPlugin* plugin = GetPlugin(module);

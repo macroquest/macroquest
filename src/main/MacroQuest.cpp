@@ -529,13 +529,13 @@ bool MacroQuest::CoreInitialize()
 		return false;
 	}
 
+	m_memoryPatcher = m_eqlib->GetMemoryPatcher();
+
 	if (!LoadPreferences(mq::internal_paths::MQini))
 	{
 		DebugSpewAlways("ParseINIFile returned false - initialization aborted.");
 		return false;
 	}
-
-	m_memoryPatcher = m_eqlib->GetMemoryPatcher();
 
 	// Construct our module handle
 	mqplugin::ThisPluginHandle = CreateModuleHandle();

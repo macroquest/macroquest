@@ -42,8 +42,8 @@ enum class ModulePriority
 
 	Default = 100,
 
+	PluginHandler = 149,
 	Plugins = 150,
-	PluginHandler = 151,
 
 	Macros = 200,
 };
