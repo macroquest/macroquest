@@ -59,9 +59,6 @@ void Unload(PlayerClient*, const char* szLine)
 	gbUnload = true;
 
 	EndAllMacros();
-
-	DebugSpew("%s", ToUnloadString);
-	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 }
 
 // ***************************************************************************

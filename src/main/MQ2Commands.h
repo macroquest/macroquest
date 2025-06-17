@@ -63,7 +63,6 @@ MQLIB_API void RangedCmd                           (eqlib::PlayerClient* pChar, 
 MQLIB_API void DoMappable                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MultilineCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Alert                               (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Alias                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void AltAbility                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void BankList                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void BuyItem                             (eqlib::PlayerClient* pChar, const char* szLine);

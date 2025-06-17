@@ -66,15 +66,14 @@ public:
 
 	bool InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler);
 
-
-	void Cmd_Help(const char* szLine) const;
-	void Cmd_Alias(const char* szLine);
-
 private:
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
 	virtual void OnProcessFrame() override;
 	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
+
+	void Cmd_Help(const char* szLine) const;
+	void Cmd_Alias(const char* szLine);
 
 	void LoadAliases();
 	void RewriteAliases();

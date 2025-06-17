@@ -648,15 +648,17 @@ void MacroQuest::Initialize()
 
 void MacroQuest::Shutdown()
 {
+	SPDLOG_INFO("MacroQuest Unloading...");
+	WriteChatColor("MacroQuest Unloading...", USERCOLOR_DEFAULT);
+
 	gbUnload = false;
 	m_shuttingDown = true;
-
-	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
-	DebugSpewAlways("%s", UnloadedString);
 
 	ShutdownModules();
 
 	m_initializedFirstFrame = false;
+
+	SPDLOG_INFO("MacroQuest Unloaded.");
 	g_unloadComplete.SetEvent();
 }
 
@@ -691,7 +693,7 @@ void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 
 		m->m_handle = CreateModuleHandle();
 
-		SPDLOG_DEBUG("AddModule: module={} handle={}", module->GetName(), module->GetHandle().pluginID);
+		SPDLOG_DEBUG("AddModule: module={}", module->GetName());
 
 		// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
 		auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
@@ -735,6 +737,8 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 	auto iter = m_moduleHandleMap.find(handle.pluginID);
 	if (iter != m_moduleHandleMap.end())
 	{
+		SPDLOG_DEBUG("RemoveModule: module={}", iter->second->GetName());
+
 		auto iter2 = std::find_if(m_modules.begin(), m_modules.end(),
 			[handle](const std::unique_ptr<MQModuleBase>& module) { return module->GetHandle() == handle; });
 
@@ -745,8 +749,6 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 				SPDLOG_DEBUG("RemoveModule ignored: shutting down! module={}", (*iter2)->GetName());
 				return nullptr;
 			}
-
-			SPDLOG_DEBUG("RemoveModule: handle={} module={}", handle.pluginID, (*iter2)->GetName());
 
 			// Before we actually move the module from the list, give other modules an opportunity to do any last actions with it.
 			OnBeforeModuleUnloaded(iter2->get());
@@ -761,7 +763,8 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 
 			if (m_iteratingModules)
 			{
-				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQDummyModule>(module->GetName(), module->GetPriority());
+				std::unique_ptr<MQModuleBase> dummyModule = std::make_unique<MQDummyModule>(
+					fmt::format("{}(dummy)", module->GetName()), module->GetPriority());
 				*iter2 = std::move(dummyModule);
 
 				SPDLOG_DEBUG("RemoveModule: module swapped with dummy");
@@ -773,7 +776,7 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 							[](const std::unique_ptr<MQModuleBase>& module) { return !!(module->GetFlags() & ModuleFlags::IsDummy); });
 						if (dummyIter != m_modules.end())
 						{
-							SPDLOG_DEBUG("RemoveModule: removing dummy module for {}", (*dummyIter)->GetName());
+							SPDLOG_DEBUG("RemoveModule: removing dummy module: {}", (*dummyIter)->GetName());
 
 							m_modules.erase(dummyIter);
 						}
@@ -794,6 +797,10 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 		
 		// This is safe to remove now.
 		m_moduleHandleMap.erase(iter);
+	}
+	else
+	{
+		SPDLOG_DEBUG("RemoveModule: unrecognized module handle: {}", handle.pluginID);
 	}
 
 	return nullptr;
@@ -1955,7 +1962,8 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 	// Initialize will block until the first frame is handled.
 	if (g_mq->CoreInitialize())
 	{
-		DebugSpewAlways("%s", "MacroQuest Loaded.");
+		SPDLOG_INFO("MacroQuest Loaded.");
+
 
 		// Wait for unload to complete
 		g_unloadComplete.wait();

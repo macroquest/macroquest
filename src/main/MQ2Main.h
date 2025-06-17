@@ -55,10 +55,6 @@
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
-#define LoadedString           "MacroQuest Loaded."
-#define ToUnloadString         "MacroQuest Unloading..."
-#define UnloadedString         "MacroQuest Unloaded."
-
 // This is the MQNEXT build, it is here to help plugins conditionally compile against
 // the new interfaces
 #define MQNEXT

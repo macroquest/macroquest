@@ -157,7 +157,6 @@ void MQCommandAPI::Initialize()
 		{ "/advloot",           AdvLootCmd,                 true,  true  },
 #endif
 		{ "/alert",             Alert,                      true,  true  },
-		{ "/alias",             Alias,                      false, false },
 		{ "/altkey",            DoAltCmd,                   false, false },
 		{ "/assist",            AssistCmd,                  true,  true  },
 		{ "/banklist",          BankList,                   true,  true  },
@@ -199,7 +198,6 @@ void MQCommandAPI::Initialize()
 		{ "/for",               For,                        true,  false },
 		{ "/getwintitle",       GetWinTitle,                true,  false },
 		{ "/goto",              Goto,                       true,  false },
-		{ "/help",              Help,                       true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },
 		{ "/identify",          Identify,                   true,  true  },
 		{ "/if",                MacroIfCmd,                 true,  false },
@@ -283,6 +281,9 @@ void MQCommandAPI::Initialize()
 		RemoveCommand(NewCommands[i].szCommand);
 		AddCommand(NewCommands[i].szCommand, NewCommands[i].pFunc, false, NewCommands[i].Parse, NewCommands[i].InGame);
 	}
+
+	AddCommand("/alias", [this](PlayerClient*, const char* line) { Cmd_Alias(line); }, false, false, false);
+	AddCommand("/help", [this](PlayerClient*, const char* line) { Cmd_Help(line); }, false, true, false);
 
 	LoadAliases();
 }
@@ -1005,11 +1006,6 @@ void MQCommandAPI::Cmd_Help(const char* szLine) const
 	}
 }
 
-void Help(PlayerClient*, const char* szLine)
-{
-	pCommandAPI->Cmd_Help(szLine);
-}
-
 // ***************************************************************************
 // Function:    Alias
 // Description: Our '/alias' command
@@ -1083,27 +1079,29 @@ void MQCommandAPI::Cmd_Alias(const char* szLine)
 	WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
 }
 
-void Alias(PlayerClient*, const char* szLine)
-{
-	pCommandAPI->Cmd_Alias(szLine);
-}
-
 //============================================================================
 //============================================================================
 
 bool AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame)
 {
-	return pCommandAPI->AddCommand(command, std::move(handler), eq, parse, inGame);
+	return pCommandAPI && pCommandAPI->AddCommand(command, std::move(handler), eq, parse, inGame);
 }
 
 bool RemoveCommand(std::string_view command)
 {
-	return pCommandAPI->RemoveCommand(command);
+	return pCommandAPI && pCommandAPI->RemoveCommand(command);
 }
 
 void DoCommand(const char* szLine, bool delayed)
 {
-	pCommandAPI->DoCommand(szLine, delayed);
+	if (pCommandAPI)
+	{
+		pCommandAPI->DoCommand(szLine, delayed);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to run command without Commands module: {} delayed={}", szLine, delayed);
+	}
 }
 
 void DoCommandf(const char* szFormat, ...)
@@ -1117,7 +1115,14 @@ void DoCommandf(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 
-	pCommandAPI->DoCommand(szOutput, false);
+	if (pCommandAPI)
+	{
+		pCommandAPI->DoCommand(szOutput, false);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to run command without Commands module: {} delayed={}", szOutput, false);
+	}
 }
 
 fEQCommand FindEQCommand(std::string_view command)
