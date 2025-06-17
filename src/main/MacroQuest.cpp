@@ -1074,8 +1074,11 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 
 	gGameState = newGameState;
 
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnGameStateChanged gameState={}", newGameState);
+	SPDLOG_DEBUG("Sending module event: OnGameStateChanged gameState={}", newGameState);
 
 	for (const auto& module : m_modules)
 	{
@@ -1091,7 +1094,7 @@ void MacroQuest::OnLoginFrontendEntered()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnLoginFrontendEntered");
+	SPDLOG_DEBUG("Sending module event: OnLoginFrontendEntered");
 
 	for (const auto& module : m_modules)
 	{
@@ -1107,7 +1110,7 @@ void MacroQuest::OnLoginFrontendExited()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnLoginFrontendExited");
+	SPDLOG_DEBUG("Sending module event: OnLoginFrontendExited");
 
 	for (const auto& module : m_modules)
 	{
@@ -1117,10 +1120,13 @@ void MacroQuest::OnLoginFrontendExited()
 
 void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 {
+	if (!m_initializedModules)
+		return;
+
 	MQScopedBenchmark bm(bmPluginsReloadUI);
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnReloadUI loadIni={} fastReload={}", params.loadIni, params.fastReload);
+	SPDLOG_DEBUG("Sending module event: OnReloadUI loadIni={} fastReload={}", params.loadIni, params.fastReload);
 
 	m_createdUI = true;
 
@@ -1132,10 +1138,13 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 
 void MacroQuest::OnCleanUI()
 {
+	if (!m_initializedModules)
+		return;
+
 	MQScopedBenchmark bm(bmPluginsCleanUI);
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnCleanUI");
+	SPDLOG_DEBUG("Sending module event: OnCleanUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1150,8 +1159,11 @@ void MacroQuest::OnPreZoneUI()
 	gbInZone = false;
 	gZoning = true;
 
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnPreZoneUI");
+	SPDLOG_DEBUG("Sending module event: OnPreZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1167,8 +1179,11 @@ void MacroQuest::OnPostZoneUI()
 	m_zoningInProgress = true;
 	LastEnteredZone = MQGetTickCount64();
 
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("OnPostZoneUI");
+	SPDLOG_DEBUG("Sending module event: OnPostZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1178,6 +1193,9 @@ void MacroQuest::OnPostZoneUI()
 
 bool MacroQuest::OnChatMessage(eqlib::ChatMessageParams& params)
 {
+	if (!m_initializedModules)
+		return true;
+
 	bool result = true;
 
 	ScopedIteratingModules s(this);
@@ -1195,6 +1213,9 @@ bool MacroQuest::OnChatMessage(eqlib::ChatMessageParams& params)
 
 bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 {
+	if (!m_initializedModules)
+		return true;
+
 	bool result = true;
 
 	ScopedIteratingModules s(this);
@@ -1212,6 +1233,9 @@ bool MacroQuest::OnTellWindowMessage(eqlib::TellWindowMessageParams& params)
 
 bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params)
 {
+	if (!m_initializedModules)
+		return true;
+
 	bool result = true;
 
 	ScopedIteratingModules s(this);
@@ -1229,6 +1253,9 @@ bool MacroQuest::OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& param
 
 void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 {
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
@@ -1239,6 +1266,9 @@ void MacroQuest::OnSpawnAdded(eqlib::PlayerClient* player)
 
 void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 {
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
@@ -1249,6 +1279,9 @@ void MacroQuest::OnSpawnRemoved(eqlib::PlayerClient* player)
 
 void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 {
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
@@ -1259,6 +1292,9 @@ void MacroQuest::OnGroundItemAdded(eqlib::EQGroundItem* groundItem)
 
 void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 {
+	if (!m_initializedModules)
+		return;
+
 	ScopedIteratingModules s(this);
 
 	for (const auto& module : m_modules)
@@ -1269,6 +1305,8 @@ void MacroQuest::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 
 void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 {
+	if (!m_initializedModules)
+		return;
 	if (gFilterMQ)
 		return;
 
@@ -1295,6 +1333,9 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 
 bool MacroQuest::OnIncomingChat(const char* message, int color)
 {
+	if (!m_initializedModules)
+		return false;
+
 	// Ignore empty messages
 	if (message[0] == 0)
 		return false;
@@ -1317,6 +1358,9 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 
 void MacroQuest::OnZoned()
 {
+	if (!m_initializedModules)
+		return;
+
 	srand((unsigned int)time(nullptr)); // reseed
 
 	char szTemp[128];
@@ -1335,6 +1379,9 @@ void MacroQuest::OnZoned()
 
 void MacroQuest::OnDrawHUD()
 {
+	if (!m_initializedModules)
+		return;
+
 	MQScopedBenchmark bm(bmPluginsDrawHUD);
 	ScopedIteratingModules s(this);
 
@@ -1351,7 +1398,7 @@ void MacroQuest::OnModuleLoaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("OnModuleLoaded: module={}", otherModule->GetName());
+	SPDLOG_DEBUG("Sending module event: OnModuleLoaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1363,7 +1410,7 @@ void MacroQuest::OnBeforeModuleUnloaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("OnBeforeModuleUnloaded: module={}", otherModule->GetName());
+	SPDLOG_DEBUG("Sending module event: OnBeforeModuleUnloaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1375,7 +1422,7 @@ void MacroQuest::OnAfterModuleUnloaded(MQModuleBase* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("OnAfterModuleUnloaded: module={}", otherModule->GetName());
+	SPDLOG_DEBUG("Sending module event: OnAfterModuleUnloaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1387,6 +1434,8 @@ void MacroQuest::OnMacroStart(const char* macroName)
 {
 	ScopedIteratingModules s(this);
 
+	SPDLOG_DEBUG("Sending module event: OnMacroStart: macro={}", macroName);
+
 	for (const auto& module : m_modules)
 	{
 		module->OnMacroStart(macroName);
@@ -1396,6 +1445,8 @@ void MacroQuest::OnMacroStart(const char* macroName)
 void MacroQuest::OnMacroStop(const char* macroName)
 {
 	ScopedIteratingModules s(this);
+
+	SPDLOG_DEBUG("Sending module event: OnMacroStop: macro={}", macroName);
 
 	for (const auto& module : m_modules)
 	{
