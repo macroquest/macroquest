@@ -222,25 +222,6 @@ struct MQWhoSort
 using WHOSORT DEPRECATE("Use MQWhoSort instead of WHOSORT") = MQWhoSort;
 using PWHOSORT DEPRECATE("Use MQWhoSort* instead PWHOSORT") = MQWhoSort*;
 
-struct MQTimer
-{
-	std::string Name;
-	uint32_t Original = 0;
-	uint32_t Current = 0;
-	MQTimer* pNext = nullptr;
-	MQTimer* pPrev = nullptr;
-};
-using MQTIMER DEPRECATE("Use MQTimer instead of MQTIMER") = MQTimer;
-using PMQTIMER DEPRECATE("Use MQTimer* instead of PMQTIMER") = MQTimer*;
-
-struct MQKeyPress
-{
-	uint16_t KeyId = 0;
-	bool     Pressed = false;
-
-	MQKeyPress* pNext = nullptr;
-};
-using KEYPRESS DEPRECATE("Use MQKeyPress instead of KEYPRESS") = MQKeyPress;
 
 struct ITEMDB {
 	ITEMDB* pNext;
@@ -335,108 +316,6 @@ public:
 	~CCustomMenu() override
 	{
 	}
-};
-
-//============================================================================
-
-template <class Any>
-class CIndex
-{
-public:
-	DEPRECATE("Use std::vector instead of CIndex") CIndex() = default;
-
-	DEPRECATE("Use std::vector instead of CIndex") CIndex(size_t InitialSize)
-	{
-		Resize(InitialSize);
-	}
-
-	~CIndex()
-	{
-		std::scoped_lock lock(m_mutex);
-
-		delete[] m_list;
-		m_size = 0;
-	}
-
-	Any& operator+=(Any Value)
-	{
-		return m_list[GetUnused()] = Value;
-	}
-
-	Any& operator[](size_t Index)
-	{
-		return m_list[Index];
-	}
-
-	void Cleanup()
-	{
-		std::scoped_lock lock(m_mutex);
-
-		for (size_t index = 0; index < m_size; index++)
-		{
-			if (m_list[index])
-			{
-				delete m_list[index];
-				m_list[index] = nullptr;
-			}
-		}
-	}
-
-	void Resize(size_t newSize)
-	{
-		std::scoped_lock lock(m_mutex);
-		if (newSize > m_size)
-		{
-			Any* newList = new Any[newSize];
-			for (size_t i = 0; i < newSize; ++i)
-				newList[i] = nullptr;
-
-			memset(newList, 0, newSize * sizeof(Any));
-			memcpy(newList, m_list, m_size * sizeof(Any));
-
-			delete[] m_list;
-			m_list = newList;
-			m_size = newSize;
-		}
-	}
-
-	size_t GetSize() const { return m_size; }
-
-	// gets the next unused index, resizing if necessary
-	size_t GetUnused()
-	{
-		std::scoped_lock lock(m_mutex);
-
-		size_t index = 0;
-		for (index = 0; index < m_size; index++)
-		{
-			if (!m_list[index])
-				return index;
-		}
-
-		Resize(m_size + 10);
-		return index;
-	}
-
-	size_t Count() const
-	{
-		std::scoped_lock lock(m_mutex);
-
-		size_t ret = 0;
-		for (size_t i = 0; i < m_size; i++)
-		{
-			if (m_list[i])
-				ret++;
-		}
-		return ret;
-	}
-
-	//__declspec(property(get = GetSize)) size_t Size;
-
-private:
-	size_t m_size = 0;
-	Any* m_list = nullptr;
-	std::recursive_mutex m_mutex;
 };
 
 //============================================================================

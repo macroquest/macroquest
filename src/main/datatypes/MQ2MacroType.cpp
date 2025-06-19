@@ -194,7 +194,7 @@ bool MQ2MacroType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	case MacroMembers::CurSub:
 		if (gMacroBlock && gMacroStack)
 		{
-			GetSubFromLine(gMacroStack->LocationIndex, DataTypeTemp, MAX_STRING);
+			GetMacroSubFromLine(gMacroStack->LocationIndex, DataTypeTemp, MAX_STRING);
 			Dest.Ptr = DataTypeTemp;
 			Dest.Type = pStringType;
 			return true;

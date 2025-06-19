@@ -28,9 +28,6 @@ uint32_t bmUpdateSpawnSort = 0;
 uint32_t bmUpdateSpawnCaptions = 0;
 uint32_t bmCalculate;
 
-MQDataVar* pGlobalVariables = nullptr;
-MQDataVar* pMacroVariables = nullptr;
-
 int gGameState = 0;
 DWORD ThreadID = 0;
 bool gbWriteAllConfig = false;
@@ -40,14 +37,7 @@ HINSTANCE ghInstance = nullptr;
 HWND ghInjectorWnd = nullptr;
 bool gbUnload = false;
 bool gbForceUnload = false;
-bool gBindInProgress = false;
-MQMacroBlockPtr gMacroBlock = nullptr;
-int BlockIndex = 0;
-MQMacroStack* gMacroStack = nullptr;
-decltype(gMacroSubLookupMap) gMacroSubLookupMap;
-decltype(gUndeclaredVars) gUndeclaredVars;
-MQEventQueue* gEventQueue = nullptr;
-int gEventFunc[NUM_EVENTS] = { 0 };
+
 double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
@@ -55,21 +45,10 @@ char gszMacroName[MAX_STRING] = { 0 };
 char szLastCommand[MAX_STRING] = { 0 };
 char gUISkin[MAX_PATH] = "default";
 
-char gszLastNormalError[MAX_STRING] = { 0 };
-char gszLastSyntaxError[MAX_STRING] = { 0 };
-char gszLastMQ2DataError[MAX_STRING] = { 0 };
-
 Blech *pMQ2Blech = nullptr;
 char EventMsg[MAX_STRING] = { 0 };
-Blech *pEventBlech = nullptr;
-MQEventList* pEventList = nullptr;
 
-DWORD gEventChat = 0;
-uint64_t gRunning = 0;
 bool gbMoving = false;
-int gMaxTurbo = 80;
-int gTurboLimit = 240;
-bool gReturn = true;
 bool gItemsReceived = false;
 bool gbInZone = false;
 bool gZoning = false;
@@ -87,7 +66,6 @@ bool gFilterEncumber = false;
 bool gFilterCustom = true;
 bool gSpewToFile = false;
 bool gMQPauseOnChat = false;
-bool gKeepKeys = true;
 bool gLClickedObject = false;
 MQWhoFilter gFilterSWho;
 bool gFilterMQ2DataErrors = false;
@@ -675,9 +653,7 @@ const char* szItemSlot[InvSlot_Max + 1] = {
 	nullptr         // 34
 };
 
-bool bAllErrorsFatal = false;
-bool bAllErrorsDumpStack = true;
-bool bAllErrorsLog = false;
+
 
 bool gbExactSearchCleanNames = false;
 

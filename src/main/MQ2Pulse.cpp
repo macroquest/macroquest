@@ -159,32 +159,6 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 static void Heartbeat()
 {
-	static uint64_t LastGetTick = 0;
-	static bool bFirstHeartBeat = true;
-	static uint64_t TickDiff = 0;
-	static DWORD BeatCount = 0;
-
-	uint64_t Tick = MQGetTickCount64();
-
-	BeatCount++;
-
-	if (bFirstHeartBeat)
-	{
-		LastGetTick = Tick;
-		bFirstHeartBeat = false;
-	}
-
-	// This accounts for rollover
-	TickDiff += (Tick - LastGetTick);
-	LastGetTick = Tick;
-
-	while (TickDiff >= 100)
-	{
-		TickDiff -= 100;
-		if (gDelay > 0) gDelay--;
-		DropTimers();
-	}
-
 	bRunNextCommand = true;
 
 	if (gGameState != -1)

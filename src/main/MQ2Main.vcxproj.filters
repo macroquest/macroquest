@@ -98,9 +98,6 @@
     <ClCompile Include="MQDataAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DataVars.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQDetourAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -108,9 +105,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2KeyBinds.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2MacroCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQ2Main.cpp">
@@ -204,9 +198,6 @@
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2SkillType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TimerType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2InvSlotType.cpp">
@@ -414,6 +405,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQCfgFileHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MacroSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimerType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -672,6 +669,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\CachedBuffs.h">
       <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="MacroSystemInternal.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

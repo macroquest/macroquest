@@ -20,6 +20,9 @@
 
 #include "mq/base/ScopeExit.h"
 
+// FIXME
+#include "MacroSystem.h"
+
 using namespace eqlib;
 
 namespace mq {
@@ -46,10 +49,6 @@ struct MQCommand
 	MQCommand*       pLast = nullptr;
 	MQCommand*       pNext = nullptr;
 };
-
-void PopMacroLoop();
-// Defined in MQ2MacroCommands.cpp
-void FailIf(PlayerClient* pChar, const char* szCommand, int pStartLine, bool All);
 
 MQCommandAPI* pCommandAPI = nullptr;
 
@@ -160,61 +159,41 @@ void MQCommandAPI::Initialize()
 		{ "/altkey",            DoAltCmd,                   false, false },
 		{ "/assist",            AssistCmd,                  true,  true  },
 		{ "/banklist",          BankList,                   true,  true  },
-		{ "/beep",              MacroBeep,                  true,  false },
-		{ "/break",             Break,                      true,  false },
 		{ "/buyitem",           BuyItem,                    true,  true  },
-		{ "/call",              Call,                       true,  false },
 		{ "/cast",              Cast,                       true,  true  },
 		{ "/cecho",             EchoClean,                  true,  false },
 		{ "/char",              CharInfo,                   true,  true  },
 		{ "/cleanup",           Cleanup,                    true,  false },
-		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
 		{ "/click",             Click,                      true,  false },
 		{ "/combine",           CombineCmd,                 true,  true  },
-		{ "/continue",          Continue,                   true,  false },
 #if HAS_ITEM_CONVERT_BUTTON
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
 #endif
 		{ "/ctrlkey",           DoCtrlCmd,                  false, false },
-		{ "/declare",           DeclareVar,                 true,  false },
-		{ "/delay",             Delay,                      false, false }, // do not parse
-		{ "/deletevar",         DeleteVarCmd,               true,  false },
 		{ "/destroy",           EQDestroyHeldItemOrMoney,   true,  true  },
 		{ "/doability",         DoAbility,                  true,  true  },
-		{ "/docommand",         DoCommandCmd,               true,  false },
-		{ "/doevents",          DoEvents,                   true,  false },
 		{ "/doors",             Doors,                      true,  true  },
 		{ "/doortarget",        DoorTarget,                 true,  true  },
 		{ "/dosocial",          DoSocial,                   true,  true  },
 		{ "/drop",              DropCmd,                    true,  true  },
-		{ "/dumpstack",         DumpStack,                  true,  false },
 		{ "/echo",              Echo,                       true,  false },
-		{ "/endmacro",          EndMacro,                   true,  false },
-		{ "/engine",            EngineCommand,              true,  false },
 		{ "/exec",              Exec,                       true,  false },
 		{ "/executelink",       ExecuteLinkCommand,         true,  true  },
 		{ "/face",              Face,                       true,  true  },
 		{ "/filter",            Filter,                     true,  false },
-		{ "/for",               For,                        true,  false },
 		{ "/getwintitle",       GetWinTitle,                true,  false },
-		{ "/goto",              Goto,                       true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },
 		{ "/identify",          Identify,                   true,  true  },
-		{ "/if",                MacroIfCmd,                 true,  false },
 		{ "/ini",               IniOutput,                  true,  false },
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
-		{ "/invoke",            InvokeCmd,                  true,  false },
 		{ "/items",             Items,                      true,  true  },
 		{ "/itemtarget",        ItemTarget,                 true,  true  },
-		{ "/keepkeys",          KeepKeys,                   true,  false },
 		{ "/keypress",          DoMappable,                 true,  false },
-		{ "/listmacros",        ListMacros,                 true,  false },
 		{ "/loadspells",        LoadSpells,                 true,  true  },
 		{ "/location",          Location,                   true,  true  },
 		{ "/loginname",         DisplayLoginName,           true,  false },
 		{ "/look",              Look,                       true,  true  },
 		{ "/lootall",           LootAll,                    true,  false },
-		{ "/macro",             Macro,                      true,  false },
 		{ "/makemevisible",     MakeMeVisible,              false, true  },
 		{ "/memspell",          MemSpell,                   true,  true  },
 		{ "/mercswitch",        MercSwitchCmd,              true,  true  },
@@ -222,20 +201,14 @@ void MQCommandAPI::Initialize()
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
-		{ "/mqlog",             MacroLog,                   true,  false },
-		{ "/mqpause",           MacroPause,                 true,  false },
 		{ "/mqtarget",          Target,                     true,  true  },
 		{ "/msgbox",            MQMsgBox,                   true,  false },
-		{ "/multiline",         MultilineCommand,           false, false },
-		{ "/next",              Next,                       true,  false },
 		{ "/nomodkey",          NoModKeyCmd,                false, false },
-		{ "/noparse",           NoParseCmd,                 false, false },
 		{ "/pet",               PetCmd,                     true,  true  },
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
 		{ "/popcustom",         PopupTextCustom,            true,  true  },
 		{ "/popup",             PopupText,                  true,  true  },
 		{ "/popupecho",         PopupTextEcho,              true,  true  },
-		{ "/profile",           ProfileCmd,                 true,  false },
 		{ "/quit",              QuitCmd,                    true,  false },
 		{ "/ranged",            RangedCmd,                  true,  true  },
 		{ "/reloadui",          ReloadUICmd,                true,  true  },
@@ -244,29 +217,22 @@ void MQCommandAPI::Initialize()
 		{ "/removebuff",        RemoveBuff,                 true,  true  },
 		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/removepetbuff",     RemovePetBuff,              true,  true  },
-		{ "/return",            Return,                     true,  false },
 		{ "/screenmode",        ScreenModeCmd,              true,  false },
 		{ "/selectitem",        SelectItem,                 true,  true  },
 		{ "/sellitem",          SellItem,                   true,  true  },
 		{ "/setautorun",        SetAutoRun,                 false, true  },
-		{ "/seterror",          SetError,                   true,  false },
 		{ "/setprio",           SetProcessPriority,         true,  false },
 		{ "/setwintitle",       SetWinTitle,                true,  false },
 		{ "/shiftkey",          DoShiftCmd,                 false, false },
 		{ "/skills",            Skills,                     true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
 		{ "/spewfile",          DebugSpewFile,              true,  false },
-		{ "/squelch",           SquelchCommand,             true,  false },
 		{ "/target",            Target,                     true,  true  },  // TODO:  Deprecate /target in favor of /mqtarget so that /target is the actual EQ Command. See #298
 		{ "/taskquit",          TaskQuitCmd,                true,  true  },
 		{ "/timed",             DoTimedCmd,                 false, false },
 		{ "/unload",            Unload,                     true,  false },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
-		{ "/varcalc",           VarCalcCmd,                 true,  false },
-		{ "/vardata",           VarDataCmd,                 true,  false },
-		{ "/varset",            VarSetCmd,                  true,  false },
-		{ "/where",             Where,                      true,  true  },
-		{ "/while",             MacroWhileCmd,              true,  false },
+
 		{ "/who",               SuperWho,                   true,  true  },
 		{ "/whofilter",         SWhoFilter,                 true,  true  },
 		{ "/whotarget",         SuperWhoTarget,             true,  true  },
@@ -520,6 +486,7 @@ void MQCommandAPI::DoCommand(const char* szLine, bool delayed,
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szTheCmd, 1);
 
+	// Perform alias replacement
 	auto findIter = m_aliases.find(szArg1);
 	if (findIter != m_aliases.end())
 	{
@@ -564,7 +531,7 @@ void MQCommandAPI::DoCommand(const char* szLine, bool delayed,
 			}
 			//DebugSpew("DoCommand - handing {} off to FailIf");
 			if (pBlock)
-				FailIf(pLocalPlayer, "{", pBlock->CurrIndex, true);
+				FailIf("{", pBlock->CurrIndex, true);
 		}
 		else
 		{

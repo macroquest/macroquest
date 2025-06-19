@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ModuleSystem.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/base/Common.h"
 #include "mq/base/GlobalBuffer.h"
@@ -23,13 +24,13 @@ class Blech;
 
 namespace mq {
 
-struct CaseInsensitiveLess
-{
-	bool operator()(const std::string& lhs, const std::string& rhs) const noexcept
-	{
-		return (::_stricmp(lhs.c_str(), rhs.c_str()) < 0);
-	}
-};
+// FIXME
+void PopMacroLoop();
+void FailIf(const char* szCommand, int StartLine, bool All = false);
+void Call(eqlib::PlayerClient*, const char* szLine);
+char* GetMacroSubFromLine(int Line, char* szSub, size_t Sublen);
+void DumpStack(eqlib::PlayerClient*, const char*);
+void EndMacro(eqlib::PlayerClient*, const char*);
 
 struct MQMacroLine
 {
@@ -161,6 +162,7 @@ MQLIB_VAR MQDataVar* pMacroVariables;
 MQLIB_VAR bool bAllErrorsFatal;
 MQLIB_VAR bool bAllErrorsDumpStack;
 MQLIB_VAR bool bAllErrorsLog;
+
 MQLIB_API SGlobalBuffer DataTypeTemp;
 
 MQLIB_VAR MQMacroStack* gMacroStack;
@@ -194,17 +196,25 @@ enum eFilterMacro
 	FILTERMACRO_MAX,
 };
 
-MQLIB_VAR eFilterMacro gFilterMacro;
 
 MQLIB_VAR char gIfDelimiter;
 MQLIB_VAR char gIfAltDelimiter;
 MQLIB_VAR bool gMQPauseOnChat;
 
-
 extern Blech* pMQ2Blech;
 MQLIB_VAR char EventMsg[MAX_STRING];
 MQLIB_VAR Blech* pEventBlech;
+
+struct MQTimer
+{
+	std::string Name;
+	uint32_t Original = 0;
+	uint32_t Current = 0;
+	MQTimer* pNext = nullptr;
+	MQTimer* pPrev = nullptr;
+};
 MQLIB_VAR MQTimer* gTimer;
+
 MQLIB_VAR int gDelay;
 MQLIB_VAR char gDelayCondition[MAX_STRING];
 MQLIB_VAR bool bAllowCommandParse;
@@ -219,5 +229,21 @@ const std::string PARSE_PARAM_BEG = "${Parse[";
 const std::string PARSE_PARAM_END = "]}";
 
 MQLIB_VAR int gParserVersion;
+
+//============================================================================
+
+class MacroSystem : public MQModuleBase
+{
+public:
+	MacroSystem();
+	virtual ~MacroSystem() override;
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnGameStateChanged(int newGameState) override;
+};
+
+extern MacroSystem* g_macroSystem;
 
 } // namespace mq

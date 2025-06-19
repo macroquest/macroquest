@@ -62,73 +62,6 @@ void Unload(PlayerClient*, const char* szLine)
 }
 
 // ***************************************************************************
-// Function:    ListMacros
-// Description: Our '/listmacros' command
-//              Lists macro files
-// Usage:       /listmacros <partial filename>
-// ***************************************************************************
-void ListMacros(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	WIN32_FIND_DATA FileData;
-	HANDLE hSearch;
-	if (szLine[0] != '\0')
-	{
-		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*" + szLine + "*.mac").c_str(), &FileData);
-	}
-	else
-	{
-		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*.mac").c_str(), &FileData);
-	}
-
-	if (hSearch == INVALID_HANDLE_VALUE)
-	{
-		WriteChatColor("Couldn't find any macros", USERCOLOR_DEFAULT);
-		return;
-	}
-
-	std::vector<std::string> files;
-
-	while (true)
-	{
-		files.emplace_back(FileData.cFileName);
-
-		if (!FindNextFile(hSearch, &FileData))
-			break;
-	}
-
-	FindClose(hSearch);
-
-	std::sort(std::begin(files), std::end(files));
-
-	WriteChatColor("Macro list", USERCOLOR_WHO);
-	WriteChatColor("----------------", USERCOLOR_WHO);
-
-	for (const std::string& file : files)
-		WriteChatColor(file.c_str(), USERCOLOR_WHO);
-}
-
-// ***************************************************************************
-// Function:    SetError
-// Description: Our '/seterror' command
-// Usage:       /seterror <clear|errormsg>
-// ***************************************************************************
-void SetError(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	if ((szLine[0] == 0) || (_stricmp(szLine, "clear")))
-	{
-		gszLastNormalError[0] = 0;
-	}
-	else
-	{
-		strcpy_s(gszLastNormalError, szLine);
-	}
-}
-
-// ***************************************************************************
 // Function:    SuperWho
 // Description: Our '/who' command
 //              Displays a list of spawns in the zone
@@ -217,195 +150,51 @@ void SuperWho(PlayerClient* pChar, const char* szLine)
 }
 
 // ***************************************************************************
-// Function:    MacroPause
-// Description: Our '/mqpause' command
-//              Pause/resume a macro
-// Usage:       /mqpause <off>
-//              /mqpause chat [on|off]
+// Function:    Cleanup
+// Description: Our '/cleanup' command
+//              Sends i, esc, esc, esc, esc, i
+// Usage:       /cleanup
 // ***************************************************************************
-void MacroPause(PlayerClient* pChar, const char* szLine)
+void Cleanup(PlayerClient* pChar, const char* szLine)
 {
-	const char* szPause[] = { "off", "on", nullptr };
+	// TODO: Replace with just simply closing the windows that are closable with escape.
+	KeyCombo Escape;
+	ParseKeyCombo("Esc", Escape);
 
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-
-	if (!_stricmp(szArg, "chat"))
+	if (pContainerMgr)
 	{
-		char szArg1[MAX_STRING] = { 0 };
-		GetArg(szArg1, szLine, 2);
-		if (szLine[0] == 0)
+		int concount = 2; // Close inv + clear target
+
+		if (pContainerMgr->pWorldContainer && pContainerMgr->pWorldContainer->Open == 1)
+			concount++;
+
+		for (int i = 0; i < MAX_CONTAINERS; i++)
 		{
-			gMQPauseOnChat = !gMQPauseOnChat;
-		}
-		else
-		{
-			for (int Command = 0; szPause[Command]; Command++)
-			{
-				if (!_stricmp(szArg1, szPause[Command]))
-				{
-					gMQPauseOnChat = Command != 0;
-				}
-			}
+			if (pContainerMgr->pContainerWnds[i] && pContainerMgr->pContainerWnds[i]->IsVisible())
+				concount++;
 		}
 
-		WritePrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, mq::internal_paths::MQini);
-		WriteChatf("Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
-		return;
-	}
-
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (!pBlock)
-	{
-		MacroError("You cannot pause or unpause a macro when one isn't running.");
-		return;
-	}
-
-	bool Pause = true;
-	for (int Command = 0; szPause[Command]; Command++)
-	{
-		if (!_stricmp(szArg, szPause[Command]))
+		for (int i = 0; i < concount; i++)
 		{
-			Pause = Command != 0;
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
 		}
-	}
 
-	if (szLine[0] != 0)
-	{
-		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
+		if (pInventoryWnd && pInventoryWnd->IsVisible())
+			DoMappable(pChar, "inventory");
 	}
 	else
 	{
-		Pause = !pBlock->Paused;
-	}
+		DoMappable(pChar, "inventory");
 
-	if (pBlock->Paused == Pause)
-	{
-		WriteChatf("Macro is already %s.", (Pause) ? "paused" : "running");
-	}
-	else
-	{
-		WriteChatf("Macro is %s.", (Pause) ? "paused" : "running again");
-		pBlock->Paused = Pause;
-	}
-}
-
-// ***************************************************************************
-// Function:      KeepKeys
-// Description:   Our /keepkeys command. Toggles if /endmacro will keep keys
-//                by default.
-// 2003-10-08     MacroFiend
-// ***************************************************************************
-void KeepKeys(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-
-	const char* szKeepKeys[] = {
-		"off",
-		"on",
-		nullptr
-	};
-
-	if (szArg[0] == 0)
-	{
-		WriteChatf("Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
-		return;
-	}
-
-	for (int Command = 0; szKeepKeys[Command]; Command++)
-	{
-		if (!_stricmp(szArg, szKeepKeys[Command]))
+		for (int i = 0; i < 10; i++)
 		{
-			gKeepKeys = Command != 0;
-
-			WriteChatf("Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
-
-			WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, mq::internal_paths::MQini);
-			return;
-		}
-	}
-
-	SyntaxError("Usage: /keepkeys [on|off]");
-}
-
-// ***************************************************************************
-// Function:      EngineCommand
-// Description:   Allows for switching engines.
-// Usage:         /engine <type> <version> [noauto]
-// ***************************************************************************
-void EngineCommand(PlayerClient* pChar, const char* szLine)
-{
-	bool bNoAuto = false;
-
-	if (ci_find_substr(szLine, "noauto") != -1)
-	{
-		bNoAuto = true;
-	}
-
-	char szBuffer[MAX_STRING] = { 0 };
-
-	// TODO: Fix GetArg and shorten the length of these. Probably 10 & 3 are good.
-	// GetArg crashes if you pass it anything except MAX_STRING due to RtlZeroMemory
-	char szEngine[MAX_STRING] = { 0 };
-	char szVersion[MAX_STRING] = { 0 };
-	GetArg(szEngine, szLine, 1);
-	GetArg(szVersion, szLine, 2);
-
-	if (strlen(szEngine) == 0)
-	{
-		SyntaxError("Usage: /engine parser <version> [noauto]");
-		return;
-	}
-
-	if (!_stricmp(szEngine, "parser"))
-	{
-		if (strlen(szVersion) == 0)
-		{
-			SyntaxError("Usage: /engine parser <version> [noauto]");
-			return;
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
 		}
 
-		const int iVersion = GetIntFromString(szVersion, 1);
-
-		switch (iVersion)
-		{
-		case 2:
-		case 1:
-			gParserVersion = iVersion;
-			if (!bNoAuto)
-			{
-				WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, mq::internal_paths::MQini);
-			}
-
-			WriteChatf("Parser Version %d Enabled", iVersion);
-			break;
-
-		default:
-			MacroError("Invalid Parser Version (%d) valid versions are 1 or 2.", iVersion);
-			break;
-		}
-
-		return;
+		DoMappable(pChar, "inventory");
 	}
-
-	SyntaxError("Invalid Engine type (%s). Valid types are: parser", szEngine);
-}
-
-// ***************************************************************************
-// Function:    Invoke
-// Description: '/invoke' command
-// Purpose:     Adds the ability to invoke Methods
-// Example      /invoke ${Target.DoAssist}
-//              will execute the DoAssist Method of the Spawn TLO
-// ***************************************************************************
-void InvokeCmd(PlayerClient*, const char* szLine)
-{
-	bRunNextCommand = true;
 }
 
 // ***************************************************************************
@@ -887,25 +676,6 @@ void SellItem(PlayerClient* pChar, const char* szLine)
 
 		pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestPutItem(Qty);
 	}
-}
-
-// ***************************************************************************
-// Function:    MacroBeep
-// Description: Our '/beep' command
-//              Beeps the system speaker
-// Usage:       /beep
-// ***************************************************************************
-void MacroBeep(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-
-	GetArg(szArg, szLine, 1);
-	if (szArg[0] == '\0')
-		Beep(0x500, 250);
-	else
-		PlaySound(szArg, nullptr, SND_ASYNC);
 }
 
 // ***************************************************************************
@@ -3509,38 +3279,6 @@ void PopupTextEcho(PlayerClient* pChar, const char* szLine)
 }
 
 // /multiline
-void MultilineCommand(PlayerClient*, const char* szLine)
-{
-	if (szLine[0] == 0)
-	{
-		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
-		return;
-	}
-
-	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
-	GetArg(szArg, szLine, 1);
-
-	const char* szRest = GetNextArg(szLine);
-	if (!szRest[0])
-		return;
-
-	char Copy[MAX_STRING] = { 0 };
-	strcpy_s(Copy, szRest); // don't destroy original...
-
-	char* next_token1 = nullptr;
-	char* token1 = strtok_s(Copy, szArg, &next_token1);
-	while (token1 != nullptr)
-	{
-		std::string strCmd = token1;
-		trim(strCmd);
-		if (!strCmd.empty())
-		{
-			DoCommand(&strCmd[0], false);
-		}
-
-		token1 = strtok_s(nullptr, szArg, &next_token1);
-	}
-}
 
 // /ranged
 void RangedCmd(PlayerClient*, const char* szLine)
@@ -3566,17 +3304,7 @@ void RangedCmd(PlayerClient*, const char* szLine)
 	AttackRanged(pRangedTarget);
 }
 
-// /docommand
-void DoCommandCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /docommand <command>");
-		return;
-	}
 
-	DoCommand(szLine, false);
-}
 
 // /alt
 void DoAltCmd(PlayerClient*, const char* szLine)
@@ -4012,13 +3740,6 @@ void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 	pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
 }
 
-void ClearErrorsCmd(PlayerClient* pChar, const char* szLine)
-{
-	gszLastNormalError[0] = 0;
-	gszLastSyntaxError[0] = 0;
-	gszLastMQ2DataError[0] = 0;
-}
-
 void CombineCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
@@ -4052,31 +3773,6 @@ void DropCmd(PlayerClient*, const char*)
 
 	if (pItem && pItem->CanDrop(false, true))
 		pEverQuest->DropHeldItemOnGround(1);
-}
-
-void NoParseCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /noparse <command>");
-		return;
-	}
-
-	if (gParserVersion == 2)
-	{
-		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
-		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-		// Cast it as a char*, Modify the line, and run the command
-		std::string macroString = ModifyMacroString(szLine, true, ModifyMacroMode::WrapNoDoubles);
-
-		DoCommand(&macroString[0], false);
-	}
-	else
-	{
-		bAllowCommandParse = false;
-		DoCommand(szLine, false);
-		bAllowCommandParse = true;
-	}
 }
 
 void AltAbility(PlayerClient* pChar, const char* szLine)

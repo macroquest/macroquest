@@ -519,6 +519,7 @@
     <ClCompile Include="ImGuiBackendDX9.cpp" />
     <ClCompile Include="ImGuiBackendWin32.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
+    <ClCompile Include="MacroSystem.cpp" />
     <ClCompile Include="MQ2Anonymize.cpp" />
     <ClCompile Include="MQ2AutoInventory.cpp" />
     <ClCompile Include="MQBenchmarks.cpp" />
@@ -532,7 +533,6 @@
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQActorAPI.cpp" />
     <ClCompile Include="MQDataAPI.cpp" />
-    <ClCompile Include="MQ2DataVars.cpp" />
     <ClCompile Include="MQDetourAPI.cpp" />
     <ClCompile Include="MQ2FrameLimiter.cpp" />
     <ClCompile Include="MQ2Globals.cpp" />
@@ -543,7 +543,6 @@
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
-    <ClCompile Include="MQ2MacroCommands.cpp" />
     <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQNewsWindow.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
@@ -630,6 +629,7 @@
     <ClInclude Include="ImGuiManager.h" />
     <ClInclude Include="MacroQuest.h" />
     <ClInclude Include="MacroSystem.h" />
+    <ClInclude Include="MacroSystemInternal.h" />
     <ClInclude Include="ModuleSystem.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />

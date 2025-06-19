@@ -25,43 +25,19 @@ namespace eqlib
 namespace mq {
 
 /* COMMANDS */
-MQLIB_API void SetError                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void SuperWho                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroIfCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroWhileCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Call                                (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void DeclareVar                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void DumpStack                           (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void EndMacro                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void For                                 (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Goto                                (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void KeepKeys                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Macro                               (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroPause                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Next                                (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Return                              (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Break                               (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Continue                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void ListMacros                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void SquelchCommand                      (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroLog                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MacroBeep                           (eqlib::PlayerClient* pChar, const char* szLine);
+
 MQLIB_API void Echo                                (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void EchoClean                           (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void NoParseCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void NoModKeyCmd                         (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Where                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DropCmd                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void CombineCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void ClearErrorsCmd                      (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoTimedCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoShiftCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoCtrlCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoAltCmd                            (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void DoCommandCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RangedCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoMappable                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void MultilineCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Alert                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void AltAbility                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void BankList                            (eqlib::PlayerClient* pChar, const char* szLine);
@@ -72,11 +48,9 @@ MQLIB_API void Cast                                (eqlib::PlayerClient* pChar, 
 MQLIB_API void Cleanup                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Click                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DebugSpewFile                       (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void Delay                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void EQDestroyHeldItemOrMoney            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DisplayLoginName                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoAbility                           (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void DoEvents                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoSocial                            (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void Doors                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoorTarget                          (eqlib::PlayerClient* pChar, const char* szLine);
@@ -119,13 +93,11 @@ MQLIB_API void AdvLootCmd                          (eqlib::PlayerClient* pChar, 
 #endif
 MQLIB_API void PickZoneCmd                         (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void AssistCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void InvokeCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void SetProcessPriority                  (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ScreenModeCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ForeGroundCmd                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void QuitCmd                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RemoveLevCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void EngineCommand                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MQCopyLayout                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ListModulesCommand                  (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ListProcessesCommand                (eqlib::PlayerClient* pChar, const char* szLine);
@@ -141,12 +113,9 @@ MQLIB_API void RemovePetBuff                       (eqlib::PlayerClient* pChar, 
 MQLIB_API void MakeMeVisible                       (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void RemoveAura                          (eqlib::PlayerClient* pChar, const char* szLine);
 
-MQLIB_API void DeleteVarCmd                        (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void VarSetCmd                           (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void VarCalcCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
-MQLIB_API void VarDataCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 
-MQLIB_API void ProfileCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
+MQLIB_API void SquelchCommand                      (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void ReloadUICmd                         (eqlib::PlayerClient* pChar, const char* szLine);
-
+MQLIB_API void Where                               (eqlib::PlayerClient* pChar, const char* szLine);
+MQLIB_API void MacroLog                            (eqlib::PlayerClient* pChar, const char* szLine);
 } // namespace mq

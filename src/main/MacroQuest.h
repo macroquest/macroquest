@@ -27,6 +27,15 @@ namespace mq {
 class PipeMessage;
 using PipeMessagePtr = std::unique_ptr<PipeMessage>;
 
+struct IncomingChatParams
+{
+	const char* message;
+	int color;
+
+	bool filtered;              // true if message is filtered
+	const char* stripped;       // original message with links stripped
+};
+
 class MacroQuest
 	: public eqlib::EventInterface
 	, protected MQDynamicModule

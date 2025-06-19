@@ -127,11 +127,4 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = fa
 
 //============================================================================
 
-bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
-bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
-MQDataVar** FindVariableScope(const char* Name);
-bool DeleteMQ2DataVariable(const char* Name);
-void ClearMQ2DataVariables(MQDataVar** ppHead);
-
-
 } // namespace mq

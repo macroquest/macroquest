@@ -17,6 +17,7 @@
 MODULE(MQCommandAPI)           // Instantiates pCommandAPI
 MODULE(CrashHandlerModule)
 MODULE(MQDataAPI)              // Instantiates pDataAPI
+MODULE(MacroSystem)
 MODULE(MQActorAPI)             // Instantiates pActorAPI
 MODULE(MQPluginHandler)
 MODULE(KeyBindsModule)
@@ -49,5 +50,3 @@ MODULE(GraphicsResourcesModule)
 MODULE(ImGuiModule)
 MODULE(RecentChangesModule)
 MODULE(CameraModule)
-
-//MODULE(MacroSystem)

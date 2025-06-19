@@ -71,6 +71,8 @@ MQLIB_VAR char gszItemDB[MAX_STRING] DEPRECATE("Use gResourcesPath / ItemDB.txt 
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
 
+MQLIB_VAR eFilterMacro gFilterMacro;
+
 MQLIB_VAR char gUISkin[MAX_PATH];
 
 // FIXME:  Convert this to a Global Object. Include setting of gPathX (and remove from Init).

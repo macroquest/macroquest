@@ -167,7 +167,6 @@ MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, 
 MQLIB_API void StripMQChat(const char* in, char* out);
 MQLIB_OBJECT void StripMQChat(std::string_view in, char* out);
 MQLIB_API void STMLToPlainText(char* in, char* out);
-MQLIB_API char* GetSubFromLine(int Line, char* szSub, size_t Sublen);
 MQLIB_API const char* GetFilenameFromFullPath(const char* Filename);
 MQLIB_API bool CompareTimes(char* RealTime, char* ExpectedTime);
 MQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
@@ -305,13 +304,6 @@ MQLIB_API eqlib::ItemClient* GetItemContentsByName(const char* ItemName);
 MQLIB_API DWORD GetAvailableSlots(eqlib::ItemClient* pContainer, eqlib::ItemClient* pItem, int *firstavailableslot);
 MQLIB_API bool LoH_HT_Ready();
 MQLIB_API eqlib::ECombatState GetCombatState();
-
-/* MQ2DATAVARS */
-MQLIB_API char* GetFuncParam(const char* szMacroLine, int ParamNum, char* szParamName, size_t ParamNameLen, char* szParamType, size_t ParamTypeLen);
-
-MQLIB_API void DropTimers();
-
-/*                 */
 
 MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = static_cast<bool>(MQ_FROM_PLUGIN));
 
