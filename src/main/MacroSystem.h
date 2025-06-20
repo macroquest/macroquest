@@ -176,16 +176,16 @@ struct MQTimer
 };
 MQLIB_VAR MQTimer* gTimer;
 
-constexpr int CHAT_SAY = 0x0001;
-constexpr int CHAT_TELL = 0x0002;
-constexpr int CHAT_OOC = 0x0004;
-constexpr int CHAT_SHOUT = 0x0008;
-constexpr int CHAT_AUC = 0x0010;
-constexpr int CHAT_GUILD = 0x0020;
-constexpr int CHAT_GROUP = 0x0040;
-constexpr int CHAT_RAID = 0x0080;
-constexpr int CHAT_CHAT = 0x0100;
-#define CHATEVENT(x)                             (gEventChat & x)
+constexpr int CHAT_SAY           = 0x0001;
+constexpr int CHAT_TELL          = 0x0002;
+constexpr int CHAT_OOC           = 0x0004;
+constexpr int CHAT_SHOUT         = 0x0008;
+constexpr int CHAT_AUC           = 0x0010;
+constexpr int CHAT_GUILD         = 0x0020;
+constexpr int CHAT_GROUP         = 0x0040;
+constexpr int CHAT_RAID          = 0x0080;
+constexpr int CHAT_CHAT          = 0x0100;
+#define CHATEVENT(x)             (gEventChat & x)
 
 MQLIB_API SGlobalBuffer DataTypeTemp;
 
@@ -215,11 +215,9 @@ MQLIB_VAR char gDelayCondition[MAX_STRING];
 
 MQLIB_API char* GetMacroSubFromLine(int Line, char* szSub, size_t Sublen);
 
-// FIXME
-void PopMacroLoop();
-void FailIf(const char* szCommand, int StartLine, bool All = false);
-void Call(eqlib::PlayerClient*, const char* szLine);
-void DumpStack(eqlib::PlayerClient*, const char*);
+MQLIB_OBJECT MQMacroBlockPtr GetCurrentMacroBlock();
+
+MQLIB_API void EndAllMacros();
 
 //============================================================================
 
@@ -241,6 +239,7 @@ public:
 	void HandleFatalError(const char* szError);
 
 	bool DispatchBind(char* szCommand, char* szArgs);
+	void MacroCall(const char* line);
 
 private:
 	virtual void Initialize() override;

@@ -311,59 +311,54 @@ void MQCommandAPI::OnAfterModuleUnloaded(MQModuleBase* module)
 	}
 }
 
-bool MQCommandAPI::InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler)
+bool MQCommandAPI::InterpretCmd(const char* szLine, const MQCommandHandler& eqHandler)
 {
-	if (szFullLine[0] == 0)
+	if (szLine[0] == 0)
 		return false;
 
-	char szFullCommand[MAX_STRING] = { 0 };
-	strcpy_s(szFullCommand, szFullLine);
+	char szOriginalCommand[MAX_STRING] = { 0 };
+	strcpy_s(szOriginalCommand, szLine);
 
 	char szCommand[MAX_STRING] = { 0 };
-	GetArg(szCommand, szFullCommand, 1);
+	strcpy_s(szCommand, szLine);
 
-	if (!_stricmp(szCommand, "/camp"))
+	// Perform alias replacement on the command
+	if (SubstituteAlias(szOriginalCommand, szCommand, MAX_STRING))
 	{
-		if (GetMacroBlockCount())
-		{
-			WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW);
-		}
+		strcpy_s(szOriginalCommand, szCommand);
 	}
 
-	if (auto findIter = m_aliases.find(szCommand); findIter != m_aliases.end())
+	// We replaced the command, update the first arg.
+	GetArg(szCommand, szOriginalCommand, 1);
+
+	if (g_macroSystem
+		&& g_macroSystem->IsMacroRunning()
+		&& ci_equals(szCommand, "/camp"))
 	{
-		const RegisteredAlias& alias = findIter->second;
-
-		sprintf_s(szCommand, "%s%s",alias.replacement.c_str(), szFullCommand + alias.match.size());
-		strcpy_s(szFullCommand, szCommand);
+		WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW);
 	}
-
-	GetArg(szCommand, szFullCommand, 1);
 
 	char szArgs[MAX_STRING] = { 0 };
-	strcpy_s(szArgs, GetNextArg(szFullCommand));
+	strcpy_s(szArgs, GetNextArg(szOriginalCommand));
 
 	if (DispatchCommand(szCommand, szArgs, eqHandler))
 	{
-		strcpy_s(szLastCommand, szFullCommand);
+		strcpy_s(szLastCommand, szOriginalCommand);
 		return true;
 	}
 
-	// Check if we have binds in the 
 	if (g_macroSystem && g_macroSystem->DispatchBind(szCommand, szArgs))
 	{
-		strcpy_s(szLastCommand, szFullCommand);
+		strcpy_s(szLastCommand, szOriginalCommand);
 		return true;
 	}
 
-	strcpy_s(szLastCommand, szFullCommand);
+	strcpy_s(szLastCommand, szOriginalCommand);
 	return false;
 }
 
 bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQCommandHandler& eqHandler)
 {
-	std::unique_lock lock(m_commandMutex);
-
 	MQCommand* pCommand = m_pCommands;
 	while (pCommand)
 	{
@@ -383,8 +378,6 @@ bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQComman
 
 		if (Pos == 0)
 		{
-			lock.unlock();
-
 			// the parser version is 2, or It's not version 2 and we're allowing command parses
 			if (pCommand->parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
@@ -411,136 +404,94 @@ bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQComman
 	return false;
 }
 
-void MQCommandAPI::DoCommand(const char* szLine, bool delayed,
-	const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
+bool MQCommandAPI::SubstituteAlias(const char* szOriginal, char* szLine, size_t length)
 {
-	std::unique_lock lock(m_commandMutex);
-
-	if (delayed)
-	{
-		m_delayedCommands.emplace_back(szLine, pluginHandle);
-		return;
-	}
-
-	WeDidStuff();
-
-	// Update crash state with last known command in case something goes wrong
-	CrashHandler_SetLastCommand(szLine);
-	SCOPE_EXIT(CrashHandler_SetLastCommand(nullptr));
-
-	char szTheCmd[MAX_STRING] = { 0 };
-	strcpy_s(szTheCmd, szLine);
-
-	char szOriginalLine[MAX_STRING] = { 0 };
-	strcpy_s(szOriginalLine, szTheCmd);
-
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szTheCmd, 1);
+	char szFirstArg[MAX_STRING];
+	GetArg(szFirstArg, szOriginal, 1);
 
 	// Perform alias replacement
-	auto findIter = m_aliases.find(szArg1);
+	auto findIter = m_aliases.find(szFirstArg);
 	if (findIter != m_aliases.end())
 	{
 		const RegisteredAlias& alias = findIter->second;
 
-		sprintf_s(szTheCmd, "%s%s", alias.replacement.c_str(), szOriginalLine + alias.match.size());
+		sprintf_s(szLine, length, "%s%s", alias.replacement.c_str(), szOriginal + alias.match.size());
+		return true;
 	}
 
-	GetArg(szArg1, szTheCmd, 1);
+	return false;
+}
+
+bool MQCommandAPI::DoCommandInternal(char* szOriginalLine, char* szArg1, char* szParam)
+{
+	// Update crash state with last known command in case something goes wrong
+	CrashHandler_SetLastCommand(szOriginalLine);
+	SCOPE_EXIT(CrashHandler_SetLastCommand(nullptr));
+
 	if (szArg1[0] == 0)
-		return;
-
-	char szParam[MAX_STRING] = { 0 };
-	strcpy_s(szParam, GetNextArg(szTheCmd));
-
-	if ((szArg1[0] == ':') || (szArg1[0] == '{'))
-	{
-		bRunNextCommand = true;
-		return;
-	}
-
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (szArg1[0] == '}')
-	{
-		if (pBlock)
-		{
-			const auto loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
-			if (loopStart != 0)
-			{
-				pBlock->CurrIndex = loopStart;
-				PopMacroLoop();
-				return;
-			}
-		}
-
-		if (strstr(szTheCmd, "{"))
-		{
-			GetArg(szArg1, szTheCmd, 2);
-			if (_stricmp(szArg1, "else") != 0)
-			{
-				FatalError("} and { seen on the same line without an else present");
-			}
-			//DebugSpew("DoCommand - handing {} off to FailIf");
-			if (pBlock)
-				FailIf("{", pBlock->CurrIndex, true);
-		}
-		else
-		{
-			// handle this:
-			//            /if () {
-			//            } else /echo stuff
-			GetArg(szArg1, szTheCmd, 2);
-			if (!_stricmp(szArg1, "else"))
-			{
-				// check here to fail this:
-				//            /if () {
-				//            } else
-				//                /echo stuff
-				GetArg(szArg1, szTheCmd, 3);
-				if (!_stricmp(szArg1, ""))
-				{
-					FatalError("no command or { following else");
-				}
-				bRunNextCommand = true;
-			}
-			else
-			{
-				bRunNextCommand = true;
-			}
-		}
-		return;
-	}
+		return true;
 
 	if (szArg1[0] == ';' || szArg1[0] == '[')
 	{
 		pEverQuest->InterpretCmd(pLocalPlayer, szOriginalLine);
-		return;
+		return true;
 	}
 
 	if (DispatchCommand(szArg1, szParam, nullptr))
 	{
 		strcpy_s(szLastCommand, szOriginalLine);
-		return;
+		return true;
 	}
 
-	if (DispatchBind(szArg1, szParam))
+	if (g_macroSystem && g_macroSystem->DispatchBind(szArg1, szParam))
 	{
 		strcpy_s(szLastCommand, szOriginalLine);
-		return;
+		return true;
 	}
 
-	// skip this logic for Bind Commands.
-	if (_strnicmp(szOriginalLine, "sub bind_", 9) != 0)
+	strcpy_s(szLastCommand, szOriginalLine);
+	return false;
+}
+
+bool MQCommandAPI::DoCommand(const char* szLine, bool delayed,
+	const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
+{
+	if (delayed)
 	{
-		if (!_strnicmp(szOriginalLine, "sub ", 4))
-		{
-			FatalError("Flow ran into another subroutine. (%s)", szOriginalLine);
-			return;
-		}
-
-		strcpy_s(szLastCommand, szOriginalLine);
-		MacroError("DoCommand - Couldn't parse '%s'", szOriginalLine);
+		m_delayedCommands.emplace_back(szLine, pluginHandle);
+		return true;
 	}
+
+	WeDidStuff();
+
+	char szOriginalLine[MAX_STRING] = { 0 };
+	strcpy_s(szOriginalLine, szLine);
+
+	// The command we are processing. Alias will be applied.
+	char szTheCmd[MAX_STRING] = { 0 };
+	strcpy_s(szTheCmd, szLine);
+
+	// The first token of the line
+	char szArg1[MAX_STRING] = { 0 };
+	GetArg(szArg1, szTheCmd, 1);
+
+	// Perform alias replacement on the command
+	if (SubstituteAlias(szOriginalLine, szTheCmd, MAX_STRING))
+	{
+		// We replaced the command, update the first arg.
+		GetArg(szArg1, szTheCmd, 1);
+	}
+
+	char szParam[MAX_STRING] = { 0 };
+	strcpy_s(szParam, GetNextArg(szTheCmd));
+
+	if (!DoCommandInternal(szOriginalLine, szArg1, szParam))
+	{
+		MacroError("Unrecognized command: '%s'", szLine);
+		return false;
+	}
+
+	return true;
 }
 
 bool MQCommandAPI::AddCommand(std::string_view command, MQCommandHandler handler,
@@ -805,8 +756,6 @@ void MQCommandAPI::OnProcessFrame()
 		return;
 	}
 
-	std::scoped_lock lock(m_commandMutex);
-
 	{
 		// Swap with empty container to get our delayed commands. Running DoCommand
 		// may add something to the container. We don't want to process that, so we
@@ -836,8 +785,6 @@ void MQCommandAPI::OnProcessFrame()
 
 void MQCommandAPI::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
 {
-	std::scoped_lock lock(m_commandMutex);
-
 	MQTimedCommand* pNew = new MQTimedCommand;
 	pNew->time = msDelay + MQGetTickCount64();
 	pNew->command = command;

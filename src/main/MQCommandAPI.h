@@ -48,8 +48,11 @@ public:
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	// Queue a command for execution
-	void DoCommand(const char* szLine, bool delayed,
+	bool DoCommand(const char* szLine, bool delayed,
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+
+	bool DoCommandInternal(char* szOriginalLine, char* szArg1, char* szParam);
+
 	void TimedCommand(const char* command, int msDelay,
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
@@ -61,10 +64,11 @@ public:
 		bool writeToIni, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 	bool RemoveAlias(const std::string& shortCommand,
 		const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
+	bool SubstituteAlias(const char* szOriginal, char* szLine, size_t length);
 
 	bool IsAlias(const std::string& alias) const;
 
-	bool InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler);
+	bool InterpretCmd(const char* szLine, const MQCommandHandler& eqHandler);
 
 private:
 	virtual void Initialize() override;
@@ -107,8 +111,6 @@ private:
 
 	MQCommand* m_pCommands = nullptr;
 	MQTimedCommand* m_pTimedCommands = nullptr;
-
-	std::recursive_mutex m_commandMutex;
 };
 
 extern MQCommandAPI* pCommandAPI;

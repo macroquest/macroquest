@@ -27,6 +27,8 @@
 #include <regex>
 #include <fstream>
 
+#include "MQCommandAPI.h"
+
 using namespace eqlib;
 using namespace mq::datatypes;
 
@@ -41,6 +43,8 @@ bool bRunNextCommand = false;
 // TODO: Remove this once the parsing engine is fully backwards compatible.
 // Alternatively, move it into the macro block.
 int gParserVersion = 1;
+
+bool bInMacroCall = false;
 
 static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
 MQMacroBlockPtr gMacroBlock = nullptr;
@@ -85,6 +89,7 @@ void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValu
 static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 static void EngineCommand(PlayerClient*, const char* szLine);
 static void EndMacroCommand(PlayerClient*, const char* szLine);
+static void Call(PlayerClient*, const char* szLine);
 
 static void format_args(fmt::appender& buffer, const std::vector<std::string>& args)
 {
@@ -143,7 +148,7 @@ char* GetMacroSubFromLine(int Line, char* szSub, size_t Sublen)
 	return szSub;
 }
 
-void PopMacroLoop()
+static void PopMacroLoop()
 {
 	gMacroStack->loopStack.pop_back();
 }
@@ -722,7 +727,7 @@ MQMacroBlockPtr GetCurrentMacroBlock()
 	return nullptr;
 }
 
-MQMacroBlockPtr GetNextMacroBlock()
+static MQMacroBlockPtr GetNextMacroBlock()
 {
 	if (!gMacroBlock)
 		return nullptr;
@@ -749,11 +754,6 @@ MQMacroBlockPtr GetNextMacroBlock()
 	return nullptr;
 }
 
-int GetMacroBlockCount()
-{
-	return static_cast<int>(MacroBlockMap.size());
-}
-
 void EndAllMacros()
 {
 	if (MacroBlockMap.empty())
@@ -777,7 +777,7 @@ void EndAllMacros()
 //
 // The else part of the /if
 //
-void FailIf(const char* szCommand, int StartLine, bool All)
+static void FailIf(const char* szCommand, int StartLine, bool All = false)
 {
 	int Scope = 1;
 
@@ -867,6 +867,108 @@ void FailIf(const char* szCommand, int StartLine, bool All)
 	}
 }
 
+static void ExecuteLine(const char* szLine)
+{
+	char szOriginalLine[MAX_STRING] = { 0 };
+	strcpy_s(szOriginalLine, szLine);
+
+	// The command we are processing. Alias will be applied.
+	char szTheCmd[MAX_STRING] = { 0 };
+	strcpy_s(szTheCmd, szLine);
+
+	// The first token of the line
+	char szArg1[MAX_STRING] = { 0 };
+	GetArg(szArg1, szTheCmd, 1);
+
+	// Perform alias replacement on the command
+	if (pCommandAPI->SubstituteAlias(szOriginalLine, szTheCmd, MAX_STRING))
+	{
+		// We replaced the command, update the first arg.
+		GetArg(szArg1, szTheCmd, 1);
+	}
+
+	if (szArg1[0] == 0)
+		return;
+
+	char szParam[MAX_STRING] = { 0 };
+	strcpy_s(szParam, GetNextArg(szTheCmd));
+
+	if (szArg1[0] == ':' || szArg1[0] == '{')
+	{
+		// skip to next line
+		bRunNextCommand = true;
+		return;
+	}
+
+	if (szArg1[0] == '}')
+	{
+		MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
+		if (pBlock)
+		{
+			const int loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
+			if (loopStart != 0)
+			{
+				pBlock->CurrIndex = loopStart;
+				PopMacroLoop();
+				return;
+			}
+		}
+
+		if (strstr(szTheCmd, "{"))
+		{
+			GetArg(szArg1, szTheCmd, 2);
+
+			if (_stricmp(szArg1, "else") != 0)
+			{
+				FatalError("} and { seen on the same line without an else present");
+			}
+
+			if (pBlock)
+			{
+				FailIf("{", pBlock->CurrIndex, true);
+			}
+		}
+		else
+		{
+			bRunNextCommand = true;
+
+			// handle this:
+			//     /if () {
+			//     } else /echo stuff
+			GetArg(szArg1, szTheCmd, 2);
+			if (!_stricmp(szArg1, "else"))
+			{
+				// check here to fail this:
+				//     /if () {
+				//     } else
+				//         /echo stuff
+				GetArg(szArg1, szTheCmd, 3);
+				if (!_stricmp(szArg1, ""))
+				{
+					FatalError("no command or { following else");
+				}
+			}
+		}
+		return;
+	}
+
+	if (pCommandAPI->DoCommandInternal(szOriginalLine, szArg1, szParam))
+		return;
+
+	// skip this logic for Bind Commands.
+	if (!ci_starts_with(szLine, "sub bind_"))
+	{
+		if (ci_starts_with(szLine, "sub "))
+		{
+			FatalError("Flow ran into another subroutine. (%s)", szLine);
+			return;
+		}
+
+		strcpy_s(szLastCommand, szOriginalLine);
+		MacroError("Couldn't parse '%s'", szOriginalLine);
+	}
+}
+
 static bool DoNextCommand(MQMacroBlockPtr pBlock)
 {
 	if (!pControlledPlayer || !pLocalPC)
@@ -882,6 +984,7 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 	if (IsMouseWaiting())
 		return false;
 
+	// Check delay condition if it still exists
 	if (gDelay && gDelayCondition[0])
 	{
 		char szCond[MAX_STRING];
@@ -903,7 +1006,10 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 		}
 	}
 
-	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || pEverQuestInfo->KeyboardMode) && gMacroStack)
+	if (!gDelay                                                // not waiting for a delay
+		&& pBlock && !pBlock->Paused                           // not paused
+		&& (!gMQPauseOnChat || pEverQuestInfo->KeyboardMode)   // not in chat mode
+		&& gMacroStack)                                        // have a stack to process
 	{
 		const MQMacroLine& ml = pBlock->Line.at(pBlock->CurrIndex);
 
@@ -922,7 +1028,8 @@ static bool DoNextCommand(MQMacroBlockPtr pBlock)
 
 		if (gbInZone && !gZoning)
 		{
-			DoCommand(ml.Command.c_str(), false);
+			ExecuteLine(ml.Command.c_str());
+
 			MQMacroBlockPtr pCurrentBlock = GetCurrentMacroBlock();
 
 			if (!pCurrentBlock)
@@ -1712,7 +1819,7 @@ static void Break(PlayerClient*, const char*)
 // Description: Our '/call' command
 // Usage:       /call <Subroutine>
 // ***************************************************************************
-void Call(PlayerClient*, const char* szLine)
+static void Call(PlayerClient*, const char* szLine)
 {
 	if (szLine[0] == 0)
 	{
@@ -1806,7 +1913,6 @@ void Call(PlayerClient*, const char* szLine)
 		g_pProfile->Call(SubName, std::move(args));
 	}
 }
-
 
 // ***************************************************************************
 // Function:    Continue
@@ -2275,7 +2381,7 @@ static void DoEvents(PlayerClient*, const char* szLine)
 // Description: Our '/dumpstack' command
 // Usage:       /dumpstack
 // ***************************************************************************
-void DumpStack(PlayerClient*, const char*)
+static void DumpStack(PlayerClient*, const char*)
 {
 	char szSub[MAX_STRING] = { 0 };
 
@@ -3892,6 +3998,8 @@ void MacroSystem::OnProcessFrame()
 	{
 		int CurTurbo = 0;
 
+		bInMacroCall = true;
+
 		MQMacroBlockPtr pBlock = GetNextMacroBlock();
 		while (bRunNextCommand)
 		{
@@ -3909,6 +4017,8 @@ void MacroSystem::OnProcessFrame()
 			// re-fetch current macro block in case one of the previous instructions changed it
 			pBlock = GetCurrentMacroBlock();
 		}
+
+		bInMacroCall = false;
 	}
 }
 
@@ -3918,12 +4028,12 @@ void MacroSystem::OnGameStateChanged(int newGameState)
 
 bool MacroSystem::IsMacroRunning() const
 {
-	return false;
+	return gMacroBlock != nullptr;
 }
 
 bool MacroSystem::IsActiveMacroCall() const
 {
-	return false;
+	return bInMacroCall;
 }
 
 void MacroSystem::HandleMacroError(const char* szError)
@@ -3951,9 +4061,6 @@ bool MacroSystem::DispatchBind(char* szCommand, char* szArgs)
 {
 	// Macro Binds only supported in-game
 	if (gGameState != GAMESTATE_INGAME)
-		return false;
-	// Why is this here?
-	if (!pLocalPlayer)
 		return false;
 
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
@@ -3998,7 +4105,10 @@ bool MacroSystem::DispatchBind(char* szCommand, char* szArgs)
 	return false;
 }
 
-
+void MacroSystem::MacroCall(const char* line)
+{
+	Call(nullptr, line);
+}
 
 DECLARE_MODULE_FACTORY(MacroSystem)
 

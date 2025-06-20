@@ -677,7 +677,7 @@ static bool CallFunction(const char* name, const char* args)
 		}
 	}
 
-	Call(nullptr, subLine);
+	g_macroSystem->MacroCall(subLine);
 
 	// In case we're calling from an else, we need to adjust where we are expecting to return to.
 	gMacroStack->pNext->LocationIndex = saved_block_line;

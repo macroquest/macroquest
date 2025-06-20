@@ -91,7 +91,6 @@ MQLIB_API bool IsTargetable(eqlib::PlayerClient* pSpawn);
 MQLIB_API bool AreNameSpritesCustomized();
 
 /* OVERLAY */
-MQLIB_API bool IsImGuiForeground();
 MQLIB_API void SetOverlayEnabled(bool visible);
 MQLIB_API bool IsOverlayEnabled();
 
@@ -533,10 +532,7 @@ MQLIB_API HMODULE GetCurrentModule();
 
 MQLIB_API void AttackRanged(eqlib::PlayerClient* pRangedTarget = eqlib::pTarget);
 MQLIB_API void UseAbility(const char* sAbility);
-MQLIB_OBJECT MQMacroBlockPtr GetNextMacroBlock();
-MQLIB_OBJECT MQMacroBlockPtr GetCurrentMacroBlock();
-MQLIB_API int GetMacroBlockCount();
-MQLIB_API void EndAllMacros();
+
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
