@@ -86,7 +86,7 @@ protected:
 	virtual void OnPreZoneUI() override;
 	virtual void OnPostZoneUI() override;
 	virtual void OnWriteChatColor(const char* message, int color, int filter) override;
-	virtual bool OnIncomingChat(const char* message, int color) override;
+	virtual bool OnIncomingChat(const IncomingChatParams& params) override;
 	virtual void OnZoned() override;
 	virtual void OnDrawHUD() override;
 	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;

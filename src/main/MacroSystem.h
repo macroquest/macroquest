@@ -204,12 +204,6 @@ MQLIB_VAR bool gTurbo;
 
 MQLIB_VAR bool gMQPauseOnChat;
 
-MQLIB_VAR int gEventFunc[NUM_EVENTS];
-MQLIB_VAR DWORD gEventChat;
-extern Blech* pMQ2Blech;
-MQLIB_VAR char EventMsg[MAX_STRING];
-MQLIB_VAR Blech* pEventBlech;
-
 MQLIB_VAR int gDelay;
 MQLIB_VAR char gDelayCondition[MAX_STRING];
 
@@ -245,7 +239,7 @@ private:
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
 	virtual void OnProcessFrame() override;
-	virtual void OnGameStateChanged(int newGameState) override;
+	virtual bool OnIncomingChat(const IncomingChatParams& params) override;
 };
 
 extern MacroSystem* g_macroSystem;

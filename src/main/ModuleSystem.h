@@ -75,6 +75,30 @@ enum class ModuleFlags : uint32_t
 constexpr bool has_bitwise_operations(ModuleFlags) { return true; }
 
 /**
+ * Parameters for OnIncomingChat event
+ */
+struct IncomingChatParams
+{
+	const char* message;
+	int color;
+
+	bool filtered;              // true if message is filtered
+	const char* stripped;       // original message with links stripped
+};
+
+/**
+ * Describes the dependencies for a module. If the dependencies are not met,
+ * the module will fail to load.
+ */
+struct ModuleDependencies
+{
+	/**
+	 * List of module names that are required in order for this module to be loaded.
+	 */
+	std::vector<std::string> modules;
+};
+
+/**
  * Base class representing a module in the MacroQuest framework. A module is a basic unit of functionality,
  * providing a suite of events that can be overridden to implement custom behavior.
  */
@@ -85,6 +109,22 @@ class MQModuleBase
 protected:
 	/** Protected constructor. This class should be subclassed to implement module functionality. */
 	MQModuleBase(std::string_view name, int priority = static_cast<int>(ModulePriority::Default), ModuleFlags flags = ModuleFlags::None);
+
+	/**
+	 * Add a module name to the list of module dependencies.
+	 */
+	void AddModuleDependency(std::string moduleDependency)
+	{
+		m_dependencies.modules.emplace_back(std::move(moduleDependency));
+	}
+
+	/**
+	 * Set the list of module dependencies
+	 */
+	void SetModuleDependencies(std::vector<std::string> dependencies)
+	{
+		m_dependencies.modules = std::move(dependencies);
+	}
 
 public:
 	virtual ~MQModuleBase() = default;
@@ -120,6 +160,11 @@ public:
 	 * Retrieve the module's handle
 	 */
 	MQPluginHandle GetHandle() const { return m_handle; }
+
+	/**
+	 * Retrieve this module's dependencies descriptor
+	 */
+	const ModuleDependencies& GetDependencies() const { return m_dependencies; }
 
 	//----------------------------------------------------------------------------
 
@@ -206,10 +251,9 @@ public:
 		m_flags |= ModuleFlags::SkipOnWriteChatColor;
 	}
 
-	virtual bool OnIncomingChat(const char* message, int color)
+	virtual bool OnIncomingChat(const IncomingChatParams& params)
 	{
-		UNUSED(message);
-		UNUSED(color);
+		UNUSED(params);
 
 		m_flags |= ModuleFlags::SkipOnIncomingChat;
 
@@ -295,6 +339,7 @@ protected:
 	int m_priority;
 	std::string m_name;
 	ModuleFlags m_flags = ModuleFlags::None;
+	ModuleDependencies m_dependencies;
 
 private:
 	MQPluginHandle m_handle;

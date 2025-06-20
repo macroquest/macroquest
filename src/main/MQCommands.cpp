@@ -62,6 +62,65 @@ void Unload(PlayerClient*, const char* szLine)
 }
 
 // ***************************************************************************
+// Function:    Delay
+// Description: Our '/delay' command
+// Usage:       /delay <time> [condition to end early]
+// ***************************************************************************
+void DelayCommand(PlayerClient*, const char* szLine)
+{
+	if (szLine[0] == 0)
+	{
+		SyntaxError("Usage: /delay <time> [condition to end early]");
+		return;
+	}
+
+	char szVal[MAX_STRING] = { 0 };
+	GetArg(szVal, szLine, 1);
+
+	ParseMacroData(szVal, MAX_STRING);
+	strcpy_s(gDelayCondition, GetNextArg(szLine));
+
+	int VarValue = GetIntFromString(szVal, 0);
+	size_t len = strlen(szVal);
+
+	// Measured in deciseconds...
+	if (::tolower(szVal[len - 1]) == 'm')
+		VarValue *= 600;
+	else if (::tolower(szVal[len - 1]) == 's')
+	{
+		if (len > 2 && ::tolower(szVal[len - 2]) == 'm')
+			VarValue /= 100;
+		else
+			VarValue *= 10;
+	}
+
+	gDelay = VarValue;
+	bRunNextCommand = false;
+
+	if (gDelayCondition[0])
+	{
+		char szCond[MAX_STRING];
+		strcpy_s(szCond, gDelayCondition);
+
+		ParseMacroData(szCond, MAX_STRING);
+
+		double Result;
+		if (!Calculate(szCond, Result))
+		{
+			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
+			return;
+		}
+
+		// TODO:  Determine the bounds on what "0" should be here since this is a double.
+		if (Result != 0)
+		{
+			gDelay = 0;
+			bRunNextCommand = true;
+		}
+	}
+}
+
+// ***************************************************************************
 // Function:    SuperWho
 // Description: Our '/who' command
 //              Displays a list of spawns in the zone
@@ -1917,6 +1976,44 @@ void MacroLogCommand(PlayerClient*, const char* szLine)
 	bRunNextCommand = true;
 
 	MacroLog(szLine);
+}
+
+// ***************************************************************************
+// Function:    MultilineCommand
+// Description: Our '/multiline' command
+// Usage:       /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]
+// ***************************************************************************
+void MultilineCommand(PlayerClient*, const char* szLine)
+{
+	if (szLine[0] == 0)
+	{
+		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
+		return;
+	}
+
+	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
+	GetArg(szArg, szLine, 1);
+
+	const char* szRest = GetNextArg(szLine);
+	if (!szRest[0])
+		return;
+
+	char Copy[MAX_STRING] = { 0 };
+	strcpy_s(Copy, szRest); // don't destroy original...
+
+	char* next_token1 = nullptr;
+	char* token1 = strtok_s(Copy, szArg, &next_token1);
+	while (token1 != nullptr)
+	{
+		std::string strCmd = token1;
+		trim(strCmd);
+		if (!strCmd.empty())
+		{
+			DoCommand(&strCmd[0], false);
+		}
+
+		token1 = strtok_s(nullptr, szArg, &next_token1);
+	}
 }
 
 static void FaceObject(const MQGameObject& faceTarget, int flags)

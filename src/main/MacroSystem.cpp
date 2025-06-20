@@ -19,15 +19,17 @@
 #include "MQ2Main.h"
 #include "MQ2KeyBinds.h"
 #include "MacroQuest.h"
+#include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "datatypes/MQ2DataTypes.h"
 
 #include "mq/api/CommandAPI.h"
 
 #include <regex>
+#include <filesystem>
 #include <fstream>
 
-#include "MQCommandAPI.h"
+namespace fs = std::filesystem;
 
 using namespace eqlib;
 using namespace mq::datatypes;
@@ -82,14 +84,18 @@ int gDelay = 0;
 char gDelayCondition[MAX_STRING] = { 0 };
 bool gFilterMQ2DataErrors = false;
 
+Blech* pMQ2Blech = nullptr;
+char EventMsg[MAX_STRING] = { 0 };
+char gszMacroName[MAX_STRING] = { 0 };
+
 static uint64_t s_commandCount = 0;
 
-void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
-
-static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
+static bool AddMacroLine(const std::string& FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 static void EngineCommand(PlayerClient*, const char* szLine);
 static void EndMacroCommand(PlayerClient*, const char* szLine);
 static void Call(PlayerClient*, const char* szLine);
+
+static void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
 
 static void format_args(fmt::appender& buffer, const std::vector<std::string>& args)
 {
@@ -321,21 +327,20 @@ void CleanMacroLine(char* szLine)
 // Description: Includes another macro file
 // Usage:       #include <filename>
 // ***************************************************************************
-// TODO:  Switch this to take input of filesystem::path instead of const char*  Breaking change?
-bool Include(const char* szFile, int* LineNumber)
+static bool Include(const fs::path& includePath, int* LineNumber)
 {
-	FILE* fMacro = _fsopen(szFile, "rt", _SH_DENYNO);
+	std::string includePathStr = includePath.string();
+	FILE* fMacro = _fsopen(includePathStr.c_str(), "rt", _SH_DENYNO);
 	if (fMacro == nullptr)
 	{
-		FatalError("Couldn't open include file: %s", szFile);
+		FatalError("Couldn't open include file: %s", includePathStr.c_str());
 		return false;
 	}
 
-	DebugSpewNoFile("Include - Including: %s", szFile);
+	const std::string strMacroName = includePath.filename().string();
 
 	int LocalLine = 0;
 	bool InBlockComment = false;
-	const char* Macroname = GetFilenameFromFullPath(szFile);
 	char szTemp[MAX_STRING] = { 0 };
 
 	while (!feof(fMacro))
@@ -356,7 +361,7 @@ bool Include(const char* szFile, int* LineNumber)
 
 		if (!InBlockComment)
 		{
-			if (!AddMacroLine(Macroname, szTemp, MAX_STRING, LineNumber, LocalLine))
+			if (!AddMacroLine(strMacroName, szTemp, MAX_STRING, LineNumber, LocalLine))
 			{
 				MacroError("Unable to add macro line.");
 
@@ -386,7 +391,7 @@ bool Include(const char* szFile, int* LineNumber)
 // Function:    AddMacroLine
 // Description: Add a line to the MacroBlock
 // ***************************************************************************
-static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine)
+static bool AddMacroLine(const std::string& FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine)
 {
 	// replace all tabs with spaces
 	if ((szLine[0] == 0) || (szLine[0] == '|'))
@@ -450,13 +455,13 @@ static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int
 			if (!optional)
 			{
 				// Include() contains the error messages, so let it error if it doesn't exist
-				return Include(incFilePath.string().c_str(), LineNumber);
+				return Include(incFilePath, LineNumber);
 			}
 
 			// if we're here, it was optional so only include if it exists
 			if (exists(incFilePath, ec_exists))
 			{
-				return Include(incFilePath.string().c_str(), LineNumber);
+				return Include(incFilePath, LineNumber);
 			}
 		}
 		else if (!_strnicmp(szLine, "#warning", 8))
@@ -525,7 +530,7 @@ static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int
 
 						if (VariableMap.find(szVar) == VariableMap.end())
 						{
-							// we dont know what the macro will varset this to, so we just
+							// we don't know what the macro will varset this to, so we just
 							// default it to the same name as the key...
 							// cant set it to "" cause then it triggers on every single line of
 							// chat before they /varset it to something... (if they ever)
@@ -649,7 +654,7 @@ static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int
 		std::forward_as_tuple(szLine, FileName, localLine));
 	if (!success)
 	{
-		MacroError("Duplicate line number detected! %s@%d", FileName, localLine);
+		MacroError("Duplicate line number detected! %s@%d", FileName.c_str(), localLine);
 	}
 
 #ifdef MQ2_PROFILING
@@ -1375,7 +1380,7 @@ static bool AddEventVariable(const char* Name, const char* Index, MQ2Type* pType
 	return true;
 }
 
-void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues)
+static void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues)
 {
 	DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'", ID, pData, pValues, EventMsg);
 
@@ -1500,7 +1505,19 @@ static void AddEvent(MQEventType Event, const char* FirstArg, ...)
 	}
 }
 
-void MacroSystem_CheckChatForEvent(const char* szClean)
+static unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
+{
+	strcpy_s(Value, ValueLen, VarName);
+
+	if (pLocalPlayer)
+	{
+		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
+	}
+
+	return static_cast<uint32_t>(strlen(Value));
+}
+
+static void CheckChatForEvent(const char* szClean)
 {
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))
@@ -2082,65 +2099,6 @@ static void DeclareVar(PlayerClient*, const char* szLine)
 		{
 			MQTimer* pTimer = static_cast<MQTimer*>((*pScope)->Var.Ptr);
 			pTimer->Name = szName;
-		}
-	}
-}
-
-// ***************************************************************************
-// Function:    Delay
-// Description: Our '/delay' command
-// Usage:       /delay <time> [condition to end early]
-// ***************************************************************************
-static void Delay(PlayerClient*, const char* szLine)
-{
-	if (szLine[0] == 0)
-	{
-		SyntaxError("Usage: /delay <time> [condition to end early]");
-		return;
-	}
-
-	char szVal[MAX_STRING] = { 0 };
-	GetArg(szVal, szLine, 1);
-
-	ParseMacroData(szVal, MAX_STRING);
-	strcpy_s(gDelayCondition, GetNextArg(szLine));
-
-	int VarValue = GetIntFromString(szVal, 0);
-	size_t len = strlen(szVal);
-
-	// Measured in deciseconds...
-	if (::tolower(szVal[len - 1]) == 'm')
-		VarValue *= 600;
-	else if (::tolower(szVal[len - 1]) == 's')
-	{
-		if (len > 2 && ::tolower(szVal[len - 2]) == 'm')
-			VarValue /= 100;
-		else
-			VarValue *= 10;
-	}
-
-	gDelay = VarValue;
-	bRunNextCommand = false;
-
-	if (gDelayCondition[0])
-	{
-		char szCond[MAX_STRING];
-		strcpy_s(szCond, gDelayCondition);
-
-		ParseMacroData(szCond, MAX_STRING);
-
-		double Result;
-		if (!Calculate(szCond, Result))
-		{
-			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
-			return;
-		}
-
-		// TODO:  Determine the bounds on what "0" should be here since this is a double.
-		if (Result != 0)
-		{
-			gDelay = 0;
-			bRunNextCommand = true;
 		}
 	}
 }
@@ -3058,7 +3016,7 @@ static void Macro(PlayerClient*, const char* szLine)
 
 		if (!InBlockComment)
 		{
-			if (!AddMacroLine(strMacroName.c_str(), szTemp, MAX_STRING, &LineIndex, LocalLine))
+			if (!AddMacroLine(strMacroName, szTemp, MAX_STRING, &LineIndex, LocalLine))
 			{
 				MacroError("Unable to add macro line.");
 				fclose(fMacro);
@@ -3210,44 +3168,6 @@ static void MacroPause(PlayerClient*, const char* szLine)
 	{
 		WriteChatf("Macro is %s.", (Pause) ? "paused" : "running again");
 		pBlock->Paused = Pause;
-	}
-}
-
-// ***************************************************************************
-// Function:    MultilineCommand
-// Description: Our '/multiline' command
-// Usage:       /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]
-// ***************************************************************************
-static void MultilineCommand(PlayerClient*, const char* szLine)
-{
-	if (szLine[0] == 0)
-	{
-		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
-		return;
-	}
-
-	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
-	GetArg(szArg, szLine, 1);
-
-	const char* szRest = GetNextArg(szLine);
-	if (!szRest[0])
-		return;
-
-	char Copy[MAX_STRING] = { 0 };
-	strcpy_s(Copy, szRest); // don't destroy original...
-
-	char* next_token1 = nullptr;
-	char* token1 = strtok_s(Copy, szArg, &next_token1);
-	while (token1 != nullptr)
-	{
-		std::string strCmd = token1;
-		trim(strCmd);
-		if (!strCmd.empty())
-		{
-			DoCommand(&strCmd[0], false);
-		}
-
-		token1 = strtok_s(nullptr, szArg, &next_token1);
 	}
 }
 
@@ -3895,6 +3815,8 @@ MacroSystem* g_macroSystem = nullptr;
 MacroSystem::MacroSystem()
 	: MQModuleBase("MacroSystem", static_cast<int>(ModulePriority::Macros))
 {
+	SetModuleDependencies({ "Commands", "DataTypes" });
+
 	g_macroSystem = this;
 }
 
@@ -3912,12 +3834,11 @@ void MacroSystem::Initialize()
 		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
 		{ "/continue",          Continue,                   true,  false },
 		{ "/declare",           DeclareVar,                 true,  false },
-		{ "/delay",             Delay,                      false, false },
 		{ "/deletevar",         DeleteVarCmd,               true,  false },
 		{ "/docommand",         DoCommandCmd,               true,  false },
 		{ "/doevents",          DoEvents,                   true,  false },
 		{ "/dumpstack",         DumpStack,                  true,  false },
-		{ "/endmacro",          EndMacroCommand,                   true,  false },
+		{ "/endmacro",          EndMacroCommand,            true,  false },
 		{ "/engine",            EngineCommand,              true,  false },
 		{ "/for",               For,                        true,  false },
 		{ "/goto",              Goto,                       true,  false },
@@ -3927,7 +3848,6 @@ void MacroSystem::Initialize()
 		{ "/listmacros",        ListMacros,                 true,  false },
 		{ "/macro",             Macro,                      true,  false },
 		{ "/mqpause",           MacroPause,                 true,  false },
-		{ "/multiline",         MultilineCommand,           false, false },
 		{ "/next",              Next,                       true,  false },
 		{ "/noparse",           NoParseCmd,                 false, false },
 		{ "/profile",           ProfileCmd,                 true,  false },
@@ -3938,10 +3858,6 @@ void MacroSystem::Initialize()
 		{ "/varset",            VarSetCmd,                  true,  false },
 		{ "/where",             Where,                      true,  true  },
 		{ "/while",             MacroWhileCmd,              true,  false },
-
-		// Can put these back, i guess...
-		{ "/mqlog",             MacroLogCommand,            true,  false },
-		{ "/squelch",           SquelchCommand,             true,  false },
 	};
 
 	// Add all of our commands
@@ -3949,6 +3865,10 @@ void MacroSystem::Initialize()
 	{
 		AddCommand(reg.szCommand, reg.pFunc, false, reg.Parse, reg.InGame);
 	}
+
+	// initialize Blech
+	pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);
+	pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);
 
 	const std::string& iniFile = mq::internal_paths::MQini;
 
@@ -3961,18 +3881,21 @@ void MacroSystem::Initialize()
 
 	if (gbWriteAllConfig)
 	{
-		WritePrivateProfileBool("MacroQuest",   "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
-		WritePrivateProfileBool("MacroQuest",   "AllErrorsFatal", bAllErrorsFatal, iniFile);
-		WritePrivateProfileBool("MacroQuest",   "KeepKeys", gKeepKeys, iniFile);
-		WritePrivateProfileBool("MacroQuest",   "MQPauseOnChat", gMQPauseOnChat, iniFile);
-		WritePrivateProfileInt("MacroQuest",    "ParserEngine", gParserVersion, iniFile);
-		WritePrivateProfileInt("MacroQuest",    "TurboLimit", gTurboLimit, iniFile);
-
+		WritePrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
+		WritePrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
+		WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
+		WritePrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, iniFile);
+		WritePrivateProfileInt("MacroQuest",  "ParserEngine", gParserVersion, iniFile);
+		WritePrivateProfileInt("MacroQuest",  "TurboLimit", gTurboLimit, iniFile);
 	}
 }
 
 void MacroSystem::Shutdown()
 {
+	delete pEventBlech;
+	pEventBlech = nullptr;
+	delete pMQ2Blech;
+	pMQ2Blech = nullptr;
 }
 
 void MacroSystem::OnProcessFrame()
@@ -4022,8 +3945,21 @@ void MacroSystem::OnProcessFrame()
 	}
 }
 
-void MacroSystem::OnGameStateChanged(int newGameState)
+bool MacroSystem::OnIncomingChat(const IncomingChatParams& params)
 {
+	// don't know why we check for this.
+	if (params.color != USERCOLOR_BROADCAST)
+	{
+		strncpy_s(EventMsg, params.stripped, MAX_STRING - 1);
+		EventMsg[MAX_STRING - 1] = 0;
+		if (pMQ2Blech)
+			pMQ2Blech->Feed(EventMsg);
+		EventMsg[0] = 0;
+
+		CheckChatForEvent(params.stripped);
+	}
+
+	return false;
 }
 
 bool MacroSystem::IsMacroRunning() const

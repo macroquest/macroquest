@@ -690,10 +690,22 @@ void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 	else
 	{
 		MQModuleBase* m = module.get();
+		SPDLOG_DEBUG("AddModule: module={}", m->GetName());
+
+		// non-plugins have additional checks to perform.
+		if (!m->IsPlugin())
+		{
+			if (m_namedModuleMap.find(m->GetName()) != m_namedModuleMap.end())
+			{
+				SPDLOG_ERROR("AddModule failed: module name \"{}\" already exists!", m->GetName());
+				return;
+			}
+
+			if (!CheckModuleDependencies(m))
+				return;
+		}
 
 		m->m_handle = CreateModuleHandle();
-
-		SPDLOG_DEBUG("AddModule: module={}", module->GetName());
 
 		// Insert module into m_modules in order sorted by priority. Lowest priority values go first.
 		auto it = std::lower_bound(m_modules.begin(), m_modules.end(), m,
@@ -702,6 +714,12 @@ void MacroQuest::AddModule(std::unique_ptr<MQModuleBase> module)
 
 		m_modules.emplace(it, std::move(module));
 		m_moduleHandleMap[m->m_handle.pluginID] = m;
+
+		// Add static modules to named module map.
+		if (!m->IsPlugin())
+		{
+			m_namedModuleMap.emplace(m->GetName(), m);
+		}
 
 		if (m_initializedModules)
 		{
@@ -791,12 +809,14 @@ std::unique_ptr<MQModuleBase> MacroQuest::RemoveModule(MQPluginHandle handle)
 
 			// This is safe to remove now.
 			m_moduleHandleMap.erase(iter);
+			m_namedModuleMap.erase(iter->second->GetName());
 
 			return module;
 		}
 		
 		// This is safe to remove now.
 		m_moduleHandleMap.erase(iter);
+		m_namedModuleMap.erase(iter->second->GetName());
 	}
 	else
 	{
@@ -823,6 +843,29 @@ MQPluginHandle MacroQuest::CreateModuleHandle()
 	return MQPluginHandle(pluginID);
 }
 
+bool MacroQuest::CheckModuleDependencies(MQModuleBase* module)
+{
+	const ModuleDependencies& deps = module->GetDependencies();
+
+	// Check dependencies on other modules
+	if (!deps.modules.empty())
+	{
+		for (const auto& dep : deps.modules)
+		{
+			auto iter = m_namedModuleMap.find(dep);
+			if (iter == m_namedModuleMap.end())
+			{
+				SPDLOG_ERROR("CheckModuleDependencies: Module {} requires module {}, which is not loaded!",
+					module->GetName(), dep);
+
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 MQModuleBase* MacroQuest::GetModuleByHandle(MQPluginHandle handle, bool noMain /* = false */) const
 {
 	if (handle.pluginID == 0)
@@ -833,6 +876,17 @@ MQModuleBase* MacroQuest::GetModuleByHandle(MQPluginHandle handle, bool noMain /
 
 	auto iter = m_moduleHandleMap.find(handle.pluginID);
 	return iter == m_moduleHandleMap.end() ? nullptr : iter->second;
+}
+
+MQModuleBase* MacroQuest::GetModuleByName(std::string_view moduleName) const
+{
+	for (const auto& modulePtr : m_modules)
+	{
+		if (ci_equals(modulePtr->GetName(), moduleName))
+			return modulePtr.get();
+	}
+
+	return nullptr;
 }
 
 void MacroQuest::InitializeModules()
@@ -1309,16 +1363,14 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 		return;
 	if (gFilterMQ)
 		return;
+	if (message[0] == 0)
+		return;
 
 	MQScopedBenchmark bm(bmWriteChatColor);
 
-	if (size_t len = strlen(message))
-	{
-		std::unique_ptr<char[]> plainText = std::make_unique<char[]>(len + 1);
+	std::string plainText = StripMQChat(message);
 
-		StripMQChat(message, plainText.get());
-		CheckChatForEvent(plainText.get());
-	}
+	// Fire off chat events
 
 	ScopedIteratingModules s(this);
 
@@ -1331,13 +1383,9 @@ void MacroQuest::OnWriteChatColor(const char* message, int color, int filter)
 	}
 }
 
-bool MacroQuest::OnIncomingChat(const char* message, int color)
+bool MacroQuest::OnIncomingChat(const IncomingChatParams& params)
 {
 	if (!m_initializedModules)
-		return false;
-
-	// Ignore empty messages
-	if (message[0] == 0)
 		return false;
 
 	bool result = false;
@@ -1350,7 +1398,7 @@ bool MacroQuest::OnIncomingChat(const char* message, int color)
 		if (+(module->GetFlags() & ModuleFlags::SkipOnIncomingChat))
 			continue;
 
-		result = result || module->OnIncomingChat(message, color);
+		result = result || module->OnIncomingChat(params);
 	}
 
 	return result;
@@ -1363,10 +1411,11 @@ void MacroQuest::OnZoned()
 
 	srand((unsigned int)time(nullptr)); // reseed
 
-	char szTemp[128];
-	sprintf_s(szTemp, "You have entered %s.", eqlib::pZoneInfo->LongName);
+	char szZoneMessage[128];
+	sprintf_s(szZoneMessage, "You have entered %s.", eqlib::pZoneInfo->LongName);
 
-	CheckChatForEvent(szTemp);
+	// Fire off chat events
+	HandleIncomingChat(szZoneMessage, USERCOLOR_DEFAULT, true);
 
 	ScopedIteratingModules s(this);
 	MQScopedBenchmark bm(bmPluginsOnZoned);
@@ -1480,6 +1529,26 @@ void MacroQuest::HandleUpdateImGui(bool internalOnly)
 
 		module->OnUpdateImGui();
 	}
+}
+
+bool MacroQuest::HandleIncomingChat(const char* message, int color, bool filtered)
+{
+	// Use the OnIncomingChat event to process events for this chat, but mark it
+	// as filtered so that it doesn't get sent to plugins.
+	IncomingChatParams params;
+	params.message = message;
+	params.color = color;
+	params.stripped = message;
+	params.filtered = filtered;
+
+	eqlib::CXStr strippedMessage;
+	if (strchr(params.message, '\x12'))
+	{
+		strippedMessage = eqlib::CleanItemTags(params.message, false);
+		params.stripped = strippedMessage.c_str();
+	}
+
+	return OnIncomingChat(params);
 }
 
 //============================================================================

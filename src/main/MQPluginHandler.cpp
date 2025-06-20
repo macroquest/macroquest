@@ -407,11 +407,14 @@ void MQPluginV1Module::OnWriteChatColor(const char* message, int color, int filt
 	}
 }
 
-bool MQPluginV1Module::OnIncomingChat(const char* message, int color)
+bool MQPluginV1Module::OnIncomingChat(const IncomingChatParams& params)
 {
+	if (params.filtered)
+		return false;
+
 	if (m_plugin.IncomingChat)
 	{
-		return m_plugin.IncomingChat(message, color);
+		return m_plugin.IncomingChat(params.message, params.color);
 	}
 
 	return false;

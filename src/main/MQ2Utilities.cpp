@@ -524,11 +524,60 @@ char* GetEQPath(char* szBuffer, size_t len)
 	return szBuffer;
 }
 
-void StripMQChat(std::string_view in, char* out)
+template <typename OutputIt>
+void StripMQChatInternal(std::string_view in, OutputIt iter)
 {
 	size_t i = 0;
-	int o = 0;
 	while (i < in.size() && in[i])
+	{
+		if (in[i] == '\a')
+		{
+			i++;
+			if (in[i] == '-')
+			{
+				// skip 1 after -
+				i++;
+			}
+			else if (in[i] == '#')
+			{
+				// skip 6 after #
+				i += 6;
+			}
+		}
+		else if (in[i] == '\n')
+		{
+		}
+		else
+		{
+			*iter = in[i];
+		}
+
+		i++;
+	}
+
+	*iter = 0;
+}
+
+std::string StripMQChat(std::string_view in)
+{
+	std::string out;
+	out.reserve(in.size());
+
+	auto iter = std::back_inserter(out);
+
+	StripMQChatInternal(in, iter);
+
+	return out;
+}
+
+void StripMQChat(std::string_view in, char* out, size_t len)
+{
+	size_t i = 0;
+	size_t o = 0;
+
+	// TODO: Implement a generic buffer that can use the output iterator, like fmt::detail::buffer
+
+	while (i < in.size() && o < len - 1 && in[i])
 	{
 		if (in[i] == '\a')
 		{
@@ -1110,14 +1159,6 @@ static bool ItemHasClass(ItemClient* pCont, std::string_view search)
 	}
 
 	return false;
-}
-
-const char* GetFilenameFromFullPath(const char* Filename)
-{
-	while (Filename && strstr(Filename, "\\"))
-		Filename = strstr(Filename, "\\") + 1;
-
-	return Filename;
 }
 
 bool CompareTimes(char* RealTime, char* ExpectedTime)

@@ -159,21 +159,28 @@ inline char* GetNextArg(char* szLine, int dwNumber = 1, bool CSV = false, char S
 MQLIB_API DEPRECATE("The EQ Path is the working directory.")
 char* GetEQPath(char* szBuffer, size_t len);
 
+
 MQLIB_API DWORD MQToSTML(const char* in, char* out, size_t maxlen = MAX_STRING, uint32_t ColorOverride = 0xFFFFFF);
+
 MQLIB_API void StripMQChat(const char* in, char* out);
-MQLIB_OBJECT void StripMQChat(std::string_view in, char* out);
+
+MQLIB_OBJECT void StripMQChat(std::string_view in, char* out, size_t len = MAX_STRING);
+
+template <size_t Size>
+void StripMQChat(const char* in, char(&buffer)[Size])
+{
+	StripMQChat(std::string_view{ in }, buffer, Size);
+}
+
+std::string StripMQChat(std::string_view in);
+
 MQLIB_API void STMLToPlainText(char* in, char* out);
-MQLIB_API const char* GetFilenameFromFullPath(const char* Filename);
 MQLIB_API bool CompareTimes(char* RealTime, char* ExpectedTime);
+
 MQLIB_API void AddFilter(const char* szFilter, int Length, bool& pEnabled);
 MQLIB_API void DefaultFilters();
-MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 
-/**
- * Checks a line of chat for events and fires off any events that should be
- * triggered as a result.
- */
-MQLIB_API void CheckChatForEvent(const char* szMsg);
+MQLIB_API char* ConvertHotkeyNameToKeyName(char* szName);
 
 MQLIB_API int FindInvSlotForContents(eqlib::ItemClient* pContents);
 MQLIB_API int FindInvSlot(const char* Name, bool Exact);

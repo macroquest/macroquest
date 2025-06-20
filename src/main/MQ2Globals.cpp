@@ -41,12 +41,8 @@ bool gbForceUnload = false;
 double gZFilter = 10000.0f;
 double gFaceAngle = 10000.0f;
 double gLookAngle = 10000.0f;
-char gszMacroName[MAX_STRING] = { 0 };
 char szLastCommand[MAX_STRING] = { 0 };
 char gUISkin[MAX_PATH] = "default";
-
-Blech *pMQ2Blech = nullptr;
-char EventMsg[MAX_STRING] = { 0 };
 
 bool gbMoving = false;
 bool gItemsReceived = false;

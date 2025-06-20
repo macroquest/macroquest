@@ -36,6 +36,7 @@ MQLIB_API void ClearErrorsCmd                      (eqlib::PlayerClient* pChar, 
 MQLIB_API void Click                               (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void CombineCmd                          (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DebugSpewFile                       (eqlib::PlayerClient* pChar, const char* szLine);
+MQLIB_API void DelayCommand                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DisplayLoginName                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoAbility                           (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void DoAltCmd                            (eqlib::PlayerClient* pChar, const char* szLine);
@@ -76,6 +77,7 @@ MQLIB_API void MercSwitchCmd                       (eqlib::PlayerClient* pChar, 
 MQLIB_API void MouseTo                             (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MQCopyLayout                        (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void MQMsgBox                            (eqlib::PlayerClient* pChar, const char* szLine);
+MQLIB_API void MultilineCommand                    (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void NoModKeyCmd                         (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void PetCmd                              (eqlib::PlayerClient* pChar, const char* szLine);
 MQLIB_API void PickZoneCmd                         (eqlib::PlayerClient* pChar, const char* szLine);

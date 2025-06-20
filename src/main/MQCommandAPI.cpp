@@ -171,6 +171,7 @@ void MQCommandAPI::Initialize()
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
 #endif
 		{ "/ctrlkey",           DoCtrlCmd,                  false, false },
+		{ "/delay",             DelayCommand,               false, false },
 		{ "/destroy",           EQDestroyHeldItemOrMoney,   true,  true  },
 		{ "/doability",         DoAbility,                  true,  true  },
 		{ "/doors",             Doors,                      true,  true  },
@@ -202,8 +203,10 @@ void MQCommandAPI::Initialize()
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
+		{ "/mqlog",             MacroLogCommand,            true,  false },
 		{ "/mqtarget",          Target,                     true,  true  },
 		{ "/msgbox",            MQMsgBox,                   true,  false },
+		{ "/multiline",         MultilineCommand,           false, false },
 		{ "/nomodkey",          NoModKeyCmd,                false, false },
 		{ "/pet",               PetCmd,                     true,  true  },
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
@@ -227,13 +230,13 @@ void MQCommandAPI::Initialize()
 		{ "/shiftkey",          DoShiftCmd,                 false, false },
 		{ "/skills",            Skills,                     true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
+		{ "/squelch",           SquelchCommand,             true,  false },
 		{ "/spewfile",          DebugSpewFile,              true,  false },
 		{ "/target",            Target,                     true,  true  },  // TODO:  Deprecate /target in favor of /mqtarget so that /target is the actual EQ Command. See #298
 		{ "/taskquit",          TaskQuitCmd,                true,  true  },
 		{ "/timed",             DoTimedCmd,                 false, false },
 		{ "/unload",            Unload,                     true,  false },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
-
 		{ "/who",               SuperWho,                   true,  true  },
 		{ "/whofilter",         SWhoFilter,                 true,  true  },
 		{ "/whotarget",         SuperWhoTarget,             true,  true  },

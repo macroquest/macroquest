@@ -27,15 +27,6 @@ namespace mq {
 class PipeMessage;
 using PipeMessagePtr = std::unique_ptr<PipeMessage>;
 
-struct IncomingChatParams
-{
-	const char* message;
-	int color;
-
-	bool filtered;              // true if message is filtered
-	const char* stripped;       // original message with links stripped
-};
-
 class MacroQuest
 	: public eqlib::EventInterface
 	, protected MQDynamicModule
@@ -92,6 +83,7 @@ private:
 
 	virtual void LoadModules();
 	MQPluginHandle CreateModuleHandle();
+	bool CheckModuleDependencies(MQModuleBase* module);
 
 protected:
 	// EQLib callbacks
@@ -113,7 +105,7 @@ protected:
 
 public:
 	virtual void OnWriteChatColor(const char* message, int color, int filter) override;
-	virtual bool OnIncomingChat(const char* message, int color) override;
+	virtual bool OnIncomingChat(const IncomingChatParams& params) override;
 	virtual void OnZoned() override;
 	virtual void OnDrawHUD() override;
 	virtual void OnModuleLoaded(MQModuleBase* module) override;
@@ -124,6 +116,7 @@ public:
 
 	void HandlePipeMessage(PipeMessagePtr messagePtr);
 	void HandleUpdateImGui(bool internalOnly);
+	bool HandleIncomingChat(const char* message, int color, bool filtered);
 
 private:
 	// Module system
@@ -186,6 +179,7 @@ private:
 
 	std::vector<std::unique_ptr<MQModuleBase>> m_modules;            // Modules sorted in priority order
 	std::unordered_map<uint64_t, MQModuleBase*> m_moduleHandleMap;   // Modules indexed by handle
+	ci_unordered::map<std::string, MQModuleBase*> m_namedModuleMap;  // Modules index by name
 
 	bool m_initializedFirstFrame = false;
 	bool m_initializedModules = false;

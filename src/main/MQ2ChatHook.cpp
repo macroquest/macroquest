@@ -40,11 +40,6 @@ static bool HandleChatMessage(eqlib::ChatMessageParams& params)
 
 	gbInChat = true;
 
-	if (params.color != USERCOLOR_BROADCAST)
-	{
-		CheckChatForEvent(params.message);
-	}
-
 	bool filtered = false;
 	MQFilter* filter = gpFilters;
 
@@ -66,36 +61,33 @@ static bool HandleChatMessage(eqlib::ChatMessageParams& params)
 		filter = filter->pNext;
 	}
 
-	if (!filtered)
-	{
-		filtered = g_mq->OnIncomingChat(params.message, params.color);
+	filtered = g_mq->HandleIncomingChat(params.message, params.color, false) || filtered;
 
 #if HAS_CHAT_TIMESTAMPS
-		if (gbTimeStampChat && !filtered)
-		{
-			time_t curr_time;
-			time(&curr_time);
+	if (gbTimeStampChat && !filtered)
+	{
+		time_t curr_time;
+		time(&curr_time);
 
-			std::tm local_tm;
-			localtime_s(&local_tm, &curr_time);
+		std::tm local_tm;
+		localtime_s(&local_tm, &curr_time);
 
-			fmt::memory_buffer buffer;
-			auto out = fmt::format_to(fmt::appender(buffer),
-				"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, params.message);
-			*out = 0;
+		fmt::memory_buffer buffer;
+		auto out = fmt::format_to(fmt::appender(buffer),
+			"[{:02d}:{:02d}:{:02d}] {}\0", local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, params.message);
+		*out = 0;
 
-			params.message = buffer.data();
-			params.handleMessage(params);
+		params.message = buffer.data();
+		params.handleMessage(params);
 
-			filtered = true; // not technically filtered, but we don't want to display it twice.
-		}
+		filtered = true; // not technically filtered, but we don't want to display it twice.
+	}
 #endif // HAS_CHAT_TIMESTAMPS
 
-		// Call original chat handler here so we can close it off by resetting gbInChat.
-		if (!filtered)
-		{
-			params.handleMessage(params);
-		}
+	// Call original chat handler here so we can close it off by resetting gbInChat.
+	if (!filtered)
+	{
+		params.handleMessage(params);
 	}
 
 	gbInChat = false;
@@ -113,12 +105,12 @@ static bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
 	auto iter = fmt::format_to(fmt::appender(buffer), "{} tells you, '{}'", params.senderName, params.message);
 	*iter = 0;
 
-	CheckChatForEvent(buffer.data());
+	// FIXME: Should we be applying the filters here?
 
-	bool filtered = g_mq->OnIncomingChat(buffer.data(), params.color);
+	bool filtered = g_mq->HandleIncomingChat(buffer.data(), params.color, false);
 
 #if HAS_CHAT_TIMESTAMPS
-	if (gbTimeStampChat)
+	if (gbTimeStampChat && !filtered)
 	{
 		time_t curr_time;
 		time(&curr_time);
@@ -174,18 +166,6 @@ void dsp_chat_no_events(const char* message, int color, bool allowLog, bool doPe
 	pEverQuest->dsp_chat(message, color, allowLog, doPercentConvert);
 
 	s_noFilterChat = false;
-}
-
-static unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, size_t ValueLen)
-{
-	strcpy_s(Value, ValueLen, VarName);
-
-	if (pLocalPlayer)
-	{
-		return static_cast<uint32_t>(strlen(ParseMacroParameter(Value, ValueLen)));
-	}
-
-	return static_cast<uint32_t>(strlen(Value));
 }
 
 static void Cmd_FlashOnTells(PlayerClient*, char* szLine)
@@ -314,11 +294,11 @@ static void TellCheck(const char* szClean)
 	if (!isTell || strlen(name) >= EQ_MAX_NAME)
 		return;
 
-	// don't perform action if its us doing the tell
+	// don't perform action if it's us sending the message
 	if (!_stricmp(pLocalPlayer->Name, name))
 		return;
 
-	// don't perform action if its our pet
+	// don't perform action if it's our pet
 	if (pLocalPlayer->PetID != -1)
 	{
 		if (PlayerClient* pPet = GetSpawnByID(pLocalPlayer->PetID))
@@ -345,13 +325,13 @@ static void TellCheck(const char* szClean)
 
 	if (pNpc)
 	{
-		// its not a player
+		// it's not a player
 		if (pNpc->Type != SPAWN_PLAYER)
 		{
 			return;
 		}
 
-		// its a merchantplayer...
+		// it's a merchantplayer...
 		if (pNpc->Trader || pNpc->Buyer)
 		{
 			return;
@@ -379,36 +359,6 @@ static void TellCheck(const char* szClean)
 	}
 }
 
-void MacroSystem_CheckChatForEvent(const char* szMsg);
-
-void CheckChatForEvent(const char* szMsg)
-{
-	size_t len = strlen(szMsg);
-
-	// TODO: Remove dynamic allocation
-	auto pszCleanOrg = std::make_unique<char[]>(len + 64);
-	char* szClean = pszCleanOrg.get();
-
-	strcpy_s(szClean, len + 64, szMsg);
-
-	if (strchr(szClean, '\x12'))
-	{
-		CXStr out = CleanItemTags(szClean, false);
-		strcpy_s(szClean, len + 64, out.c_str());
-	}
-
-	strncpy_s(EventMsg, szClean, MAX_STRING - 1);
-	EventMsg[MAX_STRING - 1] = 0;
-	if (pMQ2Blech)
-		pMQ2Blech->Feed(EventMsg);
-	EventMsg[0] = 0;
-
-	TellCheck(szClean);
-
-	// TODO: Dispatch to macro system if it is enabled
-	MacroSystem_CheckChatForEvent(szClean);
-}
-
 //============================================================================
 
 class ChatHookModule : public MQModuleBase
@@ -434,9 +384,7 @@ public:
 	{
 		LoadSettings();
 
-		// initialize Blech
-		pEventBlech = new Blech('#', '|', MQ2DataVariableLookup);  // TODO: Move to macro system
-		pMQ2Blech = new Blech('#', '|', MQ2DataVariableLookup);    // TODO: Conditional check for macro system
+
 
 		AddCommand("/beepontells", Cmd_BeepOnTells);
 		AddCommand("/flashontells", Cmd_FlashOnTells);
@@ -460,11 +408,6 @@ public:
 
 		RemoveSettingsPanel("Chat");
 #endif
-
-		delete pEventBlech;
-		pEventBlech = nullptr;
-		delete pMQ2Blech;
-		pMQ2Blech = nullptr;
 	}
 
 	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override
@@ -475,6 +418,17 @@ public:
 	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override
 	{
 		return HandleTellWindowMessage(params);
+	}
+
+	virtual bool OnIncomingChat(const IncomingChatParams& params) override
+	{
+		// don't know why we check for this.
+		if (params.color != USERCOLOR_BROADCAST)
+		{
+			TellCheck(params.stripped);
+		}
+
+		return false;
 	}
 };
 
