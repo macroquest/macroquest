@@ -92,9 +92,6 @@
     <ClCompile Include="MQInputAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Data.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQDataAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

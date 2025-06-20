@@ -139,9 +139,6 @@ MQLIB_API bool ClickMouseItem(const MQGroundSpawn& pGroundSpawn, bool left);
 inline bool ClickMouseItem(eqlib::PlayerClient* pChar, const MQGroundSpawn& pGroundSpawn, bool left) { return ClickMouseItem(pGroundSpawn, left); }
 void MouseConsume(int mouseButton, bool pressed);
 
-/* UTILITIES */
-MQLIB_API void ConvertCR(char* Text, size_t LineLen);
-
 /** Draw text on the HUD */
 MQLIB_API void DrawHUDText(const char* Text, int X, int Y, unsigned int Argb, int Font);
 
@@ -287,7 +284,6 @@ MQLIB_API void SyntaxError(const char* szFormat, ...);
 MQLIB_API void MacroError(const char* szFormat, ...);
 MQLIB_API void FatalError(const char* szFormat, ...);
 MQLIB_API char* GetSpellRestrictions(eqlib::EQ_Spell* pSpell, unsigned int nIndex, char* szBuffer, size_t BufferSize);
-MQLIB_API void MQ2DataError(const char* szFormat, ...);
 MQLIB_API void DisplayOverlayText(const char* szText, int dwColor, uint32_t dwTransparency, uint32_t msFadeIn, uint32_t msFadeOut, uint32_t msHold);
 MQLIB_API void CustomPopup(const char* szPopText, bool bPopOutput);
 

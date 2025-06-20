@@ -96,6 +96,24 @@ ECombatState GetCombatState()
 #pragma endregion
 
 #pragma region Caption Colors
+
+static void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
+{
+	DWORD NewLength = (DWORD)strlen(szNewString);
+	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
+	memcpy_s(szInsert, InsertLen - NewLength, szNewString, NewLength);
+}
+
+static void ConvertCR(char* Text, size_t LineLen)
+{
+	// not super-efficient but this is only being called at initialization currently.
+	while (char* Next = strstr(Text, "\\n"))
+	{
+		int len = (int)(Next - Text);
+		StrReplaceSection(Next, LineLen - len, 2, "\n");
+	}
+}
+
 //----------------------------------------------------------------------------
 // caption color code
 //----------------------------------------------------------------------------

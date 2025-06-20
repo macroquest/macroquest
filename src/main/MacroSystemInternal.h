@@ -29,6 +29,9 @@ void ClearDataVariables(MQDataVar** ppHead);
 
 MQDataVar** FindVariableScope(const char* Name);
 
+extern std::map<std::string, int> gUndeclaredVars;
+extern mq::ci_ordered::map<std::string, int> gMacroSubLookupMap;
+
 class StackFrame
 {
 public:

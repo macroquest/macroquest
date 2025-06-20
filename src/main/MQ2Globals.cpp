@@ -65,21 +65,15 @@ bool gFilterMQ = false;
 bool gFilterEncumber = false;
 bool gFilterCustom = true;
 bool gSpewToFile = false;
-bool gMQPauseOnChat = false;
 bool gLClickedObject = false;
 MQWhoFilter gFilterSWho;
-bool gFilterMQ2DataErrors = false;
-char gIfDelimiter = ',';
-char gIfAltDelimiter = '~';
+
 
 eStackingDebug gStackingDebug = STACKINGDEBUG_OFF;
 bool gUseNewNamedTest = false;
 bool gbInForeground = false;
 eAssistStage gbAssistComplete = AS_None;
 
-MQTimer* gTimer = nullptr;
-int gDelay = 0;
-char gDelayCondition[MAX_STRING] = { 0 };
 bool bAllowCommandParse = true;
 std::map<DWORD, std::list<MQSpawnSearch>> gAlertMap;
 
@@ -150,23 +144,15 @@ Property<GROUNDITEM*> pGroundTarget = Property<GROUNDITEM*>(
 		return GetGroundSpawnByID(other->DropID).Get<EQGroundItem>();
 	});
 
+bool TurnNotDone = false;
 EQSwitch* pSwitchTarget = nullptr;
 ITEMDB* gItemDB = nullptr;
-bool bRunNextCommand = false;
-bool gTurbo = false;
-bool gWarning = false;
-MQDefine* pDefines = nullptr;
-MQBindList* pBindList = nullptr;
 MQFilter* gpFilters = nullptr;
 
 // Deprecated
 int DoorEnviroTarget = 0;
 
 EQSwitch* pDoorTarget = nullptr;
-
-// TODO: Remove this once the parsing engine is fully backwards compatible.
-// Alternatively, move it into the macro block.
-int gParserVersion = 1;
 
 // EQ Functions Initialization
 fEQCommand cmdHelp = nullptr;

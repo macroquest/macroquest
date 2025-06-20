@@ -561,7 +561,7 @@ bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::list<std::string>&
 		{
 			Changed = true;
 		}
-	} while (pBrace = strstr(&pBrace[1], "${"));
+	} while ((pBrace = strstr(&pBrace[1], "${")));
 
 	if (Changed)
 	{
@@ -679,7 +679,7 @@ PLUGIN_API void OnDrawHUD()
 			}
 
 			strcpy_s(szBuffer, pElement->PreParsed);
-			if (szBuffer[0] && strcmp(szBuffer, "nullptr"))
+			if (szBuffer[0] && strcmp(szBuffer, "NULL"))
 			{
 				DrawHUDText(szBuffer, X, Y, pElement->Color, pElement->Size);
 			}

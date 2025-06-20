@@ -42,7 +42,19 @@ MQLIB_API uint32_t bmUpdateSpawnCaptions;
 MQLIB_API uint32_t bmCalculate;
 MQLIB_API uint32_t bmRenderScene;
 
-/* OTHER */
+/**
+ * Controls the macro system's command execution. Whenever a macro executes a command, this will be
+ * set to false. If the command sets this back to true, the macro system will continuing executing
+ * commands. This gives commands a frame to perform any side effects by default. If a command has no
+ * side effects, it can set this to true to keep the macro running for that frame.
+ */
+MQLIB_VAR bool bRunNextCommand;
+
+/**
+ * Blocks the macro system while a turn animation is active.
+ */
+MQLIB_VAR bool TurnNotDone;
+
 
 MQLIB_API char gszVersion[32];
 MQLIB_API char gszTime[32];
@@ -71,6 +83,15 @@ MQLIB_VAR char gszItemDB[MAX_STRING] DEPRECATE("Use gResourcesPath / ItemDB.txt 
 MQLIB_VAR char gszMacroName[MAX_STRING];
 MQLIB_VAR char szLastCommand[MAX_STRING];
 
+enum eFilterMacro
+{
+	FILTERMACRO_ALL = 0,
+	FILTERMACRO_ENHANCED = 1,
+	FILTERMACRO_NONE = 2,
+	FILTERMACRO_MACROENDED = 3,
+
+	FILTERMACRO_MAX,
+};
 MQLIB_VAR eFilterMacro gFilterMacro;
 
 MQLIB_VAR char gUISkin[MAX_PATH];
@@ -143,7 +164,7 @@ MQLIB_VAR Property<eqlib::EQGroundItem*> pGroundTarget DEPRECATE("Use CurrentGro
 MQLIB_VAR eqlib::EQSwitch* pDoorTarget DEPRECATE("Use pSwitchTarget instead of pDoorTarget");
 MQLIB_VAR eqlib::EQSwitch* pSwitchTarget;
 MQLIB_VAR ITEMDB* gItemDB;
-MQLIB_VAR bool bRunNextCommand;
+
 MQLIB_VAR MQFilter* gpFilters;
 
 // TODO: Change to use case insensitive comparison

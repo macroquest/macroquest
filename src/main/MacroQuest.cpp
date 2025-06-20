@@ -1508,19 +1508,12 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 	gFilterEncumber = GetPrivateProfileBool("MacroQuest", "FilterEncumber", gFilterEncumber, iniFile);
 	gFilterCustom = GetPrivateProfileBool("MacroQuest", "FilterCustom", gFilterCustom, iniFile);
 	gSpewToFile = GetPrivateProfileBool("MacroQuest", "DebugSpewToFile", gSpewToFile, iniFile);
-	gMQPauseOnChat = GetPrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, iniFile);
-	gKeepKeys = GetPrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
-	bAllErrorsDumpStack = GetPrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
-	bAllErrorsFatal = GetPrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
 	gbExactSearchCleanNames = GetPrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 	gUseTradeOnTarget = GetPrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
 	gbIgnoreAlertRecursion = GetPrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
-	gTurboLimit = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 	gStackingDebug = (eStackingDebug)GetPrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 	gUseNewNamedTest = GetPrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
-	gParserVersion = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
-	gIfDelimiter = GetPrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile)[0];
-	gIfAltDelimiter = GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile)[0];
+
 #if HAS_CHAT_TIMESTAMPS
 	gbTimeStampChat = GetPrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
 #endif
@@ -1536,19 +1529,12 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 		WritePrivateProfileBool("MacroQuest", "FilterEncumber", gFilterEncumber, iniFile);
 		WritePrivateProfileBool("MacroQuest", "FilterCustom", gFilterCustom, iniFile);
 		WritePrivateProfileBool("MacroQuest", "DebugSpewToFile", gSpewToFile, iniFile);
-		WritePrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, iniFile);
-		WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
-		WritePrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
-		WritePrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
 		WritePrivateProfileBool("MacroQuest", "ExactSearchCleanNames", gbExactSearchCleanNames, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseTradeOnTarget", gUseTradeOnTarget, iniFile);
 		WritePrivateProfileBool("MacroQuest", "IgnoreAlertRecursion", gbIgnoreAlertRecursion, iniFile);
-		WritePrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
 		WritePrivateProfileInt("MacroQuest", "BuffStackDebugMode", gStackingDebug, iniFile);
 		WritePrivateProfileBool("MacroQuest", "UseNewNamedTest", gUseNewNamedTest, iniFile);
-		WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile);
-		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), iniFile);
-		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), iniFile);
+
 #if HAS_CHAT_TIMESTAMPS
 		WritePrivateProfileBool("MacroQuest", "TimeStampChat", gbTimeStampChat, iniFile);
 #endif
@@ -1687,17 +1673,34 @@ bool MacroQuest::LoadPreferences(const std::string& iniFile)
 
 bool MacroQuest::AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, const MQPluginHandle& pluginHandle)
 {
-	return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
+	if (pDataAPI)
+	{
+		return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to add TLO '{}' without DataTypes module", name);
+	return false;
 }
 
 bool MacroQuest::RemoveTopLevelObject(const char* name, const MQPluginHandle& pluginHandle)
 {
-	return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
+	if (pDataAPI)
+	{
+		return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to remove TLO '{}' without DataTypes module", name);
+	return false;
 }
 
 MQTopLevelObject* MacroQuest::FindTopLevelObject(const char* name)
 {
-	return pDataAPI->FindTopLevelObject(name);
+	if (pDataAPI)
+	{
+		return pDataAPI->FindTopLevelObject(name);
+	}
+
+	return nullptr;
 }
 
 // ActorAPI functions
@@ -1705,66 +1708,123 @@ MQTopLevelObject* MacroQuest::FindTopLevelObject(const char* name)
 void MacroQuest::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, const std::string& data,
 	const postoffice::ResponseCallbackAPI& callback, const MQPluginHandle& pluginHandle)
 {
-	pActorAPI->SendToActor(dropbox, address, data, callback, pluginHandle);
+	if (pActorAPI)
+	{
+		pActorAPI->SendToActor(dropbox, address, data, callback, pluginHandle);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to send to actor without Actors module");
+	}
 }
 
 void MacroQuest::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message,
 	const std::string& data, uint8_t status, const MQPluginHandle& pluginHandle)
 {
-	pActorAPI->ReplyToActor(dropbox, message, data, status, pluginHandle);
+	if (pActorAPI)
+	{
+		pActorAPI->ReplyToActor(dropbox, message, data, status, pluginHandle);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to reply to actor without Actors module");
+	}
 }
 
 postoffice::Dropbox* MacroQuest::AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive,
 	const MQPluginHandle& pluginHandle)
 {
-	return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
+	if (pActorAPI)
+	{
+		return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to add actor without Actors module");
+	return nullptr;
 }
 
 void MacroQuest::RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle& pluginHandle)
 {
-	pActorAPI->RemoveActor(dropbox, pluginHandle);
+	if (pActorAPI)
+	{
+		pActorAPI->RemoveActor(dropbox, pluginHandle);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to remove actor without Actors module");
+	}
 }
 
 // CommandAPI functions
 
 bool MacroQuest::AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame, const MQPluginHandle& pluginHandle)
 {
-	return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
+	if (pCommandAPI)
+	{
+		return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to add command '{}' without Commands module", command);
+	return false;
 }
 
 bool MacroQuest::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
 {
-	return pCommandAPI->RemoveCommand(command, pluginHandle);
+	if (pCommandAPI)
+	{
+		return pCommandAPI->RemoveCommand(command, pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to remove command '{}' without Commands module", command);
+	return false;
 }
 
 bool MacroQuest::IsCommand(std::string_view command) const
 {
-	return pCommandAPI->IsCommand(command);
+	return pCommandAPI && pCommandAPI->IsCommand(command);
 }
 
 void MacroQuest::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
 {
-	pCommandAPI->DoCommand(command, delayed, pluginHandle);
+	if (pCommandAPI)
+	{
+		pCommandAPI->DoCommand(command, delayed, pluginHandle);
+	}
 }
 
 void MacroQuest::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
 {
-	pCommandAPI->TimedCommand(command, msDelay, pluginHandle);
+	if (pCommandAPI)
+	{
+		pCommandAPI->TimedCommand(command, msDelay, pluginHandle);
+	}
 }
 
 bool MacroQuest::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
 {
-	return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
+	if (pCommandAPI)
+	{
+		return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to add alias '{}' without Commands module", shortCommand);
+	return false;
 }
 
 bool MacroQuest::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
 {
-	return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
+	if (pCommandAPI)
+	{
+		return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
+	}
+
+	SPDLOG_ERROR("Tried to remove alias '{}' without Commands module", shortCommand);
+	return false;
 }
 
 bool MacroQuest::IsAlias(const std::string& alias) const
 {
-	return pCommandAPI->IsAlias(alias);
+	return pCommandAPI && pCommandAPI->IsAlias(alias);
 }
 
 #pragma endregion

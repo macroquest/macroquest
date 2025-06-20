@@ -16,9 +16,11 @@
 
 #include "MQ2MainBase.h"
 
-#include <mq/base/Color.h>
+#include "mq/base/Color.h"
 
 namespace mq {
+
+MQLIB_API void MacroLog(const char* szFormat);
 
 // Format a number of bytes into a string with the appropriate unit.
 MQLIB_API void FormatBytes(char* szBuffer, size_t bufferLength, uint64_t bytes);

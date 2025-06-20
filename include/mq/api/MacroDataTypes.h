@@ -46,7 +46,7 @@ struct MQTypeVar;
 template <typename T>
 static constexpr auto type_name() noexcept;
 
-void PrintMacroDataConversionError(const char* fromType, const char* toType);
+MQLIB_API void PrintMacroDataConversionError(const char* fromType, const char* toType);
 
 namespace detail {
 

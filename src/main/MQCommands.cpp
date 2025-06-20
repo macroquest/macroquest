@@ -1912,62 +1912,11 @@ void MQMsgBox(PlayerClient* pChar, const char* szLine)
 //              Our logging
 // Usage:       /mqlog text
 // ***************************************************************************
-void MacroLog(PlayerClient* pChar, const char* szLine)
+void MacroLogCommand(PlayerClient*, const char* szLine)
 {
 	bRunNextCommand = true;
 
-	std::filesystem::path logFilePath = mq::internal_paths::Logs;
-	if (gszMacroName[0] == 0)
-	{
-		logFilePath /= "MacroQuest.log";
-	}
-	else
-	{
-		logFilePath /= std::string(gszMacroName) + ".log";
-	}
-
-	if (ci_equals(szLine, "clear"))
-	{
-		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
-		if (!fOut)
-		{
-			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
-			return;
-		}
-
-		WriteChatColor("Cleared log.", USERCOLOR_DEFAULT);
-		fclose(fOut);
-		return;
-	}
-
-	// Don't need to check errors since the log file write itself will error, but we don't want to throw
-	std::error_code ec;
-	create_directories(logFilePath.parent_path(), ec);
-
-	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
-	if (!fOut)
-	{
-		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
-		return;
-	}
-
-	time_t curr_time;
-	time(&curr_time);
-
-	std::tm local_tm;
-	localtime_s(&local_tm, &curr_time);
-
-	fmt::memory_buffer buffer;
-	auto out = fmt::format_to(fmt::appender(buffer),
-		"[{:04d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}] {}",
-		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
-		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
-	*out = 0;
-
-	fprintf(fOut, "%s\n", buffer.data());
-	DebugSpew("MacroLog - %s", buffer.data());
-
-	fclose(fOut);
+	MacroLog(szLine);
 }
 
 static void FaceObject(const MQGameObject& faceTarget, int flags)
@@ -3722,7 +3671,7 @@ void TaskQuitCmd(PlayerClient* pChar, const char* pBuffer)
 }
 
 // /timed
-void DoTimedCmd(PlayerClient* pChar, const char* szLine)
+void DoTimedCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -3737,10 +3686,17 @@ void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 	if (!szRest[0])
 		return;
 
-	pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	if (pCommandAPI)
+	{
+		pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	}
+	else
+	{
+		SPDLOG_ERROR("Tried to execute time command with no Commands module: {}", szLine);
+	}
 }
 
-void CombineCmd(PlayerClient* pChar, const char* szLine)
+void CombineCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{

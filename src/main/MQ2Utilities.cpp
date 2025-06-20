@@ -200,23 +200,6 @@ void WriteChatColorf(const char* szFormat, int color, ...)
 
 //============================================================================
 
-static void StrReplaceSection(char* szInsert, size_t InsertLen, DWORD Length, const char* szNewString)
-{
-	DWORD NewLength = (DWORD)strlen(szNewString);
-	memmove(&szInsert[NewLength], &szInsert[Length], strlen(&szInsert[Length]) + 1);
-	memcpy_s(szInsert, InsertLen - NewLength, szNewString, NewLength);
-}
-
-void ConvertCR(char* Text, size_t LineLen)
-{
-	// not super-efficient but this is only being called at initialization currently.
-	while (char* Next = strstr(Text, "\\n"))
-	{
-		int len = (int)(Next - Text);
-		StrReplaceSection(Next, LineLen - len, 2, "\n");
-	}
-}
-
 void SyntaxError(const char* szFormat, ...)
 {
 	va_list vaList;
@@ -229,7 +212,64 @@ void SyntaxError(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 	WriteChatColor(szOutput, CONCOLOR_YELLOW);
+
 	strcpy_s(gszLastSyntaxError, szOutput);
+}
+
+void MacroLog(const char* szLine)
+{
+	std::filesystem::path logFilePath = mq::internal_paths::Logs;
+	if (gszMacroName[0] == 0)
+	{
+		logFilePath /= "MacroQuest.log";
+	}
+	else
+	{
+		logFilePath /= std::string(gszMacroName) + ".log";
+	}
+
+	if (ci_equals(szLine, "clear"))
+	{
+		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
+		if (!fOut)
+		{
+			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
+			return;
+		}
+
+		WriteChatColor("Cleared log.", USERCOLOR_DEFAULT);
+		fclose(fOut);
+		return;
+	}
+
+	// Don't need to check errors since the log file write itself will error, but we don't want to throw
+	std::error_code ec;
+	create_directories(logFilePath.parent_path(), ec);
+
+	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
+	if (!fOut)
+	{
+		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
+		return;
+	}
+
+	time_t curr_time;
+	time(&curr_time);
+
+	std::tm local_tm;
+	localtime_s(&local_tm, &curr_time);
+
+	fmt::memory_buffer buffer;
+	auto out = fmt::format_to(fmt::appender(buffer),
+		"[{:04d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}] {}",
+		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
+		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
+	*out = 0;
+
+	fprintf(fOut, "%s\n", buffer.data());
+	DebugSpew("MacroLog - %s", buffer.data());
+
+	fclose(fOut);
 }
 
 void MacroError(const char* szFormat, ...)
@@ -245,18 +285,19 @@ void MacroError(const char* szFormat, ...)
 	vsprintf_s(szOutput, len, szFormat, vaList);
 	WriteChatColor(szOutput, CONCOLOR_RED);
 
-	if (bAllErrorsLog) MacroLog(nullptr, "Macro Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
+	// TODO(macro): Make single call, MacroLog also write to log file named
+	//              after macro. Should be moved to MacroSystem.
+	if (bAllErrorsLog)
+	{
+		MacroLog("Macro Error");
+		MacroLog(szOutput);
+	}
 
 	strcpy_s(gszLastNormalError, szOutput);
 
-	if (gMacroBlock)
+	if (g_macroSystem)
 	{
-		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(nullptr, nullptr);
-
-		if (bAllErrorsFatal)
-			EndMacro(pLocalPlayer, "");
+		g_macroSystem->HandleMacroError(szOutput);
 	}
 }
 
@@ -272,46 +313,33 @@ void FatalError(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 	WriteChatColor(szOutput, CONCOLOR_RED);
+
+	// TODO(macro): Make single call, MacroLog also write to log file named
+	//              after macro. Should be moved to MacroSystem.
+	if (bAllErrorsLog)
+	{
+		MacroLog("Fatal Error");
+		MacroLog(szOutput);
+	}
+
 	strcpy_s(gszLastNormalError, szOutput);
 
-	if (bAllErrorsLog) MacroLog(nullptr, "Fatal Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
-
-	if (gMacroBlock)
+	if (g_macroSystem)
 	{
-		DumpStack(nullptr, nullptr);
-		EndMacro(pLocalPlayer, "");
+		g_macroSystem->HandleFatalError(szOutput);
 	}
 }
 
-void MQ2DataError(const char* szFormat, ...)
+// ***************************************************************************
+// Function:    ClearErrorsCmd
+// Description: Our '/clearerrors' command
+// Usage:       /clearerrors
+// ***************************************************************************
+static void ClearErrorsCmd(PlayerClient*, const char*)
 {
-	va_list vaList;
-	va_start(vaList, szFormat);
-
-	int len = _vscprintf(szFormat, vaList) + 1 + 32;
-
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	if (gFilterMQ2DataErrors)
-		DebugSpew("%s", szOutput);
-	else
-		WriteChatColor(szOutput, CONCOLOR_RED);
-
-	strcpy_s(gszLastMQ2DataError, szOutput);
-	if (bAllErrorsLog) MacroLog(nullptr, "Data Error");
-	if (bAllErrorsLog) MacroLog(nullptr, szOutput);
-
-	if (gMacroBlock)
-	{
-		if (bAllErrorsDumpStack || bAllErrorsFatal)
-			DumpStack(nullptr, nullptr);
-
-		if (bAllErrorsFatal)
-			EndMacro(pLocalPlayer, "");
-	}
+	gszLastNormalError[0] = 0;
+	gszLastSyntaxError[0] = 0;
+	gszLastMQ2DataError[0] = 0;
 }
 
 // ***************************************************************************

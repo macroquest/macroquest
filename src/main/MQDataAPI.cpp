@@ -17,6 +17,7 @@
 
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
+#include "MacroSystemInternal.h"
 
 #include "CrashHandler.h"
 #include "mq/base/ScopeExit.h"
@@ -29,11 +30,200 @@ std::vector<std::weak_ptr<MQTransient>> s_objectMap;
 std::mutex s_objectMapMutex;
 uint32_t bmParseMacroData;
 
+const std::string PARSE_PARAM_BEG = "${Parse[";
+const std::string PARSE_PARAM_END = "]}";
+
+char gIfDelimiter = ',';
+char gIfAltDelimiter = '~';
+
 struct MQDataTypeRegistration
 {
 	std::string Name;
 	MQ2Type* Type;
 };
+
+//============================================================================
+// built-in macro utilities
+
+#pragma region Macro TLOs
+
+bool dataAlias(const char* szIndex, MQTypeVar& Ret)
+{
+	if (szIndex[0])
+	{
+		if (pCommandAPI->IsAlias(szIndex))
+		{
+			Ret.Set(true);
+			Ret.Type = datatypes::pBoolType;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool dataSelect(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+
+	char szArg[MAX_STRING] = { 0 };
+	char szArg1[MAX_STRING] = { 0 };
+	int N = 2;
+	GetArg(szArg1, szIndex, 1, false, false, true);
+	while (true)
+	{
+		GetArg(szArg, szIndex, N, false, false, true);
+		N++;
+		if (!szArg[0])
+		{
+			Ret.DWord = 0;
+			Ret.Type = datatypes::pIntType;
+			return true;
+		}
+
+		if (!_stricmp(szArg1, szArg))
+		{
+			Ret.DWord = N - 2;
+			Ret.Type = datatypes::pIntType;
+			return true;
+		}
+	}
+}
+
+bool dataIf(const char* szIndex, MQTypeVar& Ret)
+{
+	if (szIndex[0])
+	{
+		int nDelimiter = 0;
+		const char* pDelimiter = strchr(szIndex, gIfAltDelimiter);
+
+		while (pDelimiter != nullptr)
+		{
+			nDelimiter++;
+			pDelimiter = strchr(pDelimiter + 1, gIfAltDelimiter);
+		}
+
+		char szTemp[MAX_STRING];
+		strcpy_s(szTemp, szIndex);
+
+		// condition| whentrue| whenfalse
+		if (nDelimiter == 2)
+		{
+			if (char* pTrue = strchr(szTemp, gIfAltDelimiter))
+			{
+				*pTrue = 0;
+				pTrue++;
+				if (char* pFalse = strchr(pTrue, gIfAltDelimiter))
+				{
+					*pFalse = 0;
+					pFalse++;
+					double CalcResult;
+					if (!Calculate(szTemp, CalcResult))
+						return false;
+
+					if (CalcResult != 0.0f)
+					{
+						strcpy_s(DataTypeTemp, pTrue);
+						Ret.Ptr = &DataTypeTemp[0];
+						Ret.Type = datatypes::pStringType;
+						return true;
+					}
+					else
+					{
+						strcpy_s(DataTypeTemp, pFalse);
+						Ret.Ptr = &DataTypeTemp[0];
+						Ret.Type = datatypes::pStringType;
+						return true;
+					}
+				}
+			}
+		}
+
+		// condition, whentrue, whenfalse
+		if (char* pTrue = strchr(szTemp, gIfDelimiter))
+		{
+			*pTrue = 0;
+			pTrue++;
+			if (char* pFalse = strchr(pTrue, gIfDelimiter))
+			{
+				*pFalse = 0;
+				pFalse++;
+				double CalcResult;
+				if (!Calculate(szTemp, CalcResult))
+					return false;
+
+				if (CalcResult != 0.0f)
+				{
+					strcpy_s(DataTypeTemp, pTrue);
+					Ret.Ptr = &DataTypeTemp[0];
+					Ret.Type = datatypes::pStringType;
+					return true;
+				}
+				else
+				{
+					strcpy_s(DataTypeTemp, pFalse);
+					Ret.Ptr = &DataTypeTemp[0];
+					Ret.Type = datatypes::pStringType;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool dataDefined(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+	Ret.Set(IsMacroVariable(szIndex));
+	Ret.Type = datatypes::pBoolType;
+	return true;
+}
+
+bool dataSubDefined(const char* szIndex, MQTypeVar& Ret)
+{
+	if (!szIndex[0])
+		return false;
+	Ret.Set(gMacroBlock && (gMacroSubLookupMap.find(szIndex) != gMacroSubLookupMap.end()));
+	Ret.Type = datatypes::pBoolType;
+	return true;
+}
+
+#pragma endregion
+
+//============================================================================
+
+static void DataTypeError(const char* szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+
+	int len = _vscprintf(szFormat, vaList) + 1 + 32;
+
+	auto out = std::make_unique<char[]>(len);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, len, szFormat, vaList);
+
+	if (gFilterMQ2DataErrors)
+		DebugSpew("%s", szOutput);
+	else
+		WriteChatColor(szOutput, CONCOLOR_RED);
+
+	strcpy_s(gszLastMQ2DataError, szOutput);
+
+	if (bAllErrorsLog)
+	{
+		MacroLog("Data Error");
+		MacroLog(szOutput);
+	}
+
+	if (g_macroSystem)
+	{
+		g_macroSystem->HandleMacroError(szOutput);
+	}
+}
 
 //============================================================================
 // Observed objects (Why are these here under MQDataAPI?)
@@ -155,6 +345,15 @@ void MQDataAPI::Initialize()
 {
 	RegisterTopLevelObjects();
 	datatypes::RegisterDataTypes();
+
+	gIfDelimiter = GetPrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), mq::internal_paths::MQini)[0];
+	gIfAltDelimiter = GetPrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), mq::internal_paths::MQini)[0];
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileString("MacroQuest", "IfDelimiter", std::string(1, gIfDelimiter), mq::internal_paths::MQini);
+		WritePrivateProfileString("MacroQuest", "IfAltDelimiter", std::string(1, gIfAltDelimiter), mq::internal_paths::MQini);
+	}
 }
 
 void MQDataAPI::Shutdown()
@@ -478,7 +677,8 @@ static bool CallFunction(const char* name, const char* args)
 		}
 	}
 
-	Call(pLocalPlayer, subLine);
+	Call(nullptr, subLine);
+
 	// In case we're calling from an else, we need to adjust where we are expecting to return to.
 	gMacroStack->pNext->LocationIndex = saved_block_line;
 
@@ -587,7 +787,7 @@ bool MQDataAPI::EvaluateDataExpression(MQTypeVar& Result, const char* pStart, ch
 
 		auto result = EvaluateMacroDataMember(pType, std::move(VarPtr), Result, pStart, pIndex, false);
 		if (result == EvaluateResult::NotFound)
-			MQ2DataError("No such '%s' member '%s'", pType->GetName(), pStart);
+			DataTypeError("No such '%s' member '%s'", pType->GetName(), pStart);
 
 		if (result != EvaluateResult::Success)
 			return false;
@@ -610,16 +810,16 @@ void MQDataAPI::RegisterTopLevelObjects()
 
 	// MQ Types
 	AddTopLevelObject("Alert", datatypes::MQ2AlertType::dataAlert);
-	AddTopLevelObject("Alias", datatypes::dataAlias);
-	AddTopLevelObject("Defined", datatypes::dataDefined);
-	AddTopLevelObject("If", datatypes::dataIf);
+	AddTopLevelObject("Alias", dataAlias);
+	AddTopLevelObject("Defined", dataDefined);
+	AddTopLevelObject("If", dataIf);
 	AddTopLevelObject("Ini", datatypes::MQIniType::dataIni);
 	AddTopLevelObject("Macro", datatypes::MQ2MacroType::dataMacro);
 	AddTopLevelObject("MacroQuest", datatypes::MQ2MacroQuestType::dataMacroQuest);
 	AddTopLevelObject("Math", datatypes::MQ2MathType::dataMath);
 	AddTopLevelObject("Plugin", datatypes::MQ2PluginType::dataPlugin);
-	AddTopLevelObject("Select", datatypes::dataSelect);
-	AddTopLevelObject("SubDefined", datatypes::dataSubDefined);
+	AddTopLevelObject("Select", dataSelect);
+	AddTopLevelObject("SubDefined", dataSubDefined);
 
 	// EQ Types
 	AddTopLevelObject("Achievement", datatypes::MQ2AchievementManagerType::dataAchievement);
@@ -682,7 +882,7 @@ void MQDataAPI::RegisterTopLevelObjects()
 #endif // HAS_KEYRING_WINDOW
 }
 
-bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
+bool MQDataAPI::ParseDataPortion(char* szOriginal, MQTypeVar& Result) const
 {
 	Result.Type = nullptr;
 	Result.Int64 = 0;
@@ -705,7 +905,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 			{
 				if (!Result.Type)
 				{
-					MQ2DataError("Nothing to parse");
+					DataTypeError("Nothing to parse");
 					return false;
 				}
 
@@ -726,7 +926,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 			{
 				if (!Result.Type)
 				{
-					MQ2DataError("Encountered typecast without object to cast");
+					DataTypeError("Encountered typecast without object to cast");
 					return false;
 				}
 
@@ -753,7 +953,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 				if (!*pPos)
 				{
 					// error
-					MQ2DataError("Encountered unmatched parenthesis");
+					DataTypeError("Encountered unmatched parenthesis");
 					return false;
 				}
 				++pPos;
@@ -765,7 +965,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 			if (!pNewType)
 			{
 				// error
-				MQ2DataError("Unknown type '%s'", pType);
+				DataTypeError("Unknown type '%s'", pType);
 				return false;
 			}
 
@@ -791,7 +991,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 			}
 			else
 			{
-				MQ2DataError("Invalid character found after typecast ')%s'", &pPos[1]);
+				DataTypeError("Invalid character found after typecast ')%s'", &pPos[1]);
 				return false;
 			}
 		}
@@ -810,7 +1010,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 				{
 					if (*pPos == 0)
 					{
-						MQ2DataError("Unmatched bracket or invalid character following bracket found in index: '%s'", pIndex);
+						DataTypeError("Unmatched bracket or invalid character following bracket found in index: '%s'", pIndex);
 						return false;
 					}
 
@@ -867,7 +1067,7 @@ bool MQDataAPI::ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const
 					{
 						if (!Result.Type)
 						{
-							MQ2DataError("Encountered member access without object");
+							DataTypeError("Encountered member access without object");
 							return false;
 						}
 
@@ -1008,7 +1208,8 @@ std::string GetMacroVarData(std::string_view strVarToParse)
 	std::string strReturn = "NULL";
 
 	// Check to make sure this has the starting marks of a variable (if we got here it should, but just in case)
-	if (strVarToParse.substr(0, 2) == "${"
+	if (pDataAPI
+		&& strVarToParse.substr(0, 2) == "${"
 		&& strVarToParse.substr(strVarToParse.length() - 1) == "}")
 	{
 		// Strip the ${ and } off of the variable to pass it to ParseMQ2DataPortion
@@ -1023,13 +1224,14 @@ std::string GetMacroVarData(std::string_view strVarToParse)
 		MQTypeVar Result;
 
 		// If the parse was successful and there is a result type and we could convert that type to a string
-		if (pDataAPI->ParseMQ2DataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
+		if (pDataAPI->ParseDataPortion(&currentStr[0], Result) && Result.Type && Result.Type->ToString(Result.VarPtr, &currentStr[0]))
 		{
 			// Set our return whatever szCurrent was modified to be (removing the additional null terminators
 			// due to the above resize)
 			strReturn = currentStr.erase(currentStr.find('\0'));
 		}
 	}
+
 	return strReturn;
 }
 
@@ -1597,13 +1799,20 @@ static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 			*pEnd = 0;
 		}
 
+		if (pDataAPI)
 		{
 			MQTypeVar Result;
 
-			if (!pDataAPI->ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent))
+			if (!pDataAPI->ParseDataPortion(szCurrent, Result)
+				|| !Result.Type
+				|| !Result.Type->ToString(Result.VarPtr, szCurrent))
 			{
 				strcpy_s(szCurrent, "NULL");
 			}
+		}
+		else
+		{
+			strcpy_s(szCurrent, "NULL");
 		}
 
 		size_t NewLength = strlen(szCurrent);
@@ -1643,7 +1852,7 @@ static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 
 	pmdbottom:
 		;
-	} while (pBrace = strstr(&pBrace[1], "${"));
+	} while ((pBrace = strstr(&pBrace[1], "${")));
 
 	if (Changed)
 	{
@@ -1663,7 +1872,7 @@ namespace datatypes {
 MQ2Type::MQ2Type(std::string_view newName, const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
 {
 	m_typeName = newName;
-	m_owned = pDataAPI->AddDataType(*this, pluginHandle);
+	m_owned = pDataAPI && pDataAPI->AddDataType(*this, pluginHandle);
 }
 
 MQ2Type::~MQ2Type()
@@ -1868,34 +2077,68 @@ bool MQ2Type::RemoveMethod(const char* Name)
 
 bool AddMQ2Type(MQ2Type& type)
 {
-	return pDataAPI->AddDataType(type);
+	if (pDataAPI)
+	{
+		return pDataAPI->AddDataType(type);
+	}
+	
+	SPDLOG_ERROR("Tried to add datatype without DataTypes module: {}", type.GetName());
+	return false;
 }
 
 bool RemoveMQ2Type(MQ2Type& type)
 {
-	return pDataAPI->RemoveDataType(type);
+	if (pDataAPI)
+	{
+		return pDataAPI->RemoveDataType(type);
+	}
+
+	SPDLOG_ERROR("Tried to remove datatype without DataType module: {}", type.GetName());
+	return false;
 }
 
 MQ2Type* FindMQ2DataType(const char* name)
 {
-	return pDataAPI->FindDataType(name);
+	if (pDataAPI)
+	{
+		return pDataAPI->FindDataType(name);
+	}
+
+	return nullptr;
 }
 
 bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 {
-	return pDataAPI->AddTypeExtension(typeName, extension);
+	if (pDataAPI)
+	{
+		return pDataAPI->AddTypeExtension(typeName, extension);
+	}
+
+	SPDLOG_ERROR("Tried to add datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
+	return false;
 }
 
 bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 {
-	return pDataAPI->RemoveTypeExtension(typeName, extension);
+	if (pDataAPI)
+	{
+		return pDataAPI->RemoveTypeExtension(typeName, extension);
+	}
+
+	SPDLOG_ERROR("Tried to remove datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
+	return false;
 }
 
 int EvaluateMacroDataMember(MQ2Type* pType, MQVarPtr VarPtr, MQTypeVar& Result, const char* Member, char* pIndex)
 {
-	auto result = pDataAPI->EvaluateMacroDataMember(pType, std::move(VarPtr), Result, Member, pIndex, false);
+	if (pDataAPI)
+	{
+		auto result = pDataAPI->EvaluateMacroDataMember(pType, std::move(VarPtr), Result, Member, pIndex, false);
 
-	return MQDataAPI::EvaluateResultToInt(result);
+		return MQDataAPI::EvaluateResultToInt(result);
+	}
+
+	return -1;
 }
 
 char* ParseMacroParameter(char* szOriginal, size_t BufferSize)
@@ -1906,7 +2149,7 @@ char* ParseMacroParameter(char* szOriginal, size_t BufferSize)
 
 bool FindMacroDataMember(MQ2Type* Type, const std::string& Member)
 {
-	return pDataAPI->FindMacroDataMember(Type, Member);
+	return pDataAPI && pDataAPI->FindMacroDataMember(Type, Member);
 }
 
 //============================================================================

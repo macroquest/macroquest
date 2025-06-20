@@ -87,7 +87,7 @@ public:
 	// TODO: Change to string_view when we have c++20 support for transparent containers
 	bool IsReservedName(const std::string& name) const;
 
-	bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const;
+	bool ParseDataPortion(char* szOriginal, MQTypeVar& Result) const;
 
 private:
 	void RegisterTopLevelObjects();

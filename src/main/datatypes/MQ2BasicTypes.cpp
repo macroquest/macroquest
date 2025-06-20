@@ -1578,7 +1578,7 @@ bool MQ2TypeType::FromData(MQVarPtr& VarPtr, const MQTypeVar& Source)
 
 bool MQ2TypeType::FromString(MQVarPtr& VarPtr, const char* Source)
 {
-	if (VarPtr.Ptr = pDataAPI->FindDataType(Source))
+	if ((VarPtr.Ptr = pDataAPI->FindDataType(Source)))
 		return true;
 
 	return false;

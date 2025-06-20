@@ -79,7 +79,6 @@ private:
 	void RewriteAliases();
 
 	bool DispatchCommand(char* szCommand, char* szArgs, const MQCommandHandler& eqHandler);
-	bool DispatchBind(char* szCommand, char* szArgs);
 
 	struct RegisteredAlias
 	{

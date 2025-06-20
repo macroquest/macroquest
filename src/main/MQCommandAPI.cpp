@@ -22,6 +22,7 @@
 
 // FIXME
 #include "MacroSystem.h"
+#include "MQDataAPI.h"
 
 using namespace eqlib;
 
@@ -73,9 +74,9 @@ public:
 
 //============================================================================
 
-// Note: module priority on this has it load early, but we used to pulse it late.
-// re-evaluate if this is a problem because now we pulse it at start of frame instead
-// of end.
+// TODO: module priority on this has it load early, but we used to pulse it late.
+//       re-evaluate if this is a problem because now we pulse it at start of frame instead
+//       of end.
 
 DECLARE_MODULE_FACTORY(MQCommandAPI);
 
@@ -348,7 +349,8 @@ bool MQCommandAPI::InterpretCmd(const char* szFullLine, const MQCommandHandler& 
 		return true;
 	}
 
-	if (DispatchBind(szCommand, szArgs))
+	// Check if we have binds in the 
+	if (g_macroSystem && g_macroSystem->DispatchBind(szCommand, szArgs))
 	{
 		strcpy_s(szLastCommand, szFullCommand);
 		return true;
@@ -404,57 +406,6 @@ bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQComman
 			return true;
 		}
 		pCommand = pCommand->pNext;
-	}
-
-	return false;
-}
-
-bool MQCommandAPI::DispatchBind(char* szCommand, char* szArgs)
-{
-	// Macro Binds only supported in-game
-	if (gGameState != GAMESTATE_INGAME)
-		return false;
-	// Why is this here?
-	if (!pLocalPlayer)
-		return false;
-
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (!pBlock)
-		return false;
-
-	MQBindList* pBind = pBindList;
-	while (pBind)
-	{
-		// Substring search for the command
-		if (ci_find_substr(pBind->szName, szCommand) == 0)
-		{
-			if (pBlock->BindCmd.empty())
-			{
-				if (!gBindInProgress)
-				{
-					char szCallFunc[MAX_STRING] = { 0 };
-					strcpy_s(szCallFunc, pBind->szFuncName);
-					strcat_s(szCallFunc, " ");
-					strcat_s(szCallFunc, szArgs);
-
-					if (pBind->Parse)
-					{
-						ParseMacroData(szCallFunc, MAX_STRING);
-					}
-
-					gBindInProgress = true;
-					pBlock->BindCmd = szCallFunc;
-				}
-				else
-				{
-					WriteChatf("Can't execute bind while another bind is in progress");
-				}
-			}
-
-			return true;
-		}
-
-		pBind = pBind->pNext;
 	}
 
 	return false;

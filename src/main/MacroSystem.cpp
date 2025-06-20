@@ -36,20 +36,26 @@ namespace mq {
 
 using DefaultValueType = std::variant<const char*, MQTypeVar>;
 
-uint64_t s_commandCount = 0;
-static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
+bool bRunNextCommand = false;
 
+// TODO: Remove this once the parsing engine is fully backwards compatible.
+// Alternatively, move it into the macro block.
+int gParserVersion = 1;
+
+static std::map<std::string, MQMacroBlockPtr> MacroBlockMap;
+MQMacroBlockPtr gMacroBlock = nullptr;
+decltype(gMacroSubLookupMap) gMacroSubLookupMap;
+decltype(gUndeclaredVars) gUndeclaredVars;
 MQDataVar* pGlobalVariables = nullptr;
 MQDataVar* pMacroVariables = nullptr;
+
+MQTimer* gTimer = nullptr;
 bool bAllErrorsFatal = false;
 bool bAllErrorsDumpStack = true;
 bool bAllErrorsLog = false;
-MQMacroBlockPtr gMacroBlock = nullptr;
 int BlockIndex = 0;
 MQMacroStack* gMacroStack = nullptr;
-decltype(gMacroSubLookupMap) gMacroSubLookupMap;
 bool gBindInProgress = false;
-decltype(gUndeclaredVars) gUndeclaredVars;
 MQEventQueue* gEventQueue = nullptr;
 int gEventFunc[NUM_EVENTS] = { 0 };
 char gszLastNormalError[MAX_STRING] = { 0 };
@@ -63,12 +69,22 @@ bool gReturn = true;
 bool gKeepKeys = true;
 MQEventList* pEventList = nullptr;
 Blech* pEventBlech = nullptr;
+bool gMQPauseOnChat = false;
+bool gTurbo = false;
+bool gWarning = false;
+MQBindList* pBindList = nullptr;
+MQDefine* pDefines = nullptr;
+int gDelay = 0;
+char gDelayCondition[MAX_STRING] = { 0 };
+bool gFilterMQ2DataErrors = false;
 
-// Defined in MQ2DataVars.cpp
+static uint64_t s_commandCount = 0;
+
 void CALLBACK EventBlechCallback(unsigned int ID, void* pData, PBLECHVALUE pValues);
 
 static bool AddMacroLine(const char* FileName, char* szLine, size_t Linelen, int* LineNumber, int localLine);
 static void EngineCommand(PlayerClient*, const char* szLine);
+static void EndMacroCommand(PlayerClient*, const char* szLine);
 
 static void format_args(fmt::appender& buffer, const std::vector<std::string>& args)
 {
@@ -754,7 +770,7 @@ void EndAllMacros()
 
 	for (const std::string& name : names)
 	{
-		EndMacro(nullptr, name.c_str());
+		EndMacroCommand(nullptr, name.c_str());
 	}
 }
 
@@ -849,6 +865,130 @@ void FailIf(const char* szCommand, int StartLine, bool All)
 	{
 		bRunNextCommand = true;
 	}
+}
+
+static bool DoNextCommand(MQMacroBlockPtr pBlock)
+{
+	if (!pControlledPlayer || !pLocalPC)
+		return false;
+	if (!pLocalPlayer)
+		return false;
+
+	// Don't process commands until current /face is done
+	if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && TurnNotDone)
+		return false;
+
+	// Don't process command if we're in the middle of a mouse click.
+	if (IsMouseWaiting())
+		return false;
+
+	if (gDelay && gDelayCondition[0])
+	{
+		char szCond[MAX_STRING];
+		strcpy_s(szCond, gDelayCondition);
+
+		ParseMacroData(szCond, MAX_STRING);
+
+		double Result;
+		if (!Calculate(szCond, Result))
+		{
+			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
+			return false;
+		}
+
+		if (Result != 0)
+		{
+			DebugSpewNoFile("/delay ending early, conditions met");
+			gDelay = 0;
+		}
+	}
+
+	if (!gDelay && pBlock && !pBlock->Paused && (!gMQPauseOnChat || pEverQuestInfo->KeyboardMode) && gMacroStack)
+	{
+		const MQMacroLine& ml = pBlock->Line.at(pBlock->CurrIndex);
+
+		if (pBlock->BindStackIndex == pBlock->CurrIndex)
+		{
+			gBindInProgress = false;
+			pBlock->BindStackIndex = -1;
+		}
+
+		gMacroStack->LocationIndex = pBlock->CurrIndex;
+#ifdef MQ2_PROFILING
+		LARGE_INTEGER BeforeCommand;
+		QueryPerformanceCounter(&BeforeCommand);
+		int ThisMacroBlock = pBlock->CurrIndex;
+#endif
+
+		if (gbInZone && !gZoning)
+		{
+			DoCommand(ml.Command.c_str(), false);
+			MQMacroBlockPtr pCurrentBlock = GetCurrentMacroBlock();
+
+			if (!pCurrentBlock)
+				return false;
+
+			if (!pCurrentBlock->BindCmd.empty() && pCurrentBlock->BindStackIndex == -1)
+			{
+				// Only trigger queued bind on select commands
+				if (ci_find_substr(ml.Command, "/varset") == 0
+					|| ci_find_substr(ml.Command, "/echo") == 0
+					|| ci_find_substr(ml.Command, "Sub") == 0
+					|| ci_find_substr(ml.Command, "/call") == 0
+					|| ci_find_substr(ml.Command, "/invoke") == 0)
+				{
+					auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+					if (iter != pCurrentBlock->Line.end())
+					{
+						if (++iter != pCurrentBlock->Line.end())
+						{
+							pCurrentBlock->BindStackIndex = iter->first;
+						}
+						else
+						{
+							FatalError("Reached end of macro.");
+						}
+					}
+
+					Call(pLocalPlayer, (char*)pCurrentBlock->BindCmd.c_str());
+					pCurrentBlock->BindCmd.clear();
+				}
+			}
+
+#ifdef MQ2_PROFILING
+			LARGE_INTEGER AfterCommand;
+			QueryPerformanceCounter(&AfterCommand);
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionCount++;
+			pCurrentBlock->Line[ThisMacroBlock].ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart;
+#endif
+
+			const int lastindex = pCurrentBlock->Line.rbegin()->first;
+			if (pCurrentBlock->CurrIndex > lastindex)
+			{
+				FatalError("Reached end of macro.");
+			}
+			else
+			{
+				auto iter = pCurrentBlock->Line.find(pCurrentBlock->CurrIndex);
+				if (iter != pCurrentBlock->Line.end())
+				{
+					if (++iter != pCurrentBlock->Line.end())
+					{
+						pCurrentBlock->CurrIndex = iter->first;
+					}
+				}
+				else
+				{
+					FatalError("Reached end of macro.");
+				}
+			}
+
+			s_commandCount++;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 #pragma region Data Variables
@@ -1667,17 +1807,6 @@ void Call(PlayerClient*, const char* szLine)
 	}
 }
 
-// ***************************************************************************
-// Function:    ClearErrorsCmd
-// Description: Our '/clearerrors' command
-// Usage:       /clearerrors
-// ***************************************************************************
-static void ClearErrorsCmd(PlayerClient*, const char*)
-{
-	gszLastNormalError[0] = 0;
-	gszLastSyntaxError[0] = 0;
-	gszLastMQ2DataError[0] = 0;
-}
 
 // ***************************************************************************
 // Function:    Continue
@@ -2178,7 +2307,10 @@ void DumpStack(PlayerClient*, const char*)
 		}
 
 		WriteChatColor(szTemp);
-		if (bAllErrorsLog) MacroLog(nullptr, szTemp);
+
+		if (bAllErrorsLog)
+			MacroLog(szTemp);
+
 		pMS = pMS->pNext;
 	}
 }
@@ -2188,7 +2320,7 @@ void DumpStack(PlayerClient*, const char*)
 // Description: Our '/endmacro' command
 // Usage:       /endmacro
 // ***************************************************************************
-void EndMacro(PlayerClient*, const char* szLine)
+void EndMacroCommand(PlayerClient*, const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	char MacroName[MAX_STRING] = { 0 };
@@ -2750,7 +2882,7 @@ static void Macro(PlayerClient*, const char* szLine)
 	if (gMacroBlock && !gMacroBlock->Line.empty())
 	{
 		gReturn = false;
-		EndMacro(nullptr, szLine);
+		EndMacroCommand(nullptr, szLine);
 		gReturn = true;
 	}
 
@@ -3294,7 +3426,7 @@ static void Return(PlayerClient*, const char* szLine)
 	if (!pStack->pNext)
 	{
 		// Top of stack (ie. returning from Sub Main)
-		EndMacro(nullptr, "");
+		EndMacroCommand(nullptr, "");
 		return;
 	}
 
@@ -3529,7 +3661,7 @@ static void VarDataCmd(PlayerClient*, const char* szLine)
 	}
 
 	MQTypeVar sourceVar;
-	if (!pDataAPI->ParseMQ2DataPortion(szRest, sourceVar))
+	if (!pDataAPI->ParseDataPortion(szRest, sourceVar))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
 		return;
@@ -3648,7 +3780,6 @@ static void VarSetCmd(PlayerClient*, const char* szLine)
 	}
 }
 
-
 #pragma endregion
 
 //=================================================================================================
@@ -3680,7 +3811,7 @@ void MacroSystem::Initialize()
 		{ "/docommand",         DoCommandCmd,               true,  false },
 		{ "/doevents",          DoEvents,                   true,  false },
 		{ "/dumpstack",         DumpStack,                  true,  false },
-		{ "/endmacro",          EndMacro,                   true,  false },
+		{ "/endmacro",          EndMacroCommand,                   true,  false },
 		{ "/engine",            EngineCommand,              true,  false },
 		{ "/for",               For,                        true,  false },
 		{ "/goto",              Goto,                       true,  false },
@@ -3703,7 +3834,7 @@ void MacroSystem::Initialize()
 		{ "/while",             MacroWhileCmd,              true,  false },
 
 		// Can put these back, i guess...
-		{ "/mqlog",             MacroLog,                   true,  false },
+		{ "/mqlog",             MacroLogCommand,            true,  false },
 		{ "/squelch",           SquelchCommand,             true,  false },
 	};
 
@@ -3711,6 +3842,26 @@ void MacroSystem::Initialize()
 	for (const auto& reg : commands)
 	{
 		AddCommand(reg.szCommand, reg.pFunc, false, reg.Parse, reg.InGame);
+	}
+
+	const std::string& iniFile = mq::internal_paths::MQini;
+
+	bAllErrorsDumpStack = GetPrivateProfileBool("MacroQuest", "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
+	bAllErrorsFatal = GetPrivateProfileBool("MacroQuest", "AllErrorsFatal", bAllErrorsFatal, iniFile);
+	gKeepKeys = GetPrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, iniFile);
+	gMQPauseOnChat = GetPrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, iniFile);
+	gParserVersion = GetPrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, iniFile); // 2 = new parser, everything else = old parser
+	gTurboLimit = GetPrivateProfileInt("MacroQuest", "TurboLimit", gTurboLimit, iniFile);
+
+	if (gbWriteAllConfig)
+	{
+		WritePrivateProfileBool("MacroQuest",   "AllErrorsDumpStack", bAllErrorsDumpStack, iniFile);
+		WritePrivateProfileBool("MacroQuest",   "AllErrorsFatal", bAllErrorsFatal, iniFile);
+		WritePrivateProfileBool("MacroQuest",   "KeepKeys", gKeepKeys, iniFile);
+		WritePrivateProfileBool("MacroQuest",   "MQPauseOnChat", gMQPauseOnChat, iniFile);
+		WritePrivateProfileInt("MacroQuest",    "ParserEngine", gParserVersion, iniFile);
+		WritePrivateProfileInt("MacroQuest",    "TurboLimit", gTurboLimit, iniFile);
+
 	}
 }
 
@@ -3734,11 +3885,120 @@ void MacroSystem::OnProcessFrame()
 		if (gDelay > 0) gDelay--;
 		DropTimers();
 	}
+
+	bRunNextCommand = true;
+
+	if (gGameState != -1)
+	{
+		int CurTurbo = 0;
+
+		MQMacroBlockPtr pBlock = GetNextMacroBlock();
+		while (bRunNextCommand)
+		{
+			if (!pBlock)
+				break;
+			if (!DoNextCommand(pBlock))
+				break;
+			if (gbUnload)
+				return;
+			if (!gTurbo)
+				break;
+			if (++CurTurbo > gMaxTurbo)
+				break;
+
+			// re-fetch current macro block in case one of the previous instructions changed it
+			pBlock = GetCurrentMacroBlock();
+		}
+	}
 }
 
 void MacroSystem::OnGameStateChanged(int newGameState)
 {
 }
+
+bool MacroSystem::IsMacroRunning() const
+{
+	return false;
+}
+
+bool MacroSystem::IsActiveMacroCall() const
+{
+	return false;
+}
+
+void MacroSystem::HandleMacroError(const char* szError)
+{
+	if (IsActiveMacroCall())
+	{
+		if (bAllErrorsDumpStack || bAllErrorsFatal)
+			DumpStack(nullptr, nullptr);
+
+		if (bAllErrorsFatal)
+			EndMacroCommand(pLocalPlayer, "");
+	}
+}
+
+void MacroSystem::HandleFatalError(const char* szError)
+{
+	if (IsActiveMacroCall())
+	{
+		DumpStack(nullptr, nullptr);
+		EndMacroCommand(pLocalPlayer, "");
+	}
+}
+
+bool MacroSystem::DispatchBind(char* szCommand, char* szArgs)
+{
+	// Macro Binds only supported in-game
+	if (gGameState != GAMESTATE_INGAME)
+		return false;
+	// Why is this here?
+	if (!pLocalPlayer)
+		return false;
+
+	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
+	if (!pBlock)
+		return false;
+
+	MQBindList* pBind = pBindList;
+	while (pBind)
+	{
+		// Substring search for the command
+		if (ci_find_substr(pBind->szName, szCommand) == 0)
+		{
+			if (pBlock->BindCmd.empty())
+			{
+				if (!gBindInProgress)
+				{
+					char szCallFunc[MAX_STRING] = { 0 };
+					strcpy_s(szCallFunc, pBind->szFuncName);
+					strcat_s(szCallFunc, " ");
+					strcat_s(szCallFunc, szArgs);
+
+					if (pBind->Parse)
+					{
+						ParseMacroData(szCallFunc, MAX_STRING);
+					}
+
+					gBindInProgress = true;
+					pBlock->BindCmd = szCallFunc;
+				}
+				else
+				{
+					WriteChatf("Can't execute bind while another bind is in progress");
+				}
+			}
+
+			return true;
+		}
+
+		pBind = pBind->pNext;
+	}
+
+	return false;
+}
+
+
 
 DECLARE_MODULE_FACTORY(MacroSystem)
 
