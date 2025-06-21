@@ -44,11 +44,24 @@
 
 // Link up ImGui
 #include <imgui/imgui.h>
+
+#if defined(MQLIB_STATIC)
+
+#if defined(_M_AMD64)
+#pragma comment(lib, "imgui_static-64.lib")
+#else
+#pragma comment(lib, "imgui_static.lib")
+#endif
+
+#else // defined(MQLIB_STATIC)
+
 #if defined(_M_AMD64)
 #pragma comment(lib, "imgui-64.lib")
 #else
 #pragma comment(lib, "imgui.lib")
 #endif // defined(_WIN64)
+
+#endif // !defined(MQLIB_STATIC)
 
 //#define MQ2_PROFILING
 

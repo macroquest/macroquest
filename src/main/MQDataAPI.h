@@ -31,7 +31,7 @@ namespace mq {
 
 //============================================================================
 
-class MQDataAPI : public MQModuleBase
+class MQDataAPI : public MQModule
 {
 public:
 	MQDataAPI();

@@ -310,15 +310,31 @@ static void CustomBindCmd(const char* szLine)
 	}
 }
 
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class CustomBindsPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(CustomBindsPlugin) : PLUGIN_MODULE_BASE_CALL("CustomBinds")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnGameStateChanged(int gameState) override;
+};
+
+DECLARE_PLUGIN_MODULE(CustomBindsPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void CustomBindsPlugin::Initialize()
 {
 	DebugSpewAlways("Initializing MQ2CustomBinds");
 	AddCommand("/custombind", CustomBindCmd, false, true, false);
 }
 
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
+void CustomBindsPlugin::Shutdown()
 {
 	DebugSpewAlways("Shutting down MQ2CustomBinds");
 	RemoveCommand("/custombind");
@@ -333,7 +349,7 @@ PLUGIN_API void ShutdownPlugin()
 	sCustomBinds.clear();
 }
 
-PLUGIN_API void SetGameState(DWORD GameState)
+void CustomBindsPlugin::OnGameStateChanged(int GameState)
 {
 	if (GameState == GAMESTATE_INGAME || GameState == GAMESTATE_CHARSELECT)
 	{

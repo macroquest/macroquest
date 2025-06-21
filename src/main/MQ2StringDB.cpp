@@ -103,10 +103,10 @@ void msgTokenTextParam__Detour(const char* Data, DWORD Length)
 	msgTokenTextParam__Trampoline(Data, Length);
 }
 
-class StringDBModule : public MQModuleBase
+class StringDBModule : public MQModule
 {
 public:
-	StringDBModule() : MQModuleBase("StringDB")
+	StringDBModule() : MQModule("StringDB")
 	{
 	}
 

@@ -81,7 +81,7 @@ public:
 DECLARE_MODULE_FACTORY(MQCommandAPI);
 
 MQCommandAPI::MQCommandAPI()
-	: MQModuleBase("Commands", static_cast<int>(ModulePriority::Commands))
+	: MQModule("Commands", static_cast<int>(ModulePriority::Commands))
 {
 	pCommandAPI = this;
 }
@@ -281,7 +281,7 @@ void MQCommandAPI::Shutdown()
 	m_aliases.clear();
 }
 
-void MQCommandAPI::OnAfterModuleUnloaded(MQModuleBase* module)
+void MQCommandAPI::OnAfterModuleUnloaded(MQModule* module)
 {
 	if (module->IsPlugin())
 	{

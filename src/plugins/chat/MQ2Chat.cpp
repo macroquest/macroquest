@@ -16,41 +16,47 @@
 #include <mq/Plugin.h>
 
 PreSetup("MQ2Chat");
+
 static const std::string DebugHeader("[MQ2] ");
 
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class ChatPlugin : public PLUGIN_MODULE_BASE
 {
-	DebugSpewAlways("Initializing MQ2Chat");
-}
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(ChatPlugin) : PLUGIN_MODULE_BASE_CALL("Chat")
+	{
+	}
 
-PLUGIN_API void ShutdownPlugin()
-{
-	DebugSpewAlways("Shutting down MQ2Chat");
+	virtual void Initialize() override
+	{
+		DebugSpewAlways("Initializing MQ2Chat");
+	}
 
-	// Remove commands, macro parameters, hooks, etc.
-}
+	virtual void Shutdown() override
+	{
+		DebugSpewAlways("Shutting down MQ2Chat");
+	}
 
-PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
-{
-	// This is called every time WriteChatColor is called by MQ2Main or any plugin,
-	// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
-	// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
+	virtual void OnWriteChatColor(const char* message, int color, int filter) override
+	{
+		// This is called every time WriteChatColor is called by MQ2Main or any plugin,
+		// IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
+		// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
 
-	char Stripped[MAX_STRING];
-	StripMQChat(Line, Stripped);
+		char Stripped[MAX_STRING];
+		StripMQChat(message, Stripped);
 
-	if (gFilterMacro == FILTERMACRO_NONE) return 0;
-	if (!pEverQuest) return 0;
-	if (gGameState != GAMESTATE_INGAME) return 0;
+		if (gFilterMacro == FILTERMACRO_NONE) return;
+		if (!pEverQuest) return;
+		if (gGameState != GAMESTATE_INGAME) return;
 
-	if (!pEverQuest)
-		return 0;
+		auto output = DebugHeader + Stripped;
+		if (output.size() > MAX_STRING)
+			output.erase(MAX_STRING - 1);
 
-	auto output = DebugHeader + Stripped;
-	if (output.size() > MAX_STRING)
-		output.erase(MAX_STRING - 1);
+		dsp_chat_no_events(output.c_str(), color);
+	}
+};
 
-	dsp_chat_no_events(output.c_str(), Color);
-	return 0;
-}
-
+DECLARE_PLUGIN_MODULE(ChatPlugin);

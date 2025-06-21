@@ -34,7 +34,7 @@ struct MQTimedCommand;
 struct MQCommand;
 struct MQPlugin;
 
-class MQCommandAPI : public MQModuleBase
+class MQCommandAPI : public MQModule
 {
 public:
 	MQCommandAPI();
@@ -74,7 +74,7 @@ private:
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
 	virtual void OnProcessFrame() override;
-	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
+	virtual void OnAfterModuleUnloaded(MQModule* module) override;
 
 	void Cmd_Help(const char* szLine) const;
 	void Cmd_Alias(const char* szLine);

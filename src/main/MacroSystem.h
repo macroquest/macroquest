@@ -215,7 +215,7 @@ MQLIB_API void EndAllMacros();
 
 //============================================================================
 
-class MacroSystem : public MQModuleBase
+class MacroSystem : public MQModule
 {
 public:
 	MacroSystem();

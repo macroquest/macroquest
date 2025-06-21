@@ -1120,10 +1120,10 @@ static void FindItemPulse()
 
 // Maybe this should become a plugin?
 
-class AutoInventoryModule : public MQModuleBase
+class AutoInventoryModule : public MQModule
 {
 public:
-	AutoInventoryModule() : MQModuleBase("AutoInventory")
+	AutoInventoryModule() : MQModule("AutoInventory")
 	{
 	}
 

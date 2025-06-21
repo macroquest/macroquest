@@ -2017,10 +2017,10 @@ static void Windows_Shutdown()
 	RemoveDetour(__CreateCascadeMenuItems);
 }
 
-class WindowsModule : public MQModuleBase
+class WindowsModule : public MQModule
 {
 public:
-	WindowsModule() : MQModuleBase("Windows")
+	WindowsModule() : MQModule("Windows")
 	{
 	}
 

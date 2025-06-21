@@ -545,10 +545,10 @@ static void DoCrash(const char* szLine)
 
 //----------------------------------------------------------------------------
 
-class CrashHandlerModule : public MQModuleBase
+class CrashHandlerModule : public MQModule
 {
 public:
-	CrashHandlerModule() : MQModuleBase("CrashHandler", static_cast<int>(ModulePriority::CrashHandler))
+	CrashHandlerModule() : MQModule("CrashHandler", static_cast<int>(ModulePriority::CrashHandler))
 	{
 		CrashHandler_Startup();
 	}

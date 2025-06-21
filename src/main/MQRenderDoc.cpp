@@ -604,10 +604,10 @@ static void RenderDoc_Pulse()
 
 #endif // !HAS_DIRECTX_11
 
-class RenderDocModule : public MQModuleBase
+class RenderDocModule : public MQModule
 {
 public:
-	RenderDocModule() : MQModuleBase("RenderDoc")
+	RenderDocModule() : MQModule("RenderDoc")
 	{
 		RenderDoc_Startup();
 	}

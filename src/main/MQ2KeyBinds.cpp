@@ -526,10 +526,10 @@ static void DumpBindsCommand(PlayerClient*, const char* szLine)
 
 //=================================================================================================
 
-class KeyBindsModule : public MQModuleBase
+class KeyBindsModule : public MQModule
 {
 public:
-	KeyBindsModule() : MQModuleBase("KeyBinds")
+	KeyBindsModule() : MQModule("KeyBinds")
 	{
 	}
 

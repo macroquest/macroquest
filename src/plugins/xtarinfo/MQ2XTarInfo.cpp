@@ -371,29 +371,49 @@ void CMD_XTarInfo(SPAWNINFO* pPlayer, char* szLine)
 	}
 }
 
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class XTarInfoPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(XTarInfoPlugin) : PLUGIN_MODULE_BASE_CALL("XTarInfo")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnCleanUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+};
+
+DECLARE_PLUGIN_MODULE(XTarInfoPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void XTarInfoPlugin::Initialize()
 {
 	AddCommand("/xtarinfo", CMD_XTarInfo);
 	Initialize();
 }
 
-PLUGIN_API void ShutdownPlugin()
+void XTarInfoPlugin::Shutdown()
 {
 	CleanUp();
 	RemoveCommand("/xtarinfo");
 }
 
-PLUGIN_API void OnCleanUI()
+void XTarInfoPlugin::OnCleanUI()
 {
 	CleanUp();
 }
 
-PLUGIN_API void OnReloadUI()
+void XTarInfoPlugin::OnReloadUI(const ReloadUIParams&)
 {
 	Initialized = false;
 }
 
-PLUGIN_API void OnPulse()
+void XTarInfoPlugin::OnProcessFrame()
 {
 	if (GetGameState() != GAMESTATE_INGAME || !pLocalPC)
 		return;

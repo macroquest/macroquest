@@ -30,10 +30,10 @@ namespace mq {
 
 //----------------------------------------------------------------------------
 
-class PulseModule : public MQModuleBase
+class PulseModule : public MQModule
 {
 public:
-	PulseModule() : MQModuleBase("Pulse")
+	PulseModule() : MQModule("Pulse")
 	{
 	}
 
@@ -201,10 +201,10 @@ public:
 
 
 // This tracks the state of the merchant window to know if we've received items for it.
-class MerchantWindowTracker : public MQModuleBase
+class MerchantWindowTracker : public MQModule
 {
 public:
-	MerchantWindowTracker() : MQModuleBase("MerchantWindowTracker")
+	MerchantWindowTracker() : MQModule("MerchantWindowTracker")
 	{
 	}
 
@@ -380,10 +380,10 @@ void UserCameraCommand(PlayerClient*, const char* szLine)
 	}
 }
 
-class CameraModule : public MQModuleBase
+class CameraModule : public MQModule
 {
 public:
-	CameraModule() : MQModuleBase("Camera")
+	CameraModule() : MQModule("Camera")
 	{
 	}
 

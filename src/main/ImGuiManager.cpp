@@ -1410,10 +1410,10 @@ static void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	}
 }
 
-class ImGuiModule : public MQModuleBase
+class ImGuiModule : public MQModule
 {
 public:
-	ImGuiModule() : MQModuleBase("ImGui", static_cast<int>(ModulePriority::ImGui))
+	ImGuiModule() : MQModule("ImGui", static_cast<int>(ModulePriority::ImGui))
 	{
 	}
 

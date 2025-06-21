@@ -950,10 +950,10 @@ static void RemoveAnonDetours()
 	RemoveDetour(CTextureFont__DrawWrappedText2);
 }
 
-class AnonymizerModule : public MQModuleBase
+class AnonymizerModule : public MQModule
 {
 public:
-	AnonymizerModule() : MQModuleBase("Anonymizer")
+	AnonymizerModule() : MQModule("Anonymizer")
 	{
 	}
 

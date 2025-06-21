@@ -266,10 +266,10 @@ static void InvalidateObservedEQObject(void* Object)
 	}
 }
 
-class ObservedObjectsModule : public MQModuleBase
+class ObservedObjectsModule : public MQModule
 {
 public:
-	ObservedObjectsModule() : MQModuleBase("ObservedObjects")
+	ObservedObjectsModule() : MQModule("ObservedObjects")
 	{
 	}
 
@@ -292,7 +292,7 @@ public:
 		}
 	}
 
-	virtual void OnBeforeModuleUnloaded(MQModuleBase* module) override
+	virtual void OnBeforeModuleUnloaded(MQModule* module) override
 	{
 		UNUSED(module);
 
@@ -327,7 +327,7 @@ MQDataAPI* pDataAPI = nullptr;
 
 DECLARE_MODULE_FACTORY(MQDataAPI);
 
-MQDataAPI::MQDataAPI() : MQModuleBase("DataTypes", static_cast<int>(ModulePriority::DataTypes))
+MQDataAPI::MQDataAPI() : MQModule("DataTypes", static_cast<int>(ModulePriority::DataTypes))
 {
 	bmParseMacroData = AddBenchmark("ParseMacroParameter");
 

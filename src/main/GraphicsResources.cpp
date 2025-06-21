@@ -178,10 +178,10 @@ static void GraphicsResources_InvalidateDeviceObjects()
 	}
 }
 
-class GraphicsResourcesModule : public MQModuleBase
+class GraphicsResourcesModule : public MQModule
 {
 public:
-	GraphicsResourcesModule() : MQModuleBase("GraphicsResources", static_cast<int>(ModulePriority::Graphics))
+	GraphicsResourcesModule() : MQModule("GraphicsResources", static_cast<int>(ModulePriority::Graphics))
 	{
 	}
 

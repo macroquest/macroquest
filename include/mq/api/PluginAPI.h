@@ -29,6 +29,9 @@ namespace mq {
 
 class PluginInterface;
 
+class MQPluginModule;
+struct MQPluginArguments;
+
 // Plugin Function Types
 using fMQWriteChatColor      = int (*)(const char*, uint32_t, uint32_t);
 using fMQPulse               = void(*)();
@@ -51,6 +54,9 @@ using fMQLoadPlugin          = void(*)(const char*);
 using fMQUnloadPlugin        = void(*)(const char*);
 using fMQGetPluginInterface  = PluginInterface* (*)();
 using fMQPostUnloadPlugin    = void(*)(const char*);
+
+using fMQCreateModule = MQPluginModule*(*)(const MQPluginArguments&);
+using fMQDestroyModule = void(*)(MQPluginModule*);
 
 /**
  * Structure representing a loaded plugin.

@@ -5966,10 +5966,10 @@ static void DeveloperTools_UpdateImGui()
 
 //============================================================================
 
-class DeveloperToolsModule : public MQModuleBase
+class DeveloperToolsModule : public MQModule
 {
 public:
-	DeveloperToolsModule() : MQModuleBase("DeveloperTools", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	DeveloperToolsModule() : MQModule("DeveloperTools", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}
 

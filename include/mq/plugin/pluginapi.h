@@ -20,7 +20,11 @@
 #include "../../src/main/MQ2Main.h"
 #include "mq/api/Main.h"
 
+#if defined(MQLIB_STATIC)
+#define PLUGIN_API
+#else
 #define PLUGIN_API extern "C" __declspec(dllexport)
+#endif
 
 // The name of the plugin.
 extern char INIFileName[MAX_STRING];

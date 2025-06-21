@@ -70,6 +70,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eqlib_static", "eqlib\eqlib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQCore", "main\MQCore.vcxproj", "{E86715CB-43A2-45DD-9863-B95DEA18BDB2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui_static", "imgui\imgui_static.vcxproj", "{14505828-0D5C-4600-8B89-4798864FA5E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -282,6 +284,14 @@ Global
 		{E86715CB-43A2-45DD-9863-B95DEA18BDB2}.Release|Win32.Build.0 = Release|Win32
 		{E86715CB-43A2-45DD-9863-B95DEA18BDB2}.Release|x64.ActiveCfg = Release|x64
 		{E86715CB-43A2-45DD-9863-B95DEA18BDB2}.Release|x64.Build.0 = Release|x64
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Debug|Win32.Build.0 = Debug|Win32
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Debug|x64.ActiveCfg = Debug|x64
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Debug|x64.Build.0 = Debug|x64
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Release|Win32.ActiveCfg = Release|Win32
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Release|Win32.Build.0 = Release|Win32
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Release|x64.ActiveCfg = Release|x64
+		{14505828-0D5C-4600-8B89-4798864FA5E8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -317,6 +327,7 @@ Global
 		{168FB6C6-1C5E-4808-AB40-3135FB91EE5B} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
 		{E8D6F091-2BEA-480B-86EE-F53D192B4CC7} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
 		{E86715CB-43A2-45DD-9863-B95DEA18BDB2} = {5BB58FDF-3760-4BAD-A147-D71E4EC66BE8}
+		{14505828-0D5C-4600-8B89-4798864FA5E8} = {B4485B60-AD10-4604-A4B1-A2E6DB1B1692}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330AC4A2-17BC-4784-AB3C-2B1DA71EB6A5}

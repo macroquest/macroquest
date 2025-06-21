@@ -423,10 +423,10 @@ static void EmuExtensions_CleanUI()
 }
 
 
-class EmuExtensionsModule : public MQModuleBase
+class EmuExtensionsModule : public MQModule
 {
 public:
-	EmuExtensionsModule() : MQModuleBase("EmuExtensions", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	EmuExtensionsModule() : MQModule("EmuExtensions", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}
 

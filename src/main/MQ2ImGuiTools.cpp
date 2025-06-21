@@ -326,10 +326,10 @@ void DoKeybindSettings()
 
 //============================================================================
 
-class ImGuiAPIModule : public MQModuleBase
+class ImGuiAPIModule : public MQModule
 {
 public:
-	ImGuiAPIModule() : MQModuleBase("ImGuiAPI")
+	ImGuiAPIModule() : MQModule("ImGuiAPI")
 	{
 	}
 

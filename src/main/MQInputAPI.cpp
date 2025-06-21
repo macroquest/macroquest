@@ -724,10 +724,10 @@ static LRESULT WINAPI DispatchMessageA_Detour(const MSG* lpMsg)
 
 //============================================================================
 
-class InputModule : public MQModuleBase
+class InputModule : public MQModule
 {
 public:
-	InputModule() : MQModuleBase("Input") {}
+	InputModule() : MQModule("Input") {}
 
 	virtual void Initialize() override
 	{

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="dinput.h">
       <Filter>Header Files</Filter>
     </ClInclude>

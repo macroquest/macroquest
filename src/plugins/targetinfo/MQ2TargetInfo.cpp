@@ -720,7 +720,27 @@ void CMD_TargetInfo(SPAWNINFO* pPlayer, char* szLine)
 	}
 }
 
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class TargetInfoPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(TargetInfoPlugin) : PLUGIN_MODULE_BASE_CALL("TargetInfo")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnCleanUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+};
+
+DECLARE_PLUGIN_MODULE(TargetInfoPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void TargetInfoPlugin::Initialize()
 {
 	AddCommand("/targetinfo", CMD_TargetInfo);
 
@@ -731,17 +751,14 @@ PLUGIN_API void InitializePlugin()
 
 	if (!std::filesystem::exists(curFilepath, ec_exists))
 	{
-		HMODULE hMe = nullptr;
-		GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)InitializePlugin, &hMe);
-
 		// need to unpack our resource.
-		if (HRSRC hRes = FindResource(hMe, MAKEINTRESOURCE(IDR_DB1), "DB"))
+		if (HRSRC hRes = FindResource(m_hModule, MAKEINTRESOURCE(IDR_DB1), "DB"))
 		{
-			if (const HGLOBAL bin = LoadResource(hMe, hRes))
+			if (const HGLOBAL bin = LoadResource(m_hModule, hRes))
 			{
 				if (void* pMyBinaryData = LockResource(bin))
 				{
-					std::size_t ressize = SizeofResource(hMe, hRes);
+					std::size_t ressize = SizeofResource(m_hModule, hRes);
 					FILE* File = _fsopen(curFilepath.string().c_str(), "wb", _SH_DENYWR);
 					if (File != nullptr)
 					{
@@ -758,24 +775,24 @@ PLUGIN_API void InitializePlugin()
 	EzDetour(CTargetWnd__HandleBuffRemoveRequest, &MyCTargetWnd::HandleBuffRemoveRequest_Detour, &MyCTargetWnd::HandleBuffRemoveRequest_Tramp);
 }
 
-PLUGIN_API void ShutdownPlugin()
+void TargetInfoPlugin::Shutdown()
 {
 	CleanUp();
 	RemoveCommand("/targetinfo");
 	RemoveDetour(CTargetWnd__HandleBuffRemoveRequest);
 }
 
-PLUGIN_API void OnCleanUI()
+void TargetInfoPlugin::OnCleanUI()
 {
 	CleanUp();
 }
 
-PLUGIN_API void OnReloadUI()
+void TargetInfoPlugin::OnReloadUI(const ReloadUIParams&)
 {
 	Initialized = false;
 }
 
-PLUGIN_API void OnPulse()
+void TargetInfoPlugin::OnProcessFrame()
 {
 	if (GetGameState() != GAMESTATE_INGAME || !pLocalPlayer)
 		return;

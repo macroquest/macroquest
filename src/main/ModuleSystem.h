@@ -14,17 +14,17 @@
 
 #pragma once
 
-#include "mq/base/PluginHandle.h"
-#include "mq/base/Enum.h"
+#include "eqlib/Events.h"
 
 #include "mq/api/PluginAPI.h"
-
-#include "eqlib/Events.h"
+#include "mq/base/PluginHandle.h"
+#include "mq/base/Enum.h"
 
 namespace mq {
 
 class ModuleSystem;
 class PipeMessage;
+class MQPluginProvider;
 
 enum class ModulePriority
 {
@@ -57,12 +57,13 @@ enum class ModuleFlags : uint32_t
 	IsPlugin                   = 1 << 3,         // Module is a plugin
 	IsDummy                    = 1 << 4,         // Module is a dummy
 
-	SkipOnProcessFrame         = 1 << 19,        // Module has callback for this event
-	SkipOnDrawHUD              = 1 << 20,        // ... and so on
-	SkipOnUpdateImGui          = 1 << 21,
-	SkipOnChatMessage          = 1 << 22,
-	SkipOnTellWindowMessage    = 1 << 23,
-	SkipOnIncomingWorldMessage = 1 << 24,
+	SkipOnProcessFrame         = 1 << 18,        // Module has callback for this event
+	SkipOnDrawHUD              = 1 << 19,        // ... and so on
+	SkipOnUpdateImGui          = 1 << 20,
+	SkipOnChatMessage          = 1 << 21,
+	SkipOnTellWindowMessage    = 1 << 22,
+	SkipOnIncomingWorldMessage = 1 << 23,
+	SkipOnOutgoingWorldMessage = 1 << 24,
 	SkipOnWriteChatColor       = 1 << 25,
 	SkipOnIncomingChat         = 1 << 26,
 	SkipOnSpawnAdded           = 1 << 27,
@@ -70,7 +71,7 @@ enum class ModuleFlags : uint32_t
 	SkipOnGroundItemAdded      = 1 << 29,
 	SkipOnGroundItemRemoved    = 1 << 30,
 
-	SkipAll                    = 0xFFF80000,
+	SkipAll                    = 0xFFFC0000,
 };
 constexpr bool has_bitwise_operations(ModuleFlags) { return true; }
 
@@ -80,9 +81,9 @@ constexpr bool has_bitwise_operations(ModuleFlags) { return true; }
 struct IncomingChatParams
 {
 	const char* message;
-	int color;
+	int         color;
 
-	bool filtered;              // true if message is filtered
+	bool        filtered;       // true if message is filtered
 	const char* stripped;       // original message with links stripped
 };
 
@@ -98,17 +99,21 @@ struct ModuleDependencies
 	std::vector<std::string> modules;
 };
 
+/** Forward declaration of plugin interface base class */
+class PluginInterface;
+
 /**
  * Base class representing a module in the MacroQuest framework. A module is a basic unit of functionality,
  * providing a suite of events that can be overridden to implement custom behavior.
  */
-class MQModuleBase
+class MQModule
 {
 	friend class MacroQuest;
 
 protected:
 	/** Protected constructor. This class should be subclassed to implement module functionality. */
-	MQModuleBase(std::string_view name, int priority = static_cast<int>(ModulePriority::Default), ModuleFlags flags = ModuleFlags::None);
+	explicit MQModule(std::string_view name, int priority = static_cast<int>(ModulePriority::Default),
+		ModuleFlags flags = ModuleFlags::None);
 
 	/**
 	 * Add a module name to the list of module dependencies.
@@ -127,7 +132,7 @@ protected:
 	}
 
 public:
-	virtual ~MQModuleBase() = default;
+	virtual ~MQModule() = default;
 
 	/**
 	 * Gets the name of the module.
@@ -165,6 +170,26 @@ public:
 	 * Retrieve this module's dependencies descriptor
 	 */
 	const ModuleDependencies& GetDependencies() const { return m_dependencies; }
+
+	/**
+	 * For dynamic modules (plugins), returns a pointer to the MQPlugin.
+	 */
+	virtual MQPlugin* GetPlugin() { return nullptr; }
+
+	/**
+	 * For dynamic modules (plugins), returns a handle to the dll module.
+	 */
+	virtual HMODULE GetHModule() const { return nullptr; }
+
+	/**
+	 * For dynamic modules (plugins), returns the filename of the dll module.
+	 */
+	virtual const std::string& GetPluginFilename() const;
+
+	/**
+	 * For dynamic modules (plugins), returns the PluginProvider that owns the module.
+	 */
+	virtual MQPluginProvider* GetPluginProvider() const { return nullptr; }
 
 	//----------------------------------------------------------------------------
 
@@ -233,13 +258,22 @@ public:
 		return true;
 	}
 
-	virtual bool OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params)
+	virtual bool OnIncomingWorldMessage(eqlib::WorldMessageParams& params)
 	{
 		UNUSED(params);
 
 		m_flags |= ModuleFlags::SkipOnIncomingWorldMessage;
-		
-		return false;
+
+		return true;
+	}
+
+	virtual bool OnOutgoingWorldMessage(eqlib::WorldMessageParams& params)
+	{
+		UNUSED(params);
+
+		m_flags |= ModuleFlags::SkipOnOutgoingWorldMessage;
+
+		return true;
 	}
 
 	virtual void OnWriteChatColor(const char* message, int color, int filter)
@@ -297,17 +331,17 @@ public:
 		m_flags |= ModuleFlags::SkipOnGroundItemRemoved;
 	}
 
-	virtual void OnModuleLoaded(MQModuleBase* module)
+	virtual void OnModuleLoaded(MQModule* module)
 	{
 		UNUSED(module);
 	}
 
-	virtual void OnBeforeModuleUnloaded(MQModuleBase* module)
+	virtual void OnBeforeModuleUnloaded(MQModule* module)
 	{
 		UNUSED(module);
 	}
 
-	virtual void OnAfterModuleUnloaded(MQModuleBase* module)
+	virtual void OnAfterModuleUnloaded(MQModule* module)
 	{
 		UNUSED(module);
 	}
@@ -329,11 +363,17 @@ public:
 		return false;
 	}
 
-	MQModuleBase(const MQModuleBase&) = delete;
-	MQModuleBase(MQModuleBase&&) = delete;
+	/** Used for plugins that provide an interface to their API */
+	virtual PluginInterface* GetPluginInterface()
+	{
+		return nullptr;
+	}
 
-	MQModuleBase& operator=(const MQModuleBase&) = delete;
-	MQModuleBase& operator=(MQModuleBase&&) = delete;
+	MQModule(const MQModule&) = delete;
+	MQModule(MQModule&&) = delete;
+
+	MQModule& operator=(const MQModule&) = delete;
+	MQModule& operator=(MQModule&&) = delete;
 
 protected:
 	int m_priority;
@@ -345,30 +385,111 @@ private:
 	MQPluginHandle m_handle;
 };
 
-class MQDynamicModule : public MQModuleBase
+using MQModulePtr = std::shared_ptr<MQModule>;
+
+//=================================================================================================
+// Module classes required for dynamic (plugin) module support
+
+class MQPluginModule;
+
+class MQPluginProvider
+{
+public:
+	virtual ~MQPluginProvider() = default;
+
+	virtual void OnBeforePluginInitialized(MQPluginModule* pPlugin) = 0;
+	virtual void OnAfterPluginInitialized(MQPluginModule* pPlugin) = 0;
+
+	virtual void OnBeforePluginShutdown(MQPluginModule* pPlugin) = 0;
+	virtual void OnAfterPluginShutdown(MQPluginModule* pPlugin) = 0;
+};
+
+//-------------------------------------------------------------------------------------------------
+
+struct MQPluginArguments
+{
+	/** Pointer to the plugin provider object reponsible for providing this plugin to the module system */
+	MQPluginProvider* pluginProvider;
+
+	/** Handle to the plugin module */
+	HMODULE hModule;
+
+	/** Path to the plugin file */
+	std::string_view path;
+
+	/** Name of the plugin */
+	std::string_view name;
+
+	/** Flags for the plugin module. */
+	ModuleFlags flags ;
+};
+
+class MQPluginModule : public MQModule
 {
 public:
 	static constexpr ModuleFlags DEFAULT_PLUGIN_FLAGS = ModuleFlags::CanUnload | ModuleFlags::IsPlugin
 		| ModuleFlags::SkipOnChatMessage | ModuleFlags::SkipOnTellWindowMessage | ModuleFlags::SkipOnIncomingWorldMessage;
 
-	MQDynamicModule(std::string_view name, HMODULE hModule, ModuleFlags flags = DEFAULT_PLUGIN_FLAGS);
-	virtual ~MQDynamicModule() override;
+protected:
+	/** Plugin modules should use this constructor for initializing the plugin */
+	MQLIB_OBJECT explicit MQPluginModule(const MQPluginArguments& arguments);
 
-	virtual MQPlugin* GetPlugin() = 0;
-	HMODULE GetHModule() const { return m_hModule; }
+	/** Constructor for internal use only */
+	MQPluginModule(HMODULE hmodule, std::string_view path, std::string_view name, ModuleFlags flags,
+		MQPluginProvider* provider = nullptr);
+
+public:
+	MQLIB_OBJECT virtual ~MQPluginModule() override;
+
+	virtual MQPlugin* GetPlugin() override { return &m_plugin; }
+	virtual HMODULE GetHModule() const override { return m_hModule; }
+	virtual const std::string& GetPluginFilename() const override { return m_path; }
+	virtual MQPluginProvider* GetPluginProvider() const override { return m_provider; }
 
 protected:
-	HMODULE m_hModule;
+	// These will be filled by the dynamic module loader
+	std::string m_path;
+	HMODULE m_hModule{};
+	MQPluginProvider* m_provider;
+	MQPlugin m_plugin;
 };
 
-template <typename ModuleType>
-std::unique_ptr<MQModuleBase> CreateModule();
+//-------------------------------------------------------------------------------------------------
 
-#define DECLARE_MODULE_FACTORY(ModuleType) \
-	template <> std::unique_ptr<MQModuleBase> mq::CreateModule<ModuleType>() \
-	{ \
-		return std::make_unique<ModuleType>(); \
+template <typename ModuleType>
+MQModulePtr CreateModule();
+
+#define DECLARE_MODULE_FACTORY(ModuleType)                                     \
+	template <> MQModulePtr mq::CreateModule<ModuleType>()                     \
+	{                                                                          \
+		return std::make_shared<ModuleType>();                                 \
 	}
 
+#ifdef MQ_FROM_PLUGIN
+
+#define DECLARE_PLUGIN_MODULE(ModuleType)                                      \
+	extern "C" __declspec(dllexport)                                           \
+		MQPluginModule* CreateModule(const MQPluginArguments& arguments)       \
+	{                                                                          \
+		return new ModuleType(arguments);                                      \
+	}                                                                          \
+	extern "C" __declspec(dllexport) void DestroyModule(ModuleType* module)    \
+	{                                                                          \
+		delete module;                                                         \
+	}
+
+#define PLUGIN_MODULE_BASE                    MQPluginModule
+#define PLUGIN_MODULE_CONSTRUCTOR(ModuleType) ModuleType(const MQPluginArguments& arguments)
+#define PLUGIN_MODULE_BASE_CALL(Name)         PLUGIN_MODULE_BASE(arguments)
+
+#else
+
+#define DECLARE_PLUGIN_MODULE(ModuleType)     DECLARE_MODULE_FACTORY(ModuleType)
+
+#define PLUGIN_MODULE_BASE                    MQModule
+#define PLUGIN_MODULE_CONSTRUCTOR(ModuleType) ModuleType()
+#define PLUGIN_MODULE_BASE_CALL(Name)         PLUGIN_MODULE_BASE(Name)
+
+#endif
 
 } // namespace mq

@@ -62,10 +62,10 @@ public:
 	}
 };
 
-class LoginModule : public MQModuleBase
+class LoginModule : public MQModule
 {
 public:
-	LoginModule() : MQModuleBase("Login")
+	LoginModule() : MQModule("Login")
 	{
 	}
 

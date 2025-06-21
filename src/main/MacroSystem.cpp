@@ -3813,7 +3813,7 @@ static void VarSetCmd(PlayerClient*, const char* szLine)
 MacroSystem* g_macroSystem = nullptr;
 
 MacroSystem::MacroSystem()
-	: MQModuleBase("MacroSystem", static_cast<int>(ModulePriority::Macros))
+	: MQModule("MacroSystem", static_cast<int>(ModulePriority::Macros))
 {
 	SetModuleDependencies({ "Commands", "DataTypes" });
 

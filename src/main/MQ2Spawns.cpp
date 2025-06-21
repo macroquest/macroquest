@@ -918,10 +918,10 @@ PlayerClient* GetClosestBanker(bool forInteraction)
 
 //============================================================================
 
-class SpawnsModule : public MQModuleBase
+class SpawnsModule : public MQModule
 {
 public:
-	SpawnsModule() : MQModuleBase("Spawns")
+	SpawnsModule() : MQModule("Spawns")
 	{
 	}
 

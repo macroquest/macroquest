@@ -693,10 +693,10 @@ static void CheckGameState()
 
 //----------------------------------------------------------------------------
 
-class DetoursModule : public MQModuleBase
+class DetoursModule : public MQModule
 {
 public:
-	DetoursModule() : MQModuleBase("Detours")
+	DetoursModule() : MQModule("Detours")
 	{
 	}
 

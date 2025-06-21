@@ -162,10 +162,10 @@ public:
 
 //============================================================================
 
-class CachedBuffsModule : public MQModuleBase
+class CachedBuffsModule : public MQModule
 {
 public:
-	CachedBuffsModule() : MQModuleBase("CachedBuffs")
+	CachedBuffsModule() : MQModule("CachedBuffs")
 	{
 	}
 

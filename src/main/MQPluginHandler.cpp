@@ -42,7 +42,7 @@ static constexpr char EverQuestVersion[] = __ExpectedVersionDate " " __ExpectedV
 //----------------------------------------------------------------------------
 
 // Strips MQ2/MQ off of the name and returns it back
-static std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension = true)
+std::string_view GetCanonicalPluginName(std::string_view name, bool stripExtension)
 {
 	if (stripExtension && name.length() >= 5)
 	{
@@ -241,26 +241,9 @@ static void RemovePluginFromList(MQPlugin* pPlugin)
 //=================================================================================================
 //=================================================================================================
 
-MQPluginModule::MQPluginModule(MQPluginProvider* provider, HMODULE hModule, std::string path)
-	: MQDynamicModule(GetCanonicalPluginName(path), hModule)
-	, m_path(std::move(path))
-	, m_provider(provider)
+MQPluginV1Module::MQPluginV1Module(MQPluginProvider* provider, HMODULE hModule, std::string_view path)
+	: MQPluginModule(hModule, path, GetCanonicalPluginName(path), MQPluginModule::DEFAULT_PLUGIN_FLAGS, provider)
 {
-}
-
-MQPluginModule::~MQPluginModule()
-{
-}
-
-//=================================================================================================
-
-MQPluginV1Module::MQPluginV1Module(MQPluginProvider* provider, HMODULE hModule, std::string path)
-	: MQPluginModule(provider, hModule, std::move(path))
-{
-	strcpy_s(m_plugin.szFilename, m_path.c_str());
-	m_plugin.name = GetName();
-	m_plugin.hModule = m_hModule;
-
 	m_plugin.Initialize = (fMQInitializePlugin)GetProcAddress(hModule, "InitializePlugin");
 	m_plugin.Shutdown = (fMQShutdownPlugin)GetProcAddress(hModule, "ShutdownPlugin");
 	m_plugin.IncomingChat = (fMQIncomingChat)GetProcAddress(hModule, "OnIncomingChat");
@@ -302,11 +285,6 @@ MQPluginV1Module::MQPluginV1Module(MQPluginProvider* provider, HMODULE hModule, 
 	m_plugin.UnloadPlugin = (fMQUnloadPlugin)GetProcAddress(hModule, "OnUnloadPlugin");
 	m_plugin.OnPostUnloadPlugin = (fMQPostUnloadPlugin)GetProcAddress(hModule, "OnPostUnloadPlugin");
 	m_plugin.GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(hModule, "GetPluginInterface");
-
-	if (float* pVersion = reinterpret_cast<float*>(GetProcAddress(hModule, "?MQ2Version@@3MA")))
-		m_plugin.fpVersion = *pVersion;
-	else
-		m_plugin.fpVersion = 1.0;
 }
 
 MQPluginV1Module::~MQPluginV1Module()
@@ -315,30 +293,18 @@ MQPluginV1Module::~MQPluginV1Module()
 
 void MQPluginV1Module::Initialize()
 {
-	// Pass the plugin instance and handle to the plugin
-	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
-
-	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(m_hModule, "InitPluginHandle"));
-	initPluginFunc(&m_plugin, GetHandle());
-
 	if (m_plugin.Initialize)
 	{
 		m_plugin.Initialize();
 	}
-
-	m_provider->OnPluginInitialized(this);
 }
 
 void MQPluginV1Module::Shutdown()
 {
-	m_provider->OnBeforePluginShutdown(this);
-
 	if (m_plugin.Shutdown)
 	{
 		m_plugin.Shutdown();
 	}
-
-	m_provider->OnAfterPluginShutdown(this);
 }
 
 void MQPluginV1Module::OnProcessFrame()
@@ -468,7 +434,7 @@ void MQPluginV1Module::OnGroundItemRemoved(eqlib::EQGroundItem* groundItem)
 	}
 }
 
-void MQPluginV1Module::OnModuleLoaded(MQModuleBase* module)
+void MQPluginV1Module::OnModuleLoaded(MQModule* module)
 {
 	if (m_plugin.LoadPlugin && module->IsPlugin())
 	{
@@ -476,7 +442,7 @@ void MQPluginV1Module::OnModuleLoaded(MQModuleBase* module)
 	}
 }
 
-void MQPluginV1Module::OnBeforeModuleUnloaded(MQModuleBase* module)
+void MQPluginV1Module::OnBeforeModuleUnloaded(MQModule* module)
 {
 	if (m_plugin.UnloadPlugin && module->IsPlugin())
 	{
@@ -484,7 +450,7 @@ void MQPluginV1Module::OnBeforeModuleUnloaded(MQModuleBase* module)
 	}
 }
 
-void MQPluginV1Module::OnAfterModuleUnloaded(MQModuleBase* module)
+void MQPluginV1Module::OnAfterModuleUnloaded(MQModule* module)
 {
 	if (m_plugin.OnPostUnloadPlugin && module->IsPlugin())
 	{
@@ -525,7 +491,7 @@ MQPluginHandler* g_pluginHandler = nullptr;
 DECLARE_MODULE_FACTORY(MQPluginHandler)
 
 MQPluginHandler::MQPluginHandler()
-	: MQModuleBase("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
+	: MQModule("PluginHandler", static_cast<int>(ModulePriority::PluginHandler))
 {
 	g_pluginHandler = this;
 }
@@ -543,10 +509,28 @@ void MQPluginHandler::Initialize()
 	LoadPlugins();
 }
 
-void MQPluginHandler::OnPluginInitialized(MQPluginModule* plugin)
+void MQPluginHandler::OnBeforePluginInitialized(MQPluginModule* pluginModule)
 {
-	// We want to insert into the plugin map here, but we actually need it sooner,
-	// because this call ends up being deferred until later.
+	// Pass the plugin instance and handle to the plugin
+	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
+
+	MQPlugin* plugin = pluginModule->GetPlugin();
+	HMODULE hModule = pluginModule->GetHModule();
+
+	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(hModule, "InitPluginHandle"));
+	initPluginFunc(plugin, GetHandle());
+
+	if (float* pVersion = reinterpret_cast<float*>(GetProcAddress(hModule, "?MQ2Version@@3MA")))
+		plugin->fpVersion = *pVersion;
+	else
+		plugin->fpVersion = 1.0;
+}
+
+void MQPluginHandler::OnAfterPluginInitialized(MQPluginModule* plugin)
+{
+	// Called after a plugin that was provided by this provider was initialized
+
+	UNUSED(plugin);
 }
 
 void MQPluginHandler::OnBeforePluginShutdown(MQPluginModule* plugin)
@@ -566,13 +550,9 @@ void MQPluginHandler::OnBeforePluginShutdown(MQPluginModule* plugin)
 
 void MQPluginHandler::OnAfterPluginShutdown(MQPluginModule* plugin)
 {
-	if (!m_unloadingModule)
-	{
-		// This is called immediately after the plugin's Shutdown function is called,
-		// allow us to perform cleanup in response.
+	// Called after a plugin that was provided by this provider was shutdown
 
-		CleanupPlugin(plugin);
-	}
+	UNUSED(plugin);
 }
 
 void MQPluginHandler::Shutdown()
@@ -635,11 +615,46 @@ LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool s
 		return LoadPluginResult_Failed;
 	}
 
-	std::unique_ptr<MQPluginModule> plugin = std::make_unique<MQPluginV1Module>(this, hModule.release(), pluginPath);
+	MQModulePtr plugin;
+
+	// Check if this is a V1 plugin or a V2 plugin.
+	if (fMQCreateModule CreateModuleProc = (fMQCreateModule)GetProcAddress(hModule.get(), "CreateModule"))
+	{
+		// Validate that it also has a DestroyModule
+		fMQDestroyModule DestroyModuleProc = (fMQDestroyModule)GetProcAddress(hModule.get(), "DestroyModule");
+		if (!DestroyModuleProc)
+		{
+			m_pluginLoadFailure = fmt::format("Plugin {} uses CreateModule does not have a DestroyModule", pluginPath);
+
+			SPDLOG_ERROR("LoadPlugin({}) failed: {}", pluginName, m_pluginLoadFailure);
+			return LoadPluginResult_Failed;
+		}
+
+		MQPluginArguments arguments;
+		arguments.pluginProvider = this;
+		arguments.hModule = hModule.release();
+		arguments.path = pluginPath;
+		arguments.name = GetCanonicalPluginName(pluginPath);
+		arguments.flags = MQPluginModule::DEFAULT_PLUGIN_FLAGS;
+
+		plugin = std::shared_ptr<MQPluginModule>(CreateModuleProc(arguments),
+			[this, DestroyModuleProc](MQPluginModule* module) { DeletePluginModule(module, DestroyModuleProc); });
+
+		SPDLOG_DEBUG("LoadPlugin({}): Plugin module created as a V2 plugin module. name={} fileName={}",
+			pluginName, plugin->GetName(), plugin->GetPluginFilename());
+	}
+	else
+	{
+		plugin = std::shared_ptr<MQPluginV1Module>(new MQPluginV1Module(this, hModule.release(), pluginPath),
+			[this](MQPluginModule* module) { DeletePluginModule(module); });
+
+		SPDLOG_DEBUG("LoadPlugin({}): Plugin module created as a V1 plugin module. name={} fileName={}",
+			pluginName, plugin->GetName(), plugin->GetPluginFilename());
+	}
 
 	// Add the plugin to the plugin list.
 	AddPluginToList(plugin->GetPlugin());
-	MQPluginModule* pluginModule = plugin.get();
+	MQModule* pluginModule = plugin.get();
 	g_mq->AddModule(std::move(plugin));
 	m_pluginMap.emplace(pluginModule->GetName(), pluginModule);
 
@@ -648,6 +663,34 @@ LoadPluginResult MQPluginHandler::LoadPlugin(std::string_view pluginName, bool s
 		WritePrivateProfileBool("Plugins", pluginModule->GetPluginFilename(), true, mq::internal_paths::MQini);
 	}
 	return LoadPluginResult_Success;
+}
+
+void MQPluginHandler::DeletePluginModule(MQPluginModule* module, fMQDestroyModule destroyProc /* = nullptr */)
+{
+	HMODULE hModule = module->GetHModule();
+	std::string pluginName = module->GetPluginFilename();
+
+	SPDLOG_DEBUG("DeletePluginModule({})", pluginName);
+
+	// If destroyProc was provided, use it to delete the module. Otherwise, we just delete it normally.
+	if (destroyProc)
+	{
+		destroyProc(module);
+	}
+	else
+	{
+		delete module;
+	}
+
+	if (hModule && !CleanupPluginModule(pluginName, hModule))
+	{
+		UnloadFailedItem failedItem;
+		failedItem.fileName = pluginName;
+		failedItem.hModule = hModule;
+		std::string_view key = failedItem.fileName;
+
+		m_pluginUnloadFailedMap.emplace(key, std::move(failedItem));
+	}
 }
 
 bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = false */)
@@ -676,9 +719,9 @@ bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = f
 	if (failedIter != m_pluginUnloadFailedMap.end())
 	{
 		// Try to clean it up again.
-		std::unique_ptr<MQPluginModule> plugin = std::move(failedIter->second);
+		const UnloadFailedItem& failedItem = failedIter->second;
 
-		if (CleanupPlugin(plugin.get()))
+		if (CleanupPluginModule(failedItem.fileName, failedItem.hModule))
 		{
 			m_pluginUnloadFailedMap.erase(failedIter);
 			return true;
@@ -692,35 +735,26 @@ bool MQPluginHandler::UnloadPlugin(std::string_view pluginName, bool save /* = f
 	{
 		MQPluginHandle handle = iter->second->GetHandle();
 
-		m_unloadingModule = true;
+		// This should return the last unique copy of the module.
+		MQModulePtr module = g_mq->RemoveModule(handle);
+		assert(module.use_count() == 1);
 
-		// Calling RemoveModule will result in our OnPluginShutdown callback getting called.
-		std::unique_ptr<MQPluginModule> pluginModule(static_cast<MQPluginModule*>(g_mq->RemoveModule(handle).release()));
+		// This will delete the module, and call CleanupPluginModule. If the plugin is now found in the
+		// unload failure map, then we know the unload operation failed.
+		module.reset();
 
-		m_unloadingModule = false;
-
-		if (pluginModule && !CleanupPlugin(pluginModule.get()))
-		{
-			m_pluginUnloadFailedMap.emplace(pluginModule->GetName(), std::move(pluginModule));
-			return false;
-		}
-
-		// Destroy the module
-		pluginModule.reset();
-
-		return true;
+		if (m_pluginUnloadFailedMap.count(canonicalName) == 0)
+			return true;
 	}
 
 	return false;
 }
 
-bool MQPluginHandler::CleanupPlugin(MQPluginModule* pluginModule)
+bool MQPluginHandler::CleanupPluginModule(std::string_view pluginName, HMODULE hModule)
 {
-	const std::string& pluginName = pluginModule->GetFilename();
-
-	if (FreeLibrary(pluginModule->GetHModule()))
+	if (FreeLibrary(hModule))
 	{
-		if (!IsInModuleList(pluginName.c_str()))
+		if (!IsInModuleList(pluginName))
 		{
 			return true;
 		}
@@ -753,7 +787,7 @@ bool MQPluginHandler::IsPluginLoaded(std::string_view pluginName) const
 	return m_pluginMap.count(GetCanonicalPluginName(pluginName)) != 0;
 }
 
-MQPlugin* MQPluginHandler::GetPlugin(std::string_view name)
+MQPlugin* MQPluginHandler::GetPluginPtr(std::string_view name)
 {
 	auto iter = m_pluginMap.find(GetCanonicalPluginName(name));
 
@@ -765,9 +799,9 @@ MQPlugin* MQPluginHandler::GetPlugin(std::string_view name)
 	return nullptr;
 }
 
-void* MQPluginHandler::GetPluginProc(std::string_view pluginName, const char* proc)
+void* MQPluginHandler::GetPluginProcFromPlugin(std::string_view pluginName, const char* proc)
 {
-	if (MQPlugin* plugin = GetPlugin(pluginName))
+	if (MQPlugin* plugin = GetPluginPtr(pluginName))
 	{
 		return GetProcAddress(plugin->hModule, proc);
 	}
@@ -775,9 +809,9 @@ void* MQPluginHandler::GetPluginProc(std::string_view pluginName, const char* pr
 	return nullptr;
 }
 
-PluginInterface* MQPluginHandler::GetPluginInterface(std::string_view pluginName)
+PluginInterface* MQPluginHandler::GetPluginInterfaceFromPlugin(std::string_view pluginName)
 {
-	if (MQPlugin* pPlugin = GetPlugin(pluginName))
+	if (MQPlugin* pPlugin = GetPluginPtr(pluginName))
 	{
 		if (pPlugin->GetPluginInterface)
 		{
@@ -841,9 +875,9 @@ void MQPluginHandler::PluginCommand(const char* szLine)
 				}
 				else
 				{
-					for (auto const& [key, module] : m_pluginUnloadFailedMap)
+					for (auto const& [key, failedItem] : m_pluginUnloadFailedMap)
 					{
-						WriteChatColorf("%s", USERCOLOR_WHO, module->GetFilename().c_str());
+						WriteChatColorf("%s", USERCOLOR_WHO, failedItem.fileName.c_str());
 					}
 					WriteChatColorf("%d Plugin(s) displayed. To try to unload again use /plugin <pluginame> unload",
 						USERCOLOR_WHO, m_pluginUnloadFailedMap.size());
@@ -864,7 +898,7 @@ void MQPluginHandler::PluginCommand(const char* szLine)
 			bool noauto = false;
 
 			// helps us check if this plugin is already loaded
-			MQPlugin* plugin = GetPlugin(szName);
+			MQPlugin* plugin = GetPluginPtr(szName);
 
 			if (szCommand[0] != '\0')
 			{
@@ -938,7 +972,7 @@ void MQPluginHandler::PluginCommand(const char* szLine)
 						bool save = !noauto;
 						if (LoadPlugin(szName, save) == 1)
 						{
-							plugin = GetPlugin(szName);
+							plugin = GetPluginPtr(szName);
 							WriteChatf("Plugin '%s' loaded.", plugin->szFilename);
 						}
 						else if (m_pluginLoadFailure.empty())
@@ -1029,22 +1063,22 @@ std::pair<wil::unique_hmodule, std::string> MQPluginHandler::LoadPluginModule(st
 
 bool MQPluginHandler::UnloadFailedPlugins()
 {
-	// UnloadPlugin modifies the global map, so we need to make a copy of the values we need.
-	std::vector<MQPluginModule*> failedModules;
-	failedModules.reserve(m_pluginUnloadFailedMap.size());
+	decltype(m_pluginUnloadFailedMap) failedModules;
+	failedModules.swap(m_pluginUnloadFailedMap);
 
-	for (const auto& [_, module] : m_pluginUnloadFailedMap)
+	for (auto&& [_, failedItem] : failedModules)
 	{
-		failedModules.push_back(module.get());
+		SPDLOG_DEBUG("UnloadFailedPlugins({})", failedItem.fileName.c_str());
+		if (!CleanupPluginModule(failedItem.fileName, failedItem.hModule))
+		{
+			UnloadFailedItem newFailedItem = std::move(failedItem);
+			std::string_view key = newFailedItem.fileName;
+
+			m_pluginUnloadFailedMap.emplace(key, std::move(newFailedItem));
+		}
 	}
 
-	for (MQPluginModule* module : failedModules)
-	{
-		SPDLOG_DEBUG("UnloadFailedPlugins({})", module->GetName());
-		UnloadPlugin(module->GetName().c_str());
-	}
-
-	return GetPluginUnloadFailedCount() == 0;
+	return m_pluginUnloadFailedMap.empty();
 }
   
 void MQPluginHandler::ShutdownFailedPlugins()
@@ -1072,7 +1106,7 @@ void MQPluginHandler::ShutdownFailedPlugins()
 
 bool MQPluginHandler::IsPluginUnloadFailed(std::string_view name)
 {
-	return m_pluginUnloadFailedMap.count(GetCanonicalPluginName(name)) != 0;
+	return m_pluginUnloadFailedMap.count(name) != 0;
 }
 
 //=================================================================================================
@@ -1104,7 +1138,7 @@ void* GetPluginProc(std::string_view pluginName, const char* proc)
 {
 	if (g_pluginHandler)
 	{
-		return g_pluginHandler->GetPluginProc(pluginName, proc);
+		return g_pluginHandler->GetPluginProcFromPlugin(pluginName, proc);
 	}
 
 	SPDLOG_ERROR("Attempt to call GetPluginProc without PluginHandler module loaded");
@@ -1115,7 +1149,7 @@ MQPlugin* GetPlugin(std::string_view pluginName)
 {
 	if (g_pluginHandler)
 	{
-		return g_pluginHandler->GetPlugin(pluginName);
+		return g_pluginHandler->GetPluginPtr(pluginName);
 	}
 
 	SPDLOG_ERROR("Attempt to call GetPlugin without PluginHandler module loaded");
@@ -1126,7 +1160,7 @@ MQPlugin* GetPluginByHandle(MQPluginHandle handle, bool noMain /* = false */)
 {
 	// MQ has everything stored by handle, we just call into it there and
 	// filter the results
-	MQModuleBase* pModule = g_mq->GetModuleByHandle(handle, noMain);
+	MQModule* pModule = g_mq->GetModuleByHandle(handle, noMain);
 
 	if (pModule && pModule->IsPlugin())
 	{
@@ -1142,7 +1176,7 @@ PluginInterface* GetPluginInterface(std::string_view pluginName)
 {
 	if (g_pluginHandler)
 	{
-		return g_pluginHandler->GetPluginInterface(pluginName);
+		return g_pluginHandler->GetPluginInterfaceFromPlugin(pluginName);
 	}
 
 	SPDLOG_ERROR("Attempt to call GetPluginInterface without PluginHandler module loaded");

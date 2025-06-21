@@ -38,7 +38,7 @@ namespace mq {
 // focus tracking and state management.
 
 class MQPostOffice : public PostOffice,
-	public MQModuleBase,
+	public MQModule,
 	public NamedPipeEvents
 {
 	class PipeEventsHandler;
@@ -50,7 +50,7 @@ public:
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
 	bool IsConnected() const;
 
-	// MQModuleBase
+	// MQModule
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
 	virtual void OnGameStateChanged(int GameState) override;
@@ -133,7 +133,7 @@ private:
 //----------------------------------------------------------------------------
 
 MQPostOffice::MQPostOffice()
-	: MQModuleBase("PostOffice")
+	: MQModule("PostOffice")
 	, m_pipeClient{ mq::MQ2_PIPE_SERVER_PATH }
 {
 	m_clientDropbox = RegisterAddress("pipe_client",

@@ -115,9 +115,6 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="dinput.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

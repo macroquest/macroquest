@@ -42,6 +42,27 @@ static uint64_t s_reenableTime = 0;
 static postoffice::DropboxAPI s_autologinDropbox;
 static uintptr_t s_joinServer = 0;
 
+//=================================================================================================
+
+class AutoLoginPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(AutoLoginPlugin) : PLUGIN_MODULE_BASE_CALL("AutoLogin")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnUpdateImGui() override;
+	virtual void OnGameStateChanged(int gameState) override;
+	virtual void OnCleanUI() override;
+};
+
+DECLARE_PLUGIN_MODULE(AutoLoginPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
 class LoginProfileType : public MQ2Type
 {
 public:
@@ -708,7 +729,7 @@ static bool DoesProfileMatchCurrentSession(const ProfileRecord& record)
 		&& (record.accountName.empty() || ci_equals(record.accountName, GetLoginName()));
 }
 
-PLUGIN_API void SetGameState(int GameState)
+void AutoLoginPlugin::OnGameStateChanged(int GameState)
 {
 	// this works because we will always have a gamestate change after loading or unloading eqmain
 	// GAMESTATE_PRECHARSELECT when transitioning from character select to server select, and
@@ -890,7 +911,7 @@ static void HandleMessage(const std::shared_ptr<postoffice::Message>& message)
 	}
 }
 
-PLUGIN_API void InitializePlugin()
+void AutoLoginPlugin::Initialize()
 {
 	pAutoLoginType = new MQ2AutoLoginType;
 	pLoginProfileType = new LoginProfileType;
@@ -954,7 +975,7 @@ PLUGIN_API void InitializePlugin()
 		};
 }
 
-PLUGIN_API void ShutdownPlugin()
+void AutoLoginPlugin::Shutdown()
 {
 	NotifyCharacterUnload();
 
@@ -1107,7 +1128,7 @@ int GetListCurSel(CListWnd* pWnd)
 int s_lastCharacterLevel = -1;
 int s_lastCharacterClass = -1;
 
-PLUGIN_API void OnPulse()
+void AutoLoginPlugin::OnProcessFrame()
 {
 	if (pLocalPlayer && (pLocalPlayer->GetClass() != s_lastCharacterClass || pLocalPlayer->Level != s_lastCharacterLevel))
 	{
@@ -1605,7 +1626,7 @@ static void ShowServerList(bool* p_open)
 	ImGui::End();
 }
 
-PLUGIN_API void OnUpdateImGui()
+void AutoLoginPlugin::OnUpdateImGui()
 {
 	int gameState = GetGameState();
 
@@ -1622,7 +1643,9 @@ PLUGIN_API void OnUpdateImGui()
 	}
 }
 
-PLUGIN_API void OnCleanUI()
+void AutoLoginPlugin::OnCleanUI()
 {
 	Login::clear_current_window();
 }
+
+//=================================================================================================

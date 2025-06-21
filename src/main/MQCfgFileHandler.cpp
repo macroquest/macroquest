@@ -87,10 +87,10 @@ void LoadCfgCommand(PlayerClient*, const char* szLine)
 	MacroError("Could not /loadcfg '%s'", szLine);
 }
 
-class MQCfgFileHandler : public MQModuleBase
+class MQCfgFileHandler : public MQModule
 {
 public:
-	MQCfgFileHandler() : MQModuleBase("CfgFileHandler")
+	MQCfgFileHandler() : MQModule("CfgFileHandler")
 	{
 	}
 
@@ -179,7 +179,7 @@ public:
 		}
 	}
 
-	virtual void OnModuleLoaded(MQModuleBase* module) override
+	virtual void OnModuleLoaded(MQModule* module) override
 	{
 		if (module->IsPlugin())
 		{

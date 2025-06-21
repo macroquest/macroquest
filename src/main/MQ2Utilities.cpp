@@ -6587,6 +6587,17 @@ HWND GetEQWindowHandle()
 	return *(HWND*)EQADDR_HWND;
 }
 
+HMODULE GetCurrentModule()
+{
+	HMODULE hModule = nullptr;
+
+	// Retrieve our current module handle by using the address of this function as a search param.
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+		| GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetCurrentModule, &hModule);
+
+	return hModule;
+}
+
 // ***************************************************************************
 // Function:    GetCharMaxBuffSlots
 // Description: Returns the max number of buff slots available for a character

@@ -104,9 +104,6 @@
     <ClCompile Include="MQ2KeyBinds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQPluginHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -408,6 +405,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2TimerType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQEQBugFix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

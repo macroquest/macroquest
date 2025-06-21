@@ -149,10 +149,10 @@ static void Cmd_Hud(PlayerClient*, const char* szLine)
 	}
 }
 
-class DisplayHookModule : public MQModuleBase
+class DisplayHookModule : public MQModule
 {
 public:
-	DisplayHookModule() : MQModuleBase("DisplayHook", static_cast<int>(ModulePriority::HUD), ModuleFlags::CanUnload)
+	DisplayHookModule() : MQModule("DisplayHook", static_cast<int>(ModulePriority::HUD), ModuleFlags::CanUnload)
 	{
 	}
 
@@ -244,10 +244,10 @@ public:
 	}
 };
 
-class LoadingScreenModule : public MQModuleBase
+class LoadingScreenModule : public MQModule
 {
 public:
-	LoadingScreenModule() : MQModuleBase("LoadingScreen", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	LoadingScreenModule() : MQModule("LoadingScreen", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}
 

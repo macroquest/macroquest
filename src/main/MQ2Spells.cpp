@@ -4250,10 +4250,10 @@ SpellAttributePredicate<CachedBuff> EvaluateCachedBuffPredicate(std::string_view
 
 //============================================================================
 
-class SpellsModule : public MQModuleBase
+class SpellsModule : public MQModule
 {
 public:
-	SpellsModule() : MQModuleBase("Spells")
+	SpellsModule() : MQModule("Spells")
 	{
 	}
 

@@ -78,7 +78,7 @@ static bool HandleChatMessage(eqlib::ChatMessageParams& params)
 		*out = 0;
 
 		params.message = buffer.data();
-		params.handleMessage(params);
+		params.messageHandler(params);
 
 		filtered = true; // not technically filtered, but we don't want to display it twice.
 	}
@@ -87,7 +87,7 @@ static bool HandleChatMessage(eqlib::ChatMessageParams& params)
 	// Call original chat handler here so we can close it off by resetting gbInChat.
 	if (!filtered)
 	{
-		params.handleMessage(params);
+		params.messageHandler(params);
 	}
 
 	gbInChat = false;
@@ -124,7 +124,7 @@ static bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
 		*out = 0;
 
 		params.message = buffer.data();
-		params.handleMessage(params);
+		params.messageHandler(params);
 
 		filtered = true; // not technically filtered, but we don't want to display it twice.
 	}
@@ -133,7 +133,7 @@ static bool HandleTellWindowMessage(eqlib::TellWindowMessageParams& params)
 	// Call original chat handler here so we can close it off by resetting gbInChat.
 	if (!filtered)
 	{
-		params.handleMessage(params);
+		params.messageHandler(params);
 	}
 
 	gbInChat = false;
@@ -163,7 +163,8 @@ void dsp_chat_no_events(const char* message, int color, bool allowLog, bool doPe
 {
 	s_noFilterChat = true;
 
-	pEverQuest->dsp_chat(message, color, allowLog, doPercentConvert);
+	if (pEverQuest)
+		pEverQuest->dsp_chat(message, color, allowLog, doPercentConvert);
 
 	s_noFilterChat = false;
 }
@@ -361,10 +362,10 @@ static void TellCheck(const char* szClean)
 
 //============================================================================
 
-class ChatHookModule : public MQModuleBase
+class ChatHookModule : public MQModule
 {
 public:
-	ChatHookModule() : MQModuleBase("ChatHook")
+	ChatHookModule() : MQModule("ChatHook")
 	{
 	}
 

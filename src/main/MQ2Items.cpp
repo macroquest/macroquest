@@ -586,10 +586,10 @@ static void Items_SetGameState(int gameState)
 #endif // HAS_KEYRING_WINDOW
 }
 
-class ItemsModule : public MQModuleBase
+class ItemsModule : public MQModule
 {
 public:
-	ItemsModule() : MQModuleBase("Items")
+	ItemsModule() : MQModule("Items")
 	{
 	}
 

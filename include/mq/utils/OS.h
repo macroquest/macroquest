@@ -42,19 +42,19 @@ inline bool IsProcessRunning(std::string_view exeName)
 	return false;
 }
 
-inline bool IsInModuleList(const char* moduleName, int processID = GetCurrentProcessId())
+inline bool IsInModuleList(std::string_view moduleName, int processID = GetCurrentProcessId())
 {
 	const wil::unique_process_handle process(OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processID));
 	if (process.is_valid())
 	{
 		HMODULE hMods[1024];
 		DWORD cbNeeded;
-		if(EnumProcessModules(process.get(), hMods, sizeof(hMods), &cbNeeded))
+		if (::K32EnumProcessModules(process.get(), hMods, sizeof(hMods), &cbNeeded))
 		{
 			for (DWORD i = 0; i < (cbNeeded / sizeof(HMODULE)); ++i)
 			{
 				char szModName[MAX_PATH];
-				if (GetModuleFileNameEx(process.get(), hMods[i], szModName, sizeof(szModName) / sizeof(char)))
+				if (::K32GetModuleFileNameExA(process.get(), hMods[i], szModName, sizeof(szModName) / sizeof(char)))
 				{
 					const std::filesystem::path mod_path = szModName;
 					if (ci_equals(mod_path.filename().string(), moduleName) || ci_equals(mod_path.stem().string(), moduleName))

@@ -163,10 +163,10 @@ void DumpBenchmarks()
 
 //=================================================================================================
 
-class BenchmarksModule : public MQModuleBase
+class BenchmarksModule : public MQModule
 {
 public:
-	BenchmarksModule() : MQModuleBase("Benchmarks")
+	BenchmarksModule() : MQModule("Benchmarks")
 	{
 	}
 

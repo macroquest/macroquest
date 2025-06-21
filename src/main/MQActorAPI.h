@@ -25,11 +25,11 @@
 
 namespace mq {
 
-class MQActorAPI : public MQModuleBase
+class MQActorAPI : public MQModule
 {
 	virtual void Initialize() override;
 	virtual void Shutdown() override;
-	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
+	virtual void OnAfterModuleUnloaded(MQModule* module) override;
 
 public:
 	MQActorAPI();

@@ -29,11 +29,11 @@ using PipeMessagePtr = std::unique_ptr<PipeMessage>;
 
 class MacroQuest
 	: public eqlib::EventInterface
-	, protected MQDynamicModule
+	, protected MQPluginModule
 	, public MainInterface
 {
 public:
-	MacroQuest(HMODULE hModule);
+	MacroQuest(HMODULE hModule, std::string_view modulePath, std::string_view rootDirectory);
 	virtual ~MacroQuest() override;
 
 	// First chance initialization and last chance shutdown occur on the injection thread.
@@ -48,7 +48,7 @@ public:
 	 * @param noMain If true, the return value is nullptr if the handle belongs to the main module
 	 * @return A pointer to the module, if found
 	 */
-	MQModuleBase* GetModuleByHandle(MQPluginHandle handle, bool noMain = false) const;
+	MQModule* GetModuleByHandle(MQPluginHandle handle, bool noMain = false) const;
 
 	/**
 	 * Look up a module by its name and return a pointer to the module if found.
@@ -56,23 +56,24 @@ public:
 	 * @param moduleName The name of the module
 	 * @return A pointer to the module, if found
 	 */
-	MQModuleBase* GetModuleByName(std::string_view moduleName) const;
+	MQModule* GetModuleByName(std::string_view moduleName) const;
 
 	/**
 	 * Adds a module to the module list and initializes it. If the module list is currently
 	 * locked, the module add will be queued for when the list is no longer locked.
 	 */
-	void AddModule(std::unique_ptr<MQModuleBase> module);
+	void AddModule(MQModulePtr module);
 
 	/**
 	 * Looks up a module by its handle and removes it from the module list. Returns the
 	 * module if it was found.
 	 */
-	std::unique_ptr<MQModuleBase> RemoveModule(MQPluginHandle handle);
+	MQModulePtr RemoveModule(MQPluginHandle handle);
 
 private:
 	bool InitializeEQLib();
 	void InitializeLogging();
+	void InitializeLoggingStage2();
 
 	// Initialization in the first frame of the main game loop
 	virtual void Initialize() override;
@@ -83,7 +84,7 @@ private:
 
 	virtual void LoadModules();
 	MQPluginHandle CreateModuleHandle();
-	bool CheckModuleDependencies(MQModuleBase* module);
+	bool CheckModuleDependencies(MQModule* module);
 
 protected:
 	// EQLib callbacks
@@ -97,7 +98,8 @@ protected:
 	virtual void OnPostZoneUI() override;
 	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override;
 	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override;
-	virtual bool OnIncomingWorldMessage(eqlib::IncomingWorldMessageParams& params) override;
+	virtual bool OnIncomingWorldMessage(eqlib::WorldMessageParams& params) override;
+	virtual bool OnOutgoingWorldMessage(eqlib::WorldMessageParams& params) override;
 	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
 	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;
 	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem) override;
@@ -108,9 +110,9 @@ public:
 	virtual bool OnIncomingChat(const IncomingChatParams& params) override;
 	virtual void OnZoned() override;
 	virtual void OnDrawHUD() override;
-	virtual void OnModuleLoaded(MQModuleBase* module) override;
-	virtual void OnBeforeModuleUnloaded(MQModuleBase* module) override;
-	virtual void OnAfterModuleUnloaded(MQModuleBase* module) override;
+	virtual void OnModuleLoaded(MQModule* module) override;
+	virtual void OnBeforeModuleUnloaded(MQModule* module) override;
+	virtual void OnAfterModuleUnloaded(MQModule* module) override;
 	virtual void OnMacroStart(const char* macroName) override;
 	virtual void OnMacroStop(const char* macroName) override;
 
@@ -123,8 +125,8 @@ private:
 	void InitializeModules();
 	void ShutdownModules();
 
-	void InitializeModule(MQModuleBase* module);
-	void ShutdownModule(MQModuleBase* module);
+	void InitializeModule(MQModule* module);
+	void ShutdownModule(MQModule* module);
 
 public:
 	// MainInterface implementation
@@ -170,16 +172,14 @@ private:
 		const MQPluginHandle& pluginHandle) const;
 	void HandlePendingWork();
 
-	virtual MQPlugin* GetPlugin() override { return &m_plugin; }
-
 	std::shared_ptr<spdlog::logger> m_logger;                        // logger for MacroQuest
 	std::shared_ptr<spdlog::logger> m_eqlibLogger;                   // logger for EQLib
 	eqlib::EQLibInterface* m_eqlib = nullptr;
 	eqlib::MemoryPatcher* m_memoryPatcher = nullptr;                 // Memory patcher for detours and patches
 
-	std::vector<std::unique_ptr<MQModuleBase>> m_modules;            // Modules sorted in priority order
-	std::unordered_map<uint64_t, MQModuleBase*> m_moduleHandleMap;   // Modules indexed by handle
-	ci_unordered::map<std::string, MQModuleBase*> m_namedModuleMap;  // Modules index by name
+	std::vector<MQModulePtr> m_modules;                              // Modules sorted in priority order
+	std::unordered_map<uint64_t, MQModule*> m_moduleHandleMap;       // Modules indexed by handle
+	ci_unordered::map<std::string, MQModule*> m_namedModuleMap;      // Modules index by name
 
 	bool m_initializedFirstFrame = false;
 	bool m_initializedModules = false;
@@ -203,14 +203,12 @@ private:
 
 	// State tracking across frames
 	eqlib::PlayerClient* m_lastPlayer = nullptr;
-	MQPlugin m_plugin;
 
 	struct ScopedIteratingModules;
 	int m_iteratingModules = 0;
 
 	// Pending work to be executed when we are not iterating through modules.
 	std::vector<std::function<void()>> m_pendingWork;
-	std::vector<std::unique_ptr<MQModuleBase>> m_pendingModuleAdds;
 };
 
 extern MacroQuest* g_mq;

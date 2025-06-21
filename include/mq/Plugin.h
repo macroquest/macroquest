@@ -22,9 +22,7 @@
 
 #pragma comment(lib, "pluginapi")
 
-#ifdef MQLIB_STATIC
-// TODO: Link static MQ Lib
-#else
+#ifndef MQLIB_STATIC
 #pragma comment(lib, "MQ2Main")
 #endif
 

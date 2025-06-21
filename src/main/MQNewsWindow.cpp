@@ -81,10 +81,10 @@ private:
 };
 
 
-class RecentChangesModule : public MQModuleBase
+class RecentChangesModule : public MQModule
 {
 public:
-	RecentChangesModule() : MQModuleBase("RecentChanges",
+	RecentChangesModule() : MQModule("RecentChanges",
 		static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}

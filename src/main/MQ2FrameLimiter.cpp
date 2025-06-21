@@ -1470,10 +1470,10 @@ static void ShutdownFrameLimiter()
 	RemoveBenchmark(bmThrottleTime);
 }
 
-class FrameLimiterModule : public MQModuleBase
+class FrameLimiterModule : public MQModule
 {
 public:
-	FrameLimiterModule() : MQModuleBase("FrameLimiter", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
+	FrameLimiterModule() : MQModule("FrameLimiter", static_cast<int>(ModulePriority::Default), ModuleFlags::CanUnload)
 	{
 	}
 

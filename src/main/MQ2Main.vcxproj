@@ -100,7 +100,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <AdditionalDependencies>fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmt.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -114,7 +114,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
-      <AdditionalDependencies>fmt.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmt.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -128,7 +128,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
-      <AdditionalDependencies>fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmtd.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -141,7 +141,7 @@
     </ClCompile>
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
-      <AdditionalDependencies>fmtd.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>fmtd.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -511,6 +511,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="emu\EmuExtensions.cpp" />
+    <ClCompile Include="MQEQBugFix.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="GraphicsEngineDX11.cpp" />
     <ClCompile Include="GraphicsEngineDX9.cpp" />
@@ -542,7 +543,6 @@
     <ClCompile Include="MQ2Items.cpp" />
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
-    <ClCompile Include="MQ2Main.cpp" />
     <ClCompile Include="MQNewsWindow.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQPluginHandler.cpp" />

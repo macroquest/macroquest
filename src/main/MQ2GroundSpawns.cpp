@@ -640,10 +640,10 @@ void MQGroundSpawn::Reset()
 
 //============================================================================
 
-class GroundSpawnsModule : public MQModuleBase
+class GroundSpawnsModule : public MQModule
 {
 public:
-	GroundSpawnsModule() : MQModuleBase("GroundSpawns")
+	GroundSpawnsModule() : MQModule("GroundSpawns")
 	{
 	}
 
