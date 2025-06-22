@@ -101,9 +101,13 @@ char INIFileName[MAX_STRING] = {};
 	namespace mq { class x; \
 	extern MQModulePtr CreateModule_##x(); }
 
+#if defined(MQLIB_STATIC)
 #define PLUGIN_MODULE(x) \
 	class x; \
 	namespace mq { extern MQModulePtr CreateModule_##x(); }
+#else
+#define PLUGIN_MODULE(x)
+#endif
 
 #include "ModuleList.inl"
 
@@ -730,8 +734,15 @@ void MacroQuest::LoadModules()
 {
 	// Register our modules
 #define MODULE(x) AddModule(CreateModule<x>());
+
+#if defined(MQLIB_STATIC)
 #define PLUGIN_MODULE(x) MODULE(x)
+#else
+#define PLUGIN_MODULE(x)
+#endif
+
 #include "ModuleList.inl"
+
 #undef MODULE
 #undef PLUGIN_MODULE
 }

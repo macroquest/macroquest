@@ -56,8 +56,10 @@ MODULE(RecentChangesModule)
 MODULE(CameraModule)
 MODULE(EQBugFixModule)
 
-#ifdef MQLIB_STATIC
 PLUGIN_MODULE(AutoLoginPlugin)
 PLUGIN_MODULE(MapPlugin)
 PLUGIN_MODULE(ItemDisplayPlugin)
+
+#if __has_include("../private/ModuleList-private.inl")
+#include "../private/ModuleList-private.inl"
 #endif
