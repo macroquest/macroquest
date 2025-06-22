@@ -121,7 +121,7 @@ namespace ImGui { extern ImGuiIO& GetIOEx(ImGuiContext*); extern ImGuiPlatformIO
 
 namespace mq {
 
-extern "C" HINSTANCE ghInstance;
+MQLIB_VAR HINSTANCE ghInstance;
 
 //----------------------------------------------------------------------------
 // Forward Declarations

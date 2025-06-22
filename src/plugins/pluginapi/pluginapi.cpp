@@ -21,6 +21,8 @@ using namespace eqlib;
 
 char INIFileName[MAX_STRING] = { 0 };
 
+#if !defined(MQLIB_STATIC)
+
 namespace mqplugin {
 
 HINSTANCE ghPluginModule = nullptr;
@@ -61,6 +63,8 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 }
 
 } // namespace mqplugin
+
+#endif // !defined(MQLIB_STATIC)
 
 //============================================================================
 //============================================================================

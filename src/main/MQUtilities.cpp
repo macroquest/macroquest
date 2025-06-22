@@ -333,7 +333,7 @@ void FatalError(const char* szFormat, ...)
 // Description: Our '/clearerrors' command
 // Usage:       /clearerrors
 // ***************************************************************************
-static void ClearErrorsCmd(PlayerClient*, const char*)
+void ClearErrorsCmd(PlayerClient*, const char*)
 {
 	gszLastNormalError[0] = 0;
 	gszLastSyntaxError[0] = 0;

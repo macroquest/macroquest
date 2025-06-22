@@ -37,18 +37,30 @@ extern mq::MainInterface* MainInterface;
 extern mq::MQPluginHandle ThisPluginHandle;
 extern mq::MQPlugin* ThisPlugin;
 
+#if !defined(MQLIB_STATIC)
 bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved);
+#endif
 
 } // namespace mqplugin
 
-#define PreSetup(pluginName) \
-	const char* mqplugin::PluginName = pluginName; \
-	BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved) \
+#if !defined(MQLIB_STATIC)
+
+#define PreSetup(pluginName)                                                          \
+	const char* mqplugin::PluginName = pluginName;                                    \
+	BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)        \
 	{ return mqplugin::PluginMain(hModule, dwReason, lpReserved); }
 
-#define PLUGIN_VERSION(Version) \
+#define PLUGIN_VERSION(Version)                                                       \
 	extern __declspec(dllexport) float MQ2Version = static_cast<float>(Version);
 
+#else
+
+#define PreSetup(pluginName)
+
+#define PLUGIN_VERSION(Version)                                                       \
+	static float MQ2Version = static_cast<float>(Version);
+
+#endif
 
 #if __has_include("../../../src/private/pluginapi-private.h")
 #include "../../../src/private/pluginapi-private.h"

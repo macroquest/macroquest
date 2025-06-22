@@ -3,8 +3,12 @@
   <PropertyGroup Label="UserMacros">
     <MQSolutionDirectory>$(MSBuildThisFileDirectory)</MQSolutionDirectory>
     <MQRoot>$(MQSolutionDirectory)..\</MQRoot>
-    <MQBinaryDirName Condition="'$(Configuration)'=='Debug'">debug</MQBinaryDirName>
-    <MQBinaryDirName Condition="'$(Configuration)'=='Release'">release</MQBinaryDirName>
+    <MQConfig Condition="$(Configuration.StartsWith('Debug'))">Debug</MQConfig>
+    <MQConfig Condition="$(Configuration.StartsWith('Release'))">Release</MQConfig>
+    <MQBinaryDirName Condition="'$(MQConfig)'=='Debug'">debug</MQBinaryDirName>
+    <MQBinaryDirName Condition="'$(MQConfig)'=='Release'">release</MQBinaryDirName>
+    <MQStaticBuild>false</MQStaticBuild>
+    <MQStaticBuild Condition="$(Configuration.EndsWith('-Static'))">true</MQStaticBuild>
 
     <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
     <MQBuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' == '1'">$(MQRoot)build\$(eqlibClientTarget)\</MQBuildDirectory>
@@ -17,15 +21,24 @@
     <MQ2BuildDirectory>$(MQBuildDirectory)</MQ2BuildDirectory>
     <MQ2LibDir>$(MQLibDir)</MQ2LibDir>
 
+    <!-- Dependencies for DLLs -->
+    <MQ2MainLibs Condition="'$(MQConfig)' == 'Debug'">fmtd.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib</MQ2MainLibs>
+    <MQ2MainLibs Condition="'$(MQConfig)' == 'Release'">fmt.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib</MQ2MainLibs>
+    <ImGuiLibs Condition="'$(MQConfig)' == 'Debug'">freetyped.lib</ImGuiLibs>
+    <ImGuiLibs Condition="'$(MQConfig)' == 'Release'">freetype.lib</ImGuiLibs>
+
+    <MQAmalgamLibs>MQ2Main-static.lib;$(MQ2MainLibs);$(ImGuiLibs)</MQAmalgamLibs>
+    <MQAmalgamDefines>MQLIB_STATIC;EQLIB_STATIC;IMGUI_STATIC</MQAmalgamDefines>
+
     <!-- vcpkg paths -->
     <VCPKG_IncludeStatic Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeStatic>
     <VCPKG_IncludeDynamic Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows\include</VCPKG_IncludeDynamic>
     <VCPKG_IncludeStatic Condition="'$(Platform)'=='x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeStatic>
     <VCPKG_IncludeDynamic Condition="'$(Platform)'=='x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows\include</VCPKG_IncludeDynamic>
-    <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\debug\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\lib</VCPKG_LibraryDirs>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\debug\lib</VCPKG_LibraryDirs>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\lib</VCPKG_LibraryDirs>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Debug|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Release|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\lib</VCPKG_LibraryDirs>
 
     <!-- 32-bit linker settings -->
     <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\detours\lib</PlatformLibraryDirectories>
@@ -36,12 +49,12 @@
     <IntDir>$(MQBuildDirectory)obj\$(Platform)\$(MQBinaryDirName)\$(ProjectName)\</IntDir>
     <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQBuildDirectory)bin\$(MQBinaryDirName)\</OutDir>
     <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQLibDir)</OutDir>
-    <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)'=='Release'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(MQConfig)'=='Debug'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(MQConfig)'=='Release'">false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
-    <ClCompile Condition="'$(Configuration)'=='Debug'">
+    <ClCompile Condition="'$(MQConfig)'=='Debug'">
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -50,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <!-- Release only compiler settings -->
-    <ClCompile Condition="'$(Configuration)'=='Release'">
+    <ClCompile Condition="'$(MQConfig)'=='Release'">
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -77,8 +90,12 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
+
+    <!-- Static Build Settings -->
+    <ClCompile Condition="'$(MQStaticBuild)' == 'true'">
+      <PreprocessorDefinitions>IMGUI_STATIC;MQLIB_STATIC;EQLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
-  <ItemGroup />
   <Target Name="VcpkgMQInstallManifestDependencies" BeforeTargets="PreBuildEvent">
     <Message Text="Checking vcpkg_mq manifest for $(MSBuildProjectName)..." Importance="High" />
     <Exec Condition="'$(Platform)'=='Win32'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQRoot.TrimEnd('\'))%22 -Platform %22x86%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />

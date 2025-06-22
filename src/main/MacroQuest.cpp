@@ -86,7 +86,29 @@ namespace fs = std::filesystem;
 namespace mqplugin
 {
 	mq::MQPluginHandle ThisPluginHandle;   // our unique handle for Main.
+	mq::MQPlugin* ThisPlugin = nullptr;
+	mq::MainInterface* MainInterface = nullptr;
+	const char* PluginName = "core";
 }
+
+#if defined(MQLIB_STATIC)
+// Only used by the static configuration
+char INIFileName[MAX_STRING] = {};
+#endif
+
+// Forward declare our modules
+#define MODULE(x) \
+	namespace mq { class x; \
+	extern MQModulePtr CreateModule_##x(); }
+
+#define PLUGIN_MODULE(x) \
+	class x; \
+	namespace mq { extern MQModulePtr CreateModule_##x(); }
+
+#include "ModuleList.inl"
+
+#undef MODULE
+#undef PLUGIN_MODULE
 
 namespace mq {
 
@@ -137,15 +159,6 @@ wil::unique_event g_loadComplete;
 wil::unique_event g_unloadComplete;
 
 static HANDLE s_backgroundThread = nullptr;
-
-// Forward declare our modules
-#define MODULE(x) \
-	class x; \
-	extern MQModulePtr CreateModule_##x();
-
-#include "ModuleList.inl"
-
-#undef MODULE
 
 struct MQStartupParams
 {
@@ -428,6 +441,9 @@ static bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::stri
 			strcpy_s(gPathMQini, strMQini.c_str());
 			strcpy_s(gPathConfig, strConfig.c_str());
 #pragma warning(pop)
+#if defined(MQLIB_STATIC)
+			strcpy_s(INIFileName, gPathMQini);
+#endif
 			return true;
 		}
 	}
@@ -569,6 +585,8 @@ bool MacroQuest::CoreInitialize()
 	// Construct our module handle
 	mqplugin::ThisPluginHandle = CreateModuleHandle();
 	m_handle = mqplugin::ThisPluginHandle;
+	mqplugin::ThisPlugin = &m_plugin;
+	mqplugin::MainInterface = this;
 
 	m_plugin.name = m_name;
 	m_plugin.hModule = m_hModule;
@@ -712,8 +730,10 @@ void MacroQuest::LoadModules()
 {
 	// Register our modules
 #define MODULE(x) AddModule(CreateModule<x>());
+#define PLUGIN_MODULE(x) MODULE(x)
 #include "ModuleList.inl"
 #undef MODULE
+#undef PLUGIN_MODULE
 }
 
 void MacroQuest::AddModule(MQModulePtr module)
@@ -2222,11 +2242,11 @@ static DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 	FreeLibraryAndExitThread(ghModule, 0);
 }
 
-extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
+BOOL MQDllMain(HANDLE hModule, DWORD ul_reason_for_call)
 {
 	if (ul_reason_for_call != DLL_PROCESS_ATTACH && ul_reason_for_call != DLL_PROCESS_DETACH)
 	{
-		return true;
+		return TRUE;
 	}
 
 	char szFilename[MAX_STRING] = { 0 };
@@ -2267,9 +2287,131 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 	return TRUE;
 }
 
+#ifndef MQLIB_STATIC
+
+extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
+{
+	if (ul_reason_for_call != DLL_PROCESS_ATTACH && ul_reason_for_call != DLL_PROCESS_DETACH)
+	{
+		return true;
+	}
+
+	return MQDllMain(hModule, ul_reason_for_call);
+}
+
+#endif
+
 MainInterface* GetMainInterface()
 {
 	return g_mq;
+}
+
+//============================================================================
+//============================================================================
+
+bool mq::AddTopLevelObject(const char* szName, mq::MQTopLevelObjectFunction Function)
+{
+	return mqplugin::MainInterface->AddTopLevelObject(szName, std::move(Function), mqplugin::ThisPluginHandle);
+}
+
+bool mq::RemoveTopLevelObject(const char* szName)
+{
+	return mqplugin::MainInterface->RemoveTopLevelObject(szName, mqplugin::ThisPluginHandle);
+}
+
+mq::MQTopLevelObject* mq::FindTopLevelObject(const char* szName)
+{
+	return mqplugin::MainInterface->FindTopLevelObject(szName);
+}
+
+//============================================================================
+//============================================================================
+
+void mq::postoffice::DropboxAPI::Post(const mq::postoffice::Address& address, const std::string& data, const ResponseCallbackAPI& callback) const
+{
+	mqplugin::MainInterface->SendToActor(Dropbox, address, data, callback, mqplugin::ThisPluginHandle);
+}
+
+void mq::postoffice::DropboxAPI::PostReply(const std::shared_ptr<mq::postoffice::Message>& message, const std::string& data, uint8_t status) const
+{
+	mqplugin::MainInterface->ReplyToActor(Dropbox, message, data, status, mqplugin::ThisPluginHandle);
+}
+
+void mq::postoffice::DropboxAPI::Remove()
+{
+	mqplugin::MainInterface->RemoveActor(Dropbox, mqplugin::ThisPluginHandle);
+}
+
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(ReceiveCallbackAPI&& receive)
+{
+	return mq::postoffice::DropboxAPI{
+		mqplugin::MainInterface->AddActor(mqplugin::ThisPlugin->name.c_str(), std::move(receive), mqplugin::ThisPluginHandle)
+	};
+}
+
+mq::postoffice::DropboxAPI mq::postoffice::AddActor(const char* localAddress, ReceiveCallbackAPI&& receive)
+{
+	fmt::memory_buffer buffer;
+	auto appender = fmt::appender(buffer);
+
+	fmt::format_to(appender, "{}:{}", mqplugin::ThisPlugin->name, localAddress);
+	*appender = 0;
+
+	return mq::postoffice::DropboxAPI{
+		mqplugin::MainInterface->AddActor(buffer.data(), std::move(receive), mqplugin::ThisPluginHandle)
+	};
+}
+
+void mq::postoffice::SendToActor(const Address& address, const std::string& data, const ResponseCallbackAPI& callback)
+{
+	mqplugin::MainInterface->SendToActor(nullptr, address, data, callback, mqplugin::ThisPluginHandle);
+}
+
+//============================================================================
+//============================================================================
+
+bool IsCommand(std::string_view command)
+{
+	return g_mq->IsCommand(command);
+}
+
+void TimedCommand(const char* command, int msDelay)
+{
+	g_mq->TimedCommand(command, msDelay, mqplugin::ThisPluginHandle);
+}
+
+void HideDoCommand(eqlib::PlayerClient* pChar, const char* command, bool delayed)
+{
+	UNUSED(pChar);
+
+	g_mq->DoCommand(command, delayed, mqplugin::ThisPluginHandle);
+}
+
+void DoCommand(eqlib::PlayerClient* pChar, const char* command)
+{
+	UNUSED(pChar);
+
+	g_mq->DoCommand(command, true, mqplugin::ThisPluginHandle);
+}
+
+void EzCommand(const char* command)
+{
+	g_mq->DoCommand(command, true, mqplugin::ThisPluginHandle);
+}
+
+bool AddAlias(const std::string& alias, const std::string& replacement, bool persist)
+{
+	return g_mq->AddAlias(alias, replacement, persist, mqplugin::ThisPluginHandle);
+}
+
+bool RemoveAlias(const std::string& alias)
+{
+	return g_mq->RemoveAlias(alias, mqplugin::ThisPluginHandle);
+}
+
+bool IsAlias(const std::string& alias)
+{
+	return g_mq->IsAlias(alias);
 }
 
 bool detail::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name)

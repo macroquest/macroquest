@@ -11,12 +11,12 @@
 
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">
 
     </ClCompile>
 
     <!-- Release only compiler settings -->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">
 
     </ClCompile>
 
@@ -26,18 +26,18 @@
     </ClCompile>
 
     <!-- Debug only linker settings -->
-    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Debug|x64'">
       <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">
       <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Release only linker settings -->
-    <Link Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Release|x64'">
       <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">
       <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
@@ -56,12 +56,12 @@
       <MQCONFIG Include=".\config\**\*.*" />
     </ItemGroup>
     <PropertyGroup>
-      <HardLink Condition="'$(Configuration)'=='Release'">false</HardLink>
-      <HardLink Condition="'$(Configuration)'=='Debug'">true</HardLink>
+      <HardLink Condition="'$(MQConfig)'=='Release'">false</HardLink>
+      <HardLink Condition="'$(MQConfig)'=='Debug'">true</HardLink>
     </PropertyGroup>
 
     <!-- Never overwrite config files -->
-    <Copy SourceFiles="@(MQCONFIG)" DestinationFolder="$(TargetDir)\..\config\%(RecursiveDir)"
+    <Copy SourceFiles="@(MQCONFIGS)" DestinationFolder="$(TargetDir)\..\config\%(RecursiveDir)"
       SkipUnchangedFiles="true"
       UseHardlinksIfPossible="$(HardLink)"
       Condition="%(Filename)!='' AND !Exists('$(TargetDir)\..\config\%(RecursiveDir)\%(Filename)%(Extension)')"

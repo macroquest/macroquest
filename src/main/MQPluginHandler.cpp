@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQPluginHandler.h"
 
+#include "MacroQuest.h"
 #include "ModuleSystem.h"
 #include "MQCommandAPI.h"
 #include "MQMain.h"
@@ -24,15 +25,11 @@
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
 
-#include "MacroQuest.h"
-
 using namespace eqlib;
 
 namespace mq {
 
-// This is the main plugin list. We use it to preserve some sort of order, that's about it.
-// It's exposed to plugins, and a lot of plugins use it even though they shouldn't, so we still
-// havw to keep it around even though it does almost nothing.
+// This is the main plugin list. We don't use it anymore but plugins refer to it still.
 MQPlugin* pPlugins = nullptr;
 
 // String constant used to bake in the version of everquest when performing

@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\plugins">
+      <UniqueIdentifier>{085c9061-ebb5-431f-9ae3-272afa58c18b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dinput.h">
@@ -29,5 +32,39 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\plugins\autologin\MQ2AutoLogin.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\autologin\StateMachine.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\itemdisplay\MQ2ItemDisplay.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\map\MapObject.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\map\MQ2Map.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\map\MQ2MapAPI.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\plugins\map\MQ2MapCommands.cpp">
+      <Filter>Source Files\plugins</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dinput8.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <NASM Include="..\plugins\itemdisplay\AssemblyFunctions.asm">
+      <Filter>Source Files\plugins</Filter>
+    </NASM>
+    <NASM Include="..\plugins\map\AssemblyFunctions.asm">
+      <Filter>Source Files\plugins</Filter>
+    </NASM>
   </ItemGroup>
 </Project>

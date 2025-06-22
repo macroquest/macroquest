@@ -18,13 +18,17 @@ MODULE(MQCommandAPI)           // Instantiates pCommandAPI
 MODULE(CrashHandlerModule)
 MODULE(MQDataAPI)              // Instantiates pDataAPI
 MODULE(MacroSystem)
+#ifndef MQLIB_STATIC 
 MODULE(MQActorAPI)             // Instantiates pActorAPI
 MODULE(MQPluginHandler)
+#endif
 MODULE(KeyBindsModule)
 
 MODULE(DetoursModule)
 MODULE(SpellsModule)
+#ifndef MQLIB_STATIC 
 MODULE(MQPostOffice)
+#endif
 MODULE(BenchmarksModule)
 MODULE(DisplayHookModule)
 MODULE(LoadingScreenModule)
@@ -51,3 +55,9 @@ MODULE(ImGuiModule)
 MODULE(RecentChangesModule)
 MODULE(CameraModule)
 MODULE(EQBugFixModule)
+
+#ifdef MQLIB_STATIC
+PLUGIN_MODULE(AutoLoginPlugin)
+PLUGIN_MODULE(MapPlugin)
+PLUGIN_MODULE(ItemDisplayPlugin)
+#endif

@@ -465,7 +465,7 @@ MQModulePtr CreateModule();
 		return std::make_shared<ModuleType>();                                 \
 	}
 
-#ifdef MQ_FROM_PLUGIN
+#ifndef MQLIB_STATIC
 
 #define DECLARE_PLUGIN_MODULE(ModuleType)                                      \
 	extern "C" __declspec(dllexport)                                           \

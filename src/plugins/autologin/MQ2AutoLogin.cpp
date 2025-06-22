@@ -770,7 +770,7 @@ void AutoLoginPlugin::OnGameStateChanged(int GameState)
 			}
 
 			char path[MAX_PATH] = { 0 };
-			GetModuleFileName(nullptr, path, MAX_PATH);
+			::GetModuleFileNameA(nullptr, path, MAX_PATH);
 			const std::filesystem::path fs_path(path);
 
 			if (const auto server_type = login::db::GetServerTypeFromPath(fs_path.parent_path().string()))
@@ -958,7 +958,7 @@ void AutoLoginPlugin::Initialize()
 	if (!login::db::GetPathFromServerType(server_type))
 	{
 		char path[MAX_PATH] = { 0 };
-		GetModuleFileName(nullptr, path, MAX_PATH);
+		::GetModuleFileNameA(nullptr, path, MAX_PATH);
 		const std::filesystem::path fs_path(path);
 
 		login::db::CreateOrUpdateServerType(server_type, fs_path.parent_path().string());

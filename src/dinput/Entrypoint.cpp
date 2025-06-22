@@ -54,6 +54,10 @@ HRESULT WINAPI DirectInput8Create(HINSTANCE hInst, DWORD dwVersion, REFIID riid,
 	return s_realDirectInput8Create(hInst, dwVersion, riid, ppOut, pUnknown);
 }
 
+namespace mq {
+	BOOL MQDllMain(HANDLE hModule, DWORD ul_reason_for_call);
+}
+
 BOOL WINAPI DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	if (ul_reason_for_call != DLL_PROCESS_ATTACH && ul_reason_for_call != DLL_PROCESS_DETACH)
@@ -61,8 +65,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserve
 		return TRUE;
 	}
 
-	char szFilename[MAX_STRING] = { 0 };
-	ghModule = (HMODULE)hModule;
-	ghInstance = (HINSTANCE)hModule;
+	return mq::MQDllMain(hModule, ul_reason_for_call);
 }
 

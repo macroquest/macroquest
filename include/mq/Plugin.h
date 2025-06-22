@@ -20,14 +20,13 @@
 #include "mq/plugin/pluginapi.h"
 #include "eqlib/EQLib.h"
 
-#pragma comment(lib, "pluginapi")
-
 #ifndef MQLIB_STATIC
+#pragma comment(lib, "pluginapi")
 #pragma comment(lib, "MQ2Main")
 #endif
 
 #ifdef EQLIB_STATIC
-#pragma comment(lib, "eqlib_static")
+#pragma comment(lib, "eqlib-static")
 #else
 #pragma comment(lib, "eqlib")
 #endif

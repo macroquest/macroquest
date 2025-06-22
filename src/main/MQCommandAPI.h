@@ -14,7 +14,7 @@
 
 #pragma once
 
-#ifndef MQ2MAIN_EXPORTS
+#ifndef MQ2MAIN_IMPL
 #error This header should only be included from the MQ2Main project
 #endif
 

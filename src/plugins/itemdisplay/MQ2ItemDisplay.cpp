@@ -1227,7 +1227,7 @@ void HandleLucyButton(const ItemPtr& pItem)
 	if (pItem)
 	{
 		std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
-		ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		::ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 }
 
