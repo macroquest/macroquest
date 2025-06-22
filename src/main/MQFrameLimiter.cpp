@@ -1421,7 +1421,10 @@ static void InitializeFrameLimiter()
 	bmRealRenderWorld = AddBenchmark("Render_Simulation");
 	bmThrottleTime = AddBenchmark("Render_Throttle");
 
-	pDataAPI->AddTopLevelObject("FrameLimiter", MQ2FrameLimiterType::dataFrameLimiter);
+	if (pDataAPI)
+	{
+		pDataAPI->AddTopLevelObject("FrameLimiter", MQ2FrameLimiterType::dataFrameLimiter);
+	}
 
 	// Hook UI render function
 	EzDetour(CXWndManager__DrawWindows, &CXWndManagerHook::DrawWindows_Detour, &CXWndManagerHook::DrawWindows_Trampoline);

@@ -800,7 +800,10 @@ static void Spawns_Initialize()
 		}
 	}
 
-	pDataAPI->AddTopLevelObject("NamingSpawn", dataNamingSpawn);
+	if (pDataAPI)
+	{
+		pDataAPI->AddTopLevelObject("NamingSpawn", dataNamingSpawn);
+	}
 
 	AddCommand("/caption", CaptionCmd, false, false);
 	AddCommand("/captioncolor", CaptionColorCmd, false, false);
@@ -810,7 +813,10 @@ static void Spawns_Shutdown()
 {
 	DebugSpew("Shutting Down Spawn-related Hooks");
 
-	pDataAPI->RemoveTopLevelObject("NamingSpawn");
+	if (pDataAPI)
+	{
+		pDataAPI->RemoveTopLevelObject("NamingSpawn");
+	}
 
 	RemoveCommand("/caption");
 	RemoveCommand("/captioncolor");
