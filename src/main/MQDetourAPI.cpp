@@ -13,21 +13,15 @@
  */
 
 #include "pch.h"
+
 #include "MacroQuest.h"
+#include "MQMain.h"
 
 #include "mq/api/DetourAPI.h"
-#include "mq/base/PluginHandle.h"
-
-#include "MQ2Main.h"
-#include "MQPluginHandler.h"
-#include "CrashHandler.h"
 #include "mq/base/WString.h"
-
 #include "eqlib/MemoryPatcher.h"
 
 #include <TlHelp32.h>
-
-#include "MQPostOffice.h"
 
 namespace eqlib
 {

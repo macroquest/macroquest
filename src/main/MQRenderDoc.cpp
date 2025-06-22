@@ -13,8 +13,8 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
+#include "MQMain.h"
 #include "mq/api/RenderDoc.h"
 #include "mq/base/WString.h"
 

@@ -13,16 +13,13 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-
-#include "CrashHandler.h"
 #include "MQCommandAPI.h"
 
-#include "mq/base/ScopeExit.h"
-
-// FIXME
+#include "CrashHandler.h"
 #include "MacroSystem.h"
-#include "MQDataAPI.h"
+#include "MQMain.h"
+
+#include "mq/base/ScopeExit.h"
 
 using namespace eqlib;
 

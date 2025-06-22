@@ -16,7 +16,7 @@
 
 #include "MacroQuest.h"
 #include "ModuleSystem.h"
-#include "MQ2Main.h"
+#include "MQMain.h"
 
 #include <fmt/chrono.h>
 

@@ -14,10 +14,10 @@
 
 #pragma once
 
-#include "eqlib/EQLib.h"
-#include "MQ2Internal.h"
-
 #include "MacroSystem.h"
+#include "MQInternal.h"
+
+#include "eqlib/EQLib.h"
 
 #include <memory>
 #include <unordered_map>
@@ -253,4 +253,7 @@ MQLIB_VAR int gbGroundDeprecateCount;
 
 #if __has_include("../private/MQ2Globals-private.h")
 #include "../private/MQ2Globals-private.h"
+#endif
+#if __has_include("../private/MQGlobals-private.h")
+#include "../private/MQGlobals-private.h"
 #endif

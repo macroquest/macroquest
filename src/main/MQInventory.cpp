@@ -15,7 +15,7 @@
 #include "pch.h"
 
 // TODO: Move other inventory related functions here and remove MQ2Main.h include
-#include "MQ2Main.h"
+#include "MQMain.h"
 
 #include "mq/api/Inventory.h"
 #include "eqlib/game/Items.h"

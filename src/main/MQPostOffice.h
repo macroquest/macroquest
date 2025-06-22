@@ -18,7 +18,7 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
-#include "MQ2MainBase.h"
+#include "MQMainBase.h"
 #include "routing/NamedPipesProtocol.h"
 
 namespace mq {

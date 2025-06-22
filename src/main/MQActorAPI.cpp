@@ -13,11 +13,11 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-
 #include "MQActorAPI.h"
 
 #include "MacroQuest.h"
+#include "MQMain.h"
+
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
 

@@ -16,21 +16,17 @@
 #include "MacroQuest.h"
 
 #include "CrashHandler.h"
+#include "ModuleSystem.h"
 #include "MQActorAPI.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
-
+#include "MQGlobals.h"
+#include "MQMain.h"
 #include "MQPluginHandler.h"
 
-#include "ModuleSystem.h"
-
 #include "mq/base/Logging.h"
-
 #include "eqlib/MemoryPatcher.h"
 #include "eqlib/game/Globals.h"
-
-#include "MQ2Globals.h"
-#include "MQ2Main.h"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -39,9 +35,11 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <random>
 
 #include <Psapi.h>
-#include <random>
+
+#pragma comment(lib, "argon2")
 
 namespace fs = std::filesystem;
 
@@ -2305,4 +2303,7 @@ bool RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle)
 
 #if __has_include("../private/MQ2Main-private.cpp")
 #include "../private/MQ2Main-private.cpp"
+#endif
+#if __has_include("../private/MQMain-private.cpp")
+#include "../private/MQMain-private.cpp"
 #endif

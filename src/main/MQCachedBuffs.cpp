@@ -13,9 +13,10 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
+#include "MQMain.h"
 #include "ModuleSystem.h"
-#include "MQ2SpellSearch.h"
+#include "MQSpellSearch.h"
 
 #include "mq/api/CachedBuffs.h"
 

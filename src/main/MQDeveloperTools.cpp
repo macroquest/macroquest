@@ -13,17 +13,18 @@
  */
 
 #include "pch.h"
-#include "MQ2DeveloperTools.h"
-#include "ModuleSystem.h"
+#include "MQDeveloperTools.h"
 
+#include "ModuleSystem.h"
+#include "MQMain.h"
+
+#include "mq/base/Iterator.h"
+#include "mq/imgui/Widgets.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/implot/implot.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_internal.h"
-
-#include "mq/base/Iterator.h"
-#include "mq/imgui/Widgets.h"
 
 #include <algorithm>
 #include <memory>

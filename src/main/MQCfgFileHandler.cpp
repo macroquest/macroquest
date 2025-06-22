@@ -15,7 +15,7 @@
 #include "pch.h"
 #include "ModuleSystem.h"
 
-#include "MQ2Main.h"
+#include "MQMain.h"
 
 using namespace eqlib;
 

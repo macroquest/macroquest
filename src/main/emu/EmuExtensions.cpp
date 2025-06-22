@@ -16,8 +16,9 @@
 #include "emu/EmuExtensions.h"
 
 #include "ModuleSystem.h"
-#include "MQ2Main.h"
+#include "MQMain.h"
 #include "MQPluginHandler.h"
+
 #include "eqlib/WindowOverride.h"
 #include "imgui/ImGuiUtils.h"
 

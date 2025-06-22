@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "MQ2MainBase.h"
+#include "MQMainBase.h"
 
 #include "mq/base/Color.h"
 

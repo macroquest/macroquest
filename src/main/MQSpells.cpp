@@ -15,8 +15,8 @@
 #include "pch.h"
 
 #include "ModuleSystem.h"
-#include "MQ2Main.h"
-#include "MQ2SpellSearch.h"
+#include "MQMain.h"
+#include "MQSpellSearch.h"
 
 #include "mq/utils/SimpleLexer.h"
 

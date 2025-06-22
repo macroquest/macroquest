@@ -15,9 +15,9 @@
 #include "pch.h"
 #include "MQPluginHandler.h"
 
-#include "MQ2Main.h"
 #include "ModuleSystem.h"
 #include "MQCommandAPI.h"
+#include "MQMain.h"
 
 #include "mq/utils/OS.h"
 

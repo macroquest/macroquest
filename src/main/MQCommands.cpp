@@ -13,13 +13,13 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQPostOffice.h"
-#include "MQ2KeyBinds.h"
-#include "MQ2Mercenaries.h"
+#include "MQMain.h"
+#include "MQKeyBinds.h"
+#include "MQMercenaries.h"
 
 #include "mq/base/WString.h"
 

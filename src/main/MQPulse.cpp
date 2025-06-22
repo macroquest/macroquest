@@ -14,15 +14,9 @@
 
 #include "pch.h"
 
-
-#include "MQ2Main.h"
 #include "MQCommandAPI.h"
-#include "MQPluginHandler.h"
+#include "MQMain.h"
 #include "MQPostOffice.h"
-
-#include <random>
-
-#pragma comment(lib, "argon2")
 
 using namespace eqlib;
 

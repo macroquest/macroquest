@@ -13,8 +13,8 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
 #include "MQDataAPI.h"
+#include "MQDataTypes.h"
 
 using namespace eqlib;
 

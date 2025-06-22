@@ -13,9 +13,9 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-#include "CrashHandler.h"
-#include "MQ2DeveloperTools.h"
+
+#include "MQDeveloperTools.h"
+#include "MQMain.h"
 #include "ModuleSystem.h"
 
 #include <algorithm>

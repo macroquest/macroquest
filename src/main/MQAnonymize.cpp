@@ -13,8 +13,9 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
 #include "MQDataAPI.h"
+#include "MQMain.h"
 #include "ModuleSystem.h"
 
 #include "mq/utils/Args.h"

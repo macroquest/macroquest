@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+#include "MQMain.h"
 
 using namespace eqlib;
 

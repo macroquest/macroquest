@@ -16,7 +16,7 @@
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
-#include "MQ2DeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
+#include "MQDeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
 
 #include "mq/api/RenderDoc.h"
 
@@ -603,7 +603,7 @@ void MQGraphicsEngine::RestartOverlay()
 	if (!m_deviceHooksInstalled)
 		return;
 
-	SPDLOG_INFO("MQ2Overlay: Resetting overlay");
+	SPDLOG_INFO("MQGraphicsEngine: Resetting overlay");
 
 	if (m_deviceAcquired)
 	{

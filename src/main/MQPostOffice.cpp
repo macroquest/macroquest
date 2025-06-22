@@ -17,8 +17,7 @@
 
 #include "MacroQuest.h"
 #include "ModuleSystem.h"
-
-#include "MQ2Main.h"
+#include "MQMain.h"
 
 #include "routing/PostOffice.h"
 

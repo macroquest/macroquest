@@ -13,8 +13,9 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-#include "MQ2DeveloperTools.h"
+
+#include "MQMain.h"
+#include "MQDeveloperTools.h"
 #include "ModuleSystem.h"
 
 #include "mq/imgui/ImGuiUtils.h"

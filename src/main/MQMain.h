@@ -15,19 +15,19 @@
 #pragma once
 
 #include "pch.h"
-#include "MQ2MainBase.h"
+#include "MQMainBase.h"
 
 #include "blech/Blech.h"
 #include "eqlib/EQLib.h"
 
 #include "mq/base/Traits.h"
-#include "MQ2Internal.h"
-#include "MQ2Globals.h"
-#include "MQ2Inlines.h"
-#include "MQ2Commands.h"
-#include "MQ2DataContainers.h"
-#include "MQ2Utilities.h"
-#include "datatypes/MQ2DataTypes.h"
+#include "MQInternal.h"
+#include "MQGlobals.h"
+#include "MQInlines.h"
+#include "MQCommands.h"
+#include "MQDataContainers.h"
+#include "MQUtilities.h"
+#include "datatypes/MQDataTypes.h"
 
 // TODO: Move these to mq/Plugin.h so that they are not globally included -- include them
 // only where they are needed.
@@ -613,4 +613,7 @@ inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int G
 
 #if __has_include("../private/MQ2Main-private.h")
 #include "../private/MQ2Main-private.h"
+#endif
+#if __has_include("../private/MQMain-private.h")
+#include "../private/MQMain-private.h"
 #endif

@@ -13,14 +13,14 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
+#include "ModuleSystem.h"
+#include "MQMain.h"
 
 #include <algorithm>
 #include <list>
 #include <map>
 #include <string>
-
-#include "ModuleSystem.h"
 
 using namespace eqlib;
 

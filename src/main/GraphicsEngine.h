@@ -14,9 +14,10 @@
 
 #pragma once
 
+#include "MQMain.h"
+
 #include "mq/base/Common.h"
 #include "eqlib/BuildType.h"
-#include "MQ2Main.h"
 
 #if HAS_DIRECTX_9
 #include <d3d9.h>

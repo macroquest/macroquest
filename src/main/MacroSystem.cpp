@@ -16,12 +16,12 @@
 #include "MacroSystem.h"
 #include "MacroSystemInternal.h"
 
-#include "MQ2Main.h"
-#include "MQ2KeyBinds.h"
 #include "MacroQuest.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
-#include "datatypes/MQ2DataTypes.h"
+#include "MQKeyBinds.h"
+#include "MQMain.h"
+#include "datatypes/MQDataTypes.h"
 
 #include "mq/api/CommandAPI.h"
 

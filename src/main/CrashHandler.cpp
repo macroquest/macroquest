@@ -14,7 +14,7 @@
 
 #include "pch.h"
 
-#include "MQ2Main.h"
+#include "MQMain.h"
 #include "CrashHandler.h"
 #include "MQVersionInfo.h"
 #include "mq/base/WString.h"

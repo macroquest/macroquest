@@ -13,9 +13,8 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
-
-#include "MQ2SpellSearch.h"
+#include "MQDataTypes.h"
+#include "MQSpellSearch.h"
 
 namespace mq::datatypes {
 

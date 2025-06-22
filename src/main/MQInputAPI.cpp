@@ -13,7 +13,8 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
+#include "MQMain.h"
 #include "ModuleSystem.h"
 
 #define DIRECTINPUT_VERSION    0x800

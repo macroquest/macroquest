@@ -14,9 +14,9 @@
 
 #include "pch.h"
 #include "ImGuiManager.h"
-#include "MQ2ImGuiTools.h"
 #include "GraphicsEngine.h"
 #include "MacroQuest.h"
+#include "MQImGuiTools.h"
 #include "MQPluginHandler.h"
 
 #include "mq/base/HotKeys.h"

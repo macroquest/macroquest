@@ -13,8 +13,9 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-#include "MQ2KeyBinds.h"
+
+#include "MQMain.h"
+#include "MQKeyBinds.h"
 #include "ModuleSystem.h"
 
 #include <fmt/format.h>

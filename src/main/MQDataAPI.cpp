@@ -13,13 +13,15 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-
-#include "MQCommandAPI.h"
-#include "MQDataAPI.h"
-#include "MacroSystemInternal.h"
 
 #include "CrashHandler.h"
+#include "MQCommandAPI.h"
+#include "MQDataAPI.h"
+#include "MQMain.h"
+
+// FIXME: For gMacroSubLookupMap -> Replace with something more public...
+#include "MacroSystemInternal.h"
+
 #include "mq/base/ScopeExit.h"
 
 using namespace eqlib;

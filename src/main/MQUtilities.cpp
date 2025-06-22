@@ -13,13 +13,11 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
 #include "MacroQuest.h"
-
-#include "MQ2Mercenaries.h"
-#include "MQ2Utilities.h"
-#include "MQPluginHandler.h"
+#include "MQMain.h"
+#include "MQMercenaries.h"
+#include "MQUtilities.h"
 
 #include <mq/api/Items.h>
 #include <mq/base/WString.h>

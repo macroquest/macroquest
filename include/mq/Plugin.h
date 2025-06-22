@@ -14,7 +14,7 @@
 
 #pragma once
 
-// Indicates to MQ2Main.h that it is being included from a plugin
+// Indicates to MQMain.h that it is being included from a plugin
 #define MQ_FROM_PLUGIN 1
 
 #include "mq/plugin/pluginapi.h"

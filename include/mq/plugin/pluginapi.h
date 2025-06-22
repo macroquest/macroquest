@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "../../src/main/MQ2Main.h"
+#include "../../src/main/MQMain.h"
 #include "mq/api/Main.h"
 
 #if defined(MQLIB_STATIC)

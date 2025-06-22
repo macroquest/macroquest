@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DeveloperTools.h"
+#include "MQDeveloperTools.h"
 
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/imgui_internal.h"

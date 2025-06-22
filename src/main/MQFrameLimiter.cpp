@@ -13,13 +13,14 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+
 #include "ModuleSystem.h"
-#include "MQ2DeveloperTools.h"
+#include "MQDataAPI.h"
+#include "MQDeveloperTools.h"
+#include "MQMain.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
 #include "imgui/ImGuiUtils.h"
-
 
 #include "mq/api/RenderDoc.h"
 #include "mq/utils/Args.h"
@@ -27,8 +28,6 @@
 #include <cstdint>
 #include <chrono>
 #include <utility>
-
-#include "MQDataAPI.h"
 
 using namespace std::chrono_literals;
 using namespace eqlib;

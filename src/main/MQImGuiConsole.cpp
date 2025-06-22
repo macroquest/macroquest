@@ -14,9 +14,9 @@
 
 #include "pch.h"
 
-#include "MQ2DeveloperTools.h"
-#include "MQ2ImGuiTools.h"
 #include "ImGuiManager.h"
+#include "MQDeveloperTools.h"
+#include "MQImGuiTools.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "imgui/imgui_internal.h"

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "../MQ2Main.h"
+#include "../MQMain.h"
 
 namespace mq::datatypes {
 

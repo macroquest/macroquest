@@ -13,10 +13,10 @@
  */
 
 #include "pch.h"
-#include "MQ2ImGuiTools.h"
+#include "MQImGuiTools.h"
 
-#include "MQ2DeveloperTools.h"
-#include "MQ2KeyBinds.h"
+#include "MQDeveloperTools.h"
+#include "MQKeyBinds.h"
 #include "ModuleSystem.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"

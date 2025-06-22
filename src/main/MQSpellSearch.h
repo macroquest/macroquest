@@ -14,13 +14,13 @@
 
 #pragma once
 
+#include "MQMainBase.h"
+
 /*
  * This header includes two specific things. It has operator overloads to chain spell attributes
  * in c++, and it has all the attribute definitions needed to create the exposed spell/buff search
  * DSLs
  */
-
-#include "MQ2MainBase.h"
 
 namespace mq {
 

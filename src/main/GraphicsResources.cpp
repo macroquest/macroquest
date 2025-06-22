@@ -14,10 +14,10 @@
 
 #include "pch.h"
 
-#include "mq/api/Textures.h"
-
 #include "ModuleSystem.h"
-#include "MQ2Main.h"
+#include "MQMain.h"
+
+#include "mq/api/Textures.h"
 
 using namespace eqlib;
 
