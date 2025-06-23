@@ -107,12 +107,12 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	{
 		uint64_t start = MQGetTickCount64();
 		DoCommand(szLine, false);
-		auto time = (MQGetTickCount64() - start) / 1000.0;
+		double time = (MQGetTickCount64() - start) / 1000.0;
 		WriteChatf("\ay%s\ax took \at%.2f\axs", szLine, time);
 		return;
 	}
 
-	// Since it doesn't start with a slash, let's check there is a plugin name to match
+	// Since it doesn't start with a slash, let's check there is a benchmark name to match
 	// "/benchmark mq2nav" for example
 	if (szLine && szLine[0])
 	{
@@ -120,7 +120,6 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 		WriteChatColor("--------------");
 		for (const auto& bench : gBenchmarks)
 		{
-			// TODO: Would be nice to compare to GetCanonicalPluginName(bench->Name) but that function is not available here
 			if (bench && ci_equals(bench->Name, szLine))
 			{
 				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
@@ -135,7 +134,8 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 		}
 	}
 	// Otherwise, show all benchmarks
-	else {
+	else
+	{
 		WriteChatColor("MQ Benchmarks");
 		WriteChatColor("--------------");
 		for (const auto& bench : gBenchmarks)
