@@ -84,7 +84,6 @@ MQLIB_API HANDLE ghInitializeSpellDbThread;
 MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
 
-MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
 MQLIB_VAR bool gAnonymize DEPRECATE("Anonymize is now handled at display, see MQ2Anonymize wiki for more information.");

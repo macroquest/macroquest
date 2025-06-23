@@ -57,7 +57,6 @@ bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
 bool g_Loaded = false;
 bool gbWriteAllConfig = false;
-bool gStringTableFixed = false;
 
 HMODULE ghModule = nullptr;
 HINSTANCE ghInstance = nullptr;
