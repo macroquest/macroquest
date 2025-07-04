@@ -5,6 +5,3 @@
 	path = contrib/vcpkg
 	url = https://github.com/macroquest/vcpkg.git
 	branch = macroquest
-[submodule "data/lua/IntegrationTests"]
-	path = src/plugins/lua/lua/IntegrationTests
-	url = https://github.com/macroquest/integration-tests.git
