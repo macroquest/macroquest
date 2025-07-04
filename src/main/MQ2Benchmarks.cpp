@@ -116,12 +116,13 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	// "/benchmark mq2nav" for example
 	if (szLine && szLine[0])
 	{
-		WriteChatf("Start %s Benchmark", szLine);
-		WriteChatColor("--------------");
 		for (const auto& bench : gBenchmarks)
 		{
 			if (bench && ci_equals(bench->Name, szLine))
 			{
+				WriteChatf("Start %s Benchmark", szLine);
+				WriteChatColor("--------------");
+
 				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
 				float totalMs = bench->TotalTime.count() / 1000.f;
 
@@ -132,6 +133,8 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 				break;
 			}
 		}
+
+		WriteChatf("Could not find benchmark \"%s\".", szLine);
 	}
 	// Otherwise, show all benchmarks
 	else
