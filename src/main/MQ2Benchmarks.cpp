@@ -130,7 +130,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 					bench->Name.c_str(), bench->Count, totalMs, avgMs);
 				WriteChatf("End %s Benchmark", szLine);
 				WriteChatColor("--------------");
-				break;
+				return;
 			}
 		}
 
