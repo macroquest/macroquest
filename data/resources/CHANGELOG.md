@@ -1,4 +1,5 @@
 Jun 18, 2025:
+- live: Update for live patch
 - test: Fix Me.CombatState
 
 June 13, 2025:
