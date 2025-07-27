@@ -102,33 +102,56 @@ bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest)
 
 void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 {
+	// Execute and time a command starting with '/'
 	if (szLine && szLine[0] == '/')
 	{
-		uint64_t Start = MQGetTickCount64();
+		uint64_t start = MQGetTickCount64();
 		DoCommand(szLine, false);
-
-		uint64_t Time = MQGetTickCount64() - Start;
-		WriteChatf("\ay%s\ax completed in \at%.2f\axs", szLine, static_cast<double>(Time) / 1000.);
+		double time = (MQGetTickCount64() - start) / 1000.0;
+		WriteChatf("\ay%s\ax took \at%.2f\axs", szLine, time);
+		return;
 	}
-	else
+
+	// Since it doesn't start with a slash, let's check there is a benchmark name to match
+	// "/benchmark mq2nav" for example
+	if (szLine && szLine[0])
 	{
-		WriteChatColor("MQ2 Benchmarks");
-		WriteChatColor("--------------");
-
-		for (auto& pBenchmark : gBenchmarks)
+		for (const auto& bench : gBenchmarks)
 		{
-			if (pBenchmark)
+			if (bench && ci_equals(bench->Name, szLine))
 			{
-				float AvgMS = 0;
-				if (pBenchmark->Count)
-					AvgMS = static_cast<float>(pBenchmark->TotalTime.count()) / static_cast<float>(pBenchmark->Count) / 1000.f;
-				float TotalMS = static_cast<float>(pBenchmark->TotalTime.count()) / 1000.f;
+				WriteChatf("Start %s Benchmark", szLine);
+				WriteChatColor("--------------");
 
-				WriteChatf("[\ay%s\ax] \at%I64u\ax for \at%.3fu\axms, \at%.3f\axms avg",
-					pBenchmark->Name.c_str(), pBenchmark->Count, TotalMS, AvgMS);
+				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
+				float totalMs = bench->TotalTime.count() / 1000.f;
+
+				WriteChatf("[\ay%s\ax] \at%I64u\ax runs, \at%.3f\axms total, \at%.3f\axms avg",
+					bench->Name.c_str(), bench->Count, totalMs, avgMs);
+				WriteChatf("End %s Benchmark", szLine);
+				WriteChatColor("--------------");
+				return;
 			}
 		}
 
+		WriteChatf("Could not find benchmark \"%s\".", szLine);
+	}
+	// Otherwise, show all benchmarks
+	else
+	{
+		WriteChatColor("MQ Benchmarks");
+		WriteChatColor("--------------");
+		for (const auto& bench : gBenchmarks)
+		{
+			if (bench)
+			{
+				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
+				float totalMs = bench->TotalTime.count() / 1000.f;
+
+				WriteChatf("[\ay%s\ax] \at%I64u\ax runs, \at%.3f\axms total, \at%.3f\axms avg",
+					bench->Name.c_str(), bench->Count, totalMs, avgMs);
+			}
+		}
 		WriteChatColor("--------------");
 		WriteChatColor("End Benchmarks");
 	}
