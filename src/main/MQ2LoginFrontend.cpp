@@ -16,6 +16,7 @@
 #include "MQ2Main.h"
 #include "MQ2DeveloperTools.h"
 #include "MQPluginHandler.h"
+#include "Logging.h"
 
 // "LoginFrontend" or just "Frontend" refers to the UI part of EQ that contains login
 // and server select. This is contained in eqmain, and its functions are only available
@@ -33,10 +34,9 @@ void DoLoginPulse();
 // From MQ2Overlay.cpp
 bool OverlayWndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static uintptr_t __FreeLibrary = 0;
-static bool gbDetoursInstalled = false;
-static bool gbWaitingForFrontend = false;
-static bool gbInFrontend = false;
+static bool s_waitingForFrontend = false;
+static bool s_inFrontend = false;
+static bool s_initialized = false;
 
 //----------------------------------------------------------------------------
 // Login Pulse detour
@@ -47,26 +47,21 @@ public:
 	// This is called continually during the login mainloop so we can use it as our pulse when the MAIN
 	// gameloop pulse is not active but login is.
 	// that will allow plugins to work and execute commands all the way back pre login and server select etc.
-	inline static void (LoginController_Hook::* GiveTime_Trampoline)() = nullptr;
+	DETOUR_TRAMPOLINE_DEF(void, GiveTime_Trampoline, ())
 	void GiveTime_Detour()
 	{
-		if (!gbInFrontend)
+		if (!s_inFrontend)
 		{
 			gGameState = GetGameState();
 			DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
 		}
 
-		gbInFrontend = true;
+		s_inFrontend = true;
 
-		if (gbWaitingForFrontend)
+		if (s_waitingForFrontend)
 		{
 			// Only do this on the first pass through the login main loop.
-			gbWaitingForFrontend = false;
-
-			// Redirect CXWndManager and CSidlManager to the login instances now that we know that the
-			// frontend is actually running now.
-			pWndMgr = EQMain__pinstCXWndManager;
-			pSidlMgr = EQMain__pinstCSidlManager;
+			s_waitingForFrontend = false;
 
 			// Since we have ensured that we have window and sidl managers, load the pre-charselect windows
 			ReinitializeWindowList();
@@ -89,7 +84,7 @@ public:
 			}
 		}
 
-		(this->*GiveTime_Trampoline)();
+		GiveTime_Trampoline();
 	}
 };
 
@@ -123,142 +118,58 @@ public:
 	}
 };
 
-void InitializeLoginDetours()
-{
-	if (gbDetoursInstalled)
-		return;
-
-	DebugSpewAlways("Initializing Login Detours");
-
-	AddDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline, "GiveTime");
-	EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
-
-#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
-	if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
-	{
-		EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
-			&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
-	}
-#endif
-
-	gbDetoursInstalled = true;
-}
-
-void RemoveLoginDetours()
-{
-	if (!gbDetoursInstalled)
-		return;
-
-	DebugSpewAlways("Removing Login Detours");
-
-	uintptr_t detours[] = {
-		EQMain__LoginController__GiveTime,
-		EQMain__WndProc,
-#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
-		EQMain__CXWndManager__GetCursorToDisplay
-#endif // defined(EQMain__CXWndManager__GetCursorToDisplay_x)
-	};
-
-	for (uintptr_t detour : detours)
-		RemoveDetour(detour);
-
-	gbDetoursInstalled = false;
-}
-
-// This also gets called from our GetProcAddress detour when the client tries to load eqmain.dll
-void TryInitializeLogin()
-{
-	// leave if the dll isn't loaded
-	if (!*ghEQMainInstance)
-		return;
-
-	if (InitializeEQMainOffsets())
-	{
-		// these are the offsets that we need to move forward.
-		bool pulseSuccess = EQMain__LoginController__GiveTime != 0
-			&& EQMain__pinstCXWndManager != 0
-			&& EQMain__pinstCSidlManager != 0;
-
-		if (pulseSuccess)
-		{
-			InitializeLoginDetours();
-		}
-
-		bool overlaySuccess = EQMain__WndProc != 0
-			&& EQMain__LoginController__ProcessKeyboardEvents
-			&& EQMain__LoginController__ProcessMouseEvents;
-
-		// We'll continue in the first iteration of LoginPulse. This is important
-		// because it means the frontend is actually running.
-	}
-	else
-	{
-		MessageBox(nullptr, "MQ2 needs an update.", "Failed to locate offsets required by MQ2LoginFrontend", MB_SYSTEMMODAL | MB_OK);
-	}
-}
-
-void TryRemoveLogin()
-{
-	if (gbInFrontend)
-	{
-		gbInFrontend = false;
-		gbWaitingForFrontend = true;
-
-		DebugSpewAlways("Cleaning up EQMain Offsets");
-
-		DeveloperTools_CloseLoginFrontend();
-
-		RemoveLoginDetours();
-		CleanupEQMainOffsets();
-
-		// we also need to make sure to reset the manager pointers and reset the window list we are tracking with them
-		pWndMgr = pinstCXWndManager;
-		pSidlMgr = pinstCSidlManager;
-		ReinitializeWindowList();
-	}
-}
-
-namespace RemoveLoginHook
-{
-#if defined(__InitMouse_x) // If __InitMouse_x is defined, we use this hook instead of FlushDxKeyboard
-	DETOUR_TRAMPOLINE_DEF(int, Trampoline, (HWND, bool))
-		int Detour(HWND hWnd, bool b)
-	{
-		TryRemoveLogin();
-		return Trampoline(hWnd, b);
-	}
-
-	uintptr_t GetAddress() { return __InitMouse; }
-#else
-	// Right after leaving the frontend, we get a call to FlushDxKeyboard in ExecuteEverQuest(). We
-	// hook this function and use it to determine that we've exited the frontend.
-	DETOUR_TRAMPOLINE_DEF(int, Trampoline, ());
-	int Detour()
-	{
-		TryRemoveLogin();
-		return Trampoline();
-	}
-
-	uintptr_t GetAddress() { return __FlushDxKeyboard; }
-#endif
-}
-
 void InitializeLoginFrontend()
 {
-	EzDetour(RemoveLoginHook::GetAddress(), RemoveLoginHook::Detour, RemoveLoginHook::Trampoline);
+	if (!s_initialized)
+	{
+		s_waitingForFrontend = true;
 
-	gbWaitingForFrontend = true;
+		LOG_DEBUG("Initializing Login Detours");
 
-	// Try to initialize login detours. This will succeed if eqmain.dll is already loaded. If it isn't,
-	// well try again in LoadFrontend_Detour(), which is called when eqmain.dll is actually loaded.
-	TryInitializeLogin();
+		EzDetour(EQMain__LoginController__GiveTime, &LoginController_Hook::GiveTime_Detour, &LoginController_Hook::GiveTime_Trampoline);
+		EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
+
+#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
+		if (EQMain__CXWndManager__GetCursorToDisplay && EQMain__CXWndManager__GetCursorToDisplay_x != 0)
+		{
+			EzDetour(EQMain__CXWndManager__GetCursorToDisplay, &CXWndManager_Hook::GetCursorToDisplay_Detour,
+				&CXWndManager_Hook::GetCursorToDisplay_Trampoline);
+		}
+#endif
+
+		s_initialized = true;
+	}
 }
 
 void ShutdownLoginFrontend()
 {
-	RemoveDetour(RemoveLoginHook::GetAddress());
+	if (s_initialized)
+	{
+		LOG_DEBUG("Removing Login Detours");
 
-	RemoveLoginDetours();
+		DeveloperTools_CloseLoginFrontend();
+
+		uintptr_t detours[] = {
+			EQMain__LoginController__GiveTime,
+			EQMain__WndProc,
+	#if defined(EQMain__CXWndManager__GetCursorToDisplay_x)
+			EQMain__CXWndManager__GetCursorToDisplay
+	#endif // defined(EQMain__CXWndManager__GetCursorToDisplay_x)
+		};
+
+		for (uintptr_t detour : detours)
+			RemoveDetour(detour);
+
+		if (s_inFrontend)
+		{
+			s_inFrontend = false;
+			s_waitingForFrontend = true;
+
+			ReinitializeWindowList();
+		}
+
+		s_initialized = false;
+	}
 }
 
 } // namespace mq

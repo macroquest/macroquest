@@ -122,7 +122,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Main.cpp">
+    <ClCompile Include="MacroQuest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQPluginHandler.cpp">
@@ -667,9 +667,6 @@
     <ClInclude Include="MQPluginHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQDetourAPI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\DetourAPI.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -690,6 +687,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
       <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Base.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Enum.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\EnumFmt.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="MacroQuest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

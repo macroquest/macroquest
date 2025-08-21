@@ -543,7 +543,7 @@
     <ClCompile Include="MQ2KeyBinds.cpp" />
     <ClCompile Include="MQ2LoginFrontend.cpp" />
     <ClCompile Include="MQ2MacroCommands.cpp" />
-    <ClCompile Include="MQ2Main.cpp" />
+    <ClCompile Include="MacroQuest.cpp" />
     <ClCompile Include="MQPostOffice.cpp" />
     <ClCompile Include="MQPluginHandler.cpp" />
     <ClCompile Include="MQ2Pulse.cpp" />
@@ -587,11 +587,14 @@
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\api\Textures.h" />
+    <ClInclude Include="..\..\include\mq\base\Base.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
     <ClInclude Include="..\..\include\mq\base\Config.h" />
     <ClInclude Include="..\..\include\mq\base\Deprecation.h" />
+    <ClInclude Include="..\..\include\mq\base\Enum.h" />
+    <ClInclude Include="..\..\include\mq\base\EnumFmt.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
@@ -633,6 +636,8 @@
     <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
+    <ClInclude Include="Logging.h" />
+    <ClInclude Include="MacroQuest.h" />
     <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClInclude Include="MQCommandAPI.h" />
@@ -650,7 +655,6 @@
     <ClInclude Include="MQ2Prototypes.h" />
     <ClInclude Include="MQ2SpellSearch.h" />
     <ClInclude Include="MQ2Utilities.h" />
-    <ClInclude Include="MQDetourAPI.h" />
     <ClInclude Include="MQPluginHandler.h" />
     <ClInclude Include="MQRenderDoc.h" />
     <ClInclude Include="MQVersionInfo.h" />
