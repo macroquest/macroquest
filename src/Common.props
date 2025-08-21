@@ -11,7 +11,8 @@
     <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Live'">LIVE</eqlibClientDefine>
     <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Test'">TEST</eqlibClientDefine>
     <eqlibClientDefine Condition="'$(eqlibClientTarget)' == 'Emu'">EMULATOR</eqlibClientDefine>
-    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == ''"></eqlibClientDefine>
+    <eqlibClientDefine Condition="'$(eqlibClientTarget)' == ''">
+    </eqlibClientDefine>
     <MQ2Root>$(MQ2SolutionDirectory)..\</MQ2Root>
     <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
     <MQ2BuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' == '1'">$(MQ2Root)build\$(eqlibClientTarget)\</MQ2BuildDirectory>
@@ -59,7 +60,7 @@
     </ClCompile>
     <!-- Shared compiler settings -->
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeStatic);$(VCPKG_IncludeDynamic);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MQ2Root)include;$(MQ2Root)contrib;$(MQ2Root)contrib\imgui;$(MQ2Root)contrib\imgui\misc\cpp;$(MQ2Root)contrib\tinyfsm\include;$(MQ2Root)contrib\dxsdk90\include;$(MQ2Root)contrib\zep\include;$(MQ2Root)src;$(MQ2Root)plugins;$(VCPKG_IncludeStatic);$(VCPKG_IncludeDynamic);$(AdditionalIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level3</WarningLevel>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -78,7 +79,6 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
-
     <NASM>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IncludePaths>$(MQ2Root)src;%(IncludePaths)</IncludePaths>

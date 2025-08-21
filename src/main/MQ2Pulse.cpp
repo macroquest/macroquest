@@ -19,6 +19,7 @@
 #include "MQ2Main.h"
 #include "CrashHandler.h"
 #include "ImGuiManager.h"
+#include "Logging.h"
 
 #include "MQCommandAPI.h"
 #include "MQPluginHandler.h"
@@ -359,7 +360,7 @@ static void CheckGameState()
 
 	if (lastGameState != gGameState)
 	{
-		SPDLOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
+		LOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
 		lastGameState = gGameState;
 	}
 
@@ -367,62 +368,62 @@ static void CheckGameState()
 	if (gGameState == GAMESTATE_INGAME)
 	{
 		if (!pLocalPC)
-			SPDLOG_ERROR("InGame with no pLocalPC");
+			LOG_ERROR("InGame with no pLocalPC");
 
 		if (pLocalPC)
 		{
 			if (pLocalPC->me != pLocalPlayer)
-				SPDLOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
+				LOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
 					(void*)pLocalPC->me, (void*)pLocalPlayer.get());
 		}
 
 		if (!pControlledPlayer)
-			SPDLOG_ERROR("InGame with no pControlledPlayer");
+			LOG_ERROR("InGame with no pControlledPlayer");
 		if (!pLocalPlayer)
-			SPDLOG_ERROR("InGame with no pLocalPlayer");
+			LOG_ERROR("InGame with no pLocalPlayer");
 
 		// Check UI state
 		if (!pPlayerWnd)
-			SPDLOG_ERROR("InGame with no pPlayerWnd");
+			LOG_ERROR("InGame with no pPlayerWnd");
 		if (!gbInZone)
-			SPDLOG_ERROR("InGame but not gbInZone");
+			LOG_ERROR("InGame but not gbInZone");
 	}
 	else if (gGameState == GAMESTATE_CHARSELECT)
 	{
 		if (!pLocalPC)
-			SPDLOG_ERROR("At CharSelect without pLocalPC");
+			LOG_ERROR("At CharSelect without pLocalPC");
 		else if (pLocalPC->me != nullptr)
 		{
 			// Me should be null
-			SPDLOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
+			LOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
 		}
 
 		if (!pLocalPlayer)
-			SPDLOG_ERROR("At CharSelect without pLocalPlayer");
+			LOG_ERROR("At CharSelect without pLocalPlayer");
 		if (!pControlledPlayer)
-			SPDLOG_ERROR("At CharSelect without pControlledPlayer");
+			LOG_ERROR("At CharSelect without pControlledPlayer");
 
 		// Check UI state
 		if (pPlayerWnd)
-			SPDLOG_ERROR("Not InGame with pPlayerWnd");
+			LOG_ERROR("Not InGame with pPlayerWnd");
 
 		if (!gbInZone)
-			SPDLOG_ERROR("At CharSelect without gbInZone");
+			LOG_ERROR("At CharSelect without gbInZone");
 	}
 
 	if (pLocalPC)
 	{
 		if (pLocalPC->ProfileManager.GetCurrentProfile() == nullptr)
-			SPDLOG_ERROR("pLocalPC exists but CurrentProfile does not");
+			LOG_ERROR("pLocalPC exists but CurrentProfile does not");
 	}
 	else if (pLocalPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
+		LOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
 	}
 
 	if (pLocalPlayer && !pControlledPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
+		LOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
 			(void*)pLocalPlayer.get(), (void*)pControlledPlayer.get());
 	}
 
@@ -433,16 +434,16 @@ static void CheckGameState()
 	static PlayerClient* OldMe = nullptr;
 
 	if (test_and_set(OldLocalPC, pLocalPC.get()))
-		SPDLOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
+		LOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
 
 	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
-		SPDLOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
+		LOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
 	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
-		SPDLOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
+		LOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
 
 	PlayerClient* pMe = pLocalPC ? pLocalPC->me : nullptr;
 	if (test_and_set(OldMe, pMe))
-		SPDLOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
+		LOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
 }
 
 static void Pulse()
@@ -768,31 +769,11 @@ bool DoGameEventsPulse(int (*pEventFunc)())
 
 	if (hbState == HeartbeatLoad && !IsPluginsInitialized())
 	{
-		OutputDebugString("I am loading in ProcessGameEvents");
-
-		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
 		DoMainThreadInitialization();
-		ScreenMode = oldscreenmode;
-
-		g_hLoadComplete.SetEvent();
 	}
 	else if (hbState == HeartbeatUnload && g_Loaded)
 	{
-		// we are unloading stuff
-		OutputDebugString("I am unloading in ProcessGameEvents");
-
-		DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-		WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
-		DebugSpewAlways("%s", UnloadedString);
-
-		// cant unload these here there are detours still in use that call functions from plugins...
-		//UnloadMQ2Plugins();
-
-		MQ2Shutdown();
-
-		g_Loaded = false;
-		ScreenMode = oldscreenmode;
-		SetEvent(hUnloadComplete);
+		DoMainThreadShutdown();
 	}
 
 	return processGameEventsResult;

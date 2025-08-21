@@ -17,6 +17,7 @@
 
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
+#include "Logging.h"
 
 #include "CrashHandler.h"
 #include "mq/base/ScopeExit.h"
@@ -244,7 +245,7 @@ bool MQDataAPI::RemoveTopLevelObject(const char* szName, const MQPluginHandle& p
 	auto& item = iter->second;
 	if (item.owner != pluginHandle)
 	{
-		//SPDLOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
+		//LOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
 		//	std::string_view(owner ? owner->name : "(Unknown)"), szName, item.tlo->Owner->name);
 		return false;
 	}

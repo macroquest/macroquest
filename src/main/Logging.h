@@ -14,20 +14,17 @@
 
 #pragma once
 
-#include "mq/base/Base.h"
+#include <spdlog/spdlog.h>
 
-#include <cstdint>
+namespace mq {
 
-#if defined(MQ_NO_EXPORTS) || defined(MQLIB_STATIC)
-#define MQLIB_API extern "C"
-#define MQLIB_VAR extern "C"
-#define MQLIB_OBJECT
-#elif defined(MQ2MAIN_EXPORTS)
-#define MQLIB_API extern "C" __declspec(dllexport)
-#define MQLIB_VAR extern "C" __declspec(dllexport)
-#define MQLIB_OBJECT __declspec(dllexport)
-#else
-#define MQLIB_API extern "C" __declspec(dllimport)
-#define MQLIB_VAR extern "C" __declspec(dllimport)
-#define MQLIB_OBJECT __declspec(dllimport)
-#endif
+extern std::shared_ptr<spdlog::logger> logger;
+
+} // namespace eqlib
+
+#define LOG_TRACE(...) SPDLOG_LOGGER_TRACE(mq::g_logger, __VA_ARGS__)
+#define LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(mq::g_logger, __VA_ARGS__)
+#define LOG_INFO(...) SPDLOG_LOGGER_INFO(mq::g_logger, __VA_ARGS__)
+#define LOG_WARN(...) SPDLOG_LOGGER_WARN(mq::g_logger, __VA_ARGS__)
+#define LOG_ERROR(...) SPDLOG_LOGGER_ERROR(mq::g_logger, __VA_ARGS__)
+#define LOG_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(mq::g_logger, __VA_ARGS__)

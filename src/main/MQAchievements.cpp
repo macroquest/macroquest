@@ -14,7 +14,8 @@
 
 #include "pch.h"
 
-#include <mq/api/Achievements.h>
+#include "mq/base/String.h"
+#include "mq/api/Achievements.h"
 
 namespace mq {
 
@@ -102,7 +103,7 @@ const eqlib::AchievementComponent* GetAchievementComponentByDescription(const eq
 	{
 		for (const eqlib::AchievementComponent& component : achievement->componentsByType[componentType])
 		{
-			if (ci_equals(component.description, description))
+			if (mq::ci_equals(component.description, description))
 				return &component;
 		}
 	}

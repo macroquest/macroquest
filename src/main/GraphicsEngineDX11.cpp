@@ -20,6 +20,7 @@
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "MQRenderDoc.h"
+#include "Logging.h"
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -234,7 +235,7 @@ static wil::unique_hwnd CreateTempWindow()
 	ATOM registerResult = RegisterClassExW(&wndClass);
 	if (registerResult == 0)
 	{
-		SPDLOG_ERROR("CreateTempWindow: Failed to register window class: {}", GetLastError());
+		LOG_ERROR("CreateTempWindow: Failed to register window class: {}", GetLastError());
 		return nullptr;
 	}
 
@@ -243,7 +244,7 @@ static wil::unique_hwnd CreateTempWindow()
 
 	if (!result)
 	{
-		SPDLOG_ERROR("CreateTempWindow: Failed to create window: {}", GetLastError());
+		LOG_ERROR("CreateTempWindow: Failed to create window: {}", GetLastError());
 		return nullptr;
 	}
 
@@ -278,7 +279,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 
 	if (hr != S_OK)
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to create device");
+		LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to create device");
 		return false;
 	}
 
@@ -286,7 +287,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 	hr = device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
 	if (hr != S_OK)
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to query dxgi device");
+		LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to query dxgi device");
 		return false;
 	}
 
@@ -294,7 +295,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 	hr = dxgiDevice->GetAdapter(&adapter);
 	if (hr != S_OK)
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to get adapter");
+		LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to get adapter");
 		return false;
 	}
 
@@ -302,7 +303,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 	hr = adapter->GetParent(__uuidof(IDXGIFactory), (void**)&factory);
 	if (hr != S_OK)
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to get factory");
+		LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to get factory");
 		return false;
 	}
 
@@ -325,7 +326,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 		hr = factory->CreateSwapChain(device.get(), &desc, &swapChain);
 		if (hr != S_OK)
 		{
-			SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to create swap chain");
+			LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to create swap chain");
 		}
 		else
 		{
@@ -347,7 +348,7 @@ bool MQGraphicsEngineDX11::InstallHooks()
 
 	if (!UnregisterClassW(WndClassName, nullptr))
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to unregister window class: {}", GetLastError());
+		LOG_ERROR("MQGraphicsEngineDX11::InstallHooks: Failed to unregister window class: {}", GetLastError());
 	}
 
 	return success;
@@ -394,7 +395,7 @@ OverlayHookStatus MQGraphicsEngineDX11::InitializeOverlayHooks()
 
 	if (!InstallHooks())
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::InitializeOverlayHooks: Failed to hook DirectX11, We won't be able to render into the game!");
+		LOG_ERROR("MQGraphicsEngineDX11::InitializeOverlayHooks: Failed to hook DirectX11, We won't be able to render into the game!");
 		return OverlayHookStatus::Failed;
 	}
 
@@ -444,7 +445,7 @@ void MQGraphicsEngineDX11::AcquireDevice(IDXGISwapChain* SwapChain)
 
 			m_deviceAcquired = true;
 
-			SPDLOG_INFO("MQGraphicsEngineDX11::AcquireDevice: Device acquired.");
+			LOG_INFO("MQGraphicsEngineDX11::AcquireDevice: Device acquired.");
 
 			ImGui_Initialize();
 			CreateDeviceObjects();
@@ -453,7 +454,7 @@ void MQGraphicsEngineDX11::AcquireDevice(IDXGISwapChain* SwapChain)
 		{
 			m_device.reset();
 
-			SPDLOG_ERROR("MQGraphicsEngineDX11::AcquireDevice: Failed to acquire device from SwapChain: {}", hr);
+			LOG_ERROR("MQGraphicsEngineDX11::AcquireDevice: Failed to acquire device from SwapChain: {}", hr);
 		}
 	}
 	else
@@ -466,7 +467,7 @@ void MQGraphicsEngineDX11::OnDeviceLost(IDXGISwapChain* SwapChain)
 {
 	if (SwapChain == m_swapChain && SwapChain != nullptr)
 	{
-		SPDLOG_INFO("MQGraphicsEngineDX11::OnDeviceLost: Device has been lost.");
+		LOG_INFO("MQGraphicsEngineDX11::OnDeviceLost: Device has been lost.");
 
 		InvalidateDeviceObjects();
 
@@ -615,7 +616,7 @@ bool MQGraphicsEngineDX11::IsFullScreen() const
 	HRESULT hr = m_swapChain->GetFullscreenState(&fullscreenState, nullptr);
 	if (hr != S_OK)
 	{
-		SPDLOG_ERROR("MQGraphicsEngineDX11::IsFullScreen: Failed to read fullscreen state from SwapChain: {}", hr);
+		LOG_ERROR("MQGraphicsEngineDX11::IsFullScreen: Failed to read fullscreen state from SwapChain: {}", hr);
 	}
 
 	return fullscreenState != 0;

@@ -25,7 +25,14 @@
 #include <vector>
 #include <variant>
 
+namespace spdlog
+{
+	class logger;
+}
+
 namespace mq {
+
+extern std::shared_ptr<spdlog::logger> g_logger;
 
 enum eAdventureTheme
 {
@@ -876,94 +883,6 @@ bool IsModuleSubstring(HMODULE hModule, std::wstring_view searchString);
 std::string GetCurrentUI();
 
 //----------------------------------------------------------------------------
-
-class MainImpl : public MainInterface
-{
-public:
-	MainImpl();
-	~MainImpl() override;
-
-	void DoMainThreadInitialization();
-
-	bool AddTopLevelObject(
-		const char* name,
-		MQTopLevelObjectFunction callback,
-		const MQPluginHandle& pluginHandle) override;
-
-	bool RemoveTopLevelObject(
-		const char* name,
-		const MQPluginHandle& pluginHandle) override;
-
-	MQTopLevelObject* FindTopLevelObject(const char* name) override;
-
-	void SendToActor(
-		postoffice::Dropbox* dropbox,
-		const postoffice::Address& address,
-		const std::string& data,
-		const postoffice::ResponseCallbackAPI& callback,
-		const MQPluginHandle& pluginHandle) override;
-
-	void ReplyToActor(
-		postoffice::Dropbox* dropbox,
-		const std::shared_ptr<postoffice::Message>& message,
-		const std::string& data,
-		uint8_t status,
-		const MQPluginHandle& pluginHandle) override;
-
-	postoffice::Dropbox* AddActor(
-		const char* localAddress,
-		postoffice::ReceiveCallbackAPI&& receive,
-		const MQPluginHandle& pluginHandle) override;
-
-	void RemoveActor(
-		postoffice::Dropbox*& dropbox,
-		const MQPluginHandle& pluginHandle) override;
-
-	// Commands
-	bool AddCommand(
-		std::string_view command,
-		MQCommandHandler handler,
-		bool eq,
-		bool parse,
-		bool inGame,
-		const MQPluginHandle& pluginHandle) override;
-
-	bool RemoveCommand(
-		std::string_view command,
-		const MQPluginHandle& pluginHandle) override;
-
-	bool IsCommand(std::string_view command) const override;
-
-	void DoCommand(
-		const char* command,
-		bool delayed,
-		const MQPluginHandle& pluginHandle) override;
-
-	void TimedCommand(
-		const char* command,
-		int msDelay,
-		const MQPluginHandle& pluginHandle) override;
-
-	// Aliases
-	bool AddAlias(
-		const std::string& shortCommand,
-		const std::string& longCommand,
-		bool persist,
-		const MQPluginHandle& pluginHandle) override;
-	bool RemoveAlias(
-		const std::string& shortCommand,
-		const MQPluginHandle& pluginHandle) override;
-	bool IsAlias(
-		const std::string& alias) const override;
-
-	// Detours
-	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
-		const MQPluginHandle& pluginHandle) override;
-	bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
-	bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
-};
-
-extern MainImpl* gpMainAPI;
 
 MQPluginHandle CreatePluginHandle();
 

@@ -617,7 +617,7 @@ MQLIB_API    const char* GetTeleportName(DWORD id);
 MQLIB_API HMODULE GetCurrentModule();
 MQLIB_API DWORD CALLBACK MQ2End(void* lpParameter);
 MQLIB_API DWORD CALLBACK GetlocalPlayerOffset();
-void MQ2Shutdown();
+void DoMainThreadShutdown();
 MQLIB_API HANDLE hUnloadComplete;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
