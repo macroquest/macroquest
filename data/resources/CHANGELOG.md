@@ -1,3 +1,6 @@
+August 26, 2025:
+- live: Update for live patch
+
 August 21, 2025:
 - live: Update for live patch
 
