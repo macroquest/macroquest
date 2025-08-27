@@ -28,6 +28,7 @@
 
 #include "mq/base/Logging.h"
 
+#include "eqlib/EQLib.h"
 #include "eqlib/Init.h"
 #include "eqlib/Events.h"
 
