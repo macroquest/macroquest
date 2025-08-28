@@ -99,6 +99,8 @@ namespace comment_update
                 return 1;
             }
 
+            PdbFile = Path.GetFullPath(new Uri(PdbFile).LocalPath);
+
             // Get offsets from PDB
             var structs = StructDefinition.ParsePdb(PdbFile).ToList();
 
@@ -395,6 +397,9 @@ namespace comment_update
             var processedSymbols = new HashSet<string>();
             foreach (IDiaSymbol symbol in enumSymbols)
             {
+                if (symbol == null)
+                    continue;
+
                 // It contains two entries for some symbols?
                 if (processedSymbols.Contains(symbol.name))
                     continue;
