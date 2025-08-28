@@ -2959,7 +2959,7 @@ void Cast(PlayerClient* pChar, const char* szLine)
 	for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
 	{
 		EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(Index));
-		if (pSpell && ci_starts_with(pSpell->Name, szArg1))
+		if (pSpell && MaybeExactStartsWith(pSpell->Name, szArg1))
 		{
 			if (pSpell->TargetType == TT_SPLASH)
 			{
