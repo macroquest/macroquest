@@ -541,11 +541,12 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!record.serverName.empty() && !record.characterName.empty())
 	{
-		login::db::ReadFullProfile(record);
+		login::db::ReadAccount(record);
 
-		if (!record.profileName.empty())
-			LoginProfile(
-				record.profileName.c_str(),
+		if (!record.accountName.empty() && !record.accountPassword.empty())
+			LoginCharacter(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
 				record.serverName.c_str(),
 				record.characterName.c_str());
 		else

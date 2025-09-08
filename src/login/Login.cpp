@@ -1788,8 +1788,8 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 		R"(
 			SELECT id, eq_path, hotkey, level, account, password, sort_order, server_type, end_after_select, char_select_delay, custom_client_ini, will_load
 			FROM profiles
-			JOIN (SELECT id AS character_id, account FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) USING (character_id)
-			JOIN (SELECT id AS account_id, account_id, server_type FROM accounts) USING (account_id)
+			JOIN (SELECT id AS character_id, account_id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) USING (character_id)
+			JOIN (SELECT id AS account_id, account, server_type FROM accounts) USING (account_id)
 			LEFT JOIN (SELECT id AS group_id FROM profile_groups WHERE name = LOWER(?)) USING (group_id)
 			LEFT JOIN (SELECT character_id, class, level FROM personas WHERE class = UPPER(?)) USING (character_id))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<unsigned int>
