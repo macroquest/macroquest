@@ -390,17 +390,6 @@ struct ci_less
 		}
 	};
 
-	struct nocase_equals_w
-	{
-		bool operator() (wchar_t c1, wchar_t c2) const noexcept
-		{
-			if (c1 == c2)
-				return true;
-
-			return ::towlower(c1) == ::towlower(c2);
-		}
-	};
-
 	bool operator()(std::string_view s1, std::string_view s2) const noexcept
 	{
 		return std::lexicographical_compare(
@@ -428,14 +417,6 @@ inline int ci_find_substr(std::string_view haystack, std::string_view needle)
 	return static_cast<int>(iter - std::begin(haystack));
 }
 
-inline int ci_find_substr_w(std::wstring_view haystack, std::wstring_view needle)
-{
-	auto iter = std::search(std::begin(haystack), std::end(haystack),
-		std::begin(needle), std::end(needle), ci_less::nocase_equals_w());
-	if (iter == std::end(haystack)) return -1;
-	return static_cast<int>(iter - std::begin(haystack));
-}
-
 /**
  * @fn ci_equals
  *
@@ -456,12 +437,6 @@ inline bool ci_equals(std::string_view sv1, std::string_view sv2)
 {
 	return sv1.size() == sv2.size()
 		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_equals());
-}
-
-inline bool ci_equals(std::wstring_view sv1, std::wstring_view sv2)
-{
-	return sv1.size() == sv2.size()
-		&& std::equal(sv1.begin(), sv1.end(), sv2.begin(), ci_less::nocase_equals_w());
 }
 
 inline bool ci_equals(std::string_view haystack, std::string_view needle, bool isExact)
@@ -673,6 +648,7 @@ inline int GetIntFromString(const std::string_view svString, int iReturnOnFail)
 	// Could error check here, but failures don't modify the value and we're not returning meaningful errors.
 	return iReturnOnFail;
 }
+
 
 /**
  * @fn GetUIntFromString

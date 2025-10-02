@@ -43,8 +43,6 @@ MQLIB_VAR const double PI;
 
 MQLIB_API uintptr_t baseAddress DEPRECATE("baseAddress is deprecated; use EQGameBaseAddress instead");
 
-bool InitOffsets();
-
 /* BENCHMARK HANDLES */
 
 MQLIB_API uint32_t bmWriteChatColor;
@@ -84,7 +82,6 @@ MQLIB_API HANDLE ghInitializeSpellDbThread;
 MQLIB_VAR bool g_Loaded;
 MQLIB_VAR DWORD ThreadID;
 
-MQLIB_VAR bool gStringTableFixed;
 MQLIB_VAR bool gbWriteAllConfig;
 
 MQLIB_VAR bool gAnonymize DEPRECATE("Anonymize is now handled at display, see MQ2Anonymize wiki for more information.");

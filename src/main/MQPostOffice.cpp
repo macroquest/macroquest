@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQPostOffice.h"
 #include "CrashHandler.h"
+#include "Logging.h"
 
 #include "MQ2Main.h"
 
@@ -123,7 +124,7 @@ private:
 					if (id.has_name())
 					{
 						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
-						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
+						LOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
 					}
 					else
 					{
@@ -135,7 +136,7 @@ private:
 							});
 
 						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_INFO("Got identification from {}", id.pid());
+						LOG_INFO("Got identification from {}", id.pid());
 					}
 
 					// TODO: forward new ID to all mailboxes here
@@ -215,7 +216,7 @@ private:
 
 		virtual void OnClientConnected() override
 		{
-			SPDLOG_DEBUG("Connection to named pipe created, Sending process loaded message.");
+			LOG_DEBUG("Connection to named pipe created, Sending process loaded message.");
 
 			MQMessageProcessLoadedFromMQ msg;
 			msg.processId = GetCurrentProcessId();

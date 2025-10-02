@@ -167,14 +167,14 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		unsigned int offset = 0;
 		for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
 		{
-			const auto sharedTask = &pTaskManager->SharedTaskEntries[i];
-			if (sharedTask && sharedTask->TaskID && sharedTask == pTask)
+			auto& sharedTask = pTaskManager->SharedTaskEntries[i];
+			if (sharedTask.TaskID && &sharedTask == pTask)
 			{
 				Dest.Int = i + 1;
 				return true;
 			}
 
-			if (sharedTask && sharedTask->TaskID)
+			if (sharedTask.TaskID)
 				++offset;
 		}
 
@@ -191,7 +191,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	}
 
 	case TaskTypeMembers::Leader:
-		for (auto taskMember = pTaskMember; taskMember; taskMember = taskMember->pNext)
+		for (auto taskMember = pTaskMember.get(); taskMember != nullptr; taskMember = taskMember->pNext)
 		{
 			if (taskMember->IsLeader) {
 				Dest.Type = pTaskMemberType;
@@ -254,7 +254,7 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			return false;
 		}
 
-		for (auto taskMember = pTaskMember; pTaskMember; pTaskMember = pTaskMember->pNext)
+		for (auto taskMember = pTaskMember.get(); taskMember; taskMember = taskMember->pNext)
 		{
 			if (!_stricmp(taskMember->Name, Index))
 			{
@@ -269,7 +269,10 @@ bool MQ2TaskType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 	case TaskTypeMembers::Members:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		for (auto taskMember = pTaskMember; taskMember; taskMember = taskMember->pNext, ++Dest.DWord);
+		for (auto taskMember = pTaskMember.get(); taskMember != nullptr; taskMember = taskMember->pNext)
+		{
+			++Dest.DWord;
+		}
 		return true;
 
 	case TaskTypeMembers::ID:
@@ -390,15 +393,15 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 
 		for (int i = 0; i < MAX_SHARED_TASK_ENTRIES; ++i)
 		{
-			auto sharedEntry = &pTaskManager->SharedTaskEntries[i];
-			if (taskIndex == i && sharedEntry && sharedEntry->TaskID)
+			auto& sharedEntry = pTaskManager->SharedTaskEntries[i];
+			if (taskIndex == i && sharedEntry.TaskID)
 			{
-				Ret.Ptr = sharedEntry;
+				Ret.Ptr = &sharedEntry;
 				return true;
 			}
 
 			// shared entry exists, but we don't want it by index
-			if (sharedEntry && sharedEntry->TaskID)
+			if (sharedEntry.TaskID)
 				++offset;
 		}
 
@@ -418,22 +421,20 @@ bool MQ2TaskType::dataTask(const char* szIndex, MQTypeVar& Ret)
 
 	// look up the task by name -- we loop by index here because it's the easiest way to
 	// loop by address of the task arrays
-	for (auto& SharedTaskEntry : pTaskManager->SharedTaskEntries)
+	for (auto& sharedEntry : pTaskManager->SharedTaskEntries)
 	{
-		auto* sharedEntry = &SharedTaskEntry;
-		if (sharedEntry && sharedEntry->TaskID && MaybeExactCompare(sharedEntry->TaskTitle, szIndex))
+		if (sharedEntry.TaskID && MaybeExactCompare(sharedEntry.TaskTitle, szIndex))
 		{
-			Ret.Ptr = sharedEntry;
+			Ret.Ptr = &sharedEntry;
 			return true;
 		}
 	}
 
-	for (auto& QuestEntry : pTaskManager->QuestEntries)
+	for (auto& questEntry : pTaskManager->QuestEntries)
 	{
-		auto* questEntry = &QuestEntry;
-		if (questEntry && questEntry->TaskID && MaybeExactCompare(questEntry->TaskTitle, szIndex))
+		if (questEntry.TaskID && MaybeExactCompare(questEntry.TaskTitle, szIndex))
 		{
-			Ret.Ptr = questEntry;
+			Ret.Ptr = &questEntry;
 			return true;
 		}
 	}
@@ -486,14 +487,12 @@ bool MQ2TaskMemberType::GetMember(MQVarPtr VarPtr, const char* Member, char* Ind
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 
-		auto taskMember = pTaskMember;
-		for (int i = 1; taskMember; taskMember = taskMember->pNext, i++)
+		for (auto taskMember = pTaskMember.get(); taskMember != nullptr; taskMember = taskMember->pNext)
 		{
+			++Dest.DWord;
+
 			if (taskMember == pTaskMemberData)
-			{
-				Dest.DWord = i;
 				return true;
-			}
 		}
 		return false;
 	}

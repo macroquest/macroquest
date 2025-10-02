@@ -80,11 +80,14 @@ namespace comment_update
             {
                 Console.WriteLine("Updating comments for x86");
                 includePaths.Add("contrib/vcpkg/installed/x86-windows-static/include");
+                includePaths.Add("contrib/vcpkg/installed/x86-windows/include");
+                compilerArguments.Add("-m32");
             }
             else
             {
                 Console.WriteLine("Updating comments for x64");
                 includePaths.Add("contrib/vcpkg/installed/x64-windows-static/include");
+                includePaths.Add("contrib/vcpkg/installed/x64-windows/include");
                 compilerArguments.Add("-m64");
                 compilerArguments.Add("-D_WIN64");
             }
@@ -95,6 +98,8 @@ namespace comment_update
                 Console.WriteLine("ERROR: PDB file doesn't exist: {0}", PdbFile);
                 return 1;
             }
+
+            PdbFile = Path.GetFullPath(new Uri(PdbFile).LocalPath);
 
             // Get offsets from PDB
             var structs = StructDefinition.ParsePdb(PdbFile).ToList();
@@ -392,6 +397,9 @@ namespace comment_update
             var processedSymbols = new HashSet<string>();
             foreach (IDiaSymbol symbol in enumSymbols)
             {
+                if (symbol == null)
+                    continue;
+
                 // It contains two entries for some symbols?
                 if (processedSymbols.Contains(symbol.name))
                     continue;

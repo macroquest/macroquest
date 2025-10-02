@@ -1,3 +1,113 @@
+September 17, 2025:
+- live: Update for live patch
+
+September 14, 2025:
+- test: Update for test patch
+
+September 7, 2025:
+- live: Update for live patch
+
+August 27, 2025:
+- test: Update for test patch
+
+August 26, 2025:
+- live: Update for live patch
+
+August 21, 2025:
+- live: Update for live patch
+- test: Sync changes from live branch
+
+August 17, 2025:
+- test: Update for the last 3 test patches
+
+July 27, 2025:
+- test: Update for test patch
+
+July 20, 2025:
+- live: Update for live patch
+
+July 16, 2025:
+- live: Update for live patch
+
+July 14, 2025:
+- test: Update for test patch
+
+Jun 18, 2025:
+- live: Update for live patch
+- test: Fix Me.CombatState
+
+June 13, 2025:
+- test: Update for test patch
+
+May 21, 2025:
+- live: Update for live patch
+
+May 16, 2025:
+- test: Fix broken group members (#931)
+
+May 15, 2025:
+- test: update for test patch
+
+April 23, 2025:
+- test: update for test patch
+
+April 17, 2025:
+- live: Update for live hotfix patch
+
+April 17, 2025:
+- Fix broken AdvancedLootItem
+
+April 16, 2025:
+- live: Update for live patch
+
+April 12, 2025:
+- test: Update for test patch
+
+March 26, 2025:
+- test: Update for test patch
+
+March 18, 2025:
+- live: Update for live patch
+
+March 12, 2025:
+- test: Update for test patch
+- live: Update for live patch
+- Improve file permission checks to reduce the number of false positives
+
+Feb 15, 2025:
+- Fix EverQuest.WinTitle not returning the window title
+
+Feb 12, 2025:
+- live: Update for patch
+
+Feb 10, 2025:
+- test: Update for patch
+
+Jan 29, 2025:
+- test: Update for patch
+
+Jan 15, 2025:
+- live: Update for patch
+- lua: Add error handling to mq.delay, failures inside the callback should now propagate to the caller properly
+
+Jan 12, 2025:
+- test: Update for patch
+- Added ${Pet.ProcHold} and ${Pet.Resume}
+
+Jan 11, 2025:
+- ImGui has been updated to version 1.91.6
+- Fix date format string of output from /mqlog
+
+Dec 13, 2024:
+- test: Update for test patch
+
+Dec 5, 2024:
+- live: Update for patch
+
+Dec 3, 2024:
+- live: Update for TOB expansion patch
+- Fix /useitem not interacting with activated item keyring
+
 Dec 1, 2024:
 - test: Update for TOB expansion patch
 

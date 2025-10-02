@@ -15,6 +15,7 @@
 #pragma once
 
 #include "mq/base/Common.h"
+#include "mq/base/Color.h"
 #include "eqlib/Common.h"
 
 namespace eqlib {

@@ -510,15 +510,15 @@ void OpenContextMenu()
 	s_contextOpen = true;
 }
 
-void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title)
+void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title, const ImVec2& size)
 {
 	OpenWindow(
-		[viewport, message, title]
+		[viewport, message, title, size]
 		{
 			bool is_open = true;
 
 			const auto monitor = ImGui::GetViewportPlatformMonitor(viewport != nullptr ? viewport : ImGui::GetMainViewport());
-			ImGui::SetNextWindowSize({ 300.f, 200.f }, ImGuiCond_Appearing);
+			ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
 			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_Appearing, { 0.5f, 0.5f });
 
 			if (ImGui::Begin(title.c_str(), &is_open))

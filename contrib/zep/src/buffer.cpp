@@ -416,7 +416,7 @@ GlyphIterator ZepBuffer::FindFirstCharOf(GlyphIterator start, std::string_view c
 
     for (;;)
     {
-        for (int i = 0; i < chars.length(); i++)
+        for (int i = 0; i < (int)chars.length(); i++)
         {
             if (itr.Char() == chars[i])
             {

@@ -68,7 +68,7 @@ inline PlayerClient* GetSpawnByPartialName(char const* spawnName, PlayerBase* ex
 
 inline EQ_Spell* GetSpellByID(int spellID)
 {
-	if (!pSpellMgr || spellID <= 0 || spellID >= TOTAL_SPELL_COUNT)
+	if (!pSpellMgr || spellID <= 0 || spellID >= pSpellMgr->GetMaxSpellID())
 		return nullptr;
 
 	return pSpellMgr->GetSpellByID(spellID);
@@ -582,6 +582,20 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 	}
 
 	return ci_equals(haystack, needle, exact);
+}
+
+inline bool MaybeExactStartsWith(std::string_view haystack, std::string_view needle)
+{
+	if (needle.empty())
+		return haystack.empty();
+
+	if (needle[0] == '=')
+	{
+		needle = needle.substr(1);
+		return ci_equals(haystack, needle, true);
+	}
+
+	return ci_starts_with(haystack, needle);
 }
 
 enum class StringMatchType {

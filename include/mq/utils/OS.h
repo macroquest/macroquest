@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/String.h"
+
 #include <TlHelp32.h>
 #include <Psapi.h>
 
@@ -21,7 +23,7 @@
 
 namespace mq {
 
-inline bool IsProcessRunning(const char* exeName)
+inline bool IsProcessRunning(std::string_view exeName)
 {
 	wil::unique_tool_help_snapshot hSnapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 
@@ -30,7 +32,7 @@ inline bool IsProcessRunning(const char* exeName)
 	{
 		do
 		{
-			if (!_stricmp(proc.szExeFile, exeName))
+			if (ci_equals(proc.szExeFile, exeName))
 			{
 				return true;
 			}

@@ -113,7 +113,7 @@ bool MQCursorAttachmentType::GetMember(MQVarPtr VarPtr, const char* Member, char
 #if HAS_TELEPORTATION_KEYRING
 		case eCursorAttachment_TeleportationKeyRingLink: strcpy_s(DataTypeTemp, "TELEPORT_KEYRING"); return true;
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 		case eCursorAttachment_ActivatedKeyRingLink: strcpy_s(DataTypeTemp, "ACTIVATED_KEYRING"); return true;
 #endif
 		default:
@@ -157,7 +157,7 @@ bool MQCursorAttachmentType::GetMember(MQVarPtr VarPtr, const char* Member, char
 #if HAS_TELEPORTATION_KEYRING
 		case eCursorAttachment_TeleportationKeyRingLink:
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 		case eCursorAttachment_ActivatedKeyRingLink:
 #endif
 		{
@@ -171,7 +171,7 @@ bool MQCursorAttachmentType::GetMember(MQVarPtr VarPtr, const char* Member, char
 #if HAS_TELEPORTATION_KEYRING
 			case eCursorAttachment_TeleportationKeyRingLink: keyRingType = eTeleportationItem; break;
 #endif
-#if HAS_ACTIVATED_KEYRING
+#if HAS_ACTIVATED_ITEM_KEYRING
 			case eCursorAttachment_ActivatedKeyRingLink: keyRingType = eActivatedItem; break;
 #endif
 			default: return false;

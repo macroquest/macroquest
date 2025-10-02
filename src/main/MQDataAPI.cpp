@@ -17,6 +17,7 @@
 
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
+#include "Logging.h"
 
 #include "CrashHandler.h"
 #include "mq/base/ScopeExit.h"
@@ -244,7 +245,7 @@ bool MQDataAPI::RemoveTopLevelObject(const char* szName, const MQPluginHandle& p
 	auto& item = iter->second;
 	if (item.owner != pluginHandle)
 	{
-		//SPDLOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
+		//LOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
 		//	std::string_view(owner ? owner->name : "(Unknown)"), szName, item.tlo->Owner->name);
 		return false;
 	}
@@ -660,8 +661,11 @@ void MQDataAPI::RegisterTopLevelObjects()
 	AddTopLevelObject("Familiar", datatypes::MQ2KeyRingType::dataFamiliar);
 	AddTopLevelObject("Illusion", datatypes::MQ2KeyRingType::dataIllusion);
 	AddTopLevelObject("Mount", datatypes::MQ2KeyRingType::dataMount);
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOL)
+#if HAS_TELEPORTATION_KEYRING
 	AddTopLevelObject("TeleportationItem", datatypes::MQ2KeyRingType::dataTeleportationItem);
+#endif
+#if HAS_ACTIVATED_ITEM_KEYRING
+	AddTopLevelObject("ActivatedItem", datatypes::MQ2KeyRingType::dataActivatedItem);
 #endif
 #endif // HAS_KEYRING_WINDOW
 }

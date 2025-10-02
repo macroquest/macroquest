@@ -620,7 +620,7 @@ void ImGuiZepConsole::PushStyleColor(ImGuiZepConsoleCol idx, const ImVec4& col)
 
 void ImGuiZepConsole::PopStyleColor(int count)
 {
-	IM_ASSERT_USER_ERROR(count <= m_colorStack.size(), "You can't pop more modifiers than have been pushed!");
+	IM_ASSERT_USER_ERROR(count <= (int)m_colorStack.size(), "You can't pop more modifiers than have been pushed!");
 	while (count > 0)
 	{
 		ImGuiZepConsoleColorMod& backup = m_colorStack.back();

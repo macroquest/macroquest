@@ -63,6 +63,9 @@
     <ClCompile Include="LoaderAutoLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WinToastLib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -105,6 +108,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Markov.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinToastLib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
