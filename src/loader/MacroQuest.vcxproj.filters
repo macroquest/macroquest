@@ -19,6 +19,9 @@
     <Filter Include="Source Files\imgui_backend">
       <UniqueIdentifier>{620f3dbe-47a9-49ad-b823-24532ee7f450}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Proto Files">
+      <UniqueIdentifier>{0eb57874-ad84-401d-8e8f-1910ca4e8298}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RemoteOps.cpp">
@@ -64,6 +67,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WinToastLib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostOfficeImGui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

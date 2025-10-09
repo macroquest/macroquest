@@ -14,12 +14,11 @@
 
 #pragma once
 
+#include "Routing.h"
+
 #include <cstdint>
 
 namespace mq {
-
-// The name of the named pipe used by the named pipe server to communicate with other clients.
-constexpr const char* MQ2_PIPE_SERVER_PATH = R"(\\.\pipe\mqpipe)";
 
 enum class MQMessageId : uint16_t
 {
@@ -49,20 +48,6 @@ enum class MQProtoVersion : uint8_t
 	V0              = 0,          // Initial protocol version is v0.
 	Version_Default = V0,
 };
-
-enum class MQRequestMode : uint8_t
-{
-	SimpleMessage   = 0,          // (Default) This is a simple message. There is no reply.
-	CallAndResponse = 1,          // This is an RPC style message with a reply.
-	MessageReply    = 2,          // This is an RPC style message reply.
-};
-
-// Error Codes that can be delivered in a message callback. These are negative, because positive error
-// codes should originate from the message itself.
-constexpr int MsgError_ConnectionClosed        = -1;                  // connection was closed
-constexpr int MsgError_NoConnection            = -2;                  // no connection established
-constexpr int MsgError_RoutingFailed           = -3;                  // message routing failed
-constexpr int MsgError_AmbiguousRecipient      = -4;                  // RPC message couldn't determine single recipient
 
 #pragma pack(push)
 #pragma pack(1)
