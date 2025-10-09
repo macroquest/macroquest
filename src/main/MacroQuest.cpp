@@ -13,19 +13,24 @@
  */
 
 #include "pch.h"
+#include "MacroQuest.h"
 #include "MQ2Main.h"
+#include "Logging.h"
 #include "CrashHandler.h"
 #include "MQActorAPI.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
-#include "MQDetourAPI.h"
 #include "MQRenderDoc.h"
 #include "MQ2KeyBinds.h"
 #include "MQPluginHandler.h"
 #include "ImGuiManager.h"
 #include "GraphicsResources.h"
-#include "EQLib/Logging.h"
+
 #include "mq/base/Logging.h"
+
+#include "eqlib/EQLib.h"
+#include "eqlib/Init.h"
+#include "eqlib/Events.h"
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -43,7 +48,6 @@
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "version.lib")
-#pragma comment(lib, "detours.lib")
 
 #define CLIENT_OVERRIDE 0
 
@@ -92,11 +96,10 @@ namespace mq {
 
 //============================================================================
 
-// From MQ2LoginFrontend.cpp
 void InitializeLoginFrontend();
 void ShutdownLoginFrontend();
-
-// From MQ2PluginHandler.cpp
+void InitializeDetours();
+void ShutdownDetours();
 void ShutdownInternalModules();
 
 MQModule* GetSpellsModule();
@@ -115,7 +118,7 @@ MQModule* GetEmuExtensionsModule();
 void InitializeMQ2AutoInventory();
 void ShutdownMQ2AutoInventory();
 
-DWORD WINAPI MQ2Start(void* lpParameter);
+DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter);
 HANDLE hMQ2StartThread = nullptr;
 DWORD dwMainThreadId = 0;
 
@@ -123,52 +126,95 @@ wil::unique_event g_hLoadComplete;
 HANDLE hUnloadComplete = nullptr;
 void* ModuleListHandler = nullptr;
 
-void InitializeLogging()
+std::shared_ptr<spdlog::logger> g_logger;
+
+MacroQuest* g_mq = nullptr;
+
+static void WaitForLavishSoftware()
 {
-	fs::path loggingPath = mq::internal_paths::Logs;
-
-	auto new_logger = std::make_shared<spdlog::logger>("MQ");
-	spdlog::set_default_logger(new_logger);
-
-	if (IsDebuggerPresent())
+	// IsBoxer/InnerSpace
+	HMODULE hISModule = ::GetModuleHandleA("InnerSpace.dll");
+	if (!hISModule)
 	{
-		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
+		// Joe MultiBoxer / WinEQ2022
+		hISModule = ::GetModuleHandleA("JMB.dll");
 	}
-
-#if LOG_FILENAMES
-	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
-#else
-	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v");
-#endif
-	spdlog::flush_on(spdlog::level::trace);
-	spdlog::set_level(spdlog::level::trace);
-
-	fmt::memory_buffer filename;
-	auto out = fmt::format_to(fmt::appender(filename),
-		"{}\\{}", mq::internal_paths::Logs, mq::CreateLogFilename("MacroQuest"));
-	*out = 0;
-
-	// Create file sink
-	try
+	if (!hISModule)
 	{
-		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
-		new_logger->sinks().push_back(fileSink);
+		// WinEQ?
+		hISModule = ::GetModuleHandleA("Lavish.dll");
 	}
-	catch (const spdlog::spdlog_ex& ex)
+	if (hISModule)
 	{
-		SPDLOG_WARN("Failed to create file logger: {}, ex: {}",
-			std::string_view(filename.data(), filename.size()), ex.what());
-	}
+		uintptr_t baseAddressLS = 0;
+		uintptr_t endAddress = 0;
 
-	SPDLOG_DEBUG("Logging Initialized");
-	eqlib::InitializeLogging(new_logger);
+		MODULEINFO moduleInfo;
+		HMODULE hKernelModule = ::GetModuleHandleA("kernel32.dll");
+
+		if (hISModule
+			&& ::K32GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
+		{
+			baseAddressLS = (uintptr_t)moduleInfo.lpBaseOfDll;
+			endAddress = baseAddressLS + (uintptr_t)moduleInfo.SizeOfImage;
+		}
+
+		bool foundHooks = baseAddressLS == 0;             // skip checks if InnerSpace.dll isn't loaded
+		bool foundWindowHandle = false;
+
+		// Do some checks against Lavish/InnerSpace integrations. Wait a total of 10 seconds or we fail all checks.
+		const auto startTime = std::chrono::steady_clock::now();
+		while (std::chrono::steady_clock::now() - startTime < std::chrono::seconds(10) && !(foundHooks && foundWindowHandle))
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+			if (!foundHooks)
+			{
+				// Wait for module to finish loading before we try to continue. Otherwise it will modify our
+				// import address table, resulting in our detours being ineffective if we go first.
+				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
+				if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
+				{
+					foundHooks = true;
+				}
+				else
+				{
+					fnGetProcAddress = (uintptr_t)GetProcAddress(hKernelModule, "GetProcAddress");
+					if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
+					{
+						foundHooks = true;
+					}
+				}
+			}
+
+			if (!foundWindowHandle)
+			{
+				// we also use this loop to wait for wineq2/innerspace to get the eqwindow up and running before we move on.
+				HWND hEQWnd = GetEQWindowHandle();
+				if (hEQWnd != nullptr)
+				{
+					foundWindowHandle = true;
+				}
+			}
+		}
+
+		// The lavish dlls steal our detour so that our GetProcAddress never sees the eqmain.dll load.  Delaying here
+		// gives eqmain.dll time to load so that we're not waiting for that trigger when we inject at startup.
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		if (!foundHooks)
+		{
+			DebugSpewAlways("Was not able to detect the InnerSpace hook on GetProcAddress!");
+		}
+
+		if (!foundWindowHandle)
+		{
+			DebugSpewAlways("Was not able to detect the main EQ window handle!");
+		}
+	}
 }
 
-void ShutdownLogging()
-{
-	eqlib::ShutdownLogging();
-	spdlog::shutdown();
-}
+//============================================================================
 
 extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void* lpReserved)
 {
@@ -204,7 +250,7 @@ extern "C" BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, void*
 
 			RenderDoc_Startup();
 
-			hMQ2StartThread = CreateThread(nullptr, 0, MQ2Start, _strdup(szFilename), 0, &ThreadID);
+			hMQ2StartThread = CreateThread(nullptr, 0, MacroQuestBackgroundThread, _strdup(szFilename), 0, &ThreadID);
 		}
 		else if (ul_reason_for_call == DLL_PROCESS_DETACH)
 		{
@@ -362,22 +408,6 @@ bool InitDirectories(const std::string& iniToRead)
 bool ParseINIFile(const std::string& iniFile)
 {
 	char szBuffer[MAX_STRING] = { 0 };
-
-	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
-	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);
-
-	const char* actualVersionDate = (const char*)__ActualVersionDate;
-	const char* actualVersionTime = (const char*)__ActualVersionTime;
-
-	// note: CLIENT_OVERRIDE is always #defined as 1 or 0
-#if !CLIENT_OVERRIDE
-	if (strncmp(__ExpectedVersionDate, actualVersionDate, strlen(__ExpectedVersionDate)) ||
-		strncmp(__ExpectedVersionTime, actualVersionTime, strlen(__ExpectedVersionTime)))
-	{
-		MessageBox(nullptr, "Incorrect client version", "MacroQuest", MB_OK);
-		return false;
-	}
-#endif
 
 	gFilterSkillsAll         = GetPrivateProfileBool("MacroQuest", "FilterSkills", gFilterSkillsAll, iniFile);
 	gFilterSkillsIncrease    = 2 == GetPrivateProfileInt("MacroQuest", "FilterSkills", gFilterSkillsIncrease ? 2 : 0, iniFile);
@@ -602,6 +632,22 @@ bool ParseINIFile(const std::string& iniFile)
 	return true;
 }
 
+//============================================================================
+
+DWORD GetMainThreadId()
+{
+	return dwMainThreadId;
+}
+
+bool IsMainThread()
+{
+	// If not initialized yet, we don't know. Treat as if we're on another
+	// thread, then we'll stay extra safe.
+	if (dwMainThreadId == 0)
+		return false;
+
+	return dwMainThreadId == ::GetCurrentThreadId();
+}
 void SetMainThreadId()
 {
 	// initialize main thread id
@@ -609,163 +655,87 @@ void SetMainThreadId()
 		dwMainThreadId = ::GetCurrentThreadId();
 }
 
+// Do shutdown time stuff on the main thread.
+void DoMainThreadShutdown()
+{
+	g_mq->Shutdown();
+}
+
 // Perform first time initialization on the main thread.
 void DoMainThreadInitialization()
 {
-	gpMainAPI->DoMainThreadInitialization();
-
-	InitializeDisplayHook();
-	GraphicsResources_Initialize();
-	ImGuiManager_Initialize();
-
-	// this needs to be done before anything that would need to add a callback to string message parsing
-	InitializeStringDB();
-
-	InitializeChatHook();
-	InitializeAnonymizer();
-	InitializeInternalModules();
-	AddInternalModule(GetWindowsModule());
-	AddInternalModule(GetImGuiToolsModule());
-	AddInternalModule(GetSpellsModule());
-	AddInternalModule(GetDataAPIModule());
-	AddInternalModule(GetActorAPIModule());
-	AddInternalModule(GetGroundSpawnsModule());
-	AddInternalModule(GetSpawnsModule());
-	AddInternalModule(GetItemsModule());
-	AddInternalModule(GetPostOfficeModule());
-#if IS_EMU_CLIENT
-	AddInternalModule(GetEmuExtensionsModule());
-#endif
-	InitializeMQ2AutoInventory();
-	InitializeMQ2KeyBinds();
-	InitializePlugins();
-	InitializeCachedBuffs();
+	g_mq->Initialize();
 }
 
-// Perform injection-time initialization. This occurs on the injection thread.
-bool MQ2Initialize()
+//============================================================================
+
+MacroQuest::MacroQuest()
 {
-	MODULEINFO EQGameModuleInfo;
-	HMODULE hEQGameModule = GetModuleHandle(nullptr);
+	srand(static_cast<uint32_t>(time(nullptr)));
 
-	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
-	g_eqgameimagesize = (uintptr_t)hEQGameModule + EQGameModuleInfo.SizeOfImage;
+	InitializeLogging();
+}
 
-	// IsBoxer/InnerSpace
-	HMODULE hISModule = GetModuleHandle("InnerSpace.dll");
-	if (!hISModule)
+MacroQuest::~MacroQuest()
+{
+}
+
+bool MacroQuest::CoreInitialize()
+{
+	WaitForLavishSoftware();
+
+	DebugSpew("Expected Client version: %s %s", __ExpectedVersionDate, __ExpectedVersionTime);
+	DebugSpew("    Real Client version: %s %s", __ActualVersionDate, __ActualVersionTime);
+
+	const char* actualVersionDate = (const char*)__ActualVersionDate;
+	const char* actualVersionTime = (const char*)__ActualVersionTime;
+
+	// note: CLIENT_OVERRIDE is always #defined as 1 or 0
+#if !CLIENT_OVERRIDE
+	if (strncmp(__ExpectedVersionDate, actualVersionDate, strlen(__ExpectedVersionDate)) ||
+		strncmp(__ExpectedVersionTime, actualVersionTime, strlen(__ExpectedVersionTime)))
 	{
-		// Joe MultiBoxer / WinEQ2022
-		hISModule = GetModuleHandle("JMB.dll");
-	}
-	if (!hISModule)
-	{
-		// WinEQ?
-		hISModule = GetModuleHandle("Lavish.dll");
-	}
-	if (hISModule)
-	{
-		uintptr_t baseAddressLS = 0;
-		uintptr_t endAddress = 0;
-
-		MODULEINFO moduleInfo;
-		HMODULE hKernelModule = GetModuleHandleA("kernel32.dll");
-
-		if (hISModule
-			&& GetModuleInformation(GetCurrentProcess(), hISModule, &moduleInfo, sizeof(MODULEINFO)))
-		{
-			baseAddressLS = (uintptr_t)moduleInfo.lpBaseOfDll;
-			endAddress = baseAddressLS + (uintptr_t)moduleInfo.SizeOfImage;
-		}
-
-		bool foundHooks = baseAddressLS == 0;             // skip checks if InnerSpace.dll isn't loaded
-		bool foundWindowHandle = false;
-
-		// Do some checks against Lavish/InnerSpace integrations. Wait a total of 10 seconds or we fail all checks.
-		const auto startTime = std::chrono::steady_clock::now();
-		while (std::chrono::steady_clock::now() - startTime < std::chrono::seconds(10) && !(foundHooks && foundWindowHandle))
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-			if (!foundHooks)
-			{
-				// Wait for module to finish loading before we try to continue. Otherwise it will modify our
-				// import address table, resulting in our detours being ineffective if we go first.
-				uintptr_t fnGetProcAddress = (uintptr_t)&::GetProcAddress;
-				if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
-				{
-					foundHooks = true;
-				}
-				else
-				{
-					fnGetProcAddress = (uintptr_t)GetProcAddress(hKernelModule, "GetProcAddress");
-					if (fnGetProcAddress >= baseAddressLS && fnGetProcAddress < endAddress)
-					{
-						foundHooks = true;
-					}
-				}
-			}
-
-			if (!foundWindowHandle)
-			{
-				// we also use this loop to wait for wineq2/innerspace to get the eqwindow up and running before we move on.
-				HWND hEQWnd = GetEQWindowHandle();
-				if (hEQWnd != nullptr)
-				{
-					foundWindowHandle = true;
-				}
-			}
-		}
-
-		// The lavish dlls steal our detour so that our GetProcAddress never sees the eqmain.dll load.  Delaying here
-		// gives eqmain.dll time to load so that we're not waiting for that trigger when we inject at startup.
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		if (!foundHooks)
-		{
-			DebugSpewAlways("Was not able to detect the InnerSpace hook on GetProcAddress!");
-		}
-
-		if (!foundWindowHandle)
-		{
-			DebugSpewAlways("Was not able to detect the main EQ window handle!");
-		}
-	}
-
-	eqlib::InitializeEQLib();
-
-	if (!InitOffsets())
-	{
-		DebugSpewAlways("InitOffsets returned false - thread aborted.");
-		g_Loaded = false;
+		char szMessage[256];
+		sprintf_s(szMessage,
+			"Incorrect client version:\n\nExpected client version: %s %s\nActual client version: %s %s",
+			__ExpectedVersionDate, __ExpectedVersionTime, actualVersionDate, actualVersionTime
+		);
+		::MessageBoxA(nullptr, szMessage, "MacroQuest", MB_OK);
 		return false;
 	}
+#endif
 
+	// Load configuration so that we can create a logger.
 	if (!InitConfig(mq::internal_paths::MQRoot, mq::internal_paths::Config, mq::internal_paths::MQini))
 	{
-		DebugSpewAlways("InitConfig returned false - thread aborted.");
-		g_Loaded = false;
+		LOG_ERROR("InitConfig returned false - initialization aborted.");
 		return false;
 	}
 
 	if (!InitDirectories(mq::internal_paths::MQini))
 	{
-		DebugSpewAlways("InitDirectories returned false - thread aborted.");
-		g_Loaded = false;
+		LOG_ERROR("InitDirectories returned false - initialization aborted.");
 		return false;
 	}
+
+	// Initialize logging 2nd stage
+	InitializeLoggingStage2();
+
+	if (!InitializeEQLib())
+	{
+		LOG_ERROR("InitializeEQLib failed - check logs for more details");
+		return false;
+	}
+
+	m_memoryPatcher = m_eqlib->GetMemoryPatcher();
 
 	if (!ParseINIFile(mq::internal_paths::MQini))
 	{
-		DebugSpewAlways("ParseINIFile returned false - thread aborted.");
-		g_Loaded = false;
+		LOG_ERROR("ParseINIFile returned false - initialization aborted.");
 		return false;
 	}
 
-	InitializeLogging();
 	CrashHandler_Startup();
-
-	srand(static_cast<uint32_t>(time(nullptr)));
 
 	InitializePluginHandle();
 
@@ -799,27 +769,101 @@ bool MQ2Initialize()
 	szEQMappableCommands[nEQMappableCommands - 12] = "CHAT_EMPTY";//"ClearAll"
 	szEQMappableCommands[nEQMappableCommands - 11] = "TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
 	szEQMappableCommands[nEQMappableCommands - 10] = "UNKNOWN0x218";//"NoPlayersLeft"
-	szEQMappableCommands[nEQMappableCommands -  9] = "UNKNOWN0x219";//"CreatedSharedTask"
-	szEQMappableCommands[nEQMappableCommands -  8] = "CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
-	szEQMappableCommands[nEQMappableCommands -  7] = "UNKNOWN0x21b";//Expired
-	szEQMappableCommands[nEQMappableCommands -  6] = "UNKNOWN0x21c";//Script
-	szEQMappableCommands[nEQMappableCommands -  5] = "UNKNOWN0x21d";//LeaderRemoved
-	szEQMappableCommands[nEQMappableCommands -  4] = "UNKNOWN0x21e";
-	szEQMappableCommands[nEQMappableCommands -  3] = "UNKNOWN0x21f";
-	szEQMappableCommands[nEQMappableCommands -  2] = "UNKNOWN0x220";
-	szEQMappableCommands[nEQMappableCommands -  1] = "UNKNOWN0x221";
+	szEQMappableCommands[nEQMappableCommands - 9] = "UNKNOWN0x219";//"CreatedSharedTask"
+	szEQMappableCommands[nEQMappableCommands - 8] = "CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
+	szEQMappableCommands[nEQMappableCommands - 7] = "UNKNOWN0x21b";//Expired
+	szEQMappableCommands[nEQMappableCommands - 6] = "UNKNOWN0x21c";//Script
+	szEQMappableCommands[nEQMappableCommands - 5] = "UNKNOWN0x21d";//LeaderRemoved
+	szEQMappableCommands[nEQMappableCommands - 4] = "UNKNOWN0x21e";
+	szEQMappableCommands[nEQMappableCommands - 3] = "UNKNOWN0x21f";
+	szEQMappableCommands[nEQMappableCommands - 2] = "UNKNOWN0x220";
+	szEQMappableCommands[nEQMappableCommands - 1] = "UNKNOWN0x221";
 
-	gpMainAPI = new MainImpl();
+	pCommandAPI = new MQCommandAPI();
+
+	InitializeMQ2Benchmarks();
+
+	// These two sub-systems will get us onto the main thread.
+	InitializeMQ2Pulse();
+
+	if (m_eqmainLoaded)
+	{
+		InitializeLoginFrontend();
+	}
+	m_coreInitialized = true;
 
 	// We will wait for pulse from the game to init on main thread.
-	g_hLoadComplete.wait();
-	return true;
+	if (g_hLoadComplete.wait())
+	{
+		LOG_INFO("MacroQuest Loaded.");
+		return true;
+	}
+
+	return false;
 }
 
-// Do shutdown time stuff on the main thread.
-void MQ2Shutdown()
+void MacroQuest::CoreShutdown()
 {
-	OutputDebugString("MQ2Shutdown Called");
+	// We get called on the injection thread. This should happen after everything else
+	// has already been shut down.
+	if (m_eqlib)
+	{
+		eqlib::Shutdown(m_eqlib);
+		m_eqlib = nullptr;
+	}
+
+	m_coreInitialized = false;
+
+	LOG_DEBUG("Shutdown completed");
+
+	g_logger.reset();
+
+	spdlog::shutdown();
+}
+
+void MacroQuest::Initialize()
+{
+	InitializeDetours();
+
+	pDataAPI = new MQDataAPI();
+	pDataAPI->Initialize();
+
+	pActorAPI = new MQActorAPI();
+
+	InitializeDisplayHook();
+	GraphicsResources_Initialize();
+	ImGuiManager_Initialize();
+
+	// this needs to be done before anything that would need to add a callback to string message parsing
+	InitializeStringDB();
+
+	InitializeChatHook();
+	InitializeAnonymizer();
+	InitializeInternalModules();
+	AddInternalModule(GetWindowsModule());
+	AddInternalModule(GetImGuiToolsModule());
+	AddInternalModule(GetSpellsModule());
+	AddInternalModule(GetDataAPIModule());
+	AddInternalModule(GetActorAPIModule());
+	AddInternalModule(GetGroundSpawnsModule());
+	AddInternalModule(GetSpawnsModule());
+	AddInternalModule(GetItemsModule());
+	AddInternalModule(GetPostOfficeModule());
+#if IS_EMU_CLIENT
+	AddInternalModule(GetEmuExtensionsModule());
+#endif
+	InitializeMQ2AutoInventory();
+	InitializeMQ2KeyBinds();
+	InitializePlugins();
+	InitializeCachedBuffs();
+
+	g_hLoadComplete.SetEvent();
+}
+
+void MacroQuest::Shutdown()
+{
+	WriteChatColor("MacroQuest Unloading...", USERCOLOR_DEFAULT);
+	LOG_INFO("MacroQuest Unloading...");
 
 	ShutdownCachedBuffs();
 	ShutdownMQ2KeyBinds();
@@ -837,12 +881,106 @@ void MQ2Shutdown()
 	ShutdownStringDB();
 	ShutdownMQ2Benchmarks();
 
-	delete gpMainAPI;
-	gpMainAPI = nullptr;
+	delete pDataAPI;
+	pDataAPI = nullptr;
 
-	DebugSpew("Shutdown completed");
-	ShutdownLogging();
+	delete pActorAPI;
+	pActorAPI = nullptr;
+
+	ShutdownDetours();
+
+	g_Loaded = false;
+
+	LOG_INFO("MacroQuest Unloaded.");
+	SetEvent(hUnloadComplete);
 }
+
+bool MacroQuest::InitializeEQLib()
+{
+	eqlib::LibraryConfig config;
+	config.flags = eqlib::ConfigFlags::EnableAllEvents;
+	config.eventReceiver = this;
+	config.logger = m_eqlibLogger;
+
+	m_eqlib = eqlib::Initialize(&config);
+	return m_eqlib != nullptr;
+}
+
+static void SetDefaultLoggingParams()
+{
+#if LOG_FILENAMES
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v (%@)");
+#else
+	spdlog::set_pattern("%L %Y-%m-%d %T.%f [%n] %v");
+#endif
+	spdlog::flush_on(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
+}
+
+void MacroQuest::InitializeLogging()
+{
+	auto new_logger = std::make_shared<spdlog::logger>("MQ");
+
+	if (IsDebuggerPresent())
+	{
+		new_logger->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>(false));
+	}
+
+	m_logger = new_logger;
+	spdlog::set_default_logger(new_logger);
+
+	SetDefaultLoggingParams();
+
+	g_logger = m_logger;
+
+	LOG_DEBUG("Logging Initialized");
+}
+
+void MacroQuest::InitializeLoggingStage2()
+{
+	fmt::memory_buffer filename;
+	auto out = fmt::format_to(fmt::appender(filename),
+		"{}\\{}", mq::internal_paths::Logs, mq::CreateLogFilename("MacroQuest"));
+	*out = 0;
+
+	// Create file sink
+	try
+	{
+		auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.data(), true);
+		m_logger->sinks().push_back(fileSink);
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		LOG_WARN("Failed to create file logger: {}, ex: {}",
+			std::string_view(filename.data(), filename.size()), ex.what());
+	}
+
+	m_eqlibLogger = std::make_shared<spdlog::logger>("EQLib", begin(m_logger->sinks()), end(m_logger->sinks()));
+	spdlog::register_logger(m_eqlibLogger);
+
+	SetDefaultLoggingParams();
+}
+
+void MacroQuest::OnEQMainDllLoadedStateChanged(bool loaded)
+{
+	if (loaded)
+	{
+		if (m_coreInitialized)
+		{
+			InitializeLoginFrontend();
+		}
+
+		m_eqmainLoaded = true;
+	}
+	else
+	{
+		m_eqmainLoaded = false;
+
+		ShutdownLoginFrontend();
+	}
+}
+
+//============================================================================
 
 HMODULE GetCurrentModule()
 {
@@ -854,6 +992,7 @@ HMODULE GetCurrentModule()
 
 	return hModule;
 }
+
 
 // ***************************************************************************
 // Function:    MQ2End Thread
@@ -892,24 +1031,14 @@ DWORD WINAPI GetlocalPlayerOffset()
 	return (DWORD)pinstLocalPlayer_x;
 }
 
-void ForceUnload()
-{
-	DWORD oldscreenmode = std::exchange(ScreenMode, 3);
-
-	WriteChatColor(UnloadedString, USERCOLOR_DEFAULT);
-	DebugSpewAlways("ForceUnload() called, this is not good %s", UnloadedString);
-
-	MQ2Shutdown();
-
-	g_Loaded = false;
-	ScreenMode = oldscreenmode;
-}
-
-// ***************************************************************************
-// Function:    MQ2Start Thread
-// Description: Where we start execution during the insertion
-// ***************************************************************************
-DWORD WINAPI MQ2Start(void* lpParameter)
+/**
+ * Initialization point immediately after injection. Thread will persist until unload is requested,
+ * and then will wait for unload to complete. When thread exits, it will unload the library.
+ *
+ * @param lpParameter Pointer to MQInjectStartupParams
+ * @return
+ */
+DWORD WINAPI MacroQuestBackgroundThread(void* lpParameter)
 {
 	InstallUnhandledExceptionFilter();
 
@@ -917,56 +1046,41 @@ DWORD WINAPI MQ2Start(void* lpParameter)
 
 	hUnloadComplete = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
-	if (!MQ2Initialize())
-	{
-		MessageBox(nullptr, "Failed to Initialize MQ.", "MQ Error", MB_OK);
+	MODULEINFO EQGameModuleInfo;
+	HMODULE hEQGameModule = GetModuleHandle(nullptr);
 
-		if (HMODULE h = GetCurrentModule())
-			FreeLibraryAndExitThread(h, 0);
-	}
+	GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
+	g_eqgameimagesize = (uintptr_t)hEQGameModule + EQGameModuleInfo.SizeOfImage;
 
-	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME)
+	g_mq = new MacroQuest();
+
+	// Initialize will block until the first frame is handled.
+	if (g_mq->CoreInitialize())
 	{
-		if (gbUnload)
+		DebugSpewAlways("%s", LoadedString);
+
+		while (!gbUnload)
 		{
-			goto getout;
+			Sleep(500);
 		}
 
-		Sleep(500);
-	}
-
-	DebugSpewAlways("%s", LoadedString);
-
-	while (!gbUnload)
-	{
-		Sleep(500);
-	}
-
-getout:
-	if (hUnloadComplete)
-	{
-		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 1800000); // 30 mins so i can debug stuff
-		if (dwtime == WAIT_TIMEOUT)
-		{
-			SPDLOG_WARN("I am unloading in MQ2Start due to TIMEOUT");
-			ForceUnload();
-		}
-
+		WaitForSingleObject(hUnloadComplete, 1800000);
 		CloseHandle(hUnloadComplete);
 		hUnloadComplete = nullptr;
 	}
 	else
 	{
-		SPDLOG_WARN("I am unloading in MQ2Start this will probably crash");
-		ForceUnload();
+		g_Loaded = false;
+
+		MessageBox(nullptr, "Failed to Initialize MQ.", "MQ Error", MB_OK);
 	}
+
+	g_mq->CoreShutdown();
+	delete g_mq;
 
 	UninstallUnhandledExceptionFilter();
 
-	if (HMODULE h = GetCurrentModule())
-		FreeLibraryAndExitThread(h, 0);
-
-	return 0;
+	FreeLibraryAndExitThread(GetCurrentModule(), 0);
 }
 
 class CMQNewsWnd : public CCustomWnd
@@ -1124,78 +1238,9 @@ void CreateMQ2NewsWindow()
 
 //============================================================================
 
-DWORD GetMainThreadId()
-{
-	return dwMainThreadId;
-}
+#pragma region DataAPI Functions
 
-bool IsMainThread()
-{
-	// If not initialized yet, we don't know. Treat as if we're on another
-	// thread, then we'll stay extra safe.
-	if (dwMainThreadId == 0)
-		return false;
-
-	return dwMainThreadId == ::GetCurrentThreadId();
-}
-
-//============================================================================
-
-HHOOK g_hHook;
-
-LRESULT CALLBACK hookCBTProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	return ::CallNextHookEx(g_hHook, nCode, wParam, lParam);
-}
-
-void InjectEnable()
-{
-	// Install the global hook, injecting this DLL into every other process
-	g_hHook = SetWindowsHookEx(WH_CBT, hookCBTProc, ghInstance, 0);
-}
-
-void InjectDisable()
-{
-	UnhookWindowsHookEx(g_hHook);
-	g_hHook = nullptr;
-}
-
-//============================================================================
-
-MainImpl::MainImpl()
-{
-	pDetourAPI = new MQDetourAPI();
-	pCommandAPI = new MQCommandAPI();
-
-	InitializeMQ2Benchmarks();
-
-	// These two sub-systems will get us onto the main thread.
-	InitializeMQ2Pulse();
-	InitializeLoginFrontend();
-}
-
-MainImpl::~MainImpl()
-{
-	delete pDataAPI;
-	pDataAPI = nullptr;
-
-	delete pActorAPI;
-	pActorAPI = nullptr;
-
-	delete pDetourAPI;
-	pDetourAPI = nullptr;
-}
-
-void MainImpl::DoMainThreadInitialization()
-{
-	pDataAPI = new MQDataAPI();
-	pDataAPI->Initialize();
-
-	pActorAPI = new MQActorAPI();
-}
-
-
-bool MainImpl::AddTopLevelObject(
+bool MacroQuest::AddTopLevelObject(
 	const char* name,
 	MQTopLevelObjectFunction callback,
 	const MQPluginHandle& pluginHandle)
@@ -1203,19 +1248,23 @@ bool MainImpl::AddTopLevelObject(
 	return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
 }
 
-bool MainImpl::RemoveTopLevelObject(
+bool MacroQuest::RemoveTopLevelObject(
 	const char* name,
 	const MQPluginHandle& pluginHandle)
 {
 	return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
 }
 
-MQTopLevelObject* MainImpl::FindTopLevelObject(const char* name)
+MQTopLevelObject* MacroQuest::FindTopLevelObject(const char* name)
 {
 	return pDataAPI->FindTopLevelObject(name);
 }
 
-void MainImpl::SendToActor(
+#pragma endregion
+
+#pragma region ActorAPI Functions
+
+void MacroQuest::SendToActor(
 	postoffice::Dropbox* dropbox,
 	const postoffice::Address& address,
 	const std::string& data,
@@ -1225,7 +1274,7 @@ void MainImpl::SendToActor(
 	pActorAPI->SendToActor(dropbox, address, data, callback, pluginHandle);
 }
 
-void MainImpl::ReplyToActor(
+void MacroQuest::ReplyToActor(
 	postoffice::Dropbox* dropbox,
 	const std::shared_ptr<postoffice::Message>& message,
 	const std::string& data,
@@ -1235,7 +1284,7 @@ void MainImpl::ReplyToActor(
 	pActorAPI->ReplyToActor(dropbox, message, data, status, pluginHandle);
 }
 
-postoffice::Dropbox* MainImpl::AddActor(
+postoffice::Dropbox* MacroQuest::AddActor(
 	const char* localAddress,
 	postoffice::ReceiveCallbackAPI&& receive,
 	const MQPluginHandle& pluginHandle)
@@ -1243,77 +1292,276 @@ postoffice::Dropbox* MainImpl::AddActor(
 	return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
 }
 
-void MainImpl::RemoveActor(
-	postoffice::Dropbox*& dropbox,
-	const MQPluginHandle& pluginHandle)
+void MacroQuest::RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle& pluginHandle)
 {
 	pActorAPI->RemoveActor(dropbox, pluginHandle);
 }
 
-bool MainImpl::AddCommand(
-	std::string_view command,
-	MQCommandHandler handler,
-	bool eq, bool parse, bool inGame,
-	const MQPluginHandle& pluginHandle)
+#pragma endregion
+
+#pragma region CommandAPI Functions
+
+bool MacroQuest::AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
 }
 
-bool MainImpl::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->RemoveCommand(command, pluginHandle);
 }
 
-bool MainImpl::IsCommand(std::string_view command) const
+bool MacroQuest::IsCommand(std::string_view command) const
 {
 	return pCommandAPI->IsCommand(command);
 }
 
-void MainImpl::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
+void MacroQuest::DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle)
 {
 	pCommandAPI->DoCommand(command, delayed, pluginHandle);
 }
 
-void MainImpl::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
+void MacroQuest::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle)
 {
 	pCommandAPI->TimedCommand(command, msDelay, pluginHandle);
 }
 
-bool MainImpl::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
+bool MacroQuest::AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
 }
 
-bool MainImpl::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle)
 {
 	return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
 }
 
-bool MainImpl::IsAlias(const std::string& alias) const
+bool MacroQuest::IsAlias(const std::string& alias) const
 {
 	return pCommandAPI->IsAlias(alias);
 }
 
-bool MainImpl::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
+#pragma endregion
+
+#pragma region Detour API Functions
+
+bool MacroQuest::ValidateNewPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle) const
 {
-	return pDetourAPI->CreateDetour(address, target, detour, name, pluginHandle);
+	eqlib::MemoryPatch* existingPatch = nullptr;
+
+	if (m_memoryPatcher->FindPatches(address, numBytes, &existingPatch, 1) != 0)
+	{
+		if (pluginHandle == mqplugin::ThisPluginHandle || existingPatch->GetUserData() == 0)
+			return false;
+
+		MQPlugin* otherPlugin = GetPluginByHandle(MQPluginHandle{ existingPatch->GetUserData() });
+		MQPlugin* thisPlugin = GetPluginByHandle(pluginHandle);
+
+		if (existingPatch->GetAddress() == address)
+		{
+			LOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
+		}
+		else
+		{
+			LOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
+				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
+		}
+
+		return false;
+	}
+
+	return true;
 }
 
-bool MainImpl::CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle)
+bool MacroQuest::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle)
 {
-	return pDetourAPI->CreateDetour(address, width, name, pluginHandle);
+	if (!ValidateNewPatch(address, eqlib::DETOUR_BYTES_COUNT, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, target, detour, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
 }
 
-bool MainImpl::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
+bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle)
 {
-	return pDetourAPI->RemoveDetour(address, pluginHandle);
+	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
+
+	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Detour)
+	{
+		LOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
+
+		return false;
+	}
+
+	if (patch->GetUserData() != pluginHandle.pluginID)
+	{
+		if (patch->GetUserData() == 0)
+		{
+			LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
+		}
+		else
+		{
+			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
+
+			if (plugin)
+			{
+				LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
+			}
+			else
+			{
+				LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
+			}
+		}
+	}
+
+	return m_memoryPatcher->RemovePatch(address);
 }
 
-MainImpl* gpMainAPI = nullptr;
+bool MacroQuest::AddPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	if (!ValidateNewPatch(address, numBytes, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, numBytes, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MacroQuest::AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes, const uint8_t* expectedBytes,
+	std::string_view name, const MQPluginHandle& pluginHandle)
+{
+	if (!ValidateNewPatch(address, numBytes, name, pluginHandle))
+		return false;
+
+	if (eqlib::MemoryPatch* memoryPatch = m_memoryPatcher->CreatePatch(address, newBytes, numBytes, expectedBytes, name))
+	{
+		m_memoryPatcher->SetUserData(memoryPatch, pluginHandle.pluginID);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool MacroQuest::RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle)
+{
+	eqlib::MemoryPatch* patch = m_memoryPatcher->GetPatch(address);
+
+	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Patch)
+	{
+		LOG_WARN("Failed to remove patch at 0x{:X}: Patch not found", address);
+
+		return false;
+	}
+
+	if (patch->GetUserData() != pluginHandle.pluginID)
+	{
+		if (patch->GetUserData() == 0)
+		{
+			LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by MQ", address);
+		}
+		else
+		{
+			MQPlugin* plugin = GetPluginByHandle(MQPluginHandle{ patch->GetUserData() });
+
+			if (plugin)
+			{
+				LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by {}", address, plugin->name);
+			}
+			else
+			{
+				LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by an unknown plugin", address);
+			}
+		}
+	}
+
+	return m_memoryPatcher->RemovePatch(address);
+}
+
+std::vector<eqlib::MemoryPatch*> MacroQuest::FindPatches(uintptr_t address, size_t width)
+{
+	std::vector<eqlib::MemoryPatch*> result;
+	uintptr_t endAddress = address + width;
+	size_t offset = 0;
+
+	// Ferry list of patches across dll boundary...
+	constexpr uint32_t MAX_PER_ITERATION = 100;
+	eqlib::MemoryPatch* patches[MAX_PER_ITERATION];
+
+	uint32_t count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+	if (count == 0)
+		return result;
+
+	// Count is the total number of patches found, so we can resize as soon as we know.
+	result.resize(count);
+
+	// Now we iterate through results until we have all the patches.
+	memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
+
+	while (count > MAX_PER_ITERATION)
+	{
+		offset += MAX_PER_ITERATION;
+
+		address = result.back()->GetAddress() + result.back()->GetBytesSize();
+		width = endAddress - address;
+
+		count = m_memoryPatcher->FindPatches(address, width, patches, MAX_PER_ITERATION);
+
+		memcpy(result.data() + offset, patches, std::min(MAX_PER_ITERATION, count));
+	}
+
+	return result;
+}
+
+bool MacroQuest::IsAddressPatched(uintptr_t address, size_t width)
+{
+	return m_memoryPatcher->IsAddressPatched(address, width);
+}
+
+bool detail::CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name)
+{
+	return g_mq->CreateDetour(address, target, detour, name, mqplugin::ThisPluginHandle);
+}
+
+bool RemoveDetour(uintptr_t address)
+{
+	return g_mq->RemoveDetour(address, mqplugin::ThisPluginHandle);
+}
+
+bool AddPatch(uintptr_t address, size_t width, std::string_view name)
+{
+	return g_mq->AddPatch(address, width, name, mqplugin::ThisPluginHandle);
+}
+
+bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
+	const uint8_t* expectedBytes, std::string_view name)
+{
+	return g_mq->AddPatch(address, newBytes, numBytes, expectedBytes, name, mqplugin::ThisPluginHandle);
+}
+
+bool RemovePatch(uintptr_t address)
+{
+	return g_mq->RemovePatch(address, mqplugin::ThisPluginHandle);
+}
+
+
+#pragma endregion
 
 MainInterface* GetMainInterface()
 {
-	return gpMainAPI;
+	return g_mq;
 }
 
 } // namespace mq

@@ -372,7 +372,7 @@ void PipeConnection::SendMessage(MQMessageId messageId, const void* data, size_t
 	SendMessage(MakeSimpleMessageV0(messageId, data, dataLength));
 }
 
-void PipeConnection::SendMessage(PipeMessagePtr&& message)
+void PipeConnection::SendMessage(PipeMessagePtr message)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
 
@@ -394,7 +394,7 @@ void PipeConnection::SendMessageWithResponse(MQMessageId messageId, const void* 
 	SendMessageWithResponse(MakeCallResponseMessageV0(messageId, data, dataLength), response);
 }
 
-void PipeConnection::SendMessageWithResponse(PipeMessagePtr&& message,
+void PipeConnection::SendMessageWithResponse(PipeMessagePtr message,
 	const PipeMessageResponseCb& callback)
 {
 	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
@@ -421,7 +421,7 @@ void PipeConnection::Close()
 	m_parent->CloseConnection(this);
 }
 
-void PipeConnection::InternalSendMessage(PipeMessagePtr&& message,
+void PipeConnection::InternalSendMessage(PipeMessagePtr message,
 	const PipeMessageResponseCb& callback /* = nullptr */)
 {
 	// this function *must* be called on the named pipe server thread
@@ -558,7 +558,7 @@ bool PipeConnection::InternalClose(bool disconnect)
 	return true;
 }
 
-void PipeConnection::InternalReceiveMessage(PipeMessagePtr&& message)
+void PipeConnection::InternalReceiveMessage(PipeMessagePtr message)
 {
 	message->SetConnection(shared_from_this());
 
@@ -655,7 +655,7 @@ void NamedPipeEndpointBase::Stop()
 	m_thread.join();
 }
 
-void NamedPipeEndpointBase::DispatchMessage(PipeMessagePtr&& message)
+void NamedPipeEndpointBase::DispatchMessage(PipeMessagePtr message)
 {
 	PostToMainThread([message = message.release(), this]() mutable
 		{
@@ -1025,7 +1025,7 @@ void NamedPipeServer::PostToMainThread(std::function<void()>&& callback)
 	}
 }
 
-void NamedPipeServer::SendMessage(int connectionId, PipeMessagePtr&& message)
+void NamedPipeServer::SendMessage(int connectionId, PipeMessagePtr message)
 {
 	auto connection = GetConnection(connectionId);
 
@@ -1054,7 +1054,7 @@ void NamedPipeServer::SendMessage(int connectionId, MQMessageId messageId, const
 	}
 }
 
-void NamedPipeServer::BroadcastMessage(PipeMessagePtr&& message)
+void NamedPipeServer::BroadcastMessage(const PipeMessagePtr& message)
 {
 	for (const auto& connection : m_connections)
 	{
@@ -1242,7 +1242,7 @@ void NamedPipeClient::CloseConnection(PipeConnection* connection)
 	}
 }
 
-void NamedPipeClient::SendMessage(PipeMessagePtr&& message)
+void NamedPipeClient::SendMessage(PipeMessagePtr message)
 {
 	if (m_connection)
 	{
@@ -1266,7 +1266,7 @@ void NamedPipeClient::SendMessage(MQMessageId messageId, const void* data, size_
 	}
 }
 
-void NamedPipeClient::SendMessageWithResponse(PipeMessagePtr&& message, const PipeMessageResponseCb& response)
+void NamedPipeClient::SendMessageWithResponse(PipeMessagePtr message, const PipeMessageResponseCb& response)
 {
 	if (m_connection)
 	{

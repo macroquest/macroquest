@@ -19,6 +19,7 @@
 #include "imgui/ImGuiUtils.h"
 #include "MQ2ImGuiTools.h"
 #include "MQPluginHandler.h"
+#include "Logging.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -1457,12 +1458,12 @@ void ImGuiManager_Initialize()
 		if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
 			gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
 		{
-			SPDLOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			LOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
 			gbToggleConsoleHotkeyReady = true;
 		}
 		else if (strlen(gToggleConsoleHotkey.keybind) > 0)
 		{
-			SPDLOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+			LOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
 			strcpy_s(gToggleConsoleHotkey.keybind, "");
 
 			gbToggleConsoleHotkeyReady = false;

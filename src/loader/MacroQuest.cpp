@@ -27,6 +27,7 @@
 #include "mq/base/Logging.h"
 #include "mq/base/WString.h"
 #include "loader/WinToastLib.h"
+#include "routing/NamedPipesProtocol.h"
 
 #include "resource.h"
 
@@ -48,12 +49,6 @@
 #include <shlobj.h>
 #include <aclapi.h>
 #include <sddl.h>
-
-#include <mq/utils/Naming.h>
-#include <mq/utils/OS.h>
-#include <mq/base/BuildInfo.h>
-
-#include "routing/NamedPipesProtocol.h"
 
 #pragma comment(lib, "Psapi.lib")
 #pragma comment(lib, "Crypt32.lib")

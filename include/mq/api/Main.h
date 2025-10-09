@@ -103,10 +103,12 @@ public:
 
 	virtual bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
 		const MQPluginHandle& pluginHandle) = 0;
-
-	virtual bool CreateDetour(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) = 0;
-
 	virtual bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) = 0;
+
+	virtual bool AddPatch(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) = 0;
+	virtual bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes, const uint8_t* expectedBytes,
+		std::string_view name, const MQPluginHandle& pluginHandle) = 0;
+	virtual bool RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle) = 0;
 
 	//
 	// TLO API

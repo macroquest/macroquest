@@ -17,59 +17,15 @@
 #include "mq/base/Common.h"
 #include "mq/base/Traits.h"
 
+#include "eqlib/MemoryPatcher.h"
+
 namespace mq {
 
-#if defined(_M_AMD64)
-// 20 bytes replicates functionality of collision detection from before. It's possible this number can be tweaked or removed
-constexpr uint32_t DETOUR_BYTES_COUNT = 20;
-#else
-constexpr uint32_t DETOUR_BYTES_COUNT = 12;
-#endif
-
-// this defines a trampoline for the user, based on the detour signature
-#define DETOUR_TRAMPOLINE_DEF(ret, name, argtypes)                              \
-	ret name##_Placeholder##argtypes;                                           \
-	using name##_Type = decltype(&name##_Placeholder);                          \
-	inline static decltype(&name##_Placeholder) name##_Ptr = nullptr;           \
-	template <typename... Args>                                                 \
-	ret name(Args&&... args) {                                                  \
-		if constexpr (std::is_member_function_pointer_v<name##_Type>)           \
-			return (this->*name##_Ptr)(std::forward<Args>(args)...);            \
-		else                                                                    \
-			return (name##_Ptr)(std::forward<Args>(args)...);                   \
-	}
-
-// TODO: deprecate DETOUR_TRAMPOLINE_EMPTY to point to a wiki page with the new detours API
-#define DETOUR_TRAMPOLINE_EMPTY(...) \
-	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
+class MemoryPatcher;
+class MemoryPatcherImpl;
 
 namespace detail
 {
-	template <typename Fn, size_t width = sizeof(Fn)>
-	uintptr_t extract_fn_addr(Fn fn)
-	{
-		static_assert(width == 4u || width == 8u || width == 12u);
-
-		if constexpr (width == 4u || width == 8u)
-			return reinterpret_cast<uintptr_t*>(&fn)[0];
-
-		if constexpr (width == 12u)
-			return reinterpret_cast<uintptr_t*>(&fn)[1];
-
-		return 0;
-	}
-
-	template <typename Fn, size_t width = sizeof(Fn)>
-	void set_fn_ptr(Fn& fn, uintptr_t ptr)
-	{
-		static_assert(width == 4u || width == 8u || width == 12u);
-
-		if constexpr (width == 4u || width == 8u)
-			reinterpret_cast<uintptr_t*>(&fn)[0] = ptr;
-		else // width == 12u
-			reinterpret_cast<uintptr_t*>(&fn)[1] = ptr;
-	}
-
 	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name);
 	bool CreateDetour(uintptr_t address, size_t width, std::string_view name);
 
@@ -98,7 +54,7 @@ namespace detail
 	}
 
 	template <typename T, typename U>
-	std::enable_if_t<!std::is_same_v<T, U>, bool> AddDetour(uintptr_t address, T&& detour, U* target, std::string_view name)
+	std::enable_if_t<!std::is_same_v<T, U>, bool> AddDetour(uintptr_t, T&& detour, U*, std::string_view)
 	{
 		static_assert(mq::always_false<T>::value, "Detour and Trampoline types differ in their signatures!");
 
@@ -122,37 +78,74 @@ bool AddDetour(uintptr_t address, T&& target, U&& detour, std::string_view name)
 }
 
 /**
- * Mark an address as patched
- *
- * @param address Address that was patched.
- * @param name Name of the address that was patched.
- * @return True if the address was successfully marked.
- */
-inline bool AddDetourBytes(uintptr_t address, std::string_view name)
-{
-	return mq::detail::CreateDetour(address, DETOUR_BYTES_COUNT, name);
-}
-
-/**
- * Mark an address as patched
- *
- * @param address Address that was patched.
- * @param width Width of the patch in bytes.
- * @param name Name of the address that was patched.
- * @return True if the address was successfully marked.
- */
-inline bool AddDetourBytes(uintptr_t address, size_t width, std::string_view name)
-{
-	return mq::detail::CreateDetour(address, width, name);
-}
-
-/**
- * Remove a detour
+ * Remove a detour.
  *
  * @param address Address of the detour to remove.
  * @return True if the detour was removed
  */
 bool RemoveDetour(uintptr_t address);
+
+/**
+ * Mark a region of memory as patched.
+ *
+ * The original bytes at this location will be recorded but the memory will not be modified. Use this
+ * function if you intend to modify the memory yourself.
+ *
+ * @param address Address that was patched
+ * @param numBytes The number of bytes that were patched
+ * @param name Name of the address that was patched
+ * @return True if the operation was successful.
+ */
+bool AddPatch(uintptr_t address, size_t numBytes, std::string_view name = "");
+
+/**
+ * Patch a region of memory.
+ *
+ * The original bytes at this location will be saved, and will be restored when the patch is removed. The
+ * bytes in `newBytes` will be written to the memory at the specified address. If `expectedBytes` is provided,
+ * the original bytes will be validated against the expected bytes before applying the patch. If the original bytes do not match
+ * then the patch will not be applied.
+ *
+ * @param address Address to apply the patch
+ * @param newBytes Pointer to array of `numBytes` bytes to write to the memory at the specified address.
+ * @param numBytes Length of `newBytes` and `expectedBytes`
+ * @param expectedBytes Optional. The expected bytes at the address. If this is provided and the original bytes
+ * do not match `expectedBytes`, then the patch will not be applied
+ * @param name Name of the patch
+ * @return Pointer to a MemoryPatch object representing the patch at the address
+ */
+bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
+	const uint8_t* expectedBytes = nullptr, std::string_view name = "");
+
+/**
+ * Patch a region of memory.
+ *
+ * The original bytes at this location will be saved, and will be restored when the patch is removed. The
+ * bytes in `newBytes` will be written to the memory at the specified address. If `expectedBytes` is provided,
+ * the original bytes will be validated against the expected bytes before applying the patch. If the original bytes do not match
+ * then the patch will not be applied.
+ * 
+ * @param address Address to apply the patch
+ * @param newBytes initializer-list containing raw bytes to write to the memory at the specified address.
+ * @param expectedBytes Optional. The expected bytes at the address. If this is provided and the original bytes
+ * do not match `expectedBytes`, then the patch will not be applied
+ * @param name Name of the patch
+ * @return Pointer to a MemoryPatch object representing the patch at the address.
+ */
+inline bool AddPatch(uintptr_t address, std::initializer_list<uint8_t> newBytes,
+	const uint8_t* expectedBytes = nullptr, std::string_view name = "")
+{
+	return AddPatch(address, newBytes.begin(), newBytes.size(), expectedBytes, name);
+}
+
+/**
+ * Remove a patch
+ *
+ * @param address Address of the patch to remove.
+ * @return True if the patch was removed
+ */
+bool RemovePatch(uintptr_t address);
+
 
 // Helper macros for adding detours
 
@@ -161,5 +154,21 @@ bool RemoveDetour(uintptr_t address);
 
 #define PatchDetour(address) \
 	mq::AddDetourBytes(static_cast<uintptr_t>(address), STRINGIFY(address))
+
+// Deprecated functions. Use their replacements.
+
+DEPRECATE("Use AddPatch instead of AddDetourBytes")
+inline bool AddDetourBytes(uintptr_t address, std::string_view name)
+{
+	return AddPatch(address, eqlib::DETOUR_BYTES_COUNT, name);
+}
+
+
+/**
+ * A stub for the old trampoline macro. This produces a compile time error if it is still used.
+ */
+#define DETOUR_TRAMPOLINE_EMPTY(...) \
+	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
+
 
 } // namespace mq

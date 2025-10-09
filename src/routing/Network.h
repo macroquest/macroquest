@@ -14,12 +14,12 @@
 
 #pragma once
 
+#include "Network.pb.h"
+
 #include <spdlog/spdlog.h>
 
 #include <memory>
 #include <functional>
-
-#include "Network.pb.h"
 
 namespace mq {
 

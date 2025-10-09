@@ -14,8 +14,6 @@
 
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include <windows.h>
-
 #include "routing/PostOffice.h"
 #include "routing/ProtoPipes.h"
 
@@ -31,6 +29,8 @@
 
 #include <cstdio>
 #include <utility>
+
+#include <windows.h>
 
 
 // stub some things because the local connection takes care of some legacy operations in the launcher that doesn't need testing

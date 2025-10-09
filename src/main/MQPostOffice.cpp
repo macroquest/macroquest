@@ -13,7 +13,6 @@
  */
 
 #include "pch.h"
-#include "CrashHandler.h"
 
 #include "MQ2Main.h"
 

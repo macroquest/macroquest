@@ -13,12 +13,13 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
 #include "MQActorAPI.h"
 
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
+
+#include "MQ2Main.h"
 
 namespace mq {
 using namespace postoffice;

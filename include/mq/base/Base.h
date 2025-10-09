@@ -14,20 +14,29 @@
 
 #pragma once
 
-#include "mq/base/Base.h"
-
-#include <cstdint>
-
-#if defined(MQ_NO_EXPORTS) || defined(MQLIB_STATIC)
-#define MQLIB_API extern "C"
-#define MQLIB_VAR extern "C"
-#define MQLIB_OBJECT
-#elif defined(MQ2MAIN_EXPORTS)
-#define MQLIB_API extern "C" __declspec(dllexport)
-#define MQLIB_VAR extern "C" __declspec(dllexport)
-#define MQLIB_OBJECT __declspec(dllexport)
+#ifdef MQ2PLUGIN
+#define FromPlugin true
 #else
-#define MQLIB_API extern "C" __declspec(dllimport)
-#define MQLIB_VAR extern "C" __declspec(dllimport)
-#define MQLIB_OBJECT __declspec(dllimport)
+#define FromPlugin false
 #endif
+
+#define STRINGIFY_IMPL(x) #x
+#define STRINGIFY(x) STRINGIFY_IMPL(x)
+
+#ifndef UNUSED
+#define UNUSED(x) ((void)(x))
+#endif
+
+#if _M_AMD64
+#define FORCE_SYMBOL_REFERENCE(x) __pragma(comment (linker, "/export:" #x))
+#else
+#define FORCE_SYMBOL_REFERENCE(x) __pragma(comment (linker, "/export:_" #x))
+#endif
+
+constexpr int MAX_STRING = 2048;
+
+template <typename T, size_t N>
+constexpr size_t lengthof(const T(&)[N])
+{
+	return N;
+}

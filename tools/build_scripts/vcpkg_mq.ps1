@@ -35,6 +35,9 @@ Param (
     [string]$Toolchain
 )
 
+# Use the downloaded binaries so that we always get the expected version
+$env:VCPKG_FORCE_DOWNLOADED_BINARIES = "1"
+
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
 $vcpkg_triplet = "$Platform-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"

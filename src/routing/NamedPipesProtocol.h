@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "Routing.h"
+
+#include <cstdint>
 
 namespace mq {
 

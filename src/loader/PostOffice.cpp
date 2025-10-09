@@ -15,9 +15,9 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "loader/MacroQuest.h"
-#include "loader/PostOffice.h"
 #include "routing/PostOffice.h"
+#include "loader/PostOffice.h"
+#include "loader/MacroQuest.h"
 
 #include <date/date.h>
 #include <fmt/format.h>

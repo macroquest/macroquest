@@ -14,13 +14,13 @@
 
 #pragma once
 
+#include "routing/PostOffice.h"
+#include "routing/Network.h"
+
 #include <string>
 #include <optional>
 #include <vector>
 #include <chrono>
-
-#include "routing/PostOffice.h"
-#include "routing/Network.h"
 
 #if defined(SendMessage)
 #undef SendMessage

@@ -17,19 +17,19 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
+#include "Network.h"
+#include "Routing.h"
+
+#include "Network.pb.h"
+
+#include "asio.hpp"
+
+#include <spdlog/spdlog.h>
+
 #include <queue>
 #include <map>
 #include <atomic>
 #include <optional>
-
-#include <spdlog/spdlog.h>
-
-#include "Network.h"
-#include "Routing.h"
-
-#include "asio.hpp"
-
-#include "Network.pb.h"
 
 // TODO: Unit tests
 // TODO: Leader (later work, get internal networking done first):

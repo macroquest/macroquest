@@ -15,16 +15,15 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include <windows.h>
-
 #include "MQPostOffice.h"
 
 #include "routing/PostOffice.h"
 #include "routing/ProtoPipes.h" // pipe connection
 
 #include "mq/base/String.h"
+#include "Logging.h"
 
-#include <spdlog/spdlog.h>
+#include <windows.h>
 
 namespace mq {
 using namespace postoffice;
@@ -63,7 +62,7 @@ ActorIdentification::Client GetCurrentClient(const MQPostOfficeConfig& config)
 	return std::move(client);
 }
 
-void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message)
+void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr message)
 {
 	switch (message->GetMessageId())
 	{
@@ -78,7 +77,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 		// or it was routed internally after checking to make sure that the destination of the message
 		// was within the client. In either case, we can safely assume that we should route it to an
 		// internal mailbox
-		SPDLOG_TRACE("{}: Received routed message in MQ to=[{}]", m_postOffice->GetName(), address ? address->ShortDebugString() : "no address");
+		LOG_TRACE("{}: Received routed message in MQ to=[{}]", m_postOffice->GetName(), address ? address->ShortDebugString() : "no address");
 		if (address && address->has_mailbox())
 		{
 			// we need to loop all mailboxes and deliver to all of them that end with the address
@@ -144,7 +143,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 			const MQMessageProcessLoadedResponse* response = message->get<MQMessageProcessLoadedResponse>();
 			m_postOffice->m_launcherProcessID = response->processId;
 
-			SPDLOG_TRACE("Launcher process ID: {}", m_postOffice->m_launcherProcessID);
+			LOG_TRACE("Launcher process ID: {}", m_postOffice->m_launcherProcessID);
 		}
 		break;
 	}
@@ -164,7 +163,7 @@ void MQPostOffice::PipeEventsHandler::OnIncomingMessage(PipeMessagePtr&& message
 
 void MQPostOffice::PipeEventsHandler::OnClientConnected()
 {
-	SPDLOG_TRACE("{}: Connection to named pipe created, Sending process loaded message.", m_postOffice->GetName());
+	LOG_TRACE("{}: Connection to named pipe created, Sending process loaded message.", m_postOffice->GetName());
 
 	MQMessageProcessLoadedFromMQ msg;
 	msg.processId = GetCurrentProcessId();
@@ -291,7 +290,7 @@ void MQPostOffice::SetGameStatePostOffice(int GameState)
 
 	if (ShouldUpdateIdentity(GameState, logged_in))
 	{
-		SPDLOG_TRACE("{}: Updating identity", GetName());
+		LOG_TRACE("{}: Updating identity", GetName());
 		m_id.address = GetCurrentClient(m_config);
 		m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, m_id.GetProto());
 	}
@@ -299,7 +298,7 @@ void MQPostOffice::SetGameStatePostOffice(int GameState)
 
 void MQPostOffice::Initialize()
 {
-	SPDLOG_TRACE("{}: Initializing", GetName());
+	LOG_TRACE("{}: Initializing", GetName());
 	m_pipeClient.SetHandler(std::make_shared<PipeEventsHandler>(this));
 	m_pipeClient.Start();
 	::atexit(StopPipeClient);

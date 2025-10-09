@@ -52,7 +52,7 @@ private:
 	{
 	public:
 		PipeEventsHandler(MQPostOffice* postOffice) : m_postOffice(postOffice) {}
-		virtual void OnIncomingMessage(PipeMessagePtr&& message) override;
+		virtual void OnIncomingMessage(PipeMessagePtr message) override;
 		virtual void OnClientConnected() override;
 
 	private:

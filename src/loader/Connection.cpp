@@ -15,10 +15,10 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "loader/MacroQuest.h"
-#include "loader/PostOffice.h"
 #include "routing/ProtoPipes.h" // LocalConnection
 #include "routing/Network.h" // PeerConnection
+#include "loader/PostOffice.h"
+#include "loader/MacroQuest.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -67,7 +67,7 @@ public:
 	{}
 
 	// This is called when a message is received over the pipe connection
-	void OnIncomingMessage(PipeMessagePtr&& message) override
+	void OnIncomingMessage(PipeMessagePtr message) override
 	{
 		SPDLOG_TRACE("{}: Received message id={} length={} connectionId={}",
 			m_connection->GetPostOffice()->GetName(), static_cast<int>(message->GetMessageId()),
