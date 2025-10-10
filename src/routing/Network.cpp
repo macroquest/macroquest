@@ -217,7 +217,8 @@ public:
 			SPDLOG_TRACE("{}: Shutting down connection {}:{} ({}:{})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.IP, m_knownAddress.Port);
 			std::error_code ec;
 
-			(void)m_socket.shutdown(asio::socket_base::shutdown_both, ec);
+			// only shutdown writes. shutting down both will cause forced socket closures on the other end
+			(void)m_socket.shutdown(asio::socket_base::shutdown_send, ec);
 			if (ec)
 				SPDLOG_WARN("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
 			m_active = false;
@@ -279,12 +280,13 @@ private:
 	void CloseWithMessage(const std::error_code& ec, std::string_view step)
 	{
 		// see if the EC is a normal operation that shouldn't throw an error message
-		if (ec != asio::error::eof && // this is when the connection was closed remotely
-			ec != asio::error::connection_reset && // this is if the socket is force closed remotely (when the peer is destroyed)
-			ec != asio::error::shut_down && // this is when we shut down the socket locally
-			ec != asio::error::connection_aborted) // this is when we shutdown the entire peer
-			SPDLOG_ERROR("{}: {} error {}: {}", m_peerPort, step, ec.value(), ec.message());
+		if (ec != asio::error::eof) // this is when the connection was closed remotely, and is the only graceful shutdown condition
+			SPDLOG_ERROR("{}:{} ({}): {} error {}: {}", m_knownAddress.IP, m_knownAddress.Port, m_peerPort, step, ec.value(), ec.message());
 
+		// some other errors:
+		// asio::error::connection_reset // this is if the socket is force closed remotely (when the peer is destroyed)
+		// asio::error::shut_down // this is when we shut down the socket locally
+		// asio::error::connection_aborted // this is when we shutdown the entire peer
 		Close();
 	}
 
@@ -459,7 +461,8 @@ public:
 		, m_sessionConnectedHandler(std::move(connectedHandler))
 		, m_sessionDisconnectedHandler(std::move(disconnectedHandler))
 		, m_requestProcessHandler(std::move(requestProcessHandler))
-	{}
+	{
+	}
 
 	~NetworkPeer()
 	{
@@ -569,7 +572,8 @@ public:
 		if (m_running)
 		{
 			std::unique_lock lock(m_hostMutex);
-			m_pendingConnects.push_back(address);
+			m_queuedConnects.push_back(address);
+			m_knownHosts.insert(address);
 
 			m_ioContext.post([this] { AddConnections(); });
 		}
@@ -595,7 +599,7 @@ public:
 		bool running = true;
 		if (m_running.compare_exchange_weak(running, false))
 		{
-			SPDLOG_TRACE("{}: Shutting down peer", m_port);
+			SPDLOG_TRACE("{}: Shutting down peer with {} sessions and {} pending sessions", m_port, m_sessions.size(), m_connectingSessions.size());
 			// the acceptor needs to be signaled immediately to close or it could accept a connection after m_running
 			// is set to false, causing the session to never drain
 			m_acceptor.close();
@@ -619,14 +623,35 @@ public:
 
 private:
 
-	void Connect(const std::string& address, uint16_t port)
+	void Handshake(peernetwork::MessageType messageType, NetworkSession* session, const NetworkAddress& address)
+	{
+		peernetwork::Header header;
+		header.set_type(messageType);
+
+		peernetwork::Identity id;
+		id.set_uuid(m_uuid);
+		id.set_port(m_port);
+
+		auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
+		id.SerializeToArray(payload.get(), static_cast<uint32_t>(id.ByteSizeLong()));
+
+		session->Write(std::move(header), std::move(payload), static_cast<uint32_t>(id.ByteSizeLong()));
+	}
+
+	void Connect(const NetworkAddress& address)
 	{
 		auto socket = std::make_shared<tcp::socket>(m_acceptor.get_executor());
-		const tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
+		const tcp::endpoint endpoint(asio::ip::address::from_string(address.IP), address.Port);
+
+		{
+			//m_pendingConnects.emplace_back(address);
+		}
+
+		SPDLOG_TRACE("{}: Initiating connection to {}:{}", m_port, address.IP, address.Port);
 
 		socket->async_connect(
 			endpoint,
-			[this, address, port, socket](const std::error_code& ec)
+			[this, address = address, socket](const std::error_code& ec)
 			{
 				if (m_running && !ec)
 				{
@@ -636,7 +661,9 @@ private:
 						socket->remote_endpoint().address().to_string(), socket->remote_endpoint().port());
 
 					// pass off the connection to the session
-					AddSession(std::move(*socket));
+					auto session = AddSession(std::move(*socket));
+					if (session != nullptr)
+						Handshake(peernetwork::MessageType::Handshake, session, address);
 				}
 				else
 				{
@@ -648,7 +675,14 @@ private:
 					if (socket->is_open()) socket->close();
 
 					// if the session has failed then let the user handle it
-					m_sessionDisconnectedHandler(NetworkAddress{ address, port });
+					m_sessionDisconnectedHandler(address);
+				}
+
+				// no matter the outcome, remove one instance of this address from pending connects
+				{
+					auto pending_it = m_pendingConnects.find(address);
+					if (pending_it != m_pendingConnects.end())
+						m_pendingConnects.erase(pending_it);
 				}
 			});
 	}
@@ -673,6 +707,9 @@ private:
 				}
 				else
 				{
+					if (!m_running)
+						SPDLOG_TRACE("{}: Connection attempted while peer was not running", m_port);
+
 					// operation_aborted comes from closing the acceptor, we don't want to error for that
 					if (m_running && ec != asio::error::operation_aborted)
 						SPDLOG_ERROR("{}: Accept failed with ERR {}: {}", m_port, ec.value(), ec.message());
@@ -683,7 +720,7 @@ private:
 			});
 	}
 
-	void AddSession(tcp::socket&& socket)
+	NetworkSession* AddSession(tcp::socket&& socket)
 	{
 		auto session = std::make_unique<NetworkSession>(m_port, std::move(socket),
 			[this](
@@ -713,6 +750,14 @@ private:
 						peernetwork::Identity id;
 						id.ParseFromArray(payload.get(), length);
 						ResolveHandshake(session->Address(), id.uuid(), id.port());
+						Handshake(peernetwork::MessageType::Response, session, NetworkAddress{ session->Address().IP, static_cast<uint16_t>(id.port()) });
+						break;
+					}
+					case peernetwork::Response:
+					{
+						peernetwork::Identity id;
+						id.ParseFromArray(payload.get(), length);
+						ResolveHandshake(session->Address(), id.uuid(), id.port());
 						break;
 					}
 					default:
@@ -722,24 +767,27 @@ private:
 				}
 			});
 
-		// this is a multimap so we will always insert here
+		// this is guaranteed to be unique because no handshake has happened yet so we will always insert here
 		auto connecting_addr = session->Address();
-		auto session_it = m_connectingSessions.emplace(connecting_addr, std::move(session));
-		session_it->second->Receive();
+		if (m_connectingSessions.find(connecting_addr) == m_connectingSessions.end())
+		{
 
-		const auto endpoint = session_it->second->Endpoint();
-		SPDLOG_TRACE("{}: Adding connection to endpoint {}:{} (connected sessions {}, connecting sessions {})",
-			m_port, endpoint.address().to_string(), endpoint.port(),
-			m_sessions.size(), m_connectingSessions.size());
+			auto [session_it, _] = m_connectingSessions.emplace(connecting_addr, std::move(session));
+			session_it->second->Receive();
 
-		peernetwork::Identity id;
-		id.set_uuid(m_uuid);
-		id.set_port(m_port);
+			const auto endpoint = session_it->second->Endpoint();
+			SPDLOG_TRACE("{}: Adding connection to endpoint {}:{} (connected sessions {}, connecting sessions {})",
+				m_port, endpoint.address().to_string(), endpoint.port(),
+				m_sessions.size(), m_connectingSessions.size());
 
-		auto payload = std::make_unique<uint8_t[]>(id.ByteSizeLong());
-		id.SerializeToArray(payload.get(), static_cast<uint32_t>(id.ByteSizeLong()));
+			return session_it->second.get();
+		}
 
-		Send(peernetwork::MessageType::Handshake, session_it->second->Address(), std::move(payload), static_cast<uint32_t>(id.ByteSizeLong()));
+		SPDLOG_ERROR("{}: attempting to connect to the same address twice: {}:{}", m_port, connecting_addr.IP, connecting_addr.Port);
+		session->Shutdown();
+		m_closingSessions.emplace(connecting_addr, std::move(session));
+
+		return nullptr;
 	}
 
 	void ResolveHandshake(const NetworkAddress& fromAddress, const std::string& peerUuid, uint16_t peerPort)
@@ -750,7 +798,6 @@ private:
 		// shared session is the correct one
 
 		SPDLOG_TRACE("{}: Received a handshake from {}:{} ({}) [{}]", m_port, fromAddress.IP, fromAddress.Port, peerPort, peerUuid);
-		auto s = m_connectingSessions.equal_range(fromAddress);
 
 		// the session we receive the handshake from should always be stored in this map
 		// we can also have a situation where we connect and accept from the same peer without getting a handshake
@@ -758,16 +805,18 @@ private:
 		// deduplicate) -- we need to do this to ensure that this peer and the remote peer are in synced states
 		// furthermore, since the keys are identical (and the remote will provide the same UUID), it doesn't actually
 		// matter _which_ duplicate we pick here, so we can just find the first one
+
+		NetworkAddress known_host{ fromAddress.IP, peerPort }; // this is the address we want to expose (with the configured port)
+		// TODO: this will retain any host that attempts to connect and try to keep the connection alive, it should be optional
+		{
+			std::unique_lock lock(m_hostMutex);
+			m_knownHosts.emplace(known_host);
+		}
+
 		auto peer_it = m_connectingSessions.find(fromAddress);
 		if (peer_it != m_connectingSessions.end())
 		{
-			NetworkAddress known_host{ fromAddress.IP, peerPort }; // this is the address we want to expose (with the configured port)
 			peer_it->second->UpdateFromHandshake(known_host, peerUuid);
-
-			{
-				std::unique_lock lock(m_hostMutex);
-				m_knownHosts.emplace(known_host);
-			}
 
 			// find a session to the same peer if it exists
 			auto duplicate_it = std::find_if(m_sessions.begin(), m_sessions.end(),
@@ -817,6 +866,7 @@ private:
 				m_sessions.emplace(known_host, std::move(peer_it->second));
 			}
 
+			// no matter what, remove the session from connectingSessions
 			m_connectingSessions.erase(peer_it);
 			AddProcess([this, known_host = std::move(known_host)]()
 				{
@@ -834,12 +884,21 @@ private:
 	{
 		auto do_disco = [this](NetworkAddress addr)
 			{
+				AddProcess([this, addr = std::move(addr)]
 				{
-					std::unique_lock lock(m_hostMutex);
-					m_knownHosts.erase(addr);
-				}
-
-				AddProcess([this, addr = std::move(addr)] { m_sessionDisconnectedHandler(addr); });
+					// these list checks are redundant because they will get checked before connection, but
+					// pre-check them to avoid spitting out this warning
+					m_sessionDisconnectedHandler(addr);
+					if (m_running &&
+						m_sessions.find(addr) == m_sessions.end() &&
+						m_connectingSessions.find(addr) == m_connectingSessions.end() &&
+						m_pendingConnects.find(addr) == m_pendingConnects.end() &&
+						m_knownHosts.find(addr) != m_knownHosts.end())
+					{
+						SPDLOG_WARN("Attempting to reconnect to host {}:{} from {}.", addr.IP, addr.Port, m_port);
+						AddHost(addr);
+					}
+				});
 			};
 
 		m_duplicateSessions.erase(std::remove_if(m_duplicateSessions.begin(), m_duplicateSessions.end(),
@@ -863,8 +922,9 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				do_disco(it->first);
+				auto addr = it->first;
 				it = m_closingSessions.erase(it);
+				do_disco(addr);
 			}
 			else
 			{
@@ -882,8 +942,9 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				do_disco(it->first);
+				auto addr = it->first;
 				it = m_sessions.erase(it);
+				do_disco(addr);
 			}
 			else if (!it->second->IsActive())
 			{
@@ -898,8 +959,9 @@ private:
 		{
 			if (!it->second->IsOpen())
 			{
-				do_disco(it->first);
+				auto addr = it->first;
 				it = m_connectingSessions.erase(it);
+				do_disco(addr);
 			}
 			else if (!it->second->IsActive())
 			{
@@ -936,14 +998,18 @@ private:
 	{
 		std::unique_lock lock(m_hostMutex);
 
-		if (!m_pendingConnects.empty())
+		if (!m_queuedConnects.empty())
 		{
 			// note that there is no unlock here because we are adding things to known hosts this entire loop
-			for (const auto& address : m_pendingConnects)
-				if (m_knownHosts.insert(address).second)
-					Connect(address.IP, address.Port);
+			for (const auto& address : m_queuedConnects)
+			{
+				if (m_sessions.find(address) == m_sessions.end() &&
+					m_connectingSessions.find(address) == m_connectingSessions.end() &&
+					m_pendingConnects.insert(address).second)
+					Connect(address);
+			}
 
-			m_pendingConnects.clear();
+			m_queuedConnects.clear();
 		}
 	}
 
@@ -1050,14 +1116,16 @@ private:
 	const uint16_t m_port;
 	const std::string m_uuid;
 
-	std::vector<NetworkAddress> m_pendingConnects;
+	std::vector<NetworkAddress> m_queuedConnects;
+	std::unordered_set<NetworkAddress> m_pendingConnects;
 	std::unordered_set<NetworkAddress> m_knownHosts;
 	std::mutex m_hostMutex; // we need to prevent situations where we try to connect to already discovered hosts
 
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_sessions;
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_closingSessions;
-	std::unordered_multimap<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
+	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
+	std::mutex m_sessionMutex; // ensure we block while testing for duplicate sessions
 
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks

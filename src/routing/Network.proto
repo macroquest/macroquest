@@ -22,6 +22,7 @@ enum MessageType {
 	Route = 0; // normally everything is a route, everything after this is a bookkeeping message type
 	Leader = 1;
 	Handshake = 2;
+	Response = 3;
 }
 
 message Identity {
