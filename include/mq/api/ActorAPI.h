@@ -20,7 +20,9 @@
 
 namespace mq {
 
-class PipeMessage;
+namespace proto::routing {
+	class Envelope;
+} // namespace proto::routing
 
 namespace postoffice {
 
@@ -37,15 +39,34 @@ enum class ResponseStatus : int8_t
 	AmbiguousRecipient      = -4,                  // RPC message couldn't determine single recipient
 };
 
+
+/**
+ * A network peer addressing struct for use in messages that get sent over the network
+ */
+struct Peer
+{
+	/** The IP of the peer, this must be specified if a peer is specified */
+	std::string IP;
+
+	/** The port of the peer, if excluded then it will use the default actor port in the launcher */
+	std::optional<uint16_t> Port;
+};
+
 /**
  * An address shim to be used to fill out the address on the envelope in the MQ post office.
  */
 struct Address
 {
-	/** The PID of the target. If this is specified, all other addressing will be ignored. */
+	/** The UUID of the target, an absolute address location */
+	std::optional<std::string> UUID;
+
+	/** The PID of the target */
 	std::optional<uint32_t> PID;
 
-	/** The name of the target, used for addressing external applications. */
+	/** The network peer of the target */
+	std::optional<Peer> Peer;
+
+	/** The name of the target, used for addressing external applications */
 	std::optional<std::string> Name;
 
 	/** The mailbox of the target, if this is fully qualified then make sure to set AbsoluteMailbox */
@@ -72,7 +93,7 @@ class Message
 public:
 	// the original message is used internally for setting sequence ID on reply.
 	// this won't be usable by plugins unless they link against routing
-	PipeMessage* Original;
+	proto::routing::Envelope* Original;
 
 	/** The address of the sender of the message in case message handling requires this */
 	std::optional<Address> Sender;
