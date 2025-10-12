@@ -38,7 +38,7 @@ void ShowActorsWindow()
 	if (ImGui::BeginTable("Actor Stats", 4, table_flags, content_region))
 	{
 		auto stats = GetPostOffice<LauncherPostOffice>().GetStats();
-		uint32_t recv_tot = 0, send_tot = 0;
+		size_t recv_tot = 0, send_tot = 0;
 		for (const auto stat : stats)
 		{
 			recv_tot += stat->Received.size();
@@ -64,7 +64,7 @@ void ShowActorsWindow()
 		ImGui::TableHeadersRow();
 
 		ImGuiListClipper clipper;
-		clipper.Begin(stats.size());
+		clipper.Begin((int)stats.size());
 		while (clipper.Step())
 		{
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)

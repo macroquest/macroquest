@@ -534,7 +534,7 @@ void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& 
 
 uint32_t LauncherPostOffice::GetIdentityCount()
 {
-	return m_identities.size();
+	return (uint32_t)m_identities.size();
 }
 
 std::vector<const ActorStats*> LauncherPostOffice::GetStats()
