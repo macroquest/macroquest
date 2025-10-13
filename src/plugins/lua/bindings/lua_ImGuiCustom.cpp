@@ -14,15 +14,15 @@
 
 #include "pch.h"
 
-#include <mq/imgui/ConsoleWidget.h>
-#include <mq/imgui/ImGuiUtils.h>
-#include <mq/imgui/Widgets.h>
-#include <mq/Plugin.h>
+#include "mq/imgui/ConsoleWidget.h"
+#include "mq/imgui/ImGuiUtils.h"
+#include "mq/imgui/Widgets.h"
+#include "mq/Plugin.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <sol/sol.hpp>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "sol/sol.hpp"
 
 #include <string>
 

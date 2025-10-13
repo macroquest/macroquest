@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
-#include <eqlib/base/Color.h>
+#include "mq/base/Common.h"
+#include "eqlib/game/Color.h"
 
 #include <imgui/imgui.h>
 

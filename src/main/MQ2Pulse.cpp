@@ -818,7 +818,7 @@ void InitializeMQ2Pulse()
 
 	std::scoped_lock lock(s_pulseMutex);
 
-	AddDetour(reinterpret_cast<uintptr_t>(ProcessGameEvents), Detour_ProcessGameEvents, Trampoline_ProcessGameEvents, "ProcessGameEvents");
+	AddDetour(__ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents, "ProcessGameEvents");
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
 	EzDetour(CMerchantWnd__PurchasePageHandler__UpdateList, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Detour, &CEverQuestHook::CMerchantWnd__PurchasePageHandler__UpdateList_Trampoline);
 
@@ -832,7 +832,7 @@ void ShutdownMQ2Pulse()
 {
 	std::scoped_lock lock(s_pulseMutex);
 
-	RemoveDetour(reinterpret_cast<uintptr_t>(ProcessGameEvents));
+	RemoveDetour(__ProcessGameEvents);
 	RemoveDetour(CEverQuest__SetGameState);
 	RemoveDetour(CMerchantWnd__PurchasePageHandler__UpdateList);
 }

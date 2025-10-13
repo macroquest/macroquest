@@ -15,7 +15,8 @@
 #pragma once
 
 #include "mq/base/Common.h"
-#include "eqlib/Common.h"
+
+#include "eqlib/game/UITypes.h"
 
 #include <string_view>
 #include <string>

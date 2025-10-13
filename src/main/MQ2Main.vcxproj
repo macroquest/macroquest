@@ -602,6 +602,7 @@
     <ClInclude Include="..\..\include\mq\base\Enum.h" />
     <ClInclude Include="..\..\include\mq\base\EnumFmt.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
+    <ClInclude Include="..\..\include\mq\base\Iterator.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
     <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />

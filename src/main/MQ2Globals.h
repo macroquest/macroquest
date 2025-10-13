@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "../eqlib/EQLib.h"
 #include "MQ2Internal.h"
 #include "mq/base/GlobalBuffer.h"
 
+#include "eqlib/EQLib.h"
+
 #include <memory>
-#include <unordered_map>
 
 struct CaseInsensitiveLess
 {
@@ -167,6 +167,16 @@ MQLIB_VAR bool gFilterDebug;
 MQLIB_VAR bool gFilterMoney;
 MQLIB_VAR bool gFilterFood;
 MQLIB_VAR bool gFilterMQ;
+
+enum eFilterMacro
+{
+	FILTERMACRO_ALL = 0,
+	FILTERMACRO_ENHANCED = 1,
+	FILTERMACRO_NONE = 2,
+	FILTERMACRO_MACROENDED = 3,
+
+	FILTERMACRO_MAX,
+};
 MQLIB_VAR eFilterMacro gFilterMacro;
 MQLIB_VAR bool gFilterEncumber;
 MQLIB_VAR bool gFilterCustom;

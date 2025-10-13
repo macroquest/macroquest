@@ -15,6 +15,7 @@
 #include "pch.h"
 
 #include "mq/api/Abilities.h"
+#include "eqlib/game/Globals.h"
 
 namespace mq {
 
