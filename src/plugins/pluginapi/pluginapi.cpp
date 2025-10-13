@@ -12,8 +12,8 @@
  * GNU General Public License for more details.
  */
 
-#include <mq/plugin/pluginapi.h>
-#include <mq/api/Main.h>
+#include "mq/plugin/pluginapi.h"
+#include "mq/api/Main.h"
 
 char INIFileName[MAX_STRING] = { 0 };
 

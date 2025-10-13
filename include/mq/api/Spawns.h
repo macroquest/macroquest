@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include "eqlib/Globals.h"
-#include "eqlib/PlayerClient.h"
+#include "mq/base/Common.h"
+
+#include "eqlib/game/PlayerClient.h"
 
 using namespace eqlib;
 

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "eqlib/Items.h"
+#include "eqlib/game/Items.h"
 
 namespace mq {
 

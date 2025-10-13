@@ -91,6 +91,18 @@ void ShutdownMQ2Pulse();
 void InitializeChatHook();
 void ShutdownChatHook();
 
+constexpr int CHAT_SAY = 0x0001;
+constexpr int CHAT_TELL = 0x0002;
+constexpr int CHAT_OOC = 0x0004;
+constexpr int CHAT_SHOUT = 0x0008;
+constexpr int CHAT_AUC = 0x0010;
+constexpr int CHAT_GUILD = 0x0020;
+constexpr int CHAT_GROUP = 0x0040;
+constexpr int CHAT_RAID = 0x0080;
+constexpr int CHAT_CHAT = 0x0100;
+#define CHATEVENT(x)                             (gEventChat & x)
+
+
 // Logging / Console output
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 MQLIB_API void WriteChatf(const char* Format, ...);
@@ -642,20 +654,6 @@ constexpr int LIGHT_COUNT = 13;
 //#define MAX_COMBINES		61
 //#define MAX_ITEMTYPES		71
 //#define MAX_SPELLEFFECTS	487
-
-constexpr int GAMESTATE_PRECHARSELECT  = -1;
-constexpr int GAMESTATE_CHARSELECT     = 1;
-constexpr int GAMESTATE_CHARCREATE     = 2;
-constexpr int GAMESTATE_POSTCHARSELECT = 3;
-constexpr int GAMESTATE_SOMETHING      = 4;
-constexpr int GAMESTATE_INGAME         = 5;
-constexpr int GAMESTATE_LOGGINGIN      = 253;
-constexpr int GAMESTATE_UNLOADING      = 255;
-
-#define XKF_SHIFT               1
-#define XKF_CTRL                2
-#define XKF_LALT                4
-#define XKF_RALT                8
 
 MQLIB_API void RemoveFindItemMenu();
 MQLIB_API bool WillFitInBank(ItemClient* pContent);

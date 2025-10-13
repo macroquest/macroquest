@@ -14,12 +14,21 @@
 
 #pragma once
 
-#if defined(DEPRECATE)
-#undef DEPRECATE
-#endif
+namespace eqlib {
 
-#if defined(COMMENT_UPDATER)
-#define DEPRECATE(x)
-#else
-#define DEPRECATE(x) [[deprecated(x)]]
-#endif
+template <typename IteratorType>
+struct IteratorRange
+{
+	IteratorType i1, i2;
+
+	IteratorType begin() { return i1; }
+	IteratorType end() { return i2; }
+};
+
+template <typename IteratorType>
+IteratorRange<IteratorType> make_iterator_range(IteratorType i1, IteratorType i2)
+{
+	return IteratorRange<IteratorType>{ i1, i2 };
+}
+
+} // namespace eqlib

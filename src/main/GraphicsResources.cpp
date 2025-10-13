@@ -17,6 +17,10 @@
 
 #include "MQ2Main.h"
 
+#include "eqlib/graphics/GraphicsEngine.h"
+#include "eqlib/graphics/ResourceManagerInterface.h"
+#include "mq/api/Textures.h"
+
 namespace mq {
 
 //============================================================================

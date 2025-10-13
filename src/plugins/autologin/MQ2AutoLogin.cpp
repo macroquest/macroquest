@@ -1092,6 +1092,31 @@ CXStr GetListItemText(CListWnd* pWnd, int row, int col)
 	return pWnd->GetItemText(row, col);
 }
 
+bool IsListItemEnabled(CListWnd* pWnd, int row, int col)
+{
+	if (!pWnd) return false;
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		auto pListWnd = reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd);
+
+		if (row >= 0 && row < pListWnd->ItemsArray.GetCount())
+		{
+			return pListWnd->ItemsArray[row].bEnabled;
+		}
+
+		return false;
+	}
+#endif // HAS_GAMEFACE_UI
+
+	if (row >= 0 && row < pWnd->ItemsArray.GetCount())
+	{
+		return pWnd->ItemsArray[row].bEnabled;
+	}
+	return false;
+}
+
 int GetListCurSel(CListWnd* pWnd)
 {
 #if HAS_GAMEFACE_UI

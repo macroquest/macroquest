@@ -28,19 +28,19 @@
 #include "mq/base/WString.h"
 #include "loader/WinToastLib.h"
 #include "routing/NamedPipesProtocol.h"
-
 #include "resource.h"
 
-#include <date/date.h>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/ringbuffer_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
-#include <spdlog/sinks/wincolor_sink.h>
-#include <extras/wil/Constants.h>
-#include <wil/registry.h>
-#include <wil/resource.h>
+#include "date/date.h"
+#include "fmt/format.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/ringbuffer_sink.h"
+#include "spdlog/sinks/msvc_sink.h"
+#include "spdlog/sinks/wincolor_sink.h"
+#include "extras/wil/Constants.h"
+#include "wil/registry.h"
+#include "wil/resource.h"
+
 #include <filesystem>
 #include <tuple>
 #include <shellapi.h>
@@ -1905,7 +1905,7 @@ int WINAPI CALLBACK WinMain(
 	GetPrivateProfileString("MacroQuest", "MacroQuestWinName", "MacroQuest", gszWinName, lengthof(gszWinClassName), internal_paths::MQini);
 
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
-	HWND hWndRunning = FindWindow(gszWinClassName, gszWinName);
+	HWND hWndRunning = ::FindWindowA(gszWinClassName, gszWinName);
 	if (hWndRunning != nullptr)
 	{
 		SPDLOG_INFO("Closing because another window of class \"{}\" is open", gszWinClassName);

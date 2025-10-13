@@ -14,8 +14,11 @@
 
 #pragma once
 
-#include "eqlib/PcClient.h"
-#include "eqlib/EQClasses.h"
+#include "mq/base/Common.h"
+
+#include "eqlib/game/EQClasses.h"
+#include "eqlib/game/Globals.h"
+#include "eqlib/game/PcClient.h"
 
 using namespace eqlib;
 
