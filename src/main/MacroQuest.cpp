@@ -898,7 +898,7 @@ void MacroQuest::Shutdown()
 bool MacroQuest::InitializeEQLib()
 {
 	eqlib::LibraryConfig config;
-	config.flags = eqlib::ConfigFlags::EnableAllEvents;
+	config.flags = eqlib::ConfigFlags::NoMainHooks;
 	config.eventReceiver = this;
 	config.logger = m_eqlibLogger;
 
