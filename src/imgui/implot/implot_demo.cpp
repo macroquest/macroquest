@@ -1241,7 +1241,6 @@ void Demo_AutoFittingData() {
     ImGui::CheckboxFlags("ImPlotAxisFlags_RangeFit##Y", (unsigned int*)&yflags, ImPlotAxisFlags_RangeFit);
 
     static double data[101];
-    srand(0);
     for (int i = 0; i < 101; ++i)
         data[i] = 1 + sin(i/10.0f);
 

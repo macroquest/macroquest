@@ -15,9 +15,13 @@
 #include "mq/plugin/pluginapi.h"
 #include "mq/api/Main.h"
 
+#pragma comment(lib, "detours.lib")
+
+using namespace eqlib;
+
 char INIFileName[MAX_STRING] = { 0 };
 
-#pragma comment(lib, "detours.lib")
+#if !defined(MQLIB_STATIC)
 
 namespace mqplugin {
 
@@ -59,6 +63,8 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 }
 
 } // namespace mqplugin
+
+#endif // !defined(MQLIB_STATIC)
 
 //============================================================================
 //============================================================================
