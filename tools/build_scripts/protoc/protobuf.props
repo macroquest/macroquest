@@ -7,15 +7,15 @@
 	<PropertyGroup>
 		<ProtocolBufferDependsOn
 			Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
-		<ProtoImportPath Condition="'$(Platform)'=='Win32'">$(MQ2Root)contrib\vcpkg\installed\x86-windows\include</ProtoImportPath>
-		<ProtoImportPath Condition="'$(Platform)'=='x64'">$(MQ2Root)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
+		<ProtoImportPath Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows\include</ProtoImportPath>
+		<ProtoImportPath Condition="'$(Platform)'=='x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows\include</ProtoImportPath>
 		<!-- Check paths in order of probability -->
-		<ProtocPath Condition="Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
-		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPath>
-		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe')">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="Exists('$(MQRoot)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe')">$(MQRoot)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQRoot)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe')">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(ProtocPath)' == '' and Exists('$(MQRoot)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe')">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
 		<!-- By default the x86 version of protobuf is in the static directory, while the x64 is in both so default to the most appropriate -->
-		<ProtocPath Condition="'$(Platform)'=='Win32' and '$(ProtocPath)' == ''">$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
-		<ProtocPath Condition="'$(Platform)'=='x64' and '$(ProtocPath)' == ''">$(MQ2Root)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(Platform)'=='Win32' and '$(ProtocPath)' == ''">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\tools\protobuf\protoc.exe</ProtocPath>
+		<ProtocPath Condition="'$(Platform)'=='x64' and '$(ProtocPath)' == ''">$(MQRoot)contrib\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe</ProtocPath>
 	</PropertyGroup>
 	<ItemDefinitionGroup>
 		<ProtocolBuffer>
