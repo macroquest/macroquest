@@ -351,6 +351,11 @@ void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
 					DropIdentification(identity.container, dropped);
 	}
 
+	// always remove explicit drops from identities
+	auto iter = m_identities.find(container.uuid);
+	if (iter != m_identities.end())
+		m_identities.erase(iter);
+
 	std::visit(overload{
 		[this](const ActorContainer::Process&) {},
 		[this](const ActorContainer::Network& net)

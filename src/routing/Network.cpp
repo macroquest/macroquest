@@ -1056,7 +1056,7 @@ private:
 					}
 					else
 					{
-						SPDLOG_TRACE("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
+						SPDLOG_WARN("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
 					}
 				}
 			}
