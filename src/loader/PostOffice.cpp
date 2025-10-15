@@ -400,12 +400,12 @@ void LauncherPostOffice::ProcessReconnects()
 
 		for (const auto& host : hosts)
 		{
-			AddNetworkHost(host.IP, host.Port);
+				AddNetworkHost(host.IP, host.Port);
+			}
 		}
 	}
-}
 
-void LauncherPostOffice::FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate)
+void LauncherPostOffice::FillAndSend(MessagePtr message, const std::function<bool(const ActorIdentification&)>& predicate)
 {
 	std::vector<const ActorIdentification*> identities;
 	for (const auto& [_, identity] : m_identities)

@@ -280,13 +280,14 @@ private:
 	void CloseWithMessage(const std::error_code& ec, std::string_view step)
 	{
 		// see if the EC is a normal operation that shouldn't throw an error message
-		if (ec != asio::error::eof) // this is when the connection was closed remotely, and is the only graceful shutdown condition
+		// if the EC is a continuable error, just warn
+		if (ec == asio::error::connection_reset || // this is if the socket is force closed remotely (when the peer is destroyed)
+			ec == asio::error::shut_down || // this is when we shut down the socket locally
+			ec == asio::error::connection_aborted) // this is when we shutdown the entire peer
+			SPDLOG_WARN("{}:{} ({}); {} error {}: {}", m_knownAddress.IP, m_knownAddress.Port, m_peerPort, step, ec.value(), ec.message());
+		else if (ec != asio::error::eof) // this is when the connection was closed remotely, and is the only graceful shutdown condition
 			SPDLOG_ERROR("{}:{} ({}): {} error {}: {}", m_knownAddress.IP, m_knownAddress.Port, m_peerPort, step, ec.value(), ec.message());
 
-		// some other errors:
-		// asio::error::connection_reset // this is if the socket is force closed remotely (when the peer is destroyed)
-		// asio::error::shut_down // this is when we shut down the socket locally
-		// asio::error::connection_aborted // this is when we shutdown the entire peer
 		Close();
 	}
 
@@ -402,15 +403,21 @@ private:
 		else
 		{
 			m_writing = true;
-			const auto message(m_outgoing.Pop());
+			m_currentOutgoing = m_outgoing.Pop();
 
 			SPDLOG_TRACE("{}: writing message to socket {}", m_peerPort, m_socket.remote_endpoint().port());
 
 			asio::async_write(
 				m_socket,
-				message->Buffers(),
-				[this](const std::error_code& ec, size_t)
+				m_currentOutgoing->Buffers(),
+				[this](const std::error_code& ec, size_t size)
 				{
+					SPDLOG_TRACE("{}: Writing message of size {} to {}:{}",
+						m_peerPort, size, m_socket.remote_endpoint().address().to_string(), m_socket.remote_endpoint().port());
+
+					// always reset the pointer, error or not
+					m_currentOutgoing.reset();
+
 					if (!ec)
 						InternalWrite();
 					else
@@ -434,6 +441,7 @@ private:
 
 	InternalMessageHandler m_receiveHandler;
 	LockedQueue<std::unique_ptr<NetworkMessage>> m_outgoing;
+	std::unique_ptr<NetworkMessage> m_currentOutgoing;
 
 	bool m_writing = false;
 	bool m_reading = false;
@@ -886,18 +894,7 @@ private:
 			{
 				AddProcess([this, addr = std::move(addr)]
 				{
-					// these list checks are redundant because they will get checked before connection, but
-					// pre-check them to avoid spitting out this warning
 					m_sessionDisconnectedHandler(addr);
-					if (m_running &&
-						m_sessions.find(addr) == m_sessions.end() &&
-						m_connectingSessions.find(addr) == m_connectingSessions.end() &&
-						m_pendingConnects.find(addr) == m_pendingConnects.end() &&
-						m_knownHosts.find(addr) != m_knownHosts.end())
-					{
-						SPDLOG_WARN("Attempting to reconnect to host {}:{} from {}.", addr.IP, addr.Port, m_port);
-						AddHost(addr);
-					}
 				});
 			};
 
@@ -1059,7 +1056,7 @@ private:
 					}
 					else
 					{
-						SPDLOG_WARN("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
+						SPDLOG_TRACE("{}: Attempted to send message to unknown peer: {}:{}", m_port, address.IP, address.Port);
 					}
 				}
 			}
