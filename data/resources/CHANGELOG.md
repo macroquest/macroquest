@@ -1,3 +1,6 @@
+October 15, 2025:
+- live: Update for live patch
+
 October 12, 2025:
 - test: Update for test patch
 
