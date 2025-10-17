@@ -200,7 +200,7 @@ private:
 
 	void ProcessReconnects();
 
-	void FillAndSend(MessagePtr message, std::function<bool(const ActorIdentification&)> predicate);
+	void FillAndSend(MessagePtr message, const std::function<bool(const ActorIdentification&)>& predicate);
 	void AddConfiguredHosts();
 };
 
@@ -314,6 +314,7 @@ public:
 
 	void AddHost(const std::string& address, uint16_t port) const;
 	void RemoveHost(const std::string& address, uint16_t port) const;
+	bool HasHost(const std::string& address, uint16_t port) const;
 
 	uint16_t GetPort() const;
 

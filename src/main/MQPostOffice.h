@@ -18,11 +18,6 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
-#ifndef _WINDEF_
-class HWND__;
-typedef HWND__* HWND;
-#endif
-
 #include "routing/PostOffice.h"
 #include "routing/ProtoPipes.h"
 

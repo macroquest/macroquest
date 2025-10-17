@@ -638,6 +638,11 @@ void PeerConnection::RemoveHost(const std::string& address, uint16_t port) const
 	m_postOffice->DropContainer(ActorContainer(ActorContainer::Network{ address, port }, ""));
 }
 
+bool PeerConnection::HasHost(const std::string& address, uint16_t port) const
+{
+	return m_network->HasHost(address, port);
+}
+
 uint16_t PeerConnection::GetPort() const
 {
 	return m_network->GetPort();

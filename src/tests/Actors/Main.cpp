@@ -168,14 +168,14 @@ private:
 
 void PulsePostOffices()
 {
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	for (auto i : { 0, 1, 2, 3 })
 	{
 		mq::PulsePostOffice(i);
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 void InitPostOffices()
@@ -402,6 +402,35 @@ void TestBasicClientSetup()
 	SPDLOG_INFO("TestBasicClientSetup: Tests Complete");
 }
 
+void TestReconnect()
+{
+	// we already have 2 post offices, just set one more up
+	SetPostOfficeConfig(PostOfficeConfig{ 2, "Launcher", 0, R"(\\.\pipe\mqpipe2)" });
+
+	auto& po2 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(2);
+	auto port = po2.GetPeerPort();
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	auto& po0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0);
+	auto& po1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1);
+
+	po0.AddNetworkHost("127.0.0.1", port);
+	po1.AddNetworkHost("127.0.0.1", port);
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	// This can give an "already shut down" error, which is fine
+	po2.RemoveNetworkHost("127.0.0.1", po0.GetPeerPort());
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	if (po2.GetIdentityCount() != 7)
+		SPDLOG_ERROR("TestReconnect: {} had {} identities instead of 7", po2.GetPeerPort(), po2.GetIdentityCount());
+
+	SPDLOG_INFO("TestReconnect: Tests Complete");
+}
+
 void TestLargeNetwork()
 {
 	constexpr uint32_t n_network = 100;
@@ -463,6 +492,36 @@ void TestLargeNetwork()
 	SPDLOG_INFO("TestLargeNetwork: Tests Complete");
 }
 
+void TestLargeData()
+{
+	// data -- generate at runtime (once) to avoid extra compile times
+	constexpr size_t data_size = 1024ull * 1024ull; // 1MB
+	static const std::string data(data_size, 'A');
+
+	// pipe0
+	auto dropbox0 = TestDropbox<mq::MQPostOffice>(0, "large0");
+
+	// pipe1
+	auto dropbox1 = TestDropbox<mq::MQPostOffice>(1, "large1");
+
+	for (int i = 1; i <= 100; ++i)
+	{
+		// external route
+		{
+			mq::proto::routing::Address addr;
+			addr.set_mailbox("large1");
+			dropbox0.Post(addr, data);
+		}
+
+		PulsePostOffices();
+
+		if (dropbox1.ReceivedCount(data) != i)
+			SPDLOG_ERROR("TestLargeData: Failed to route {}.", i);
+	}
+
+	SPDLOG_INFO("TestLargeData: Tests Complete");
+}
+
 void InitializeLogging()
 {
 	// create color multi threaded logger
@@ -488,7 +547,9 @@ int main(int argc, TCHAR* argv[])
 
 	TestLauncherBehavior();
 	TestBasicClientSetup();
+	TestReconnect();
 	TestLargeNetwork();
+	TestLargeData();
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 

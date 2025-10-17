@@ -117,7 +117,7 @@ jobs:
       - name: Set Versioning for eqlib
         shell: pwsh
         run: |
-          $versionFile = "src/eqlib/eqlibVersionInfo.h"
+          $versionFile = "src/eqlib/src/eqlibVersionInfo.h"
           $versionInfo = Get-Content $versionFile
           $versionInfo = $versionInfo -replace '#define EQLIB_GIT_HASH "(.*)"', "#define EQLIB_GIT_HASH `"$eqlibCommitHash`""
           $versionInfo | Set-Content $versionFile
