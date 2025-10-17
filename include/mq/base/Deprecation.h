@@ -15,7 +15,7 @@
 #pragma once
 
 #if defined(DEPRECATE)
-#undef (DEPRECATE)
+#undef DEPRECATE
 #endif
 
 #if defined(COMMENT_UPDATER)

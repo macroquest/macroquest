@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include <mq/base/Deprecation.h>
-
-#include <stdexcept>
+#include "mq/base/Deprecation.h"
+#include "eqlib/BuildType.h"
 
 #include "imgui.h"
-#include "eqlib/BuildType.h"
+
+#include <stdexcept>
 
 #if HAS_DIRECTX_11
 #include <d3d11.h>
@@ -38,10 +38,14 @@
 //#define IMGUI_API __declspec(dllexport)                   // MSVC Windows: DLL export
 //#define IMGUI_API __declspec(dllimport)                   // MSVC Windows: DLL import
 //#define IMGUI_API __attribute__((visibility("default")))  // GCC/Clang: override visibility when set is hidden
+#ifdef IMGUI_STATIC
+#define IMGUI_API
+#else
 #ifdef IMGUI_EXPORTS
 #define IMGUI_API __declspec(dllexport)
 #else
 #define IMGUI_API __declspec(dllimport)
+#endif
 #endif
 
 #define IMGUI_IMPL_API

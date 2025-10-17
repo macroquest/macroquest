@@ -16,9 +16,9 @@
 
 // TODO: Move other inventory related functions here and remove MQ2Main.h include
 #include "MQ2Main.h"
+#include "mq/api/Inventory.h"
 
-#include <mq/api/Inventory.h>
-#include "eqlib/Items.h"
+#include "eqlib/game/Items.h"
 
 namespace mq {
 

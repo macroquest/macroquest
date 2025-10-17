@@ -14,8 +14,9 @@
 
 #include "pch.h"
 #include "MQ2Main.h"
+#include "Logging.h"
 
-#include <mq/utils/OS.h>
+#include "mq/utils/OS.h"
 
 #include <spdlog/spdlog.h>
 #include <wil/resource.h>
@@ -117,7 +118,7 @@ void AddStaticInitializationModule(ModuleInitializer* module)
 
 void AddInternalModule(MQModule* module, bool manualUnload /*=false*/)
 {
-	SPDLOG_DEBUG("Initializing module: {0}", module->name);
+	LOG_DEBUG("Initializing module: {0}", module->name);
 
 	gInternalModules.push_back(module);
 
@@ -398,7 +399,7 @@ void ScopedModuleTracker::TrackerData::Finish()
 	do {
 		if (modules.find(me32.hModule) == end(modules))
 		{
-			SPDLOG_DEBUG("Module loaded: {}", me32.szExePath);
+			LOG_DEBUG("Module loaded: {}", me32.szExePath);
 			newModules.push_back(me32.hModule);
 		}
 	} while (Module32Next(hSnapshot.get(), &me32));
@@ -808,7 +809,7 @@ void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 	if (gFilterMQ)
 		return;
 
-	//SPDLOG_DEBUG("Begin WriteChatColor()");
+	//LOG_DEBUG("Begin WriteChatColor()");
 
 	MQScopedBenchmark bm(bmWriteChatColor);
 

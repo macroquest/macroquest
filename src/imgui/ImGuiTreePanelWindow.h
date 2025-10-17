@@ -23,9 +23,10 @@
 
 #pragma once
 
-#include "ImGuiUtils.h"
+#include "mq/base/String.h"
 
-#include <imgui.h>
+#include "imgui/ImGuiUtils.h"
+#include "imgui/imgui.h"
 
 #include <memory>
 #include <string>
@@ -159,7 +160,7 @@ public:
 	{
 		for (auto& panel : m_panels)
 		{
-			if (ci_equals(panel->name, id))
+			if (mq::ci_equals(panel->name, id))
 			{
 				panel->selectRequested = true;
 				break;

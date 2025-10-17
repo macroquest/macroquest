@@ -17,7 +17,9 @@
 
 #include "MQ2Main.h"
 #include "MQPluginHandler.h"
+
 #include "eqlib/WindowOverride.h"
+
 #include "imgui/ImGuiUtils.h"
 
 #if IS_EMU_CLIENT

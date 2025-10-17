@@ -12,12 +12,16 @@
  * GNU General Public License for more details.
  */
 
-#include <mq/plugin/pluginapi.h>
-#include <mq/api/Main.h>
+#include "mq/plugin/pluginapi.h"
+#include "mq/api/Main.h"
+
+#pragma comment(lib, "detours.lib")
+
+using namespace eqlib;
 
 char INIFileName[MAX_STRING] = { 0 };
 
-#pragma comment(lib, "detours.lib")
+#if !defined(MQLIB_STATIC)
 
 namespace mqplugin {
 
@@ -59,6 +63,8 @@ bool PluginMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 }
 
 } // namespace mqplugin
+
+#endif // !defined(MQLIB_STATIC)
 
 //============================================================================
 //============================================================================
@@ -202,14 +208,25 @@ bool mq::detail::CreateDetour(uintptr_t address, void** target, void* detour, st
 	return mqplugin::MainInterface->CreateDetour(address, target, detour, name, mqplugin::ThisPluginHandle);
 }
 
-bool mq::detail::CreateDetour(uintptr_t address, size_t width, std::string_view name)
-{
-	return mqplugin::MainInterface->CreateDetour(address, width, name, mqplugin::ThisPluginHandle);
-}
-
 bool mq::RemoveDetour(uintptr_t address)
 {
 	return mqplugin::MainInterface->RemoveDetour(address, mqplugin::ThisPluginHandle);
+}
+
+bool mq::AddPatch(uintptr_t address, size_t width, std::string_view name)
+{
+	return mqplugin::MainInterface->AddPatch(address, width, name, mqplugin::ThisPluginHandle);
+}
+
+bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
+	const uint8_t* expectedBytes, std::string_view name)
+{
+	return mqplugin::MainInterface->AddPatch(address, newBytes, numBytes, expectedBytes, name, mqplugin::ThisPluginHandle);
+}
+
+bool mq::RemovePatch(uintptr_t address)
+{
+	return mqplugin::MainInterface->RemovePatch(address, mqplugin::ThisPluginHandle);
 }
 
 

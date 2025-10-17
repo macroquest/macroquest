@@ -61,10 +61,10 @@
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))\src\Common.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), src\Common.props))' != '' " />
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
-    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
-    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MQ2Root)contrib\vcpkg\installed\x86-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
-    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
-    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MQ2Root)contrib\vcpkg\installed\x64-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
+    <LoaderAdditionalDeps Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib\libcrypto.lib')">libcrypto.lib;libssl.lib;</LoaderAdditionalDeps>
     <LoaderDependenciesDebug>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-84-d.lib;cpr.lib;zlibd.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmtd.lib;libprotobufd.lib</LoaderDependenciesDebug>
     <LoaderDependenciesRelease>$(LoaderAdditionalDeps)d3d11.lib;Setupapi.lib;imm32.lib;pe-parse.lib;base.lib;common.lib;client.lib;util.lib;libcurl-84.lib;cpr.lib;zlib.lib;Ws2_32.lib;Wldap32.lib;version.lib;fmt.lib;libprotobuf.lib</LoaderDependenciesRelease>
   </PropertyGroup>
@@ -74,18 +74,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQ2Root)include;$(MQ2Root)contrib\hello_imgui\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <Manifest />
     <Link>
       <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>$(TargetPath)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQ2Root)include;$(MQ2Root)contrib\hello_imgui\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <Manifest />
@@ -99,7 +102,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQ2Root)include;$(MQ2Root)contrib\hello_imgui\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -114,7 +117,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQ2Root)include;$(MQ2Root)contrib\hello_imgui\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCPKG_IncludeStatic)\crashpad-backtrace;$(MQRoot)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -125,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="LoaderAutoLogin.cpp" />
     <ClCompile Include="LoaderAutoLoginImGui.cpp" />
     <ClCompile Include="Crashpad.cpp" />
@@ -134,6 +138,7 @@
     <ClCompile Include="imgui_backend\imgui_impl_win32.cpp" />
     <ClCompile Include="MacroQuest.cpp" />
     <ClCompile Include="PostOffice.cpp" />
+    <ClCompile Include="PostOfficeImGui.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="RemoteOps.cpp" />

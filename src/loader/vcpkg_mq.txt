@@ -5,3 +5,4 @@ date
 curl-84[schannel]
 cpr
 pe-parse
+protobuf

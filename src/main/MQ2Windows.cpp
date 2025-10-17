@@ -15,6 +15,7 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "CrashHandler.h"
+#include "MQPluginHandler.h"
 #include "MQ2DeveloperTools.h"
 
 #include <algorithm>
@@ -1950,6 +1951,37 @@ void UpdateCascadeMenu()
 
 //============================================================================
 
+class CDisplay_Detours
+{
+public:
+	void ZoneMainUI_Detour()
+	{
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
+		{
+			// unload
+			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
+			DoCommand("/unload", false);
+		}
+#endif
+
+		PluginsEndZone();
+		ZoneMainUI_Trampoline();
+	}
+
+	DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
+
+		void PreZoneMainUI_Detour()
+	{
+		PluginsBeginZone();
+		PreZoneMainUI_Trampoline();
+	}
+
+	DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
+};
+
+//============================================================================
+
 static void Windows_Initialize()
 {
 	DebugSpew("Initializing MQ2 Windows");
@@ -1999,6 +2031,8 @@ static void Windows_Initialize()
 		&DoesFileExist_Trampoline);
 	EzDetour(__eqgraphics_fopen, fopen_eqgraphics_detour, fopen_eqgraphics_trampoline);
 	EzDetour(__CreateCascadeMenuItems, CreateCascadeMenuItems_Detour, CreateCascadeMenuItems_Trampoline);
+	EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
+	EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
 
 	AddCommand("/windows", ListWindows);
 	AddCommand("/notify", WndNotify);
@@ -2024,6 +2058,8 @@ static void Windows_Shutdown()
 	RemoveCommand("/itemnotify");
 	RemoveCommand("/itemslots");
 
+	RemoveDetour(CDisplay__ZoneMainUI);
+	RemoveDetour(CDisplay__PreZoneMainUI);
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__Init1);
 	RemoveDetour(CTargetWnd__WndNotification);

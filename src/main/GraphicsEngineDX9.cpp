@@ -19,6 +19,7 @@
 
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
+#include "Logging.h"
 
 #include <d3d9.h>
 #include <wil/com.h>
@@ -101,11 +102,11 @@ public:
 	{
 		if (gpD3D9Device != GetThisDevice())
 		{
-			SPDLOG_INFO("IDirect3DDevice9::Reset hook: instance does not match acquired device, skipping.");
+			LOG_INFO("IDirect3DDevice9::Reset hook: instance does not match acquired device, skipping.");
 			return Reset_Trampoline(pPresentationParameters);
 		}
 
-		SPDLOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
+		LOG_INFO("IDirect3DDevice9::Reset hook: device instance is the acquired device.");
 		s_gfxEngine->InvalidateDeviceObjects();
 
 		return Reset_Trampoline(pPresentationParameters);
@@ -150,7 +151,7 @@ bool MQGraphicsEngineDX9::DetectResetDeviceHook(void* thisPtr)
 	{
 		if (gResetDeviceAddress != 0)
 		{
-			SPDLOG_DEBUG("Detected a change in the rendering device. Attempting to recover.");
+			LOG_DEBUG("Detected a change in the rendering device. Attempting to recover.");
 		}
 
 		gResetDeviceAddress = resetDevice;
@@ -212,7 +213,7 @@ HRESULT MQGraphicsEngineDX9::EndScene_Hook(RendererDX9Hooks* hooks)
 
 				if (result == D3D_OK)
 				{
-					SPDLOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
+					LOG_INFO("IDirect3DDevice9::EndScene: TestCooperativeLevel was successful, reacquiring device.");
 
 					ImGui_Initialize();
 

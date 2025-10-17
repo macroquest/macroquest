@@ -15,7 +15,9 @@
 #pragma once
 
 #include "mq/base/Common.h"
-#include "eqlib/Common.h"
+#include "mq/base/Color.h"
+
+#include "eqlib/game/UITypes.h"
 
 namespace eqlib {
 	class CScreenPieceTemplate;

@@ -18,9 +18,6 @@
     <Filter Include="Header Files\contrib">
       <UniqueIdentifier>{37f552ce-de79-4c09-bc69-6022bc7cedd3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Contrib\fmt">
-      <UniqueIdentifier>{ae7f2c4e-8df7-487e-96e0-7725daa2921e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\common">
       <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
     </Filter>
@@ -68,9 +65,6 @@
     </Filter>
     <Filter Include="Header Files\extras\wil">
       <UniqueIdentifier>{398f05d1-d412-4d4d-8554-14f8255af25d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\eqdata">
-      <UniqueIdentifier>{2b7d5e30-e807-4d3b-ac81-56092830cb6a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\emu">
       <UniqueIdentifier>{7b5b93b4-0c81-41c2-92f0-45f73d2cc354}</UniqueIdentifier>
@@ -122,7 +116,7 @@
     <ClCompile Include="MQ2MacroCommands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Main.cpp">
+    <ClCompile Include="MacroQuest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQPluginHandler.cpp">
@@ -416,6 +410,9 @@
     <ClCompile Include="MQRenderDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MQPostOfficeInternal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQ2Commands.h">
@@ -628,24 +625,6 @@
     <ClInclude Include="..\..\include\extras\wil\Constants.h">
       <Filter>Header Files\extras\wil</Filter>
     </ClInclude>
-    <ClInclude Include="..\eqdata\actordef.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\combines.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\dikeys.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\itemclasses.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\skills.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
-    <ClInclude Include="..\eqdata\spelleffects.h">
-      <Filter>Header Files\eqdata</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Abilities.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -665,9 +644,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MQPluginHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MQDetourAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\DetourAPI.h">
@@ -690,6 +666,24 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
       <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Base.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Enum.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\EnumFmt.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="MacroQuest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Iterator.h">
+      <Filter>Header Files\mq\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

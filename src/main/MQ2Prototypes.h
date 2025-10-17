@@ -18,10 +18,10 @@ namespace mq {
 
 struct MQGroundSpawn;
 
-using fEQGetMelee            = float  (*)(PlayerClient*, PlayerClient*);
+using fEQGetMelee            = float  (*)(eqlib::PlayerClient*, eqlib::PlayerClient*);
 
 // MQ2 Callback types
-using fMQCommand             = void   (*)(PlayerClient*, char* Buffer, size_t BuffLen);
+using fMQCommand             = void   (*)(eqlib::PlayerClient*, char* Buffer, size_t BuffLen);
 using fCascadeItemFunction   = void   (*)();
 struct TokenTextParam;
 using fMQTokenMessageCmd     = void   (*)(const TokenTextParam&);

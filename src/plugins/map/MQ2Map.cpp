@@ -357,8 +357,6 @@ PLUGIN_API void ShutdownPlugin()
 {
 	RemoveMQ2Data("MapSpawn");
 
-	RemoveDetour(CMapViewWnd__CMapViewWnd);
-
 	MapClear();
 
 	RemoveMQ2Benchmark(bmMapRefresh);

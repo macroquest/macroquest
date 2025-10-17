@@ -6683,30 +6683,34 @@ int GetCharMaxLevel()
 	return MaxLevel;
 }
 
-
-int GetBodyType(SPAWNINFO* pSpawn)
+int GetBodyType(PlayerClient* pSpawn)
 {
-	if (pSpawn != nullptr && pSpawn->BodyType != nullptr)
+	if (pSpawn == nullptr)
+		return 0;
+
+	// BodyTypes are stored in a hash table. They can include more than one.
+	// For the purposes of this function we only return the first one (sorted numerically).
+	int minProperty = 0;
+
+	const int* property = pSpawn->Properties.WalkFirst();
+	while (property)
 	{
-		for (int i = 0; i < CharacterProperty_Last; i++)
-		{
-			if (pSpawn->HasProperty(i))
-			{
-				if (i == CharacterProperty_Utility)
-				{
-					if (pSpawn->HasProperty(i, CharacterProperty_Trap))
-						return CharacterProperty_Trap;
-					if (pSpawn->HasProperty(i, CharacterProperty_Companion))
-						return CharacterProperty_Companion;
-					if (pSpawn->HasProperty(i, CharacterProperty_Suicide))
-						return CharacterProperty_Suicide;
-				}
-				return i;
-			}
-		}
+		minProperty = minProperty == 0 || *property < minProperty ? *property : minProperty;
+
+		property = pSpawn->Properties.WalkNext(property);
 	}
 
-	return 0;
+	if (minProperty == CharacterProperty_Utility)
+	{
+		if (pSpawn->HasProperty(CharacterProperty_Trap))
+			return CharacterProperty_Trap;
+		if (pSpawn->HasProperty(CharacterProperty_Companion))
+			return CharacterProperty_Companion;
+		if (pSpawn->HasProperty(CharacterProperty_Suicide))
+			return CharacterProperty_Suicide;
+	}
+
+	return minProperty;
 }
 
 eSpawnType GetSpawnType(SPAWNINFO* pSpawn)

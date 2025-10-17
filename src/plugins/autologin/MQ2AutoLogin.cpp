@@ -541,11 +541,12 @@ void Cmd_Loginchar(SPAWNINFO* pChar, char* szLine)
 	}
 	else if (!record.serverName.empty() && !record.characterName.empty())
 	{
-		login::db::ReadFullProfile(record);
+		login::db::ReadAccount(record);
 
-		if (!record.profileName.empty())
-			LoginProfile(
-				record.profileName.c_str(),
+		if (!record.accountName.empty() && !record.accountPassword.empty())
+			LoginCharacter(
+				record.accountName.c_str(),
+				record.accountPassword.c_str(),
 				record.serverName.c_str(),
 				record.characterName.c_str());
 		else
@@ -1089,6 +1090,31 @@ CXStr GetListItemText(CListWnd* pWnd, int row, int col)
 #endif
 
 	return pWnd->GetItemText(row, col);
+}
+
+bool IsListItemEnabled(CListWnd* pWnd, int row, int col)
+{
+	if (!pWnd) return false;
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		auto pListWnd = reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd);
+
+		if (row >= 0 && row < pListWnd->ItemsArray.GetCount())
+		{
+			return pListWnd->ItemsArray[row].bEnabled;
+		}
+
+		return false;
+	}
+#endif // HAS_GAMEFACE_UI
+
+	if (row >= 0 && row < pWnd->ItemsArray.GetCount())
+	{
+		return pWnd->ItemsArray[row].bEnabled;
+	}
+	return false;
 }
 
 int GetListCurSel(CListWnd* pWnd)

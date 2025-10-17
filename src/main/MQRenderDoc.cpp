@@ -15,13 +15,14 @@
 #include "pch.h"
 #include "MQ2Main.h"
 #include "MQRenderDoc.h"
+#include "Logging.h"
+
+#include "mq/base/WString.h"
 
 #include <renderdoc/renderdoc_app.h>
 #include <wil/resource.h>
 #include <atomic>
 #include <filesystem>
-
-#include "mq/base/WString.h"
 
 namespace mq {
 
@@ -208,7 +209,7 @@ static void LoadRenderDoc()
 	s_renderDocAPI->SetFocusToggleKeys(nullptr, 0);
 	s_renderDocAPI->SetCaptureKeys(nullptr, 0);
 
-	SPDLOG_INFO("\agRenderDoc support enabled");
+	LOG_INFO("\agRenderDoc support enabled");
 
 	// Sleep for a bit to give RenderDoc time to initialize
 	Sleep(1000);

@@ -12,11 +12,12 @@
  * GNU General Public License for more details.
  */
 
-#include "loader/MacroQuest.h"
-#include "loader/PostOffice.h"
-#include "loader/Crashpad.h"
-#include "loader/LoaderAutoLogin.h"
+// Uncomment to see super spammy read/write trace logging
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+
 #include "routing/PostOffice.h"
+#include "loader/PostOffice.h"
+#include "loader/MacroQuest.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -25,630 +26,818 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <shellapi.h>
 
-#include "ImGui.h"
+#include <variant>
 
+static std::unordered_map<uint32_t, PostOfficeConfig> s_postOfficeConfigs;
 
-using namespace postoffice;
-class LauncherPostOffice : public PostOffice
+static std::optional<std::string> s_iniLocation;
+
+void SetPostOfficeIni(std::string_view ini)
 {
-private:
-	struct ClientIdentification
-	{
-		uint32_t pid;
-		std::string account;
-		std::string server;
-		std::string character;
-	};
+	s_iniLocation = ini;
+}
 
-	std::unordered_map<uint32_t, ClientIdentification> m_identities;
-	ci_unordered::map<std::string, uint32_t> m_names;
-	bool m_running = false;
-	std::thread m_thread;
-	std::thread::id m_threadId;
+void RemovePostOffice(uint32_t index);
 
-	bool m_hasMessages = false;
-	std::mutex m_processMutex;
-	std::condition_variable m_needsProcessing;
+namespace mq::postoffice {
 
-	class PipeEventsHandler : public NamedPipeEvents
-	{
-	public:
-		PipeEventsHandler(LauncherPostOffice* postOffice) : m_postOffice(postOffice) {}
+bool LauncherPostOffice::IsRecipient(const proto::routing::Address& address, const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Testing address [{}] against id [{}]", GetName(), address.ShortDebugString(), id.ToString());
 
-		virtual void OnIncomingMessage(PipeMessagePtr&& message) override
+	std::string uuid = address.uuid();
+	return std::visit(overload{
+		[&address, &uuid, &c = id.container](const ActorContainer::Process& proc)
 		{
-			using namespace mq::proto;
-			SPDLOG_TRACE("Received message: id={} length={} connectionId={}", message->GetMessageId(),
-				message->size(), message->GetConnectionId());
+			if (!uuid.empty() && c.uuid != uuid)
+				return false;
 
-			switch (message->GetMessageId())
+			if (!address.has_peer() && !address.has_process())
+				return true;
+
+			return (address.has_process() && address.process().pid() == proc.PID);
+		},
+		[&address, &uuid, &c = id.container](const ActorContainer::Network& network)
+		{
+			if (!uuid.empty() && c.uuid != uuid)
+				return false;
+
+			if (!address.has_peer() && !address.has_process())
+				return true;
+
+			return (address.has_peer() && address.peer().ip() == network.IP && address.peer().port() == network.Port);
+		}
+	}, id.container.value) && std::visit(overload{
+		[&address](const std::string& name)
+		{
+			if (!address.has_name() && !address.has_client())
+				return true;
+
+			return (address.has_name() && ci_equals(name, address.name()));
+		},
+		[&address](const ActorIdentification::Client& client)
+		{
+			if (!address.has_name() && !address.has_client())
+				return true;
+
+			return (address.has_client() &&
+				(!address.client().has_account() || ci_equals(client.account, address.client().account())) &&
+				(!address.client().has_server() || ci_equals(client.server, address.client().server())) &&
+				(!address.client().has_character() || ci_equals(client.character, address.client().character())));
+		}
+	}, id.address);
+}
+
+auto LauncherPostOffice::FindIdentity(
+	const proto::routing::Address& address,
+	const std::unordered_map<std::string, ActorIdentification>::iterator& from)
+{
+	return std::find_if(from, m_identities.end(),
+		[&address, this](const std::pair<std::string, ActorIdentification>& pair)
+		{ return IsRecipient(address, pair.second); });
+}
+
+MessagePtr FillAddress(MessagePtr message, const ActorIdentification& identity)
+{
+	proto::routing::Address& address = *message->mutable_address();
+	identity.BuildAddress(address);
+
+	return message;
+}
+
+// This is called when a dropbox registered to this post office attempts to send a message
+void LauncherPostOffice::RouteMessage(MessagePtr message)
+{
+	if (std::this_thread::get_id() == m_threadId)
+	{
+		ProcessOutgoingMessage(std::move(message));
+	}
+	else
+	{
+		{
+			std::unique_lock lock(m_outgoingMutex);
+			m_outgoingMessages.push_back(std::move(message));
+		}
+
+		RequestProcessEvents();
+	}
+}
+
+void LauncherPostOffice::ProcessOutgoing()
+{
+	std::unique_lock lock(m_outgoingMutex);
+
+	if (!m_outgoingMessages.empty())
+	{
+		std::vector<MessagePtr> outgoing;
+		std::swap(outgoing, m_outgoingMessages);
+
+		lock.unlock();
+
+		for (auto& message : outgoing)
+			ProcessOutgoingMessage(std::move(message));
+	}
+}
+
+void LauncherPostOffice::ProcessOutgoingMessage(MessagePtr message)
+{
+	SPDLOG_TRACE("{}: Routing message to=[{}] seq={}", GetName(), message->address().ShortDebugString(), message->sequence());
+
+	// if we have a PID here, we could still have multiple names on the same PID, so we can't
+	// avoid the loop
+	if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse))
+	{
+		const auto identity = FindIdentity(message->address(), m_identities.begin());
+
+		if (identity == m_identities.end())
+			RoutingFailed(MsgError_RoutingFailed, std::move(message), "Failed to find identity in post office");
+		else if (FindIdentity(message->address(), std::next(identity)) != m_identities.end())
+			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
+		else
+			SendMessage(identity->second.container, std::move(message));
+	}
+	else
+	{
+		// we don't have a PID or a name and this is not an RPC, so we will send this message to 
+		// all clients that match the address -- it's important to copy these messages
+		for (const auto& [_, identity] : m_identities)
+		{
+			if (IsRecipient(message->address(), identity))
+				SendMessage(identity.container, FillAddress(std::make_unique<proto::routing::Envelope>(*message), identity));
+		}
+	}
+}
+
+void LauncherPostOffice::ProcessIdentities()
+{
+	std::unique_lock lock(m_identityMutex);
+
+	if (!m_identityActions.empty())
+	{
+		std::vector<std::pair<IdentityAction, ActorIdentification>> actions;
+		std::swap(actions, m_identityActions);
+
+		lock.unlock();
+
+		for (auto& [action, id] : actions)
+		{
+			switch (action)
 			{
-			case mq::MQMessageId::MSG_ECHO:
-			{
-				std::string str(message->get<const char>(), message->size() - 1);
-				message->SendReply(MQMessageId::MSG_ECHO, str.data(), (uint32_t)str.length() + 1, 0);
-				SPDLOG_INFO("Handling echo request: {}", str);
-				break;
-			}
-
-			case mq::MQMessageId::MSG_ROUTE:
-			{
-				auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-				const auto& address = envelope.address();
-				if ((address.has_pid() && address.pid() == GetCurrentProcessId()) || (address.has_name() && ci_equals(address.name(), "launcher")))
-				{
-					auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
-						{
-							RoutingFailed(envelope, status, std::move(message), nullptr);
-						};
-
-					if (address.has_mailbox())
-					{
-						// this is a local message
-						m_postOffice->DeliverTo(address.mailbox(), std::move(message), routing_failed);
-					}
-					else
-					{
-						// This is a failsafe action, we shouldn't expect to be here often. For this code to
-						// be reached, we would have to have a client that packages a message in an envelope
-						// that is intended to be parsed directly by the server and not routed anywhere (so
-						// no mailbox routing information is included), rather than just send the message
-						m_postOffice->DeliverTo("pipe_server", std::move(message), routing_failed);
-					}
-				}
-				else
-				{
-					// all we have to do here is route, this is the same as if an internal mailbox is
-					// attempting to route a message
-					m_postOffice->RouteMessage(std::move(message));
-				}
-				break;
-			}
-
-			case mq::MQMessageId::MSG_IDENTIFICATION:
-				if (message->GetHeader()->messageLength > 0)
-				{
-					bool added = false;
-
-					// if there is a payload, then we are getting a notification of ID
-					auto id = ProtoMessage::Parse<proto::routing::Identification>(message);
-					if (id.has_name())
-					{
-						m_postOffice->m_names.insert_or_assign(id.name(), id.pid());
-						SPDLOG_INFO("Got name-based identification from {}: {}", id.pid(), id.name());
-					}
-					else
-					{
-						auto result = m_postOffice->m_identities.insert_or_assign(id.pid(), ClientIdentification{
-							id.pid(),
-							id.has_account() ? id.account() : "",
-							id.has_server() ? id.server() : "",
-							id.has_character() ? id.character() : ""
-						});
-						added = result.second;
-
-						// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-						SPDLOG_INFO("Got identification from {}", id.pid());
-					}
-
-					// we also need to update all the clients
-					m_postOffice->m_pipeServer.BroadcastProtoMessage(mq::MQMessageId::MSG_IDENTIFICATION, id);
-
-					if (added)
-					{
-						proto::login::IdentifyMissive announce;
-						Post(id.pid(), proto::login::Identify, announce);
-					}
-				}
-				else
-				{
-					// we are getting a request to send all IDs, do so sequentially and asynchronously
-					for (const auto& [_, client] : m_postOffice->m_identities)
-					{
-						proto::routing::Identification id;
-						id.set_pid(client.pid);
-
-						if (!client.account.empty())
-							id.set_account(client.account);
-
-						if (!client.server.empty())
-							id.set_server(client.server);
-
-						if (!client.character.empty())
-							id.set_character(client.character);
-						
-						m_postOffice->m_pipeServer.SendProtoMessage(
-							message->GetConnectionId(),
-							MQMessageId::MSG_IDENTIFICATION,
-							id);
-					}
-
-					for (const auto& [name, pid] : m_postOffice->m_names)
-					{
-						proto::routing::Identification id;
-						id.set_pid(pid);
-						id.set_name(name);
-						
-						m_postOffice->m_pipeServer.SendProtoMessage(
-							message->GetConnectionId(),
-							MQMessageId::MSG_IDENTIFICATION,
-							id);
-					}
-				}
+			case IdentityAction::Add:
+				ProcessAddIdentity(id);
 				break;
 
-			case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
+			case IdentityAction::MassAdd:
+				ProcessSendIdentities(id.container);
 				break;
 
-			case mq::MQMessageId::MSG_MAIN_PROCESS_LOADED:
-			{
-				MQMessageProcessLoadedResponse response;
-				response.processId = GetCurrentProcessId();
-
-				m_postOffice->m_pipeServer.SendMessage(message->GetConnectionId(), mq::MQMessageId::MSG_MAIN_PROCESS_LOADED,
-					&response, sizeof(response));
+			case IdentityAction::Drop:
+				ProcessDropIdentity(id);
 				break;
-			}
 
-			case mq::MQMessageId::MSG_MAIN_FOCUS_REQUEST: {
-				if (message->size() >= sizeof(MQMessageFocusRequest))
-				{
-					const MQMessageFocusRequest* request = message->get<MQMessageFocusRequest>();
-					if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
-					{
-						SetFocusWindowPID(request->processId, request->state);
-					}
-					else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
-					{
-						SetForegroundWindowInternal((HWND)request->hWnd);
-					}
-				}
+			case IdentityAction::MassDrop:
+				ProcessDropContainer(id.container);
 				break;
-			}
-
-			case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
-			{
-				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
-				if (notification.has_message())
-					LauncherImGui::OpenMessageBox(nullptr, notification.message(), notification.title());
-				else
-					LauncherImGui::OpenMessageBox(nullptr, notification.title(), notification.title());
-			}
-
-			case mq::MQMessageId::MSG_MAIN_TRAY_NOTIFY:
-			{
-				const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
-				NOTIFYICONDATA notify;
-				notify.cbSize = sizeof(NOTIFYICONDATA);
-				notify.uID = WM_USER_SYSTRAY;
-				notify.hWnd = hMainWnd;
-				notify.uFlags = NIF_INFO;
-
-				strcpy_s(notify.szInfoTitle, notification.title().c_str());
-				if (notification.has_message())
-					strcpy_s(notify.szInfo, notification.message().c_str());
-				else
-					strcpy_s(notify.szInfo, notification.title().c_str());
-
-				if (notification.has_level())
-				{
-					switch (notification.level())
-					{
-					case proto::routing::NotifyLevel::Info:
-						notify.dwInfoFlags = NIIF_INFO;
-						break;
-					case proto::routing::NotifyLevel::Warning:
-						notify.dwInfoFlags = NIIF_WARNING;
-						break;
-					case proto::routing::NotifyLevel::Error:
-						notify.dwInfoFlags = NIIF_ERROR;
-						break;
-					default:
-						notify.dwInfoFlags = NIIF_INFO;
-						break;
-					}
-				}
-				else
-					notify.dwInfoFlags = NIIF_INFO;
-
-				Shell_NotifyIcon(NIM_MODIFY, &notify);
-				break;
-			}
 
 			default: break;
 			}
-
-			{
-				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
-				m_postOffice->m_hasMessages = true;
-			}
-
-			m_postOffice->m_needsProcessing.notify_one();
-		}
-
-		virtual void OnRequestProcessEvents() override
-		{
-			{
-				std::lock_guard<std::mutex> lock(m_postOffice->m_processMutex);
-				m_postOffice->m_hasMessages = true;
-			}
-
-			m_postOffice->m_needsProcessing.notify_one();
-		}
-
-		virtual void OnIncomingConnection(int connectionId, int processid) override
-		{
-			std::string namedPipe;
-
-			if (IsCrashpadInitialized() && gEnableSharedCrashpad)
-			{
-				namedPipe = GetHandlerIPCPipe();
-			}
-
-			// send the name of the named pipe to the connected client. If crashpad isn't
-			// enabled, or shared is disabled, this will send an empty string, which basically
-			// tells the process that its on its own.
-			m_postOffice->m_pipeServer.SendMessage(connectionId,
-				mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
-					namedPipe.c_str(), (uint32_t)namedPipe.length() + 1));
-		}
-
-		virtual void OnConnectionClosed(int connectionId, int processId) override
-		{
-			// we need to make sure not to send to the connection that is closing
-			auto broadcast = [&pipe = m_postOffice->m_pipeServer, connectionId](proto::routing::Identification&& id)
-				{
-					std::string data = id.SerializeAsString();
-					for (auto conn : pipe.GetConnectionIds())
-					{
-						if (conn != connectionId)
-							pipe.SendMessage(conn, mq::MQMessageId::MSG_DROPPED, &data[0], data.size());
-					}
-				};
-
-			for (auto name_it = m_postOffice->m_names.begin(); name_it != m_postOffice->m_names.end();)
-			{
-				if (name_it->second == processId)
-				{
-					proto::routing::Identification id;
-					id.set_pid(name_it->second);
-					id.set_name(name_it->first);
-
-					SPDLOG_INFO("Disconnection detected, dropping name from {}: {}", id.pid(), id.name());
-					broadcast(std::move(id));
-
-					name_it = m_postOffice->m_names.erase(name_it);
-				}
-				else
-					++name_it;
-			}
-
-			auto ident_it = m_postOffice->m_identities.find(processId);
-			if (ident_it != m_postOffice->m_identities.end())
-			{
-				proto::routing::Identification id;
-				id.set_pid(ident_it->first);
-
-				if (!ident_it->second.account.empty())
-					id.set_account(ident_it->second.account);
-
-				if (!ident_it->second.server.empty())
-					id.set_server(ident_it->second.server);
-
-				if (!ident_it->second.character.empty())
-					id.set_character(ident_it->second.character);
-
-				// only include the PID here, otherwise it's pseudonym-identifiable information from the logs
-				SPDLOG_INFO("Disconnection detected, dropping ID from {}", id.pid());
-
-				broadcast(std::move(id));
-
-				m_postOffice->m_identities.erase(ident_it);
-			}
-		}
-
-		private:
-			LauncherPostOffice* m_postOffice;
-	};
-
-public:
-	LauncherPostOffice() : m_pipeServer{ mq::MQ2_PIPE_SERVER_PATH }
-	{
-		m_names.emplace("launcher", GetCurrentProcessId());
-	}
-
-	static void RoutingFailed(
-		const proto::routing::Envelope& envelope,
-		int status,
-		PipeMessagePtr&& message,
-		const PipeMessageResponseCb& callback)
-	{
-		// we can't assume that the mailbox exists here, so manually create the reply
-		proto::routing::Envelope outbound;
-		*outbound.mutable_address() = envelope.return_address();
-		outbound.set_payload(envelope.address().SerializeAsString());
-
-		std::string data = outbound.SerializeAsString();
-		if (callback == nullptr)
-			message->SendReply(MQMessageId::MSG_ROUTE, &data[0], data.size(), status);
-		else
-			callback(status, std::make_unique<PipeMessage>(MQMessageId::MSG_ROUTE, &data[0], data.size()));
-	}
-
-	static bool IsRecipient(const proto::routing::Address& address, const ClientIdentification& id)
-	{
-		return (!address.has_account() || ci_equals(address.account(), id.account)) &&
-			(!address.has_server() || ci_equals(address.server(), id.server)) &&
-			(!address.has_character() || ci_equals(address.character(), id.character));
-	}
-
-	auto FindIdentity(
-		const proto::routing::Address& address,
-		const std::unordered_map<uint32_t, ClientIdentification>::iterator& from)
-	{
-		return std::find_if(from, m_identities.end(),
-			[&address](const std::pair<uint32_t, ClientIdentification>& pair)
-			{ return IsRecipient(address, pair.second); });
-	}
-
-	void RouteMessage(PipeMessagePtr&& message, const PipeMessageResponseCb& callback) override
-	{
-		if (callback == nullptr) // simple message, just route it
-			RouteMessage(std::move(message));
-		else // routing will fail here if there are too many recipients
-		{
-			auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-			const auto& address = envelope.address();
-
-			auto routing_failed = [&envelope, callback](int status, PipeMessagePtr&& message)
-				{
-					RoutingFailed(envelope, status, std::move(message), callback);
-				};
-
-			auto single_send = [callback](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
-				{
-					connection->SendMessageWithResponse(std::move(message), callback);
-				};
-
-			if (address.has_pid())
-			{
-				SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
-			}
-			else if (address.has_name())
-			{
-				auto pid_it = m_names.find(address.name());
-				if (pid_it == m_names.end())
-				{
-					routing_failed(MsgError_RoutingFailed, std::move(message));
-				}
-				else
-				{
-					SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
-				}
-			}
-			else
-			{
-				auto identity = FindIdentity(envelope.address(), m_identities.begin());
-
-				if (identity == m_identities.end())
-					RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), callback);
-				else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
-					RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), callback);
-				else
-				{
-					message->SetRequestMode(MQRequestMode::CallAndResponse);
-					SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
-				}
-			}
 		}
 	}
+}
 
-	void RouteMessage(
-		PipeMessagePtr&& message)
-	{
-		auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-		const auto& address = envelope.address();
-		auto routing_failed = [&envelope](int status, PipeMessagePtr&& message)
-			{
-				RoutingFailed(envelope, status, std::move(message), nullptr);
-			};
-
-		auto single_send = [](const PipeConnectionPtr& connection, PipeMessagePtr&& message)
-			{
-				connection->SendMessage(std::move(message));
-			};
-
-		if (address.has_pid())
-		{
-			// a PID is necessarily a singular identifier, avoid the loop
-			SendMessageToPID(address.pid(), std::move(message), single_send, routing_failed);
-		}
-		else if (address.has_name())
-		{
-			// a name is also a singular identifier, avoid the loop here too
-			// route the message to a registered (named) client
-			auto pid_it = m_names.find(address.name());
-			if (pid_it == m_names.end())
-			{
-				routing_failed(MsgError_RoutingFailed, std::move(message));
-			}
-			else
-			{
-				SendMessageToPID(pid_it->second, std::move(message), single_send, routing_failed);
-			}
-		}
-		else if (message->GetRequestMode() == MQRequestMode::CallAndResponse)
-		{
-			// ensure that we have a singular target for an RPC message
-			auto identity = FindIdentity(envelope.address(), m_identities.begin());
-
-			if (identity == m_identities.end())
-				RoutingFailed(envelope, MsgError_RoutingFailed, std::move(message), nullptr);
-			else if (FindIdentity(envelope.address(), std::next(identity)) != m_identities.end())
-				RoutingFailed(envelope, MsgError_AmbiguousRecipient, std::move(message), nullptr);
-			else
-				SendMessageToPID(identity->first, std::move(message), single_send, routing_failed);
-		}
-		else
-		{
-			// we don't have a PID or a name and this is not an RPC, so we will send this message to 
-			// all clients that match the address -- it's important to copy these messages
-			for (const auto& identity : m_identities)
-			{
-				if (IsRecipient(address, identity.second))
-				{
-					SendMessageToPID(
-						identity.first,
-						std::make_unique<PipeMessage>(*message->GetHeader(), message->get(), message->size()),
-						single_send,
-						routing_failed);
-				}
-			}
-		}
-	}
-
-	bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
-	{
-		if (processID != 0)
-		{
-			if (auto connection = m_pipeServer.GetConnectionForProcessId(processID))
-			{
-				MQMessageActivateWnd message;
-				message.hWnd = hWnd;
-
-				m_pipeServer.SendMessage(connection->GetConnectionId(),
-					mq::MQMessageId::MSG_MAIN_FOCUS_ACTIVATE_WND, &message, sizeof(message));
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void SendUnloadAllCommand()
-	{
-		SPDLOG_DEBUG("Requesting to unload all instances");
-		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_UNLOAD, nullptr, 0);
-	}
-
-	void SendForceUnloadAllCommand()
-	{
-		SPDLOG_DEBUG("Requesting to FORCE unload all instances");
-		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_MAIN_REQ_FORCEUNLOAD, nullptr, 0);
-	}
-
-	void OnDeliver(const std::string& localAddress, PipeMessagePtr& message) override
-	{
-		{
-			std::lock_guard<std::mutex> lock(m_processMutex);
-			m_hasMessages = true;
-		}
-
-		m_needsProcessing.notify_one();
-	}
-
-	void Initialize()
-	{
-		m_pipeServer.SetHandler(std::make_shared<PipeEventsHandler>(this));
-		m_thread = std::thread(
-			[this]
-			{
-
-				using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
-				auto SetThreadDescription = (fSetThreadDescription)GetProcAddress(GetModuleHandle("kernel32.dll"), "SetThreadDescription");
-				if (SetThreadDescription)
-					SetThreadDescription(GetCurrentThread(), L"PostOffice");
-
-				m_running = true;
-				m_threadId = std::this_thread::get_id();
-				m_pipeServer.Start();
-				 
-				do
-				{
-					{
-						std::unique_lock<std::mutex> lock(m_processMutex);
-						m_needsProcessing.wait(lock, [this] { return m_hasMessages || !m_running; });
-					}
-
-					if (!m_running)
-						break;
-
-					m_pipeServer.Process();
-
-					// OnIncomingMessage is only called from this thread. If we ever have another source of messages
-					// (ie, network messages) then we will need to be careful about making sure Deliver and Process
-					// are always called from the same thread to avoid race conditions
-					Process(10);
-
-					{
-						std::unique_lock<std::mutex> lock(m_processMutex);
-						m_hasMessages = false;
-					}
-				} while (m_running);
-
-				m_pipeServer.Stop();
-			}
-		);
-
-		m_serverDropbox = RegisterAddress("pipe_server",
-			[this](ProtoMessagePtr&& message)
-			{
-				// if we've gotten here, then something is delivering a message to this
-				// post office ("pipe_server"), so handle messages directly
-			});
-
-		// request ID from all pre-existing connections
-		m_pipeServer.BroadcastMessage(mq::MQMessageId::MSG_IDENTIFICATION, nullptr, 0);
-	}
-
-	void Shutdown()
-	{
-		// after the mailbox is removed from the post office, it won't get any more messages, and lets
-		// make sure all remaining messages get discarded by dropping the last reference so we stop
-		// processing
-		m_serverDropbox.Remove();
-
-		// we don't need to worry about sending messages after we stop because the pipe client will log
-		// and handle this situation.
-		m_running = false;
-		m_needsProcessing.notify_one();
-		m_thread.join();
-	}
-
-private:
-	mq::ProtoPipeServer m_pipeServer;
-	Dropbox m_serverDropbox;
-
-	bool SendMessageToPID(
-		uint32_t pid,
-		PipeMessagePtr&& message,
-		const std::function<void(const PipeConnectionPtr&, PipeMessagePtr&&)> send,
-		const std::function<void(int, PipeMessagePtr&&)>& failed)
-	{
-		if (pid == GetCurrentProcessId())
-		{
-			// send to self, dispatch directly to the handler
-			m_pipeServer.DispatchMessage(std::move(message));
-			return true;
-		}
-		else if (auto connection = m_pipeServer.GetConnectionForProcessId(pid))
-		{
-			// found a connection to send it over
-			send(connection, std::move(message));
-			return true;
-		}
-
-		SPDLOG_WARN("Unable to get connection for PID {}, message route failed.", pid);
-		failed(MsgError_NoConnection, std::move(message));
-		return false;
-	}
-};
-
-PostOffice& postoffice::GetPostOffice()
+// It's worthwhile to note for these next few functions that the identity.address == m_id.address
+// check is the detection mechanism for only sending identity updates to peers that can actually
+// use them. The assumption is that all routing peers will have the same name ("launcher" nominally)
+void LauncherPostOffice::AddIdentity(const ActorIdentification& id)
 {
-	static LauncherPostOffice s_postOffice;
-	return s_postOffice;
+	SPDLOG_TRACE("{}: Requesting Add Identity {}", GetName(), id);
+	if (std::this_thread::get_id() == m_threadId)
+	{
+		ProcessAddIdentity(id);
+	}
+	else
+	{
+		{
+			std::unique_lock lock(m_identityMutex);
+			m_identityActions.emplace_back(IdentityAction::Add, id);
+		}
+
+		RequestProcessEvents();
+	}
+}
+
+void LauncherPostOffice::ProcessAddIdentity(const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Processing Add Identity {}", GetName(), id);
+	// test for duplicates, update if different
+	bool send_updates = true;
+	auto ident_it = m_identities.find(id.container.uuid);
+	if (ident_it != m_identities.end())
+	{
+		if (ident_it->second != id)
+		{
+			SPDLOG_TRACE("{}: Got Updated identification new=[{}] old=[{}]", GetName(), id, ident_it->second);
+
+			auto stat_it = m_stats.find(id.container.uuid);
+			if (stat_it == m_stats.end())
+				m_stats.emplace(id.container.uuid, ActorStats{ id });
+			else
+				stat_it->second.Identity = id;
+
+			ident_it->second = id;
+		}
+		else
+		{
+			SPDLOG_TRACE("{}: Got duplicate identification from {}, doing nothing", GetName(), id);
+			send_updates = false;
+		}
+	}
+	else
+	{
+		SPDLOG_TRACE("{}: Got New identification from [{}]", GetName(), id);
+		m_stats.emplace(id.container.uuid, ActorStats{ id });
+		m_identities.emplace(id.container.uuid, id);
+	}
+
+	if (send_updates && id.container.IsLocal())
+	{
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid && uuid != id.container.uuid)
+				SendIdentification(identity.container, id);
+	}
+}
+
+void LauncherPostOffice::DropIdentity(const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Requesting Drop Identity {}", GetName(), id);
+	if (id.address == m_id.address)
+	{
+		// if this is dropping another launcher, then everything it routes also needs to be dropped
+		DropContainer(id.container);
+	}
+	else if (std::this_thread::get_id() == m_threadId)
+	{
+		ProcessDropIdentity(id);
+	}
+	else
+	{
+		{
+			std::unique_lock lock(m_identityMutex);
+			m_identityActions.emplace_back(IdentityAction::Drop, id);
+		}
+
+		RequestProcessEvents();
+	}
+}
+
+void LauncherPostOffice::ProcessDropIdentity(const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Processing Drop Identity {}", GetName(), id);
+	for (auto ident_it = m_identities.begin(); ident_it != m_identities.end();)
+	{
+		if (ident_it->second.IsDuplicate(id))
+			ident_it = m_identities.erase(ident_it);
+		else
+			++ident_it;
+	}
+
+	if (id.container.IsLocal())
+	{
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid)
+				DropIdentification(identity.container, id);
+	}
+}
+
+void LauncherPostOffice::DropContainer(const ActorContainer& container)
+{
+	SPDLOG_TRACE("{}: Requesting Drop Container {}", GetName(), container);
+	if (std::this_thread::get_id() == m_threadId)
+	{
+		ProcessDropContainer(container);
+	}
+	else
+	{
+		{
+			std::unique_lock lock(m_identityMutex);
+			m_identityActions.emplace_back(IdentityAction::MassDrop, ActorIdentification{container, ""});
+		}
+
+		RequestProcessEvents();
+	}
+}
+
+void LauncherPostOffice::ProcessDropContainer(const ActorContainer& container)
+{
+	SPDLOG_TRACE("{}: Processing Drop Container {}", GetName(), container);
+	if (container.IsLocal())
+	{
+		std::vector<ActorIdentification> to_erase;
+		auto it = std::find_if(m_identities.begin(), m_identities.end(),
+			[&container](const std::pair<std::string, ActorIdentification>& pair)
+			{ return pair.second.container.IsIn(container); });
+
+		while (it != m_identities.end())
+		{
+			to_erase.emplace_back(std::move(it->second));
+			it = std::find_if(m_identities.erase(it), m_identities.end(),
+				[&container](const std::pair<std::string, ActorIdentification>& pair)
+				{ return pair.second.container.IsIn(container); });
+		}
+
+		for (const auto& [uuid, identity] : m_identities)
+			if (identity.address == m_id.address && uuid != m_id.container.uuid)
+				for (const auto& dropped : to_erase)
+					DropIdentification(identity.container, dropped);
+	}
+
+	// always remove explicit drops from identities
+	auto iter = m_identities.find(container.uuid);
+	if (iter != m_identities.end())
+		m_identities.erase(iter);
+
+	std::visit(overload{
+		[this](const ActorContainer::Process&) {},
+		[this](const ActorContainer::Network& net)
+		{
+			std::unique_lock lock(m_processMutex);
+			m_reconnectingHosts.emplace_back(NetworkAddress{net.IP, net.Port});
+		}
+	}, container.value);
+}
+
+void LauncherPostOffice::SendIdentities(const ActorContainer& requester)
+{
+	SPDLOG_TRACE("{}: Requesting Send Identities from {}", GetName(), requester);
+	if (std::this_thread::get_id() == m_threadId)
+	{
+		ProcessSendIdentities(requester);
+	}
+	else
+	{
+		{
+			std::unique_lock lock(m_identityMutex);
+			m_identityActions.emplace_back(IdentityAction::MassAdd, ActorIdentification{requester, ""});
+		}
+
+		RequestProcessEvents();
+	}
+}
+
+void LauncherPostOffice::ProcessSendIdentities(const ActorContainer& requester)
+{
+	SPDLOG_TRACE("{}: Processing Send Identities from {}", GetName(), requester);
+	for (const auto& [_, client] : m_identities)
+		if (client.container.IsLocal())
+			SendIdentification(requester, client);
+}
+
+void LauncherPostOffice::ProcessReconnects()
+{
+	std::unique_lock lock(m_processMutex);
+
+	if (!m_reconnectingHosts.empty())
+	{
+		std::vector<NetworkAddress> hosts;
+		std::swap(hosts, m_reconnectingHosts);
+
+		lock.unlock();
+
+		for (const auto& host : hosts)
+		{
+				AddNetworkHost(host.IP, host.Port);
+			}
+		}
+	}
+
+void LauncherPostOffice::FillAndSend(MessagePtr message, const std::function<bool(const ActorIdentification&)>& predicate)
+{
+	std::vector<const ActorIdentification*> identities;
+	for (const auto& [_, identity] : m_identities)
+	{
+		if (predicate(identity))
+			identities.emplace_back(&identity);
+	}
+
+	if (message->mode() == static_cast<uint32_t>(MQRequestMode::CallAndResponse) && identities.size() != 1)
+	{
+		if (identities.size() > 1)
+			RoutingFailed(MsgError_AmbiguousRecipient, std::move(message), "Multiple recipients match identity");
+		else
+			RoutingFailed(MsgError_RoutingFailed, std::move(message), "No recipients match identity");
+	}
+	else if (identities.size() == 1)
+	{
+		// minor optimization, this lets us move
+		auto identity = identities.front();
+		SendMessage(identity->container, FillAddress(std::move(message), *identity));
+	}
+	else
+	{
+		for (auto identity : identities)
+			SendMessage(identity->container, FillAddress(std::make_unique<proto::routing::Envelope>(*message), *identity));
+	}
+}
+
+void LauncherPostOffice::RouteFromConnection(MessagePtr message)
+{
+	// it's safe to assume that any RPC requests will get routed back to the originating connection, so there is no
+	// need to handle callbacks here, we can just allow the connections to handle them when the reply is sent back
+	// over the connection (via route). What we _do_ need here is early detection of multiple recipients if the
+	// message is an RPC and sending it back if it's ambiguous
+
+	SPDLOG_TRACE("{}: Routing received message: to=[{}] from=[{}] seq={}", GetName(),
+		message->address().ShortDebugString(), message->return_address().ShortDebugString(), message->sequence());
+
+	if (message->has_return_address() && message->return_address().has_uuid())
+		AddReceiveStat(message->return_address().uuid());
+
+	const auto& address = message->address();
+
+	std::string uuid = address.uuid();
+	if ((!uuid.empty() && uuid == m_id.container.uuid) ||
+		uuid.empty() && address.has_process() && address.process().pid() == GetCurrentProcessId() && address.has_name() && address.name() == "launcher")
+	{
+		// we are explicitly sending to this launcher, so route entirely internally
+		const auto mailbox = address.has_mailbox() ? address.mailbox() : "post_office";
+		SPDLOG_TRACE("{}: Internal pipe message received in launcher, routing to mailbox {} seq={}", GetName(), mailbox, message->sequence());
+
+		// This is already an explicit address, so just package up the envelope into a message and deliver it
+		DeliverTo(mailbox, std::move(message));
+	}
+	else if (address.has_process() || (address.has_peer() && address.peer().ip() == "127.0.0.1" && address.peer().port() == m_peerConnection->GetPort()))
+	{
+		// this message is intended to be routed locally and not relayed to external peers
+		SPDLOG_TRACE("{}: Routing message to local connections ({}) seq={}", GetName(), address.ShortDebugString(), message->sequence());
+		proto::routing::Address local_address;
+		local_address.set_mailbox(address.mailbox());
+		if (address.has_name())
+			local_address.set_name(address.name());
+		else if (address.has_client())
+			*local_address.mutable_client() = address.client();
+
+		FillAndSend(std::move(message),
+			[&local_address, this](const auto& identity)
+			{ return identity.container.IsLocal() && IsRecipient(local_address, identity); });
+	}
+	else
+	{
+		// This message isn't addressed specifically to a container, so find all identities that
+		// should receive this message and send to each one
+		SPDLOG_TRACE("{}: Routing message to [{}] seq={}", GetName(), address.ShortDebugString(), message->sequence());
+
+		FillAndSend(std::move(message),
+			[&address, this](const auto& identity)
+			{ return IsRecipient(address, identity); });
+	}
+
+	RequestProcessEvents();
+}
+
+void LauncherPostOffice::AddNetworkHost(const std::string& address, uint16_t port) const
+{
+	m_peerConnection->AddHost(address, port);
+}
+
+void LauncherPostOffice::RemoveNetworkHost(const std::string& address, uint16_t port) const
+{
+	m_peerConnection->RemoveHost(address, port);
+}
+
+void LauncherPostOffice::AddConfiguredHosts()
+{
+	// it does not make sense for this port to be 0 since we are trying to connect to a peer with
+	// a live port, so assume 0 means connect to the same port as this
+	const uint16_t default_port = GetPeerPort();
+
+	if (m_config.Peers)
+	{
+		for (const auto& [address, port] : *m_config.Peers)
+		{
+			AddNetworkHost(address, port > 0 ? port : default_port);
+		}
+	}
+	else if (s_iniLocation)
+	{
+		for (const auto& [address, port_raw] : GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
+		{
+			const uint16_t port = static_cast<uint16_t>(GetUIntFromString(port_raw, 0));
+			AddNetworkHost(address, port > 0 ? port : default_port);
+		}
+	}
+}
+
+uint16_t LauncherPostOffice::GetPeerPort() const
+{
+	return m_config.PeerPort;
+}
+
+void LauncherPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& message)
+{
+	RequestProcessEvents();
+}
+
+uint32_t LauncherPostOffice::GetIdentityCount()
+{
+	return (uint32_t)m_identities.size();
+}
+
+std::vector<const ActorStats*> LauncherPostOffice::GetStats()
+{
+	auto now = std::chrono::system_clock::now();
+	auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+
+	std::vector<const ActorStats*> stats;
+	stats.reserve(m_stats.size());
+
+	for (auto& [_, stat] : m_stats)
+	{
+		stat.Sent.erase(std::remove_if(stat.Sent.begin(), stat.Sent.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat.Sent.end());
+
+		stat.Received.erase(std::remove_if(stat.Received.begin(), stat.Received.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat.Received.end());
+
+		stats.push_back(&stat);
+	}
+
+	return stats;
+}
+
+void LauncherPostOffice::Initialize()
+{
+	// request IDs from all pre-existing connections
+	// we could theoretically just ask a single peer but this will guarantee we have all
+	// potential addresses
+	for (const auto& [_, id] : m_identities)
+		if (!m_id.IsDuplicate(id)) RequestIdentities(id.container);
+}
+
+void LauncherPostOffice::Shutdown()
+{
+	if (!m_running)
+		return;
+
+	SPDLOG_INFO("{}: Shutting down post office", GetName());
+	m_running = false;
+	m_needsProcessing.notify_one();
+	m_thread.join();
+
+	RemovePostOffice(m_config.Index);
+}
+
+void LauncherPostOffice::RequestProcessEvents()
+{
+	{
+		std::unique_lock<std::mutex> lock(m_processMutex);
+		m_hasMessages = true;
+	}
+
+	m_needsProcessing.notify_one();
+}
+
+LauncherPostOffice::LauncherPostOffice(const PostOfficeConfig& config)
+	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::Process{ GetCurrentProcessId() }, CreateUUID()), "launcher"))
+	, m_config(config)
+	, m_localConnection(std::make_unique<LocalConnection>(this))
+	, m_peerConnection(std::make_unique<PeerConnection>(this))
+{
+	m_config.PeerPort = m_peerConnection->GetPort();
+	SPDLOG_INFO("{}: Starting Post Office on pipe {} and port {}", GetName(), m_config.PipeName, m_config.PeerPort);
+
+	m_name = fmt::format("{} [{}]", m_config.Name, m_config.PeerPort);
+
+	m_thread = std::thread(
+		[this]
+		{
+			m_stats.emplace(m_id.container.uuid, ActorStats{ m_id });
+			m_identities.emplace(m_id.container.uuid, m_id);
+
+			AddConfiguredHosts();
+
+			using fSetThreadDescription = HRESULT(WINAPI*)(HANDLE, PCWSTR);
+			fSetThreadDescription SetThreadDescription = nullptr;
+			if (auto kernel = GetModuleHandleA("kernel32.dll"))
+				SetThreadDescription = (fSetThreadDescription)GetProcAddress(kernel, "SetThreadDescription");
+
+			if (SetThreadDescription)
+				SetThreadDescription(GetCurrentThread(), L"PostOffice");
+
+			m_running = true;
+			m_threadId = std::this_thread::get_id();
+
+			StartConnections();
+
+			InitializePostOfficeImgui();
+
+			do
+			{
+				{
+					std::unique_lock<std::mutex> lock(m_processMutex);
+					m_needsProcessing.wait_for(lock,
+						std::chrono::seconds(m_config.HeartbeatSeconds),
+						[this] { return m_hasMessages || !m_running; });
+					
+					// set this before we process to allow for processes to request additional processing
+					m_hasMessages = false;
+				}
+
+				SPDLOG_TRACE("{}: Found needs processing", GetName());
+
+				ProcessIdentities(); // handles all identification maintenance
+
+				ProcessOutgoing(); // handles any messages posted from the internal dropbox
+
+				// It's important that this call is the only trigger for the connections incoming messages
+				// that get handed off to RouteFromConnections. For local connections, it's OnIncomingMessage
+				// and for network connections its the receive callback specified during construction
+				// of the connection
+				ProcessConnections(); // handles all incoming messages from connections
+
+				ProcessReconnects();
+
+				Process(10); // processes the messages waiting in the internal dropbox (shouldn't happen often)
+			} while (m_running);
+
+			ShutdownPostOfficeImgui();
+
+			StopConnections();
+		}
+	);
+}
+
+LauncherPostOffice::~LauncherPostOffice()
+{
+	SPDLOG_TRACE("{}: Removing post office", GetName());
+}
+
+template <>
+const std::unique_ptr<LocalConnection>& LauncherPostOffice::GetConnection<ActorContainer::Process>()
+{
+	return m_localConnection;
+}
+
+template <>
+const std::unique_ptr<PeerConnection>& LauncherPostOffice::GetConnection<ActorContainer::Network>()
+{
+	return m_peerConnection;
+}
+
+template <size_t I>
+void LauncherPostOffice::StartConnections()
+{
+	using V = std::remove_const_t<decltype(ActorContainer::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		GetConnection<std::variant_alternative_t<I, V>>()->Start();
+		StartConnections<I + 1>();
+	}
+}
+
+template <size_t I>
+void LauncherPostOffice::StopConnections()
+{
+	using V = std::remove_const_t<decltype(ActorContainer::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		GetConnection<std::variant_alternative_t<I, V>>()->Stop();
+		StopConnections<I + 1>();
+	}
+}
+
+template <size_t I>
+void LauncherPostOffice::ProcessConnections()
+{
+	using V = std::remove_const_t<decltype(ActorContainer::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		GetConnection<std::variant_alternative_t<I, V>>()->Process();
+		ProcessConnections<I + 1>();
+	}
+}
+
+template <size_t I>
+void LauncherPostOffice::BroadcastMessage(MessagePtr message)
+{
+	for (const auto& [uuid, _] : m_identities)
+		AddSendStat(uuid);
+
+	using V = std::remove_const_t<decltype(ActorContainer::value)>;
+	if constexpr (I < std::variant_size_v<V>)
+	{
+		// copy the message for broadcasting on each connection
+		GetConnection<std::variant_alternative_t<I, V>>()->BroadcastMessage(message);
+		BroadcastMessage<I + 1>(std::move(message));
+	}
+}
+
+bool LauncherPostOffice::SendMessage(const ActorContainer& ident, MessagePtr message)
+{
+	SPDLOG_TRACE("{}: Sending message to {} seq={}", GetName(), ident, message->sequence());
+	AddSendStat(ident.uuid);
+	return std::visit([this, message = std::move(message), &ident](const auto& c) mutable
+		{
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendMessage(ident, std::move(message));
+		}, ident.value);
+}
+
+void LauncherPostOffice::SendIdentification(const ActorContainer& target, const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Sending identification {} to {}", GetName(), id, target);
+	return std::visit([this, &id, &target](const auto& c) mutable
+		{
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->SendIdentification(target, id);
+		}, target.value);
+}
+
+void LauncherPostOffice::DropIdentification(const ActorContainer& target, const ActorIdentification& id)
+{
+	SPDLOG_TRACE("{}: Dropping identification {} from {}", GetName(), id, target);
+	return std::visit([this, &id, &target](const auto& c) mutable
+		{
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->DropIdentification(target, id);
+		}, target.value);
+}
+
+void LauncherPostOffice::RequestIdentities(const ActorContainer& from)
+{
+	SPDLOG_TRACE("{}: Requesting identities from {}", GetName(), from);
+	return std::visit([this, &from](const auto& c) mutable
+		{
+			return GetConnection<std::remove_const_t<std::remove_reference_t<decltype(c)>>>()->RequestIdentities(from);
+		}, from.value);
+}
+
+void LauncherPostOffice::AddSendStat(const std::string& uuid)
+{
+	auto stat_it = m_stats.find(uuid);
+	if (stat_it == m_stats.end())
+	{
+		auto id_it = m_identities.find(uuid);
+		if (id_it != m_identities.end())
+		{
+			auto [result, _] = m_stats.emplace(uuid, ActorStats{ id_it->second });
+			stat_it = result;
+		}
+	}
+
+	if (stat_it != m_stats.end())
+	{
+		auto now = std::chrono::system_clock::now();
+		stat_it->second.Sent.emplace_back(now);
+
+		auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+		stat_it->second.Sent.erase(std::remove_if(stat_it->second.Sent.begin(), stat_it->second.Sent.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat_it->second.Sent.end());
+	}
+}
+
+void LauncherPostOffice::AddReceiveStat(const std::string& uuid)
+{
+	auto stat_it = m_stats.find(uuid);
+	if (stat_it == m_stats.end())
+	{
+		auto id_it = m_identities.find(uuid);
+		if (id_it != m_identities.end())
+		{
+			auto [result, _] = m_stats.emplace(uuid, ActorStats{ id_it->second });
+			stat_it = result;
+		}
+	}
+
+	if (stat_it != m_stats.end())
+	{
+		auto now = std::chrono::system_clock::now();
+		stat_it->second.Received.emplace_back(now);
+
+		auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
+		stat_it->second.Received.erase(std::remove_if(stat_it->second.Received.begin(), stat_it->second.Received.end(),
+			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+			stat_it->second.Received.end());
+	}
+}
+
+} // namespace mq::postoffice
+
+// this map is exclusively to allow testing by standing up multiple post offices
+static std::unordered_map<uint32_t, postoffice::LauncherPostOffice> s_postOffices;
+template <>
+postoffice::LauncherPostOffice& postoffice::GetPostOffice<postoffice::LauncherPostOffice>(uint32_t index)
+{
+	auto it = s_postOffices.find(index);
+	if (it == s_postOffices.end())
+		it = s_postOffices.emplace(index, GetPostOfficeConfig(index)).first;
+
+	return it->second;
+}
+
+template <>
+postoffice::PostOffice& postoffice::GetPostOffice<postoffice::PostOffice>(uint32_t index)
+{
+	return postoffice::GetPostOffice<postoffice::LauncherPostOffice>(index);
 }
 
 //----------------------------------------------------------------------------
@@ -657,27 +846,76 @@ PostOffice& postoffice::GetPostOffice()
 
 bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 {
-	return static_cast<LauncherPostOffice&>(GetPostOffice()).SendSetForegroundWindow(hWnd, processID);
+	using namespace postoffice;
+	return GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendSetForegroundWindow(hWnd, processID);
 }
 
 void SendUnloadAllCommand()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).SendUnloadAllCommand();
+	using namespace postoffice;
+	GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendUnloadAllCommand();
 }
 
 void SendForceUnloadAllCommand()
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).SendForceUnloadAllCommand();
+	using namespace postoffice;
+	GetPostOffice<LauncherPostOffice>().GetConnection<ActorContainer::Process>()->SendForceUnloadAllCommand();
 }
 
-void InitializeNamedPipeServer()
+//----------------------------------------------------------------------------
+
+const PostOfficeConfig& GetPostOfficeConfig(uint32_t index)
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).Initialize();
+	const auto config = s_postOfficeConfigs.find(index);
+	if (config != s_postOfficeConfigs.end())
+		return config->second;
+
+	static PostOfficeConfig s_defaultPostOfficeConfig;
+	return s_defaultPostOfficeConfig;
 }
 
-void ShutdownNamedPipeServer()
+void SetPostOfficeConfig(const PostOfficeConfig& config)
 {
-	static_cast<LauncherPostOffice&>(GetPostOffice()).Shutdown();
+	s_postOfficeConfigs[config.Index] = config;
+}
+
+void DropPostOfficeConfig(uint32_t index)
+{
+	s_postOfficeConfigs.erase(index);
+}
+
+void ClearPostOfficeConfigs()
+{
+	s_postOfficeConfigs.clear();
+}
+
+void ClearPostOffices()
+{
+	using namespace postoffice;
+
+	std::vector<uint32_t> indexes;
+	for (const auto& [index, _] : s_postOffices)
+		indexes.push_back(index);
+
+	for (auto index : indexes)
+		GetPostOffice<LauncherPostOffice>(index).Shutdown();
+}
+
+void InitializePostOffice(uint32_t index)
+{
+	using namespace postoffice;
+	GetPostOffice<LauncherPostOffice>(index).Initialize();
+}
+
+void ShutdownPostOffice(uint32_t index)
+{
+	using namespace postoffice;
+	GetPostOffice<LauncherPostOffice>(index).Shutdown();
+}
+
+void RemovePostOffice(uint32_t index)
+{
+	s_postOffices.erase(index);
 }
 
 //----------------------------------------------------------------------------

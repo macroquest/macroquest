@@ -14,11 +14,13 @@
 
 #pragma once
 
+#include "mq/base/Base.h"
+
 #include <cstdint>
 
-#if defined(MQ_NO_EXPORTS)
-#define MQLIB_API
-#define MQLIB_VAR
+#if defined(MQ_NO_EXPORTS) || defined(MQLIB_STATIC)
+#define MQLIB_API extern "C"
+#define MQLIB_VAR extern "C"
 #define MQLIB_OBJECT
 #elif defined(MQ2MAIN_EXPORTS)
 #define MQLIB_API extern "C" __declspec(dllexport)
@@ -29,25 +31,3 @@
 #define MQLIB_VAR extern "C" __declspec(dllimport)
 #define MQLIB_OBJECT __declspec(dllimport)
 #endif
-
-#ifdef MQ2PLUGIN
-#define FromPlugin true
-#else
-#define FromPlugin false
-#endif
-
-#define STRINGIFY_IMPL(x) #x
-#define STRINGIFY(x) STRINGIFY_IMPL(x)
-
-#define UNUSED(x) ((void)(x))
-
-#define LODWORD(_qw)          ((uint32_t)(_qw))
-#define HIDWORD(_qw)          ((uint32_t)(((_qw) >> 32) & 0xffffffff))
-
-constexpr int MAX_STRING = 2048;
-
-template <typename T, size_t N>
-constexpr size_t lengthof(const T(&)[N])
-{
-	return N;
-}

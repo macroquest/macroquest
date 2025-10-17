@@ -25,8 +25,8 @@
 #include "mq/zep/ImGuiZepEditor.h"
 #include "zep/window.h"
 
-#include "eqlib/eqstd/unordered_map.h"
-#include "eqlib/eqstd/string.h"
+#include "eqstd/unordered_map.h"
+#include "eqstd/string.h"
 
 #include <fmt/format.h>
 #include <fmt/chrono.h>

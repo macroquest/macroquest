@@ -20,11 +20,8 @@ namespace mq {
 const double DegToRad = 57.295779513082320876846364344191;
 const double PI = 3.1415926535;
 
-uintptr_t baseAddress = (uintptr_t)GetModuleHandle(nullptr);
-bool InitOffsets()
-{
-	return true;
-}
+uintptr_t baseAddress = (uintptr_t)::GetModuleHandleA(nullptr);
+
 
 /* PickZone */
 HANDLE ghInitializeSpellDbThread = nullptr;
@@ -57,7 +54,6 @@ bool gAnonymize = false; // Deprecate
 DWORD ThreadID = 0;
 bool g_Loaded = false;
 bool gbWriteAllConfig = false;
-bool gStringTableFixed = false;
 
 HMODULE ghModule = nullptr;
 HINSTANCE ghInstance = nullptr;
@@ -448,7 +444,7 @@ BYTE LightBrightness[] = {
 };
 
 const char* szSkills[] = {
-#include "../eqdata/skills.h"
+#include "eqdata/skills.h"
 	nullptr
 };
 
@@ -563,41 +559,41 @@ const char* szDmgBonusType[] = {
 };
 
 const char* szBodyType[] = {
-	"Object",//0       (catapults, tents, practice dummies, etc)
-	"Humanoid", //1
-	"Lycanthrope", //2
-	"Undead", //3
-	"Giant", //4
-	"Construct", //5   (includes confused mutations in ldon, chests as of 9-19-2006)
-	"Extraplanar", //6
-	"Magical", //7
-	"Undead Pet", //8
-	"Bane Giant", //9
-	"Dain", //10
-	"Untargetable", //11
-	"Vampyre", //12
-	"Atenha Ra", //13
-	"Greater Akheva",//14
-	"Khati Sha", //15
-	"Seru", //16
-	"Greig", //17
-	"Draz Nurakk", //18
-	"Zek", //19
-	"Luggald", //20
-	"Animal", //21
-	"Insect", //22
-	"Monster", //23
-	"Elemental", //24
-	"Plant", //25
-	"Dragon", //26
-	"Elemental", //27
-	"Summoned Creature",//28
-	"Puff Dragon",//29
-	"Bane Dragon",//30
-	"Familiar",//31
-	"Proc Pet",//32 (NoCorpseNpc)
-	"Cursed",//33  (5 as of 9-19-2006)
-	"Muramite",//34
+	"Object",                //  0    not a real body type. (catapults, tents, practice dummies, etc)
+	"Humanoid",              //  1
+	"Lycanthrope",           //  2
+	"Undead",                //  3
+	"Giant",                 //  4
+	"Construct",             //  5
+	"Extraplanar",           //  6
+	"Magical",               //  7
+	"Undead Pet",            //  8
+	"Bane Giant",            //  9
+	"Dain",                  // 10
+	"Untargetable",          // 11
+	"Vampyre",               // 12
+	"Atenha Ra",             // 13
+	"Greater Akheva",        // 14
+	"Khati Sha",             // 15
+	"Seru",                  // 16
+	"Greig",                 // 17
+	"Draz Nurakk",           // 18
+	"Zek",                   // 19
+	"Luggald",               // 20
+	"Animal",                // 21
+	"Insect",                // 22
+	"Monster",               // 23
+	"Elemental",             // 24
+	"Plant",                 // 25
+	"Dragon",                // 26
+	"Elemental",             // 27
+	"Summoned Creature",     // 28
+	"Puff Dragon",           // 29
+	"Bane Dragon",           // 30
+	"Familiar",              // 31
+	"No Corpse",             // 32
+	"Cursed",                // 33
+	"Muramite",              // 34
 	"*UNKNOWN BODYTYPE 35",
 	"*UNKNOWN BODYTYPE 36",
 	"*UNKNOWN BODYTYPE 37",
@@ -626,11 +622,11 @@ const char* szBodyType[] = {
 	"*UNKNOWN BODYTYPE 60",
 	"*UNKNOWN BODYTYPE 61",
 	"*UNKNOWN BODYTYPE 62",
-	"Swarm Pet",//63
-	"Monster Summoning",//64
-	"Trap",//65
-	"Timer",//66
-	"Trigger",//67
+	"*UNKNOWN BODYTYPE 63",
+	"Monster Summoning",     // 64
+	"*UNKNOWN BODYTYPE 65",
+	"*UNKNOWN BODYTYPE 66",
+	"*UNKNOWN BODYTYPE 67",
 	"*UNKNOWN BODYTYPE 68",
 	"*UNKNOWN BODYTYPE 69",
 	"*UNKNOWN BODYTYPE 70",
@@ -662,11 +658,12 @@ const char* szBodyType[] = {
 	"*UNKNOWN BODYTYPE 96",
 	"*UNKNOWN BODYTYPE 97",
 	"*UNKNOWN BODYTYPE 98",
-	"*UNKNOWN BODYTYPE 99",
-	"Untargetable",//100 (Property Utility)
-	"Property Trap",//101
-	"Property Companion",//102
-	"Property Suicide",//103
+	"*UNKNOWN BODYTYPE 99",  // Seen in characterpropertysets.txt
+	"Utility",               // 100
+	"Property Trap",         // 101
+	"Property Companion",    // 102
+	"Property Suicide",      // 103
+	"*UNKNOWN BODYTYPE 104", // Seen on player pets
 };
 
 const char* szAugRestrictions[] = {

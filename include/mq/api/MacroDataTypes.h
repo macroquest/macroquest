@@ -18,9 +18,9 @@
 #include "mq/base/Deprecation.h"
 #include "mq/base/PluginHandle.h"
 
-#include "eqlib/base/Color.h"
-#include "eqlib/CXStr.h"
-#include "eqlib/Items.h"
+#include "eqlib/game/Color.h"
+#include "eqlib/game/CXStr.h"
+#include "eqlib/game/Items.h"
 
 #include <functional>
 #include <memory>
@@ -330,7 +330,7 @@ struct MQVarPtr
 		if (ptr != nullptr)
 			return *ptr;
 
-		return { { 0, 0, 0, 0 } };
+		return {};
 	}
 
 	eqlib::ARGBCOLOR set_Argb(eqlib::ARGBCOLOR Val)
