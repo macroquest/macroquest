@@ -18,8 +18,7 @@
 #if HAS_DIRECTX_9
 
 #include "ImGuiBackend.h"
-#include "ImGuiManager.h"
-#include "../common/Common.h"
+#include "Logging.h"
 
 #include <wil/com.h>
 #include <imgui.h>

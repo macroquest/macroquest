@@ -15,7 +15,6 @@
 #include "pch.h"
 #include "MacroQuest.h"
 #include "MQ2Main.h"
-#include "MQPluginHandler.h"
 #include "Logging.h"
 #include "mq/base/WString.h"
 
@@ -68,36 +67,6 @@ public:
 
 //============================================================================
 
-class CDisplay_Detours
-{
-public:
-	void ZoneMainUI_Detour()
-	{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
-		{
-			// unload
-			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
-			DoCommand("/unload", false);
-		}
-#endif
-
-		PluginsEndZone();
-		ZoneMainUI_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, ZoneMainUI_Trampoline, ())
-
-	void PreZoneMainUI_Detour()
-	{
-		PluginsBeginZone();
-		PreZoneMainUI_Trampoline();
-	}
-
-	DETOUR_TRAMPOLINE_DEF(void, PreZoneMainUI_Trampoline, ())
-};
-
-	
 #if 0
 // TODO: Maybe someday revisit detection of assist completion...
 //void SetAssist(BYTE* address)
@@ -499,14 +468,12 @@ static bool IsHooked(uintptr_t addr)
 
 static void HookMemChecker(bool Patch)
 {
-	LOG_DEBUG("HookMemChecker - %satching", (Patch) ? "P" : "Unp");
+	LOG_DEBUG("HookMemChecker - {}atching", (Patch) ? "P" : "Unp");
 
 	if (Patch)
 	{
 		mq::AddPatch(__compress_block, __decompress_block - __compress_block + DETOUR_BYTES_COUNT, "__compress_block");
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
-		EzDetour(CDisplay__ZoneMainUI, &CDisplay_Detours::ZoneMainUI_Detour, &CDisplay_Detours::ZoneMainUI_Trampoline);
-		EzDetour(CDisplay__PreZoneMainUI, &CDisplay_Detours::PreZoneMainUI_Detour, &CDisplay_Detours::PreZoneMainUI_Trampoline);
 
 		InstallHooks();
 
@@ -532,8 +499,6 @@ static void HookMemChecker(bool Patch)
 	{
 		RemoveHooks();
 		RemoveDetour(Spellmanager__LoadTextSpells);
-		RemoveDetour(CDisplay__ZoneMainUI);
-		RemoveDetour(CDisplay__PreZoneMainUI);
 		mq::RemovePatch(__compress_block);
 	}
 }

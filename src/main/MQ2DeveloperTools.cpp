@@ -2025,9 +2025,11 @@ public:
 				ImGui::TableNextColumn(); ImGui::Text("Is Offline");
 				ImGui::TableNextColumn(); ImGui::Text("%s", groupMember->IsOffline() ? "Yes" : "No");
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn(); ImGui::Text("Unique Player ID");
 				ImGui::TableNextColumn(); ImGui::Text("%d", groupMember->UniquePlayerID);
+#endif
 
 #if IS_CLIENT_DATE(20250513u)
 				ImGui::TableNextRow();

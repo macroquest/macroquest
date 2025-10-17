@@ -14,7 +14,7 @@
 
 #pragma once
 
-namespace eqlib {
+namespace mq {
 
 template <typename IteratorType>
 struct IteratorRange
@@ -31,4 +31,4 @@ IteratorRange<IteratorType> make_iterator_range(IteratorType i1, IteratorType i2
 	return IteratorRange<IteratorType>{ i1, i2 };
 }
 
-} // namespace eqlib
+} // namespace mq

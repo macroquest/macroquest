@@ -32,8 +32,6 @@ namespace spdlog
 
 namespace mq {
 
-extern std::shared_ptr<spdlog::logger> g_logger;
-
 enum eAdventureTheme
 {
 	eAT_None,
