@@ -959,9 +959,9 @@ static void Spawns_Initialize()
 #endif
 	EzDetour(PlayerClient__SetNameSpriteState, &PlayerClientHook::SetNameSpriteState_Detour, &PlayerClientHook::SetNameSpriteState_Trampoline);
 	EzDetour(PlayerClient__SetNameSpriteTint, &PlayerClientHook::SetNameSpriteTint_Detour, &PlayerClientHook::SetNameSpriteTint_Trampoline);
-	EzDetour(EQItemList__FreeItemList, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
-	EzDetour(EQItemList__add_item, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
-	EzDetour(EQItemList__delete_item, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
+	EzDetour(EQGroundItemListManager__Clear, &MyEQGroundItemListManager::FreeItemList_Detour, &MyEQGroundItemListManager::FreeItemList_Trampoline);
+	EzDetour(EQGroundItemListManager__Add, &MyEQGroundItemListManager::Add_Detour, &MyEQGroundItemListManager::Add_Trampoline);
+	EzDetour(EQGroundItemListManager__Delete, &MyEQGroundItemListManager::DeleteItem_Detour, &MyEQGroundItemListManager::DeleteItem_Trampoline);
 
 	// Load Settings
 	LoadCaptionSettings();
@@ -1033,9 +1033,9 @@ static void Spawns_Shutdown()
 #endif
 	RemoveDetour(PlayerClient__SetNameSpriteState);
 	RemoveDetour(PlayerClient__SetNameSpriteTint);
-	RemoveDetour(EQItemList__FreeItemList);
-	RemoveDetour(EQItemList__add_item);
-	RemoveDetour(EQItemList__delete_item);
+	RemoveDetour(EQGroundItemListManager__Clear);
+	RemoveDetour(EQGroundItemListManager__Add);
+	RemoveDetour(EQGroundItemListManager__Instance);
 
 	ProcessPending = false;
 
