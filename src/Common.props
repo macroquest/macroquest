@@ -45,6 +45,7 @@
     <!-- 64-bit linker settings -->
     <PlatformLibraryDirectories Condition="'$(Platform)'=='x64'"></PlatformLibraryDirectories>
   </PropertyGroup>
+
   <PropertyGroup>
     <IntDir>$(MQBuildDirectory)obj\$(Platform)\$(MQBinaryDirName)\$(ProjectName)\</IntDir>
     <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQBuildDirectory)bin\$(MQBinaryDirName)\</OutDir>
@@ -52,6 +53,7 @@
     <LinkIncremental Condition="'$(MQConfig)'=='Debug'">true</LinkIncremental>
     <LinkIncremental Condition="'$(MQConfig)'=='Release'">false</LinkIncremental>
   </PropertyGroup>
+
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
     <ClCompile Condition="'$(MQConfig)'=='Debug'">
@@ -62,6 +64,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
+
     <!-- Release only compiler settings -->
     <ClCompile Condition="'$(MQConfig)'=='Release'">
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -69,6 +72,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
+
     <!-- Shared compiler settings -->
     <ClCompile>
       <AdditionalIncludeDirectories>$(MQRoot)include;$(MQRoot)contrib;$(MQRoot)contrib\imgui;$(MQRoot)contrib\imgui\misc\cpp;$(MQRoot)contrib\tinyfsm\include;$(MQRoot)contrib\dxsdk90\include;$(MQRoot)contrib\zep\include;$(MQRoot)src;$(MQRoot)plugins;$(VCPKG_IncludeStatic);$(VCPKG_IncludeDynamic);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -80,6 +84,7 @@
       <PreprocessorDefinitions>SOL_SAFE_FUNCTIONS;SOL_SAFE_USERTYPE;GLM_FORCE_CTOR_INIT;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32_LEAN_AND_MEAN;NOMINMAX;_WINNT_WIN32=0x0601;WINVER=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
+
     <!-- Shared linker settings -->
     <Link>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -96,18 +101,22 @@
       <PreprocessorDefinitions>IMGUI_STATIC;MQLIB_STATIC;EQLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+
   <Target Name="VcpkgMQInstallManifestDependencies" BeforeTargets="PreBuildEvent">
     <Message Text="Checking vcpkg_mq manifest for $(MSBuildProjectName)..." Importance="High" />
     <Exec Condition="'$(Platform)'=='Win32'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQRoot.TrimEnd('\'))%22 -Platform %22x86%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
     <Exec Condition="'$(Platform)'=='x64'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQRoot.TrimEnd('\'))%22 -Platform %22x64%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
   </Target>
+
   <PropertyGroup>
     <ProtocolBufferDependsOn>VcpkgMQInstallManifestDependencies;$(ProtocolBufferDependsOn)</ProtocolBufferDependsOn>
   </PropertyGroup>
+
   <ImportGroup Label="PropertySheets">
     <Import Project=".\private\Common-private.props" Condition="exists('.\private\Common-private.props')" />
     <Import Project=".\eqlib\eqlib.props" Condition="exists('.\eqlib\eqlib.props')" />
   </ImportGroup>
+
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(MQRoot)tools\build_scripts\protoc\protobuf.targets" />
   </ImportGroup>

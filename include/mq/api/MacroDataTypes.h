@@ -331,7 +331,7 @@ struct MQVarPtr
 		if (ptr != nullptr)
 			return *ptr;
 
-		return { { 0, 0, 0, 0 } };
+		return {};
 	}
 
 	eqlib::ARGBCOLOR set_Argb(eqlib::ARGBCOLOR Val)

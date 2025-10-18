@@ -53,7 +53,7 @@
       <MQRESOURCES Include=".\resources\**\*.*" />
       <MQLUASCRIPTS Include=".\lua\**\*.*" />
       <MQMACROS Include=".\macros\**\*.*" />
-      <MQCONFIG Include=".\config\**\*.*" />
+      <MQCONFIGS Include=".\config\**\*.*" />
     </ItemGroup>
     <PropertyGroup>
       <HardLink Condition="'$(MQConfig)'=='Release'">false</HardLink>
