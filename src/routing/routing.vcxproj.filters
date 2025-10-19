@@ -16,15 +16,21 @@
     <Filter Include="Proto Files">
       <UniqueIdentifier>{c5341a76-0f95-46b8-bc6b-102c85d8c3d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Generated Files">
+      <UniqueIdentifier>{9147feb8-86f0-422f-a0ea-c6210dc4f8a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Generated Files">
+      <UniqueIdentifier>{f567e94d-8027-43c3-b52f-b5321f42e1a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Routing.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Network.pb.h">
+      <Filter>Header Files\Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="ProtoPipes.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Routing.pb.h">
+      <Filter>Header Files\Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="PostOffice.h">
+    <ClInclude Include="ClientPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NamedPipes.h">
@@ -34,6 +40,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostOffice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtoPipes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Routing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -46,19 +64,28 @@
     </ProtocolBuffer>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Network.pb.cc">
+      <Filter>Source Files\Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="Routing.pb.cc">
+      <Filter>Source Files\Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerPostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PostOffice.cpp">
+    <ClCompile Include="ClientPostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NamedPipes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
+    <ClCompile Include="PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.pb.cc">
+    <ClCompile Include="Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
