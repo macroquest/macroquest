@@ -162,15 +162,16 @@ static bool ShouldUpdateIdentity(int GameState, bool& logged_in)
 	return false;
 }
 
+void MQPostOffice::SendSelfIdentification()
+{
+	SetGameState(0);
+}
+
 void MQPostOffice::SetGameState(int GameState)
 {
-	static bool logged_in = false;
-
-	if (ShouldUpdateIdentity(GameState, logged_in))
+	if (ShouldUpdateIdentity(GameState, m_loggedIn))
 	{
-		LOG_TRACE("{}: Updating identity", GetName());
-		m_id.address = GetCurrentClient();
-		m_pipeClient.SendProtoMessage(MQMessageId::MSG_IDENTIFICATION, m_id.GetProto());
+		postoffice::ClientPostOffice::SendSelfIdentification();
 	}
 }
 
@@ -239,9 +240,6 @@ void MQPostOffice::OnClientConnected()
 	MQMessageProcessLoadedFromMQ msg;
 	msg.processId = GetCurrentProcessId();
 	m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_PROCESS_LOADED, &msg, sizeof(msg));
-
-	// send a self-identification
-	SetGameState(0);
 }
 
 postoffice::ActorIdentification::Client MQPostOffice::GetCurrentClient() const

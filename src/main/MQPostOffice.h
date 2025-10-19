@@ -39,7 +39,11 @@ private:
 	virtual void OnIncomingMessage(PipeMessagePtr message) override;
 	virtual void OnClientConnected() override;
 
+	virtual void SendSelfIdentification() override;
+
 	virtual postoffice::ActorIdentification::Client GetCurrentClient() const override;
+
+	bool m_loggedIn = false;
 };
 
 MQPostOffice& GetPostOffice();
