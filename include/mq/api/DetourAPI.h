@@ -21,9 +21,6 @@
 
 namespace mq {
 
-class MemoryPatcher;
-class MemoryPatcherImpl;
-
 namespace detail
 {
 	bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name);
@@ -154,6 +151,7 @@ bool RemovePatch(uintptr_t address);
 
 #define PatchDetour(address) \
 	mq::AddDetourBytes(static_cast<uintptr_t>(address), STRINGIFY(address))
+
 
 // Deprecated functions. Use their replacements.
 

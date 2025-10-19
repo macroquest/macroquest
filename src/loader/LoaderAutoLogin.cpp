@@ -228,7 +228,7 @@ static void ReceivedMessageHandler(postoffice::MessagePtr message)
 	proto::login::LoginMessage login_message;
 	if (login_message.ParseFromString(message->payload()))
 	{
-		switch (login_message.id())
+		switch (login_message.id())  // NOLINT(clang-diagnostic-switch-enum)
 		{
 		case proto::login::MessageId::ProfileLoaded:
 			// this message needs to come from the client after it has injected,
