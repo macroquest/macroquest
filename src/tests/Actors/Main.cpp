@@ -12,78 +12,242 @@
  * GNU General Public License for more details.
  */
 
+// Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 #include "routing/PostOffice.h"
 #include "routing/ProtoPipes.h"
-
 #include "loader/PostOffice.h"
 #include "main/MQPostOffice.h"
 
 #include "mq/base/String.h"
 
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/wincolor_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+#include "fmt/format.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/wincolor_sink.h"
+#include "spdlog/sinks/msvc_sink.h"
 
 #include <cstdio>
 #include <utility>
 
 #include <windows.h>
 
+using mq::postoffice::ClientPostOffice;
+using mq::postoffice::ServerPostOffice;
+using mq::postoffice::PostOffice;
+using mq::postoffice::ActorIdentification;
+using mq::postoffice::ActorContainer;
 
-// stub some things because the local connection takes care of some legacy operations in the launcher that doesn't need testing
-HWND hMainWnd;
+//-----------------------------------------------------------------------------
+class TestClientPostOffice final : public ClientPostOffice
+{
+public:
+	struct Config
+	{
+		uint32_t Index = 0;
+		std::string Name = "MQPostOffice"; // useful for debugging
+		std::string PipeName = mq::MQ_PIPE_SERVER_PATH;
 
-// and define/stub things to mock the client
-namespace mq {
-void DoCommand(const char* szLine, bool delayed) {}
-bool InitializeCrashpad() { return true; }
-void InitializeCrashpadPipe(const std::string& pipeName) {}
-mq::postoffice::ActorIdentification::Client GetDefaultClient() { return {}; }
-bool ShouldUpdateIdentity(int GameState, bool& logged_in) { return true; }
-namespace pipeclient {
-void RequestActivateWindow(HWND hWnd, bool sendMessage) {}
-} // namespace pipeclient
-} // namespace mq
+		std::optional<std::string> AccountOverride;
+		std::optional<std::string> ServerOverride;
+		std::optional<std::string> CharacterOverride;
+	};
 
-struct ImGuiViewport;
-struct ImVec2;
-namespace LauncherImGui {
-	void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title, const ImVec2& size) {}
+	static ActorIdentification::Client GetCurrentClient(const Config& config)
+	{
+		ActorIdentification::Client client;
+
+		if (config.AccountOverride)
+			client.account = *config.AccountOverride;
+
+		if (config.ServerOverride)
+			client.server = *config.ServerOverride;
+
+		if (config.CharacterOverride)
+			client.character = *config.CharacterOverride;
+
+		return client;
+	}
+
+	//-------------------------------------------------------------------------
+
+	TestClientPostOffice(const Config& config)
+		: ClientPostOffice(config.Name, config.PipeName,
+			ActorIdentification(
+				ActorContainer(ActorContainer::CurrentProcess, mq::CreateUUID()),
+				GetCurrentClient(config)))
+		, m_config(config)
+	{
+	}
+
+	const Config& GetConfig() const { return m_config; }
+
+	virtual ActorIdentification::Client GetCurrentClient() const override
+	{
+		return GetCurrentClient(m_config);
+	}
+
+private:
+	Config m_config;
+};
+
+template <typename T>
+struct PostOfficeData
+{
+	using PostOfficeType = T;
+	using ConfigType = typename PostOfficeType::Config;
+
+	std::unordered_map<uint32_t, ConfigType> configs;
+	std::unordered_map<uint32_t, PostOfficeType> postOffices;
+};
+PostOfficeData<TestClientPostOffice> client;
+
+//-----------------------------------------------------------------------------
+
+class TestServerPostOffice final : public ServerPostOffice
+{
+public:
+	struct Config
+	{
+		uint32_t Index = 0;
+		std::string Name = "PostOffice"; // useful for debugging
+		std::string PipeName = mq::MQ_PIPE_SERVER_PATH;
+		std::optional<std::vector<std::pair<std::string, uint16_t>>> Peers;
+	};
+
+	TestServerPostOffice(const Config& config)
+		: ServerPostOffice(config.Name, config.PipeName, 0 /* auto-select port */)
+		, m_config(config)
+	{
+	}
+
+	const Config& GetConfig() const { return m_config; }
+
+	virtual void AddConfiguredHosts() override
+	{
+		const uint16_t default_port = GetPeerPort();
+
+		if (m_config.Peers)
+		{
+			for (const auto& [address, port] : *m_config.Peers)
+			{
+				AddNetworkHost(address, port > 0 ? port : default_port);
+			}
+		}
+		else
+		{
+			ServerPostOffice::AddConfiguredHosts();
+		}
+	}
+
+private:
+	Config m_config;
+};
+
+PostOfficeData<TestServerPostOffice> server;
+
+//-----------------------------------------------------------------------------
+
+template <typename T>
+static void SetPostOfficeConfig(PostOfficeData<T>& data, const typename PostOfficeData<T>::ConfigType& config)
+{
+	data.configs[config.Index] = config;
 }
 
-void InitializePostOfficeImgui() {}
-void ShutdownPostOfficeImgui() {}
-
-// mirrors the implementation in mq2main. This could possibly be shared code
-// between them.
-namespace internal_paths
+template <typename T>
+static void DropPostOfficeConfig(T& data, uint32_t index)
 {
-	extern std::string MQRoot;
-	extern std::string Config;
-	extern std::string MQini;
-	extern std::string Macros;
-	extern std::string Logs;
-	extern std::string CrashDumps;
-	extern std::string Plugins;
-	extern std::string Resources;
-}; // namespace internal_paths
-
-std::string internal_paths::MQRoot = ".";
-std::string internal_paths::Config = "Config";
-std::string internal_paths::MQini = internal_paths::Config + "\\MacroQuest.ini";
-std::string internal_paths::Macros = "Macros";
-std::string internal_paths::Logs = "Logs";
-std::string internal_paths::CrashDumps = internal_paths::Logs + "\\Dumps";
-std::string internal_paths::Plugins = "Plugins";
-std::string internal_paths::Resources = "Resources";
-
-std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
-{
-	return std::make_pair(std::string(addr), port);
+	data.configs.erase(index);
 }
+
+template <typename T>
+static typename T::ConfigType GetPostOfficeConfig(T& data, uint32_t index)
+{
+	const auto config = data.configs.find(index);
+	if (config != data.configs.end())
+	{
+		return config->second;
+	}
+
+	return {};
+}
+
+template <typename T>
+static void ClearPostOfficeConfigs(T& data)
+{
+	data.configs.clear();
+}
+
+template <typename T>
+static typename T::PostOfficeType& GetPostOffice(T& data, uint32_t index)
+{
+	auto it = data.postOffices.find(index);
+	if (it == data.postOffices.end())
+	{
+		it = data.postOffices.emplace(index, typename T::ConfigType(GetPostOfficeConfig(data, index))).first;
+	}
+
+	return it->second;
+}
+
+template <typename T>
+static void RemovePostOffice(T& data, uint32_t index)
+{
+	data.postOffices.erase(index);
+}
+
+template <typename T>
+static void InitializePostOffice(T& data, uint32_t index)
+{
+	GetPostOffice(data, index).Initialize();
+}
+
+template <typename T>
+static void ShutdownPostOffice(T& data, uint32_t index)
+{
+	GetPostOffice(data, index).Shutdown();
+}
+
+template <typename T>
+static void PulsePostOffices(T& data)
+{
+	for (auto& [_, postOffice] : data.postOffices)
+	{
+		postOffice.ProcessPipeClient();
+	}
+}
+
+template <typename T>
+static void ClearPostOffices(T& data)
+{
+	if constexpr (std::is_same_v<T, PostOfficeData<TestClientPostOffice>>)
+	{
+		for (auto& [_, postOffice] : data.postOffices)
+			postOffice.Shutdown();
+	}
+	else
+	{
+		std::vector<uint32_t> indexes;
+		for (const auto& [index, _] : data.postOffices)
+			indexes.push_back(index);
+
+		for (uint32_t index : indexes)
+		{
+			GetPostOffice(data, index).Shutdown();
+			RemovePostOffice(data, index);
+		}
+	}
+
+	data.postOffices.clear();
+}
+
+template <typename T>
+static void PulsePostOffices(T& data, uint32_t index)
+{
+	GetPostOffice(data, index).ProcessPipeClient();
+}
+
+//----------------------------------------------------------------------------
 
 // this test is low level, and we want to test high level APIs
 //void Test()
@@ -114,14 +278,20 @@ std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
 //	std::this_thread::sleep_for(std::chrono::seconds(2));
 //}
 
-template <typename PO>
+
+std::pair<std::string, uint16_t> NetPeer(std::string_view addr, uint16_t port)
+{
+	return std::make_pair(std::string(addr), port);
+}
+
 class TestDropbox
 {
 public:
-	TestDropbox(uint32_t index, const std::string& name, const std::unordered_map<std::string, int>& responseMap = {})
+	template <typename T>
+	TestDropbox(T& data, uint32_t index, const std::string& name, const std::unordered_map<std::string, int>& responseMap = {})
 		: m_name(name)
 		, m_responseMap(responseMap)
-		, m_dropbox(mq::postoffice::GetPostOffice<PO>(index).RegisterAddress(name,
+		, m_dropbox(GetPostOffice(data, index).RegisterAddress(name,
 			[this](mq::postoffice::MessagePtr message)
 			{
 				SPDLOG_TRACE("{}: received {}", m_name, message->payload());
@@ -136,7 +306,8 @@ public:
 			}))
 	{}
 
-	void Post(const mq::proto::routing::Address& addr, const std::string& obj, const mq::postoffice::MessageResponseCallback& callback = nullptr)
+	void Post(const mq::proto::routing::Address& addr, const std::string& obj,
+		const mq::postoffice::MessageResponseCallback& callback = nullptr)
 	{
 		m_dropbox.Post(addr, obj, callback);
 	}
@@ -172,7 +343,7 @@ void PulsePostOffices()
 
 	for (auto i : { 0, 1, 2, 3 })
 	{
-		mq::PulsePostOffice(i);
+		PulsePostOffices(client, i);
 	}
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -180,59 +351,66 @@ void PulsePostOffices()
 
 void InitPostOffices()
 {
+	SPDLOG_INFO("================== Initializing Post Offices ==================");
 	constexpr const char* pipe0 = R"(\\.\pipe\mqpipe0)";
 	constexpr const char* pipe1 = R"(\\.\pipe\mqpipe1)";
 
 	/* launcher post offices */
-	SetPostOfficeConfig(PostOfficeConfig{ 0, "Launcher", 0, pipe0 });
-	SetPostOfficeConfig(PostOfficeConfig{ 1, "Launcher", 0, pipe1 });
+	SetPostOfficeConfig(server, { 0, "Launcher", pipe0 });
+	SetPostOfficeConfig(server, { 1, "Launcher", pipe1 });
 
-	uint16_t port0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0).GetPeerPort();
-	uint16_t port1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).GetPeerPort();
+	uint16_t port0 = GetPostOffice(server, 0).GetPeerPort();
+	uint16_t port1 = GetPostOffice(server, 1).GetPeerPort();
 
-	mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0).AddNetworkHost("127.0.0.1", port1);
-	mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).AddNetworkHost("127.0.0.1", port0);
+	GetPostOffice(server, 0).AddNetworkHost("127.0.0.1", port1);
+	GetPostOffice(server, 1).AddNetworkHost("127.0.0.1", port0);
 
-	InitializePostOffice(0);
-	InitializePostOffice(1);
+	InitializePostOffice(server, 0);
+	InitializePostOffice(server, 1);
 	/* end launcher post offices */
 
 	// wait here so the pipe connections get made otherwise we'd have to wait 5 seconds for the clients to retry
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	/* client post offices */
-	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 0, "clientA", pipe0, "accountA", "serverA", "characterA" });
-	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 2, "clientB", pipe0, "accountB", "serverB", "characterB" });
+	SetPostOfficeConfig(client, { 0, "clientA", pipe0, "accountA", "serverA", "characterA" });
+	SetPostOfficeConfig(client, { 2, "clientB", pipe0, "accountB", "serverB", "characterB" });
 
-	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 1, "clientC", pipe1, "accountC", "serverC", "characterC" });
-	SetPostOfficeConfig(mq::MQPostOfficeConfig{ 3, "clientD", pipe1, "accountD", "serverD", "characterD" });
+	SetPostOfficeConfig(client, { 1, "clientC", pipe1, "accountC", "serverC", "characterC" });
+	SetPostOfficeConfig(client, { 3, "clientD", pipe1, "accountD", "serverD", "characterD" });
 
-	mq::InitializePostOffice(0);
-	mq::InitializePostOffice(2);
+	InitializePostOffice(client, 0);
+	InitializePostOffice(client, 2);
 
-	mq::InitializePostOffice(1);
-	mq::InitializePostOffice(3);
+	InitializePostOffice(client, 1);
+	InitializePostOffice(client, 3);
 	/* end client post offices */
 
 	// allow both post offices to set up, otherwise messages will just get dropped with no destination
 	PulsePostOffices();
+
 	SPDLOG_INFO("Post Offices Initialized");
 }
 
 void ShutdownPostOffices()
 {
-	mq::ClearPostOfficeConfigs();
-	mq::ClearPostOffices();
+	SPDLOG_INFO("================== Shutting Down Post Offices ==================");
 
-	ClearPostOfficeConfigs();
-	ClearPostOffices();
+	ClearPostOfficeConfigs(client);
+	ClearPostOffices(client);
+
+	ClearPostOfficeConfigs(server);
+	ClearPostOffices(server);
+
 	SPDLOG_INFO("Post Offices Shutdown");
 }
 
 void TestLauncherBehavior()
 {
-	auto dropbox0 = TestDropbox<mq::postoffice::LauncherPostOffice>(0, "test7781");
-	auto dropbox1 = TestDropbox<mq::postoffice::LauncherPostOffice>(1, "test8177", {{"Please respond", 1}});
+	SPDLOG_INFO("================== Testing Launcher Behavior ==================");
+
+	auto dropbox0 = TestDropbox(server, 0, "test7781");
+	auto dropbox1 = TestDropbox(server, 1, "test8177", {{"Please respond", 1}});
 
 	// basic message routing
 	{
@@ -264,7 +442,7 @@ void TestLauncherBehavior()
 		mq::proto::routing::Address addr;
 		mq::proto::routing::Peer& peer = *addr.mutable_peer();
 		peer.set_ip("127.0.0.1");
-		peer.set_port(mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1).GetPeerPort());
+		peer.set_port(GetPostOffice(server, 1).GetPeerPort());
 		addr.set_name("launcher");
 		addr.set_mailbox("test8177");
 		dropbox0.Post(addr, std::string("Please respond"),
@@ -294,13 +472,15 @@ void TestLauncherBehavior()
 
 void TestBasicClientSetup()
 {
+	SPDLOG_INFO("================== Testing Basic Client Setup ==================");
+
 	// pipe0
-	auto dropboxA1 = TestDropbox<mq::MQPostOffice>(0, "A1", {{"Please respond", 1}});
-	auto dropboxB1 = TestDropbox<mq::MQPostOffice>(2, "B1");
+	auto dropboxA1 = TestDropbox(client, 0, "A1", {{"Please respond", 1}});
+	auto dropboxB1 = TestDropbox(client, 2, "B1");
 
 	// pipe1
-	auto dropboxC1 = TestDropbox<mq::MQPostOffice>(1, "C1");
-	auto dropboxD1 = TestDropbox<mq::MQPostOffice>(3, "D1", {{"Please respond", 1}});
+	auto dropboxC1 = TestDropbox(client, 1, "C1");
+	auto dropboxD1 = TestDropbox(client, 3, "D1", {{"Please respond", 1}});
 
 	// internal route
 	{
@@ -404,16 +584,18 @@ void TestBasicClientSetup()
 
 void TestReconnect()
 {
-	// we already have 2 post offices, just set one more up
-	SetPostOfficeConfig(PostOfficeConfig{ 2, "Launcher", 0, R"(\\.\pipe\mqpipe2)" });
+	SPDLOG_INFO("================== Testing Reconnect ==================");
 
-	auto& po2 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(2);
+	// we already have 2 post offices, just set one more up
+	SetPostOfficeConfig(server, { 2, "Launcher", R"(\\.\pipe\mqpipe2)" });
+
+	auto& po2 = GetPostOffice(server, 2);
 	auto port = po2.GetPeerPort();
 
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
-	auto& po0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0);
-	auto& po1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1);
+	auto& po0 = GetPostOffice(server, 0);
+	auto& po1 = GetPostOffice(server, 1);
 
 	po0.AddNetworkHost("127.0.0.1", port);
 	po1.AddNetworkHost("127.0.0.1", port);
@@ -433,21 +615,23 @@ void TestReconnect()
 
 void TestLargeNetwork()
 {
+	SPDLOG_INFO("================== Testing Large Network ==================");
+
 	constexpr uint32_t n_network = 100;
 
 	for (uint32_t i = 2; i < n_network; ++i)
-		SetPostOfficeConfig(PostOfficeConfig{ i, "Launcher", 0, fmt::format(R"(\\.\pipe\mqpipe{})", i) });
+		SetPostOfficeConfig(server, { i, "Launcher", fmt::format(R"(\\.\pipe\mqpipe{})", i) });
 
 	// this will set up the hosts first
 	std::vector<uint16_t> ports;
 	for (uint32_t i = 0; i < n_network; ++i)
-		ports.push_back(mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i).GetPeerPort());
+		ports.push_back(GetPostOffice(server, i).GetPeerPort());
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	for (uint32_t i = 0; i < n_network; ++i)
 	{
-		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+		auto& po = GetPostOffice(server, i);
 		auto i_port = po.GetPeerPort();
 
 		for (auto port : ports)
@@ -461,25 +645,28 @@ void TestLargeNetwork()
 
 	for (uint32_t i = 0; i < n_network; ++i)
 	{
-		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+		auto& po = GetPostOffice(server, i);
+
 		// test the number of identities to ensure that all clients connected
 		if (po.GetIdentityCount() != n_network + 4)
+		{
 			SPDLOG_ERROR("TestLargeNetwork: {} had {} identities instead of {}", po.GetPeerPort(), po.GetIdentityCount(), n_network + 4);
+		}
 	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 	for (uint32_t i = n_network - 1; i > 1; --i)
 	{
-		auto& po = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(i);
+		auto& po = GetPostOffice(server, i);
 
 		po.Shutdown();
-		DropPostOfficeConfig(i);
+		DropPostOfficeConfig(server, i);
 	}
 
 	// this just resets the persistent PO's
-	auto& po0 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(0);
-	auto& po1 = mq::postoffice::GetPostOffice<mq::postoffice::LauncherPostOffice>(1);
+	auto& po0 = GetPostOffice(server, 0);
+	auto& po1 = GetPostOffice(server, 1);
 	for (auto port : ports)
 	{
 		if (port != po0.GetPeerPort() && port != po1.GetPeerPort())
@@ -494,15 +681,17 @@ void TestLargeNetwork()
 
 void TestLargeData()
 {
+	SPDLOG_INFO("================== Testing Large Data ==================");
+
 	// data -- generate at runtime (once) to avoid extra compile times
 	constexpr size_t data_size = 1024ull * 1024ull; // 1MB
 	static const std::string data(data_size, 'A');
 
 	// pipe0
-	auto dropbox0 = TestDropbox<mq::MQPostOffice>(0, "large0");
+	auto dropbox0 = TestDropbox(client, 0, "large0");
 
 	// pipe1
-	auto dropbox1 = TestDropbox<mq::MQPostOffice>(1, "large1");
+	auto dropbox1 = TestDropbox(client, 1, "large1");
 
 	for (int i = 1; i <= 100; ++i)
 	{
