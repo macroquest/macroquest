@@ -160,8 +160,10 @@ void LocalConnection::DropIdentification(const ActorContainer& process, const Ac
 		connection->SendMessage(std::make_unique<PipeMessage>(MQMessageId::MSG_DROPPED, payload.get(), id.ByteSizeLong()));
 	}
 	else
+	{
 		SPDLOG_WARN("PostOffice {{{}}}: Unable to get connection for {}, drop message failed.",
 			m_postOffice->GetName(), process);
+	}
 }
 
 void LocalConnection::RequestIdentities(const ActorContainer& process) const

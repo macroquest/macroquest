@@ -313,6 +313,8 @@ struct ActorIdentification
 
 		std::string ToString() const
 		{
+			if (character.empty() && server.empty())
+				return "(unnamed)";
 			return fmt::format("{} [{}]", character, server);
 		}
 
@@ -515,8 +517,14 @@ struct ActorIdentification
 	std::string ToStringLite() const
 	{
 		return fmt::format("{} ({})", std::visit(overload{
-			[](const std::string& name) { return name; },
-			[](const Client& client) { return client.ToString(); }
+			[](const std::string& name)
+			{
+				return name;
+			},
+			[](const Client& client)
+			{
+				return client.ToString();
+			}
 		}, address), container.ToStringLite());
 	}
 
@@ -528,8 +536,14 @@ struct ActorIdentification
 	std::string ToString() const
 	{
 		return fmt::format("{} ({})", std::visit(overload{
-			[](const std::string& name) { return name; },
-			[](const Client& client) { return client.ToString(); }
+			[](const std::string& name)
+			{
+				return name;
+			},
+			[](const Client& client)
+			{
+				return client.ToString();
+			}
 		}, address), container);
 	}
 };
@@ -578,8 +592,8 @@ class Dropbox
 
 public:
 	Dropbox()
-		: m_valid(false)
-	{}
+	{
+	}
 
 	~Dropbox() {}
 
@@ -668,7 +682,7 @@ private:
 	std::string m_localAddress;
 	PostCallback m_post;
 	DropboxDropper m_unregister;
-	bool m_valid;
+	bool m_valid = false;
 };
 
 /**
@@ -699,7 +713,6 @@ public:
 	 * The interface to route a message, to be implemented in the post office instantiation
 	 *
 	 * @param message the message to route -- it should be in an envelope and have the ID of ROUTE
-	 * @param callback an optional callback for RPC responses
 	 */
 	virtual void RouteMessage(MessagePtr message) = 0;
 
@@ -708,7 +721,6 @@ public:
 	 *
 	 * @param address the address to send the message to
 	 * @param obj a protobuf object to route
-	 * @param callback an optional callback for RPC responses
 	 */
 	template <typename T>
 	void RouteMessage(const proto::routing::Address& address, const T& obj)
@@ -721,7 +733,6 @@ public:
 	 *
 	 * @param address the address to send the message to
 	 * @param data a string of data (which embeds its length)
-	 * @param callback an optional callback for RPC responses
 	 */
 	void RouteMessage(const proto::routing::Address& address, const std::string& data);
 
@@ -739,7 +750,7 @@ public:
 	 *
 	 * @param localAddress the string address to create the address at
 	 * @param receive a callback rvalue that will process messages as they are received in this mailbox
-	 * @return an dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
+	 * @return a dropbox that the creator can use to send addressed messages. will be invalid if it failed to add
 	 */
 	Dropbox RegisterAddress(const std::string& localAddress, ReceiveCallback&& receive);
 
@@ -764,7 +775,6 @@ public:
 	 *
 	 * @param localAddress the local address to deliver the message to
 	 * @param message the message to send
-	 * @param failed a callback for failure (since message is moved)
 	 * @return true if routing was successful
 	 */
 	bool DeliverTo(const std::string& localAddress, MessagePtr message);

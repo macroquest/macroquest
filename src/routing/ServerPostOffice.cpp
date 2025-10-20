@@ -121,7 +121,7 @@ void ServerPostOffice::ThreadProc()
 			m_hasMessages = false;
 		}
 
-		SPDLOG_TRACE("PostOffice {{{}}}: Processing events", GetName());
+		//SPDLOG_TRACE("PostOffice {{{}}}: Processing events", GetName());
 
 		ProcessIdentities(); // handles all identification maintenance
 
@@ -310,14 +310,14 @@ void ServerPostOffice::ProcessIdentities()
 // use them. The assumption is that all routing peers will have the same name ("launcher" nominally)
 void ServerPostOffice::AddIdentity(const ActorIdentification& id)
 {
-	SPDLOG_TRACE("PostOffice {{{}}}: Requesting Add Identity {}", GetName(), id);
-
 	if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessAddIdentity(id);
 	}
 	else
 	{
+		SPDLOG_TRACE("PostOffice {{{}}}: Requesting Add Identity {}", GetName(), id);
+
 		{
 			std::unique_lock lock(m_identityMutex);
 			m_identityActions.emplace_back(IdentityAction::Add, id);
@@ -380,8 +380,6 @@ void ServerPostOffice::ProcessAddIdentity(const ActorIdentification& id)
 
 void ServerPostOffice::DropIdentity(const ActorIdentification& id)
 {
-	SPDLOG_TRACE("PostOffice {{{}}}: Requesting Drop Identity {}", GetName(), id);
-
 	if (id.address == m_id.address)
 	{
 		// if this is dropping another launcher, then everything it routes also needs to be dropped
@@ -393,6 +391,8 @@ void ServerPostOffice::DropIdentity(const ActorIdentification& id)
 	}
 	else
 	{
+		SPDLOG_TRACE("PostOffice {{{}}}: Requesting Drop Identity {}", GetName(), id);
+
 		{
 			std::unique_lock lock(m_identityMutex);
 			m_identityActions.emplace_back(IdentityAction::Drop, id);
@@ -426,14 +426,14 @@ void ServerPostOffice::ProcessDropIdentity(const ActorIdentification& id)
 
 void ServerPostOffice::DropContainer(const ActorContainer& container)
 {
-	SPDLOG_TRACE("PostOffice {{{}}}: Requesting Drop Container {}", GetName(), container);
-
 	if (std::this_thread::get_id() == m_threadId)
 	{
 		ProcessDropContainer(container);
 	}
 	else
 	{
+		SPDLOG_TRACE("PostOffice {{{}}}: Requesting Drop Container {}", GetName(), container);
+
 		{
 			std::unique_lock lock(m_identityMutex);
 			m_identityActions.emplace_back(IdentityAction::MassDrop, ActorIdentification{ container, "" });
@@ -484,7 +484,9 @@ void ServerPostOffice::ProcessDropContainer(const ActorContainer& container)
 		m_identities.erase(iter);
 
 	std::visit(overload{
-		[this](const ActorContainer::Process&) {},
+		[this](const ActorContainer::Process&)
+		{
+		},
 		[this](const ActorContainer::Network& net)
 		{
 			std::unique_lock lock(m_processMutex);
