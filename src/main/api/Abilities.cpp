@@ -17,6 +17,8 @@
 #include "mq/api/Abilities.h"
 #include "eqlib/game/Globals.h"
 
+using namespace eqlib;
+
 namespace mq {
 
 // Defined in MQ2Globals.cpp but we don't want to bring in all of MQ2Globals.h

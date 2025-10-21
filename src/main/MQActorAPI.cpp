@@ -15,6 +15,7 @@
 #include "pch.h"
 
 #include "MQActorAPI.h"
+#include "MQPostOffice.h"
 
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"

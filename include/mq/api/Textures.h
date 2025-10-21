@@ -17,6 +17,7 @@
 #include "mq/base/Common.h"
 
 #include "eqlib/game/UITypes.h"
+#include "imgui/imconfig.h"
 
 #include <string_view>
 #include <string>

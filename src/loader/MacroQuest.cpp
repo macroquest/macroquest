@@ -18,6 +18,7 @@
 #include "loader/PostOffice.h"
 #include "loader/ImGui.h"
 #include "loader/LoaderAutoLogin.h"
+#include "loader/WinToastLib.h"
 #include "login/AutoLogin.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/ImGuiUtils.h"
@@ -26,7 +27,6 @@
 #include "mq/base/BuildInfo.h"
 #include "mq/base/Logging.h"
 #include "mq/base/WString.h"
-#include "loader/WinToastLib.h"
 #include "routing/NamedPipesProtocol.h"
 #include "resource.h"
 

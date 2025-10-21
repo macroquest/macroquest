@@ -139,7 +139,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 	// Otherwise, show all benchmarks
 	else
 	{
-		WriteChatColor("MQ Benchmarks");
+		WriteChatColor("MacroQuest Benchmarks");
 		WriteChatColor("--------------");
 		for (const auto& bench : gBenchmarks)
 		{
@@ -159,7 +159,7 @@ void Cmd_DumpBenchmarks(SPAWNINFO* pChar, char* szLine)
 
 void DumpBenchmarks()
 {
-	DebugSpewAlways("MQ2 Benchmarks");
+	DebugSpewAlways("MacroQuest Benchmarks");
 	DebugSpewAlways("--------------");
 
 	for (auto& pBenchmark : gBenchmarks)

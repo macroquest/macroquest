@@ -20,9 +20,12 @@
 #include "ImGuiBackend.h"
 #include "Logging.h"
 
-#include <wil/com.h>
-#include <imgui.h>
+#include "wil/com.h"
+#include "imgui.h"
+
 #include <d3d9.h>
+
+using namespace eqlib;
 
 namespace mq {
 
