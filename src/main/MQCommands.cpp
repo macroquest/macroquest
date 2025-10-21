@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include "Logging.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQPostOffice.h"
@@ -2765,7 +2766,7 @@ void Cast(PlayerClient* pChar, const char* szLine)
 	for (int Index = 0; Index < NUM_SPELL_GEMS; Index++)
 	{
 		EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(Index));
-		if (pSpell && ci_starts_with(pSpell->Name, szArg1))
+		if (pSpell && MaybeExactStartsWith(pSpell->Name, szArg1))
 		{
 			if (pSpell->TargetType == TT_SPLASH)
 			{
@@ -3789,7 +3790,7 @@ void DoTimedCmd(PlayerClient*, const char* szLine)
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to execute time command with no Commands module: {}", szLine);
+		LOG_ERROR("Tried to execute time command with no Commands module: {}", szLine);
 	}
 }
 

@@ -29,18 +29,20 @@
 #include "mq/base/HotKeys.h"
 #include "mq/base/Logging.h"
 #include "mq/base/WString.h"
+#include "routing/NamedPipesProtocol.h"
 #include "resource.h"
 
-#include <date/date.h>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/ringbuffer_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
-#include <spdlog/sinks/wincolor_sink.h>
-#include <extras/wil/Constants.h>
-#include <wil/registry.h>
-#include <wil/resource.h>
+#include "date/date.h"
+#include "fmt/format.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/ringbuffer_sink.h"
+#include "spdlog/sinks/msvc_sink.h"
+#include "spdlog/sinks/wincolor_sink.h"
+#include "extras/wil/Constants.h"
+#include "wil/registry.h"
+#include "wil/resource.h"
+
 #include <filesystem>
 #include <tuple>
 #include <shellapi.h>
@@ -1922,7 +1924,22 @@ int WINAPI CALLBACK WinMain(
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
-	InitializeNamedPipeServer();
+	SetPostOfficeIni(internal_paths::MQini);
+	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
+	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+		{
+			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			{
+				SetFocusWindowPID(request->processId, request->state);
+			}
+			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			{
+				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
+			}
+		});
+	// TODO: this can probably be removed?
+	//SetTriggerPostOffice([] { PostMessageA(hMainWnd, WM_USER_CALLBACK, 0, 0); });
+	InitializePostOffice();
 	InitializeWindows();
 	InitializeAutoLogin();
 
@@ -2018,7 +2035,7 @@ int WINAPI CALLBACK WinMain(
 
 	ShutdownAutoLogin();
 	ShutdownInjector();
-	ShutdownNamedPipeServer();
+	ShutdownPostOffice();
 	StopProcessMonitor();
 	if (injectOnce)
 		UpdateShowConsole(false, false);

@@ -17,6 +17,7 @@
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
 #include "MQDeveloperTools.h"    // For DeveloperTools_WindowInspector_HandleClick
+#include "Logging.h"
 
 #include "mq/api/RenderDoc.h"
 
@@ -76,7 +77,7 @@ public:
 
 		if (!success)
 		{
-			SPDLOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
+			LOG_DEBUG("CRender::ResetDevice: Reset failed, invalidating device objects and trying again.");
 
 			if (s_gfxEngine)
 			{
@@ -86,7 +87,7 @@ public:
 			success = ResetDevice_Trampoline(a);
 		}
 
-		//SPDLOG_DEBUG("CRender::ResetDevice: result={}", success);
+		//LOG_DEBUG("CRender::ResetDevice: result={}", success);
 		return success;
 	}
 };
@@ -429,7 +430,7 @@ void MQGraphicsEngine::Shutdown()
 
 void MQGraphicsEngine::InvalidateDeviceObjects()
 {
-	SPDLOG_DEBUG("MQGraphicsEngine: InvalidateDeviceObjects");
+	LOG_DEBUG("MQGraphicsEngine: InvalidateDeviceObjects");
 
 	m_deviceAcquired = false;
 	gbDeviceAcquired = false;
@@ -447,7 +448,7 @@ void MQGraphicsEngine::InvalidateDeviceObjects()
 
 void MQGraphicsEngine::CreateDeviceObjects()
 {
-	SPDLOG_DEBUG("MQGraphicsEngine: CreateDeviceObjects");
+	LOG_DEBUG("MQGraphicsEngine: CreateDeviceObjects");
 
 	m_deviceAcquired = true;
 	gbDeviceAcquired = true;
@@ -603,7 +604,7 @@ void MQGraphicsEngine::RestartOverlay()
 	if (!m_deviceHooksInstalled)
 		return;
 
-	SPDLOG_INFO("MQGraphicsEngine: Resetting overlay");
+	LOG_INFO("MQGraphicsEngine: Resetting overlay");
 
 	if (m_deviceAcquired)
 	{

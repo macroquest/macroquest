@@ -17,6 +17,8 @@
 #include "MQMain.h"
 #include "CrashHandler.h"
 #include "MQVersionInfo.h"
+#include "Logging.h"
+
 #include "mq/base/WString.h"
 
 // warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead.
@@ -145,28 +147,28 @@ bool InitializeCrashpad()
 
 	if (s_database == nullptr || s_database->GetSettings() == nullptr)
 	{
-		SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
+		LOG_ERROR("Failed to create crashpad::CrashReportDatabase");
 		return false;
 	}
 
 	if (ShouldUploadCrash())
 	{
 		s_database->GetSettings()->SetUploadsEnabled(true);
-		SPDLOG_INFO("Crash report submission is: enabled");
+		LOG_INFO("Crash report submission is: enabled");
 
 		crashpad::UUID uuid;
 		s_database->GetSettings()->GetClientID(&uuid);
-		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
+		LOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 	else
 	{
 		s_database->GetSettings()->SetUploadsEnabled(false);
-		SPDLOG_INFO("Crash report submission is: disabled");
+		LOG_INFO("Crash report submission is: disabled");
 	}
 
 	gCrashpadClient = new crashpad::CrashpadClient();
 
-	SPDLOG_INFO("Initializing crashpad handler with path: {}", mq::wstring_to_utf8(handlerPath));
+	LOG_INFO("Initializing crashpad handler with path: {}", mq::wstring_to_utf8(handlerPath));
 
 	bool rc = gCrashpadClient->StartHandler(handler,
 		db,
@@ -196,7 +198,7 @@ bool InitializeCrashpad()
 		delete gCrashpadClient;
 		gCrashpadClient = nullptr;
 
-		SPDLOG_ERROR("Failed to start crashpad process.");
+		LOG_ERROR("Failed to start crashpad process.");
 	}
 
 	return success;
@@ -212,7 +214,7 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 	// Only continue if using a shared crashpad instance and we haven't already initialized
 	if (gEnableCrashpad && !gCrashpadClient && gEnableSharedCrashpad)
 	{
-		SPDLOG_INFO("Received crashpad pipe name: {0}", pipeName);
+		LOG_INFO("Received crashpad pipe name: {0}", pipeName);
 		std::wstring wPipeName = mq::utf8_to_wstring(pipeName);
 
 		// Open database and read the guid.
@@ -220,13 +222,13 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 		const std::unique_ptr<crashpad::CrashReportDatabase> database = crashpad::CrashReportDatabase::Initialize(base::FilePath(dbPath));
 		if (!database || !database->GetSettings())
 		{
-			SPDLOG_ERROR("Failed to create crashpad::CrashReportDatabase");
+			LOG_ERROR("Failed to create crashpad::CrashReportDatabase");
 			return;
 		}
 
 		crashpad::UUID uuid;
 		database->GetSettings()->GetClientID(&uuid);
-		SPDLOG_INFO("Enabling shared crash reporter. Crash report guid: {}", uuid.ToString());
+		LOG_INFO("Enabling shared crash reporter. Crash report guid: {}", uuid.ToString());
 
 		gCrashpadClient = new crashpad::CrashpadClient();
 
@@ -236,7 +238,7 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 		}
 		else
 		{
-			SPDLOG_ERROR("Failed to initialize shared crash reporter!");
+			LOG_ERROR("Failed to initialize shared crash reporter!");
 		}
 	}
 }
@@ -261,7 +263,7 @@ static std::string MakeMiniDump(const std::string& filename, EXCEPTION_POINTERS*
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr));
 	if (!hFile)
 	{
-		SPDLOG_ERROR("Failed to create crash dump file: {}", dumpFilename);
+		LOG_ERROR("Failed to create crash dump file: {}", dumpFilename);
 		return {};
 	}
 
@@ -481,7 +483,7 @@ void CrashHandler_Startup()
 	}
 	else if (!gEnableCrashpad)
 	{
-		SPDLOG_INFO("Crashpad is disabled.");
+		LOG_INFO("Crashpad is disabled.");
 	}
 
 	// Set some annotations.

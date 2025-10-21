@@ -134,13 +134,7 @@ private:
 	bool m_pendingWrite = false;
 
 	// mapping of sequence id to callbacks
-	struct RpcRequest
-	{
-		PipeMessageResponseCb callback;
-		uint32_t sequenceId;
-		std::chrono::steady_clock::time_point sendTime; // for timeouts
-	};
-	std::unordered_map<uint32_t, RpcRequest> m_rpcRequests;
+	std::unordered_map<uint32_t, RpcRequest<PipeMessageResponseCb>> m_rpcRequests;
 };
 using PipeConnectionPtr = std::shared_ptr<PipeConnection>;
 
@@ -247,7 +241,7 @@ public:
 	void SendMessage(int connectionId, PipeMessagePtr message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
 
-	void BroadcastMessage(PipeMessagePtr message);
+	void BroadcastMessage(const PipeMessagePtr& message);
 	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 private:

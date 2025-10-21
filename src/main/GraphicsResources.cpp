@@ -21,6 +21,10 @@
 
 using namespace eqlib;
 
+#include "eqlib/graphics/GraphicsEngine.h"
+#include "eqlib/graphics/ResourceManagerInterface.h"
+#include "mq/api/Textures.h"
+
 namespace mq {
 
 //============================================================================

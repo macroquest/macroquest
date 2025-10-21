@@ -18,10 +18,11 @@
 #if HAS_DIRECTX_9
 
 #include "ImGuiBackend.h"
-#include "ImGuiManager.h"
+#include "Logging.h"
 
-#include <wil/com.h>
-#include <imgui.h>
+#include "wil/com.h"
+#include "imgui.h"
+
 #include <d3d9.h>
 
 using namespace eqlib;
@@ -596,7 +597,7 @@ static void ImGui_ImplDX9_SwapBuffers(ImGuiViewport* viewport, void*)
 
 	if (hr != D3D_OK && hr != D3DERR_DEVICELOST)
 	{
-		SPDLOG_ERROR("Overlay Error: failed to call Present() viewport={} hr={}", viewport->ID, hr);
+		LOG_ERROR("Overlay Error: failed to call Present() viewport={} hr={}", viewport->ID, hr);
 	}
 }
 

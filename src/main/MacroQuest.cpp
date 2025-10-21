@@ -16,6 +16,7 @@
 #include "MacroQuest.h"
 
 #include "CrashHandler.h"
+#include "Logging.h"
 #include "ModuleSystem.h"
 #include "MQActorAPI.h"
 #include "MQCommandAPI.h"
@@ -28,10 +29,10 @@
 #include "eqlib/MemoryPatcher.h"
 #include "eqlib/game/Globals.h"
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/msvc_sink.h"
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -319,12 +320,12 @@ static void WaitForLavishSoftware()
 
 		if (!foundHooks)
 		{
-			SPDLOG_WARN("Was not able to detect the InnerSpace hook on GetProcAddress!");
+			LOG_WARN("Was not able to detect the InnerSpace hook on GetProcAddress!");
 		}
 
 		if (!foundWindowHandle)
 		{
-			SPDLOG_WARN("Was not able to detect the main EQ window handle!");
+			LOG_WARN("Was not able to detect the main EQ window handle!");
 		}
 	}
 }
@@ -334,7 +335,7 @@ static bool InitDirectory(std::string& strPathToInit,
 	const std::string& iniToRead,
 	const fs::path& appendPathIfRelative = mq::internal_paths::MQRoot)
 {
-	SPDLOG_DEBUG("Initializing Directory: {}", strIniKey);
+	LOG_DEBUG("Initializing Directory: {}", strIniKey);
 
 	fs::path pathToInit = GetPrivateProfileString("MacroQuest", strIniKey, strPathToInit, iniToRead);
 
@@ -354,12 +355,12 @@ static bool InitDirectory(std::string& strPathToInit,
 
 	if (fs::exists(pathToInit, ec_fs) || fs::create_directories(pathToInit, ec_fs))
 	{
-		SPDLOG_INFO("Directory Init of {} successful at: {}", strIniKey, strPathToInit);
+		LOG_INFO("Directory Init of {} successful at: {}", strIniKey, strPathToInit);
 		return true;
 	}
 
 	const std::string strTemp = fmt::format("Could not find or create {} path: {}", strIniKey, strPathToInit);
-	SPDLOG_ERROR("{}", strTemp);
+	LOG_ERROR("{}", strTemp);
 
 	::MessageBoxA(nullptr, strTemp.c_str(), "MacroQuest", MB_OK);
 	return false;
@@ -367,7 +368,7 @@ static bool InitDirectory(std::string& strPathToInit,
 
 bool InitDirectories(const std::string& iniToRead)
 {
-	SPDLOG_DEBUG("Initializing Required Directories...");
+	LOG_DEBUG("Initializing Required Directories...");
 
 	if (InitDirectory(mq::internal_paths::Macros, "MacroPath", iniToRead, mq::internal_paths::MQRoot)
 		&& InitDirectory(mq::internal_paths::Logs, "LogPath", iniToRead, mq::internal_paths::MQRoot)
@@ -405,7 +406,7 @@ bool InitDirectories(const std::string& iniToRead)
  */
 static bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::string& strMQini)
 {
-	SPDLOG_DEBUG("Initializing Configuration...");
+	LOG_DEBUG("Initializing Configuration...");
 
 	fs::path pathMQRoot = strMQRoot;
 
@@ -453,7 +454,7 @@ static bool InitConfig(std::string& strMQRoot, std::string& strConfig, std::stri
 	}
 	else
 	{
-		SPDLOG_ERROR("Failed to init configuraiton: Root directory {} does not exist", strMQRoot);
+		LOG_ERROR("Failed to init configuraiton: Root directory {} does not exist", strMQRoot);
 	}
 
 	return false;
@@ -538,8 +539,8 @@ bool MacroQuest::CoreInitialize()
 	const char* actualVersionDate = (const char*)eqlib::__ActualVersionDate;
 	const char* actualVersionTime = (const char*)eqlib::__ActualVersionTime;
 
-	SPDLOG_DEBUG("Expected Client version: {} {}", __ExpectedVersionDate, __ExpectedVersionTime);
-	SPDLOG_DEBUG("    Real Client version: {} {}", actualVersionDate, actualVersionTime);
+	LOG_DEBUG("Expected Client version: {} {}", __ExpectedVersionDate, __ExpectedVersionTime);
+	LOG_DEBUG("    Real Client version: {} {}", actualVersionDate, actualVersionTime);
 
 	// note: CLIENT_OVERRIDE is always #defined as 1 or 0
 #if !CLIENT_OVERRIDE
@@ -559,13 +560,13 @@ bool MacroQuest::CoreInitialize()
 	// Load configuration so that we can create a logger.
 	if (!InitConfig(mq::internal_paths::MQRoot, mq::internal_paths::Config, mq::internal_paths::MQini))
 	{
-		SPDLOG_ERROR("InitConfig returned false - initialization aborted.");
+		LOG_ERROR("InitConfig returned false - initialization aborted.");
 		return false;
 	}
 
 	if (!InitDirectories(mq::internal_paths::MQini))
 	{
-		SPDLOG_ERROR("InitDirectories returned false - initialization aborted.");
+		LOG_ERROR("InitDirectories returned false - initialization aborted.");
 		return false;
 	}
 
@@ -574,7 +575,7 @@ bool MacroQuest::CoreInitialize()
 
 	if (!InitializeEQLib())
 	{
-		SPDLOG_ERROR("InitializeEQLib failed - check logs for more details");
+		LOG_ERROR("InitializeEQLib failed - check logs for more details");
 		return false;
 	}
 
@@ -582,7 +583,7 @@ bool MacroQuest::CoreInitialize()
 
 	if (!LoadPreferences(mq::internal_paths::MQini))
 	{
-		SPDLOG_ERROR("ParseINIFile returned false - initialization aborted.");
+		LOG_ERROR("ParseINIFile returned false - initialization aborted.");
 		return false;
 	}
 
@@ -606,7 +607,7 @@ bool MacroQuest::CoreInitialize()
 	// We will wait for pulse from the game to init on main thread.
 	if (g_loadComplete.wait())
 	{
-		SPDLOG_INFO("MacroQuest Loaded.");
+		LOG_INFO("MacroQuest Loaded.");
 		return true;
 	}
 
@@ -622,7 +623,7 @@ void MacroQuest::CoreShutdown()
 	eqlib::Shutdown(m_eqlib);
 	m_eqlib = nullptr;
 
-	SPDLOG_DEBUG("Shutdown completed");
+	LOG_DEBUG("Shutdown completed");
 
 	spdlog::shutdown();
 }
@@ -652,7 +653,7 @@ void MacroQuest::InitializeLogging()
 
 	SetDefaultLoggingParams();
 
-	SPDLOG_DEBUG("Logging Initialized");
+	LOG_DEBUG("Logging Initialized");
 }
 
 void MacroQuest::InitializeLoggingStage2()
@@ -670,7 +671,7 @@ void MacroQuest::InitializeLoggingStage2()
 	}
 	catch (const spdlog::spdlog_ex& ex)
 	{
-		SPDLOG_WARN("Failed to create file logger: {}, ex: {}",
+		LOG_WARN("Failed to create file logger: {}, ex: {}",
 			std::string_view(filename.data(), filename.size()), ex.what());
 	}
 
@@ -713,7 +714,7 @@ void MacroQuest::Initialize()
 
 void MacroQuest::Shutdown()
 {
-	SPDLOG_INFO("MacroQuest Unloading...");
+	LOG_INFO("MacroQuest Unloading...");
 	WriteChatColor("MacroQuest Unloading...", USERCOLOR_DEFAULT);
 
 	gbUnload = false;
@@ -723,7 +724,7 @@ void MacroQuest::Shutdown()
 
 	m_initializedFirstFrame = false;
 
-	SPDLOG_INFO("MacroQuest Unloaded.");
+	LOG_INFO("MacroQuest Unloaded.");
 	g_unloadComplete.SetEvent();
 }
 
@@ -751,13 +752,13 @@ void MacroQuest::AddModule(MQModulePtr module)
 {
 	if (m_shuttingDown)
 	{
-		SPDLOG_DEBUG("AddModule ignored: shutting down! module={}", module->GetName());
+		LOG_DEBUG("AddModule ignored: shutting down! module={}", module->GetName());
 		return;
 	}
 
 	if (m_iteratingModules)
 	{
-		SPDLOG_DEBUG("AddModule deferred: module={}", module->GetName());
+		LOG_DEBUG("AddModule deferred: module={}", module->GetName());
 
 		m_pendingWork.push_back(
 			[this, module]() { AddModule(std::move(module)); });
@@ -765,14 +766,14 @@ void MacroQuest::AddModule(MQModulePtr module)
 	else
 	{
 		MQModule* m = module.get();
-		SPDLOG_DEBUG("AddModule: module={}", m->GetName());
+		LOG_DEBUG("AddModule: module={}", m->GetName());
 
 		// non-plugins have additional checks to perform.
 		if (!m->IsPlugin())
 		{
 			if (m_namedModuleMap.find(m->GetName()) != m_namedModuleMap.end())
 			{
-				SPDLOG_ERROR("AddModule failed: module name \"{}\" already exists!", m->GetName());
+				LOG_ERROR("AddModule failed: module name \"{}\" already exists!", m->GetName());
 				return;
 			}
 
@@ -808,7 +809,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 	if (handle.pluginID == 0)
 		return nullptr;
 
-	SPDLOG_DEBUG("RemoveModule: handle={}", handle.pluginID);
+	LOG_DEBUG("RemoveModule: handle={}", handle.pluginID);
 
 	// Check main list of loaded modules
 	auto iter = m_moduleHandleMap.find(handle.pluginID);
@@ -817,7 +818,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 		// We will need this later
 		std::string moduleName = iter->second->GetName();
 
-		SPDLOG_DEBUG("RemoveModule: module={}", iter->second->GetName());
+		LOG_DEBUG("RemoveModule: module={}", iter->second->GetName());
 
 		auto iter2 = std::find_if(m_modules.begin(), m_modules.end(),
 			[handle](const MQModulePtr& module) { return module->GetHandle() == handle; });
@@ -826,7 +827,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 		{
 			if (m_shuttingDown)
 			{
-				SPDLOG_DEBUG("RemoveModule ignored: shutting down! module={}", (*iter2)->GetName());
+				LOG_DEBUG("RemoveModule ignored: shutting down! module={}", (*iter2)->GetName());
 				return nullptr;
 			}
 
@@ -846,7 +847,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 				*iter2 = std::make_shared<MQDummyModule>(
 					fmt::format("{}(dummy)", module->GetName()), module->GetPriority());
 
-				SPDLOG_DEBUG("RemoveModule: module swapped with dummy");
+				LOG_DEBUG("RemoveModule: module swapped with dummy");
 
 				m_pendingWork.push_back([this]()
 					{
@@ -855,7 +856,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 							[](const MQModulePtr& module) { return !!(module->GetFlags() & ModuleFlags::IsDummy); });
 						if (dummyIter != m_modules.end())
 						{
-							SPDLOG_DEBUG("RemoveModule: removing dummy module: {}", (*dummyIter)->GetName());
+							LOG_DEBUG("RemoveModule: removing dummy module: {}", (*dummyIter)->GetName());
 
 							m_modules.erase(dummyIter);
 						}
@@ -881,7 +882,7 @@ MQModulePtr MacroQuest::RemoveModule(MQPluginHandle handle)
 	}
 	else
 	{
-		SPDLOG_DEBUG("RemoveModule: unrecognized module handle: {}", handle.pluginID);
+		LOG_DEBUG("RemoveModule: unrecognized module handle: {}", handle.pluginID);
 	}
 
 	return nullptr;
@@ -916,7 +917,7 @@ bool MacroQuest::CheckModuleDependencies(MQModule* module)
 			auto iter = m_namedModuleMap.find(dep);
 			if (iter == m_namedModuleMap.end())
 			{
-				SPDLOG_ERROR("CheckModuleDependencies: Module {} requires module {}, which is not loaded!",
+				LOG_ERROR("CheckModuleDependencies: Module {} requires module {}, which is not loaded!",
 					module->GetName(), dep);
 
 				return false;
@@ -975,7 +976,7 @@ void MacroQuest::InitializeModules()
 		// after we leave the scope, but before we leave the function.
 		ScopedIteratingModules s(this);
 
-		SPDLOG_DEBUG("Initializing modules");
+		LOG_DEBUG("Initializing modules");
 
 		for (const auto& module : m_modules)
 		{
@@ -987,12 +988,12 @@ void MacroQuest::InitializeModules()
 		m_initializedModules = true;
 	}
 
-	SPDLOG_DEBUG("Module initialization complete");
+	LOG_DEBUG("Module initialization complete");
 }
 
 void MacroQuest::InitializeModule(MQModule* module)
 {
-	SPDLOG_DEBUG("InitializeModule: module={}", module->GetName());
+	LOG_DEBUG("InitializeModule: module={}", module->GetName());
 
 	MQPluginProvider* provider = module->GetPluginProvider();
 
@@ -1053,7 +1054,7 @@ void MacroQuest::InitializeModule(MQModule* module)
 
 	OnModuleLoaded(module);
 
-	SPDLOG_DEBUG("InitializeModule completed: module={}", module->GetName());
+	LOG_DEBUG("InitializeModule completed: module={}", module->GetName());
 }
 
 void MacroQuest::ShutdownModules()
@@ -1061,7 +1062,7 @@ void MacroQuest::ShutdownModules()
 	if (!m_initializedModules)
 		return;
 
-	SPDLOG_DEBUG("Shutdown modules: count={}", m_modules.size());
+	LOG_DEBUG("Shutdown modules: count={}", m_modules.size());
 
 	// Iterate over modules in reverse order to gracefully shut everything down.
 	// We do it without using iterators so we can safely remove stuff from the list.
@@ -1079,7 +1080,7 @@ void MacroQuest::ShutdownModules()
 		// Module is destroyed by leaving scope.
 	}
 
-	SPDLOG_DEBUG("Done shutting down modules");
+	LOG_DEBUG("Done shutting down modules");
 
 	m_pendingWork.clear();
 	m_moduleHandleMap.clear();
@@ -1089,7 +1090,7 @@ void MacroQuest::ShutdownModules()
 
 void MacroQuest::ShutdownModule(MQModule* module)
 {
-	SPDLOG_DEBUG("ShutdownModule: module={}", module->GetName());
+	LOG_DEBUG("ShutdownModule: module={}", module->GetName());
 
 	if (m_createdUI)
 	{
@@ -1112,7 +1113,7 @@ void MacroQuest::ShutdownModule(MQModule* module)
 
 	OnAfterModuleUnloaded(module);
 
-	SPDLOG_DEBUG("ShutdownModule completed: module={}", module->GetName());
+	LOG_DEBUG("ShutdownModule completed: module={}", module->GetName());
 
 	if (provider != nullptr && module->IsPlugin())
 	{
@@ -1124,7 +1125,7 @@ void MacroQuest::HandlePendingWork()
 {
 	if (!m_pendingWork.empty())
 	{
-		SPDLOG_DEBUG("Handle pending work: {} callbacks", m_pendingWork.size());
+		LOG_DEBUG("Handle pending work: {} callbacks", m_pendingWork.size());
 
 		decltype(m_pendingWork) callbacks;
 		std::swap(callbacks, m_pendingWork);
@@ -1204,7 +1205,7 @@ void MacroQuest::OnGameStateChanged(int newGameState)
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnGameStateChanged gameState={}", newGameState);
+	LOG_DEBUG("Sending module event: OnGameStateChanged gameState={}", newGameState);
 
 	for (const auto& module : m_modules)
 	{
@@ -1220,7 +1221,7 @@ void MacroQuest::OnLoginFrontendEntered()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnLoginFrontendEntered");
+	LOG_DEBUG("Sending module event: OnLoginFrontendEntered");
 
 	for (const auto& module : m_modules)
 	{
@@ -1236,7 +1237,7 @@ void MacroQuest::OnLoginFrontendExited()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnLoginFrontendExited");
+	LOG_DEBUG("Sending module event: OnLoginFrontendExited");
 
 	for (const auto& module : m_modules)
 	{
@@ -1252,7 +1253,7 @@ void MacroQuest::OnReloadUI(const eqlib::ReloadUIParams& params)
 	MQScopedBenchmark bm(bmPluginsReloadUI);
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnReloadUI loadIni={} fastReload={}", params.loadIni, params.fastReload);
+	LOG_DEBUG("Sending module event: OnReloadUI loadIni={} fastReload={}", params.loadIni, params.fastReload);
 
 	m_createdUI = true;
 
@@ -1270,7 +1271,7 @@ void MacroQuest::OnCleanUI()
 	MQScopedBenchmark bm(bmPluginsCleanUI);
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnCleanUI");
+	LOG_DEBUG("Sending module event: OnCleanUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1289,7 +1290,7 @@ void MacroQuest::OnPreZoneUI()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnPreZoneUI");
+	LOG_DEBUG("Sending module event: OnPreZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1309,7 +1310,7 @@ void MacroQuest::OnPostZoneUI()
 		return;
 
 	ScopedIteratingModules s(this);
-	SPDLOG_DEBUG("Sending module event: OnPostZoneUI");
+	LOG_DEBUG("Sending module event: OnPostZoneUI");
 
 	for (const auto& module : m_modules)
 	{
@@ -1539,7 +1540,7 @@ void MacroQuest::OnModuleLoaded(MQModule* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("Sending module event: OnModuleLoaded: module={}", otherModule->GetName());
+	LOG_DEBUG("Sending module event: OnModuleLoaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1551,7 +1552,7 @@ void MacroQuest::OnBeforeModuleUnloaded(MQModule* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("Sending module event: OnBeforeModuleUnloaded: module={}", otherModule->GetName());
+	LOG_DEBUG("Sending module event: OnBeforeModuleUnloaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1563,7 +1564,7 @@ void MacroQuest::OnAfterModuleUnloaded(MQModule* otherModule)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("Sending module event: OnAfterModuleUnloaded: module={}", otherModule->GetName());
+	LOG_DEBUG("Sending module event: OnAfterModuleUnloaded: module={}", otherModule->GetName());
 
 	for (const auto& module : m_modules)
 	{
@@ -1575,7 +1576,7 @@ void MacroQuest::OnMacroStart(const char* macroName)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("Sending module event: OnMacroStart: macro={}", macroName);
+	LOG_DEBUG("Sending module event: OnMacroStart: macro={}", macroName);
 
 	for (const auto& module : m_modules)
 	{
@@ -1587,7 +1588,7 @@ void MacroQuest::OnMacroStop(const char* macroName)
 {
 	ScopedIteratingModules s(this);
 
-	SPDLOG_DEBUG("Sending module event: OnMacroStop: macro={}", macroName);
+	LOG_DEBUG("Sending module event: OnMacroStop: macro={}", macroName);
 
 	for (const auto& module : m_modules)
 	{
@@ -1839,7 +1840,7 @@ bool MacroQuest::AddTopLevelObject(const char* name, MQTopLevelObjectFunction ca
 		return pDataAPI->AddTopLevelObject(name, std::move(callback), pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to add TLO '{}' without DataTypes module", name);
+	LOG_ERROR("Tried to add TLO '{}' without DataTypes module", name);
 	return false;
 }
 
@@ -1850,7 +1851,7 @@ bool MacroQuest::RemoveTopLevelObject(const char* name, const MQPluginHandle& pl
 		return pDataAPI->RemoveTopLevelObject(name, pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to remove TLO '{}' without DataTypes module", name);
+	LOG_ERROR("Tried to remove TLO '{}' without DataTypes module", name);
 	return false;
 }
 
@@ -1875,7 +1876,7 @@ void MacroQuest::SendToActor(postoffice::Dropbox* dropbox, const postoffice::Add
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to send to actor without Actors module");
+		LOG_ERROR("Tried to send to actor without Actors module");
 	}
 }
 
@@ -1888,7 +1889,7 @@ void MacroQuest::ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_pt
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to reply to actor without Actors module");
+		LOG_ERROR("Tried to reply to actor without Actors module");
 	}
 }
 
@@ -1900,7 +1901,7 @@ postoffice::Dropbox* MacroQuest::AddActor(const char* localAddress, postoffice::
 		return pActorAPI->AddActor(localAddress, std::move(receive), pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to add actor without Actors module");
+	LOG_ERROR("Tried to add actor without Actors module");
 	return nullptr;
 }
 
@@ -1912,7 +1913,7 @@ void MacroQuest::RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to remove actor without Actors module");
+		LOG_ERROR("Tried to remove actor without Actors module");
 	}
 }
 
@@ -1925,7 +1926,7 @@ bool MacroQuest::AddCommand(std::string_view command, MQCommandHandler handler, 
 		return pCommandAPI->AddCommand(command, handler, eq, parse, inGame, pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to add command '{}' without Commands module", command);
+	LOG_ERROR("Tried to add command '{}' without Commands module", command);
 	return false;
 }
 
@@ -1936,7 +1937,7 @@ bool MacroQuest::RemoveCommand(std::string_view command, const MQPluginHandle& p
 		return pCommandAPI->RemoveCommand(command, pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to remove command '{}' without Commands module", command);
+	LOG_ERROR("Tried to remove command '{}' without Commands module", command);
 	return false;
 }
 
@@ -1968,7 +1969,7 @@ bool MacroQuest::AddAlias(const std::string& shortCommand, const std::string& lo
 		return pCommandAPI->AddAlias(shortCommand, longCommand, persist, pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to add alias '{}' without Commands module", shortCommand);
+	LOG_ERROR("Tried to add alias '{}' without Commands module", shortCommand);
 	return false;
 }
 
@@ -1979,7 +1980,7 @@ bool MacroQuest::RemoveAlias(const std::string& shortCommand, const MQPluginHand
 		return pCommandAPI->RemoveAlias(shortCommand, pluginHandle);
 	}
 
-	SPDLOG_ERROR("Tried to remove alias '{}' without Commands module", shortCommand);
+	LOG_ERROR("Tried to remove alias '{}' without Commands module", shortCommand);
 	return false;
 }
 
@@ -2007,12 +2008,12 @@ bool MacroQuest::ValidateNewPatch(uintptr_t address, size_t numBytes, std::strin
 
 		if (existingPatch->GetAddress() == address)
 		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
+			LOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it already exists as another detour created by {}",
 				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
 		}
 		else
 		{
-			SPDLOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
+			LOG_ERROR("Plugin \"{}\" tried to detour address 0x{:X} (\"{}\") but it conflicts with another detour created by {}",
 				thisPlugin->name, address, name, otherPlugin ? std::string_view(otherPlugin->name) : std::string_view("(NULL)"));
 		}
 
@@ -2043,7 +2044,7 @@ bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHan
 
 	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Detour)
 	{
-		SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
+		LOG_WARN("Failed to remove detour at 0x{:X}: Detour not found", address);
 
 		return false;
 	}
@@ -2052,7 +2053,7 @@ bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHan
 	{
 		if (patch->GetUserData() == 0)
 		{
-			SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
+			LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by MQ", address);
 		}
 		else
 		{
@@ -2060,11 +2061,11 @@ bool MacroQuest::RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHan
 
 			if (plugin)
 			{
-				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
+				LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by {}", address, plugin->name);
 			}
 			else
 			{
-				SPDLOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
+				LOG_WARN("Failed to remove detour at 0x{:X}: Detour is owned by an unknown plugin", address);
 			}
 		}
 	}
@@ -2109,7 +2110,7 @@ bool MacroQuest::RemovePatch(uintptr_t address, const MQPluginHandle& pluginHand
 
 	if (!patch || patch->GetType() != eqlib::MemoryPatch::Type::Patch)
 	{
-		SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch not found", address);
+		LOG_WARN("Failed to remove patch at 0x{:X}: Patch not found", address);
 
 		return false;
 	}
@@ -2118,7 +2119,7 @@ bool MacroQuest::RemovePatch(uintptr_t address, const MQPluginHandle& pluginHand
 	{
 		if (patch->GetUserData() == 0)
 		{
-			SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by MQ", address);
+			LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by MQ", address);
 		}
 		else
 		{
@@ -2126,11 +2127,11 @@ bool MacroQuest::RemovePatch(uintptr_t address, const MQPluginHandle& pluginHand
 
 			if (plugin)
 			{
-				SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by {}", address, plugin->name);
+				LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by {}", address, plugin->name);
 			}
 			else
 			{
-				SPDLOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by an unknown plugin", address);
+				LOG_WARN("Failed to remove patch at 0x{:X}: Patch is owned by an unknown plugin", address);
 			}
 		}
 	}

@@ -152,6 +152,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">
     <TargetName>$(ProjectName)-static</TargetName>
   </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -291,49 +296,23 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\contrib\imgui\imgui.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_demo.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_stacklayout.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_tables.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\imgui\misc\freetype\imgui_freetype.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="..\..\contrib\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\imgui_stacklayout.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\contrib\imgui\misc\freetype\imgui_freetype.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="fonts\font_fontawesome_ttf.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="fonts\font_materialicons_ttf.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="fonts\font_roboto_regular_ttf.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="fonts\font_fontawesome_ttf.cpp" />
+    <ClCompile Include="fonts\font_materialicons_ttf.cpp" />
+    <ClCompile Include="fonts\font_roboto_regular_ttf.cpp" />
     <ClCompile Include="ImGuiFileDialog.cpp" />
     <ClCompile Include="ImGuiTextEditor.cpp" />
     <ClCompile Include="ImGuiUtils.cpp" />
-    <ClCompile Include="implot\implot.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="implot\implot_demo.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="implot\implot_items.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="implot\implot.cpp" />
+    <ClCompile Include="implot\implot_demo.cpp" />
+    <ClCompile Include="implot\implot_items.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

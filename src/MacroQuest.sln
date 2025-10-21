@@ -64,6 +64,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "routing", "routing\routing.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login", "login\login.vcxproj", "{B85C18A8-0D53-4E32-917E-F9BF30080B16}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Actors", "tests\Actors\Actors.vcxproj", "{86E7D2A2-C3E1-499A-800E-9557D292E0C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -252,6 +254,14 @@ Global
 		{B85C18A8-0D53-4E32-917E-F9BF30080B16}.Release|Win32.Build.0 = Release|Win32
 		{B85C18A8-0D53-4E32-917E-F9BF30080B16}.Release|x64.ActiveCfg = Release|x64
 		{B85C18A8-0D53-4E32-917E-F9BF30080B16}.Release|x64.Build.0 = Release|x64
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Debug|Win32.Build.0 = Debug|Win32
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Debug|x64.ActiveCfg = Debug|x64
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Debug|x64.Build.0 = Debug|x64
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Release|Win32.ActiveCfg = Release|Win32
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Release|Win32.Build.0 = Release|Win32
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Release|x64.ActiveCfg = Release|x64
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -284,6 +294,7 @@ Global
 		{C0E145AB-4882-4FD4-8ADD-630FC678FBC0} = {A648B03F-7642-4857-A62A-AFABC7CAB451}
 		{6CE4F8D6-1709-47C5-9297-1619BBC4A71E} = {B4485B60-AD10-4604-A4B1-A2E6DB1B1692}
 		{B85C18A8-0D53-4E32-917E-F9BF30080B16} = {B4485B60-AD10-4604-A4B1-A2E6DB1B1692}
+		{86E7D2A2-C3E1-499A-800E-9557D292E0C2} = {EAFB7791-F141-4B87-A0F9-B5685A90A2C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330AC4A2-17BC-4784-AB3C-2B1DA71EB6A5}

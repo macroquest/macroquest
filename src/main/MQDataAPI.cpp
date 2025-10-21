@@ -17,6 +17,7 @@
 #include "CrashHandler.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
+#include "Logging.h"
 #include "MQMain.h"
 
 // FIXME: For gMacroSubLookupMap -> Replace with something more public...
@@ -459,7 +460,7 @@ bool MQDataAPI::RemoveTopLevelObject(const char* szName, const MQPluginHandle& p
 	auto& item = iter->second;
 	if (item.owner != pluginHandle)
 	{
-		//SPDLOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
+		//LOG_WARN("Attempt made by {} to remove TLO {} owned by {}",
 		//	std::string_view(owner ? owner->name : "(Unknown)"), szName, item.tlo->Owner->name);
 		return false;
 	}
@@ -2084,7 +2085,7 @@ bool AddMQ2Type(MQ2Type& type)
 		return pDataAPI->AddDataType(type);
 	}
 	
-	SPDLOG_ERROR("Tried to add datatype without DataTypes module: {}", type.GetName());
+	LOG_ERROR("Tried to add datatype without DataTypes module: {}", type.GetName());
 	return false;
 }
 
@@ -2095,7 +2096,7 @@ bool RemoveMQ2Type(MQ2Type& type)
 		return pDataAPI->RemoveDataType(type);
 	}
 
-	SPDLOG_ERROR("Tried to remove datatype without DataType module: {}", type.GetName());
+	LOG_ERROR("Tried to remove datatype without DataType module: {}", type.GetName());
 	return false;
 }
 
@@ -2116,7 +2117,7 @@ bool AddMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 		return pDataAPI->AddTypeExtension(typeName, extension);
 	}
 
-	SPDLOG_ERROR("Tried to add datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
+	LOG_ERROR("Tried to add datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
 	return false;
 }
 
@@ -2127,7 +2128,7 @@ bool RemoveMQ2TypeExtension(const char* typeName, MQ2Type* extension)
 		return pDataAPI->RemoveTypeExtension(typeName, extension);
 	}
 
-	SPDLOG_ERROR("Tried to remove datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
+	LOG_ERROR("Tried to remove datatype extension without DataTypes module: {} on {}", extension->GetName(), typeName);
 	return false;
 }
 

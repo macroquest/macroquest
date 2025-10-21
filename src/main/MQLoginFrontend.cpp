@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include "Logging.h"
 #include "MQMain.h"
 #include "MQDeveloperTools.h"
 
@@ -111,7 +112,7 @@ private:
 	{
 		if (!m_detoursInstalled)
 		{
-			SPDLOG_DEBUG("Initializing Login Detours");
+			LOG_DEBUG("Initializing Login Detours");
 
 			EzDetour(EQMain__WndProc, EQMain__WndProc_Detour, EQMain__WndProc_Trampoline);
 
@@ -131,7 +132,7 @@ private:
 	{
 		if (m_detoursInstalled)
 		{
-			SPDLOG_DEBUG("Removing Login Detours");
+			LOG_DEBUG("Removing Login Detours");
 
 			RemoveDetour(EQMain__WndProc);
 

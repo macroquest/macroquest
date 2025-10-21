@@ -134,28 +134,33 @@ public:
 	virtual bool RemoveTopLevelObject(const char* name, const MQPluginHandle& pluginHandle) override;
 	virtual MQTopLevelObject* FindTopLevelObject(const char* name) override;
 
+	// Actors
 	virtual void SendToActor(postoffice::Dropbox* dropbox, const postoffice::Address& address, const std::string& data,
 		const postoffice::ResponseCallbackAPI& callback, const MQPluginHandle& pluginHandle) override;
 	virtual void ReplyToActor(postoffice::Dropbox* dropbox, const std::shared_ptr<postoffice::Message>& message,
 		const std::string& data, uint8_t status, const MQPluginHandle& pluginHandle) override;
-	virtual postoffice::Dropbox* AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive, const MQPluginHandle& pluginHandle) override;
+	virtual postoffice::Dropbox* AddActor(const char* localAddress, postoffice::ReceiveCallbackAPI&& receive,
+		const MQPluginHandle& pluginHandle) override;
 	virtual void RemoveActor(postoffice::Dropbox*& dropbox, const MQPluginHandle& pluginHandle) override;
 
 	// Commands
-	virtual bool AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame, const MQPluginHandle& pluginHandle) override;
+	virtual bool AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame,
+		const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveCommand(std::string_view command, const MQPluginHandle& pluginHandle) override;
 	virtual bool IsCommand(std::string_view command) const override;
 	virtual void DoCommand(const char* command, bool delayed, const MQPluginHandle& pluginHandle) override;
 	virtual void TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle) override;
 
 	// Aliases
-	virtual bool AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist, const MQPluginHandle& pluginHandle) override;
+	virtual bool AddAlias(const std::string& shortCommand, const std::string& longCommand, bool persist,
+		const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle) override;
 	virtual bool IsAlias(const std::string& alias) const override;
 
 	//-----------------------------------------------------------------------------------------------------
 	// Detours
-	virtual bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name, const MQPluginHandle& pluginHandle) override;
+	virtual bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
+		const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
 
 	virtual bool AddPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle) override;

@@ -15,6 +15,9 @@
 #include "pch.h"
 
 #include "MQMain.h"
+#include "Logging.h"
+#include "ModuleSystem.h"
+
 #include "mq/api/RenderDoc.h"
 #include "mq/base/WString.h"
 
@@ -23,7 +26,6 @@
 #include <atomic>
 #include <filesystem>
 
-#include "ModuleSystem.h"
 
 using namespace eqlib;
 
@@ -199,7 +201,7 @@ static void LoadRenderDoc()
 	s_renderDocAPI->SetFocusToggleKeys(nullptr, 0);
 	s_renderDocAPI->SetCaptureKeys(nullptr, 0);
 
-	SPDLOG_INFO("\agRenderDoc support enabled");
+	LOG_INFO("\agRenderDoc support enabled");
 
 	// Sleep for a bit to give RenderDoc time to initialize
 	Sleep(1000);

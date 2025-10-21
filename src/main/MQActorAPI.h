@@ -14,13 +14,13 @@
 
 #pragma once
 
-#ifndef MQ2MAIN_IMPL
+#if !defined(MQ2MAIN_IMPL) && !defined(__clang__)
 #error This header should only be included from the MQ2Main project
 #endif
 
 #include "ModuleSystem.h"
 
-#include "mq/base/Common.h"
+#include "mq/base/PluginHandle.h"
 #include "mq/api/ActorAPI.h"
 
 namespace mq {

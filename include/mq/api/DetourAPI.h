@@ -51,7 +51,7 @@ namespace detail
 	}
 
 	template <typename T, typename U>
-	std::enable_if_t<!std::is_same_v<T, U>, bool> AddDetour(uintptr_t address, T&& detour, U* target, std::string_view name)
+	std::enable_if_t<!std::is_same_v<T, U>, bool> AddDetour(uintptr_t, T&& detour, U*, std::string_view)
 	{
 		static_assert(mq::always_false<T>::value, "Detour and Trampoline types differ in their signatures!");
 
@@ -115,6 +115,27 @@ bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
 	const uint8_t* expectedBytes = nullptr, std::string_view name = "");
 
 /**
+ * Patch a region of memory.
+ *
+ * The original bytes at this location will be saved, and will be restored when the patch is removed. The
+ * bytes in `newBytes` will be written to the memory at the specified address. If `expectedBytes` is provided,
+ * the original bytes will be validated against the expected bytes before applying the patch. If the original bytes do not match
+ * then the patch will not be applied.
+ * 
+ * @param address Address to apply the patch
+ * @param newBytes initializer-list containing raw bytes to write to the memory at the specified address.
+ * @param expectedBytes Optional. The expected bytes at the address. If this is provided and the original bytes
+ * do not match `expectedBytes`, then the patch will not be applied
+ * @param name Name of the patch
+ * @return Pointer to a MemoryPatch object representing the patch at the address.
+ */
+inline bool AddPatch(uintptr_t address, std::initializer_list<uint8_t> newBytes,
+	const uint8_t* expectedBytes = nullptr, std::string_view name = "")
+{
+	return AddPatch(address, newBytes.begin(), newBytes.size(), expectedBytes, name);
+}
+
+/**
  * Remove a patch
  *
  * @param address Address of the patch to remove.
@@ -140,6 +161,12 @@ inline bool AddDetourBytes(uintptr_t address, std::string_view name)
 	return AddPatch(address, eqlib::DETOUR_BYTES_COUNT, name);
 }
 
+
+/**
+ * A stub for the old trampoline macro. This produces a compile time error if it is still used.
+ */
+#define DETOUR_TRAMPOLINE_EMPTY(...) \
+	static_assert(false, "DETOUR_TRAMPOLINE_EMPTY is no longer supported. Use DETOUR_TRAMPOLINE_DEF and the new Detours API instead.");
 
 
 } // namespace mq

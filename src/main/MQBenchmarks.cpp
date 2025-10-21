@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include "Logging.h"
 #include "ModuleSystem.h"
 #include "MQMain.h"
 
@@ -25,7 +26,7 @@ std::vector<std::unique_ptr<MQBenchmark>> gBenchmarks;
 
 uint32_t AddBenchmark(const char* Name)
 {
-	SPDLOG_TRACE("AddBenchmark({})", Name);
+	LOG_TRACE("AddBenchmark({})", Name);
 
 	// find an unused index from members.
 	int index = -1;
@@ -50,7 +51,7 @@ uint32_t AddBenchmark(const char* Name)
 
 void RemoveBenchmark(uint32_t BMHandle)
 {
-	SPDLOG_TRACE("RemoveBenchmark({})", BMHandle);
+	LOG_TRACE("RemoveBenchmark({})", BMHandle);
 
 	if (BMHandle < gBenchmarks.size() && gBenchmarks[BMHandle])
 	{
@@ -58,7 +59,7 @@ void RemoveBenchmark(uint32_t BMHandle)
 	}
 	else
 	{
-		SPDLOG_WARN("RemoveBenchmark({}) failed", BMHandle);
+		LOG_WARN("RemoveBenchmark({}) failed", BMHandle);
 	}
 }
 
@@ -106,33 +107,56 @@ bool GetBenchmark(uint32_t BMHandle, MQBenchmark& Dest)
 
 void Cmd_DumpBenchmarks(PlayerClient*, char* szLine)
 {
+	// Execute and time a command starting with '/'
 	if (szLine && szLine[0] == '/')
 	{
-		uint64_t Start = MQGetTickCount64();
+		uint64_t start = MQGetTickCount64();
 		DoCommand(szLine, false);
-
-		uint64_t Time = MQGetTickCount64() - Start;
-		WriteChatf("\ay%s\ax completed in \at%.2f\axs", szLine, static_cast<double>(Time) / 1000.);
+		double time = (MQGetTickCount64() - start) / 1000.0;
+		WriteChatf("\ay%s\ax took \at%.2f\axs", szLine, time);
+		return;
 	}
+
+	// Since it doesn't start with a slash, let's check there is a benchmark name to match
+	// "/benchmark mq2nav" for example
+	if (szLine && szLine[0])
+	{
+		for (const auto& bench : gBenchmarks)
+		{
+			if (bench && ci_equals(bench->Name, szLine))
+			{
+				WriteChatf("Start %s Benchmark", szLine);
+				WriteChatColor("--------------");
+
+				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
+				float totalMs = bench->TotalTime.count() / 1000.f;
+
+				WriteChatf("[\ay%s\ax] \at%I64u\ax runs, \at%.3f\axms total, \at%.3f\axms avg",
+					bench->Name.c_str(), bench->Count, totalMs, avgMs);
+				WriteChatf("End %s Benchmark", szLine);
+				WriteChatColor("--------------");
+				return;
+			}
+		}
+
+		WriteChatf("Could not find benchmark \"%s\".", szLine);
+	}
+	// Otherwise, show all benchmarks
 	else
 	{
 		WriteChatColor("MacroQuest Benchmarks");
 		WriteChatColor("--------------");
-
-		for (auto& pBenchmark : gBenchmarks)
+		for (const auto& bench : gBenchmarks)
 		{
-			if (pBenchmark)
+			if (bench)
 			{
-				float AvgMS = 0;
-				if (pBenchmark->Count)
-					AvgMS = static_cast<float>(pBenchmark->TotalTime.count()) / static_cast<float>(pBenchmark->Count) / 1000.f;
-				float TotalMS = static_cast<float>(pBenchmark->TotalTime.count()) / 1000.f;
+				float avgMs = bench->Count ? bench->TotalTime.count() / static_cast<float>(bench->Count) / 1000.f : 0;
+				float totalMs = bench->TotalTime.count() / 1000.f;
 
-				WriteChatf("[\ay%s\ax] \at%I64u\ax for \at%.3fu\axms, \at%.3f\axms avg",
-					pBenchmark->Name.c_str(), pBenchmark->Count, TotalMS, AvgMS);
+				WriteChatf("[\ay%s\ax] \at%I64u\ax runs, \at%.3f\axms total, \at%.3f\axms avg",
+					bench->Name.c_str(), bench->Count, totalMs, avgMs);
 			}
 		}
-
 		WriteChatColor("--------------");
 		WriteChatColor("End Benchmarks");
 	}

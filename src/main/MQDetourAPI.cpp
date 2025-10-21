@@ -15,6 +15,7 @@
 #include "pch.h"
 
 #include "MacroQuest.h"
+#include "Logging.h"
 #include "MQMain.h"
 
 #include "mq/api/DetourAPI.h"
@@ -22,6 +23,7 @@
 #include "eqlib/MemoryPatcher.h"
 
 #include <TlHelp32.h>
+#include <Psapi.h>
 
 namespace eqlib
 {
@@ -32,6 +34,8 @@ namespace eqlib
 using namespace eqlib;
 
 namespace mq {
+
+#if !IS_EMU_CLIENT
 
 // this is the memory checker key struct
 struct mckey
@@ -70,16 +74,16 @@ public:
 	DETOUR_TRAMPOLINE_DEF(bool, LoadTextSpells_Trampoline, (char*, char*, EQ_Spell*, SpellAffectData*))
 	bool LoadTextSpells_Detour(char* FileName, char* AssocFileName, EQ_Spell* SpellArray, SpellAffectData* EffectArray)
 	{
-		gbDoingSpellChecks = true;
+		s_doingSpellChecks = true;
 		bool ret = LoadTextSpells_Trampoline(FileName, AssocFileName, SpellArray, EffectArray);
-		gbDoingSpellChecks = false;
+		s_doingSpellChecks = false;
 		return ret;
 	}
 #endif
 };
 
 //============================================================================
-	
+
 #if 0
 // TODO: Maybe someday revisit detection of assist completion...
 //void SetAssist(BYTE* address)
@@ -126,16 +130,6 @@ DETOUR_TRAMPOLINE_DEF(int, memcheck0_tramp, (unsigned char* buffer, size_t count
 int memcheck0(unsigned char* buffer, size_t count);
 DETOUR_TRAMPOLINE_DEF(int, memcheck1_tramp, (unsigned char* buffer, size_t count, mckey key))
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
-
-#if defined(__MemChecker2)
-DETOUR_TRAMPOLINE_DEF(int, memcheck2_tramp, (unsigned char* buffer, size_t count, mckey key))
-int memcheck2(unsigned char* buffer, size_t count, mckey key);
-#endif
-#if defined(__MemChecker3)
-int memcheck2(unsigned char* buffer, size_t count, mckey key);
-DETOUR_TRAMPOLINE_DEF(int, memcheck3_tramp, (unsigned char* buffer, size_t count, mckey key))
-#endif
-
 #if defined(__MemChecker4_x)
 DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count))
 int WINAPI memcheck4(unsigned char* buffer, size_t* count);
@@ -143,7 +137,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count);
 
 struct OrderedPatchSet
 {
-	OrderedPatchSet(std::vector<eqlib::MemoryPatch*> patches)
+	OrderedPatchSet(std::vector<eqlib::MemoryPatch*>&& patches)
 		: patches(std::move(patches))
 	{
 		if (!patches.empty())
@@ -152,7 +146,7 @@ struct OrderedPatchSet
 		}
 	}
 
-	// assumes patches is sorted and addresses are accessed in increasing order. Optimized
+	// Optimized based on the assumption that patches are sorted and addresses are accessed in increasing order
 	uint8_t GetPatchedByte(uintptr_t address, uint8_t originalByte)
 	{
 		// Early out if there are no patches
@@ -224,8 +218,7 @@ int memcheck0(unsigned char* buffer, size_t count)
 
 int memcheck1(unsigned char* buffer, size_t count, mckey key)
 {
-	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
-	unsigned int ebx, eax, edx;
+	unsigned int eax, edx;
 
 	if (key.x != 0) {
 		eax = ~key.a[0] & 0xff;
@@ -250,43 +243,8 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 		eax = 0xffffffff;
 	}
 
-	eax = ~DetourAwareHash(buffer, count, eax);
-
-	ebx = ~eax;
-	return ebx;
+	return ~DetourAwareHash(buffer, count, eax);
 }
-
-#if defined(__MemChecker2) || defined(__MemChecker3)
-int memcheck2(unsigned char* buffer, size_t count, mckey key)
-{
-	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
-	unsigned int ebx, edx, eax;
-
-	eax = ~key.a[0] & 0xff;
-	eax = extern_array0[eax];
-	eax ^= 0xffffff;
-
-	edx = key.a[1];
-	edx = (edx ^ eax) & 0xff;
-	eax = ((int)eax >> 8) & 0xffffff;
-	eax ^= extern_array0[edx];
-
-	edx = key.a[2];
-	edx = (edx ^ eax) & 0xff;
-	eax = ((int)eax >> 8) & 0xffffff;
-	edx = eax ^ extern_array0[edx];
-
-	ebx = key.a[3];
-	ebx = (edx ^ ebx) & 0xff;
-	edx = ((int)edx >> 8) & 0xffffff;
-	edx ^= extern_array0[ebx];
-
-	edx = ~DetourAwareHash(buffer, count, eax);
-
-	eax = ~edx;
-	return eax;
-}
-#endif // defined(__MemChecker2) || defined(__MemChecker3)
 
 #if defined(__MemChecker4_x)
 int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
@@ -299,18 +257,16 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 		*gpMemCheckBitmask |= 1;
 
 	// If we are not detouring memory that overlaps this region, just let it pass through.
-	AddressDetourState detourState = g_mq->IsAddressDetoured(addr, count);
+	AddressDetourState detourState = IsAddressDetoured(addr, count);
 	if (detourState != AddressDetourState::CodeDetour)
 	{
-		gbInMemCheck4 = 1;
+		s_inMemCheck4 = 1;
 		int result = memcheck4_tramp(buffer, count_);
-		gbInMemCheck4 = 0;
+		s_inMemCheck4 = 0;
 		return result;
 	}
 
-	unsigned int crc32 = 0xffffffff;
-
-	crc32 = DetourAwareHash(buffer, count, crc32);
+	unsigned int crc32 = DetourAwareHash(buffer, count, 0xffffffff);
 
 	*gpMemCheckBitmask = bmask;
 
@@ -423,63 +379,123 @@ uintptr_t __Module32Next = 0;
 uintptr_t __Process32First = 0;
 uintptr_t __Process32Next = 0;
 
-void HookMemChecker(bool Patch)
+struct HookInfo
 {
+	std::string name;
+	uintptr_t address = 0;
+
+	std::function<void(HookInfo&)> patch = nullptr;
+};
+static std::vector<HookInfo> s_hooks;
+static std::vector<uintptr_t> s_patches;
+
+template <typename T>
+void AddHook_(uintptr_t address, T& detour, T*& target, const char* name)
+{
+	HookInfo hookInfo;
+	hookInfo.name = name;
+	hookInfo.address = 0;
+	hookInfo.patch = [address, &detour, &target](HookInfo& hi)
+		{
+			hi.address = address;
+			mq::detail::CreateDetour(hi.address, &(void*&)target, detour, hi.name);
+		};
+	
+	s_hooks.push_back(std::move(hookInfo));
+}
+
+#define AddHook(address, detour, trampoline) \
+	AddHook_(static_cast<uintptr_t>(address), detour, trampoline##_Ptr, STRINGIFY(address))
+
+static void InstallHooks()
+{
+	for (HookInfo& hook : s_hooks)
+	{
+		if (hook.address == 0)
+		{
+			hook.patch(hook);
+		}
+	}
+}
+
+static void RemoveHooks()
+{
+	for (HookInfo& hook : s_hooks)
+	{
+		if (hook.address != 0)
+		{
+			mq::RemoveDetour(hook.address);
+			hook.address = 0;
+		}
+	}
+	s_hooks.clear();
+
+	for (uintptr_t patchAddr : s_patches)
+	{
+		mq::RemovePatch(patchAddr);
+	}
+	s_patches.clear();
+}
+
+static bool IsHooked(uintptr_t addr)
+{
+	for (const HookInfo& hook : s_hooks)
+	{
+		if (hook.address == addr)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+static void HookMemChecker(bool Patch)
+{
+	LOG_DEBUG("HookMemChecker - {}atching", (Patch) ? "P" : "Unp");
+
 	if (Patch)
 	{
-#if !defined(EMULATOR)
-		EzDetour(__MemChecker0, memcheck0, memcheck0_tramp);
-		EzDetour(__MemChecker1, memcheck1, memcheck1_tramp);
-#if defined(__MemChecker2_x)
-		EzDetour(__MemChecker2, memcheck2, memcheck2_tramp);
-#endif
-#if defined(__MemChecker3_x)
-		EzDetour(__MemChecker3, memcheck2, memcheck3_tramp);
-#endif
-#if defined(__MemChecker4_x)
-		EzDetour(__MemChecker4, memcheck4, memcheck4_tramp);
-#endif
-#endif
 		mq::AddPatch(__compress_block, __decompress_block - __compress_block + DETOUR_BYTES_COUNT, "__compress_block");
-		EzDetour(__decompress_block, decompress_block_detour, decompress_block_trampoline);
-
 		EzDetour(Spellmanager__LoadTextSpells, &SpellManager_Detours::LoadTextSpells_Detour, &SpellManager_Detours::LoadTextSpells_Trampoline);
+
+		InstallHooks();
+
+		MODULEINFO EQGameModuleInfo;
+		HMODULE hEQGameModule = ::GetModuleHandleW(nullptr);
+
+		::K32GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
+
+		uintptr_t imageStart = (uintptr_t)::GetModuleHandleA(nullptr);
+		uintptr_t imageEnd = EQGameModuleInfo.SizeOfImage;
+		uintptr_t addr = imageStart;
+		constexpr uint8_t pattern[] = {
+			0x0F, 0xB6, 0x01, 0x3C, 0x00, 0x75, 0x00, 0xB0, 0x00, 0xEB,
+			0x00, 0x3C, 0x00, 0x75, 0x00, 0x0F, 0xB6, 0x49, 0x00, 0x80,
+			0xE9, 0x00, 0x80, 0xF9, 0x00, 0x77, 0x00, 0xB0, 0x00, 0xEB
+		};
+		uintptr_t deltas[] = { 5, 13 };
+		while ((addr = FindPattern(addr, imageEnd - addr, pattern, "xxxx?x?x?x?x?x?xxx?xx?xx?x?x?x")))
+		{
+			uint8_t bytes[] = { 0x48, 0x8D, 0x0D };
+			if (memcmp(reinterpret_cast<void*>(addr - 7), bytes, 3) != 0
+				|| IsHooked(*reinterpret_cast<uint32_t*>(addr - 4) + addr))
+				for (uintptr_t delta : deltas) { mq::AddPatch(addr + delta, { 0xEB }); s_patches.push_back(addr + delta); }
+			addr += lengthof(pattern);
+		}
 	}
 	else
 	{
-#if !defined(EMULATOR)
-		RemoveDetour(__MemChecker0);
-		RemoveDetour(__MemChecker1);
-#if defined(__MemChecker2_x)
-		RemoveDetour(__MemChecker2);
-#endif
-#if defined(__MemChecker3_x)
-		RemoveDetour(__MemChecker3);
-#endif
-#if defined(__MemChecker4_x)
-		RemoveDetour(__MemChecker4);
-#endif
-#endif
-
-		RemoveDetour(__decompress_block);
-		RemoveDetour(__compress_block);
-
+		RemoveHooks();
 		RemoveDetour(Spellmanager__LoadTextSpells);
+		mq::RemovePatch(__compress_block);
 	}
 }
 
 static void InitializeDetours()
 {
-#if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
 		|| !__MemChecker1
-#if defined(__MemChecker2_x)
-		|| !__MemChecker2
-#endif
-#if defined(__MemChecker3_x)
-		|| !__MemChecker3
-#endif
 #if defined(__MemChecker4_x)
 		|| !__MemChecker4
 #endif
@@ -487,14 +503,18 @@ static void InitializeDetours()
 	{
 		__debugbreak();
 	}
-#endif
 
 	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
 
-	HookMemChecker(true);
+	AddHook(__MemChecker0, memcheck0, memcheck0_tramp);
+	AddHook(__MemChecker1, memcheck1, memcheck1_tramp);
+#if defined(__MemChecker4_x)
+	AddHook(__MemChecker4, memcheck4, memcheck4_tramp);
+#endif
+	AddHook(__decompress_block, decompress_block_detour, decompress_block_trampoline);
 
-	EzDetour(__ModuleList, FindModules_Detour, FindModules_Trampoline);
-	EzDetour(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
+	AddHook(__ModuleList, FindModules_Detour, FindModules_Trampoline);
+	AddHook(__ProcessList, FindProcesses_Detour, FindProcesses_Trampoline);
 
 	HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
 	__Module32First = (uintptr_t)GetProcAddress(hKernel32, "Module32First");
@@ -502,26 +522,27 @@ static void InitializeDetours()
 	__Process32First = (uintptr_t)GetProcAddress(hKernel32, "Process32First");
 	__Process32Next = (uintptr_t)GetProcAddress(hKernel32, "Process32Next");
 
-	EzDetour(__Module32First, &Module32First_Detour, &Module32First_Trampoline);
-	EzDetour(__Module32Next, &Module32Next_Detour, &Module32Next_Trampoline);
-	EzDetour(__Process32First, &Process32First_Detour, &Process32First_Trampoline);
-	EzDetour(__Process32Next, &Process32Next_Detour, &Process32Next_Trampoline);
+	AddHook(__Module32First, Module32First_Detour, Module32First_Trampoline);
+	AddHook(__Module32Next, Module32Next_Detour, Module32Next_Trampoline);
+	AddHook(__Process32First, Process32First_Detour, Process32First_Trampoline);
+	AddHook(__Process32Next, Process32Next_Detour, Process32Next_Trampoline);
+
+	HookMemChecker(true);
 }
 
 static void ShutdownDetours()
 {
-	RemoveDetour(__ModuleList);
-	RemoveDetour(__ProcessList);
-	RemoveDetour(__Module32First);
-	RemoveDetour(__Module32Next);
-	RemoveDetour(__Process32First);
-	RemoveDetour(__Process32Next);
-
 	HookMemChecker(false);
 }
 
-static void CheckGameValidity()
+static void PulseDetours()
 {
+	if (!s_isValid && s_hasNotified)
+	{
+		gbUnload = true;
+		return;
+	}
+
 #if IS_LIVE_CLIENT
 	constexpr uint8_t salt[8] = { 0x04, 0xc4, 0x57, 0xbf, 0x31, 0xd3, 0x62, 0x5a };
 	constexpr uint8_t hashes[25][8] = {
@@ -590,8 +611,44 @@ static void CheckGameValidity()
 
 		}
 	}
+
+	if (!s_isValid && !s_hasNotified)
+	{
+		pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
+		s_hasNotified = true;
+	}
 #endif
 }
+
+static void PostZoneDetours()
+{
+	if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
+	{
+		// unload
+		WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
+		DoCommand("/unload", false);
+	}
+}
+
+#else
+
+static void InitializeDetours()
+{
+}
+
+static void ShutdownDetours()
+{
+}
+
+static void PulseDetours()
+{
+}
+
+static void PostZoneDetours()
+{
+}
+
+#endif // !IS_EMU_CLIENT
 
 static void CheckGameState()
 {
@@ -599,7 +656,7 @@ static void CheckGameState()
 
 	if (lastGameState != gGameState)
 	{
-		SPDLOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
+		LOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
 		lastGameState = gGameState;
 	}
 
@@ -607,62 +664,62 @@ static void CheckGameState()
 	if (gGameState == GAMESTATE_INGAME)
 	{
 		if (!pLocalPC)
-			SPDLOG_ERROR("InGame with no pLocalPC");
+			LOG_ERROR("InGame with no pLocalPC");
 
 		if (pLocalPC)
 		{
 			if (pLocalPC->me != pLocalPlayer)
-				SPDLOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
+				LOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
 					(void*)pLocalPC->me, (void*)pLocalPlayer.get());
 		}
 
 		if (!pControlledPlayer)
-			SPDLOG_ERROR("InGame with no pControlledPlayer");
+			LOG_ERROR("InGame with no pControlledPlayer");
 		if (!pLocalPlayer)
-			SPDLOG_ERROR("InGame with no pLocalPlayer");
+			LOG_ERROR("InGame with no pLocalPlayer");
 
 		// Check UI state
 		if (!pPlayerWnd)
-			SPDLOG_ERROR("InGame with no pPlayerWnd");
+			LOG_ERROR("InGame with no pPlayerWnd");
 		if (!gbInZone)
-			SPDLOG_ERROR("InGame but not gbInZone");
+			LOG_ERROR("InGame but not gbInZone");
 	}
 	else if (gGameState == GAMESTATE_CHARSELECT)
 	{
 		if (!pLocalPC)
-			SPDLOG_ERROR("At CharSelect without pLocalPC");
+			LOG_ERROR("At CharSelect without pLocalPC");
 		else if (pLocalPC->me != nullptr)
 		{
 			// Me should be null
-			SPDLOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
+			LOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
 		}
 
 		if (!pLocalPlayer)
-			SPDLOG_ERROR("At CharSelect without pLocalPlayer");
+			LOG_ERROR("At CharSelect without pLocalPlayer");
 		if (!pControlledPlayer)
-			SPDLOG_ERROR("At CharSelect without pControlledPlayer");
+			LOG_ERROR("At CharSelect without pControlledPlayer");
 
 		// Check UI state
 		if (pPlayerWnd)
-			SPDLOG_ERROR("Not InGame with pPlayerWnd");
+			LOG_ERROR("Not InGame with pPlayerWnd");
 
 		if (!gbInZone)
-			SPDLOG_ERROR("At CharSelect without gbInZone");
+			LOG_ERROR("At CharSelect without gbInZone");
 	}
 
 	if (pLocalPC)
 	{
 		if (pLocalPC->ProfileManager.GetCurrentProfile() == nullptr)
-			SPDLOG_ERROR("pLocalPC exists but CurrentProfile does not");
+			LOG_ERROR("pLocalPC exists but CurrentProfile does not");
 	}
 	else if (pLocalPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
+		LOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
 	}
 
 	if (pLocalPlayer && !pControlledPlayer)
 	{
-		SPDLOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
+		LOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
 			(void*)pLocalPlayer.get(), (void*)pControlledPlayer.get());
 	}
 
@@ -673,16 +730,16 @@ static void CheckGameState()
 	static PlayerClient* OldMe = nullptr;
 
 	if (test_and_set(OldLocalPC, pLocalPC.get()))
-		SPDLOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
+		LOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
 
 	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
-		SPDLOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
+		LOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
 	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
-		SPDLOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
+		LOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
 
 	PlayerClient* pMe = pLocalPC ? pLocalPC->me : nullptr;
 	if (test_and_set(OldMe, pMe))
-		SPDLOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
+		LOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
 }
 
 //----------------------------------------------------------------------------
@@ -706,33 +763,12 @@ public:
 
 	virtual void OnProcessFrame() override
 	{
-		if (!s_isValid && s_hasNotified)
-		{
-			gbUnload = true;
-			return;
-		}
-
-		CheckGameValidity();
-
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-		if (!s_isValid && !s_hasNotified)
-		{
-			pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
-			s_hasNotified = true;
-		}
-#endif
+		PulseDetours();
 	}
 
 	virtual void OnPostZoneUI() override
 	{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
-		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
-		{
-			// unload
-			WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
-			DoCommand("/unload", false);
-		}
-#endif
+		PostZoneDetours();
 	}
 };
 

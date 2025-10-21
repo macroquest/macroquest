@@ -1,3 +1,80 @@
+October 15, 2025:
+- live: Update for live patch
+
+October 12, 2025:
+- test: Update for test patch
+
+September 24, 2025:
+- test: Update for test patch
+
+September 17, 2025:
+- live: Update for live patch
+
+September 14, 2025:
+- test: Update for test patch
+
+September 7, 2025:
+- live: Update for live patch
+
+August 27, 2025:
+- test: Update for test patch
+
+August 26, 2025:
+- live: Update for live patch
+
+August 21, 2025:
+- live: Update for live patch
+- test: Sync changes from live branch
+
+August 17, 2025:
+- test: Update for the last 3 test patches
+
+July 27, 2025:
+- test: Update for test patch
+
+July 20, 2025:
+- live: Update for live patch
+
+July 16, 2025:
+- live: Update for live patch
+
+July 14, 2025:
+- test: Update for test patch
+
+Jun 18, 2025:
+- live: Update for live patch
+- test: Fix Me.CombatState
+
+June 13, 2025:
+- test: Update for test patch
+
+May 21, 2025:
+- live: Update for live patch
+
+May 16, 2025:
+- test: Fix broken group members (#931)
+
+May 15, 2025:
+- test: update for test patch
+
+April 23, 2025:
+- test: update for test patch
+
+April 17, 2025:
+- live: Update for live hotfix patch
+
+April 17, 2025:
+- Fix broken AdvancedLootItem
+
+April 16, 2025:
+- live: Update for live patch
+
+April 12, 2025:
+- test: Update for test patch
+
+March 26, 2025:
+- test: Update for test patch
+
 March 18, 2025:
 - live: Update for live patch
 

@@ -16,6 +16,7 @@
 #include "MQCommandAPI.h"
 
 #include "CrashHandler.h"
+#include "Logging.h"
 #include "MacroSystem.h"
 #include "MQMain.h"
 
@@ -56,7 +57,7 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (PlayerClient* pChar, const char* szFullLine))
 	void InterpretCmd_Detour(PlayerClient* pChar, const char* szFullLine)
 	{
-		SPDLOG_DEBUG("CCommandHook::Detour(%s)", szFullLine);
+		LOG_DEBUG("CCommandHook::Detour(%s)", szFullLine);
 
 		auto eqHandler = [this](eqlib::PlayerClient* pChar_, const char* szFullLine_) { InterpretCmd_Trampoline(pChar_, szFullLine_); };
 
@@ -90,7 +91,7 @@ MQCommandAPI::~MQCommandAPI()
 
 void MQCommandAPI::Initialize()
 {
-	SPDLOG_TRACE("Initializing Commands");
+	LOG_TRACE("Initializing Commands");
 
 	EzDetour(CEverQuest__InterpretCmd, &CEverQuest_CommandHook::InterpretCmd_Detour, &CEverQuest_CommandHook::InterpretCmd_Trampoline);
 
@@ -965,7 +966,7 @@ void DoCommand(const char* szLine, bool delayed)
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to run command without Commands module: {} delayed={}", szLine, delayed);
+		LOG_ERROR("Tried to run command without Commands module: {} delayed={}", szLine, delayed);
 	}
 }
 
@@ -986,7 +987,7 @@ void DoCommandf(const char* szFormat, ...)
 	}
 	else
 	{
-		SPDLOG_ERROR("Tried to run command without Commands module: {} delayed={}", szOutput, false);
+		LOG_ERROR("Tried to run command without Commands module: {} delayed={}", szOutput, false);
 	}
 }
 

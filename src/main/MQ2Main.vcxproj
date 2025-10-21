@@ -477,6 +477,9 @@
     <ClCompile Include="MQWindows.cpp" />
     <ClCompile Include="MQAchievements.cpp" />
     <ClCompile Include="MQInventory.cpp" />
+    <ClCompile Include="MQPostOfficeInternal.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="MQRenderDoc.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -507,6 +510,7 @@
     <ClInclude Include="..\..\include\mq\api\Spawns.h" />
     <ClInclude Include="..\..\include\mq\api\Spells.h" />
     <ClInclude Include="..\..\include\mq\api\Textures.h" />
+    <ClInclude Include="..\..\include\mq\base\Base.h" />
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\base\Color.h" />
     <ClInclude Include="..\..\include\mq\base\Common.h" />
@@ -515,8 +519,6 @@
     <ClInclude Include="..\..\include\mq\base\Enum.h" />
     <ClInclude Include="..\..\include\mq\base\EnumFmt.h" />
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
-    <ClInclude Include="..\..\include\mq\base\HotKeys.h" />
-    <ClInclude Include="..\..\include\mq\base\Iterator.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
     <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
@@ -545,11 +547,7 @@
     <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="MacroQuest.h" />
-    <ClInclude Include="MacroSystem.h" />
-    <ClInclude Include="MacroSystemInternal.h" />
-    <ClInclude Include="ModuleSystem.h" />
-    <ClInclude Include="MQCommands.h" />
+    <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClCompile Include="MQCfgFileHandler.cpp" />
     <ClInclude Include="MQCommandAPI.h" />

@@ -20,6 +20,7 @@
 #include "MQPluginHandler.h"
 
 #include "eqlib/WindowOverride.h"
+
 #include "imgui/ImGuiUtils.h"
 
 using namespace eqlib;
