@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2024 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -16,10 +16,10 @@
 
 #include "Network.pb.h"
 
-#include <spdlog/spdlog.h>
+#include "spdlog/spdlog.h"
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 namespace mq {
 
@@ -53,24 +53,26 @@ using OnRequestProcessHandler = std::function<void()>;
 
 class NetworkPeerAPI
 {
+	explicit NetworkPeerAPI(uint16_t port);
+
 public:
-	NetworkPeerAPI() = delete;
-	NetworkPeerAPI(const NetworkPeerAPI&) = default;
-	NetworkPeerAPI(NetworkPeerAPI&&) = default;
-	NetworkPeerAPI& operator=(const NetworkPeerAPI&) = default;
-	NetworkPeerAPI& operator=(NetworkPeerAPI&&) = default;
-	~NetworkPeerAPI() = default;
-
-	void Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const;
-	void Broadcast(NetworkMessagePtr message) const;
-	void Process() const;
-
 	static NetworkPeerAPI GetOrCreate(
 		uint16_t port,
 		PeerMessageHandler receive,
 		OnSessionConnectedHandler connected,
 		OnSessionDisconnectedHandler disconnected,
 		OnRequestProcessHandler process);
+
+	~NetworkPeerAPI() = default;
+
+	NetworkPeerAPI(const NetworkPeerAPI&) = default;
+	NetworkPeerAPI& operator=(const NetworkPeerAPI&) = default;
+	NetworkPeerAPI(NetworkPeerAPI&&) = default;
+	NetworkPeerAPI& operator=(NetworkPeerAPI&&) = default;
+
+	void Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const;
+	void Broadcast(NetworkMessagePtr message) const;
+	void Process() const;
 
 	void Shutdown() const;
 
@@ -81,8 +83,6 @@ public:
 	uint16_t GetPort() const { return m_port; }
 
 private:
-	explicit NetworkPeerAPI(uint16_t port);
-
 	uint16_t m_port;
 };
 

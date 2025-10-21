@@ -15,16 +15,18 @@
 #include "loader/LoaderAutoLogin.h"
 #include "loader/MacroQuest.h"
 #include "loader/ImGui.h"
+#include "loader/PostOffice.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/imgui_internal.h"
 #include "login/Login.h"
 #include "login/AutoLogin.h"
 #include "routing/PostOffice.h"
 
-#include <fmt/format.h>
-#include <fmt/os.h>
-#include <spdlog/spdlog.h>
-#include <wil/resource.h>
+#include "fmt/format.h"
+#include "fmt/os.h"
+#include "spdlog/spdlog.h"
+#include "wil/resource.h"
+
 #include <filesystem>
 #include <shellapi.h>
 
@@ -228,7 +230,7 @@ static void ReceivedMessageHandler(postoffice::MessagePtr message)
 	proto::login::LoginMessage login_message;
 	if (login_message.ParseFromString(message->payload()))
 	{
-		switch (login_message.id())
+		switch (login_message.id())  // NOLINT(clang-diagnostic-switch-enum)
 		{
 		case proto::login::MessageId::ProfileLoaded:
 			// this message needs to come from the client after it has injected,
@@ -294,12 +296,14 @@ static void ReceivedMessageHandler(postoffice::MessagePtr message)
 		}
 	}
 	else
+	{
 		SPDLOG_ERROR("Failed to parse login message from routed proto");
+	}
 }
 
 void InitializeAutoLogin()
 {
-	s_dropbox = postoffice::GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
+	s_dropbox = GetPostOffice().RegisterAddress("autologin", ReceivedMessageHandler);
 
 	// Get path to mq2autologin.ini
 	internal_paths::s_autoLoginIni = (fs::path{ internal_paths::Config }  / "MQ2AutoLogin.ini").string();

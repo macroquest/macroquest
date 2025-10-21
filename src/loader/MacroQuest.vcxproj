@@ -81,9 +81,6 @@
     <Link>
       <AdditionalDependencies>$(LoaderDependenciesDebug);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(TargetPath)</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -128,7 +125,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\HotKeys.cpp" />
-    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="LoaderAutoLogin.cpp" />
     <ClCompile Include="LoaderAutoLoginImGui.cpp" />
     <ClCompile Include="Crashpad.cpp" />

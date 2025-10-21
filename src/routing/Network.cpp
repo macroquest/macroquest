@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2024 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,14 +17,12 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "Network.h"
-#include "Routing.h"
-
-#include "Network.pb.h"
+#include "routing/Network.h"
+#include "routing/Routing.h"
+#include "routing/Network.pb.h"
 
 #include "asio.hpp"
-
-#include <spdlog/spdlog.h>
+#include "spdlog/spdlog.h"
 
 #include <queue>
 #include <map>

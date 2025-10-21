@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -17,12 +17,13 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+
 using namespace mq::postoffice;
 
 void ShowActorsWindow()
 {
-	static ImGuiTableFlags table_flags
-		= ImGuiTableFlags_ScrollY
+	static ImGuiTableFlags table_flags = ImGuiTableFlags_ScrollY
 		| ImGuiTableFlags_ScrollX
 		| ImGuiTableFlags_SizingFixedFit
 		| ImGuiTableFlags_RowBg
@@ -37,7 +38,7 @@ void ShowActorsWindow()
 
 	if (ImGui::BeginTable("Actor Stats", 4, table_flags, content_region))
 	{
-		auto stats = GetPostOffice<LauncherPostOffice>().GetStats();
+		auto stats = GetPostOffice().GetStats();
 		size_t recv_tot = 0, send_tot = 0;
 		for (const auto stat : stats)
 		{
@@ -64,7 +65,7 @@ void ShowActorsWindow()
 		ImGui::TableHeadersRow();
 
 		ImGuiListClipper clipper;
-		clipper.Begin((int)stats.size());
+		clipper.Begin(static_cast<int>(stats.size()));
 		while (clipper.Step())
 		{
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
@@ -73,37 +74,36 @@ void ShowActorsWindow()
 				ImGui::TableNextRow();
 
 				ImGui::TableSetColumnIndex(0);
-				ImGui::Text(stat->Identity.ToStringLite().c_str());
+				ImGui::Text("%s", stat->Identity.ToStringLite().c_str());
 
 				ImGui::TableSetColumnIndex(1);
-				ImGui::Text("%d", stat->Received.size());
+				ImGui::Text("%zu", stat->Received.size());
 
 				ImGui::TableSetColumnIndex(2);
-				ImGui::Text("%d", stat->Sent.size());
+				ImGui::Text("%zu", stat->Sent.size());
 
 				ImGui::TableSetColumnIndex(3);
-				ImGui::Text("%d", stat->Received.size() + stat->Sent.size());
+				ImGui::Text("%zu", stat->Received.size() + stat->Sent.size());
 			}
 		}
 
 		ImGui::EndTable();
 	}
 
-	static int lookback_seconds = GetPostOffice<LauncherPostOffice>().GetStatLookback();
+	static int lookback_seconds = GetPostOffice().GetStatLookback();
 	if (ImGui::InputInt("Lookback Seconds", &lookback_seconds))
 	{
-		if (lookback_seconds < 1)
-			lookback_seconds = 1;
+		lookback_seconds = std::max(lookback_seconds, 1);
 
-		GetPostOffice<LauncherPostOffice>().SetStatLookback(lookback_seconds);
+		GetPostOffice().SetStatLookback(lookback_seconds);
 	}
 }
 
-void InitializePostOfficeImgui()
+void InitializePostOfficeImGui()
 {
 	LauncherImGui::AddMainPanel("Actors", ShowActorsWindow);
 }
 
-void ShutdownPostOfficeImgui()
+void ShutdownPostOfficeImGui()
 {
 }
