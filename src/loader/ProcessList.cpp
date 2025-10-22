@@ -17,10 +17,10 @@
 
 #include "mq/base/String.h"
 
-#include <wil/resource.h>
-#include <spdlog/spdlog.h>
-#include <fmt/chrono.h>
-#include <fmt/os.h>
+#include "wil/resource.h"
+#include "spdlog/spdlog.h"
+#include "fmt/chrono.h"
+#include "fmt/os.h"
 
 #include <chrono>
 #include <condition_variable>

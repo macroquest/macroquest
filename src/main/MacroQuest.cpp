@@ -160,6 +160,9 @@ int gBuild = static_cast<int>(BuildTarget::Live);               // LIVE
 
 MacroQuest* g_mq = nullptr;
 
+// our global logger instance
+std::shared_ptr<spdlog::logger> g_logger;
+
 wil::unique_event g_loadComplete;
 wil::unique_event g_unloadComplete;
 
@@ -625,6 +628,9 @@ void MacroQuest::CoreShutdown()
 
 	LOG_DEBUG("Shutdown completed");
 
+	m_logger.reset();
+	g_logger.reset();
+
 	spdlog::shutdown();
 }
 
@@ -649,6 +655,7 @@ void MacroQuest::InitializeLogging()
 	}
 
 	m_logger = new_logger;
+	g_logger = new_logger;
 	spdlog::set_default_logger(new_logger);
 
 	SetDefaultLoggingParams();

@@ -13,25 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\loader">
-      <UniqueIdentifier>{dc889ce2-6d0e-4cfe-bbfa-b955fe1e6019}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\client">
-      <UniqueIdentifier>{be31712a-4324-43f6-b603-fbf4cbca867f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\PostOffice.cpp">
-      <Filter>Source Files\loader</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\loader\Connection.cpp">
-      <Filter>Source Files\loader</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\main\MQPostOfficeInternal.cpp">
-      <Filter>Source Files\client</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

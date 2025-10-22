@@ -151,7 +151,7 @@ public:
 	virtual void OnRequestProcessEvents() {}
 
 	// (optional) For NamedPipeServer: notification of an incoming connection.
-	virtual void OnIncomingConnection(int connectionId, int processid) {}
+	virtual void OnIncomingConnection(int connectionId, int processId) {}
 
 	// (optional) For NamedPipeServer: notification of a closing connection
 	virtual void OnConnectionClosed(int connectionId, int processId) {}
@@ -168,7 +168,7 @@ class NamedPipeEndpointBase
 
 public:
 	NamedPipeEndpointBase(std::string threadName, std::string pipeName);
-	~NamedPipeEndpointBase();
+	virtual ~NamedPipeEndpointBase();
 
 	bool IsRunning() const { return m_running; }
 	void SetHandler(std::shared_ptr<NamedPipeEvents> handler) { m_handler = handler; };

@@ -21,13 +21,13 @@
 #include "mq/base/WString.h"
 #include "mq/utils/Markov.h"
 
-#include <wil/resource.h>
-#include <wil/registry.h>
 #include "argon2.h"
 #include "sqlite3.h"
+#include "fmt/format.h"
+#include "spdlog/spdlog.h"
+#include "wil/resource.h"
+#include "wil/registry.h"
 
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
 #include <filesystem>
 #include <regex>
 #include <random>
@@ -37,7 +37,6 @@
 
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "sqlite3")
-
 #pragma comment(lib, "argon2")
 
 std::string s_dbPath;

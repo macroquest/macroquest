@@ -23,17 +23,18 @@
 #include "mq/base/String.h"
 #include "mq/base/WString.h"
 
-#include <client/crash_report_database.h>
-#include <client/settings.h>
-#include <client/crashpad_client.h>
-#include <spdlog/spdlog.h>
-#include <imgui/imgui.h>
+#include "client/crash_report_database.h"
+#include "client/settings.h"
+#include "client/crashpad_client.h"
+#include "imgui/imgui.h"
+#include "fmt/chrono.h"
+#include "spdlog/spdlog.h"
 
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <fmt/chrono.h>
+
 
 #if __has_include("config/crashpad.h")
 #include "config/crashpad.h"

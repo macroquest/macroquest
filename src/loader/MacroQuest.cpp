@@ -1926,13 +1926,13 @@ int WINAPI CALLBACK WinMain(
 	InitializeVersionInfo();
 	SetPostOfficeIni(internal_paths::MQini);
 	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
-	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+	SetRequestFocusCallback([](const mq::MQMessageFocusRequest* request)
 		{
-			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			if (request->focusMode == mq::MQMessageFocusRequest::FocusMode::HasFocus)
 			{
 				SetFocusWindowPID(request->processId, request->state);
 			}
-			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			else if (request->focusMode == mq::MQMessageFocusRequest::FocusMode::WantFocus)
 			{
 				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
 			}

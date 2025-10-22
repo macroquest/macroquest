@@ -410,9 +410,6 @@
     <ClCompile Include="datatypes\MQ2TimerType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="MQPostOfficeInternal.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MQCommands.h">

@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -12,10 +12,10 @@
  * GNU General Public License for more details.
  */
 
-#include "PostOffice.h"
+// Uncomment to see super spammy read/write trace logging
+//#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
- // Uncomment to see super spammy read/write trace logging
- //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include "PostOffice.h"
 
 #include "spdlog/spdlog.h"
 
@@ -37,9 +37,14 @@ std::string CreateUUID()
 
 namespace postoffice {
 
+// Static helper for creating an ActorContainer::Process representing the current process
+ActorContainer::Process ActorContainer::CurrentProcess{ ::GetCurrentProcessId() };
+
 void Mailbox::Deliver(MessagePtr message) const
 {
-	SPDLOG_TRACE("{}: Mailbox delivering message to address {}", m_localAddress, message->address().ShortDebugString());
+	SPDLOG_TRACE("Mailbox {{{}}}: Delivering message to address {}",
+		m_localAddress, message->address().ShortDebugString());
+
 	m_receiveQueue.push(std::move(message));
 }
 
@@ -47,7 +52,8 @@ void Mailbox::Process(size_t howMany) const
 {
 	if (howMany > 0 && !m_receiveQueue.empty())
 	{
-		SPDLOG_TRACE("{}: Mailbox processing queue", m_localAddress);
+		SPDLOG_TRACE("Mailbox {{{}}}: Processing queue", m_localAddress);
+
 		m_receive(std::move(m_receiveQueue.front()));
 		m_receiveQueue.pop();
 
@@ -60,21 +66,24 @@ Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&&
 	, m_post(std::move(post))
 	, m_unregister(std::move(unregister))
 	, m_valid(true)
-{}
+{
+}
 
 Dropbox::Dropbox(const Dropbox& other)
 	: m_localAddress(other.m_localAddress)
 	, m_post(other.m_post)
 	, m_unregister(other.m_unregister)
 	, m_valid(other.m_valid)
-{}
+{
+}
 
 Dropbox::Dropbox(Dropbox&& other) noexcept
 	: m_localAddress(std::move(other.m_localAddress))
 	, m_post(std::move(other.m_post))
 	, m_unregister(std::move(other.m_unregister))
 	, m_valid(other.m_valid)
-{}
+{
+}
 
 Dropbox& Dropbox::operator=(Dropbox other) noexcept
 {
@@ -115,16 +124,16 @@ MessagePtr Dropbox::Stuff(const proto::routing::Address& address, const std::str
 	return envelope;
 }
 
-PostOffice::PostOffice(ActorIdentification&& id)
-	: m_id(std::move(id))
+PostOffice::PostOffice(ActorIdentification id)
+	: m_id(id)
 {
 	m_dropbox = RegisterAddress("post_office",
 		[this](MessagePtr message)
-		{
-			// if we've gotten here, then something is delivering a message to this
-			// post office ("post_office"), we don't have any logic to do here so
-			// all messages will just get dropped
-		});
+	{
+		// if we've gotten here, then something is delivering a message to this
+		// post office ("post_office"), we don't have any logic to do here so
+		// all messages will just get dropped
+	});
 }
 
 PostOffice::~PostOffice()
@@ -176,7 +185,9 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 		localAddress, std::make_unique<Mailbox>(localAddress,
 			[receive = std::move(receive), this](MessagePtr message)
 			{
-				SPDLOG_TRACE("{}: Mailbox received message at address {}", m_id, message->address().ShortDebugString());
+				SPDLOG_TRACE("Mailbox {{{}}}: Received message at address {}",
+					m_id, message->address().ShortDebugString());
+
 				if (message->mode() == static_cast<uint32_t>(MQRequestMode::MessageReply))
 				{
 					// we are receiving a reply, find the associated RPC and call the callback
@@ -189,7 +200,10 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 						m_rpcRequests.erase(request);
 					}
 					else
-						SPDLOG_WARN("{}: Failed to find RPC seq={} in post office on message reply at address {}", m_id, message->sequence(), message->address().ShortDebugString());
+					{
+						SPDLOG_WARN("Mailbox {{{}}}: Failed to find RPC seq={} in post office on message reply at address {}",
+							m_id, message->sequence(), message->address().ShortDebugString());
+					}
 				}
 				else
 				{
@@ -213,7 +227,8 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 				m_id.BuildAddress(ret);
 				ret.set_mailbox(localAddress);
 
-				SPDLOG_TRACE("{}: Dropbox posting message to address {} seq={}", m_id, message->address().ShortDebugString(), message->sequence());
+				SPDLOG_TRACE("Dropbox {{{}}}}: posting message to address {} seq={}",
+					m_id, message->address().ShortDebugString(), message->sequence());
 
 				if (callback != nullptr)
 				{
@@ -231,7 +246,9 @@ Dropbox PostOffice::RegisterAddress(const std::string& localAddress, ReceiveCall
 				RouteMessage(std::move(message));
 			},
 			[this](const std::string& localAddress)
-			{ RemoveMailbox(localAddress); });
+			{
+				RemoveMailbox(localAddress);
+			});
 	}
 
 	return Dropbox();

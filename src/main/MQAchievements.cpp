@@ -19,6 +19,8 @@
 
 using namespace eqlib;
 
+using namespace eqlib;
+
 namespace mq {
 
 static std::unordered_map<const eqlib::Achievement*, int> pointerToIndexMap;

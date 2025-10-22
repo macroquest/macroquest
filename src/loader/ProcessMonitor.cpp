@@ -17,14 +17,15 @@
 
 #include "mq/base/String.h"
 
-#include <comutil.h>
-#include <fmt/os.h>
-#include <wrl.h>
-#include <wil/com.h>
-#include <wil/resource.h>
-#include <spdlog/spdlog.h>
+#include "fmt/os.h"
+#include "wil/com.h"
+#include "wil/resource.h"
+#include "spdlog/spdlog.h"
+
 #include <chrono>
 #include <memory>
+#include <comutil.h>
+#include <wrl.h>
 
 using namespace std::chrono_literals;
 

@@ -14,6 +14,7 @@
 
 #include "pch.h"
 #include "MQActorAPI.h"
+#include "MQPostOffice.h"
 
 #include "MacroQuest.h"
 #include "MQMain.h"
@@ -35,6 +36,10 @@ std::unordered_map<MQModule*, std::vector<std::unique_ptr<postoffice::Dropbox>>>
 
 // this is to allow for replies while not exposing message internals to the API
 std::map<proto::routing::Envelope*, std::unique_ptr<proto::routing::Envelope>> s_messageStorage;
+
+postoffice::PostOffice& GetPostOffice();
+
+//-----------------------------------------------------------------------------
 
 MQActorAPI::MQActorAPI()
 	: MQModule("ActorAPI", static_cast<int>(ModulePriority::PostOffice))

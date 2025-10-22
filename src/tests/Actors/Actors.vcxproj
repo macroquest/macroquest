@@ -159,9 +159,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\loader\Connection.cpp" />
-    <ClCompile Include="..\..\loader\PostOffice.cpp" />
-    <ClCompile Include="..\..\main\MQPostOfficeInternal.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
