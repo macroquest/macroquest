@@ -218,7 +218,7 @@ bool mq::AddPatch(uintptr_t address, size_t width, std::string_view name)
 	return mqplugin::MainInterface->AddPatch(address, width, name, mqplugin::ThisPluginHandle);
 }
 
-bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
+bool mq::AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes,
 	const uint8_t* expectedBytes, std::string_view name)
 {
 	return mqplugin::MainInterface->AddPatch(address, newBytes, numBytes, expectedBytes, name, mqplugin::ThisPluginHandle);
