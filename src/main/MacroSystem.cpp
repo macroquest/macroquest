@@ -1517,7 +1517,7 @@ static unsigned int CALLBACK MQ2DataVariableLookup(char* VarName, char* Value, s
 	return static_cast<uint32_t>(strlen(Value));
 }
 
-static void CheckChatForEvent(const char* szClean)
+void CheckChatForEvent(const char* szClean)
 {
 	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
 	if ((pBlock && !pBlock->Line.empty()) && (!pBlock->Paused) && (!gbUnload) && (!gZoning))

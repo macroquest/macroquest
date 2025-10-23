@@ -600,6 +600,13 @@ MQLIB_OBJECT void RemoveTokenMessageCmd(int StringID, int CallbackID);
 MQLIB_API eqlib::MembershipLevel GetMembershipLevel();
 inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int GetSubscriptionLevel() { return (int)GetMembershipLevel(); }
 
+// FIXME: These are still used by plugins
+MQLIB_API void CheckChatForEvent(const char* szClean);
+inline void Delay(eqlib::PlayerClient* pChar, const char* szLine)
+{
+	DelayCommand(pChar, szLine);
+}
+
 } // namespace mq
 
 #include "mq/api/Achievements.h"
