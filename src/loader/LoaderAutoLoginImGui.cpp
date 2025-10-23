@@ -25,9 +25,10 @@
 #include "mq/base/Config.h"
 #include "mq/base/String.h"
 
-#include <fmt/format.h>
-#include <fmt/compile.h>
-#include <spdlog/spdlog.h>
+#include "fmt/format.h"
+#include "fmt/compile.h"
+#include "spdlog/spdlog.h"
+
 #include <filesystem>
 
 namespace fs = std::filesystem;

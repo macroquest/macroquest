@@ -26,9 +26,9 @@
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
 #include "mq/base/Config.h"
-#include "mq/base/HotKeys.h"
 #include "mq/base/Logging.h"
 #include "mq/base/WString.h"
+#include "mq/utils/HotKeys.h"
 #include "routing/NamedPipesProtocol.h"
 #include "resource.h"
 

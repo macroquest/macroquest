@@ -15,6 +15,7 @@
 #include "MacroQuest.h"
 #include "resource.h"
 
+#include "mq/base/Base.h"
 #include "mq/base/String.h"
 
 #include "wil/resource.h"

@@ -531,6 +531,7 @@
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
+    <ClInclude Include="..\..\include\mq\utils\HotKeys.h" />
     <ClInclude Include="..\..\include\mq\utils\Keybinds.h" />
     <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />

@@ -14,17 +14,17 @@
 
 #include "pch.h"
 #include "ImGuiManager.h"
+
 #include "GraphicsEngine.h"
 #include "Logging.h"
 #include "MacroQuest.h"
 #include "MQImGuiTools.h"
-#include "MQPluginHandler.h"
-
-#include "mq/base/HotKeys.h"
-#include "mq/base/WString.h"
-#include "mq/utils/Benchmarks.h"
-#include "mq/imgui/Widgets.h"
 #include "imgui/ImGuiUtils.h"
+
+#include "mq/base/WString.h"
+#include "mq/imgui/Widgets.h"
+#include "mq/utils/Benchmarks.h"
+#include "mq/utils/HotKeys.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
