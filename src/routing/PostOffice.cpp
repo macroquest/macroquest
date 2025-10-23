@@ -62,9 +62,9 @@ void Mailbox::Process(size_t howMany) const
 }
 
 Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister)
-	: m_localAddress(localAddress)
-	, m_post(post)
-	, m_unregister(unregister)
+	: m_localAddress(std::move(localAddress))
+	, m_post(std::move(post))
+	, m_unregister(std::move(unregister))
 	, m_valid(true)
 {
 }

@@ -16,26 +16,27 @@
 
 #include "Login.h"
 
-#include "common/Common.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
 #include "mq/base/WString.h"
 #include "mq/utils/Markov.h"
 
-#include <wincrypt.h>
-#pragma comment(lib, "Crypt32.lib")
+#include "argon2.h"
+#include "sqlite3.h"
+#include "fmt/format.h"
+#include "spdlog/spdlog.h"
+#include "wil/resource.h"
+#include "wil/registry.h"
 
-#include <wil/resource.h>
-#include <wil/registry.h>
 #include <filesystem>
 #include <regex>
 #include <random>
 
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
+#include <windows.h>
+#include <wincrypt.h>
 
-#include "sqlite3.h"
+#pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "sqlite3")
-
-#include "argon2.h"
 #pragma comment(lib, "argon2")
 
 std::string s_dbPath;

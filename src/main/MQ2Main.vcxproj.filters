@@ -475,9 +475,6 @@
     <ClInclude Include="MQ2MainBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\HotKeys.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2DeveloperTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -681,6 +678,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Iterator.h">
       <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\utils\HotKeys.h">
+      <Filter>Header Files\mq\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

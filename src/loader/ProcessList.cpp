@@ -15,10 +15,13 @@
 #include "MacroQuest.h"
 #include "resource.h"
 
-#include <wil/resource.h>
-#include <spdlog/spdlog.h>
-#include <fmt/chrono.h>
-#include <fmt/os.h>
+#include "mq/base/Base.h"
+#include "mq/base/String.h"
+
+#include "wil/resource.h"
+#include "spdlog/spdlog.h"
+#include "fmt/chrono.h"
+#include "fmt/os.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -360,7 +363,7 @@ bool ProcessMQ2MainModule(DWORD processId, const std::function<bool(MODULEENTRY3
 
 	do
 	{
-		if (ci_find_substr(me32.szExePath, s_mainDLL) != -1)
+		if (mq::ci_find_substr(me32.szExePath, s_mainDLL) != -1)
 		{
 			bool result = cb(&me32);
 			return result;
@@ -672,7 +675,7 @@ std::vector<DWORD> GetAllEqGameSessions()
 	{
 		do
 		{
-			if (ci_find_substr(pe32.szExeFile, "eqgame.exe") != -1)
+			if (mq::ci_find_substr(pe32.szExeFile, "eqgame.exe") != -1)
 			{
 				theList.push_back(pe32.th32ProcessID);
 			}
@@ -731,7 +734,7 @@ void ForceRemoteUnloadMQ2(int pID)
 		do
 		{
 			fs::path modulePath{ me32.szModule };
-			if (ci_find_substr(modulePath.filename().string(), "mq2main") == 0)
+			if (mq::ci_find_substr(modulePath.filename().string(), "mq2main") == 0)
 			{
 				using fMQShutdownPlugin = void(__cdecl*)();
 

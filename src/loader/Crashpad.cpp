@@ -15,26 +15,31 @@
 #include "MacroQuest.h"
 #include "Crashpad.h"
 
-#include "common/StringUtils.h"
-#include "mq/base/WString.h"
-
-#include <client/crash_report_database.h>
-#include <client/settings.h>
-#include <client/crashpad_client.h>
-#include <spdlog/spdlog.h>
-#include <imgui/imgui.h>
-
-#include <map>
-#include <string>
-#include <vector>
-#include <fmt/chrono.h>
-
 #include "imgui/ImGuiUtils.h"
 #include "main/MQVersionInfo.h"
+
+#include "mq/base/WString.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
+#include "mq/base/WString.h"
+
+#include "client/crash_report_database.h"
+#include "client/settings.h"
+#include "client/crashpad_client.h"
+#include "imgui/imgui.h"
+#include "fmt/chrono.h"
+#include "spdlog/spdlog.h"
+
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
 
 #if __has_include("config/crashpad.h")
 #include "config/crashpad.h"
 #endif
+
 #if !defined(CRASHPAD_SUBMISSIONS_ENABLED)
 #define CRASHPAD_SUBMISSIONS_ENABLED false
 #endif
@@ -67,11 +72,11 @@ bool ShouldAutoSubmitCrashReports()
 bool InitializeCrashpad()
 {
 	// Load preferences. Decide if we want to enable the crash reporting system.
-	gEnableCrashpad = GetPrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, internal_paths::MQini);
-	gEnableSharedCrashpad = GetPrivateProfileBool("Crash Handler", "EnableSharedCrashpad", gEnableSharedCrashpad, internal_paths::MQini);
-	gEnableSilentCrashpad = GetPrivateProfileBool("Crash Handler", "EnableSilentCrashpad", gEnableSilentCrashpad, internal_paths::MQini);
-	gEnableCrashSubmissions = GetPrivateProfileBool("Crash Handler", "EnableCrashSubmissions", gEnableCrashSubmissions, internal_paths::MQini);
-	gCrashpadSubmissionURL = GetPrivateProfileString("Crash Handler", "CrashpadSubmissionURL", gCrashpadSubmissionURL.c_str(), internal_paths::MQini);
+	gEnableCrashpad = mq::GetPrivateProfileBool("Crash Handler", "EnableCrashpad", gEnableCrashpad, internal_paths::MQini);
+	gEnableSharedCrashpad = mq::GetPrivateProfileBool("Crash Handler", "EnableSharedCrashpad", gEnableSharedCrashpad, internal_paths::MQini);
+	gEnableSilentCrashpad = mq::GetPrivateProfileBool("Crash Handler", "EnableSilentCrashpad", gEnableSilentCrashpad, internal_paths::MQini);
+	gEnableCrashSubmissions = mq::GetPrivateProfileBool("Crash Handler", "EnableCrashSubmissions", gEnableCrashSubmissions, internal_paths::MQini);
+	gCrashpadSubmissionURL = mq::GetPrivateProfileString("Crash Handler", "CrashpadSubmissionURL", gCrashpadSubmissionURL.c_str(), internal_paths::MQini);
 
 	if (!gEnableCrashpad)
 	{
@@ -82,7 +87,7 @@ bool InitializeCrashpad()
 	std::vector<std::string> arguments;
 
 	// This is the directory you will use to store and queue crash data.
-	std::wstring dbPath(utf8_to_wstring(internal_paths::CrashDumps));
+	std::wstring dbPath(mq::utf8_to_wstring(internal_paths::CrashDumps));
 
 	// Crashpad has the ability to support crashes both in-process and out-of-process.
 	// The out-of-process handler is significantly more robust than traditional in-process
@@ -100,7 +105,7 @@ bool InitializeCrashpad()
 	}
 
 	base::FilePath db(dbPath);
-	base::FilePath handler(utf8_to_wstring(handlerPath));
+	base::FilePath handler(mq::utf8_to_wstring(handlerPath));
 	s_database = crashpad::CrashReportDatabase::Initialize(db);
 
 	if (s_database == nullptr || s_database->GetSettings() == nullptr)
