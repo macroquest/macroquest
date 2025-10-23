@@ -16,25 +16,20 @@
 #include "ImGuiManager.h"
 
 #include "GraphicsEngine.h"
-#include "imgui/ImGuiUtils.h"
+#include "Logging.h"
 #include "MQ2ImGuiTools.h"
 #include "MQPluginHandler.h"
-#include "Logging.h"
+#include "imgui/ImGuiUtils.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include "imgui/implot/implot.h"
-
- // I was trying to avoid including main, but we just got too many globals
-#include "MQ2Main.h"
-
-// move to mq/utils? or do we need a new static lib?
-#include "common/HotKeys.h"
-#include <mq/base/WString.h>
-#include <mq/utils/Benchmarks.h>
-
-#include "imgui/implot/implot_internal.h"
+#include "mq/base/WString.h"
 #include "mq/imgui/Widgets.h"
+#include "mq/utils/Benchmarks.h"
+#include "mq/utils/HotKeys.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/implot/implot.h"
+#include "imgui/implot/implot_internal.h"
 
 namespace ImGui
 {

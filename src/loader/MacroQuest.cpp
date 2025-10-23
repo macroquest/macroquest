@@ -25,8 +25,10 @@
 #include "mq/utils/Naming.h"
 #include "mq/utils/OS.h"
 #include "mq/base/BuildInfo.h"
+#include "mq/base/Config.h"
 #include "mq/base/Logging.h"
 #include "mq/base/WString.h"
+#include "mq/utils/HotKeys.h"
 #include "routing/NamedPipesProtocol.h"
 #include "resource.h"
 
@@ -214,7 +216,7 @@ void UpdateShowConsole(bool showConsole, bool updateIni)
 		gbConsoleVisible = showConsole;
 
 		if (updateIni)
-			WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
+			mq::WritePrivateProfileBool("MacroQuest", "ShowLoaderConsole", showConsole, internal_paths::MQini);
 	}
 }
 
@@ -253,7 +255,7 @@ static void PerformLoggingCleanup()
 		{
 			const auto& dirEntry = *dirIter;
 
-			if (!dirEntry.is_regular_file(ec) || !ci_equals(dirEntry.path().extension().string(), ".log"))
+			if (!dirEntry.is_regular_file(ec) || !mq::ci_equals(dirEntry.path().extension().string(), ".log"))
 			{
 				continue;
 			}
@@ -455,7 +457,7 @@ void ShowLoggingSettings()
 		if (ImGui::SliderScalar("Cleanup Frequency", ImGuiDataType_U32, &s_logFileCleanupIntervalMins, &minValue, &maxValue, buffer.data(),
 			ImGuiSliderFlags_NoRoundToFormat))
 		{
-			WritePrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+			mq::WritePrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
 		}
 		ImGui::SameLine();
 		mq::imgui::HelpMarker(
@@ -527,7 +529,7 @@ void ShowLoggingSettings()
 		if (ImGui::SliderScalar("How long to keep log files", ImGuiDataType_U32, &s_logCleanupMaxAgeDays, &minValue, &maxValue, buffer.data(),
 			ImGuiSliderFlags_NoRoundToFormat | ImGuiSliderFlags_Logarithmic))
 		{
-			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+			mq::WritePrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
 		}
 		ImGui::SameLine();
 		mq::imgui::HelpMarker(
@@ -569,7 +571,7 @@ void ShowLoggingSettings()
 		if (ImGui::SliderScalar("How many log files to keep", ImGuiDataType_U32, &s_logCleanupMaxCount, &minValue, &maxValue, buffer.data(),
 			ImGuiSliderFlags_NoRoundToFormat))
 		{
-			WritePrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+			mq::WritePrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
 		}
 		ImGui::SameLine();
 		mq::imgui::HelpMarker(
@@ -601,7 +603,7 @@ bool InitializeDirectory(std::string& strPathToInit,
 	const fs::path& appendPathIfRelative = internal_paths::MQRoot)
 {
 	fs::path pathToInit =
-		GetPrivateProfileString("MacroQuest", iniKey, strPathToInit, iniFile);
+		mq::GetPrivateProfileString("MacroQuest", iniKey, strPathToInit, iniFile);
 
 	if (pathToInit.is_relative())
 	{
@@ -649,7 +651,7 @@ bool InitializePaths()
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work.
 	if (fs::exists(pathMQRoot, ec))
 	{
-		internal_paths::MQini = GetCreateMacroQuestIni(pathMQRoot, internal_paths::Config, internal_paths::MQini);
+		internal_paths::MQini = mq::GetCreateMacroQuestIni(pathMQRoot, internal_paths::Config, internal_paths::MQini);
 
 		// Init the Config directory based on the ini we found.
 		if (InitializeDirectory(internal_paths::Config, "ConfigPath", internal_paths::MQini, internal_paths::MQRoot))
@@ -902,7 +904,7 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 					for (const std::string& searchItem : SearchItems)
 					{
 						// If it's in the name value, we don't need to check the data (only valid for exe, but it's fast)
-						if (ci_find_substr(value, searchItem) != -1)
+						if (mq::ci_find_substr(value, searchItem) != -1)
 						{
 							retVal++;
 						}
@@ -912,7 +914,7 @@ int CheckAppCompatFlags(HKEY RegBase, const std::vector<std::string>& SearchItem
 							DWORD dataSize = wil::max_registry_value_name_length;
 							if (RegGetValue(hRegKey, nullptr, value, RRF_RT_REG_SZ, nullptr, data, &dataSize) == ERROR_SUCCESS)
 							{
-								if (ci_find_substr(value, searchItem) != -1)
+								if (mq::ci_find_substr(value, searchItem) != -1)
 								{
 									retVal++;
 								}
@@ -946,7 +948,7 @@ void CheckAppCompat(bool alwaysDisplay = false)
 					std::filesystem::path filePath =  file.path();
 					for (const std::string& searchExtension : searchExtensions)
 					{
-						if (ci_equals(filePath.extension().string(), searchExtension))
+						if (mq::ci_equals(filePath.extension().string(), searchExtension))
 						{
 							checkFor.push_back(filePath.filename().string());
 						}
@@ -1276,7 +1278,7 @@ void ShowEQBCMenu()
 {
 	if (ImGui::MenuItem("Start EQBC Server"))
 	{
-		if (IsProcessRunning("eqbcs.exe"))
+		if (mq::IsProcessRunning("eqbcs.exe"))
 		{
 			LauncherImGui::OpenMessageBox(nullptr, "EQBCS is already running.", "EQBCS Launcher");
 		}
@@ -1392,13 +1394,13 @@ void InitializeVersionInfo()
 		return;
 	}
 
-	ServerType = GetBuildTargetName(
-		static_cast<BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
+	ServerType = mq::GetBuildTargetName(
+		static_cast<mq::BuildTarget>(*reinterpret_cast<int*>(GetProcAddress(hModule.get(), "gBuild"))));
 
 	fmt::format_to(NID.szTip, "{}{} [{} ({})]\0", gszWinName, s_isElevated ? " (Elevated)" : "", szVersion, ServerType);
 	SPDLOG_INFO("Build: {0}", NID.szTip);
 
-	to_lower(ServerType);
+	mq::to_lower(ServerType);
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -1650,7 +1652,7 @@ public:
 
 void CheckPaths()
 {
-	if (GetPrivateProfileBool("MacroQuest", "DisableFilePermissionsCheck", false, internal_paths::MQini))
+	if (mq::GetPrivateProfileBool("MacroQuest", "DisableFilePermissionsCheck", false, internal_paths::MQini))
 		return;
 
 	wil::unique_handle hToken = GetImpersonationToken();
@@ -1751,7 +1753,7 @@ int WINAPI CALLBACK WinMain(
 	// Initialize Paths so we know where to put our logs and where to load our config from
 	InitializePaths();
 
-	bool showConsole = GetPrivateProfileBool("MacroQuest", "ShowLoaderConsole", false, internal_paths::MQini);
+	bool showConsole = mq::GetPrivateProfileBool("MacroQuest", "ShowLoaderConsole", false, internal_paths::MQini);
 	UpdateShowConsole(showConsole, false);
 
 	// Initialize Logging
@@ -1783,16 +1785,16 @@ int WINAPI CALLBACK WinMain(
 		}
 		fullCommandLine += thisArg;
 
-		if (ci_find_substr(thisArg, "noappcompat") != -1)
+		if (mq::ci_find_substr(thisArg, "noappcompat") != -1)
 		{
 			disableAppCompatCheck = true;
 		}
-		else if (ci_find_substr(thisArg, "injectonce") != -1)
+		else if (mq::ci_find_substr(thisArg, "injectonce") != -1)
 		{
 			injectOnce = true;
 		}
 		// Only need this if we're not already the spawned process
-		else if (!spawnedProcess && ci_find_substr(thisArg, "spawnedprocess") != -1)
+		else if (!spawnedProcess && mq::ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
 			SPDLOG_INFO("I am a spawned process");
 			spawnedProcess = true;
@@ -1813,10 +1815,10 @@ int WINAPI CALLBACK WinMain(
 
 		std::filesystem::path ProgramPath;
 
-		const std::string oldProcessName = GetPrivateProfileString("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
+		const std::string oldProcessName = mq::GetPrivateProfileString("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
 		if (oldProcessName.empty())
 		{
-			ProgramPath = GetUniqueFileName(thisProgramPath.parent_path(), "exe");
+			ProgramPath = mq::GetUniqueFileName(thisProgramPath.parent_path(), "exe");
 		}
 		else
 		{
@@ -1824,16 +1826,16 @@ int WINAPI CALLBACK WinMain(
 		}
 
 		// Launch a new process if this process isn't the renamed process
-		if (!ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
+		if (!mq::ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
 		{
 			std::string programPathStr = ProgramPath.string();
 
 			std::error_code ec;
 			if (exists(ProgramPath, ec))
 			{
-				if (IsProcessRunning(oldProcessName))
+				if (mq::IsProcessRunning(oldProcessName))
 				{
-					if (!file_equals(thisProgramPath, ProgramPath))
+					if (!mq::file_equals(thisProgramPath, ProgramPath))
 					{
 						ShowWarningBlocking("Please exit out of the alternate loader for an update: " + oldProcessName);
 					}
@@ -1843,7 +1845,7 @@ int WINAPI CALLBACK WinMain(
 						exit(0);
 					}
 				}
-				if (!file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
+				if (!mq::file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
 				{
 					ShowErrorBlocking("Could not delete alternate loader: " + programPathStr);
 					exit(1);
@@ -1855,7 +1857,7 @@ int WINAPI CALLBACK WinMain(
 				exit(1);
 			}
 
-			std::wstring arguments = utf8_to_wstring(fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine));
+			std::wstring arguments = mq::utf8_to_wstring(fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine));
 			SPDLOG_INFO("Relaunching as spawned process");
 
 			STARTUPINFOW si = {};
@@ -1864,7 +1866,7 @@ int WINAPI CALLBACK WinMain(
 			if (::CreateProcessW(ProgramPath.wstring().c_str(), &arguments[0], nullptr, nullptr, false, CREATE_NEW_CONSOLE,
 				nullptr, nullptr, &si, &pi))
 			{
-				WritePrivateProfileString("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini);
+				mq::WritePrivateProfileString("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini);
 			}
 			else
 			{
@@ -1901,8 +1903,8 @@ int WINAPI CALLBACK WinMain(
 	ccex.dwICC = ICC_STANDARD_CLASSES | ICC_HOTKEY_CLASS;
 	::InitCommonControlsEx(&ccex);
 
-	GetPrivateProfileString("MacroQuest", "MacroQuestWinClassName", "__MacroQuestTray", gszWinClassName, lengthof(gszWinClassName), internal_paths::MQini);
-	GetPrivateProfileString("MacroQuest", "MacroQuestWinName", "MacroQuest", gszWinName, lengthof(gszWinClassName), internal_paths::MQini);
+	mq::GetPrivateProfileString("MacroQuest", "MacroQuestWinClassName", "__MacroQuestTray", gszWinClassName, lengthof(gszWinClassName), internal_paths::MQini);
+	mq::GetPrivateProfileString("MacroQuest", "MacroQuestWinName", "MacroQuest", gszWinName, lengthof(gszWinClassName), internal_paths::MQini);
 
 	// Make sure a MacroQuest instance isn't already running, if one is running, exit
 	HWND hWndRunning = ::FindWindowA(gszWinClassName, gszWinName);
@@ -1912,25 +1914,25 @@ int WINAPI CALLBACK WinMain(
 		return 0;
 	}
 
-	const std::string cycleNextWindowKey = GetPrivateProfileString("MacroQuest", "CycleNextWindow", "", internal_paths::MQini);
-	const std::string cyclePrevWindowKey = GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
-	const std::string bossModeKey = GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
+	const std::string cycleNextWindowKey = mq::GetPrivateProfileString("MacroQuest", "CycleNextWindow", "", internal_paths::MQini);
+	const std::string cyclePrevWindowKey = mq::GetPrivateProfileString("MacroQuest", "CyclePrevWindow", "", internal_paths::MQini);
+	const std::string bossModeKey = mq::GetPrivateProfileString("MacroQuest", "BossMode", "", internal_paths::MQini);
 
-	s_logCleanupMaxCount = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
-	s_logCleanupMaxAgeDays = GetPrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
-	s_logFileCleanupIntervalMins = GetPrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
+	s_logCleanupMaxCount = mq::GetPrivateProfileInt("MacroQuest", "LogCleanupMaxCount", s_logCleanupMaxCount, internal_paths::MQini);
+	s_logCleanupMaxAgeDays = mq::GetPrivateProfileInt("MacroQuest", "LogCleanupMaxAgeDays", s_logCleanupMaxAgeDays, internal_paths::MQini);
+	s_logFileCleanupIntervalMins = mq::GetPrivateProfileInt("MacroQuest", "LogCleanupIntervalMins", s_logFileCleanupIntervalMins, internal_paths::MQini);
 
 	// Update version information shown in the system tray tooltip
 	InitializeVersionInfo();
 	SetPostOfficeIni(internal_paths::MQini);
 	SetCrashpadCallback([] { return IsCrashpadInitialized() && gEnableSharedCrashpad ? GetHandlerIPCPipe() : ""; });
-	SetRequestFocusCallback([](const MQMessageFocusRequest* request)
+	SetRequestFocusCallback([](const mq::MQMessageFocusRequest* request)
 		{
-			if (request->focusMode == MQMessageFocusRequest::FocusMode::HasFocus)
+			if (request->focusMode == mq::MQMessageFocusRequest::FocusMode::HasFocus)
 			{
 				SetFocusWindowPID(request->processId, request->state);
 			}
-			else if (request->focusMode == MQMessageFocusRequest::FocusMode::WantFocus)
+			else if (request->focusMode == mq::MQMessageFocusRequest::FocusMode::WantFocus)
 			{
 				SetForegroundWindowInternal(static_cast<HWND>(request->hWnd));
 			}
@@ -1953,7 +1955,7 @@ int WINAPI CALLBACK WinMain(
 
 	if (!cycleNextWindowKey.empty() && cycleNextWindowKey != "0")
 	{
-		if (ConvertStringToModifiersAndVirtualKey(cycleNextWindowKey, modkey, hotkey))
+		if (mq::ConvertStringToModifiersAndVirtualKey(cycleNextWindowKey, modkey, hotkey))
 		{
 			if (RegisterHotKey(hMainWnd, HOTKEY_EQWIN_NEXT, modkey, hotkey))
 			{
@@ -1963,7 +1965,7 @@ int WINAPI CALLBACK WinMain(
 	}
 	if (!cyclePrevWindowKey.empty() && cyclePrevWindowKey != "0")
 	{
-		if (ConvertStringToModifiersAndVirtualKey(cyclePrevWindowKey, modkey, hotkey))
+		if (mq::ConvertStringToModifiersAndVirtualKey(cyclePrevWindowKey, modkey, hotkey))
 		{
 			if (RegisterHotKey(hMainWnd, HOTKEY_EQWIN_PREVIOUS, modkey, hotkey))
 			{
@@ -1973,7 +1975,7 @@ int WINAPI CALLBACK WinMain(
 	}
 	if (!bossModeKey.empty() && bossModeKey != "0")
 	{
-		if (ConvertStringToModifiersAndVirtualKey(bossModeKey, modkey, hotkey))
+		if (mq::ConvertStringToModifiersAndVirtualKey(bossModeKey, modkey, hotkey))
 		{
 			if (RegisterHotKey(hMainWnd, HOTKEY_EQWIN_BOSSKEY, modkey, hotkey))
 			{
@@ -1988,7 +1990,7 @@ int WINAPI CALLBACK WinMain(
 
 	CheckMQ2MainUpdate();
 
-	if (!GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
+	if (!mq::GetPrivateProfileBool("MacroQuest", "DisableAppCompatCheck", disableAppCompatCheck, internal_paths::MQini))
 		CheckAppCompat();
 
 	// EQBC menu
@@ -2070,7 +2072,7 @@ HWND LocateHotkeyWindow(WORD modkey, WORD hotkey)
 void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString)
 {
 	uint16_t modkey, hotkey;
-	ConvertStringToModifiersAndVirtualKey(std::string(hotkeyString), modkey, hotkey);
+	mq::ConvertStringToModifiersAndVirtualKey(std::string(hotkeyString), modkey, hotkey);
 
 	auto wnd_it = hotkeyMap.find(std::make_pair(modkey, hotkey));
 	if (wnd_it != hotkeyMap.end())
@@ -2087,7 +2089,7 @@ void RegisterGlobalHotkey(HWND hWnd, std::string_view hotkeyString)
 void UnregisterGlobalHotkey(std::string_view hotkeyString)
 {
 	uint16_t modkey, hotkey;
-	ConvertStringToModifiersAndVirtualKey(std::string(hotkeyString), modkey, hotkey);
+	mq::ConvertStringToModifiersAndVirtualKey(std::string(hotkeyString), modkey, hotkey);
 
 	auto wnd_it = hotkeyMap.find(std::make_pair(modkey, hotkey));
 	if (wnd_it != hotkeyMap.end())

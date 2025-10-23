@@ -15,10 +15,9 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "routing/PostOffice.h"
+#include "routing/ClientPostOffice.h"
+#include "routing/ServerPostOffice.h"
 #include "routing/ProtoPipes.h"
-#include "loader/PostOffice.h"
-#include "main/MQPostOffice.h"
 
 #include "mq/base/String.h"
 

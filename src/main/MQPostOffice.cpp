@@ -53,7 +53,7 @@ static MQPostOffice* s_postOffice = nullptr;
 
 //-----------------------------------------------------------------------------
 
-ActorIdentification::Client GetClientIdentification()
+static ActorIdentification::Client GetClientIdentification()
 {
 	ActorIdentification::Client client;
 	if (__LoginName)

@@ -19,6 +19,9 @@
 #include "loader/MacroQuest.h"
 #include "routing/NamedPipes.h"
 #include "routing/ProtoPipes.h"
+#include "routing/Network.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
 
 #include <shellapi.h>
 
@@ -73,9 +76,9 @@ void LauncherPostOffice::AddConfiguredHosts()
 
 	if (s_iniLocation)
 	{
-		for (const auto& [address, port_raw] : GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
+		for (const auto& [address, port_raw] : mq::GetPrivateProfileKeyValues("NetworkPeers", *s_iniLocation))
 		{
-			const uint16_t port = static_cast<uint16_t>(GetUIntFromString(port_raw, 0));
+			const uint16_t port = static_cast<uint16_t>(mq::GetUIntFromString(port_raw, 0));
 			AddNetworkHost(address, port > 0 ? port : default_port);
 		}
 	}
@@ -83,6 +86,8 @@ void LauncherPostOffice::AddConfiguredHosts()
 
 void LauncherPostOffice::OnIncomingMessage(mq::postoffice::LocalConnection* connection, mq::PipeMessagePtr message)
 {
+	using namespace mq;
+
 	switch (message->GetMessageId())  // NOLINT(clang-diagnostic-switch-enum)
 	{
 	case mq::MQMessageId::MSG_MAIN_PROCESS_UNLOADED:
@@ -181,7 +186,7 @@ void LauncherPostOffice::OnIncomingConnection(mq::postoffice::LocalConnection* c
 		// enabled, or shared is disabled, this will send an empty string, which basically
 		// tells the process that its on its own.
 		pipeServer->SendMessage(connectionId,
-			mq::MakeSimpleMessageV0(MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
+			mq::MakeSimpleMessageV0(mq::MQMessageId::MSG_MAIN_CRASHPAD_CONFIG,
 				namedPipe.c_str(), static_cast<uint32_t>(namedPipe.length()) + 1));
 	}
 }
@@ -193,7 +198,7 @@ bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 	{
 		if (auto pipeConnection = s_postOffice->GetConnectionForProcessId(processID))
 		{
-			MQMessageActivateWnd message;
+			mq::MQMessageActivateWnd message;
 			message.hWnd = hWnd;
 
 			s_postOffice->SendPipeMessage(pipeConnection->GetConnectionId(),

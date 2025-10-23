@@ -22,14 +22,16 @@
 #include "imgui/ImGuiUtils.h"
 #include "login/AutoLogin.h"
 #include "login/Login.h"
+#include "mq/base/Config.h"
+#include "mq/base/String.h"
 
-#include <fmt/format.h>
-#include <fmt/compile.h>
-#include <spdlog/spdlog.h>
+#include "fmt/format.h"
+#include "fmt/compile.h"
+#include "spdlog/spdlog.h"
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
-using namespace mq;
 
 static ImGuiFileDialog* s_eqDirDialog = nullptr;
 static constexpr AutoLoginSettings defaultSettings;
@@ -590,7 +592,7 @@ static void AccountTable(const std::string_view search)
 				return login::db::ListAccountMatches(last_search);
 			});
 
-		const bool force_update = !ci_equals(last_search, search);
+		const bool force_update = !mq::ci_equals(last_search, search);
 		if (force_update)
 			last_search = search;
 
@@ -721,7 +723,8 @@ static void CharacterTable(const std::string_view search)
 		| ImGuiTableFlags_Sortable
 		| ImGuiTableFlags_SortMulti;
 
-	static auto show_hidden = login::db::CacheSetting<bool>("show_hidden_characters", defaultSettings.ShowHiddenCharacters, GetBoolFromString);
+	static auto show_hidden = login::db::CacheSetting<bool>("show_hidden_characters", defaultSettings.ShowHiddenCharacters,
+		mq::GetBoolFromString);
 	float height = ImGui::GetContentRegionAvail().y - ImGui::GetFrameHeightWithSpacing();
 
 	bool should_show_hidden = show_hidden.Read();
@@ -743,7 +746,7 @@ static void CharacterTable(const std::string_view search)
 				return login::db::ListCharacterMatches(last_search);
 			});
 
-		const bool force_update = !ci_equals(last_search, search);
+		const bool force_update = !mq::ci_equals(last_search, search);
 		if (force_update)
 			last_search = search;
 
@@ -967,7 +970,7 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 				}
 			});
 
-		if (!ci_equals(profileInfo.profileName, group.profileName))
+		if (!mq::ci_equals(profileInfo.profileName, group.profileName))
 			group.profileName = profileInfo.profileName;
 
 		DefaultCombo(group, [&profileInfo]
@@ -1012,7 +1015,7 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 			[]()
 			{
 				if (const auto delay = login::db::ReadSetting("char_select_delay"))
-					return GetIntFromString(*delay, 3);
+					return mq::GetIntFromString(*delay, 3);
 				return 3;
 			},
 			[](int& char_select_delay)
@@ -1024,7 +1027,7 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 			[]()
 			{
 				if (const auto end = login::db::ReadSetting("end_after_select"))
-					return GetBoolFromString(*end, false);
+					return mq::GetBoolFromString(*end, false);
 				return false;
 			},
 			[](bool& end_after_select)
@@ -1101,7 +1104,7 @@ static void ProfileTable(const std::string& group)
 					return login::db::GetProfiles(last_group);
 				});
 
-			const bool force_profiles_update = !ci_equals(last_group, group);
+			const bool force_profiles_update = !mq::ci_equals(last_group, group);
 			if (force_profiles_update)
 				last_group = group;
 
@@ -1331,7 +1334,7 @@ static void ProfileGroupTable(std::string& group)
 				auto& profile_group = profile_groups.Updated().at(row);
 				ImGui::PushID(&profile_group);
 
-				ImGui::Selectable("##row", ci_equals(group, profile_group), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
+				ImGui::Selectable("##row", mq::ci_equals(group, profile_group), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap);
 
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
 				{
@@ -1445,11 +1448,11 @@ static void ShowValidatePassword(const Action& ok_action)
 	if (!show_password) flags |= ImGuiInputTextFlags_Password;
 
 	ImGui::InputText("##password", &password, flags);
-	ImGui::SameLine(); imgui::HelpMarker("Attempt to validate the entered password against the database, or set it if it does not exist.");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Attempt to validate the entered password against the database, or set it if it does not exist.");
 	ImGui::Separator();
 
 	ImGui::Checkbox("Show password", &show_password);
-	ImGui::SameLine(); imgui::HelpMarker("Show the password in plain text");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Show the password in plain text");
 	ImGui::Spacing();
 
 	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
@@ -1485,23 +1488,23 @@ no encryption will be used.)");
 	ImGui::Spacing();
 
 	static bool show_password = false;
-	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
+	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, mq::GetBoolFromString);
 	static std::string password;
 
 	ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
 	if (!show_password) flags |= ImGuiInputTextFlags_Password;
 
 	ImGui::InputText("##password", &password, flags);
-	ImGui::SameLine(); imgui::HelpMarker("Set the new master password, will require validation of the current password if there is none stored\nAn empty password will proceed with no master password (all data will be stored in plaintext)");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Set the new master password, will require validation of the current password if there is none stored\nAn empty password will proceed with no master password (all data will be stored in plaintext)");
 	ImGui::Separator();
 
 	ImGui::Checkbox("Show password", &show_password);
-	ImGui::SameLine(); imgui::HelpMarker("Show the password in plain text");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Show the password in plain text");
 
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Never ask again", &perpetual_password.Read()))
 		login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false");
-	ImGui::SameLine(); imgui::HelpMarker("Save the password to this system so that it never has to be entered again.");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Save the password to this system so that it never has to be entered again.");
 	ImGui::Spacing();
 
 	ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - 75.f - ImGui::GetStyle().FramePadding.x * 2);
@@ -1587,7 +1590,7 @@ void ShowProfilesWindow()
 	static float rightPaneSize = 0.0f;
 	static float leftPaneSize = 150.0f;
 
-	imgui::DrawSplitter(false, 9.0f, &leftPaneSize, &rightPaneSize, 50, 250);
+	mq::imgui::DrawSplitter(false, 9.0f, &leftPaneSize, &rightPaneSize, 50, 250);
 
 	ImVec2 availSize = ImGui::GetContentRegionAvail();
 	if (rightPaneSize == 0.0f)
@@ -1685,18 +1688,18 @@ void ShowAccountsWindow()
 
 void ShowSettingsWindow()
 {
-	static auto debug = login::db::CacheSetting<bool>("debug", false, GetBoolFromString);
-	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, GetBoolFromString);
-	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, GetBoolFromString);
-	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, GetBoolFromString);
-	static auto detect_info = login::db::CacheSetting<bool>("detect_info", defaultSettings.DetectInformation, GetBoolFromString);
-	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", defaultSettings.ClientLaunchDelay, GetIntFromString);
-	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", defaultSettings.CharSelectDelay, GetIntFromString);
-	static auto connect_retries = login::db::CacheSetting<int>("login_connect_retries", defaultSettings.ConnectRetries, GetIntFromString);
+	static auto debug = login::db::CacheSetting<bool>("debug", false, mq::GetBoolFromString);
+	static auto kick_active = login::db::CacheSetting<bool>("kick_active", defaultSettings.KickActiveCharacter, mq::GetBoolFromString);
+	static auto end_after_select = login::db::CacheSetting<bool>("end_after_select", defaultSettings.EndAfterSelect, mq::GetBoolFromString);
+	static auto load_ini = login::db::CacheSetting<bool>("load_ini", false, mq::GetBoolFromString);
+	static auto detect_info = login::db::CacheSetting<bool>("detect_info", defaultSettings.DetectInformation, mq::GetBoolFromString);
+	static auto client_launch_delay = login::db::CacheSetting<int>("client_launch_delay", defaultSettings.ClientLaunchDelay, mq::GetIntFromString);
+	static auto char_select_delay = login::db::CacheSetting<int>("char_select_delay", defaultSettings.CharSelectDelay, mq::GetIntFromString);
+	static auto connect_retries = login::db::CacheSetting<int>("login_connect_retries", defaultSettings.ConnectRetries, mq::GetIntFromString);
 
-	static auto password_timeout_hours = login::db::CacheSetting<int>("password_timeout_hours", 720, GetIntFromString);
+	static auto password_timeout_hours = login::db::CacheSetting<int>("password_timeout_hours", 720, mq::GetIntFromString);
 	static std::string hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Read()) / 24.f);
-	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, GetBoolFromString);
+	static auto perpetual_password = login::db::CacheSetting<bool>("perpetual_password", false, mq::GetBoolFromString);
 
 	static auto company = login::db::CacheSetting<std::string>("reg_company", "",
 		[](const std::string_view result, const std::string& _) { return std::string(result); });
@@ -1707,57 +1710,57 @@ void ShowSettingsWindow()
 	// session section
 	if (ImGui::Checkbox("Debug Output", &debug.Read()))
 		login::db::WriteSetting("debug", debug.Updated() ? "true" : "false", "Show plugin debug statements");
-	ImGui::SameLine(); imgui::HelpMarker("Show plugin debug statements");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Show plugin debug statements");
 
 	ImGui::Spacing();
 	if (ImGui::Checkbox("Kick Active Character", &kick_active.Read()))
 		login::db::WriteSetting("kick_active", kick_active.Updated() ? "true" : "false", "Automatically kick the active character when prompted");
-	ImGui::SameLine(); imgui::HelpMarker("Automatically kick the active character when prompted");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Automatically kick the active character when prompted");
 
 	ImGui::Spacing();
 	if (ImGui::Checkbox("End After Character Select", &end_after_select.Read()))
 		login::db::WriteSetting("end_after_select", end_after_select.Updated() ? "true" : "false", "Disable the plugin once the character has been selected");
-	ImGui::SameLine(); imgui::HelpMarker("Disable the plugin once the character has been selected");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Disable the plugin once the character has been selected");
 
 	ImGui::Spacing();
 	if (ImGui::Checkbox("Load Legacy Config Next Load", &load_ini.Read()))
 		login::db::WriteSetting("load_ini", load_ini.Updated() ? "true" : "false", "Import data from autologin ini file one time at load");
-	ImGui::SameLine(); imgui::HelpMarker("Import data from autologin ini file one time at load");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Import data from autologin ini file one time at load");
 
 	ImGui::Spacing();
 	if (ImGui::Checkbox("Automatically Detect Login Info", &detect_info.Read()))
 		login::db::WriteSetting("detect_info", detect_info.Updated() ? "true" : "false", "Automatically detect login information from the client as the user logs in");
-	ImGui::SameLine(); imgui::HelpMarker("Automatically detect login information from the client as the user logs in");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Automatically detect login information from the client as the user logs in");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
 	if (ImGui::InputScalar("Client Launch Delay", ImGuiDataType_U32, &client_launch_delay.Read()))
 		login::db::WriteSetting("client_launch_delay", std::to_string(client_launch_delay.Updated()), "Seconds in between client launches");
-	ImGui::SameLine(); imgui::HelpMarker("Seconds in between client launches");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Seconds in between client launches");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
 	if (ImGui::InputScalar("Character Select Delay", ImGuiDataType_U32, &char_select_delay.Read()))
 		login::db::WriteSetting("char_select_delay", std::to_string(char_select_delay.Updated()), "Seconds to delay character selection at the character select screen");
-	ImGui::SameLine(); imgui::HelpMarker("Seconds to delay character selection at the character select screen");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Seconds to delay character selection at the character select screen");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(50.f);
 	if (ImGui::InputScalar("Connect Retries", ImGuiDataType_U32, &connect_retries.Read()))
 		login::db::WriteSetting("login_connect_retries", std::to_string(connect_retries.Updated()), "Number of times to attempt to reconnect, 0 for infinite");
-	ImGui::SameLine(); imgui::HelpMarker("Number of times to attempt to reconnect, 0 for infinite");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Number of times to attempt to reconnect, 0 for infinite");
 
 	ImGui::Spacing();
 	if (ImGui::Button("Load Legacy Config"))
 		Import();
-	ImGui::SameLine(); imgui::HelpMarker("Import data from autologin ini right now");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Import data from autologin ini right now");
 
 	ImGui::Separator();
 	// password section
 	ImGui::Spacing();
 	if (ImGui::Checkbox("Save Password Forever", &perpetual_password.Read()))
 		login::db::WriteSetting("perpetual_password", perpetual_password.Updated() ? "true" : "false", "Save the master password to this system so that it never has to be entered again");
-	ImGui::SameLine(); imgui::HelpMarker("Save the master password to this system so that it never has to be entered again");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Save the master password to this system so that it never has to be entered again");
 
 	ImGui::Spacing();
 	ImGui::BeginDisabled(perpetual_password.Read());
@@ -1767,13 +1770,13 @@ void ShowSettingsWindow()
 		hours_label = fmt::format("Hours to Save Password ({:.1f} days)", static_cast<float>(password_timeout_hours.Updated()) / 24.f);
 		login::db::WriteSetting("password_timeout_hours", std::to_string(password_timeout_hours.Updated()), "Number of hours to save the master password before requiring re-entry");
 	}
-	ImGui::SameLine(); imgui::HelpMarker("Number of hours to save the master password before requiring re-entry");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Number of hours to save the master password before requiring re-entry");
 	ImGui::EndDisabled();
 
 	ImGui::Spacing();
 	if (ImGui::Button("Retrieve Master Password"))
 		LauncherImGui::OpenModal("Stored Master Password");
-	ImGui::SameLine(); imgui::HelpMarker("Retrieve the stored password from the system registry if present");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Retrieve the stored password from the system registry if present");
 
 	if (LauncherImGui::BeginModal("Stored Master Password", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -1803,7 +1806,7 @@ void ShowSettingsWindow()
 		ShowNewPassword([] { LauncherImGui::CloseModal(); });
 		LauncherImGui::EndModal();
 	}
-	ImGui::SameLine(); imgui::HelpMarker("Set a new master password (will update all saved encrypted values)");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Set a new master password (will update all saved encrypted values)");
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(200.f);
@@ -1814,14 +1817,14 @@ void ShowSettingsWindow()
 		if (pass)
 			login::db::CacheMasterPass(*pass);
 	}
-	ImGui::SameLine(); imgui::HelpMarker("Set the company where the master pass is cached in the registry");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Set the company where the master pass is cached in the registry");
 
 	ImGui::Separator();
 	// management section
 	ImGui::Spacing();
 	if (ImGui::Button("Manage EQ Installs"))
 		LauncherImGui::OpenModal("Manage EQ Installs");
-	ImGui::SameLine(); imgui::HelpMarker("Manage the the mapping of EQ build to EQ install location");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Manage the the mapping of EQ build to EQ install location");
 
 	if (LauncherImGui::BeginModal("Manage EQ Installs", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -1838,7 +1841,7 @@ void ShowSettingsWindow()
 	ImGui::Spacing();
 	if (ImGui::Button("Manage Server Names"))
 		LauncherImGui::OpenModal("Manage Server Names");
-	ImGui::SameLine(); imgui::HelpMarker("Manage the server short name to long name mappings");
+	ImGui::SameLine(); mq::imgui::HelpMarker("Manage the server short name to long name mappings");
 
 	if (LauncherImGui::BeginModal("Manage Server Names", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
@@ -1893,7 +1896,7 @@ bool ShowPasswordWindow()
 				is_open = false;
 
 				// do this here because doing it before will attempt to read/write passwords without the master pass
-				if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || GetBoolFromString(*load_ini, false))
+				if (const auto load_ini = login::db::ReadSetting("load_ini"); !load_ini || mq::GetBoolFromString(*load_ini, false))
 				{
 					Import();
 					login::db::WriteSetting("load_ini", "false", "Import data from autologin ini file one time at load");
