@@ -145,7 +145,6 @@
     <ClInclude Include="..\..\include\mq\base\BuildInfo.h" />
     <ClInclude Include="..\..\include\mq\utils\Markov.h" />
     <ClInclude Include="..\..\include\mq\utils\Naming.h" />
-    <ClInclude Include="..\common\HotKeys.h" />
     <ClInclude Include="LoaderAutoLogin.h" />
     <ClInclude Include="Crashpad.h" />
     <ClInclude Include="ImGui.h" />
