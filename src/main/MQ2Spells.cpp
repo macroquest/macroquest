@@ -1866,7 +1866,7 @@ static char* FormatSkills(const char* szEffectName, int64_t value, int64_t max, 
 template <unsigned int Size>
 static char* FormatSkills(const char* szEffectName, int64_t value, int skill, char(&szBuffer)[Size], bool percent = true, const char* preposition = "with")
 {
-	return FormatSkills(szEffectName, value, value, skill, szBuffer, usepercent, preposition);
+	return FormatSkills(szEffectName, value, value, skill, szBuffer, percent, preposition);
 }
 
 template <unsigned int Size>
@@ -3792,7 +3792,7 @@ DWORD GetSpellID(const CachedBuff& buff) { return buff.spellId; }
 const char* GetSpellName(EQ_Spell* spell)
 {
 	if (spell == nullptr || spell->Name == nullptr || spell->Name[0] == '\0')
-		return false;
+		return nullptr;
 
 	return spell->Name;
 }

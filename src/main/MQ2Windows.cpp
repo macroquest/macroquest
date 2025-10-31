@@ -42,7 +42,8 @@ static MQModule gWindowsModule = {
 };
 MQModule* GetWindowsModule() { return &gWindowsModule; }
 
-char* szClickNotification[] = {
+static const char* szClickNotification[] =
+{
 	"leftmouse",        // 0
 	"leftmouseup",      // 1
 	"leftmouseheld",    // 2

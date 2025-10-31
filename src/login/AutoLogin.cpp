@@ -855,7 +855,7 @@ void ProfileGroupInfo::List(const Action& select_action)
 		profile_groups,
 		[this](const std::string& match) { return mq::ci_equals(match, profileName); },
 		[](fmt::memory_buffer& buf, const std::string& match)
-		{ fmt::format_to(std::back_inserter(buf), match); }
+		{ fmt::format_to(std::back_inserter(buf), "{}", match); }
 	);
 }
 

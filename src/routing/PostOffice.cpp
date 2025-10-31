@@ -40,6 +40,22 @@ namespace postoffice {
 // Static helper for creating an ActorContainer::Process representing the current process
 ActorContainer::Process ActorContainer::CurrentProcess{ ::GetCurrentProcessId() };
 
+std::string ActorIdentification::ToString() const
+{
+	std::string name = std::visit(overload{
+		[](const std::string& name)
+		{
+			return name;
+		},
+		[](const Client& client)
+		{
+			return client.ToString();
+		}
+		}, address);
+
+	return fmt::format("{} ({})", name, container);
+}
+
 void Mailbox::Deliver(MessagePtr message) const
 {
 	SPDLOG_TRACE("Mailbox {{{}}}: Delivering message to address {}",

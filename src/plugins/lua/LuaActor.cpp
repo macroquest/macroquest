@@ -535,7 +535,7 @@ sol::object StatelessIterator(sol::object, sol::object k, sol::this_state s)
 	{
 		// if any of these mailboxes are invalid, just erase them from the map, this will
 		// return as soon as a valid mailbox is found.
-		for (auto& it = s_dropboxes.begin(); it != s_dropboxes.end(); it = s_dropboxes.erase(it))
+		for (auto it = s_dropboxes.begin(); it != s_dropboxes.end(); it = s_dropboxes.erase(it))
 		{
 			if (auto ptr = it->second.lock())
 				return sol::make_object(s, ptr);
@@ -621,7 +621,7 @@ void LuaActors::Stop()
 
 void LuaActors::Process()
 {
-	for (auto& dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
+	for (auto dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
 	{
 		auto ptr = dropbox_it->second.lock();
 		if (ptr)

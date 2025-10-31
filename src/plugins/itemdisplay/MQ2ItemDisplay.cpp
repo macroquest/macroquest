@@ -829,16 +829,19 @@ static std::string CreateSpellText(EQ_Spell* pSpell)
 	return to_string(buf);
 }
 
-struct repeated_text {
+struct repeated_text
+{
 	int n;
 	std::string_view sv;
 };
 repeated_text rep(int n, std::string_view sv) { return { n, sv }; }
 
 template <>
-struct fmt::formatter<repeated_text> : fmt::formatter<std::string_view> {
-	template <typename FormatContext>
-	auto format(const repeated_text& r, FormatContext& ctx) {
+struct fmt::formatter<repeated_text> : fmt::formatter<std::string_view>
+{
+	auto format(const repeated_text& r, format_context& ctx) const
+		-> format_context::iterator
+	{
 		auto it = ctx.out();
 		for (int i = 0; i < r.n; ++i)
 			it = fmt::formatter<std::string_view>::format(r.sv, ctx);
@@ -846,16 +849,19 @@ struct fmt::formatter<repeated_text> : fmt::formatter<std::string_view> {
 	}
 };
 
-struct class_name_level {
+struct class_name_level
+{
 	int class_id;
 	int level;
 };
 
 template <>
-struct fmt::formatter<class_name_level> : fmt::formatter<string_view> {
-	template <typename FormatContext>
-	auto format(const class_name_level& r, FormatContext& ctx) const {
-		return format_to(ctx.out(), "{}({})", GetClassDesc(r.class_id), r.level);
+struct fmt::formatter<class_name_level> : fmt::formatter<string_view>
+{
+	auto format(const class_name_level& r, format_context& ctx) const
+		-> format_context::iterator
+	{
+		return fmt::format_to(ctx.out(), "{}({})", GetClassDesc(r.class_id), r.level);
 	}
 };
 

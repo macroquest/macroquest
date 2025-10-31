@@ -331,7 +331,7 @@ static std::tuple<float, bool> VSliderFloatVec2(const char* label, const ImVec2&
 }
 
 static std::tuple<float, bool> VSliderFloat(const char* label, float sizeX, float sizeY, float value, float v_min, float v_max,
-	std::optional<const char*>& format, std::optional<int> flags)
+	std::optional<const char*> format, std::optional<int> flags)
 {
 	return VSliderFloatVec2(label, { sizeX, sizeY }, value, v_min, v_max, format, flags);
 }
@@ -906,7 +906,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 	ImGui.set_function("EndMenuBar", &ImGui::EndMenuBar);
 	ImGui.set_function("BeginMainMenuBar", &ImGui::BeginMainMenuBar);
 	ImGui.set_function("EndMainMenuBar", &ImGui::EndMainMenuBar);
-	ImGui.set_function("BeginMenu", [](const char* label, std::optional<bool>& enabled) { return ImGui::BeginMenu(label, enabled.value_or(true)); });
+	ImGui.set_function("BeginMenu", [](const char* label, std::optional<bool> enabled) { return ImGui::BeginMenu(label, enabled.value_or(true)); });
 	ImGui.set_function("EndMenu", &ImGui::EndMenu);
 	ImGui.set_function("MenuItem",
 		[](const char* label, std::optional<const char*> shortcut, std::optional<bool> selected, std::optional<bool> enabled) {

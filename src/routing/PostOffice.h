@@ -521,19 +521,7 @@ struct ActorIdentification
 	 *
 	 * @return a string of format "address (container (uuid))"
 	 */
-	std::string ToString() const
-	{
-		return fmt::format("{} ({})", std::visit(overload{
-			[](const std::string& name)
-			{
-				return name;
-			},
-			[](const Client& client)
-			{
-				return client.ToString();
-			}
-		}, address), container);
-	}
+	std::string ToString() const;
 };
 
 class Mailbox
@@ -824,18 +812,18 @@ template<> struct std::hash<mq::postoffice::ActorContainer>
 /**
  * fmt string helper for the actor container
  */
-template<> struct fmt::formatter<mq::postoffice::ActorContainer>
+template<>
+struct fmt::formatter<mq::postoffice::ActorContainer>
 {
-	template <typename ParseContext>
-	constexpr auto parse(ParseContext& ctx)
+	constexpr auto parse(format_parse_context& ctx) -> format_parse_context::iterator
 	{
 		return ctx.begin();
 	}
 
-	template <typename FormatContext>
-	auto format(const mq::postoffice::ActorContainer& container, FormatContext& ctx)
+	auto format(const mq::postoffice::ActorContainer& container, format_context& ctx) const
+		-> format_context::iterator
 	{
-		return fmt::format_to(ctx.out(), container.ToString());
+		return fmt::format_to(ctx.out(), "{}", container.ToString());
 	}
 };
 
@@ -844,15 +832,15 @@ template<> struct fmt::formatter<mq::postoffice::ActorContainer>
  */
 template <> struct fmt::formatter<mq::postoffice::ActorIdentification>
 {
-	template <typename ParseContext>
-	constexpr auto parse(ParseContext& ctx)
+	constexpr auto parse(format_parse_context& ctx)
+		-> format_parse_context::iterator
 	{
 		return ctx.begin();
 	}
 
-	template <typename FormatContext>
-	auto format(const mq::postoffice::ActorIdentification& ident, FormatContext& ctx)
+	auto format(const mq::postoffice::ActorIdentification& ident, format_context& ctx) const
+		-> format_context::iterator
 	{
-		return fmt::format_to(ctx.out(), ident.ToString());
+		return fmt::format_to(ctx.out(), "{}", ident.ToString());
 	}
 };

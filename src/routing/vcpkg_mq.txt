@@ -1,2 +1,4 @@
 asio
+fmt
 protobuf
+spdlog

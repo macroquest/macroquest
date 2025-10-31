@@ -568,10 +568,15 @@ CXStr Anonymize(const CXStr& Text)
 
 	EnterMQ2Benchmark(bmAnonymizer);
 
-	auto new_text = std::accumulate(std::cbegin(replacers), std::cend(replacers), std::string(Text),
-		[](std::string& text, const std::unique_ptr<anon_replacer>& r) -> std::string {
-			return r ? r->replace_text(text) : text;
-		});
+	std::string new_text(Text);
+
+	for (const auto& replacer : replacers)
+	{
+		if (replacer)
+		{
+			new_text = replacer->replace_text(new_text);
+		}
+	}
 
 	if (anon_self != Anonymization::None)
 	{
@@ -583,53 +588,38 @@ CXStr Anonymize(const CXStr& Text)
 
 	if (anon_group != Anonymization::None && pLocalPC->Group)
 	{
-		new_text = std::accumulate(
-			std::cbegin(*pLocalPC->Group),
-			std::cend(*pLocalPC->Group),
-			new_text,
-			[](std::string& text, const CGroupMember* pMember) -> std::string
+		for (const CGroupMember* pMember : *pLocalPC->Group)
+		{
+			if (pMember && pMember->Name[0] && ci_equals(new_text, pMember->Name, false))
 			{
-				if (pMember && pMember->Name[0] != '\0' && ci_equals(text, pMember->Name, false))
+				auto memoized = group_memoization.find(pMember->Name);
+				if (memoized == group_memoization.end())
 				{
-					auto memoized = group_memoization.find(pMember->Name);
-					if (memoized == group_memoization.end())
-						memoized = group_memoization.emplace(
-							pMember->Name,
-							std::make_unique<anon_replacer>(pMember->Name, anon_group)
-						).first;
-
-					return memoized->second->replace_text(text);
+					memoized = group_memoization.emplace(
+						pMember->Name, std::make_unique<anon_replacer>(pMember->Name, anon_group)).first;
 				}
 
-				return text;
+				new_text = memoized->second->replace_text(new_text);
 			}
-		);
+		}
 	}
 
 	if (anon_fellowship != Anonymization::None)
 	{
-		auto& fellowship = pLocalPlayer->Fellowship;
-		new_text = std::accumulate(
-			std::cbegin(fellowship.FellowshipMember),
-			std::cend(fellowship.FellowshipMember),
-			new_text,
-			[](std::string& text, const SFellowshipMember& f) -> std::string
+		for (const SFellowshipMember& f : pLocalPlayer->Fellowship.FellowshipMember)
+		{
+			if (f.Name[0] && ci_equals(new_text, f.Name, false))
 			{
-				if (f.Name[0] != '\0' && ci_equals(text, f.Name, false))
+				auto memoized = fellowship_memoization.find(f.Name);
+				if (memoized == fellowship_memoization.end())
 				{
-					auto memoized = fellowship_memoization.find(f.Name);
-					if (memoized == fellowship_memoization.end())
-						memoized = fellowship_memoization.emplace(
-							f.Name,
-							std::make_unique<anon_replacer>(f.Name, anon_fellowship)
-						).first;
-
-					return memoized->second->replace_text(text);
+					memoized = fellowship_memoization.emplace(
+						f.Name, std::make_unique<anon_replacer>(f.Name, anon_fellowship)).first;
 				}
 
-				return text;
+				new_text = memoized->second->replace_text(new_text);
 			}
-		);
+		}
 	}
 
 	if (anon_guild != Anonymization::None && pGuild)
