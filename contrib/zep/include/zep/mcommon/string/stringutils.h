@@ -275,6 +275,12 @@ struct StringId
         return id == rhs.id;
     }
 
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+    constexpr bool operator==(T rhs) const
+    {
+        return id == static_cast<uint32_t>(rhs);
+    }
+
     constexpr StringId& operator=(const char* pszString)
     {
         id = murmur_hash3<uint32_t>(pszString);

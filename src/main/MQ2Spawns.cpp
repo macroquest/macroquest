@@ -179,11 +179,11 @@ enum eCaptionColor
 
 struct CAPTIONCOLOR
 {
-	char* szName;
-	char* szDescription;
-	bool       Enabled;
-	bool       ToggleOnly;
-	DWORD      Color;
+	const char* szName;
+	const char* szDescription;
+	bool        Enabled;
+	bool        ToggleOnly;
+	DWORD       Color;
 };
 
 static CAPTIONCOLOR CaptionColors[] =

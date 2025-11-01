@@ -41,7 +41,7 @@ static uint32_t s_pendingAddStyle = 0;
 class CMQChatWnd : public CCustomWnd
 {
 public:
-	CMQChatWnd(char* Template) : CCustomWnd(Template)
+	CMQChatWnd(const char* Template) : CCustomWnd(Template)
 	{
 		DebugSpew("CMQChatWnd()");
 

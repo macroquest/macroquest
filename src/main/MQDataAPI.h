@@ -62,7 +62,7 @@ public:
 		Success,
 		NotFound,
 	};
-	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result,
+	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr&& VarPtr, MQTypeVar& Result,
 		const std::string& Member, char* pIndex, bool checkFirst) const;
 
 	bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool allowFunction = false) const;
@@ -129,6 +129,5 @@ bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pT
 MQDataVar** FindVariableScope(const char* Name);
 bool DeleteMQ2DataVariable(const char* Name);
 void ClearMQ2DataVariables(MQDataVar** ppHead);
-
 
 } // namespace mq

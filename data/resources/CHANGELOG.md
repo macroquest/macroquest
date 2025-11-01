@@ -1,3 +1,10 @@
+October 27, 2025:
+- Added network capability for actors
+  Add any peers to a new \[NetworkPeers\] section in your ini in the format \<ip\>=\<port\>
+  Setting port to 0 assumes that the remote peer uses the same port as the local peer (default to 7781)
+  Can change the NetworkPeerPort entry in the \[MacroQuest\] section of the ini to change the connected port
+  Everything else should be completely transparent and function like the current actor system
+
 October 15, 2025:
 - live: Update for live patch
 

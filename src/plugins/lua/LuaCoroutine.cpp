@@ -58,15 +58,15 @@ CoroutineResult LuaCoroutine::RunCoroutine(const std::vector<sol::object>& args)
 	return Run(args, this);
 }
 
-LuaCoroutine::LuaCoroutine(sol::thread& thread, LuaThread* luaThread)
-	: thread(thread)
+LuaCoroutine::LuaCoroutine(sol::thread thread, LuaThread* luaThread)
+	: thread(std::move(thread))
 	, luaThread(luaThread)
 {
 }
 
-std::shared_ptr<LuaCoroutine> LuaCoroutine::Create(sol::thread& thread, LuaThread* luaThread)
+std::shared_ptr<LuaCoroutine> LuaCoroutine::Create(sol::thread thread, LuaThread* luaThread)
 {
-	auto co_ptr = std::make_shared<LuaCoroutine>(thread, luaThread);
+	auto co_ptr = std::make_shared<LuaCoroutine>(std::move(thread), luaThread);
 	return co_ptr;
 }
 

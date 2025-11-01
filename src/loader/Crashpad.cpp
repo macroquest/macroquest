@@ -28,6 +28,7 @@
 #include "client/crashpad_client.h"
 #include "imgui/imgui.h"
 #include "fmt/chrono.h"
+#include "fmt/os.h"
 #include "spdlog/spdlog.h"
 
 #include <map>
@@ -215,7 +216,11 @@ void ShowCrashReport(const crashpad::CrashReportDatabase::Report& report, bool p
 		buf.clear();
 
 		if (report.last_upload_attempt_time)
-			fmt::format_to(fmt::appender(buf), "{:%Y-%m-%d %H:%M:%S}", fmt::localtime(report.last_upload_attempt_time));
+		{
+			std::tm tm;
+			localtime_s(&tm, &report.last_upload_attempt_time);
+			fmt::format_to(fmt::appender(buf), "{:%Y-%m-%d %H:%M:%S}", tm);
+		}
 		else
 			fmt::format_to(fmt::appender(buf), "Never");
 
@@ -233,7 +238,9 @@ void ShowCrashReport(const crashpad::CrashReportDatabase::Report& report, bool p
 	ImGui::TableNextColumn();
 
 	buf.clear();
-	fmt::format_to(fmt::appender(buf), "{:%Y-%m-%d %H:%M:%S}", fmt::localtime(report.creation_time));
+	std::tm tm;
+	localtime_s(&tm, &report.creation_time);
+	fmt::format_to(fmt::appender(buf), "{:%Y-%m-%d %H:%M:%S}", tm);
 	ImGui::Text("%.*s", (int)buf.size(), buf.data());
 
 	ImGui::TableNextColumn();

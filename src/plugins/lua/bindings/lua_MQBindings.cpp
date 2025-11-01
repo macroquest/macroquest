@@ -219,10 +219,10 @@ static void lua_doevents(sol::variadic_args va, sol::this_state s)
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
 		{
 			std::vector<std::string> args;
-			for (auto& a : va)
+			for (sol::stack_proxy a : va)
 			{
-				auto arg = a.as<std::optional<std::string>>();
-				if (arg) args.emplace_back(*arg);
+				if (const auto& arg = a.as<std::optional<std::string>>())
+					args.emplace_back(*arg);
 			}
 
 			events->PrepareEvents(args);
@@ -238,10 +238,10 @@ static void lua_flushevents(sol::variadic_args va, sol::this_state s)
 		if (LuaEventProcessor* events = thread_ptr->GetEventProcessor())
 		{
 			std::vector<std::string> args;
-			for (auto& a : va)
+			for (sol::stack_proxy a : va)
 			{
-				auto arg = a.as<std::optional<std::string>>();
-				if (arg) args.emplace_back(*arg);
+				if (const auto& arg = a.as<std::optional<std::string>>())
+					args.emplace_back(*arg);
 			}
 
 			events->RemoveEvents(args);

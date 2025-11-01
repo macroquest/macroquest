@@ -28,51 +28,51 @@ class MQ2BazaarItemType;
 
 struct
 {
-	char* name;
+	const char* name;
 	int classn;
 } classes[] = {
-	"any",              -1,
-	"bard",             8,
-	"beastlord",        15,
-	"berserker",        16,
-	"cleric",           2,
-	"druid",            6,
-	"enchanter",        14,
-	"magician",         13,
-	"monk",             7,
-	"necromancer",      11,
-	"paladin",          3,
-	"ranger",           4,
-	"rogue",            9,
-	"shadow knight",    5,
-	"shaman",           10,
-	"warrior",          1,
-	"wizard",           12,
+	{ "any",              -1, },
+	{ "bard",             8, },
+	{ "beastlord",        15, },
+	{ "berserker",        16, },
+	{ "cleric",           2, },
+	{ "druid",            6, },
+	{ "enchanter",        14, },
+	{ "magician",         13, },
+	{ "monk",             7, },
+	{ "necromancer",      11, },
+	{ "paladin",          3, },
+	{ "ranger",           4, },
+	{ "rogue",            9, },
+	{ "shadow knight",    5, },
+	{ "shaman",           10, },
+	{ "warrior",          1, },
+	{ "wizard",           12, },
 };
 
 struct
 {
-	char* name;
+	const char* name;
 	int race;
 } races[] =
 {
-	"any",              -1,
-	"barbarian",        2,
-	"dark elf",         6,
-	"dwarf",            8,
-	"erudite",          3,
-	"froglok",          15,
-	"gnome",            12,
-	"half elf",         7,
-	"halfling",         11,
-	"high elf",         5,
-	"human",            1,
-	"iksar",            13,
-	"ogre",             10,
-	"troll",            9,
-	"vah shir",         14,
-	"wood elf",         4,
-	"drakkin",          522,
+	{ "any",              -1, },
+	{ "barbarian",        2, },
+	{ "dark elf",         6, },
+	{ "dwarf",            8, },
+	{ "erudite",          3, },
+	{ "froglok",          15, },
+	{ "gnome",            12, },
+	{ "half elf",         7, },
+	{ "halfling",         11, },
+	{ "high elf",         5, },
+	{ "human",            1, },
+	{ "iksar",            13, },
+	{ "ogre",             10, },
+	{ "troll",            9, },
+	{ "vah shir",         14, },
+	{ "wood elf",         4, },
+	{ "drakkin",          522, },
 };
 
 enum class BazaarSearchSortColumn

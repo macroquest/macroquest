@@ -818,7 +818,7 @@ bool MQ2AchievementObjectiveType::GetMember(MQVarPtr VarPtr, const char* Member,
 
 	const eqlib::AchievementComponent* component = GetComponent(VarPtr, componentType, componentIndex);
 	if (!component)
-		return nullptr;
+		return false;
 
 	switch (static_cast<AchievementComponentTypeMembers>(pMember->ID))
 	{

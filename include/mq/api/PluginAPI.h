@@ -184,7 +184,7 @@ public:
  * @param pluginName Name of the plugin to retrieve an interface from.
  * @return The plugin's interface object, or nullptr if it is not found or does not exist.
  */
-MQLIB_API PluginInterface* GetPluginInterface(std::string_view pluginName);
+MQLIB_OBJECT PluginInterface* GetPluginInterface(std::string_view pluginName);
 
 
 MQLIB_API DEPRECATE("Use mq::LoadPlugin instead of LoadMQ2Plugin")

@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "common/StringUtils.h"
+
 #include <args/args.hxx>
 
 namespace mq {
@@ -42,7 +44,7 @@ public:
 		auto& command = SelectedCommand();
 
 		auto commandProgLine = command.GetProgramLine(helpParams);
-		writer("\n%s%s%s %s", command_color, Prog().c_str(), reset_color, join(commandProgLine, " ").c_str());
+		writer("\n%s%s%s %s", command_color, Prog().c_str(), reset_color, mq::join(commandProgLine, " ").c_str());
 
 		const auto& commandDescription = command.Description().empty() ? command.Help() : command.Description();
 		writer("%s%s%s\n", command_description_color, commandDescription.c_str(), reset_color);
