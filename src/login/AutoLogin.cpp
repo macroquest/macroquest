@@ -454,7 +454,7 @@ void ServerNameInfo::List(const Action& select_action)
 		const bool is_selected = mq::ci_equals(short_name, ShortName) &&
 			mq::ci_equals(long_name, LongName);
 
-		format_to(buf_ins, "[{}] {}", short_name, long_name);
+		fmt::format_to(buf_ins, "[{}] {}", short_name, long_name);
 		buf.push_back(0);
 
 		if (ImGui::Selectable(buf.data(), is_selected, ImGuiSelectableFlags_SpanAvailWidth))
