@@ -69,7 +69,7 @@ class ServerPostOffice : public postoffice::PostOffice
 
 public:
 	ServerPostOffice(const std::string& name, const std::string& pipeName,
-		uint16_t defaultPort = mq::DEFAULT_NETWORK_PEER_PORT);
+		uint16_t peerPort = mq::DEFAULT_NETWORK_PEER_PORT);
 	virtual ~ServerPostOffice() override;
 
 	const std::string& GetName() const { return m_name; }

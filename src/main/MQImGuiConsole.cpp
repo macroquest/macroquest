@@ -400,10 +400,10 @@ public:
 	}
 
 	template <typename... Args>
-	void AddLog(ImU32 color, std::string_view fmt, const Args&... args)
+	void AddLog(ImU32 color, std::string_view fmt, Args&&... args)
 	{
 		fmt::basic_memory_buffer<char> buf;
-		fmt::format_to(fmt::appender(buf), fmt, args...);
+		fmt::vformat_to(fmt::appender(buf), fmt, fmt::make_format_args(std::forward<Args>(args)...));
 
 		m_zepConsole->AppendText(std::string_view(buf.data(), buf.size()), color, false);
 	}

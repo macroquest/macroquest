@@ -348,7 +348,7 @@ bool MQDataAPI::FindMacroDataMember(MQ2Type* Type, const std::string& strMember)
 }
 
 // -1 = no exists, 0 = fail, 1 = success
-MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr,
+MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVarPtr&& VarPtr,
 	MQTypeVar& Result, const std::string& Member, char* pIndex, bool checkFirst) const
 {
 	// search for extensions on this type
@@ -361,7 +361,7 @@ MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVa
 			MQ2Type* ext = rec.extentionType;
 
 			// optimize for failure case, check if exists first
-			auto result = EvaluateMacroDataMember(ext, VarPtr, Result, Member, pIndex, true);
+			auto result = EvaluateMacroDataMember(ext, std::move(VarPtr), Result, Member, pIndex, true);
 			if (result != EvaluateResult::NotFound)
 				return result;
 		}
@@ -1511,6 +1511,9 @@ static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 
 	bool Changed = false;
 	char szCurrent[MAX_STRING] = { 0 };
+	int addrlen = 0;
+	size_t endlen = 0;
+	size_t NewLength = 0;
 
 	do
 	{
@@ -1594,12 +1597,12 @@ static bool ParseMacroDataImpl(char* szOriginal, size_t BufferSize)
 			}
 		}
 
-		size_t NewLength = strlen(szCurrent);
-		size_t endlen = strlen(&pEnd[1]) + 1;
+		NewLength = strlen(szCurrent);
+		endlen = strlen(&pEnd[1]) + 1;
 
 		memmove(&pBrace[NewLength], &pEnd[1], endlen);
 
-		int addrlen = (int)(pBrace - szOriginal);
+		addrlen = (int)(pBrace - szOriginal);
 		if (NewLength > BufferSize - addrlen)
 		{
 			if (MQMacroBlockPtr currblock = GetCurrentMacroBlock())
@@ -1920,5 +1923,24 @@ void SGlobalBuffer::pop_buffer()
 	m_stack.pop();
 }
 
+//============================================================================
+
+static bool s_initializedForTesting = false;
+
+void Test_InitializeDataAPI()
+{
+	assert(pDataAPI == nullptr);
+
+	pDataAPI = new MQDataAPI();
+	s_initializedForTesting = true;
+}
+
+void Test_ShutdownDataAPI()
+{
+	assert(pDataAPI != nullptr);
+	assert(s_initializedForTesting);
+
+	delete pDataAPI;
+}
 
 } // namespace mq

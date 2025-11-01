@@ -41,7 +41,7 @@ void MapFilterSetting(PlayerClient* pChar, MapFilter nMapFilter, const char* szV
 	char Buff[MAX_STRING] = { 0 };
 	DWORD dwValue = 0;
 
-	char* szFilterMap[] =
+	const char* szFilterMap[] =
 	{
 		"hide",
 		"show",
@@ -952,7 +952,7 @@ void MapNames(PlayerClient* pChar, const char* szLine)
 	}
 }
 
-char* DescribeCombo(DWORD Combo)
+const char* DescribeCombo(DWORD Combo)
 {
 	static char Description[256];
 	Description[0] = 0;
@@ -1106,7 +1106,7 @@ void MapClickCommand(PlayerClient* pChar, const char* szLine)
 }
 
 // marker code
-char* szMarkType[] =
+const char* szMarkType[] =
 {
 	"None",
 	"Triangle",

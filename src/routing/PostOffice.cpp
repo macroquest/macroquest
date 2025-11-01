@@ -40,6 +40,22 @@ namespace postoffice {
 // Static helper for creating an ActorContainer::Process representing the current process
 ActorContainer::Process ActorContainer::CurrentProcess{ ::GetCurrentProcessId() };
 
+std::string ActorIdentification::ToString() const
+{
+	std::string name = std::visit(overload{
+		[](const std::string& name)
+		{
+			return name;
+		},
+		[](const Client& client)
+		{
+			return client.ToString();
+		}
+		}, address);
+
+	return fmt::format("{} ({})", name, container);
+}
+
 void Mailbox::Deliver(MessagePtr message) const
 {
 	SPDLOG_TRACE("Mailbox {{{}}}: Delivering message to address {}",
@@ -61,19 +77,15 @@ void Mailbox::Process(size_t howMany) const
 	}
 }
 
+Dropbox::Dropbox()
+{
+}
+
 Dropbox::Dropbox(std::string localAddress, PostCallback&& post, DropboxDropper&& unregister)
 	: m_localAddress(std::move(localAddress))
 	, m_post(std::move(post))
 	, m_unregister(std::move(unregister))
 	, m_valid(true)
-{
-}
-
-Dropbox::Dropbox(const Dropbox& other)
-	: m_localAddress(other.m_localAddress)
-	, m_post(other.m_post)
-	, m_unregister(other.m_unregister)
-	, m_valid(other.m_valid)
 {
 }
 
@@ -85,7 +97,11 @@ Dropbox::Dropbox(Dropbox&& other) noexcept
 {
 }
 
-Dropbox& Dropbox::operator=(Dropbox other) noexcept
+Dropbox::~Dropbox()
+{
+}
+
+Dropbox& Dropbox::operator=(Dropbox&& other) noexcept
 {
 	m_localAddress = std::move(other.m_localAddress);
 	m_post = std::move(other.m_post);

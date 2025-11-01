@@ -204,12 +204,6 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
-template <typename T>
-static void Post(const proto::login::MessageId& messageId, const T& data)
-{
-	Post(messageId, data.SerializeAsString());
-}
-
 static void Post(const proto::login::MessageId& messageId, const std::string& data)
 {
 	proto::login::LoginMessage message;
@@ -222,6 +216,12 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 	address.AbsoluteMailbox = true;
 
 	s_autologinDropbox.Post(address, message);
+}
+
+template <typename T>
+static void Post(const proto::login::MessageId& messageId, const T& data)
+{
+	Post(messageId, data.SerializeAsString());
 }
 
 void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)

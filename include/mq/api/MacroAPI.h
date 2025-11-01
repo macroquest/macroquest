@@ -212,6 +212,11 @@ char* ParseMacroParameter(char(&szOriginal)[Size])
 }
 
 //----------------------------------------------------------------------------
+
+MQLIB_API void Test_InitializeDataAPI();
+MQLIB_API void Test_ShutdownDataAPI();
+
+//----------------------------------------------------------------------------
 // Deprecated functions
 
 inline namespace deprecated

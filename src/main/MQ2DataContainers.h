@@ -49,6 +49,19 @@ public:
 	MQTransient() = default;
 };
 
+#if defined(COMMENT_UPDATER)
+
+template <typename EQType>
+auto EQObjectID(EQType* Object)
+{
+}
+
+#else
+
+#if _MSVC_LANG > 201703L
+template <typename EQType>
+auto EQObjectID(EQType* Object) = delete;
+#else
 template <typename EQType>
 auto EQObjectID(EQType* Object)
 {
@@ -73,12 +86,16 @@ auto EQObjectID(EQType* Object)
 		where EQType here is EQMyType, as noted by the EQType=eqlib::EQMyType 
 	*/
 
-#if !defined(COMMENT_UPDATER)
 	static_assert(mq::always_false<EQType>::value,
 		"No function found to provide a unique identifier for an EQ type. "
 		"Please provide a function named EQObjectID that returns a unique identifier for this object type.");
-#endif
 }
+#endif // _MSVC_LANG > 201703L
+#endif // defined(COMMENT_UPDATER)
+
+inline auto EQObjectID(EQGroundItem* Object) { return Object->DropID; }
+inline auto EQObjectID(EQPlacedItem* Object) { return Object->RealEstateItemID; }
+inline auto EQObjectID(PlayerClient* pSpawn) { return pSpawn->SpawnID; }
 
 template <typename EQType>
 class MQEQObject : public MQTransient

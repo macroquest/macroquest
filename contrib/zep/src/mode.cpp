@@ -468,7 +468,7 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys)
     key &= 0xFF;
 
     // Keys in this range converted to UTF8.  I need to figure out how to generically receive UTF8 here, but this
-    // temporary fix enables £-sign and other specials to display and work correctly
+    // temporary fix enables Â£-sign and other specials to display and work correctly
     if (key >= 127 && key <= 255)
     {
 

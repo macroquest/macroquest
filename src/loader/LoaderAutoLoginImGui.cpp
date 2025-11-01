@@ -450,22 +450,22 @@ static void ShowHotkeyWindow(const std::string& name, std::string& hotkey, const
 		const auto buf_ins = std::back_inserter(buf);
 
 		if (ImGui::IsKeyDown(ImGuiMod_Ctrl))
-			format_to(buf_ins, "CTRL+");
+			fmt::format_to(buf_ins, "CTRL+");
 
 		if (ImGui::IsKeyDown(ImGuiMod_Shift))
-			format_to(buf_ins, "SHIFT+");
+			fmt::format_to(buf_ins, "SHIFT+");
 
 		if (ImGui::IsKeyDown(ImGuiMod_Alt))
-			format_to(buf_ins, "ALT+");
+			fmt::format_to(buf_ins, "ALT+");
 
 		if (ImGui::IsKeyDown(ImGuiMod_Super))
-			format_to(buf_ins, "WIN+");
+			fmt::format_to(buf_ins, "WIN+");
 
 		for (const auto& [key, text] : s_hotkeyMap)
 		{
 			if (ImGui::IsKeyDown(key))
 			{
-				format_to(buf_ins, text);
+				fmt::format_to(buf_ins, "{}", text);
 				hotkey = fmt::to_string(buf);
 				break;
 			}

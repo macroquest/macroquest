@@ -40,9 +40,9 @@ struct LuaCoroutine
 	CoroutineResult RunCoroutine();
 	CoroutineResult RunCoroutine(const std::vector<std::string>& args);
 	CoroutineResult RunCoroutine(const std::vector<sol::object>& args);
-	static std::shared_ptr<LuaCoroutine> Create(sol::thread& thread, LuaThread* luaThread);
+	static std::shared_ptr<LuaCoroutine> Create(sol::thread thread, LuaThread* luaThread);
 
-	LuaCoroutine(sol::thread& thread, LuaThread* luaThread);
+	LuaCoroutine(sol::thread thread, LuaThread* luaThread);
 };
 
 } // namespace mq::lua
