@@ -1312,7 +1312,7 @@ void LuaEnvironmentSettings::ConfigureLuaState(sol::state_view sv)
 		}
 		formattedRequirePaths.push_back("{originalPath}");
 
-		sv["package"]["path"] = fmt::format("{}", join(formattedRequirePaths, ";"),
+		sv["package"]["path"] = fmt::format(fmt::runtime(join(formattedRequirePaths, ";")),
 			fmt::arg("luaDir", luaDir),
 			fmt::arg("moduleDir", moduleDir),
 			fmt::arg("jitVersion", m_jitversion),
