@@ -169,7 +169,6 @@
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
       <AdditionalDependencies>$(MQ2MainLibs);%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">
@@ -192,7 +191,6 @@
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
       <AdditionalDependencies>$(MQ2MainLibs);%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|x64'">
