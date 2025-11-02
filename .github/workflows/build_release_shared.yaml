@@ -164,7 +164,7 @@ jobs:
             ${{ runner.os }}-vcpkg-
 
       - name: Build ${{ env.platform }} Release for ${{ inputs.client_target }}
-        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }}
+        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m
 
       - name: Create Symbols Archive
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb
