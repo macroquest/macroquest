@@ -163,6 +163,9 @@ jobs:
             ${{ runner.os }}-vcpkg-${{ env.platform }}-
             ${{ runner.os }}-vcpkg-
 
+      - name: Build MQ2Main:${{ env.platform }} Release for ${{ inputs.client_target }}
+        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m /t:core\MQ2Main
+
       - name: Build ${{ env.platform }} Release for ${{ inputs.client_target }}
         run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m
 
