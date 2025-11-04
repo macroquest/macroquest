@@ -1129,7 +1129,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 		                                             &mq_gettype_MQTypeVar,
 		                                             &mq_gettype_MQTopLevelObject
 		                                         ));
-	mq.set_function("getDataTypes",              &lua_getDataTypes);
+	mq.set_function("GetDataTypeNames",              &lua_getDataTypes);
 
 	//----------------------------------------------------------------------------
 	// DataTypes and TLOs
