@@ -21,6 +21,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace eqlib {
 	class PlayerClient;
@@ -92,6 +93,13 @@ MQLIB_API bool RemoveMQ2Type(datatypes::MQ2Type& type);
 MQLIB_API datatypes::MQ2Type* FindMQ2DataType(const char* name);
 
 /**
+ * Return the list of names for all registered datatypes.
+ *
+ * @return Vector containing the name of each registered datatype.
+ */
+MQLIB_OBJECT std::vector<std::string> GetMQ2DataTypeNames();
+
+/**
  * Adds a datatype extension to another datatype. The other datatype
  * does not need to exist at the time of invocation, however the extension
  * will have no effect until it does.
@@ -103,7 +111,7 @@ MQLIB_API datatypes::MQ2Type* FindMQ2DataType(const char* name);
  * @param extension A pointer to the datatype that serves as the extension.
  * @return True if the extension was added successfully.
  */
-MQLIB_API bool AddMQ2TypeExtension(const char* typeName, datatypes::MQ2Type* extension);
+MQLIB_API bool AddMQ2TypeEcmtension(const char* typeName, datatypes::MQ2Type* extension);
 
 /**
  * Removes a previously added datatype extension. Requires the same parameters that
