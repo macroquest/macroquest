@@ -1891,7 +1891,7 @@ MQ2Type* FindMQ2DataType(const char* name)
 	return pDataAPI->FindDataType(name);
 }
 
-std::vector<std::string> GetMQ2DataTypeNames()
+std::vector<std::string> GetDataTypeNames()
 {
 	return pDataAPI->GetDataTypeNames();
 }

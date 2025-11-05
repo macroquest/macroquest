@@ -97,7 +97,7 @@ MQLIB_API datatypes::MQ2Type* FindMQ2DataType(const char* name);
  *
  * @return Vector containing the name of each registered datatype.
  */
-MQLIB_OBJECT std::vector<std::string> GetMQ2DataTypeNames();
+MQLIB_OBJECT std::vector<std::string> GetDataTypeNames();
 
 /**
  * Adds a datatype extension to another datatype. The other datatype

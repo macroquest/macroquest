@@ -622,7 +622,7 @@ static sol::table lua_getDataTypes(sol::this_state s)
 	sol::state_view lua(s);
 	sol::table result = lua.create_table();
 
-	const auto dataTypes = GetMQ2DataTypeNames();
+	const auto dataTypes = GetDataTypeNames();
 	int index = 1;
 	for (const auto& name : dataTypes)
 	{
