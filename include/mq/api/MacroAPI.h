@@ -111,7 +111,7 @@ MQLIB_OBJECT std::vector<std::string> GetMQ2DataTypeNames();
  * @param extension A pointer to the datatype that serves as the extension.
  * @return True if the extension was added successfully.
  */
-MQLIB_API bool AddMQ2TypeEcmtension(const char* typeName, datatypes::MQ2Type* extension);
+MQLIB_API bool AddMQ2TypeExtension(const char* typeName, datatypes::MQ2Type* extension);
 
 /**
  * Removes a previously added datatype extension. Requires the same parameters that
