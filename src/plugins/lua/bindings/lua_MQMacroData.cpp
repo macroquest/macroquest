@@ -18,6 +18,7 @@
 #include "LuaThread.h"
 
 #include <mq/Plugin.h>
+#include <mq/api/MacroAPI.h>
 
 namespace mq::lua {
 
@@ -616,6 +617,21 @@ const char* mq_gettype_MQTypeVar(lua_MQTypeVar* item)
 	return type->GetName();
 }
 
+static sol::table lua_getDataTypes(sol::this_state s)
+{
+	sol::state_view lua(s);
+	sol::table result = lua.create_table();
+
+	const auto dataTypes = GetDataTypeNames();
+	int index = 1;
+	for (const auto& name : dataTypes)
+	{
+		result[index++] = name;
+	}
+
+	return result;
+}
+
 #pragma endregion
 
 //============================================================================
@@ -1113,6 +1129,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 		                                             &mq_gettype_MQTypeVar,
 		                                             &mq_gettype_MQTopLevelObject
 		                                         ));
+	mq.set_function("GetDataTypeNames",              &lua_getDataTypes);
 
 	//----------------------------------------------------------------------------
 	// DataTypes and TLOs

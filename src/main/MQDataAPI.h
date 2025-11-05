@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace mq {
 
@@ -48,6 +49,7 @@ public:
 	bool RemoveDataType(MQ2Type& TypeInstance, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	MQ2Type* FindDataType(const char* Name) const;
+	std::vector<std::string> GetDataTypeNames() const;
 
 	// Type Extensions
 	bool AddTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
