@@ -21,6 +21,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace eqlib {
 	class PlayerClient;
@@ -90,6 +91,13 @@ MQLIB_API bool RemoveMQ2Type(datatypes::MQ2Type& type);
  * @return A pointer to the datatype if found, otherwise nullptr.
  */
 MQLIB_API datatypes::MQ2Type* FindMQ2DataType(const char* name);
+
+/**
+ * Return the list of names for all registered datatypes.
+ *
+ * @return Vector containing the name of each registered datatype.
+ */
+MQLIB_OBJECT std::vector<std::string> GetDataTypeNames();
 
 /**
  * Adds a datatype extension to another datatype. The other datatype
