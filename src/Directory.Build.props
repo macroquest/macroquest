@@ -4,4 +4,9 @@
   <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <BaseIntermediateOutputPath>$(MQBuildDirectory)obj\$(Platform)\$(MQBinaryDirName)\$(ProjectName)\</BaseIntermediateOutputPath>
   </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
 </Project>

@@ -167,8 +167,8 @@ struct MQVarPtr
 	template <typename T>
 	typename ReturnType<T>::type Get() const
 	{
-		using value_type = ReturnType<T>::value_type;
-		using return_type = ReturnType<T>::type;
+		using value_type = typename ReturnType<T>::value_type;
+		using return_type = typename ReturnType<T>::type;
 
 		if (Data.index() != static_cast<size_t>(VariantIdx::ComplexObject))
 			return return_type();
