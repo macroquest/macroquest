@@ -5205,6 +5205,10 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerActivatedKeyRingItems:
 		return &pLocalPC->ActivatedKeyRingItems;
 #endif
+#if HAS_EQUIPMENT_KEYRING
+	case eItemContainerEquipmentKeyRingItems:
+		return &pLocalPC->EquipmentKeyRingItems;
+#endif
 #if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // not exactly sure when this was added.
 	case eItemContainerOverflow:
 		return &pLocalPC->OverflowBufferItems;

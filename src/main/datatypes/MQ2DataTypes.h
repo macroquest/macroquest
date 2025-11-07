@@ -1260,6 +1260,9 @@ public:
 #if HAS_ACTIVATED_ITEM_KEYRING
 	static bool dataActivatedItem(const char* szIndex, MQTypeVar& Ret);
 #endif
+#if HAS_EQUIPMENT_KEYRING
+	static bool dataEquipmentItem(const char* szIndex, MQTypeVar& Ret);
+#endif
 };
 #endif // HAS_KEYRING_WINDOW
 

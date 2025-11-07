@@ -64,6 +64,9 @@ int GetKeyRingCount(KeyRingType keyRingType)
 #if HAS_ACTIVATED_ITEM_KEYRING
 	case eActivatedItem:
 #endif
+#if HAS_EQUIPMENT_KEYRING
+	case eEquipmentKeyRing:
+#endif
 		break;
 	default: return 0;
 	}
@@ -88,6 +91,15 @@ int GetActivatedItemCount()
 {
 #if HAS_ACTIVATED_ITEM_KEYRING
 	return GetKeyRingCount(eActivatedItem);
+#else
+	return 0;
+#endif
+}
+
+int GetEquipmentItemCount()
+{
+#if HAS_EQUIPMENT_KEYRING
+	return GetKeyRingCount(eEquipmentKeyRing);
 #else
 	return 0;
 #endif
@@ -419,6 +431,7 @@ public:
 		case eItemContainerMountKeyRingItems:
 			ImGui::Text("Mount Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eMount]);
 			break;
+#endif
 
 		case eItemContainerIllusionKeyRingItems:
 			ImGui::Text("Illusion Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eIllusion]);
@@ -442,6 +455,10 @@ public:
 			ImGui::Text("Activated Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eActivatedItem]);
 			break;
 #endif
+#if HAS_EQUIPMENT_KEYRING
+		case eItemContainerEquipmentKeyRingItems:
+			ImGui::Text("Equipment Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eEquipmentKeyRing]);
+			break;
 #endif
 
 		// This case is just to remove warnings when all above cases are gated

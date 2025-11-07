@@ -1,3 +1,12 @@
+## Test Patch Update 11/6/2025
+
+- Added new EquipmentItem TLO that provides access to the new equipment keyring. Usage is
+  the same as other keyrings.
+- Locked Items are added to the client, but access through MQ is not available yet.
+
+
+## Previous Updates
+
 November 1, 2025:
 - test: Update for test patch
 
