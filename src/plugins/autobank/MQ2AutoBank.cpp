@@ -436,33 +436,53 @@ static void AutoBankPulse()
 	}
 }
 
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class AutoBankPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(AutoBankPlugin) : PLUGIN_MODULE_BASE_CALL("AutoBank")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnCleanUI() override;
+};
+
+DECLARE_PLUGIN_MODULE(AutoBankPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void AutoBankPlugin::Initialize()
 {
 	DebugSpewAlways("MQ2AutoBank::Initializing version %f", MQ2Version);
+
 	EzDetour(CBankWnd__WndNotification,
 		&AutoBank::BankWnd_Hook::WndNotification_Detour,
 		&AutoBank::BankWnd_Hook::WndNotification_Trampoline);
 }
 
-PLUGIN_API void ShutdownPlugin()
+void AutoBankPlugin::Shutdown()
 {
 	DebugSpewAlways("MQ2AutoBank::Shutting down");
 	RemoveDetour(CBankWnd__WndNotification);
 	RemoveAutoBankMenu();
 }
 
-PLUGIN_API void OnCleanUI()
-{
-	RemoveAutoBankMenu();
-}
-
-PLUGIN_API void OnPulse()
+void AutoBankPlugin::OnProcessFrame()
 {
 	if (gGameState != GAMESTATE_INGAME)
 		return;
 
 	AddAutoBankMenu();
 	AutoBankPulse();
+}
+
+void AutoBankPlugin::OnCleanUI()
+{
+	RemoveAutoBankMenu();
 }
 
 /* Leaving for future expansion of plugin.

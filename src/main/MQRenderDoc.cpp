@@ -13,10 +13,12 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
-#include "MQRenderDoc.h"
-#include "Logging.h"
 
+#include "MQMain.h"
+#include "Logging.h"
+#include "ModuleSystem.h"
+
+#include "mq/api/RenderDoc.h"
 #include "mq/base/WString.h"
 
 #include <renderdoc/renderdoc_app.h>
@@ -24,22 +26,12 @@
 #include <atomic>
 #include <filesystem>
 
+
+using namespace eqlib;
+
 namespace mq {
 
 #if HAS_DIRECTX_11
-
-static void RenderDoc_Initialize();
-static void RenderDoc_Shutdown();
-static void RenderDoc_Pulse();
-
-static MQModule gRenderDocModule = {
-	"RenderDoc",                  // Name
-	false,                        // CanUnload
-	RenderDoc_Initialize,         // Initialize
-	RenderDoc_Shutdown,           // Shutdown
-	RenderDoc_Pulse,              // Pulse
-};
-DECLARE_MODULE_INITIALIZER(gRenderDocModule);
 
 namespace fs = std::filesystem;
 
@@ -343,7 +335,7 @@ static void RenderDoc_ImGuiDraw()
 				{
 					if (ImGui::Button("Stop Capture"))
 					{
-						s_renderDocAPI->EndFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->EndFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = false;
 					}
 
@@ -351,7 +343,7 @@ static void RenderDoc_ImGuiDraw()
 
 					if (ImGui::Button("Cancel Capture"))
 					{
-						s_renderDocAPI->DiscardFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->DiscardFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = false;
 					}
 				}
@@ -359,7 +351,7 @@ static void RenderDoc_ImGuiDraw()
 				{
 					if (ImGui::Button("Start Capture"))
 					{
-						s_renderDocAPI->StartFrameCapture(gpD3D11Device, *(HWND*)EQADDR_HWND);
+						s_renderDocAPI->StartFrameCapture(gpD3D11Device, GetEQWindowHandle());
 						s_capturingFrames = true;
 					}
 				}
@@ -596,10 +588,48 @@ void RenderDoc_EndEvent() {}
 void RenderDoc_SetMarker(MQColor color, const wchar_t* name) {}
 #endif
 
-void RenderDoc_Startup()
+static void RenderDoc_Startup()
+{
+}
+
+static void RenderDoc_Initialize()
+{
+}
+
+static void RenderDoc_Shutdown()
+{
+}
+
+static void RenderDoc_Pulse()
 {
 }
 
 #endif // !HAS_DIRECTX_11
+
+class RenderDocModule : public MQModule
+{
+public:
+	RenderDocModule() : MQModule("RenderDoc")
+	{
+		RenderDoc_Startup();
+	}
+
+	virtual void Initialize() override
+	{
+		RenderDoc_Initialize();
+	}
+
+	virtual void Shutdown() override
+	{
+		RenderDoc_Shutdown();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		RenderDoc_Pulse();
+	}
+};
+
+DECLARE_MODULE_FACTORY(RenderDocModule);
 
 } // namespace mq

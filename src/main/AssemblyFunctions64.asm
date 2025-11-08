@@ -3,31 +3,12 @@
 ; To also include any of these exported symbols in AssemblyFunctions.def so that they are
 ; exported in the dll.
 
-; MQ2DetourAPI
-extern gbAssistComplete
-extern ?SetAssist@mq@@YAXPEAE@Z
-
 ; MQ2FrameLimiter
 extern ?DoThrottleFrameRate@mq@@YA_NXZ
 extern __imp___ThrottleFrameRateEnd
 extern ?Throttler_Trampoline@mq@@3P6AXXZEA
 
 section .text
-
-;global ?GetAssistParam@mq@@YAXXZ
-;?GetAssistParam@mq@@YAXXZ:
-;	push rcx
-;	; Frame size (0xCPacketScrambler_Detours::ntoh_Detour): 0x38 + 0x8 return address
-;	; Adjustment: 0x10 (counteracts pushes)
-;	; Local variable in parameter block: 0x20
-;	; alloca offset: 0xAEE8
-;	mov rcx, [rsp + 0x80 + 0xAEE8]
-;	test rcx, rcx
-;	jz emptyassist
-;	call ?SetAssist@mq@@YAXPEAE@Z
-;emptyassist:
-;	pop rcx
-;	ret
 
 ;---------------------------------------------------------------------------------------
 
@@ -45,4 +26,3 @@ global ?Throttler_Detour@mq@@YAXXZ
 call_to_trampoline:
 	mov rax, [qword ?Throttler_Trampoline@mq@@3P6AXXZEA]
 	jmp rax
-

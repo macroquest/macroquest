@@ -19,8 +19,9 @@
 
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
-#include "MQRenderDoc.h"
 #include "Logging.h"
+
+#include "mq/api/RenderDoc.h"
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -29,6 +30,8 @@
 #endif
 
 #include <wil/com.h>
+
+using namespace eqlib;
 
 namespace mq {
 

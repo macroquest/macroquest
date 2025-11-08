@@ -14,12 +14,25 @@
 
 #pragma once
 
-#define MQ2PLUGIN
+// Indicates to MQMain.h that it is being included from a plugin
+#define MQ_FROM_PLUGIN 1
 
 #include "mq/plugin/pluginapi.h"
+#include "eqlib/EQLib.h"
 
-using namespace mq;
-
-#pragma comment(lib, "MQ2Main")
-#pragma comment(lib, "eqlib")
+#ifndef MQLIB_STATIC
 #pragma comment(lib, "pluginapi")
+#pragma comment(lib, "MQ2Main")
+#endif
+
+#ifdef EQLIB_STATIC
+#pragma comment(lib, "eqlib-static")
+#else
+#pragma comment(lib, "eqlib")
+#endif
+
+// For legacy purpoess, we add these usings by default. Pretty much all existing plugin code expects tthese.
+#ifndef MQPLUGIN_NO_GLOBAL_USING
+using namespace mq;         // NOLINT(clang-diagnostic-header-hygiene)
+using namespace eqlib;      // NOLINT(clang-diagnostic-header-hygiene)
+#endif

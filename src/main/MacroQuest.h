@@ -14,19 +14,26 @@
 
 #pragma once
 
+#include "ModuleSystem.h"
+
 #include "eqlib/Events.h"
 #include "eqlib/Init.h"
 
 #include "mq/api/Main.h"
+#include "routing/PipeMessage.h"
 
 namespace mq {
 
-class MacroQuest 
+class PipeMessage;
+using PipeMessagePtr = std::unique_ptr<PipeMessage>;
+
+class MacroQuest
 	: public eqlib::EventInterface
+	, protected MQPluginModule
 	, public MainInterface
 {
 public:
-	MacroQuest();
+	MacroQuest(HMODULE hModule, std::string_view modulePath, std::string_view rootDirectory);
 	virtual ~MacroQuest() override;
 
 	// First chance initialization and last chance shutdown occur on the injection thread.
@@ -34,18 +41,95 @@ public:
 	bool CoreInitialize();
 	void CoreShutdown();
 
-	// Initialization in the first frame of the main game loop
-	void Initialize();
-	void Shutdown();
+	/**
+	 * Look up a module handle and return a pointer to the module if found.
+	 * 
+	 * @param handle The module handle
+	 * @param noMain If true, the return value is nullptr if the handle belongs to the main module
+	 * @return A pointer to the module, if found
+	 */
+	MQModule* GetModuleByHandle(MQPluginHandle handle, bool noMain = false) const;
 
+	/**
+	 * Look up a module by its name and return a pointer to the module if found.
+	 * 
+	 * @param moduleName The name of the module
+	 * @return A pointer to the module, if found
+	 */
+	MQModule* GetModuleByName(std::string_view moduleName) const;
+
+	/**
+	 * Adds a module to the module list and initializes it. If the module list is currently
+	 * locked, the module add will be queued for when the list is no longer locked.
+	 */
+	void AddModule(MQModulePtr module);
+
+	/**
+	 * Looks up a module by its handle and removes it from the module list. Returns the
+	 * module if it was found.
+	 */
+	MQModulePtr RemoveModule(MQPluginHandle handle);
+
+private:
 	bool InitializeEQLib();
 	void InitializeLogging();
 	void InitializeLoggingStage2();
 
-	// EventInterface
-	virtual void OnEQMainDllLoadedStateChanged(bool loaded) override;
+	// Initialization in the first frame of the main game loop
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
 
-	// TLOs
+	// Load Preferences from disk
+	bool LoadPreferences(const std::string& iniFile);
+
+	virtual void LoadModules();
+	MQPluginHandle CreateModuleHandle();
+	bool CheckModuleDependencies(MQModule* module);
+
+protected:
+	// EQLib callbacks
+	virtual void OnProcessFrame() override;
+	virtual void OnGameStateChanged(int newGameState) override;
+	virtual void OnLoginFrontendEntered() override;
+	virtual void OnLoginFrontendExited() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+	virtual void OnCleanUI() override;
+	virtual void OnPreZoneUI() override;
+	virtual void OnPostZoneUI() override;
+	virtual bool OnChatMessage(eqlib::ChatMessageParams& params) override;
+	virtual bool OnTellWindowMessage(eqlib::TellWindowMessageParams& params) override;
+	virtual bool OnIncomingWorldMessage(eqlib::WorldMessageParams& params) override;
+	virtual bool OnOutgoingWorldMessage(eqlib::WorldMessageParams& params) override;
+	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;
+	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem) override;
+	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* groundItem) override;
+
+public:
+	virtual void OnWriteChatColor(const char* message, int color, int filter) override;
+	virtual bool OnIncomingChat(const IncomingChatParams& params) override;
+	virtual void OnZoned() override;
+	virtual void OnDrawHUD() override;
+	virtual void OnModuleLoaded(MQModule* module) override;
+	virtual void OnBeforeModuleUnloaded(MQModule* module) override;
+	virtual void OnAfterModuleUnloaded(MQModule* module) override;
+	virtual void OnMacroStart(const char* macroName) override;
+	virtual void OnMacroStop(const char* macroName) override;
+
+	void HandlePipeMessage(PipeMessagePtr messagePtr);
+	void HandleUpdateImGui(bool internalOnly);
+	bool HandleIncomingChat(const char* message, int color, bool filtered);
+
+private:
+	// Module system
+	void InitializeModules();
+	void ShutdownModules();
+
+	void InitializeModule(MQModule* module);
+	void ShutdownModule(MQModule* module);
+
+public:
+	// MainInterface implementation
 	virtual bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveTopLevelObject(const char* name, const MQPluginHandle& pluginHandle) override;
 	virtual MQTopLevelObject* FindTopLevelObject(const char* name) override;
@@ -73,30 +157,63 @@ public:
 	virtual bool RemoveAlias(const std::string& shortCommand, const MQPluginHandle& pluginHandle) override;
 	virtual bool IsAlias(const std::string& alias) const override;
 
+	//-----------------------------------------------------------------------------------------------------
 	// Detours
 	virtual bool CreateDetour(uintptr_t address, void** target, void* detour, std::string_view name,
 		const MQPluginHandle& pluginHandle) override;
 	virtual bool RemoveDetour(uintptr_t address, const MQPluginHandle& pluginHandle) override;
-	virtual bool AddPatch(uintptr_t address, size_t width, std::string_view name, const MQPluginHandle& pluginHandle) override;
+
+	virtual bool AddPatch(uintptr_t address, size_t numBytes, std::string_view name, const MQPluginHandle& pluginHandle) override;
 	virtual bool AddPatch(uintptr_t address, const uint8_t* newBytes, size_t numBytes, const uint8_t* expectedBytes,
 		std::string_view name, const MQPluginHandle& pluginHandle) override;
 	virtual bool RemovePatch(uintptr_t address, const MQPluginHandle& pluginHandle) override;
 
 	std::vector<eqlib::MemoryPatch*> FindPatches(uintptr_t address, size_t width);
+
 	bool IsAddressPatched(uintptr_t address, size_t width);
 
 private:
 	bool ValidateNewPatch(uintptr_t address, size_t numBytes, std::string_view name,
 		const MQPluginHandle& pluginHandle) const;
+	void HandlePendingWork();
 
-private:
 	std::shared_ptr<spdlog::logger> m_logger;                        // logger for MacroQuest
 	std::shared_ptr<spdlog::logger> m_eqlibLogger;                   // logger for EQLib
-
-	bool m_coreInitialized = false;
-	bool m_eqmainLoaded = false;
 	eqlib::EQLibInterface* m_eqlib = nullptr;
 	eqlib::MemoryPatcher* m_memoryPatcher = nullptr;                 // Memory patcher for detours and patches
+
+	std::vector<MQModulePtr> m_modules;                              // Modules sorted in priority order
+	std::unordered_map<uint64_t, MQModule*> m_moduleHandleMap;       // Modules indexed by handle
+	ci_unordered::map<std::string, MQModule*> m_namedModuleMap;      // Modules index by name
+
+	bool m_initializedFirstFrame = false;
+	bool m_initializedModules = false;
+	bool m_shuttingDown = false;
+	bool m_createdUI = false;
+	bool m_zoningInProgress = true;
+	bool m_loginEntered = false;
+
+	// Benchmark handles
+	uint32_t bmWriteChatColor = 0;
+	uint32_t bmPluginsIncomingChat = 0;
+	uint32_t bmPluginsPulse = 0;
+	uint32_t bmPluginsOnZoned = 0;
+	uint32_t bmPluginsCleanUI = 0;
+	uint32_t bmPluginsReloadUI = 0;
+	uint32_t bmPluginsDrawHUD = 0;
+	uint32_t bmPluginsSetGameState = 0;
+	uint32_t bmPluginsUpdateImGui = 0;
+	uint32_t bmBeginZone = 0;
+	uint32_t bmEndZone = 0;
+
+	// State tracking across frames
+	eqlib::PlayerClient* m_lastPlayer = nullptr;
+
+	struct ScopedIteratingModules;
+	int m_iteratingModules = 0;
+
+	// Pending work to be executed when we are not iterating through modules.
+	std::vector<std::function<void()>> m_pendingWork;
 };
 
 extern MacroQuest* g_mq;

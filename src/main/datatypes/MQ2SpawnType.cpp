@@ -13,9 +13,8 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
-
-#include "MQ2SpellSearch.h"
+#include "MQDataTypes.h"
+#include "MQSpellSearch.h"
 
 namespace mq::datatypes {
 
@@ -329,7 +328,7 @@ bool MQ2SpawnType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	return GetMember(GetSpawnPtr(VarPtr), Member, Index, Dest);
 }
 
-bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
+bool MQ2SpawnType::GetMember(PlayerClient* pSpawn, const char* Member, char* Index, MQTypeVar& Dest)
 {
 	if (!pLocalPlayer || !pLocalPC || !pSpawn)
 	{
@@ -993,7 +992,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 				}
 			}
 
-			if (SPAWNINFO* pNearest = NthNearestSpawn(&ssSpawn, nth, pSpawn))
+			if (PlayerClient* pNearest = NthNearestSpawn(&ssSpawn, nth, pSpawn))
 			{
 				Dest = MakeTypeVar(pNearest);
 				return true;
@@ -1192,7 +1191,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 			DataTypeTemp[pos] = 0;
 
-			if (SPAWNINFO* pOwner = GetSpawnByName(DataTypeTemp))
+			if (PlayerClient* pOwner = GetSpawnByName(DataTypeTemp))
 			{
 				Dest = MakeTypeVar(pOwner);
 				return true;
@@ -1590,7 +1589,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 bool MQ2SpawnType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	SPAWNINFO* pSpawn = GetSpawnPtr(VarPtr);
+	PlayerClient* pSpawn = GetSpawnPtr(VarPtr);
 	if (!pSpawn)
 		return false;
 
@@ -1620,7 +1619,7 @@ bool MQ2SpawnType::FromString(MQVarPtr& VarPtr, const char* Source)
 	int spawnID = GetIntFromString(Source, -1);
 	if (spawnID >= 0)
 	{
-		SPAWNINFO* pOther = GetSpawnByID(spawnID);
+		PlayerClient* pOther = GetSpawnByID(spawnID);
 		VarPtr = MakeVarPtr(pOther);
 		return true;
 	}
@@ -1643,7 +1642,7 @@ bool MQ2SpawnType::dataSpawn(const char* szIndex, MQTypeVar& Ret)
 		ClearSearchSpawn(&ssSpawn);
 		ParseSearchSpawn(szIndex, &ssSpawn);
 
-		SPAWNINFO* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
+		PlayerClient* pSearchSpawn = SearchThroughSpawns(&ssSpawn, pControlledPlayer);
 		Ret = pSpawnType->MakeTypeVar(pSearchSpawn);
 		return true;
 	}
@@ -1693,7 +1692,7 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 			index--;
 
-			if (SPAWNINFO* pSpawn = bPosIndex ? pSpawnManager->FirstSpawn : pLocalPlayer)
+			if (PlayerClient* pSpawn = bPosIndex ? pSpawnManager->FirstSpawn : pLocalPlayer)
 			{
 				while (index)
 				{
@@ -1708,7 +1707,7 @@ bool MQ2SpawnType::dataLastSpawn(const char* szIndex, MQTypeVar& Ret)
 			}
 		}
 	}
-	else if (SPAWNINFO* pSpawn = pSpawnList)
+	else if (PlayerClient* pSpawn = pSpawnList)
 	{
 		Ret = pSpawnType->MakeTypeVar(pSpawn);
 		return true;
@@ -1784,9 +1783,9 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	return false;
 }
 
-/*static*/ SPAWNINFO* MQ2SpawnType::GetSpawnPtr(const MQVarPtr& VarPtr)
+/*static*/ PlayerClient* MQ2SpawnType::GetSpawnPtr(const MQVarPtr& VarPtr)
 {
-	SPAWNINFO* pSpawn = nullptr;
+	PlayerClient* pSpawn = nullptr;
 
 	if (VarPtr.IsType(MQVarPtr::VariantIdx::ComplexObject))
 	{
@@ -1798,7 +1797,7 @@ bool MQ2SpawnType::dataNearestSpawn(const char* szIndex, MQTypeVar& Ret)
 	}
 	else if (VarPtr.IsType(MQVarPtr::VariantIdx::Ptr))
 	{
-		pSpawn = static_cast<SPAWNINFO*>(VarPtr.Ptr);
+		pSpawn = static_cast<PlayerClient*>(VarPtr.Ptr);
 	}
 
 	return pSpawn;

@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -155,7 +155,7 @@ bool MQ2BuffType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Int64 = 0;
 		Dest.Type = pInt64Type;
 
-		if (SPELL* pSpell = GetSpellByID(buff->SpellID))
+		if (EQ_Spell* pSpell = GetSpellByID(buff->SpellID))
 		{
 			if (pSpell->SpellType != 0)
 			{

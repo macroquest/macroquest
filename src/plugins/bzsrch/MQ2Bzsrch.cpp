@@ -938,8 +938,26 @@ void DoWaitingForSearchChecks()
 	}
 }
 
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class BzsrchPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(BzsrchPlugin) : PLUGIN_MODULE_BASE_CALL("Bzsrch")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnGameStateChanged(int gameState) override;
+};
+
+DECLARE_PLUGIN_MODULE(BzsrchPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void BzsrchPlugin::Initialize()
 {
 	AddCommand("/bzquery", BZQuery);
 	AddCommand("/bzsrch", BzSrchMe);
@@ -952,8 +970,7 @@ PLUGIN_API void InitializePlugin()
 	pBazaarItemType = new MQ2BazaarItemType;
 }
 
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
+void BzsrchPlugin::Shutdown()
 {
 	RemoveDetour(CBazaarSearchWnd__HandleSearchResults);
 	RemoveMQ2Data("Bazaar");
@@ -966,7 +983,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pBazaarItemType;
 }
 
-PLUGIN_API void SetGameState(DWORD gamestate)
+void BzsrchPlugin::OnGameStateChanged(int gamestate)
 {
 	// When game state changes, just clear things.
 	WaitingForSearch = false;
@@ -975,11 +992,10 @@ PLUGIN_API void SetGameState(DWORD gamestate)
 	NextSearchCheck = 0;
 }
 
-PLUGIN_API void OnPulse()
+void BzsrchPlugin::OnProcessFrame()
 {
 	if (WaitingForSearch)
 	{
 		DoWaitingForSearchChecks();
 	}
 }
-

@@ -417,7 +417,27 @@ bool dataHUD(const char* szIndex, MQTypeVar& Ret)
 	return true;
 }
 
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class HUDPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(HUDPlugin) : PLUGIN_MODULE_BASE_CALL("HUD")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnGameStateChanged(int gameState) override;
+	virtual void OnZoned() override;
+	virtual void OnDrawHUD() override;
+};
+
+DECLARE_PLUGIN_MODULE(HUDPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void HUDPlugin::Initialize()
 {
 	GetPrivateProfileString(HUDSection, "Last", "Elements", HUDNames, MAX_STRING, INIFileName);
 	HandleINI();
@@ -431,7 +451,7 @@ PLUGIN_API void InitializePlugin()
 	AddMQ2Data("HUD", dataHUD);
 }
 
-PLUGIN_API void ShutdownPlugin()
+void HUDPlugin::Shutdown()
 {
 	ClearElements();
 
@@ -444,7 +464,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveMQ2Data("HUD");
 }
 
-PLUGIN_API void SetGameState(DWORD GameState)
+void HUDPlugin::OnGameStateChanged(int GameState)
 {
 	if (GameState == GAMESTATE_INGAME)
 		sprintf_s(HUDSection, "%s_%s", pLocalPC->Name, GetServerShortName());
@@ -455,9 +475,10 @@ PLUGIN_API void SetGameState(DWORD GameState)
 }
 
 // Called after entering a new zone
-PLUGIN_API void OnZoned()
+void HUDPlugin::OnZoned()
 {
-	if (bZoneHUD) HandleINI();
+	if (bZoneHUD)
+		HandleINI();
 }
 
 bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::vector<std::string>& out)
@@ -561,7 +582,7 @@ bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::vector<std::string
 		{
 			Changed = true;
 		}
-	} while (pBrace = strstr(&pBrace[1], "${"));
+	} while ((pBrace = strstr(&pBrace[1], "${")));
 
 	if (Changed)
 	{
@@ -573,7 +594,7 @@ bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::vector<std::string
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
-PLUGIN_API void OnDrawHUD()
+void HUDPlugin::OnDrawHUD()
 {
 	std::scoped_lock lock(s_mutex);
 
@@ -597,13 +618,8 @@ PLUGIN_API void OnDrawHUD()
 	}
 	if (!bEQHasFocus) return;
 
-	DWORD SX = 0;
-	DWORD SY = 0;
-	if (pScreenX && pScreenY)
-	{
-		SX = ScreenX;
-		SY = ScreenY;
-	}
+	int SX = pEverQuestInfo->Render_MaxX;
+	int SY = pEverQuestInfo->Render_MaxY;
 
 	HUDELEMENT* pElement = pHud;
 	bool bCheckParse = !(FrameCount % SkipParse);
@@ -684,7 +700,7 @@ PLUGIN_API void OnDrawHUD()
 			}
 
 			strcpy_s(szBuffer, pElement->PreParsed);
-			if (szBuffer[0] && strcmp(szBuffer, "nullptr"))
+			if (szBuffer[0] && strcmp(szBuffer, "NULL"))
 			{
 				DrawHUDText(szBuffer, X, Y, pElement->Color, pElement->Size);
 			}

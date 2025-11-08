@@ -13,12 +13,15 @@
  */
 
 #include "pch.h"
-#include "MQ2DeveloperTools.h"
-#include "ImGuiManager.h"
 
+#include "ImGuiManager.h"
+#include "MQDeveloperTools.h"
+
+#include "mq/imgui/Widgets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "mq/imgui/Widgets.h"
+
+using namespace eqlib;
 
 namespace mq::imgui {
 

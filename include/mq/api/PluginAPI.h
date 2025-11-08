@@ -29,6 +29,9 @@ namespace mq {
 
 class PluginInterface;
 
+class MQPluginModule;
+struct MQPluginArguments;
+
 // Plugin Function Types
 using fMQWriteChatColor      = int (*)(const char*, uint32_t, uint32_t);
 using fMQPulse               = void(*)();
@@ -51,6 +54,9 @@ using fMQLoadPlugin          = void(*)(const char*);
 using fMQUnloadPlugin        = void(*)(const char*);
 using fMQGetPluginInterface  = PluginInterface* (*)();
 using fMQPostUnloadPlugin    = void(*)(const char*);
+
+using fMQCreateModule = MQPluginModule*(*)(const MQPluginArguments&);
+using fMQDestroyModule = void(*)(MQPluginModule*);
 
 /**
  * Structure representing a loaded plugin.
@@ -131,11 +137,11 @@ MQLIB_OBJECT bool UnloadPlugin(std::string_view pluginName, bool save = false);
 /**
  * Get the address of an exported symbol from a loaded plugin.
  *
- * @param plugin Name of the plugin
- * @param proc Name of the exported symbol.
+ * @param pluginName Name of the plugin
+ * @param procName Name of the exported symbol.
  * @return Address to the exported symbol, or nullptr if not found.
  */
-MQLIB_API void* GetPluginProc(const char* plugin, const char* proc);
+MQLIB_API void* GetPluginProc(std::string_view pluginName, const char* procName);
 
 /**
  * Get a plugin object by name.

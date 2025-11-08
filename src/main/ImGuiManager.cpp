@@ -17,8 +17,8 @@
 
 #include "GraphicsEngine.h"
 #include "Logging.h"
-#include "MQ2ImGuiTools.h"
-#include "MQPluginHandler.h"
+#include "MacroQuest.h"
+#include "MQImGuiTools.h"
 #include "imgui/ImGuiUtils.h"
 
 #include "mq/base/WString.h"
@@ -30,6 +30,8 @@
 #include "imgui/imgui_internal.h"
 #include "imgui/implot/implot.h"
 #include "imgui/implot/implot_internal.h"
+
+using namespace eqlib;
 
 namespace ImGui
 {
@@ -340,8 +342,7 @@ namespace ImGui
 namespace mq {
 
 // Benchmarks for ImGui updates
-uint32_t bmUpdateImGui = 0;
-uint32_t bmPluginsUpdateImGui = 0;
+static uint32_t bmUpdateImGui = 0;
 
 // global imgui toggle
 bool gbRenderImGui = true;
@@ -420,9 +421,6 @@ void DoImGuiUpdateInternal()
 	// This updates the dockspace first, then the console.
 	// TODO: Move dockspace management here.
 	UpdateImGuiConsole();
-
-	// After the dockspace is set up, run the imgui update on all modules.
-	ModulesUpdateImGui();
 }
 
 //============================================================================
@@ -855,12 +853,9 @@ void ImGuiManager_DrawFrame()
 	DoImGuiUpdateInternal();
 
 	// Plugins will get disabled if an error occurs.
-	if (!gbManualResetRequired)
-	{
-		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-		PluginsUpdateImGui();
-	}
-	else
+	g_mq->HandleUpdateImGui(gbManualResetRequired);
+
+	if (gbManualResetRequired)
 	{
 		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
 		ImVec2 pos = ImVec2(mainViewport->Size.x / 2 - 180, 60);
@@ -1296,7 +1291,7 @@ void ImGuiManager_ResetGameViewport()
 
 //============================================================================
 
-void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
+static void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 {
 	char szArg[MAX_STRING] = { 0 };
 	GetArg(szArg, szLine, 1);
@@ -1416,80 +1411,97 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	}
 }
 
-void ImGuiManager_Initialize()
+class ImGuiModule : public MQModule
 {
-	bmUpdateImGui = AddMQ2Benchmark("UpdateImGui");
-	bmPluginsUpdateImGui = AddMQ2Benchmark("UpdateImGuiPlugins");
-
-	gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-	s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
-
-	gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
-	gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
-	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
-	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
-	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
-	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
-
-	if (gbWriteAllConfig)
+public:
+	ImGuiModule() : MQModule("ImGui", static_cast<int>(ModulePriority::ImGui))
 	{
-		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
-		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 	}
 
-	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
-	// connect to the win32 hook and control the imgui console.
-	::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
-		gToggleConsoleHotkey.keybind, static_cast<DWORD>(lengthof(gToggleConsoleHotkey.keybind)), mq::internal_paths::MQini.c_str());
-
-	if (!gbToggleConsoleHotkeyReady)
+	virtual void Initialize() override
 	{
-		if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
-			gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+		bmUpdateImGui = AddBenchmark("UpdateImGui");
+
+		gbRenderImGui = GetPrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
+		s_overlayDebug = GetPrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
+
+		gbEnableImGuiViewports = GetPrivateProfileBool("Overlay", "EnableViewports", false, mq::internal_paths::MQini);
+		gbAutoDockspaceViewport = GetPrivateProfileBool("Overlay", "ResizeEQViewport", false, mq::internal_paths::MQini);
+		gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
+		s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
+		s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+		s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
+		s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
+
+		if (gbWriteAllConfig)
 		{
-			LOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-			gbToggleConsoleHotkeyReady = true;
+			WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "ResizeEQViewport", gbAutoDockspaceViewport, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
+			WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 		}
-		else if (strlen(gToggleConsoleHotkey.keybind) > 0)
+
+		// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to
+		// connect to the win32 hook and control the imgui console.
+		::GetPrivateProfileStringA("MacroQuest", "ToggleConsoleKey", gToggleConsoleDefaultBind,
+			gToggleConsoleHotkey.keybind, static_cast<DWORD>(lengthof(gToggleConsoleHotkey.keybind)), mq::internal_paths::MQini.c_str());
+
+		if (!gbToggleConsoleHotkeyReady)
 		{
-			LOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
-			strcpy_s(gToggleConsoleHotkey.keybind, "");
+			if (mq::ConvertStringToModifiersAndVirtualKey(gToggleConsoleHotkey.keybind,
+				gToggleConsoleHotkey.modifiers, gToggleConsoleHotkey.virtualKey))
+			{
+				LOG_INFO("Toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+				gbToggleConsoleHotkeyReady = true;
+			}
+			else if (strlen(gToggleConsoleHotkey.keybind) > 0)
+			{
+				LOG_WARN("Unable to parse toggle console keybind: {0}", gToggleConsoleHotkey.keybind);
+				strcpy_s(gToggleConsoleHotkey.keybind, "");
 
-			gbToggleConsoleHotkeyReady = false;
+				gbToggleConsoleHotkeyReady = false;
+			}
 		}
+
+		if (gbWriteAllConfig)
+		{
+			WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
+			WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
+		}
+
+		AddCommand("/mqoverlay", MQOverlayCommand);
+
+		StartupOverlayComponents();
 	}
 
-	if (gbWriteAllConfig)
+	virtual void Shutdown() override
 	{
-		WritePrivateProfileBool("MacroQuest", "RenderImGui", gbRenderImGui, mq::internal_paths::MQini);
-		WritePrivateProfileBool("MacroQuest", "OverlayDebug", s_overlayDebug, mq::internal_paths::MQini);
+		RemoveCommand("/mqoverlay");
+
+		RemoveBenchmark(bmUpdateImGui);
+
+		ShutdownOverlayComponents();
 	}
 
-	AddCommand("/mqoverlay", MQOverlayCommand);
+	virtual void OnProcessFrame() override
+	{
+		engine::OnUpdateFrame();
+		PulseFonts();
+	}
 
-	StartupOverlayComponents();
-}
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override
+	{
+		if (params.fastReload)
+		{
+			gDrawWindowFrameSkipCount = 2;
+		}
 
-void ImGuiManager_Shutdown()
-{
-	RemoveCommand("/mqoverlay");
+	}
+};
 
-	RemoveMQ2Benchmark(bmUpdateImGui);
-	RemoveMQ2Benchmark(bmPluginsUpdateImGui);
-
-	ShutdownOverlayComponents();
-}
-
-void ImGuiManager_Pulse()
-{
-	engine::OnUpdateFrame();
-	PulseFonts();
-}
+DECLARE_MODULE_FACTORY(ImGuiModule);
 
 } // namespace mq

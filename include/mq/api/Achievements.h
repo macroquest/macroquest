@@ -15,6 +15,7 @@
 #pragma once
 
 #include "mq/base/Common.h"
+
 #include "eqlib/game/Achievements.h"
 
 namespace mq {

@@ -13,20 +13,20 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
+#include "Logging.h"
 #include "MQCommandAPI.h"
 #include "MQDataAPI.h"
 #include "MQPostOffice.h"
-#include "MQ2KeyBinds.h"
-#include "MQ2Mercenaries.h"
+#include "MQMain.h"
+#include "MQKeyBinds.h"
+#include "MQMercenaries.h"
 
 #include "mq/base/WString.h"
 
-#pragma warning(push)
-#pragma warning(disable: 4244)
 #include <fmt/chrono.h>
-#pragma warning(pop)
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -41,7 +41,7 @@ int GetPluginUnloadFailedCount();
 //              Triggers the DLL to unload itself
 // Usage:       /unload [force]
 // ***************************************************************************
-void Unload(PlayerClient* pChar, const char* szLine)
+void Unload(PlayerClient*, const char* szLine)
 {
 	if (const int failed_count = GetPluginUnloadFailedCount(); failed_count > 0)
 	{
@@ -57,84 +57,67 @@ void Unload(PlayerClient* pChar, const char* szLine)
 		gbForceUnload = true;
 	}
 
-	if (!pChar)
-		pChar = pLocalPlayer;
-
-	bRunNextCommand = true;
-	if (GetCurrentMacroBlock())
-	{
-		EndAllMacros();
-	}
-
-	DebugSpew("%s", ToUnloadString);
-	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = true;
+
+	EndAllMacros();
 }
 
 // ***************************************************************************
-// Function:    ListMacros
-// Description: Our '/listmacros' command
-//              Lists macro files
-// Usage:       /listmacros <partial filename>
+// Function:    Delay
+// Description: Our '/delay' command
+// Usage:       /delay <time> [condition to end early]
 // ***************************************************************************
-void ListMacros(PlayerClient* pChar, const char* szLine)
+void DelayCommand(PlayerClient*, const char* szLine)
 {
-	bRunNextCommand = true;
-
-	WIN32_FIND_DATA FileData;
-	HANDLE hSearch;
-	if (szLine[0] != '\0')
+	if (szLine[0] == 0)
 	{
-		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*" + szLine + "*.mac").c_str(), &FileData);
-	}
-	else
-	{
-		hSearch = FindFirstFile((mq::internal_paths::Macros + "\\*.mac").c_str(), &FileData);
-	}
-
-	if (hSearch == INVALID_HANDLE_VALUE)
-	{
-		WriteChatColor("Couldn't find any macros", USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /delay <time> [condition to end early]");
 		return;
 	}
 
-	std::vector<std::string> files;
+	char szVal[MAX_STRING] = { 0 };
+	GetArg(szVal, szLine, 1);
 
-	while (true)
+	ParseMacroData(szVal, MAX_STRING);
+	strcpy_s(gDelayCondition, GetNextArg(szLine));
+
+	int VarValue = GetIntFromString(szVal, 0);
+	size_t len = strlen(szVal);
+
+	// Measured in deciseconds...
+	if (::tolower(szVal[len - 1]) == 'm')
+		VarValue *= 600;
+	else if (::tolower(szVal[len - 1]) == 's')
 	{
-		files.emplace_back(FileData.cFileName);
-
-		if (!FindNextFile(hSearch, &FileData))
-			break;
+		if (len > 2 && ::tolower(szVal[len - 2]) == 'm')
+			VarValue /= 100;
+		else
+			VarValue *= 10;
 	}
 
-	FindClose(hSearch);
+	gDelay = VarValue;
+	bRunNextCommand = false;
 
-	std::sort(std::begin(files), std::end(files));
-
-	WriteChatColor("Macro list", USERCOLOR_WHO);
-	WriteChatColor("----------------", USERCOLOR_WHO);
-
-	for (const std::string& file : files)
-		WriteChatColor(file.c_str(), USERCOLOR_WHO);
-}
-
-// ***************************************************************************
-// Function:    SetError
-// Description: Our '/seterror' command
-// Usage:       /seterror <clear|errormsg>
-// ***************************************************************************
-void SetError(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	if ((szLine[0] == 0) || (_stricmp(szLine, "clear")))
+	if (gDelayCondition[0])
 	{
-		gszLastNormalError[0] = 0;
-	}
-	else
-	{
-		strcpy_s(gszLastNormalError, szLine);
+		char szCond[MAX_STRING];
+		strcpy_s(szCond, gDelayCondition);
+
+		ParseMacroData(szCond, MAX_STRING);
+
+		double Result;
+		if (!Calculate(szCond, Result))
+		{
+			FatalError("Failed to parse /delay condition '%s', non-numeric encountered", szCond);
+			return;
+		}
+
+		// TODO:  Determine the bounds on what "0" should be here since this is a double.
+		if (Result != 0)
+		{
+			gDelay = 0;
+			bRunNextCommand = true;
+		}
 	}
 }
 
@@ -158,8 +141,8 @@ const char* szSortBy[] =
 	nullptr
 };
 
-void SuperWhoDisplay(SPAWNINFO* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
-void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color);
+void SuperWhoDisplay(PlayerClient* pChar, MQSpawnSearch* pSearchSpawn, DWORD Color);
+void SuperWhoDisplay(PlayerClient* pSpawn, DWORD Color);
 
 void SuperWho(PlayerClient* pChar, const char* szLine)
 {
@@ -227,195 +210,51 @@ void SuperWho(PlayerClient* pChar, const char* szLine)
 }
 
 // ***************************************************************************
-// Function:    MacroPause
-// Description: Our '/mqpause' command
-//              Pause/resume a macro
-// Usage:       /mqpause <off>
-//              /mqpause chat [on|off]
+// Function:    Cleanup
+// Description: Our '/cleanup' command
+//              Sends i, esc, esc, esc, esc, i
+// Usage:       /cleanup
 // ***************************************************************************
-void MacroPause(PlayerClient* pChar, const char* szLine)
+void Cleanup(PlayerClient* pChar, const char* szLine)
 {
-	const char* szPause[] = { "off", "on", nullptr };
+	// TODO: Replace with just simply closing the windows that are closable with escape.
+	KeyCombo Escape;
+	ParseKeyCombo("Esc", Escape);
 
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-
-	if (!_stricmp(szArg, "chat"))
+	if (pContainerMgr)
 	{
-		char szArg1[MAX_STRING] = { 0 };
-		GetArg(szArg1, szLine, 2);
-		if (szLine[0] == 0)
+		int concount = 2; // Close inv + clear target
+
+		if (pContainerMgr->pWorldContainer && pContainerMgr->pWorldContainer->Open == 1)
+			concount++;
+
+		for (int i = 0; i < MAX_CONTAINERS; i++)
 		{
-			gMQPauseOnChat = !gMQPauseOnChat;
-		}
-		else
-		{
-			for (int Command = 0; szPause[Command]; Command++)
-			{
-				if (!_stricmp(szArg1, szPause[Command]))
-				{
-					gMQPauseOnChat = Command != 0;
-				}
-			}
+			if (pContainerMgr->pContainerWnds[i] && pContainerMgr->pContainerWnds[i]->IsVisible())
+				concount++;
 		}
 
-		WritePrivateProfileBool("MacroQuest", "MQPauseOnChat", gMQPauseOnChat, mq::internal_paths::MQini);
-		WriteChatf("Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
-		return;
-	}
-
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (!pBlock)
-	{
-		MacroError("You cannot pause or unpause a macro when one isn't running.");
-		return;
-	}
-
-	bool Pause = true;
-	for (int Command = 0; szPause[Command]; Command++)
-	{
-		if (!_stricmp(szArg, szPause[Command]))
+		for (int i = 0; i < concount; i++)
 		{
-			Pause = Command != 0;
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
 		}
-	}
 
-	if (szLine[0] != 0)
-	{
-		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
+		if (pInventoryWnd && pInventoryWnd->IsVisible())
+			DoMappable(pChar, "inventory");
 	}
 	else
 	{
-		Pause = !pBlock->Paused;
-	}
+		DoMappable(pChar, "inventory");
 
-	if (pBlock->Paused == Pause)
-	{
-		WriteChatf("Macro is already %s.", (Pause) ? "paused" : "running");
-	}
-	else
-	{
-		WriteChatf("Macro is %s.", (Pause) ? "paused" : "running again");
-		pBlock->Paused = Pause;
-	}
-}
-
-// ***************************************************************************
-// Function:      KeepKeys
-// Description:   Our /keepkeys command. Toggles if /endmacro will keep keys
-//                by default.
-// 2003-10-08     MacroFiend
-// ***************************************************************************
-void KeepKeys(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-
-	const char* szKeepKeys[] = {
-		"off",
-		"on",
-		nullptr
-	};
-
-	if (szArg[0] == 0)
-	{
-		WriteChatf("Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
-		return;
-	}
-
-	for (int Command = 0; szKeepKeys[Command]; Command++)
-	{
-		if (!_stricmp(szArg, szKeepKeys[Command]))
+		for (int i = 0; i < 10; i++)
 		{
-			gKeepKeys = Command != 0;
-
-			WriteChatf("Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
-
-			WritePrivateProfileBool("MacroQuest", "KeepKeys", gKeepKeys, mq::internal_paths::MQini);
-			return;
-		}
-	}
-
-	SyntaxError("Usage: /keepkeys [on|off]");
-}
-
-// ***************************************************************************
-// Function:      EngineCommand
-// Description:   Allows for switching engines.
-// Usage:         /engine <type> <version> [noauto]
-// ***************************************************************************
-void EngineCommand(PlayerClient* pChar, const char* szLine)
-{
-	bool bNoAuto = false;
-
-	if (ci_find_substr(szLine, "noauto") != -1)
-	{
-		bNoAuto = true;
-	}
-
-	char szBuffer[MAX_STRING] = { 0 };
-
-	// TODO: Fix GetArg and shorten the length of these. Probably 10 & 3 are good.
-	// GetArg crashes if you pass it anything except MAX_STRING due to RtlZeroMemory
-	char szEngine[MAX_STRING] = { 0 };
-	char szVersion[MAX_STRING] = { 0 };
-	GetArg(szEngine, szLine, 1);
-	GetArg(szVersion, szLine, 2);
-
-	if (strlen(szEngine) == 0)
-	{
-		SyntaxError("Usage: /engine parser <version> [noauto]");
-		return;
-	}
-
-	if (!_stricmp(szEngine, "parser"))
-	{
-		if (strlen(szVersion) == 0)
-		{
-			SyntaxError("Usage: /engine parser <version> [noauto]");
-			return;
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
 		}
 
-		const int iVersion = GetIntFromString(szVersion, 1);
-
-		switch (iVersion)
-		{
-		case 2:
-		case 1:
-			gParserVersion = iVersion;
-			if (!bNoAuto)
-			{
-				WritePrivateProfileInt("MacroQuest", "ParserEngine", gParserVersion, mq::internal_paths::MQini);
-			}
-
-			WriteChatf("Parser Version %d Enabled", iVersion);
-			break;
-
-		default:
-			MacroError("Invalid Parser Version (%d) valid versions are 1 or 2.", iVersion);
-			break;
-		}
-
-		return;
+		DoMappable(pChar, "inventory");
 	}
-
-	SyntaxError("Invalid Engine type (%s). Valid types are: parser", szEngine);
-}
-
-// ***************************************************************************
-// Function:    Invoke
-// Description: '/invoke' command
-// Purpose:     Adds the ability to invoke Methods
-// Example      /invoke ${Target.DoAssist}
-//              will execute the DoAssist Method of the Spawn TLO
-// ***************************************************************************
-void InvokeCmd(PlayerClient*, const char* szLine)
-{
-	bRunNextCommand = true;
 }
 
 // ***************************************************************************
@@ -714,7 +553,7 @@ void CharInfo(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 void SpellSlotInfo(PlayerClient* pChar, const char* szLine)
 {
-	SPELL* pSpell = nullptr;
+	EQ_Spell* pSpell = nullptr;
 
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
@@ -897,25 +736,6 @@ void SellItem(PlayerClient* pChar, const char* szLine)
 
 		pMerchantWnd->PageHandlers[RegularMerchantPage]->RequestPutItem(Qty);
 	}
-}
-
-// ***************************************************************************
-// Function:    MacroBeep
-// Description: Our '/beep' command
-//              Beeps the system speaker
-// Usage:       /beep
-// ***************************************************************************
-void MacroBeep(PlayerClient* pChar, const char* szLine)
-{
-	bRunNextCommand = true;
-
-	char szArg[MAX_STRING] = { 0 };
-
-	GetArg(szArg, szLine, 1);
-	if (szArg[0] == '\0')
-		Beep(0x500, 250);
-	else
-		PlaySound(szArg, nullptr, SND_ASYNC);
 }
 
 // ***************************************************************************
@@ -2094,7 +1914,7 @@ void SuperWhoTarget(PlayerClient* pChar, const char* szLine)
 {
 	bRunNextCommand = true;
 
-	SPAWNINFO* psTarget = nullptr;
+	PlayerClient* psTarget = nullptr;
 
 	if (gFilterMacro == FILTERMACRO_NONE)
 		cmdWhoTarget(pChar, szLine);
@@ -2152,62 +1972,49 @@ void MQMsgBox(PlayerClient* pChar, const char* szLine)
 //              Our logging
 // Usage:       /mqlog text
 // ***************************************************************************
-void MacroLog(PlayerClient* pChar, const char* szLine)
+void MacroLogCommand(PlayerClient*, const char* szLine)
 {
 	bRunNextCommand = true;
 
-	std::filesystem::path logFilePath = mq::internal_paths::Logs;
-	if (gszMacroName[0] == 0)
+	MacroLog(szLine);
+}
+
+// ***************************************************************************
+// Function:    MultilineCommand
+// Description: Our '/multiline' command
+// Usage:       /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]
+// ***************************************************************************
+void MultilineCommand(PlayerClient*, const char* szLine)
+{
+	if (szLine[0] == 0)
 	{
-		logFilePath /= "MacroQuest.log";
-	}
-	else
-	{
-		logFilePath /= std::string(gszMacroName) + ".log";
+		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
+		return;
 	}
 
-	if (ci_equals(szLine, "clear"))
+	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
+	GetArg(szArg, szLine, 1);
+
+	const char* szRest = GetNextArg(szLine);
+	if (!szRest[0])
+		return;
+
+	char Copy[MAX_STRING] = { 0 };
+	strcpy_s(Copy, szRest); // don't destroy original...
+
+	char* next_token1 = nullptr;
+	char* token1 = strtok_s(Copy, szArg, &next_token1);
+	while (token1 != nullptr)
 	{
-		FILE* fOut = _fsopen(logFilePath.string().c_str(), "wt", _SH_DENYWR);
-		if (!fOut)
+		std::string strCmd = token1;
+		trim(strCmd);
+		if (!strCmd.empty())
 		{
-			MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
-			return;
+			DoCommand(&strCmd[0], false);
 		}
 
-		WriteChatColor("Cleared log.", USERCOLOR_DEFAULT);
-		fclose(fOut);
-		return;
+		token1 = strtok_s(nullptr, szArg, &next_token1);
 	}
-
-	// Don't need to check errors since the log file write itself will error, but we don't want to throw
-	std::error_code ec;
-	create_directories(logFilePath.parent_path(), ec);
-
-	FILE* fOut = _fsopen(logFilePath.string().c_str(), "at", _SH_DENYWR);
-	if (!fOut)
-	{
-		MacroError("Couldn't open log file: %s", logFilePath.string().c_str());
-		return;
-	}
-
-	time_t curr_time;
-	time(&curr_time);
-
-	std::tm local_tm;
-	localtime_s(&local_tm, &curr_time);
-
-	fmt::memory_buffer buffer;
-	auto out = fmt::format_to(fmt::appender(buffer),
-		"[{:04d}/{:02d}/{:02d} {:02d}:{:02d}:{:02d}] {}",
-		local_tm.tm_year + 1900, local_tm.tm_mon + 1, local_tm.tm_mday,
-		local_tm.tm_hour, local_tm.tm_min, local_tm.tm_sec, szLine);
-	*out = 0;
-
-	fprintf(fOut, "%s\n", buffer.data());
-	DebugSpew("MacroLog - %s", buffer.data());
-
-	fclose(fOut);
 }
 
 static void FaceObject(const MQGameObject& faceTarget, int flags)
@@ -2504,7 +2311,7 @@ void Face(PlayerClient* pChar, const char* szLine)
 		// if spawn search args provided, try using them.
 		if (spawnSearchArgs)
 		{
-			SPAWNINFO* pFacingSpawn = SearchThroughSpawns(&SearchSpawn, pChar);
+			PlayerClient* pFacingSpawn = SearchThroughSpawns(&SearchSpawn, pChar);
 			faceTarget = ToGameObject(pFacingSpawn);
 		}
 		// otherwise try using the current target
@@ -2589,7 +2396,7 @@ void Where(PlayerClient* pChar, const char* szLine)
 		szFilter = ParseSearchSpawnArgs(szArg, szFilter, &SearchSpawn);
 	}
 
-	SPAWNINFO* pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
+	PlayerClient* pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 
 	if (!pSpawnClosest)
 	{
@@ -2658,7 +2465,7 @@ void DoAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
 			{
-				if (SPELL* pCA = GetSpellByID(pLocalPC->GetCombatAbility(Index)))
+				if (EQ_Spell* pCA = GetSpellByID(pLocalPC->GetCombatAbility(Index)))
 				{
 					WriteChatf("<\ag%s\ax>", pCA->Name);
 				}
@@ -2699,7 +2506,7 @@ void DoAbility(PlayerClient* pChar, const char* szLine)
 	{
 		if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index))
 		{
-			if (SPELL* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
+			if (EQ_Spell* pCA = GetSpellByID(pProfile->CombatAbilities[Index]))
 			{
 				if (!_stricmp(pCA->Name, szBuffer))
 				{
@@ -2796,10 +2603,10 @@ void LoadSpells(PlayerClient* pChar, const char* szLine)
 	}
 }
 
-static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
+static void CastSplash(int Index, EQ_Spell* pSpell, const CVector3* pos)
 {
 	pEverQuest->CreateTargetIndicator(Index, pSpell, ItemGlobalIndex(), ItemSpellType_Clicky);
-	SPAWNINFO* pMySpawn = pLocalPlayer;
+	PlayerClient* pMySpawn = pLocalPlayer;
 
 	if (pEverQuest->freeTargetTracker)
 	{
@@ -2874,7 +2681,7 @@ void Cast(PlayerClient* pChar, const char* szLine)
 
 		if (Index >= 0 && Index < NUM_SPELL_GEMS)
 		{
-			if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(Index)))
+			if (EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(Index)))
 			{
 				if (pSpell->TargetType == TT_SPLASH)
 				{
@@ -3023,7 +2830,7 @@ void Target(PlayerClient* pChar, const char* szLine)
 	ClearSearchSpawn(&SearchSpawn);
 
 	bool DidTarget = false;
-	SPAWNINFO* pSpawnClosest = nullptr;
+	PlayerClient* pSpawnClosest = nullptr;
 
 	char szLLine[MAX_STRING] = { 0 };
 	strcpy_s(szLLine, szLine);
@@ -3519,38 +3326,6 @@ void PopupTextEcho(PlayerClient* pChar, const char* szLine)
 }
 
 // /multiline
-void MultilineCommand(PlayerClient*, const char* szLine)
-{
-	if (szLine[0] == 0)
-	{
-		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
-		return;
-	}
-
-	char szArg[MAX_STRING] = { 0 }; // delimiter(s)
-	GetArg(szArg, szLine, 1);
-
-	const char* szRest = GetNextArg(szLine);
-	if (!szRest[0])
-		return;
-
-	char Copy[MAX_STRING] = { 0 };
-	strcpy_s(Copy, szRest); // don't destroy original...
-
-	char* next_token1 = nullptr;
-	char* token1 = strtok_s(Copy, szArg, &next_token1);
-	while (token1 != nullptr)
-	{
-		std::string strCmd = token1;
-		trim(strCmd);
-		if (!strCmd.empty())
-		{
-			DoCommand(&strCmd[0], false);
-		}
-
-		token1 = strtok_s(nullptr, szArg, &next_token1);
-	}
-}
 
 // /ranged
 void RangedCmd(PlayerClient*, const char* szLine)
@@ -3576,50 +3351,7 @@ void RangedCmd(PlayerClient*, const char* szLine)
 	AttackRanged(pRangedTarget);
 }
 
-// /loadcfg
-void LoadCfgCommand(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /loadcfg <filename>");
-		return;
-	}
 
-	if (LoadCfgFile(szLine, false))
-		return;
-
-	MacroError("Could not /loadcfg '%s'", szLine);
-}
-
-// /dumpbinds
-void DumpBindsCommand(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage /dumpbinds <filename>");
-		return;
-	}
-
-	if (!DumpBinds(szLine))
-	{
-		MacroError("Could not dump binds to %s", szLine);
-		return;
-	}
-
-	WriteChatColor("Binds dumped to file.");
-}
-
-// /docommand
-void DoCommandCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /docommand <command>");
-		return;
-	}
-
-	DoCommand(szLine, false);
-}
 
 // /alt
 void DoAltCmd(PlayerClient*, const char* szLine)
@@ -4037,7 +3769,7 @@ void TaskQuitCmd(PlayerClient* pChar, const char* pBuffer)
 }
 
 // /timed
-void DoTimedCmd(PlayerClient* pChar, const char* szLine)
+void DoTimedCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4052,17 +3784,17 @@ void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 	if (!szRest[0])
 		return;
 
-	pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	if (pCommandAPI)
+	{
+		pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	}
+	else
+	{
+		LOG_ERROR("Tried to execute time command with no Commands module: {}", szLine);
+	}
 }
 
-void ClearErrorsCmd(PlayerClient* pChar, const char* szLine)
-{
-	gszLastNormalError[0] = 0;
-	gszLastSyntaxError[0] = 0;
-	gszLastMQ2DataError[0] = 0;
-}
-
-void CombineCmd(PlayerClient* pChar, const char* szLine)
+void CombineCmd(PlayerClient*, const char* szLine)
 {
 	if (!szLine[0])
 	{
@@ -4097,59 +3829,6 @@ void DropCmd(PlayerClient*, const char*)
 		pEverQuest->DropHeldItemOnGround(1);
 }
 
-void HudCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /hud <normal|underui|always>");
-		WriteChatColor("Note: 'always' forces 'underui' also. The Network Status indicator is not 'always' drawn and is toggled with F11.");
-		return;
-	}
-	else if (!_stricmp(szLine, "normal"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "Normal", mq::internal_paths::MQini);
-		gbAlwaysDrawMQHUD = false;
-		gbHUDUnderUI = false;
-	}
-	else if (!_stricmp(szLine, "underui"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "UnderUI", mq::internal_paths::MQini);
-		gbHUDUnderUI = true;
-		gbAlwaysDrawMQHUD = false;
-	}
-	else if (!_stricmp(szLine, "always"))
-	{
-		WritePrivateProfileString("MacroQuest", "HUDMode", "Always", mq::internal_paths::MQini);
-		gbHUDUnderUI = true;
-		gbAlwaysDrawMQHUD = true;
-	}
-}
-
-void NoParseCmd(PlayerClient*, const char* szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /noparse <command>");
-		return;
-	}
-
-	if (gParserVersion == 2)
-	{
-		// To maintain backwards compatibility, but not rely on globals we need to wrap the parameters in a Parse Zero.
-		// However, in the future it would be better to just do your command as /echo ${Parse[0,${Me.Name}]} to get the same functionality.
-		// Cast it as a char*, Modify the line, and run the command
-		std::string macroString = ModifyMacroString(szLine, true, ModifyMacroMode::WrapNoDoubles);
-
-		DoCommand(&macroString[0], false);
-	}
-	else
-	{
-		bAllowCommandParse = false;
-		DoCommand(szLine, false);
-		bAllowCommandParse = true;
-	}
-}
-
 void AltAbility(PlayerClient* pChar, const char* szLine)
 {
 	char szCommand[MAX_STRING] = { 0 };
@@ -4176,7 +3855,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 				if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility)))
 				{
 					WriteChatColorf("[ %d: %s ]", USERCOLOR_WHO, pAbility->ID,
-						pCDBStr->GetString(pAbility->nName, eAltAbilityName));
+						pDBStr->GetString(pAbility->nName, eAltAbilityName));
 				}
 			}
 		}
@@ -4194,7 +3873,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						if (pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, nullptr))
 						{
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready>", USERCOLOR_WHO,
-								pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
+								pAbility->ID, pDBStr->GetString(pAbility->nName, eAltAbilityName),
 								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 						}
 						else
@@ -4203,7 +3882,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 							pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
 							WriteChatColorf("[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
-								USERCOLOR_WHO, pAbility->ID, pCDBStr->GetString(pAbility->nName, eAltAbilityName),
+								USERCOLOR_WHO, pAbility->ID, pDBStr->GetString(pAbility->nName, eAltAbilityName),
 								pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility), i);
 						}
 					}
@@ -4222,7 +3901,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (CAltAbilityData* pAbility = GetAAById(nAbility))
 			{
-				const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName);
+				const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName);
 				if (!_stricmp(pName, szName))
 				{
 					WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
@@ -4235,7 +3914,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						if (!pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i))
 						{
 							// it's not ready
-							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
@@ -4255,7 +3934,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						}
 						else
 						{
-							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityDescription));
+							WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityDescription));
 							WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds", USERCOLOR_WHO,
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pLocalPC, pAbility));
 
@@ -4272,7 +3951,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 						int i = 0;
 						pAltAdvManager->IsAbilityReady(pLocalPC, pAbility, &i);
 
-						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, eAltAbilityName));
+						WriteChatColorf("[ %d: %s ] %s", USERCOLOR_WHO, pAbility->ID, pName, pDBStr->GetString(pAbility->nName, eAltAbilityName));
 						WriteChatColorf("Min Level: %d, Cost: %d, Max Rank: %d, Type: %d", USERCOLOR_WHO,
 							pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
 
@@ -4295,7 +3974,7 @@ void AltAbility(PlayerClient* pChar, const char* szLine)
 		{
 			if (CAltAbilityData* pAbility = GetAAById(pLocalPC->GetAlternateAbilityId(nAbility), level))
 			{
-				if (const char* pName = pCDBStr->GetString(pAbility->nName, eAltAbilityName))
+				if (const char* pName = pDBStr->GetString(pAbility->nName, eAltAbilityName))
 				{
 					if (!_stricmp(szName, pName))
 					{
@@ -4472,7 +4151,7 @@ void PetCmd(PlayerClient* pChar, const char* szLine)
 
 		if (IsNumber(szID))
 		{
-			if (SPAWNINFO* pSpawn = GetSpawnByID(GetIntFromString(szID, 0)))
+			if (PlayerClient* pSpawn = GetSpawnByID(GetIntFromString(szID, 0)))
 			{
 				pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
 				return;
@@ -5125,150 +4804,6 @@ void ScreenModeCmd(PlayerClient* pChar, const char* szLine)
 }
 
 // ***************************************************************************
-// Function:    UserCameraCmd
-// Description: '/usercamera' command
-// Purpose:     Adds the ability to load and save the User 1 Camera
-// Example:     /usercamera on/off toggle the camera text in the Window Selector on/off
-// Example:     /usercamera save saves the user 1 camera settings
-// Example:     /usercamera load loades the user 1 camera settings
-// Author:      EqMule
-// ***************************************************************************
-void UserCameraCmd(PlayerClient* pChar, const char* szLine)
-{
-	if (szLine && szLine[0] == '\0')
-	{
-		WriteChatf("Usage: /usercamera 0-7 sets camera to the number specified.");
-		WriteChatf("Usage: /usercamera save <optional charname> to save the user 1 camera");
-		WriteChatf("Usage: /usercamera load <optional charname> to load your saved user 1 camera");
-		WriteChatf("Usage: /usercamera on/off to toggle Window Selector Display of Current Camera");
-		return;
-	}
-
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szLine, 1);
-
-	char szArg2[MAX_STRING] = { 0 };
-	GetArg(szArg2, szLine, 2);
-
-	if (!_stricmp(szArg1, "0"))
-	{
-		*CDisplay::cameraType = EQ_FIRST_PERSON_CAM;
-	}
-	else if (!_stricmp(szArg1, "1"))
-	{
-		*CDisplay::cameraType = EQ_OVERHEAD_CAM;
-	}
-	else if (!_stricmp(szArg1, "2"))
-	{
-		*CDisplay::cameraType = EQ_CHASE_CAM;
-	}
-	else if (!_stricmp(szArg1, "3"))
-	{
-		*CDisplay::cameraType = EQ_USER_CAM_1;
-	}
-	else if (!_stricmp(szArg1, "4"))
-	{
-		*CDisplay::cameraType = EQ_USER_CAM_2;
-	}
-	else if (!_stricmp(szArg1, "5"))
-	{
-		*CDisplay::cameraType = 5;
-	}
-	else if (!_stricmp(szArg1, "6"))
-	{
-		*CDisplay::cameraType = 6;
-	}
-	else if (!_stricmp(szArg1, "7"))
-	{
-		*CDisplay::cameraType = 7;
-	}
-	else if (!_stricmp(szArg1, "on"))
-	{
-		gbShowCurrentCamera = true;
-		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
-
-		if (pSelectorWnd)
-		{
-			char szOut[64] = { 0 };
-			sprintf_s(szOut, "Selector Window (Camera %d)", *(DWORD*)CDisplay__cameraType);
-
-			pSelectorWnd->SetWindowText(szOut);
-		}
-	}
-	else if (!_stricmp(szArg1, "off"))
-	{
-		gbShowCurrentCamera = false;
-		WritePrivateProfileBool("MacroQuest", "ShowCurrentCamera", gbShowCurrentCamera, mq::internal_paths::MQini);
-
-		if (pSelectorWnd)
-		{
-			pSelectorWnd->SetWindowText("Selector Window");
-		}
-	}
-	else if (!_stricmp(szArg1, "save"))
-	{
-		std::string pathIniFile = mq::internal_paths::MQini;
-
-		if (szArg2 && szArg2[0] != '\0')
-		{
-			const std::string tmpFileName =
-				fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
-			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
-		}
-
-		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
-
-		WritePrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
-		WritePrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
-		WritePrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
-		WritePrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
-	}
-	else if (!_stricmp(szArg1, "load"))
-	{
-		std::string pathIniFile = mq::internal_paths::MQini;
-
-		if (szArg2 && szArg2[0] != '\0')
-		{
-			const std::string tmpFileName = fmt::format("{}_{}.ini", GetServerShortName(), szArg2);
-			pathIniFile = (std::filesystem::path(mq::internal_paths::Config) / tmpFileName).string();
-		}
-
-		EQCamera* pUserCam1 = pEverQuestInfo->cameras[EQ_USER_CAM_1];
-
-		pUserCam1->bAutoHeading = GetPrivateProfileBool("User Camera 1", "bAutoHeading", pUserCam1->bAutoHeading, pathIniFile);
-		pUserCam1->bAutoPitch = GetPrivateProfileBool("User Camera 1", "bAutoPitch", pUserCam1->bAutoPitch, pathIniFile);
-		pUserCam1->bSkipFrame = GetPrivateProfileBool("User Camera 1", "bSkipFrame", pUserCam1->bSkipFrame, pathIniFile);
-		pUserCam1->DirectionalHeading = GetPrivateProfileFloat("User Camera 1", "DirectionalHeading", pUserCam1->DirectionalHeading, pathIniFile);
-		pUserCam1->Distance = GetPrivateProfileFloat("User Camera 1", "Distance", pUserCam1->Distance, pathIniFile);
-		pUserCam1->Heading = GetPrivateProfileFloat("User Camera 1", "Heading", pUserCam1->Heading, pathIniFile);
-		pUserCam1->Height = GetPrivateProfileFloat("User Camera 1", "Height", pUserCam1->Height, pathIniFile);
-		pUserCam1->OldPosition_X = GetPrivateProfileFloat("User Camera 1", "OldPosition_X", pUserCam1->OldPosition_X, pathIniFile);
-		pUserCam1->OldPosition_Y = GetPrivateProfileFloat("User Camera 1", "OldPosition_Y", pUserCam1->OldPosition_Y, pathIniFile);
-		pUserCam1->OldPosition_Z = GetPrivateProfileFloat("User Camera 1", "OldPosition_Z", pUserCam1->OldPosition_Z, pathIniFile);
-		pUserCam1->Orientation_X = GetPrivateProfileFloat("User Camera 1", "Orientation_X", pUserCam1->Orientation_X, pathIniFile);
-		pUserCam1->Orientation_Y = GetPrivateProfileFloat("User Camera 1", "Orientation_Y", pUserCam1->Orientation_Y, pathIniFile);
-		pUserCam1->Orientation_Z = GetPrivateProfileFloat("User Camera 1", "Orientation_Z", pUserCam1->Orientation_Z, pathIniFile);
-		pUserCam1->Pitch = GetPrivateProfileFloat("User Camera 1", "Pitch", pUserCam1->Pitch, pathIniFile);
-		pUserCam1->SideMovement = GetPrivateProfileFloat("User Camera 1", "SideMovement", pUserCam1->SideMovement, pathIniFile);
-		pUserCam1->Zoom = GetPrivateProfileFloat("User Camera 1", "Zoom", pUserCam1->Zoom, pathIniFile);
-
-		*CDisplay::cameraType = EQ_USER_CAM_1;
-	}
-}
-
-// ***************************************************************************
 // Function:    ForeGroundCmd
 // Description: '/foreground' command
 // Purpose:     Adds the ability to move your eq window to the foreground.
@@ -5279,14 +4814,6 @@ void UserCameraCmd(PlayerClient* pChar, const char* szLine)
 void ForeGroundCmd(PlayerClient* pChar, const char* szLine)
 {
 	HWND EQhWnd = GetEQWindowHandle();
-
-	if (EQhWnd == nullptr)
-	{
-		if (EQW_GetDisplayWindow)
-			EQhWnd = EQW_GetDisplayWindow();
-		else
-			EQhWnd = *(HWND*)EQADDR_HWND;
-	}
 
 	if (EQhWnd == nullptr)
 	{
@@ -5305,7 +4832,7 @@ void ForeGroundCmd(PlayerClient* pChar, const char* szLine)
 // Author:      ChatWithThisName
 // ***************************************************************************
 
-static bool HasLevSPA(SPELL* pBuff)
+static bool HasLevSPA(EQ_Spell* pBuff)
 {
 	int effects = GetSpellNumEffects(pBuff);
 

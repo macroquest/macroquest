@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -104,10 +104,7 @@ bool MQ2EverQuestType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	switch (static_cast<EverQuestMembers>(pMember->ID))
 	{
 	case EverQuestMembers::HWND:
-		if (EQW_GetDisplayWindow)
-			Dest.Int64 = (uintptr_t)EQW_GetDisplayWindow();
-		else
-			Dest.Int64 = *(uintptr_t*)EQADDR_HWND;
+		Dest.Int64 = (uintptr_t)GetEQWindowHandle();
 		Dest.Type = pInt64Type;
 		return true;
 

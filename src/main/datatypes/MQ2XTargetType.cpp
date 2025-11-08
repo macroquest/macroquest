@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -115,7 +115,7 @@ bool MQ2XTargetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type*
 {
 	if (toType == pSpawnType)
 	{
-		SPAWNINFO* pSpawn = nullptr;
+		PlayerClient* pSpawn = nullptr;
 
 		if (pLocalPC)
 		{

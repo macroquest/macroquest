@@ -14,11 +14,10 @@
 
 #pragma once
 
+#include "MQMain.h"
+
 #include "mq/base/Common.h"
 #include "eqlib/BuildType.h"
-#include "MQ2Main.h"
-
-#include "GraphicsResources.h"
 
 #if HAS_DIRECTX_9
 #include <d3d9.h>
@@ -154,7 +153,7 @@ protected:
 	bool m_deviceAcquired = false;
 
 	// Last game state, used to check for changes to the current game state
-	int m_lastGameState = GAMESTATE_PRECHARSELECT;
+	int m_lastGameState = -1;
 
 	// Indicates that we need to reset the overlay next frame
 	bool m_needResetOverlay = false;

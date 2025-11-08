@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
+
 #include <algorithm>
 #include <charconv>
 #include <string>
@@ -515,9 +517,9 @@ private:
 		using is_transparent = void;
 
 		template <typename T, typename U>
-		bool operator()(const T& a, const U& b) const
+		bool operator()(T&& a, U&& b) const
 		{
-			return ci_equals(a, b);
+			return ci_equals(std::forward<T>(a), std::forward<U>(b));
 		}
 	};
 
@@ -574,10 +576,10 @@ private:
 	{
 		using is_transparent = void;
 
-		template <typename T>
-		bool operator()(const T& a, const T& b) const
+		template <typename T, typename U>
+		bool operator()(T&& a, U&& b) const
 		{
-			return ci_equals(a, b);
+			return ci_equals(std::forward<T>(a), std::forward<U>(b));
 		}
 	};
 

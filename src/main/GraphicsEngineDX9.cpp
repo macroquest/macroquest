@@ -32,6 +32,8 @@
 #pragma comment(lib, "d3dx9")
 #endif
 
+using namespace eqlib;
+
 namespace mq {
 
 // The global direct 3d device that we are using. This belongs to EQ, so we

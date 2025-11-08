@@ -1233,7 +1233,7 @@ void HandleLucyButton(const ItemPtr& pItem)
 	if (pItem)
 	{
 		std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
-		ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		::ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 }
 
@@ -1906,8 +1906,26 @@ void DrawItemDisplaySettingsPanel()
 	}
 }
 
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class ItemDisplayPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(ItemDisplayPlugin) : PLUGIN_MODULE_BASE_CALL("ItemDisplay")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnCleanUI() override;
+};
+
+DECLARE_PLUGIN_MODULE(ItemDisplayPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void ItemDisplayPlugin::Initialize()
 {
 	EzDetour(CSpellDisplayWnd__UpdateStrings, &SpellDisplayHook::UpdateStrings_Detour, &SpellDisplayHook::UpdateStrings_Trampoline);
 	EzDetour(CItemDisplayWnd__UpdateStrings, &CItemDisplayWndOverride::UpdateStrings_Detour, &CItemDisplayWndOverride::UpdateStrings_Trampoline);
@@ -1926,8 +1944,7 @@ PLUGIN_API void InitializePlugin()
 	s_refreshSpellDisplay = true;
 }
 
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
+void ItemDisplayPlugin::Shutdown()
 {
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CItemDisplayWnd__UpdateStrings);
@@ -1945,7 +1962,7 @@ PLUGIN_API void ShutdownPlugin()
 	delete pDisplayItemType;
 }
 
-PLUGIN_API void OnCleanUI()
+void ItemDisplayPlugin::OnCleanUI()
 {
 	s_itemDisplayExtraInfo.clear();
 
@@ -1972,7 +1989,7 @@ PLUGIN_API void OnCleanUI()
 	}
 }
 
-PLUGIN_API void OnPulse()
+void ItemDisplayPlugin::OnProcessFrame()
 {
 	if (gGameState == GAMESTATE_INGAME)
 	{

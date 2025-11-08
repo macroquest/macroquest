@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -462,7 +462,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			case AlertListTypeMembers::Spawn:
 				if (uint32_t spawnid = search.SpawnID)
 				{
-					if (SPAWNINFO* psp = GetSpawnByID(spawnid))
+					if (PlayerClient* psp = GetSpawnByID(spawnid))
 					{
 						Dest = pSpawnType->MakeTypeVar(psp);
 						return true;
@@ -471,7 +471,7 @@ bool MQ2AlertListType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (search.szName[0])
 				{
-					if (SPAWNINFO* psp = GetSpawnByName(search.szName))
+					if (PlayerClient* psp = GetSpawnByName(search.szName))
 					{
 						Dest = pSpawnType->MakeTypeVar(psp);
 						return true;

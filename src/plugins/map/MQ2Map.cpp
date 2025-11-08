@@ -254,8 +254,32 @@ private:
 	}
 };
 
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
+//=================================================================================================
+
+class MapPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(MapPlugin) : PLUGIN_MODULE_BASE_CALL("Map")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnSpawnAdded(eqlib::PlayerClient* player) override;
+	virtual void OnSpawnRemoved(eqlib::PlayerClient* player) override;
+	virtual void OnGroundItemAdded(eqlib::EQGroundItem* groundItem) override;
+	virtual void OnGroundItemRemoved(eqlib::EQGroundItem* groundItem) override;
+	virtual void OnGameStateChanged(int gameState) override;
+	virtual void OnCleanUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+};
+
+DECLARE_PLUGIN_MODULE(MapPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
+void MapPlugin::Initialize()
 {
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
 
@@ -339,12 +363,6 @@ PLUGIN_API void InitializePlugin()
 	AddCommand("/mapactivelayer", MapActiveLayerCmd, false, true, true);
 	AddCommand("/maploc", MapSetLocationCmd, false, true, true);
 
-	// Hook the map window
-	if (pMapViewWnd)
-	{
-		MapViewMapOverride::InstallHooks(&pMapViewWnd->MapView);
-	}
-
 	AddMQ2Data("MapSpawn", dataMapSpawn);
 	ClearSearchSpawn(&MapFilterNamed);
 	ParseSearchSpawn("#", &MapFilterNamed);
@@ -352,8 +370,7 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Map", DrawMapSettingsPanel);
 }
 
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
+void MapPlugin::Shutdown()
 {
 	RemoveMQ2Data("MapSpawn");
 
@@ -372,8 +389,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveSettingsPanel("plugins/Map");
 }
 
-// This is called every time MQ pulses
-PLUGIN_API void OnPulse()
+void MapPlugin::OnProcessFrame()
 {
 	if (GetGameState() != GAMESTATE_INGAME)
 		return;
@@ -383,13 +399,13 @@ PLUGIN_API void OnPulse()
 	bool cleared = false;
 
 	// Clear MapLocs on zone
-	if (CHARINFO* charInfo = GetCharInfo())
+	if (pLocalPC)
 	{
-		if (currentZoneId != (charInfo->zoneId & 0x7FFF))
+		if (currentZoneId != (pLocalPC->zoneId & 0x7FFF))
 		{
 			DeleteAllMapLocs();
 
-			currentZoneId = (charInfo->zoneId & 0x7FFF);
+			currentZoneId = (pLocalPC->zoneId & 0x7FFF);
 		}
 	}
 
@@ -442,7 +458,7 @@ PLUGIN_API void OnPulse()
 	}
 }
 
-PLUGIN_API void OnAddSpawn(SPAWNINFO* pNewSpawn)
+void MapPlugin::OnSpawnAdded(PlayerClient* pNewSpawn)
 {
 	// your toon's spawn id changes and it's no longer zero to start don't added it all
 	if (pLocalPlayer != pNewSpawn && pNewSpawn->SpawnID != 0)
@@ -451,12 +467,12 @@ PLUGIN_API void OnAddSpawn(SPAWNINFO* pNewSpawn)
 	}
 }
 
-PLUGIN_API void OnRemoveSpawn(SPAWNINFO* pSpawn)
+void MapPlugin::OnSpawnRemoved(PlayerClient* pSpawn)
 {
 	RemoveSpawn(pSpawn);
 }
 
-PLUGIN_API void SetGameState(DWORD GameState)
+void MapPlugin::OnGameStateChanged(int GameState)
 {
 	if (GameState == GAMESTATE_POSTCHARSELECT)
 	{
@@ -464,14 +480,30 @@ PLUGIN_API void SetGameState(DWORD GameState)
 	}
 }
 
-PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+void MapPlugin::OnGroundItemAdded(EQGroundItem* pNewGroundItem)
 {
 	AddGroundItem(pNewGroundItem);
 }
 
-PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+void MapPlugin::OnGroundItemRemoved(EQGroundItem* pGroundItem)
 {
 	RemoveGroundItem(pGroundItem);
+}
+
+void MapPlugin::OnCleanUI()
+{
+	if (pMapViewWnd)
+	{
+		MapViewMapOverride::RemoveHooks(&pMapViewWnd->MapView);
+	}
+}
+
+void MapPlugin::OnReloadUI(const eqlib::ReloadUIParams& params)
+{
+	if (pMapViewWnd)
+	{
+		MapViewMapOverride::InstallHooks(&pMapViewWnd->MapView);
+	}
 }
 
 PLUGIN_API MapViewLine* MQ2MapAddLine()
@@ -482,20 +514,4 @@ PLUGIN_API MapViewLine* MQ2MapAddLine()
 PLUGIN_API void MQ2MapDeleteLine(MapViewLine* pLine)
 {
 	DeleteLine(pLine);
-}
-
-PLUGIN_API void OnCleanUI()
-{
-	if (pMapViewWnd)
-	{
-		MapViewMapOverride::RemoveHooks(&pMapViewWnd->MapView);
-	}
-}
-
-PLUGIN_API void OnReloadUI()
-{
-	if (pMapViewWnd)
-	{
-		MapViewMapOverride::InstallHooks(&pMapViewWnd->MapView);
-	}
 }

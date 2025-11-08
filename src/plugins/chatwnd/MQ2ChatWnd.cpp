@@ -38,6 +38,28 @@ bool bSaveByChar = true;
 static uint32_t s_pendingRemoveStyle = 0;
 static uint32_t s_pendingAddStyle = 0;
 
+//=================================================================================================
+
+class ChatWndPlugin : public PLUGIN_MODULE_BASE
+{
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(ChatWndPlugin) : PLUGIN_MODULE_BASE_CALL("ChatWnd")
+	{
+	}
+
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnProcessFrame() override;
+	virtual void OnWriteChatColor(const char* message, int color, int filter) override;
+	virtual void OnCleanUI() override;
+	virtual void OnReloadUI(const eqlib::ReloadUIParams& params) override;
+	virtual void OnGameStateChanged(int gameState) override;
+};
+
+DECLARE_PLUGIN_MODULE(ChatWndPlugin);
+
+//-------------------------------------------------------------------------------------------------
+
 class CMQChatWnd : public CCustomWnd
 {
 public:
@@ -570,21 +592,20 @@ void DoMQ2ChatBind(const char* Name, bool Down)
 	}
 }
 
-PLUGIN_API void OnReloadUI()
+void ChatWndPlugin::OnReloadUI(const ReloadUIParams&)
 {
 	// redraw window when you load/reload UI
-	DebugTry(CreateChatWindow());
+	CreateChatWindow();
 }
 
-PLUGIN_API void OnCleanUI()
+void ChatWndPlugin::OnCleanUI()
 {
 	// destroy chatwnd before server select & while reloading UI
 	DestroyChatWnd();
 }
 
-PLUGIN_API void SetGameState(int GameState)
+void ChatWndPlugin::OnGameStateChanged(int GameState)
 {
-	DebugSpew("MQ2ChatWnd::SetGameState()");
 	if (GameState == GAMESTATE_CHARSELECT)
 	{
 		if (bNoCharSelect)
@@ -635,18 +656,18 @@ PLUGIN_API void SetGameState(int GameState)
 // This is called every time WriteChatColor is called by MQ2Main or any plugin,
 // IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
 // CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
-PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
+void ChatWndPlugin::OnWriteChatColor(const char* Line, int Color, int Filter)
 {
 	if (!MQChatWnd)
 	{
 		if (gGameState == GAMESTATE_INGAME)
 		{
-			SetGameState(gGameState);
+			OnGameStateChanged(gGameState);
 		}
 
 		if (!MQChatWnd)
 		{
-			return 0;
+			return;
 		}
 	}
 
@@ -659,7 +680,7 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 		{
 			if (!_strnicmp(Line, pFilter->FilterText, pFilter->Length))
 			{
-				return 0;
+				return;
 			}
 		}
 		pFilter = pFilter->pNext;
@@ -677,10 +698,9 @@ PLUGIN_API DWORD OnWriteChatColor(char* Line, DWORD Color, DWORD Filter)
 	sPendingChat.push_back(text);
 
 	delete[] szProcessed;
-	return 0;
 }
 
-PLUGIN_API void OnPulse()
+void ChatWndPlugin::OnProcessFrame()
 {
 	if (GetGameState() == GAMESTATE_CHARSELECT && !MQChatWnd && !bNoCharSelect)
 	{
@@ -845,7 +865,7 @@ void ChatWndImGuiSettingsPanel()
 	mq::imgui::HelpMarker("Font 0 - 10. These are 10 font faces of various styles and sizes from EQ.\n\nINISetting: FontSize");
 }
 
-PLUGIN_API void InitializePlugin()
+void ChatWndPlugin::Initialize()
 {
 	// Add commands, macro parameters, hooks, etc.
 	AddMQ2Data("ChatWnd", dataChatWnd);
@@ -863,7 +883,7 @@ PLUGIN_API void InitializePlugin()
 	LoadChatSettings();
 }
 
-PLUGIN_API void ShutdownPlugin()
+void ChatWndPlugin::Shutdown()
 {
 	sPendingChat.clear();
 

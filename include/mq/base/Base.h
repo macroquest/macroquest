@@ -14,12 +14,6 @@
 
 #pragma once
 
-#ifdef MQ2PLUGIN
-#define FromPlugin true
-#else
-#define FromPlugin false
-#endif
-
 #define STRINGIFY_IMPL(x) #x
 #define STRINGIFY(x) STRINGIFY_IMPL(x)
 

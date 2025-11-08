@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -157,7 +157,7 @@ bool MQ2MerchantType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index
 				pEverQuest->RightClickedOnPlayer(pTarget, 0);
 				return true;
 			}
-			else if (SPAWNINFO* pSpawn = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
+			else if (PlayerClient* pSpawn = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
 			{
 				pTarget = pSpawn;
 				pEverQuest->RightClickedOnPlayer(pSpawn, 0);

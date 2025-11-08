@@ -22,7 +22,11 @@
 #define CP_UTF8                   65001       // UTF-8 translation
 #endif
 
-__declspec(dllimport) int __stdcall MultiByteToWideChar(uint32_t CodePage, DWORD dwFlags, const char* lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+typedef unsigned long DWORD;
+typedef int* LPBOOL;
+
+__declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int CodePage, DWORD dwFlags, const char* lpMultiByteStr, int cbMultiByte, wchar_t* lpWideCharStr, int cchWideChar);
+__declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int CodePage, DWORD dwFlags, const wchar_t* lpWideCharStr, int cchWideChar, char* lpMultiByteStr, int cbMultiByte, const char* lpDefaultChar, LPBOOL lpUsedDefaultChar);
 
 namespace mq {
 

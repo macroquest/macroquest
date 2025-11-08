@@ -14,21 +14,22 @@
 
 #include "pch.h"
 
-#include "MQ2DeveloperTools.h"
-#include "MQ2ImGuiTools.h"
 #include "ImGuiManager.h"
-#include "mq/zep/ImGuiZepEditor.h"
-#include "mq/zep/ImGuiZepConsole.h"
-#include "mq/imgui/MQConsoleDelegate.h"
-#include "zep.h"
+#include "MQDeveloperTools.h"
+#include "MQImGuiTools.h"
 
 #include "imgui/ImGuiTreePanelWindow.h"
+#include "imgui/imgui_internal.h"
 #include "mq/imgui/ConsoleWidget.h"
-
-#include <imgui/imgui_internal.h>
+#include "mq/imgui/MQConsoleDelegate.h"
+#include "mq/zep/ImGuiZepEditor.h"
+#include "mq/zep/ImGuiZepConsole.h"
+#include "zep.h"
 
 #include <optional>
 #include "sqlite3.h"
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -985,7 +986,7 @@ void UpdateImGuiConsole()
 	}
 }
 
-void MQConsoleCommand(SPAWNINFO* pChar, char* Line)
+void MQConsoleCommand(PlayerClient* pChar, char* Line)
 {
 	char szCommand[MAX_STRING] = { 0 };
 	GetArg(szCommand, Line, 1);
@@ -1097,14 +1098,14 @@ void ShutdownImGuiConsole()
 	RemoveCommand("/mqconsole");
 }
 
-DWORD ImGuiConsoleAddText(const char* line, DWORD color, DWORD filter)
+void ImGuiConsoleAddText(const char* line, int color, int filter)
 {
+	UNUSED(filter);
+
 	MQColor col = GetColorForChatColor(color);
 
 	if (gMQConsole)
 		gMQConsole->AddWriteChatColorLog(line, col, true);
-
-	return 0;
 }
 
 } // namespace mq

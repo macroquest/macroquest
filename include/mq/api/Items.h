@@ -19,8 +19,10 @@
 namespace mq {
 
 template <typename T>
-static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlot, T checkItem)
+static int CountContainerItems(eqlib::ItemContainer& container, int fromSlot, int toSlot, T checkItem)
 {
+	using namespace eqlib;
+
 	int count = 0;
 	auto predicatedCountVisitor = [&](const ItemPtr& pItem, const ItemIndex& index)
 	{
@@ -45,6 +47,8 @@ static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlo
  */
 inline int GetItemSizeFromDesc(std::string_view String)
 {
+	using namespace eqlib;
+
 	if (ci_equals(String, "tiny"))
 		return ItemSize_Tiny;
 

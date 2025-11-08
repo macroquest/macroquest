@@ -18,6 +18,8 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
+#include "ModuleSystem.h"
+
 #include "mq/base/Common.h"
 #include "mq/base/PluginHandle.h"
 #include "mq/api/MacroAPI.h"
@@ -30,13 +32,14 @@ namespace mq {
 
 //============================================================================
 
-class MQDataAPI
+class MQDataAPI : public MQModule
 {
 public:
 	MQDataAPI();
-	~MQDataAPI();
+	virtual ~MQDataAPI() override;
 
-	void Initialize();
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
 
 	// Top Level Objects
 	bool AddTopLevelObject(const char* szName, MQTopLevelObjectFunction Function, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
@@ -86,7 +89,7 @@ public:
 	// TODO: Change to string_view when we have c++20 support for transparent containers
 	bool IsReservedName(const std::string& name) const;
 
-	bool ParseMQ2DataPortion(char* szOriginal, MQTypeVar& Result) const;
+	bool ParseDataPortion(char* szOriginal, MQTypeVar& Result) const;
 
 private:
 	void RegisterTopLevelObjects();
@@ -125,11 +128,5 @@ std::string ModifyMacroString(std::string_view strOriginal, bool bParseOnce = fa
 	ModifyMacroMode iOperation = ModifyMacroMode::Default);
 
 //============================================================================
-
-bool AddMQ2DataVariable(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, const char* Default);
-bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pType, MQDataVar** ppHead, MQTypeVar Default);
-MQDataVar** FindVariableScope(const char* Name);
-bool DeleteMQ2DataVariable(const char* Name);
-void ClearMQ2DataVariables(MQDataVar** ppHead);
 
 } // namespace mq

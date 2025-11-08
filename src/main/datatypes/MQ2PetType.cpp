@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -130,7 +130,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 {
 	// Check if we have a stored spawn on this object
 	bool playerPet = false;
-	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
+	PlayerClient* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
 
 	// If its our pet then we can enable all the player pet members
 	if (pPetSpawn && pPetSpawn->MasterID == pLocalPlayer->SpawnID)
@@ -188,7 +188,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		{
 			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
+				if (EQ_Spell* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 				{
 					if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 					{
@@ -222,7 +222,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 		for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 		{
-			if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
+			if (EQ_Spell* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 			{
 				if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 				{
@@ -335,7 +335,7 @@ bool MQ2PetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 
 bool MQ2PetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	SPAWNINFO* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
+	PlayerClient* pPetSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
 
 	if (!pPetSpawn)
 		strcpy_s(Destination, MAX_STRING, "NO PET");
@@ -357,7 +357,7 @@ bool MQ2PetType::Downcast(const MQVarPtr& fromVar, MQVarPtr& toVar, MQ2Type* toT
 
 bool MQ2PetType::dataPet(const char* szIndex, MQTypeVar& Ret)
 {
-	SPAWNINFO* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1) ? GetSpawnByID(pLocalPlayer->PetID) : nullptr;
+	PlayerClient* pPetSpawn = (pLocalPlayer && pLocalPlayer->PetID != -1) ? GetSpawnByID(pLocalPlayer->PetID) : nullptr;
 
 	Ret = pSpawnType->MakeTypeVar(pPetSpawn, pPetType);
 	return true;

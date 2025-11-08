@@ -15,20 +15,18 @@
 // Uncomment to see super spammy read/write trace logging
 //#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
-#include "NamedPipes.h"
-#include "common/Common.h"
+#include "routing/NamedPipes.h"
+#include "mq/base/Base.h"
 #include "mq/base/WString.h"
 
-#include <windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <strsafe.h>
-#include <time.h>
+#include <numeric>
+
 #include <fmt/os.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/bin_to_hex.h>
 #include <wil/resource.h>
 #include <sddl.h>
+#include <windows.h>
 
 using namespace std::chrono_literals;
 
@@ -374,7 +372,7 @@ void PipeConnection::SendMessage(MQMessageId messageId, const void* data, size_t
 
 void PipeConnection::SendMessage(PipeMessagePtr message)
 {
-	std::weak_ptr<PipeConnection> weakPtr = shared_from_this();
+	std::weak_ptr weakPtr = shared_from_this();
 
 	SPDLOG_TRACE("{}: Posting message to pipe thread", m_connectionId);
 

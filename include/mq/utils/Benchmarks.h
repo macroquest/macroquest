@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <mq/base/Common.h>
+#include "mq/base/Common.h"
 
 namespace mq {
 
@@ -38,44 +38,56 @@ struct MQBenchmark
 //----------------------------------------------------------------------------
 // Benchmarking API
 
-// Create a new benchmark. Returns the benchmark id.
-MQLIB_API uint32_t AddMQ2Benchmark(const char* Name);
+/** Create a new benchmark. Returns the benchmark id. */
+MQLIB_API uint32_t AddBenchmark(const char* Name);
 
-// Destroy a benchmark by its id.
-MQLIB_API void RemoveMQ2Benchmark(uint32_t BMHandle);
+/** Destroy a benchmark by its id. */
+MQLIB_API void RemoveBenchmark(uint32_t BMHandle);
 
-// Returns a reference to a benchmark by looking up its id.
-MQLIB_API bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest);
+/** Returns a reference to a benchmark by looking up its id. */
+MQLIB_API bool GetBenchmark(uint32_t BMHandle, MQBenchmark& Dest);
 
-// Enter the benchmark and start adding time.
-MQLIB_API void EnterMQ2Benchmark(uint32_t BMHandle);
+/** Enter the benchmark and start adding time. */
+MQLIB_API void EnterBenchmark(uint32_t BMHandle);
 
-// Leave the benchmark.
-MQLIB_API void ExitMQ2Benchmark(uint32_t BMHandle);
+/** Leave the benchmark. */
+MQLIB_API void ExitBenchmark(uint32_t BMHandle);
 
-//----------------------------------------------------------------------------
-// Scoped benchmark object, enters the benchmark at creation and leaves the benchmark at the end
-// of the current scope.
-//
-// Usage:
-//     MQScopedBenchmark bm(benchmarkId);
-//     // ... do things that take time
+/**
+ * Scoped benchmark object, enters the benchmark at creation and leaves the benchmark at the end
+ * of the current scope.
+ *
+ * Example usage:
+ * @code
+ *     MQScopedBenchmark bm(benchmarkId);
+ *     // ... do things that take time
+ * @endcode
+ */
 struct MQScopedBenchmark
 {
-	MQScopedBenchmark(uint32_t bmId) : m_benchmark(bmId) { EnterMQ2Benchmark(m_benchmark); }
-	~MQScopedBenchmark() { ExitMQ2Benchmark(m_benchmark); }
+	MQScopedBenchmark(uint32_t bmId) : m_benchmark(bmId) { EnterBenchmark(m_benchmark); }
+	~MQScopedBenchmark() { ExitBenchmark(m_benchmark); }
 
 private:
 	uint32_t m_benchmark;
 };
 
 
-//----------------------------------------------------------------------------
-// Old-style benchmark macro. Prefer using MQScopedBenchmark instead.
+/**
+ * Old-style benchmark macro. Prefer using MQScopedBenchmark instead.
+ */
 #ifdef DISABLE_BENCHMARKS
-    #define Benchmark(BMHandle, code) code
+	#define Benchmark(BMHandle, code) code
 #else
-    #define Benchmark(BMHandle, code) { EnterMQ2Benchmark(BMHandle); code; ExitMQ2Benchmark(BMHandle); }
+	#define Benchmark(BMHandle, code) { EnterBenchmark(BMHandle); code; ExitBenchmark(BMHandle); }
 #endif
+
+// Deprecated functions
+
+inline uint32_t AddMQ2Benchmark(const char* Name) { return AddBenchmark(Name); }
+inline void RemoveMQ2Benchmark(uint32_t BMHandle) { RemoveBenchmark(BMHandle); }
+inline bool GetMQ2Benchmark(uint32_t BMHandle, MQBenchmark& Dest) { return GetBenchmark(BMHandle, Dest); }
+inline void EnterMQ2Benchmark(uint32_t BMHandle) { EnterBenchmark(BMHandle); }
+inline void ExitMQ2Benchmark(uint32_t BMHandle) { ExitBenchmark(BMHandle); };
 
 } // namespace mq

@@ -13,52 +13,58 @@
  */
 
 #include "pch.h"
-
 #include "MQActorAPI.h"
 #include "MQPostOffice.h"
+
+#include "MacroQuest.h"
+#include "MQMain.h"
 
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
 
-#include "MQ2Main.h"
+using namespace eqlib;
+using namespace mq::postoffice;
 
 namespace mq {
-using namespace postoffice;
 
-static void OnPostUnloadPluginActorAPI(const char*);
-
-static MQModule s_ActorAPIModule = {
-	"ActorAPI",                      // Name
-	false,                           // CanUnload
-	nullptr,                         // Initialize
-	nullptr,                         // Shutdown
-	nullptr,                         // Pulse
-	nullptr,                         // SetGameState
-	nullptr,                         // UpdateImGui
-	nullptr,                         // Zoned
-	nullptr,                         // WriteChatColor
-	nullptr,                         // SpawnAdded
-	nullptr,                         // SpawnRemoved
-	nullptr,                         // BeginZone
-	nullptr,                         // EndZone
-	nullptr,                         // LoadPlugin
-	nullptr,                         // UnloadPlugin
-	nullptr,                         // CleanUI
-	nullptr,                         // ReloadUI
-	OnPostUnloadPluginActorAPI,      // OnPostUnloadPlugin
-};
-MQModule* GetActorAPIModule() { return &s_ActorAPIModule; }
 MQActorAPI* pActorAPI = nullptr;
 
-std::unordered_map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
+DECLARE_MODULE_FACTORY(MQActorAPI);
+
+// FIXME
+std::unordered_map<MQModule*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
 
 // this is to allow for replies while not exposing message internals to the API
 std::map<proto::routing::Envelope*, std::unique_ptr<proto::routing::Envelope>> s_messageStorage;
 
-static void OnPostUnloadPluginActorAPI(const char* pluginName)
+postoffice::PostOffice& GetPostOffice();
+
+//-----------------------------------------------------------------------------
+
+MQActorAPI::MQActorAPI()
+	: MQModule("ActorAPI", static_cast<int>(ModulePriority::PostOffice))
 {
-	MQPlugin* plugin = GetPlugin(pluginName);
-	auto it = s_dropboxes.find(plugin);
+	SetModuleDependencies({ "PostOffice" });
+
+	pActorAPI = this;
+}
+
+MQActorAPI::~MQActorAPI()
+{
+	pActorAPI = nullptr;
+}
+
+void MQActorAPI::Initialize()
+{
+}
+
+void MQActorAPI::Shutdown()
+{
+}
+
+void MQActorAPI::OnAfterModuleUnloaded(MQModule* module)
+{
+	auto it = s_dropboxes.find(module);
 	if (it != s_dropboxes.end())
 	{
 		for (auto& dropbox : it->second)
@@ -202,7 +208,7 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 	ReceiveCallbackAPI&& receive,
 	const MQPluginHandle& pluginHandle)
 {
-	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+	MQModule* owner = g_mq->GetModuleByHandle(pluginHandle, true);
 
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
 		[receive = std::move(receive)](MessagePtr message)
@@ -254,7 +260,7 @@ void MQActorAPI::RemoveActor(
 	{
 		dropbox->Remove();
 
-		MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+		MQModule* owner = g_mq->GetModuleByHandle(pluginHandle, true);
 
 		auto dropboxes_it = s_dropboxes.find(owner);
 		if (dropboxes_it != s_dropboxes.end())

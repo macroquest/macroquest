@@ -168,18 +168,28 @@ public:
 	}
 };
 
-// Called once, when the plugin is to initialize
-PLUGIN_API void InitializePlugin()
-{
-	// Add commands, macro parameters, hooks, etc.
-	EzDetour(CLabel__UpdateText, &CLabelHook::UpdateText_Detour, &CLabelHook::UpdateText_Trampoline);
-	EzDetour(CSidlManager__CreateXWnd, &CSidlManagerHook::CreateXWnd_Detour, &CSidlManagerHook::CreateXWnd_Trampoline);
-}
+//=================================================================================================
 
-// Called once, when the plugin is to shutdown
-PLUGIN_API void ShutdownPlugin()
+class LabelsPlugin : public PLUGIN_MODULE_BASE
 {
-	// Remove commands, macro parameters, hooks, etc.
-	RemoveDetour(CSidlManager__CreateXWnd);
-	RemoveDetour(CLabel__UpdateText);
-}
+public:
+	PLUGIN_MODULE_CONSTRUCTOR(LabelsPlugin) : PLUGIN_MODULE_BASE_CALL("Labels")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		// Add commands, macro parameters, hooks, etc.
+		EzDetour(CLabel__UpdateText, &CLabelHook::UpdateText_Detour, &CLabelHook::UpdateText_Trampoline);
+		EzDetour(CSidlManager__CreateXWnd, &CSidlManagerHook::CreateXWnd_Detour, &CSidlManagerHook::CreateXWnd_Trampoline);
+	}
+
+	virtual void Shutdown() override
+	{
+		// Remove commands, macro parameters, hooks, etc.
+		RemoveDetour(CSidlManager__CreateXWnd);
+		RemoveDetour(CLabel__UpdateText);
+	}
+};
+
+DECLARE_PLUGIN_MODULE(LabelsPlugin);

@@ -13,43 +13,76 @@
  */
 
 #include "pch.h"
+#include "MQPostOffice.h"
+
+#include "routing/ClientPostOffice.h"
 
 #include "Logging.h"
-#include "MQPostOffice.h"
-#include "MQ2Main.h"
+#include "ModuleSystem.h"
+#include "MQMain.h"
 
 namespace mq {
 
+using namespace eqlib;
 using namespace postoffice;
-
-static void InitializePostOffice();
-static void ShutdownPostOffice();
-static void PulsePostOffice();
-static void SetGameStatePostOffice(int GameState);
 
 bool InitializeCrashpad();
 void InitializeCrashpadPipe(const std::string& pipeName);
 
-static MQModule s_PostOfficeModule = {
-	"PostOffice",
-	false,
-	InitializePostOffice,                                       // Initialize
-	ShutdownPostOffice,                                         // Shutdown
-	PulsePostOffice,                                            // Pulse
-	SetGameStatePostOffice,                                     // SetGameState
-	nullptr,                                                    // UpdateImGui
-	nullptr,                                                    // Zoned
-	nullptr,                                                    // WriteChatColor
-	nullptr,                                                    // SpawnAdded
-	nullptr,                                                    // SpawnRemoved
-	nullptr,                                                    // BeginZone
-	nullptr,                                                    // EndZone
-	nullptr,                                                    // LoadPlugin
-	nullptr                                                     // UnloadPlugin
+//============================================================================
+
+// Module representing the "Post Office" - a hub for named pipe communications with the
+// launcher. Maintains a baseline level of integration with the launcher for things like
+// focus tracking and state management.
+
+class MQPostOffice final : public postoffice::ClientPostOffice,
+	public MQModule
+{
+public:
+	MQPostOffice();
+	virtual ~MQPostOffice() override;
+
+	// MQModule
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnGameStateChanged(int GameState) override;
+	virtual void OnProcessFrame() override;
+
+	void NotifyIsForegroundWindow(bool isForeground);
+	void RequestActivateWindow(HWND hWnd, bool sendMessage);
+	void SendNotification(const std::string& message, const std::string& title);
+
+	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength)
+	{
+		m_pipeClient.SendMessage(messageId, data, dataLength);
+	}
+
+	bool IsConnected() const
+	{
+		return m_pipeClient.IsConnected();
+	}
+
+private:
+	virtual void OnIncomingMessage(PipeMessagePtr message) override;
+	virtual void OnClientConnected() override;
+
+	virtual void SendSelfIdentification() override;
+
+	virtual postoffice::ActorIdentification::Client GetCurrentClient() const override;
+
+	bool m_loggedIn = false;
+	bool m_lastInForeground = false;
 };
-MQModule* GetPostOfficeModule() { return &s_PostOfficeModule; }
 
 static MQPostOffice* s_postOffice = nullptr;
+
+PostOffice& GetPostOffice()
+{
+	assert(s_postOffice != nullptr);
+	return *s_postOffice;
+}
+
+DECLARE_MODULE_FACTORY(MQPostOffice);
 
 //-----------------------------------------------------------------------------
 
@@ -79,11 +112,24 @@ static ActorIdentification::Client GetClientIdentification()
 MQPostOffice::MQPostOffice()
 	: ClientPostOffice("MQPostOffice", mq::MQ_PIPE_SERVER_PATH, ActorIdentification(ActorContainer(
 		ActorContainer::CurrentProcess, CreateUUID()), GetClientIdentification()))
+	, MQModule("PostOffice")
 {
+	s_postOffice = this;
 }
 
 MQPostOffice::~MQPostOffice()
 {
+	s_postOffice = nullptr;
+}
+
+void MQPostOffice::Initialize()
+{
+	ClientPostOffice::Initialize();
+}
+
+void MQPostOffice::Shutdown()
+{
+	ClientPostOffice::Shutdown();
 }
 
 //-----------------------------------------------------------------------------
@@ -164,15 +210,25 @@ static bool ShouldUpdateIdentity(int GameState, bool& logged_in)
 
 void MQPostOffice::SendSelfIdentification()
 {
-	SetGameState(0);
+	OnGameStateChanged(0);
 }
 
-void MQPostOffice::SetGameState(int GameState)
+void MQPostOffice::OnGameStateChanged(int GameState)
 {
 	if (ShouldUpdateIdentity(GameState, m_loggedIn))
 	{
 		postoffice::ClientPostOffice::SendSelfIdentification();
 	}
+}
+
+void MQPostOffice::OnProcessFrame()
+{
+	if (mq::test_and_set(m_lastInForeground, gbInForeground))
+	{
+		NotifyIsForegroundWindow(m_lastInForeground);
+	}
+
+	ClientPostOffice::ProcessPipeClient();
 }
 
 //-----------------------------------------------------------------------------
@@ -229,6 +285,9 @@ void MQPostOffice::OnIncomingMessage(PipeMessagePtr message)
 
 	default:
 		ClientPostOffice::OnIncomingMessage(std::move(message));
+
+		// FIXME:
+		//g_mq->HandlePipeMessage(std::move(message));
 		break;
 	}
 }
@@ -249,72 +308,64 @@ postoffice::ActorIdentification::Client MQPostOffice::GetCurrentClient() const
 
 namespace pipeclient {
 
-void NotifyIsForegroundWindow(bool isForeground)
+bool IsConnected()
 {
 	if (s_postOffice)
 	{
-		s_postOffice->NotifyIsForegroundWindow(isForeground);
+		return s_postOffice->IsConnected();
 	}
+
+	return false;
 }
 
-void RequestActivateWindow(HWND hWnd, bool sendMessage)
+void SendPipeMessage(MQMessageId messageId, const void* data, size_t dataLength)
 {
 	if (s_postOffice)
 	{
-		s_postOffice->RequestActivateWindow(hWnd, sendMessage);
+		s_postOffice->SendMessage(messageId, data, dataLength);
+		return;
 	}
+
+	LOG_ERROR("Attempt to send message on named pipe without PostOffice module loaded");
 }
 
-void SendNotification(const std::string& message, const std::string& title)
+bool RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
-	if (s_postOffice)
+	if (sendMessage && IsConnected())
 	{
-		s_postOffice->SendNotification(message, title);
+		MQMessageFocusRequest request;
+		request.focusMode = MQMessageFocusRequest::FocusMode::WantFocus;
+		request.hWnd = hWnd;
+
+		SendPipeMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
+		return true;
 	}
+
+	ShowWindow(hWnd, SW_MINIMIZE);
+	ShowWindow(hWnd, SW_RESTORE);
+	return false;
+}
+
+bool SendTrayNotification(const std::string& title, const std::string& message)
+{
+	if (IsConnected())
+	{
+		proto::routing::Notification notification;
+
+		notification.set_title(title);
+		if (!message.empty())
+		{
+			notification.set_message(message);
+		}
+
+		std::string data = notification.SerializeAsString();
+		SendPipeMessage(MQMessageId::MSG_MAIN_TRAY_NOTIFY, data.data(), data.size());
+
+		return true;
+	}
+
+	return false;
 }
 
 } // namespace pipeclient
-
-void InitializePostOffice()
-{
-	if (s_postOffice == nullptr)
-	{
-		s_postOffice = new MQPostOffice();
-		s_postOffice->Initialize();
-	}
-}
-
-void ShutdownPostOffice()
-{
-	if (s_postOffice != nullptr)
-	{
-		s_postOffice->Shutdown();
-
-		delete s_postOffice;
-		s_postOffice = nullptr;
-	}
-}
-
-void PulsePostOffice()
-{
-	if (s_postOffice)
-	{
-		s_postOffice->ProcessPipeClient();
-	}
-}
-
-void SetGameStatePostOffice(int GameState)
-{
-	if (s_postOffice)
-	{
-		s_postOffice->SetGameState(GameState);
-	}
-}
-
-MQPostOffice& GetPostOffice()
-{
-	assert(s_postOffice != nullptr);
-	return *s_postOffice;
-}
-
 } // namespace mq

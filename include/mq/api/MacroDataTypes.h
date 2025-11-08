@@ -46,6 +46,8 @@ struct MQTypeVar;
 template <typename T>
 static constexpr auto type_name() noexcept;
 
+MQLIB_API void PrintMacroDataConversionError(const char* fromType, const char* toType);
+
 namespace detail {
 
 	template <typename T>
@@ -60,7 +62,6 @@ namespace detail {
 	template <typename T>
 	struct shared_ptr_element_type<std::shared_ptr<T>> { using type = typename std::shared_ptr<T>::element_type;  };
 
-	MQLIB_OBJECT void PrintMacroDataConversionError(const char* fromType, const char* toType);
 
 	template <typename From, typename To>
 	static void ConvertData(const From& input, std::optional<To>& output)

@@ -13,21 +13,19 @@
  */
 
 #include "pch.h"
+#include "LuaActor.h"
+#include "LuaThread.h"
+#include "LuaCoroutine.h"
 
 #include "mq/base/Common.h"
+#include "mq/base/String.h"
 #include "mq/api/ActorAPI.h"
 #include "mq/Plugin.h"
 
 #include "Actor.pb.h"
 
-#include "LuaActor.h"
-#include "LuaThread.h"
-#include "LuaCoroutine.h"
-
 // includes for datatype conversions to proto
 #include "imgui.h"
-
-#include "common/StringUtils.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "libprotobufd")

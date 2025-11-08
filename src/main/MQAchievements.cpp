@@ -14,8 +14,10 @@
 
 #include "pch.h"
 
-#include "mq/base/String.h"
 #include "mq/api/Achievements.h"
+#include "mq/base/String.h"
+
+using namespace eqlib;
 
 using namespace eqlib;
 

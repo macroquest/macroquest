@@ -14,7 +14,7 @@
 
 #include "pch.h"
 
-#include "MQ2Main.h"
+#include "MQMain.h"
 #include "CrashHandler.h"
 #include "MQVersionInfo.h"
 #include "Logging.h"
@@ -36,6 +36,11 @@
 #include <filesystem>
 
 #include <dbghelp.h>
+
+#include "ModuleSystem.h"
+#include "routing/NamedPipesProtocol.h"
+#include "routing/PipeMessage.h"
+
 #pragma comment(lib, "dbghelp.lib")
 
 #if __has_include("config/crashpad.h")
@@ -54,17 +59,6 @@
 namespace fs = std::filesystem;
 
 namespace mq {
-
-static void CrashHandler_Initialize();
-static void CrashHandler_Shutdown();
-
-static MQModule gCrashHandlerModule = {
-	"CrashHandler",               // Name
-	false,                        // CanUnload
-	CrashHandler_Initialize,      // Initialize
-	CrashHandler_Shutdown,        // Shutdown
-};
-DECLARE_MODULE_INITIALIZER(gCrashHandlerModule);
 
 // CrashHandler TODO:
 // - Improved crash notification to include information about what kind of unhandled exception occurred.
@@ -528,7 +522,7 @@ void CrashHandler_SetLastMacroData(const char* macroData)
 
 static crashpad::StringAnnotation<32> s_synthesizedAnnotation("synthesized");
 
-void DoCrash(PlayerClient*, const char* szLine)
+static void DoCrash(const char* szLine)
 {
 	char szArg1[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
@@ -551,14 +545,52 @@ void DoCrash(PlayerClient*, const char* szLine)
 	s_synthesizedAnnotation.Clear();
 }
 
-void CrashHandler_Initialize()
-{
-	AddCommand("/crash", DoCrash);
-}
+//----------------------------------------------------------------------------
 
-void CrashHandler_Shutdown()
+class CrashHandlerModule : public MQModule
 {
-	RemoveCommand("/crash");
-}
+public:
+	CrashHandlerModule() : MQModule("CrashHandler", static_cast<int>(ModulePriority::CrashHandler))
+	{
+		CrashHandler_Startup();
+	}
+
+	virtual void Initialize() override
+	{
+		AddCommand("/crash", DoCrash);
+	}
+
+	virtual void Shutdown() override
+	{
+		RemoveCommand("/crash");
+	}
+
+	virtual bool OnPipeMessage(PipeMessage* message) override
+	{
+		if (message->GetMessageId() == MQMessageId::MSG_MAIN_CRASHPAD_CONFIG)
+		{
+			// Message needs to at least have some substance...
+			if (message->size() > 0)
+			{
+				std::string pipeName{ message->get<const char>() };
+
+				if (pipeName.empty())
+				{
+					InitializeCrashpad();
+				}
+				else
+				{
+					InitializeCrashpadPipe(pipeName);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+};
+
+DECLARE_MODULE_FACTORY(CrashHandlerModule);
 
 } // namespace mq

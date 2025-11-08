@@ -13,14 +13,29 @@
  */
 
 #include "pch.h"
+
 #include "MacroQuest.h"
-#include "MQ2Main.h"
 #include "Logging.h"
+#include "MQMain.h"
+
+#include "mq/api/DetourAPI.h"
 #include "mq/base/WString.h"
+#include "eqlib/MemoryPatcher.h"
 
 #include <TlHelp32.h>
+#include <Psapi.h>
+
+namespace eqlib
+{
+	class MemoryPatcher;
+	class MemoryPatch;
+}
+
+using namespace eqlib;
 
 namespace mq {
+
+#if !IS_EMU_CLIENT
 
 // this is the memory checker key struct
 struct mckey
@@ -34,10 +49,12 @@ struct mckey
 };
 
 // pointer to encryption pad for memory checker
-unsigned int* extern_array0 = nullptr;
+static unsigned int* extern_array0 = nullptr;
 
 static bool s_doingSpellChecks = false;
 static int s_inMemCheck4 = 0;
+static bool s_isValid = true;
+static bool s_hasNotified = false;
 
 //============================================================================
 
@@ -76,46 +93,15 @@ public:
 //	if (!address) return;
 //	int Assistee = *(int*)address;
 //
-//	if (SPAWNINFO* pSpawn = GetSpawnByID(Assistee))
+//	if (PlayerClient* pSpawn = GetSpawnByID(Assistee))
 //	{
 //		//DebugSpew("Assist Result: %d => %s", Assistee, pSpawn->Name);
 //		gbAssistComplete = AS_AssistSent;
 //	}
 //}
-
-// Defined in AssemblyFunctions.asm, need the forward declare
-//void GetAssistParam();
+#endif
 
 //============================================================================
-
-class CPacketScrambler_Detours
-{
-public:
-	int ntoh_Detour(int nopcode);
-	DETOUR_TRAMPOLINE_DEF(int, ntoh_Trampoline, (int))
-};
-
-// ntoh_detour actually climbs into the stack and pulls data out from the caller's
-// stack frame. Because of this we need to avoid optimizing this function as it
-// changes the layout of the stack. Keep optimizations off for this function or
-// it will break.
-
-#pragma optimize("", off)
-int CPacketScrambler_Detours::ntoh_Detour(int nopcode)
-{
-	int hopcode = ntoh_Trampoline(nopcode);
-
-#if 0
-	if (hopcode == EQ_ASSIST)
-	{
-		GetAssistParam();
-	}
-#endif
-
-	return hopcode;
-}
-#pragma optimize("", on)
-#endif
 
 enum class AddressDetourState
 {
@@ -297,8 +283,6 @@ uint64_t decompress_block_detour(uint64_t ctx)
 	return 0;
 }
 
-void MQInitializeLogin();
-
 DETOUR_TRAMPOLINE_DEF(BOOL WINAPI, FindModules_Trampoline, (HANDLE, HMODULE*, DWORD, DWORD*))
 BOOL WINAPI FindModules_Detour(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded)
 {
@@ -405,7 +389,6 @@ struct HookInfo
 static std::vector<HookInfo> s_hooks;
 static std::vector<uintptr_t> s_patches;
 
-
 template <typename T>
 void AddHook_(uintptr_t address, T& detour, T*& target, const char* name)
 {
@@ -477,8 +460,13 @@ static void HookMemChecker(bool Patch)
 
 		InstallHooks();
 
+		MODULEINFO EQGameModuleInfo;
+		HMODULE hEQGameModule = ::GetModuleHandleW(nullptr);
+
+		::K32GetModuleInformation(GetCurrentProcess(), hEQGameModule, &EQGameModuleInfo, sizeof(MODULEINFO));
+
 		uintptr_t imageStart = (uintptr_t)::GetModuleHandleA(nullptr);
-		uintptr_t imageEnd = g_eqgameimagesize;
+		uintptr_t imageEnd = EQGameModuleInfo.SizeOfImage;
 		uintptr_t addr = imageStart;
 		constexpr uint8_t pattern[] = {
 			0x0F, 0xB6, 0x01, 0x3C, 0x00, 0x75, 0x00, 0xB0, 0x00, 0xEB,
@@ -503,9 +491,8 @@ static void HookMemChecker(bool Patch)
 	}
 }
 
-void InitializeDetours()
+static void InitializeDetours()
 {
-#if !defined(EMULATOR)
 	// hit the debugger if we don't hook this. take no chances
 	if (!__MemChecker0
 		|| !__MemChecker1
@@ -516,16 +503,13 @@ void InitializeDetours()
 	{
 		__debugbreak();
 	}
-#endif
 
 	extern_array0 = reinterpret_cast<uint32_t*>(__EncryptPad0);
 
-#if !defined(EMULATOR)
 	AddHook(__MemChecker0, memcheck0, memcheck0_tramp);
 	AddHook(__MemChecker1, memcheck1, memcheck1_tramp);
 #if defined(__MemChecker4_x)
 	AddHook(__MemChecker4, memcheck4, memcheck4_tramp);
-#endif
 #endif
 	AddHook(__decompress_block, decompress_block_detour, decompress_block_trampoline);
 
@@ -546,9 +530,250 @@ void InitializeDetours()
 	HookMemChecker(true);
 }
 
-void ShutdownDetours()
+static void ShutdownDetours()
 {
 	HookMemChecker(false);
 }
+
+static void PulseDetours()
+{
+	if (!s_isValid && s_hasNotified)
+	{
+		gbUnload = true;
+		return;
+	}
+
+#if IS_LIVE_CLIENT
+	constexpr uint8_t salt[8] = { 0x04, 0xc4, 0x57, 0xbf, 0x31, 0xd3, 0x62, 0x5a };
+	constexpr uint8_t hashes[25][8] = {
+		{0xc3, 0x33, 0x27, 0x8c, 0xc9, 0x9c, 0x4f, 0xe1},
+		{0x11, 0xa7, 0xac, 0x4a, 0x03, 0x79, 0x29, 0xb8},
+		{0x72, 0x63, 0x78, 0xde, 0x7c, 0xb6, 0xfe, 0xa2},
+		{0xbe, 0x49, 0xa1, 0xf3, 0x9d, 0xc9, 0xfa, 0x84},
+		{0x09, 0xaf, 0x0d, 0xf3, 0x42, 0xd0, 0xd0, 0x54},
+		{0xdc, 0x42, 0x3a, 0x35, 0xe6, 0x90, 0xbb, 0xe4},
+		{0xe6, 0x18, 0xee, 0x6a, 0x4b, 0xe9, 0x55, 0x7e},
+		{0x86, 0x6d, 0x4b, 0x14, 0x9d, 0x44, 0x5e, 0x81},
+		{0x50, 0x73, 0x0f, 0x9b, 0x6b, 0x92, 0x61, 0x34},
+		{0xa7, 0x7d, 0xca, 0x36, 0x27, 0x84, 0x87, 0xfe},
+		{0xeb, 0xb9, 0x82, 0x87, 0x75, 0x28, 0x05, 0xaf},
+		{0x34, 0xc2, 0xd0, 0xe7, 0xda, 0x1e, 0xea, 0xc1},
+		{0xf6, 0x55, 0x1e, 0x82, 0x24, 0x38, 0xa3, 0xf5},
+		{0x10, 0xae, 0x3e, 0x85, 0xef, 0x62, 0x15, 0x3f},
+		{0x13, 0x1f, 0x73, 0x7e, 0xe2, 0xb9, 0x31, 0x44},
+		{0xc9, 0x8c, 0xe1, 0xcc, 0x98, 0xe4, 0x64, 0x91},
+		{0xd0, 0x66, 0xe6, 0x98, 0x70, 0xac, 0x09, 0x4a},
+		{0x89, 0xe1, 0xdc, 0x85, 0x3f, 0xe9, 0x13, 0xab},
+		{0x40, 0x46, 0xa8, 0x55, 0x52, 0xc1, 0x99, 0x27},
+		{0x12, 0xc3, 0x8c, 0x05, 0xf2, 0xad, 0xa4, 0x54},
+		{0x3f, 0x4b, 0x77, 0x94, 0x1f, 0x1f, 0x85, 0xd1},
+		{0x3e, 0xb1, 0x87, 0x6c, 0x2a, 0xe5, 0x1f, 0x21},
+		{0xe6, 0x57, 0xf9, 0x13, 0x93, 0xac, 0xea, 0x4a},
+		{0x93, 0x53, 0x3d, 0x8d, 0x37, 0x48, 0xd0, 0x7c},
+		{0xab, 0xbc, 0x07, 0x9f, 0x3e, 0xe3, 0x66, 0xde},
+	};
+
+	const auto now = std::chrono::steady_clock::now();
+
+	static std::mt19937 generator{ std::random_device{}() };
+	static std::uniform_int_distribution<unsigned int> distribution{ 30, 60 };
+	static std::chrono::steady_clock::time_point next_check = now + std::chrono::seconds(distribution(generator));
+
+	if (s_isValid && now > next_check)
+	{
+		next_check = now + std::chrono::seconds(distribution(generator));
+		const char* name = GetServerShortName();
+		const size_t len = strlen(name);
+
+		if (len > 0)
+		{
+			uint8_t hash[8];
+			const int argon2_err = argon2id_hash_raw(
+				1, 8, 1,
+				name, len, salt,
+				8, hash, 8);
+
+			const auto valid = [&hash](const uint8_t* test)
+				{
+					for (uint8_t idx = 0; idx < 8; ++idx)
+						if (hash[idx] != test[idx]) return false;
+
+					return true;
+				};
+
+			if (argon2_err == ARGON2_OK)
+			{
+				for (const auto* test : hashes)
+					if (valid(test)) return;
+
+				s_isValid = false;
+			}
+
+		}
+	}
+
+	if (!s_isValid && !s_hasNotified)
+	{
+		pipeclient::SendNotification("MQ does not support this server, unloading", "Invalid Server");
+		s_hasNotified = true;
+	}
+#endif
+}
+
+static void PostZoneDetours()
+{
+	if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
+	{
+		// unload
+		WriteChatf("MQ does not function on this server: %s -- UNLOADING", GetServerShortName());
+		DoCommand("/unload", false);
+	}
+}
+
+#else
+
+static void InitializeDetours()
+{
+}
+
+static void ShutdownDetours()
+{
+}
+
+static void PulseDetours()
+{
+}
+
+static void PostZoneDetours()
+{
+}
+
+#endif // !IS_EMU_CLIENT
+
+static void CheckGameState()
+{
+	static int lastGameState = gGameState;
+
+	if (lastGameState != gGameState)
+	{
+		LOG_INFO("GameState Change: {} -> {}", lastGameState, gGameState);
+		lastGameState = gGameState;
+	}
+
+	// Testing for in game flags
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		if (!pLocalPC)
+			LOG_ERROR("InGame with no pLocalPC");
+
+		if (pLocalPC)
+		{
+			if (pLocalPC->me != pLocalPlayer)
+				LOG_ERROR("pLocalPC->me ({}) is different than pLocalPlayer ({})",
+					(void*)pLocalPC->me, (void*)pLocalPlayer.get());
+		}
+
+		if (!pControlledPlayer)
+			LOG_ERROR("InGame with no pControlledPlayer");
+		if (!pLocalPlayer)
+			LOG_ERROR("InGame with no pLocalPlayer");
+
+		// Check UI state
+		if (!pPlayerWnd)
+			LOG_ERROR("InGame with no pPlayerWnd");
+		if (!gbInZone)
+			LOG_ERROR("InGame but not gbInZone");
+	}
+	else if (gGameState == GAMESTATE_CHARSELECT)
+	{
+		if (!pLocalPC)
+			LOG_ERROR("At CharSelect without pLocalPC");
+		else if (pLocalPC->me != nullptr)
+		{
+			// Me should be null
+			LOG_ERROR("At CharSelect with pLocalPC->me ({} {})", (void*)pLocalPC->me, pLocalPC->me->Name);
+		}
+
+		if (!pLocalPlayer)
+			LOG_ERROR("At CharSelect without pLocalPlayer");
+		if (!pControlledPlayer)
+			LOG_ERROR("At CharSelect without pControlledPlayer");
+
+		// Check UI state
+		if (pPlayerWnd)
+			LOG_ERROR("Not InGame with pPlayerWnd");
+
+		if (!gbInZone)
+			LOG_ERROR("At CharSelect without gbInZone");
+	}
+
+	if (pLocalPC)
+	{
+		if (pLocalPC->ProfileManager.GetCurrentProfile() == nullptr)
+			LOG_ERROR("pLocalPC exists but CurrentProfile does not");
+	}
+	else if (pLocalPlayer)
+	{
+		LOG_ERROR("pLocalPlayer exists but pLocalPC doesn't");
+	}
+
+	if (pLocalPlayer && !pControlledPlayer)
+	{
+		LOG_ERROR("pLocalPlayer ({}) exists but no pControlledPlayer ({})",
+			(void*)pLocalPlayer.get(), (void*)pControlledPlayer.get());
+	}
+
+	// Check for changes.
+	static PcClient* OldLocalPC = nullptr;
+	static PlayerClient* OldControlledPlayer = nullptr;
+	static PlayerClient* OldLocalPlayer = nullptr;
+	static PlayerClient* OldMe = nullptr;
+
+	if (test_and_set(OldLocalPC, pLocalPC.get()))
+		LOG_INFO("pLocalPC Changed: {}", (void*)pLocalPC.get());
+
+	if (test_and_set(OldControlledPlayer, pControlledPlayer.get()))
+		LOG_INFO("pControlledPlayer Changed: {} {}", (void*)pControlledPlayer.get(), pControlledPlayer ? pControlledPlayer->Name : "<null>");
+	if (test_and_set(OldLocalPlayer, pLocalPlayer.get()))
+		LOG_INFO("pLocalPlayer Changed: {} {}", (void*)pLocalPlayer.get(), pLocalPlayer ? pLocalPlayer->Name : "<null>");
+
+	PlayerClient* pMe = pLocalPC ? pLocalPC->me : nullptr;
+	if (test_and_set(OldMe, pMe))
+		LOG_INFO("pLocalPC->Me Changed: {} {}", (void*)pMe, pMe ? pMe->Name : "<null>");
+}
+
+//----------------------------------------------------------------------------
+
+class DetoursModule : public MQModule
+{
+public:
+	DetoursModule() : MQModule("Detours")
+	{
+	}
+
+	virtual void Initialize() override
+	{
+		InitializeDetours();
+	}
+
+	virtual void Shutdown() override
+	{
+		ShutdownDetours();
+	}
+
+	virtual void OnProcessFrame() override
+	{
+		PulseDetours();
+	}
+
+	virtual void OnPostZoneUI() override
+	{
+		PostZoneDetours();
+	}
+};
+
+DECLARE_MODULE_FACTORY(DetoursModule)
+
+//============================================================================
 
 } // namespace mq

@@ -13,10 +13,10 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
-#include "MQ2Mercenaries.h"
-#include "MQ2SpellSearch.h"
+#include "MQMercenaries.h"
+#include "MQSpellSearch.h"
 
 namespace mq::datatypes {
 
@@ -923,7 +923,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 			if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pLocalPC->BlockedSpell[nBuff] : pLocalPC->BlockedPetSpell[nBuff])
 			{
-				if (SPELL* pSpell = GetSpellByID(spellId))
+				if (EQ_Spell* pSpell = GetSpellByID(spellId))
 				{
 					Dest.Ptr = pSpell;
 					return true;
@@ -936,7 +936,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (int spellId = (static_cast<CharacterMembers>(pMember->ID) == CharacterMembers::BlockedBuff) ? pLocalPC->BlockedSpell[i] : pLocalPC->BlockedPetSpell[i])
 				{
-					if (SPELL* pSpell = GetSpellByID(spellId))
+					if (EQ_Spell* pSpell = GetSpellByID(spellId))
 					{
 						if (!_strnicmp(Index, pSpell->Name, strlen(Index)))
 						{
@@ -1508,7 +1508,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			// name
 			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 			{
-				if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
+				if (EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{
@@ -1561,7 +1561,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
-					if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+					if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 					{
 						Dest.Ptr = pSpell;
 						Dest.Type = pSpellType;
@@ -1577,7 +1577,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 				{
-					if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+					if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 					{
 						if (!_stricmp(Index, pSpell->Name))
 						{
@@ -1607,7 +1607,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+						if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 						{
 							uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
 
@@ -1628,7 +1628,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				for (int nCombatAbility = 0; nCombatAbility < NUM_COMBAT_ABILITIES; nCombatAbility++)
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
-						if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+						if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 						{
 							if (!_stricmp(Index, pSpell->Name))
 							{
@@ -1666,7 +1666,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+						if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 						{
 							uint32_t timeNow = static_cast<uint32_t>(time(nullptr));
 							uint32_t timer = pLocalPC->GetCombatAbilityTimer(pSpell->ReuseTimerIndex, pSpell->SpellGroup);
@@ -1687,7 +1687,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				{
 					if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility))
 					{
-						if (SPELL* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
+						if (EQ_Spell* pSpell = GetSpellByID(pLocalPC->GetCombatAbility(nCombatAbility)))
 						{
 							if (!_stricmp(Index, pSpell->Name))
 							{
@@ -2121,7 +2121,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			else
 			{
 				// Look for spell in our book by Name like ${Spell}
-				if (PSPELL pSpell = GetSpellByName(Index))
+				if (EQ_Spell* pSpell = GetSpellByName(Index))
 				{
 					// If we found a spell check if its in the spellbook
 					int spellID = pSpell->ID;
@@ -2142,7 +2142,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 					{
 						if (nSpell != -1)
 						{
-							if (PSPELL pFoundSpell = GetSpellByID(nSpell))
+							if (EQ_Spell* pFoundSpell = GetSpellByID(nSpell))
 							{
 								if (pFoundSpell->SpellGroup == pSpell->SpellGroup
 									&& ci_find_substr(pFoundSpell->Name, pSpell->Name) == 0)
@@ -2252,7 +2252,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			{
 				for (int nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 				{
-					if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
+					if (EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 					{
 						if (!_stricmp(Index, pSpell->Name))
 						{
@@ -2293,7 +2293,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		{
 			for (int nBuff = 0; nBuff < pPetInfoWnd->GetMaxBuffs(); nBuff++)
 			{
-				if (SPELL* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
+				if (EQ_Spell* pSpell = GetSpellByID(pPetInfoWnd->GetBuff(nBuff)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{
@@ -3036,7 +3036,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 		for (const auto& buff : pProfile->Buffs)
 		{
-			if (SPELL* pSpell = GetSpellByID(buff.SpellID))
+			if (EQ_Spell* pSpell = GetSpellByID(buff.SpellID))
 			{
 				if (pSpell->SpellType != 0)
 				{
@@ -3120,7 +3120,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 				if (slot->SpawnID && slot->xTargetType == XTARGET_AUTO_HATER)
 				{
-					SPAWNINFO* pSpawn = GetSpawnByID(slot->SpawnID);
+					PlayerClient* pSpawn = GetSpawnByID(slot->SpawnID);
 					if (!pSpawn
 						|| (pTarget && pTarget->SpawnID == pSpawn->SpawnID)
 						|| (pSpawn->Type != SPAWN_NPC))
@@ -3150,7 +3150,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 				if (slot.SpawnID != 0
 					&& slot.xTargetType == XTARGET_AUTO_HATER)
 				{
-					SPAWNINFO* pSpawn = GetSpawnByID(slot.SpawnID);
+					PlayerClient* pSpawn = GetSpawnByID(slot.SpawnID);
 					if (!pSpawn
 						|| (pTarget && pTarget->SpawnID == pSpawn->SpawnID)
 						|| (pSpawn->Type != SPAWN_NPC))
@@ -3235,7 +3235,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 	case CharacterMembers::MercenaryStance:
 		if (const MercenaryStanceInfo* pInfo = pMercManager->GetActiveMercenaryStance())
 		{
-			strcpy_s(DataTypeTemp, pCDBStr->GetString(pInfo->stanceStringId, eMercenaryStanceName));
+			strcpy_s(DataTypeTemp, pDBStr->GetString(pInfo->stanceStringId, eMercenaryStanceName));
 		}
 		else
 		{
@@ -3273,7 +3273,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 			// name
 			for (int nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 			{
-				if (SPELL* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
+				if (EQ_Spell* pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
 					if (!_stricmp(Index, pSpell->Name))
 					{

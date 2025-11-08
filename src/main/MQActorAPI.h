@@ -18,14 +18,23 @@
 #error This header should only be included from the MQ2Main project
 #endif
 
+#include "ModuleSystem.h"
+
 #include "mq/base/PluginHandle.h"
 #include "mq/api/ActorAPI.h"
 
 namespace mq {
 
-class MQActorAPI
+class MQActorAPI : public MQModule
 {
+	virtual void Initialize() override;
+	virtual void Shutdown() override;
+	virtual void OnAfterModuleUnloaded(MQModule* module) override;
+
 public:
+	MQActorAPI();
+	virtual ~MQActorAPI() override;
+
 	void SendToActor(
 		postoffice::Dropbox* dropbox,
 		const postoffice::Address& address,

@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -156,7 +156,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		char* targetAggroHolder = g_labelCache->AggroMostHatedNameNoLock;
 		if (targetAggroHolder[0] != '\0')
 		{
-			if (SPAWNINFO* pAggroHolder = GetSpawnByName(targetAggroHolder))
+			if (PlayerClient* pAggroHolder = GetSpawnByName(targetAggroHolder))
 			{
 				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
@@ -168,7 +168,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			SearchSpawn.FRadius = 999999.0f;
 			strcpy_s(SearchSpawn.szName, targetAggroHolder);
 
-			if (SPAWNINFO* pAggroHolder = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
+			if (PlayerClient* pAggroHolder = SearchThroughSpawns(&SearchSpawn, pLocalPlayer))
 			{
 				Dest = pSpawnType->MakeTypeVar(pAggroHolder);
 				return true;
@@ -437,7 +437,7 @@ bool MQ2TargetType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 
 bool MQ2TargetType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	SPAWNINFO* pSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
+	PlayerClient* pSpawn = MQ2SpawnType::GetSpawnPtr(VarPtr);
 	if (!pSpawn)
 		return false;
 	strcpy_s(Destination, MAX_STRING, pSpawn->Name);

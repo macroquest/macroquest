@@ -18,9 +18,6 @@
     <Filter Include="Header Files\contrib">
       <UniqueIdentifier>{37f552ce-de79-4c09-bc69-6022bc7cedd3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\common">
-      <UniqueIdentifier>{e98c76df-4e31-446f-a6ab-5ea6d565f09c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\datatypes">
       <UniqueIdentifier>{4082d230-146c-4090-ba35-9c9784d918c4}</UniqueIdentifier>
     </Filter>
@@ -74,13 +71,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2AutoInventory.cpp">
+    <ClCompile Include="MQAutoInventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Benchmarks.cpp">
+    <ClCompile Include="MQBenchmarks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ChatHook.cpp">
+    <ClCompile Include="MQChatHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQDisplayHook.cpp">
@@ -95,55 +92,43 @@
     <ClCompile Include="MQInputAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Data.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MQDataAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2DataVars.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQDetourAPI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Globals.cpp">
+    <ClCompile Include="MQGlobals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2KeyBinds.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MQ2MacroCommands.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MacroQuest.cpp">
+    <ClCompile Include="MQKeyBinds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQPluginHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Pulse.cpp">
+    <ClCompile Include="MQPulse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Spawns.cpp">
+    <ClCompile Include="MQSpawns.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Utilities.cpp">
+    <ClCompile Include="MQUtilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Windows.cpp">
+    <ClCompile Include="MQWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Spells.cpp">
+    <ClCompile Include="MQSpells.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2LoginFrontend.cpp">
+    <ClCompile Include="MQLoginFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="datatypes\MQ2DataTypes.cpp">
+    <ClCompile Include="datatypes\MQDataTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2PluginType.cpp">
@@ -207,9 +192,6 @@
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2SkillType.cpp">
-      <Filter>Source Files\datatypes</Filter>
-    </ClCompile>
-    <ClCompile Include="datatypes\MQ2TimerType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2InvSlotType.cpp">
@@ -296,7 +278,7 @@
     <ClCompile Include="datatypes\MQ2MathType.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Anonymize.cpp">
+    <ClCompile Include="MQAnonymize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\contrib\mini-yaml\yaml\Yaml.cpp">
@@ -305,31 +287,31 @@
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2CachedBuffs.cpp">
+    <ClCompile Include="MQCachedBuffs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2StringDB.cpp">
+    <ClCompile Include="MQStringDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\HotKeys.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2GroundSpawns.cpp">
+    <ClCompile Include="MQGroundSpawns.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2DeveloperTools.cpp">
+    <ClCompile Include="MQDeveloperTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2Items.cpp">
+    <ClCompile Include="MQItems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2FrameLimiter.cpp">
+    <ClCompile Include="MQFrameLimiter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQImGuiConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2ImGuiTools.cpp">
+    <ClCompile Include="MQImGuiTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datatypes\MQ2RaidType.cpp">
@@ -338,7 +320,7 @@
     <ClCompile Include="datatypes\MQ2BasicTypes.cpp">
       <Filter>Source Files\datatypes</Filter>
     </ClCompile>
-    <ClCompile Include="MQ2WindowInspector.cpp">
+    <ClCompile Include="MQWindowInspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MQImguiWidgets.cpp">
@@ -410,24 +392,39 @@
     <ClCompile Include="MQRenderDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MacroQuest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQNewsWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQCfgFileHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MacroSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MQEQBugFix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="datatypes\MQ2TimerType.cpp">
+      <Filter>Source Files\datatypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MQ2Commands.h">
+    <ClInclude Include="MQCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Globals.h">
+    <ClInclude Include="MQGlobals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Inlines.h">
+    <ClInclude Include="MQInlines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Internal.h">
+    <ClInclude Include="MQInternal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MQ2Prototypes.h">
+    <ClInclude Include="MQMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -436,22 +433,13 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\Common.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\ConfigUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\StringUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\contrib\Blech\Blech.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="datatypes\DataTypeList.h">
       <Filter>Header Files\datatypes</Filter>
     </ClInclude>
-    <ClInclude Include="datatypes\MQ2DataTypes.h">
+    <ClInclude Include="datatypes\MQDataTypes.h">
       <Filter>Header Files\datatypes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\mini-yaml\yaml\Yaml.hpp">
@@ -463,28 +451,25 @@
     <ClInclude Include="CrashHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\MiscUtils.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="MQ2DataContainers.h">
+    <ClInclude Include="MQDataContainers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\contrib\tinyfsm\include\tinyfsm.hpp">
       <Filter>Header Files\contrib\tinyfsm</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2MainBase.h">
+    <ClInclude Include="MQMainBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2DeveloperTools.h">
+    <ClInclude Include="MQDeveloperTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Utilities.h">
+    <ClInclude Include="MQUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2ImGuiTools.h">
+    <ClInclude Include="MQImGuiTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2Mercenaries.h">
+    <ClInclude Include="MQMercenaries.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\Plugin.h">
@@ -502,7 +487,7 @@
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h">
       <Filter>Header Files\mq\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2KeyBinds.h">
+    <ClInclude Include="MQKeyBinds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\utils\Args.h">
@@ -514,7 +499,7 @@
     <ClInclude Include="MQVersionInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MQ2SpellSearch.h">
+    <ClInclude Include="MQSpellSearch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h">
@@ -526,7 +511,7 @@
     <ClInclude Include="..\..\include\mq\base\Deprecation.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\mq\base\SimpleLexer.h">
+    <ClInclude Include="..\..\include\mq\utils\SimpleLexer.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Achievements.h">
@@ -610,9 +595,6 @@
     <ClInclude Include="MQActorAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsResources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\Textures.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -649,9 +631,6 @@
     <ClInclude Include="..\..\include\mq\base\ScopeExit.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
-    <ClInclude Include="MQRenderDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\RenderDoc.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -660,6 +639,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h">
       <Filter>Header Files\mq\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\CachedBuffs.h">
+      <Filter>Header Files\mq\api</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Base.h">
       <Filter>Header Files\mq\base</Filter>
@@ -670,7 +652,22 @@
     <ClInclude Include="..\..\include\mq\base\EnumFmt.h">
       <Filter>Header Files\mq\base</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Iterator.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
     <ClInclude Include="MacroQuest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MQConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MacroSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MacroSystemInternal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Logging.h">
@@ -702,6 +699,9 @@
     </None>
     <None Include="..\..\data\resources\Zones.ini">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ModuleList.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

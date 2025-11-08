@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "MQ2DataTypes.h"
+#include "MQDataTypes.h"
 
 namespace mq::datatypes {
 
@@ -737,7 +737,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!Index[0] || !pLocalPlayer)
 			return false;
 
-		SPELL* tmpSpell = GetSpellByName(Index);
+		EQ_Spell* tmpSpell = GetSpellByName(Index);
 
 		if (!tmpSpell)
 			return false;
@@ -799,7 +799,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		strcpy_s(DataTypeTemp, "Unknown");
 		if (int cat = GetSpellCategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
+			if (const char* ptr = pDBStr->GetString(cat, eSpellCategory))
 			{
 				strcpy_s(DataTypeTemp, ptr);
 			}
@@ -818,7 +818,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		strcpy_s(DataTypeTemp, "Unknown");
 		if (int cat = GetSpellSubcategory(pSpell))
 		{
-			if (const char* ptr = pCDBStr->GetString(cat, eSpellCategory))
+			if (const char* ptr = pDBStr->GetString(cat, eSpellCategory))
 			{
 				strcpy_s(DataTypeTemp, ptr);
 			}
@@ -1042,7 +1042,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Description:
 		Dest.Type = pStringType;
-		if (const char* ptr = pCDBStr->GetString(pSpell->DescriptionIndex, eSpellDescription))
+		if (const char* ptr = pDBStr->GetString(pSpell->DescriptionIndex, eSpellDescription))
 		{
 			strcpy_s(DataTypeTemp, ptr);
 			Dest.Ptr = &DataTypeTemp[0];

@@ -13,11 +13,16 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
+#include "MQCommandAPI.h"
 
 #include "CrashHandler.h"
-#include "MQCommandAPI.h"
+#include "Logging.h"
+#include "MacroSystem.h"
+#include "MQMain.h"
+
 #include "mq/base/ScopeExit.h"
+
+using namespace eqlib;
 
 namespace mq {
 
@@ -44,19 +49,15 @@ struct MQCommand
 	MQCommand*       pNext = nullptr;
 };
 
-void PopMacroLoop();
-// Defined in MQ2MacroCommands.cpp
-void FailIf(PlayerClient* pChar, const char* szCommand, int pStartLine, bool All);
-
 MQCommandAPI* pCommandAPI = nullptr;
 
 class CEverQuest_CommandHook
 {
 public:
-	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (SPAWNINFO* pChar, const char* szFullLine))
-	void InterpretCmd_Detour(SPAWNINFO* pChar, const char* szFullLine)
+	DETOUR_TRAMPOLINE_DEF(void, InterpretCmd_Trampoline, (PlayerClient* pChar, const char* szFullLine))
+	void InterpretCmd_Detour(PlayerClient* pChar, const char* szFullLine)
 	{
-		DebugSpew("CCommandHook::Detour(%s)", szFullLine);
+		LOG_DEBUG("CCommandHook::Detour(%s)", szFullLine);
 
 		auto eqHandler = [this](eqlib::PlayerClient* pChar_, const char* szFullLine_) { InterpretCmd_Trampoline(pChar_, szFullLine_); };
 
@@ -71,9 +72,26 @@ public:
 
 //============================================================================
 
+// TODO: module priority on this has it load early, but we used to pulse it late.
+//       re-evaluate if this is a problem because now we pulse it at start of frame instead
+//       of end.
+
+DECLARE_MODULE_FACTORY(MQCommandAPI);
+
 MQCommandAPI::MQCommandAPI()
+	: MQModule("Commands", static_cast<int>(ModulePriority::Commands))
 {
-	DebugSpew("Initializing Commands");
+	pCommandAPI = this;
+}
+
+MQCommandAPI::~MQCommandAPI()
+{
+	pCommandAPI = nullptr;
+}
+
+void MQCommandAPI::Initialize()
+{
+	LOG_TRACE("Initializing Commands");
 
 	EzDetour(CEverQuest__InterpretCmd, &CEverQuest_CommandHook::InterpretCmd_Detour, &CEverQuest_CommandHook::InterpretCmd_Trampoline);
 
@@ -137,72 +155,45 @@ MQCommandAPI::MQCommandAPI()
 		{ "/advloot",           AdvLootCmd,                 true,  true  },
 #endif
 		{ "/alert",             Alert,                      true,  true  },
-		{ "/alias",             Alias,                      false, false },
 		{ "/altkey",            DoAltCmd,                   false, false },
 		{ "/assist",            AssistCmd,                  true,  true  },
 		{ "/banklist",          BankList,                   true,  true  },
-		{ "/beep",              MacroBeep,                  true,  false },
-		{ "/bind",              MQ2KeyBindCommand,          true,  false },
-		{ "/break",             Break,                      true,  false },
 		{ "/buyitem",           BuyItem,                    true,  true  },
-		{ "/cachedbuffs",       CachedBuffsCommand,         true,  true  },
-		{ "/call",              Call,                       true,  false },
 		{ "/cast",              Cast,                       true,  true  },
 		{ "/cecho",             EchoClean,                  true,  false },
 		{ "/char",              CharInfo,                   true,  true  },
 		{ "/cleanup",           Cleanup,                    true,  false },
-		{ "/clearerrors",       ClearErrorsCmd,             true,  false },
 		{ "/click",             Click,                      true,  false },
 		{ "/combine",           CombineCmd,                 true,  true  },
-		{ "/continue",          Continue,                   true,  false },
 #if HAS_ITEM_CONVERT_BUTTON
 		{ "/convertitem",       ConvertItemCmd,             true,  true  },
 #endif
 		{ "/ctrlkey",           DoCtrlCmd,                  false, false },
-		{ "/declare",           DeclareVar,                 true,  false },
-		{ "/delay",             Delay,                      false, false }, // do not parse
-		{ "/deletevar",         DeleteVarCmd,               true,  false },
+		{ "/delay",             DelayCommand,               false, false },
 		{ "/destroy",           EQDestroyHeldItemOrMoney,   true,  true  },
 		{ "/doability",         DoAbility,                  true,  true  },
-		{ "/docommand",         DoCommandCmd,               true,  false },
-		{ "/doevents",          DoEvents,                   true,  false },
 		{ "/doors",             Doors,                      true,  true  },
 		{ "/doortarget",        DoorTarget,                 true,  true  },
 		{ "/dosocial",          DoSocial,                   true,  true  },
 		{ "/drop",              DropCmd,                    true,  true  },
-		{ "/dumpbinds",         DumpBindsCommand,           true,  false },
-		{ "/dumpstack",         DumpStack,                  true,  false },
 		{ "/echo",              Echo,                       true,  false },
-		{ "/endmacro",          EndMacro,                   true,  false },
-		{ "/engine",            EngineCommand,              true,  false },
 		{ "/exec",              Exec,                       true,  false },
 		{ "/executelink",       ExecuteLinkCommand,         true,  true  },
 		{ "/face",              Face,                       true,  true  },
 		{ "/filter",            Filter,                     true,  false },
-		{ "/for",               For,                        true,  false },
-		{ "/foreground",        ForeGroundCmd,              true,  false },
 		{ "/getwintitle",       GetWinTitle,                true,  false },
-		{ "/goto",              Goto,                       true,  false },
-		{ "/help",              Help,                       true,  false },
 		{ "/hotbutton",         DoHotButton,                true,  true  },
-		{ "/hud",               HudCmd,                     true,  false },
 		{ "/identify",          Identify,                   true,  true  },
-		{ "/if",                MacroIfCmd,                 true,  false },
 		{ "/ini",               IniOutput,                  true,  false },
 		{ "/insertaug",         InsertAugCmd,               true,  true  },
-		{ "/invoke",            InvokeCmd,                  true,  false },
 		{ "/items",             Items,                      true,  true  },
 		{ "/itemtarget",        ItemTarget,                 true,  true  },
-		{ "/keepkeys",          KeepKeys,                   true,  false },
 		{ "/keypress",          DoMappable,                 true,  false },
-		{ "/listmacros",        ListMacros,                 true,  false },
-		{ "/loadcfg",           LoadCfgCommand,             true,  false },
 		{ "/loadspells",        LoadSpells,                 true,  true  },
 		{ "/location",          Location,                   true,  true  },
 		{ "/loginname",         DisplayLoginName,           true,  false },
 		{ "/look",              Look,                       true,  true  },
 		{ "/lootall",           LootAll,                    true,  false },
-		{ "/macro",             Macro,                      true,  false },
 		{ "/makemevisible",     MakeMeVisible,              false, true  },
 		{ "/memspell",          MemSpell,                   true,  true  },
 		{ "/mercswitch",        MercSwitchCmd,              true,  true  },
@@ -210,20 +201,16 @@ MQCommandAPI::MQCommandAPI()
 		{ "/mqcopylayout",      MQCopyLayout,               true,  false },
 		{ "/mqlistmodules",     ListModulesCommand,         false, false },
 		{ "/mqlistprocesses",   ListProcessesCommand,       false, false },
-		{ "/mqlog",             MacroLog,                   true,  false },
-		{ "/mqpause",           MacroPause,                 true,  false },
+		{ "/mqlog",             MacroLogCommand,            true,  false },
 		{ "/mqtarget",          Target,                     true,  true  },
 		{ "/msgbox",            MQMsgBox,                   true,  false },
 		{ "/multiline",         MultilineCommand,           false, false },
-		{ "/next",              Next,                       true,  false },
 		{ "/nomodkey",          NoModKeyCmd,                false, false },
-		{ "/noparse",           NoParseCmd,                 false, false },
 		{ "/pet",               PetCmd,                     true,  true  },
 		{ "/pickzone",          PickZoneCmd,                true,  true  },
 		{ "/popcustom",         PopupTextCustom,            true,  true  },
 		{ "/popup",             PopupText,                  true,  true  },
 		{ "/popupecho",         PopupTextEcho,              true,  true  },
-		{ "/profile",           ProfileCmd,                 true,  false },
 		{ "/quit",              QuitCmd,                    true,  false },
 		{ "/ranged",            RangedCmd,                  true,  true  },
 		{ "/reloadui",          ReloadUICmd,                true,  true  },
@@ -232,30 +219,22 @@ MQCommandAPI::MQCommandAPI()
 		{ "/removebuff",        RemoveBuff,                 true,  true  },
 		{ "/removelev",         RemoveLevCmd,               true,  false },
 		{ "/removepetbuff",     RemovePetBuff,              true,  true  },
-		{ "/return",            Return,                     true,  false },
 		{ "/screenmode",        ScreenModeCmd,              true,  false },
 		{ "/selectitem",        SelectItem,                 true,  true  },
 		{ "/sellitem",          SellItem,                   true,  true  },
 		{ "/setautorun",        SetAutoRun,                 false, true  },
-		{ "/seterror",          SetError,                   true,  false },
 		{ "/setprio",           SetProcessPriority,         true,  false },
 		{ "/setwintitle",       SetWinTitle,                true,  false },
 		{ "/shiftkey",          DoShiftCmd,                 false, false },
 		{ "/skills",            Skills,                     true,  true  },
 		{ "/spellslotinfo",     SpellSlotInfo,              true,  true  },
-		{ "/spewfile",          DebugSpewFile,              true,  false },
 		{ "/squelch",           SquelchCommand,             true,  false },
+		{ "/spewfile",          DebugSpewFile,              true,  false },
 		{ "/target",            Target,                     true,  true  },  // TODO:  Deprecate /target in favor of /mqtarget so that /target is the actual EQ Command. See #298
 		{ "/taskquit",          TaskQuitCmd,                true,  true  },
 		{ "/timed",             DoTimedCmd,                 false, false },
 		{ "/unload",            Unload,                     true,  false },
 		{ "/useitem",           UseItemCmd,                 true,  true  },
-		{ "/usercamera",        UserCameraCmd,              true,  false },
-		{ "/varcalc",           VarCalcCmd,                 true,  false },
-		{ "/vardata",           VarDataCmd,                 true,  false },
-		{ "/varset",            VarSetCmd,                  true,  false },
-		{ "/where",             Where,                      true,  true  },
-		{ "/while",             MacroWhileCmd,              true,  false },
 		{ "/who",               SuperWho,                   true,  true  },
 		{ "/whofilter",         SWhoFilter,                 true,  true  },
 		{ "/whotarget",         SuperWhoTarget,             true,  true  },
@@ -271,10 +250,13 @@ MQCommandAPI::MQCommandAPI()
 		AddCommand(NewCommands[i].szCommand, NewCommands[i].pFunc, false, NewCommands[i].Parse, NewCommands[i].InGame);
 	}
 
+	AddCommand("/alias", [this](PlayerClient*, const char* line) { Cmd_Alias(line); }, false, false, false);
+	AddCommand("/help", [this](PlayerClient*, const char* line) { Cmd_Help(line); }, false, true, false);
+
 	LoadAliases();
 }
 
-MQCommandAPI::~MQCommandAPI()
+void MQCommandAPI::Shutdown()
 {
 	RemoveDetour(CEverQuest__InterpretCmd);
 
@@ -297,88 +279,87 @@ MQCommandAPI::~MQCommandAPI()
 	m_aliases.clear();
 }
 
-void MQCommandAPI::OnPluginUnloaded(MQPlugin* plugin, const MQPluginHandle& pluginHandle)
+void MQCommandAPI::OnAfterModuleUnloaded(MQModule* module)
 {
-	// Remove any commands that were created by this plugin.
-	MQCommand* pCommand = m_pCommands;
-
-	while (pCommand)
+	if (module->IsPlugin())
 	{
-		if (pCommand->pluginHandle == pluginHandle)
-		{
-			DebugSpew("Removing command left behind by %s: %s", plugin->name.c_str(), pCommand->command.c_str());
+		// Remove any commands that were created by this plugin.
+		MQCommand* pCommand = m_pCommands;
 
-			if (pCommand->pNext)
-				pCommand->pNext->pLast = pCommand->pLast;
-			if (pCommand->pLast)
-				pCommand->pLast->pNext = pCommand->pNext;
+		while (pCommand)
+		{
+			if (pCommand->pluginHandle == module->GetHandle())
+			{
+				DebugSpew("Removing command left behind by %s: %s", module->GetName().c_str(), pCommand->command.c_str());
+
+				if (pCommand->pNext)
+					pCommand->pNext->pLast = pCommand->pLast;
+				if (pCommand->pLast)
+					pCommand->pLast->pNext = pCommand->pNext;
+				else
+					m_pCommands = pCommand->pNext;
+
+				MQCommand* thisCmd = pCommand;
+				pCommand = pCommand->pNext;
+
+				delete thisCmd;
+			}
 			else
-				m_pCommands = pCommand->pNext;
-
-			MQCommand* thisCmd = pCommand;
-			pCommand = pCommand->pNext;
-
-			delete thisCmd;
-		}
-		else
-		{
-			pCommand = pCommand->pNext;
+			{
+				pCommand = pCommand->pNext;
+			}
 		}
 	}
 }
 
-bool MQCommandAPI::InterpretCmd(const char* szFullLine, const MQCommandHandler& eqHandler)
+bool MQCommandAPI::InterpretCmd(const char* szLine, const MQCommandHandler& eqHandler)
 {
-	if (szFullLine[0] == 0)
+	if (szLine[0] == 0)
 		return false;
 
-	char szFullCommand[MAX_STRING] = { 0 };
-	strcpy_s(szFullCommand, szFullLine);
+	char szOriginalCommand[MAX_STRING] = { 0 };
+	strcpy_s(szOriginalCommand, szLine);
 
 	char szCommand[MAX_STRING] = { 0 };
-	GetArg(szCommand, szFullCommand, 1);
+	strcpy_s(szCommand, szLine);
 
-	if (!_stricmp(szCommand, "/camp"))
+	// Perform alias replacement on the command
+	if (SubstituteAlias(szOriginalCommand, szCommand, MAX_STRING))
 	{
-		if (GetMacroBlockCount())
-		{
-			WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW);
-		}
+		strcpy_s(szOriginalCommand, szCommand);
 	}
 
-	if (auto findIter = m_aliases.find(szCommand); findIter != m_aliases.end())
+	// We replaced the command, update the first arg.
+	GetArg(szCommand, szOriginalCommand, 1);
+
+	if (g_macroSystem
+		&& g_macroSystem->IsMacroRunning()
+		&& ci_equals(szCommand, "/camp"))
 	{
-		const RegisteredAlias& alias = findIter->second;
-
-		sprintf_s(szCommand, "%s%s",alias.replacement.c_str(), szFullCommand + alias.match.size());
-		strcpy_s(szFullCommand, szCommand);
+		WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW);
 	}
-
-	GetArg(szCommand, szFullCommand, 1);
 
 	char szArgs[MAX_STRING] = { 0 };
-	strcpy_s(szArgs, GetNextArg(szFullCommand));
+	strcpy_s(szArgs, GetNextArg(szOriginalCommand));
 
 	if (DispatchCommand(szCommand, szArgs, eqHandler))
 	{
-		strcpy_s(szLastCommand, szFullCommand);
+		strcpy_s(szLastCommand, szOriginalCommand);
 		return true;
 	}
 
-	if (DispatchBind(szCommand, szArgs))
+	if (g_macroSystem && g_macroSystem->DispatchBind(szCommand, szArgs))
 	{
-		strcpy_s(szLastCommand, szFullCommand);
+		strcpy_s(szLastCommand, szOriginalCommand);
 		return true;
 	}
 
-	strcpy_s(szLastCommand, szFullCommand);
+	strcpy_s(szLastCommand, szOriginalCommand);
 	return false;
 }
 
 bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQCommandHandler& eqHandler)
 {
-	std::unique_lock lock(m_commandMutex);
-
 	MQCommand* pCommand = m_pCommands;
 	while (pCommand)
 	{
@@ -398,8 +379,6 @@ bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQComman
 
 		if (Pos == 0)
 		{
-			lock.unlock();
-
 			// the parser version is 2, or It's not version 2 and we're allowing command parses
 			if (pCommand->parse && (gParserVersion == 2 || (gParserVersion != 2 && bAllowCommandParse)))
 			{
@@ -426,186 +405,94 @@ bool MQCommandAPI::DispatchCommand(char* szCommand, char* szArgs, const MQComman
 	return false;
 }
 
-bool MQCommandAPI::DispatchBind(char* szCommand, char* szArgs)
+bool MQCommandAPI::SubstituteAlias(const char* szOriginal, char* szLine, size_t length)
 {
-	// Macro Binds only supported in-game
-	if (gGameState != GAMESTATE_INGAME)
-		return false;
-	// Why is this here?
-	if (!pLocalPlayer)
-		return false;
+	char szFirstArg[MAX_STRING];
+	GetArg(szFirstArg, szOriginal, 1);
 
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (!pBlock)
-		return false;
-
-	MQBindList* pBind = pBindList;
-	while (pBind)
+	// Perform alias replacement
+	auto findIter = m_aliases.find(szFirstArg);
+	if (findIter != m_aliases.end())
 	{
-		// Substring search for the command
-		if (ci_find_substr(pBind->szName, szCommand) == 0)
-		{
-			if (pBlock->BindCmd.empty())
-			{
-				if (!gBindInProgress)
-				{
-					char szCallFunc[MAX_STRING] = { 0 };
-					strcpy_s(szCallFunc, pBind->szFuncName);
-					strcat_s(szCallFunc, " ");
-					strcat_s(szCallFunc, szArgs);
+		const RegisteredAlias& alias = findIter->second;
 
-					if (pBind->Parse)
-					{
-						ParseMacroData(szCallFunc, MAX_STRING);
-					}
-
-					gBindInProgress = true;
-					pBlock->BindCmd = szCallFunc;
-				}
-				else
-				{
-					WriteChatf("Can't execute bind while another bind is in progress");
-				}
-			}
-
-			return true;
-		}
-
-		pBind = pBind->pNext;
+		sprintf_s(szLine, length, "%s%s", alias.replacement.c_str(), szOriginal + alias.match.size());
+		return true;
 	}
 
 	return false;
 }
 
-void MQCommandAPI::DoCommand(const char* szLine, bool delayed,
-	const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
+bool MQCommandAPI::DoCommandInternal(char* szOriginalLine, char* szArg1, char* szParam)
 {
-	std::unique_lock lock(m_commandMutex);
-
-	if (delayed)
-	{
-		m_delayedCommands.emplace_back(szLine, pluginHandle);
-		return;
-	}
-
-	WeDidStuff();
-
 	// Update crash state with last known command in case something goes wrong
-	CrashHandler_SetLastCommand(szLine);
+	CrashHandler_SetLastCommand(szOriginalLine);
 	SCOPE_EXIT(CrashHandler_SetLastCommand(nullptr));
 
-	char szTheCmd[MAX_STRING] = { 0 };
-	strcpy_s(szTheCmd, szLine);
-
-	char szOriginalLine[MAX_STRING] = { 0 };
-	strcpy_s(szOriginalLine, szTheCmd);
-
-	char szArg1[MAX_STRING] = { 0 };
-	GetArg(szArg1, szTheCmd, 1);
-
-	auto findIter = m_aliases.find(szArg1);
-	if (findIter != m_aliases.end())
-	{
-		const RegisteredAlias& alias = findIter->second;
-
-		sprintf_s(szTheCmd, "%s%s", alias.replacement.c_str(), szOriginalLine + alias.match.size());
-	}
-
-	GetArg(szArg1, szTheCmd, 1);
 	if (szArg1[0] == 0)
-		return;
-
-	char szParam[MAX_STRING] = { 0 };
-	strcpy_s(szParam, GetNextArg(szTheCmd));
-
-	if ((szArg1[0] == ':') || (szArg1[0] == '{'))
-	{
-		bRunNextCommand = true;
-		return;
-	}
-
-	MQMacroBlockPtr pBlock = GetCurrentMacroBlock();
-	if (szArg1[0] == '}')
-	{
-		if (pBlock)
-		{
-			const auto loopStart = pBlock->Line.at(pBlock->CurrIndex).LoopStart;
-			if (loopStart != 0)
-			{
-				pBlock->CurrIndex = loopStart;
-				PopMacroLoop();
-				return;
-			}
-		}
-
-		if (strstr(szTheCmd, "{"))
-		{
-			GetArg(szArg1, szTheCmd, 2);
-			if (_stricmp(szArg1, "else") != 0)
-			{
-				FatalError("} and { seen on the same line without an else present");
-			}
-			//DebugSpew("DoCommand - handing {} off to FailIf");
-			if (pBlock)
-				FailIf(pLocalPlayer, "{", pBlock->CurrIndex, true);
-		}
-		else
-		{
-			// handle this:
-			//            /if () {
-			//            } else /echo stuff
-			GetArg(szArg1, szTheCmd, 2);
-			if (!_stricmp(szArg1, "else"))
-			{
-				// check here to fail this:
-				//            /if () {
-				//            } else
-				//                /echo stuff
-				GetArg(szArg1, szTheCmd, 3);
-				if (!_stricmp(szArg1, ""))
-				{
-					FatalError("no command or { following else");
-				}
-				bRunNextCommand = true;
-			}
-			else
-			{
-				bRunNextCommand = true;
-			}
-		}
-		return;
-	}
+		return true;
 
 	if (szArg1[0] == ';' || szArg1[0] == '[')
 	{
 		pEverQuest->InterpretCmd(pLocalPlayer, szOriginalLine);
-		return;
+		return true;
 	}
 
 	if (DispatchCommand(szArg1, szParam, nullptr))
 	{
 		strcpy_s(szLastCommand, szOriginalLine);
-		return;
+		return true;
 	}
 
-	if (DispatchBind(szArg1, szParam))
+	if (g_macroSystem && g_macroSystem->DispatchBind(szArg1, szParam))
 	{
 		strcpy_s(szLastCommand, szOriginalLine);
-		return;
+		return true;
 	}
 
-	// skip this logic for Bind Commands.
-	if (_strnicmp(szOriginalLine, "sub bind_", 9) != 0)
+	strcpy_s(szLastCommand, szOriginalLine);
+	return false;
+}
+
+bool MQCommandAPI::DoCommand(const char* szLine, bool delayed,
+	const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
+{
+	if (delayed)
 	{
-		if (!_strnicmp(szOriginalLine, "sub ", 4))
-		{
-			FatalError("Flow ran into another subroutine. (%s)", szOriginalLine);
-			return;
-		}
-
-		strcpy_s(szLastCommand, szOriginalLine);
-		MacroError("DoCommand - Couldn't parse '%s'", szOriginalLine);
+		m_delayedCommands.emplace_back(szLine, pluginHandle);
+		return true;
 	}
+
+	WeDidStuff();
+
+	char szOriginalLine[MAX_STRING] = { 0 };
+	strcpy_s(szOriginalLine, szLine);
+
+	// The command we are processing. Alias will be applied.
+	char szTheCmd[MAX_STRING] = { 0 };
+	strcpy_s(szTheCmd, szLine);
+
+	// The first token of the line
+	char szArg1[MAX_STRING] = { 0 };
+	GetArg(szArg1, szTheCmd, 1);
+
+	// Perform alias replacement on the command
+	if (SubstituteAlias(szOriginalLine, szTheCmd, MAX_STRING))
+	{
+		// We replaced the command, update the first arg.
+		GetArg(szArg1, szTheCmd, 1);
+	}
+
+	char szParam[MAX_STRING] = { 0 };
+	strcpy_s(szParam, GetNextArg(szTheCmd));
+
+	if (!DoCommandInternal(szOriginalLine, szArg1, szParam))
+	{
+		MacroError("Unrecognized command: '%s'", szLine);
+		return false;
+	}
+
+	return true;
 }
 
 bool MQCommandAPI::AddCommand(std::string_view command, MQCommandHandler handler,
@@ -863,14 +750,12 @@ void MQCommandAPI::LoadAliases()
 //============================================================================
 //============================================================================
 
-void MQCommandAPI::PulseCommands()
+void MQCommandAPI::OnProcessFrame()
 {
 	if (m_delayedCommands.empty() && !m_pTimedCommands)
 	{
 		return;
 	}
-
-	std::scoped_lock lock(m_commandMutex);
 
 	{
 		// Swap with empty container to get our delayed commands. Running DoCommand
@@ -901,8 +786,6 @@ void MQCommandAPI::PulseCommands()
 
 void MQCommandAPI::TimedCommand(const char* command, int msDelay, const MQPluginHandle& pluginHandle /* = mqplugin::ThisPluginHandle */)
 {
-	std::scoped_lock lock(m_commandMutex);
-
 	MQTimedCommand* pNew = new MQTimedCommand;
 	pNew->time = msDelay + MQGetTickCount64();
 	pNew->command = command;
@@ -989,11 +872,6 @@ void MQCommandAPI::Cmd_Help(const char* szLine) const
 	}
 }
 
-void Help(PlayerClient*, const char* szLine)
-{
-	pCommandAPI->Cmd_Help(szLine);
-}
-
 // ***************************************************************************
 // Function:    Alias
 // Description: Our '/alias' command
@@ -1067,27 +945,29 @@ void MQCommandAPI::Cmd_Alias(const char* szLine)
 	WriteChatf("Alias '%s' %s.", szName, (New) ? "added" : "updated");
 }
 
-void Alias(PlayerClient*, const char* szLine)
-{
-	pCommandAPI->Cmd_Alias(szLine);
-}
-
 //============================================================================
 //============================================================================
 
 bool AddCommand(std::string_view command, MQCommandHandler handler, bool eq, bool parse, bool inGame)
 {
-	return pCommandAPI->AddCommand(command, std::move(handler), eq, parse, inGame);
+	return pCommandAPI && pCommandAPI->AddCommand(command, std::move(handler), eq, parse, inGame);
 }
 
 bool RemoveCommand(std::string_view command)
 {
-	return pCommandAPI->RemoveCommand(command);
+	return pCommandAPI && pCommandAPI->RemoveCommand(command);
 }
 
 void DoCommand(const char* szLine, bool delayed)
 {
-	pCommandAPI->DoCommand(szLine, delayed);
+	if (pCommandAPI)
+	{
+		pCommandAPI->DoCommand(szLine, delayed);
+	}
+	else
+	{
+		LOG_ERROR("Tried to run command without Commands module: {} delayed={}", szLine, delayed);
+	}
 }
 
 void DoCommandf(const char* szFormat, ...)
@@ -1101,7 +981,14 @@ void DoCommandf(const char* szFormat, ...)
 
 	vsprintf_s(szOutput, len, szFormat, vaList);
 
-	pCommandAPI->DoCommand(szOutput, false);
+	if (pCommandAPI)
+	{
+		pCommandAPI->DoCommand(szOutput, false);
+	}
+	else
+	{
+		LOG_ERROR("Tried to run command without Commands module: {} delayed={}", szOutput, false);
+	}
 }
 
 fEQCommand FindEQCommand(std::string_view command)

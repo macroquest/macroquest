@@ -13,9 +13,13 @@
  */
 
 #include "pch.h"
-#include "GraphicsResources.h"
 
-#include "MQ2Main.h"
+#include "ModuleSystem.h"
+#include "MQMain.h"
+
+#include "mq/api/Textures.h"
+
+using namespace eqlib;
 
 #include "eqlib/graphics/GraphicsEngine.h"
 #include "eqlib/graphics/ResourceManagerInterface.h"
@@ -178,31 +182,41 @@ static void GraphicsResources_InvalidateDeviceObjects()
 	}
 }
 
-void GraphicsResources_Initialize()
+class GraphicsResourcesModule : public MQModule
 {
-	MQRenderCallbacks callbacks;
-	callbacks.CreateDeviceObjects = GraphicsResources_CreateDeviceObjects;
-	callbacks.InvalidateDeviceObjects = GraphicsResources_InvalidateDeviceObjects;
-
-	s_renderCallbacksId = AddRenderCallbacks(callbacks);
-}
-
-void GraphicsResources_Shutdown()
-{
-	s_shutdown = true;
-
-	if (pGraphicsEngine && pGraphicsEngine->pResourceManager)
+public:
+	GraphicsResourcesModule() : MQModule("GraphicsResources", static_cast<int>(ModulePriority::Graphics))
 	{
-		for (MQTexture* texture : s_textures)
-		{
-			texture->ReleaseTexture();
-		}
 	}
 
-	s_textures.clear();
+	virtual void Initialize() override
+	{
+		MQRenderCallbacks callbacks;
+		callbacks.CreateDeviceObjects = GraphicsResources_CreateDeviceObjects;
+		callbacks.InvalidateDeviceObjects = GraphicsResources_InvalidateDeviceObjects;
 
-	RemoveRenderCallbacks(s_renderCallbacksId);
-}
+		s_renderCallbacksId = AddRenderCallbacks(callbacks);
+	}
+
+	virtual void Shutdown() override
+	{
+		s_shutdown = true;
+
+		if (pGraphicsEngine && pGraphicsEngine->pResourceManager)
+		{
+			for (MQTexture* texture : s_textures)
+			{
+				texture->ReleaseTexture();
+			}
+		}
+
+		s_textures.clear();
+
+		RemoveRenderCallbacks(s_renderCallbacksId);
+	}
+};
+
+DECLARE_MODULE_FACTORY(GraphicsResourcesModule);
 
 //============================================================================
 
