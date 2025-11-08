@@ -28,7 +28,8 @@ using namespace eqlib;
 
 namespace mq {
 
-char* szClickNotification[] = {
+static const char* szClickNotification[] =
+{
 	"leftmouse",        // 0
 	"leftmouseup",      // 1
 	"leftmouseheld",    // 2

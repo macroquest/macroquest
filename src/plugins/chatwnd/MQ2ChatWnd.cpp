@@ -63,7 +63,7 @@ DECLARE_PLUGIN_MODULE(ChatWndPlugin);
 class CMQChatWnd : public CCustomWnd
 {
 public:
-	CMQChatWnd(char* Template) : CCustomWnd(Template)
+	CMQChatWnd(const char* Template) : CCustomWnd(Template)
 	{
 		DebugSpew("CMQChatWnd()");
 

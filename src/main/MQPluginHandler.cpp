@@ -1190,7 +1190,7 @@ bool IsPluginLoaded(std::string_view pluginName)
 	}
 
 	LOG_ERROR("Attempt to call IsPluginLoaded without PluginHandler module loaded");
-	return nullptr;
+	return false;
 }
 
 int GetPluginUnloadFailedCount()

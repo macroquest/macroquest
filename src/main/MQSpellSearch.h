@@ -274,7 +274,7 @@ int GetCachedBuffCount(eqlib::PlayerClient* pSpawn, const SpellAttribute<T>& fPr
 template <typename T>
 int GetSelfBuff(const SpellAttribute<T>& fPredicate, int minSlot = 0, int maxSlot = -1)
 {
-	return GetSelfBuff([&fPredicate](const EQ_Affect& buff) { return fPredicate(buff); }, minSlot, maxSlot);
+	return GetSelfBuff([&fPredicate](const eqlib::EQ_Affect& buff) { return fPredicate(buff); }, minSlot, maxSlot);
 }
 
 MQLIB_OBJECT SpellAttributePredicate<eqlib::EQ_Affect> EvaluateBuffPredicate(std::string_view dsl);

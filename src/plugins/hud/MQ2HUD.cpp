@@ -481,7 +481,7 @@ void HUDPlugin::OnZoned()
 		HandleINI();
 }
 
-bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::list<std::string>& out)
+bool ParseMacroLine(char* szOriginal, size_t BufferSize, std::vector<std::string>& out)
 {
 	// find each {}
 	char* pBrace = strstr(szOriginal, "${");
@@ -655,10 +655,10 @@ void HUDPlugin::OnDrawHUD()
 						char szTemp[MAX_STRING] = { 0 };
 						strcpy_s(szTemp, pElement->Text);
 
-						std::list<std::string> out;
+						std::vector<std::string> out;
 						ParseMacroLine(szTemp, MAX_STRING, out);
 
-						for (auto& line : out)
+						for (const std::string& line : out)
 						{
 							bOkToCheck = false;
 							const char* pChar = line.c_str();

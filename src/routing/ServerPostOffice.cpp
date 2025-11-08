@@ -39,9 +39,9 @@ static void SetThreadName(const wchar_t* threadName)
 	}
 }
 
-ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, uint16_t defaultPort)
+ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, uint16_t peerPort)
 	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::CurrentProcess, CreateUUID()), "launcher"))
-	, m_peerPort(defaultPort)
+	, m_peerPort(peerPort)
 	, m_pipeName(pipeName)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))

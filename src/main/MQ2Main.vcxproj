@@ -169,7 +169,6 @@
     <Link>
       <BaseAddress>0x03000000</BaseAddress>
       <AdditionalDependencies>$(MQ2MainLibs);%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">
@@ -192,7 +191,6 @@
     <Link>
       <BaseAddress>0x030000000000</BaseAddress>
       <AdditionalDependencies>$(MQ2MainLibs);%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|x64'">
@@ -545,7 +543,6 @@
     <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="ImGuiBackend.h" />
     <ClInclude Include="ImGuiManager.h" />
-    <ClInclude Include="MQ2Commands.h" />
     <ClInclude Include="MQActorAPI.h" />
     <ClCompile Include="MQCfgFileHandler.cpp" />
     <ClInclude Include="MQCommandAPI.h" />

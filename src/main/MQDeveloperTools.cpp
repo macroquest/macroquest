@@ -18,24 +18,22 @@
 #include "ModuleSystem.h"
 #include "MQMain.h"
 
-#include "mq/base/Iterator.h"
-#include "mq/imgui/Widgets.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/fonts/IconsFontAwesome.h"
 #include "imgui/implot/implot.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_internal.h"
+#include "mq/imgui/Widgets.h"
+#include "mq/base/Iterator.h"
+
+#include "glm/glm.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
 #include <cfenv>
-#include <inttypes.h>
-#include <glm/glm.hpp>
+#include <cinttypes>
 
 using namespace std::chrono_literals;
 using namespace eqlib;

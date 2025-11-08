@@ -320,6 +320,7 @@ MQLIB_API bool LoadCfgFile(const char* Filename, bool Delayed = static_cast<bool
 
 /* MQ2GROUNDSPAWNS */
 
+using ObservedSpawnPtr = MQEQObjectPtr<eqlib::PlayerClient>;
 using EQGroundItemPtr = MQEQObjectPtr<eqlib::EQGroundItem>;
 using EQPlacedItemPtr = MQEQObjectPtr<eqlib::EQPlacedItem>;
 using AnyMQGroundItem = std::variant<std::monostate, EQGroundItemPtr, EQPlacedItemPtr>;
@@ -330,9 +331,6 @@ enum class MQGroundSpawnType
 	Ground,
 	Placed
 };
-
-inline auto EQObjectID(eqlib::EQGroundItem* Object) { return Object->DropID; }
-inline auto EQObjectID(eqlib::EQPlacedItem* Object) { return Object->RealEstateItemID; }
 
 struct MQGroundSpawn
 {
@@ -414,9 +412,6 @@ MQLIB_OBJECT bool HasCurrentGroundSpawn();
 MQLIB_OBJECT eqlib::CXStr GetFriendlyNameForGroundItem(const eqlib::EQGroundItem* pItem);
 MQLIB_OBJECT eqlib::CXStr GetFriendlyNameForPlacedItem(const eqlib::EQPlacedItem* pItem);
 MQLIB_API char* GetFriendlyNameForGroundItem(eqlib::EQGroundItem* pItem, char* szName, size_t BufferSize);
-
-inline auto EQObjectID(eqlib::PlayerClient* pSpawn) { return pSpawn->SpawnID; }
-using ObservedSpawnPtr = MQEQObjectPtr<eqlib::PlayerClient>;
 
 MQLIB_API void AddObservedEQObject(const std::shared_ptr<MQTransient>& Object);
 
@@ -575,7 +570,7 @@ MQLIB_OBJECT eqlib::CXStr& PluginAnonymize(eqlib::CXStr& Text);
 template <typename T>
 inline bool MaybeAnonymize(T& text)
 {
-	return IsAnonymized() && GetGameState() == GAMESTATE_INGAME && !text.empty();
+	return IsAnonymized() && GetGameState() == eqlib::GAMESTATE_INGAME && !text.empty();
 }
 
 /* MQ2STRINGDB */

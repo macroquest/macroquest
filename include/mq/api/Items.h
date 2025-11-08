@@ -19,7 +19,7 @@
 namespace mq {
 
 template <typename T>
-static int CountContainerItems(eqlib::ItemContainer& container, int fromSlot, int toSlot, T& checkItem)
+static int CountContainerItems(eqlib::ItemContainer& container, int fromSlot, int toSlot, T checkItem)
 {
 	using namespace eqlib;
 

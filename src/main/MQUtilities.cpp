@@ -4408,7 +4408,7 @@ void SuperWhoDisplay(PlayerClient* pChar, MQSpawnSearch* pSearchSpawn, DWORD Col
 			SuperWhoDisplay(spawn, Color);
 		}
 
-		char* pszSpawnType = nullptr;
+		const char* pszSpawnType = nullptr;
 		switch (pSearchSpawn->SpawnType)
 		{
 		case NONE:
@@ -5356,7 +5356,7 @@ ItemClient* FindItemByID(int ItemID)
 }
 
 template <typename T>
-int CountInventoryItems(T& checkItem, int minSlot, int maxSlot)
+int CountInventoryItems(T&& checkItem, int minSlot, int maxSlot)
 {
 	PcProfile* pProfile = GetPcProfile();
 	if (!pProfile) return 0;

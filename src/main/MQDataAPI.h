@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace mq {
 
@@ -51,6 +52,7 @@ public:
 	bool RemoveDataType(MQ2Type& TypeInstance, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	MQ2Type* FindDataType(const char* Name) const;
+	std::vector<std::string> GetDataTypeNames() const;
 
 	// Type Extensions
 	bool AddTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
@@ -65,7 +67,7 @@ public:
 		Success,
 		NotFound,
 	};
-	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result,
+	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr&& VarPtr, MQTypeVar& Result,
 		const std::string& Member, char* pIndex, bool checkFirst) const;
 
 	bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool allowFunction = false) const;

@@ -547,12 +547,14 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 	for (size_t i = 0; i < size; ++i)
 	{
 		uint8_t* pData = pBuf + i;
+		bool skip = false;
 
-		for (size_t q = 0; q < lengthof(pattern); ++q)
+		for (size_t q = 0; q < lengthof(pattern) && !skip; ++q)
 		{
 			if ((pData[q] & mask[q]) != pattern[q])
-				goto next;
+				skip = true;
 		}
+		if (skip) continue;
 
 		// if we made it here, the pattern matches. convert our physical offset into a relative virtual address.
 		uintptr_t baseRva = 0;
@@ -566,7 +568,7 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 
 		uintptr_t stringRef = stringRefRVA + stringRefDisplacement;
 		if (!convertAddress(peFile, stringRef, AddressType::RelativeVirtualAddress, AddressType::VirtualAddress, stringRefVirtualAddress))
-			continue; // failed to convert address. its probably not a valid address..?
+			continue; // failed to convert address. its probably not a valid address...?
 		
 		if (stringRefVirtualAddress != versionStringVirtualAddress)
 			continue; // not the string we're looking for.
@@ -583,12 +585,7 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 		eqDate = ReadStringAtVA(peFile.get(), dateVA);
 		eqTime = ReadStringAtVA(peFile.get(), timeVA);
 		break;
-
-	next:
-		continue;
 	}
-
-
 #else
 	// a.k.a. convert rva to address.
 	PIMAGE_SECTION_HEADER pImgSect = ImageRvaToSection(nthdrs, pBuf, (ULONG)versionStringPhysicalOffset);
