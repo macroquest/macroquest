@@ -193,8 +193,13 @@ public:
 
 		// Columns:
 		// Icon, Index, Container?, ItemIndex?, LinkedItem?, Template
+#if IS_CLIENT_DATE(20251103)
+		constexpr int columns = 8;
+#else
+		constexpr int columns = 6;
+#endif
 
-		if (ImGui::BeginTable("##InvSlotTable", 6, tableFlags, ImGui::GetContentRegionAvail()))
+		if (ImGui::BeginTable("##InvSlotTable", columns, tableFlags, ImGui::GetContentRegionAvail()))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1);
 			ImGui::TableSetupColumn("##Index", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
@@ -202,6 +207,10 @@ public:
 			ImGui::TableSetupColumn("Container", ImGuiTableColumnFlags_WidthFixed, -1.0f);
 			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, -1.0f);
 			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
+#if IS_CLIENT_DATE(20251103)
+			ImGui::TableSetupColumn("Usable", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Locked", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+#endif
 			ImGui::TableSetupColumn("Screen ID", ImGuiTableColumnFlags_WidthFixed, -1.0f);
 			ImGui::TableHeadersRow();
 
@@ -209,6 +218,8 @@ public:
 			{
 				CInvSlot* pInvSlot = pInvSlotMgr->SlotArray[i];
 				if (!pInvSlot || !pInvSlot->bEnabled) continue;
+
+				ImGui::PushID(pInvSlot);
 
 				ImGui::TableNextRow();
 
@@ -242,6 +253,14 @@ public:
 					ImGui::PopID();
 				}
 
+#if IS_CLIENT_DATE(20251103)
+				ImGui::TableNextColumn(); // Usable
+				ImGui::Checkbox("##usable", &pInvSlot->bUsable);
+
+				ImGui::TableNextColumn(); // Locked
+				ImGui::Checkbox("##locked", &pInvSlot->bLocked);
+#endif
+
 				ImGui::TableNextColumn(); // Template
 				if (pInvSlot->pInvSlotWnd)
 				{
@@ -250,6 +269,8 @@ public:
 						ImGui::Text("%s", pXMLData->ScreenID.c_str());
 					}
 				}
+
+				ImGui::PopID();
 			}
 
 			ImGui::EndTable();

@@ -5722,6 +5722,14 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 		{
 			CInvSlot* pInvSlot = pInvSlotMgr->FindInvSlot(From, false);
 
+#if IS_CLIENT_DATE(20251103)
+			if (pInvSlot->bLocked)
+			{
+				WriteChatf("Could not pick up '%s' - item is in a locked slot", pItem->GetName());
+				return false;
+			}
+#endif
+
 			// This ctrl keypress will propogate through to the InvSlot and QuantityWnd that it will
 			// spawn, ultimiately leading to a transfer of a single item.
 			if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, "leftmouseup"))

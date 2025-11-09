@@ -3,6 +3,7 @@
 - Added new EquipmentItem TLO that provides access to the new equipment keyring. Usage is
   the same as other keyrings.
 - Locked Items are added to the client, but access through MQ is not available yet.
+- Added CashLoot member to Item type
 
 
 ## Previous Updates
