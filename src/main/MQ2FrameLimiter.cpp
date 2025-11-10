@@ -416,8 +416,8 @@ public:
 
 #if defined(_M_AMD64)
 // Defined in AssemblyFunctions.asm, need the forward declare
-void Throttler_Detour();
-void(*Throttler_Trampoline)();
+void Throttler_Detour(uint32_t);
+void(*Throttler_Trampoline)(uint32_t);
 #else
 DETOUR_TRAMPOLINE_DEF(void, Throttler_Trampoline, ());
 void Throttler_Detour()
