@@ -159,17 +159,20 @@ public:
 		buffer.Read(unk2);
 		buffer.Read(count);
 
-		BazaarItemsArray.clear();
-		BazaarItemsArray.resize(count);
-
-		for (int i = 0; i < count; ++i)
+		if (count > 0)
 		{
-			BazaarSearchItem& item = BazaarItemsArray[i];
-			buffer.Read(item);
+			BazaarItemsArray.clear();
+			BazaarItemsArray.resize(count);
 
-			if (BazaarTraderData* trader = pBazaarSearchWnd->Traders.FindFirst(item.TraderID))
+			for (int i = 0; i < count; ++i)
 			{
-				strcpy_s(item.TraderName, trader->Name);
+				BazaarSearchItem& item = BazaarItemsArray[i];
+				buffer.Read(item);
+
+				if (BazaarTraderData* trader = pBazaarSearchWnd->Traders.FindFirst(item.TraderID))
+				{
+					strcpy_s(item.TraderName, trader->Name);
+				}
 			}
 		}
 
