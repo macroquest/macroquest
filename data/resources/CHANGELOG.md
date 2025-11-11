@@ -1,3 +1,6 @@
+November 11, 2025:
+- bzsrch: handle case of bad data being sent from server causing a crash
+
 October 27, 2025:
 - Added network capability for actors
   Add any peers to a new \[NetworkPeers\] section in your ini in the format \<ip\>=\<port\>
