@@ -951,9 +951,20 @@ static InjectResult DoInject(uint32_t PID)
 	HMODULE hEqGameMod = (HMODULE)GetEQGameBaseAddressByPID(PID);
 	if (!hEqGameMod)
 	{
+		DWORD lastError = GetLastError();
+
+#if !defined(_WIN64)
+		if (lastError == ERROR_PARTIAL_COPY)
+		{
+			SPDLOG_ERROR("Failed to get eqgame.exe base address for pid={}: eqgame.exe "
+				"process is 64-bit but the launcher is 32-bit", PID);
+			return InjectResult::FailedPermanent;
+		}
+#endif
+
 		// Something went wrong - we couldn't get the EQ base address
 		SPDLOG_ERROR("{}",
-			fmt::windows_error(GetLastError(), "Failed to get eqgame.exe base address for pid={}", PID).what());
+			fmt::windows_error(lastError, "Failed to get eqgame.exe base address for pid={}", PID).what());
 		return InjectResult::FailedRetry;
 	}
 
