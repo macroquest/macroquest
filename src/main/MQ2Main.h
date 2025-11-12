@@ -234,6 +234,7 @@ MQLIB_API int GetFamiliarCount();
 MQLIB_API int GetHeroForgeCount();
 MQLIB_API int GetTeleportationItemCount();
 MQLIB_API int GetActivatedItemCount();
+MQLIB_API int GetEquipmentItemCount();
 
 MQLIB_API bool IsActiveAA(const char* pSpellName);
 MQLIB_API CXWnd* GetAdvLootPersonalListItem(DWORD ListIndex, DWORD type);

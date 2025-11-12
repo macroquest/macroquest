@@ -686,6 +686,9 @@ void MQDataAPI::RegisterTopLevelObjects()
 #if HAS_ACTIVATED_ITEM_KEYRING
 	AddTopLevelObject("ActivatedItem", datatypes::MQ2KeyRingType::dataActivatedItem);
 #endif
+#if HAS_EQUIPMENT_KEYRING
+	AddTopLevelObject("EquipmentItem", datatypes::MQ2KeyRingType::dataEquipmentItem);
+#endif
 #endif // HAS_KEYRING_WINDOW
 }
 
