@@ -1,3 +1,8 @@
+## Live Patch Update 11/12/2025
+
+- Includes all changes from previous test patches.
+
+
 ## Test Patch Update 11/6/2025
 
 - Added new EquipmentItem TLO that provides access to the new equipment keyring. Usage is
