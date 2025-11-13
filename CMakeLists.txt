@@ -106,13 +106,10 @@ endif()
 
 set(VCPKG_TARGET_TRIPLET "${VCPKG_ARCH}-windows-static" CACHE STRING "")
 
-# set up powershell availability to use the vcpkg_mq script
-find_program(POWERSHELL_PATH NAMES powershell powershell.exe)
-set(VCPKG_MQ_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_scripts/vcpkg_mq.ps1")
-
-if(NOT DEFINED POWERSHELL_PATH)
-    message(WARNING "Could not find powershell, not running vcpkg_mq update")
-endif()
+# Initialize global properties to collect vcpkg manifest files
+set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "")
+set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "")
+set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "")
 
 function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
     # Optional 4th argument for dependencies
@@ -129,27 +126,205 @@ function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
     set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${PROJECT_PREFIX})
     unset(VCXPROJ_LOCATION CACHE)  # Clear cache to allow next call to search fresh
 
-    if (MQ_BUILD_VCPKG AND POWERSHELL_PATH)
-        set(VCPKG_MQ_ARGS -ProjectName "${PROJECT_NAME}" -ProjectDirectory "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}" -MQRoot "${CMAKE_CURRENT_SOURCE_DIR}" -Platform "${VCPKG_ARCH}" -Toolchain "${CMAKE_GENERATOR_TOOLSET}")
-        execute_process(
-            COMMAND "${POWERSHELL_PATH}" -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "${VCPKG_MQ_PATH}" ${VCPKG_MQ_ARGS}
-            COMMAND_ECHO STDOUT
-            RESULT_VARIABLE VCPKG_MQ_RESULT
-            OUTPUT_VARIABLE VCPKG_MQ_OUTPUT
-            ECHO_OUTPUT_VARIABLE
-            ERROR_VARIABLE VCPKG_MQ_ERROR
-        )
+    # Collect vcpkg manifest files for later merging
+    if(MQ_BUILD_VCPKG)
+        set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}")
 
-        if (NOT VCPKG_MQ_RESULT EQUAL 0)
-            message(FATAL_ERROR "Failed to install vcpkg package with error: ${VCPKG_MQ_ERROR}")
-        else()
-            message(STATUS "installed vcpkg packages for ${PROJECT_NAME}")
+        # Check for vcpkg_mq.txt
+        if(EXISTS "${PROJECT_DIR}/vcpkg_mq.txt")
+            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
+            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq.txt")
+            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "${EXISTING_FILES}")
+            message(STATUS "Collecting vcpkg_mq.txt from ${PROJECT_NAME}")
         endif()
 
-        unset(VCPKG_MQ_ARGS CACHE)
-        unset(VCPKG_MQ_RESULT CACHE)
-        unset(VCPKG_MQ_OUTPUT CACHE)
-        unset(VCPKG_MQ_ERROR CACHE)
+        # Check for vcpkg_mq_x86.txt
+        if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x86.txt")
+            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
+            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x86.txt")
+            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "${EXISTING_FILES}")
+            message(STATUS "Collecting vcpkg_mq_x86.txt from ${PROJECT_NAME}")
+        endif()
+
+        # Check for vcpkg_mq_x64.txt
+        if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x64.txt")
+            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
+            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x64.txt")
+            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "${EXISTING_FILES}")
+            message(STATUS "Collecting vcpkg_mq_x64.txt from ${PROJECT_NAME}")
+        endif()
+    endif()
+endfunction()
+
+function(finalize_vcpkg_installation)
+    if(MQ_BUILD_VCPKG)
+        # set up powershell availability to use the vcpkg_mq script
+        find_program(POWERSHELL_PATH NAMES powershell powershell.exe)
+        set(VCPKG_MQ_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_scripts/vcpkg_mq.ps1")
+
+        if(POWERSHELL_PATH)
+            # Create build directory for merged manifest files
+            set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_manifests")
+            file(MAKE_DIRECTORY "${VCPKG_MANIFEST_DIR}")
+
+            # Helper function to merge manifest files
+            function(merge_manifest_files FILE_LIST OUTPUT_FILE)
+                if(FILE_LIST)
+                    # Use indexed variables: PKG_KEY_N and PKG_FEATURES_N
+                    set(PKG_COUNT 0)
+
+                    foreach(MANIFEST_FILE ${FILE_LIST})
+                        if(EXISTS "${MANIFEST_FILE}")
+                            file(STRINGS "${MANIFEST_FILE}" FILE_LINES)
+                            foreach(LINE ${FILE_LINES})
+                                # Skip empty lines and comments
+                                string(STRIP "${LINE}" STRIPPED_LINE)
+                                if(STRIPPED_LINE AND NOT STRIPPED_LINE MATCHES "^#")
+                                    # Parse package format: package[feature1,feature2]:triplet
+                                    # Extract package name (before [ or :)
+                                    string(REGEX REPLACE "([^:\\[]+).*" "\\1" PACKAGE_NAME "${STRIPPED_LINE}")
+
+                                    # Extract features (between [ and ])
+                                    set(FEATURES "")
+                                    if(STRIPPED_LINE MATCHES "\\[(.+)\\]")
+                                        string(REGEX REPLACE ".*\\[(.+)\\].*" "\\1" FEATURES "${STRIPPED_LINE}")
+                                    endif()
+
+                                    # Extract triplet (after :)
+                                    set(TRIPLET "")
+                                    if(STRIPPED_LINE MATCHES ":([^:]+)$")
+                                        string(REGEX REPLACE ".*:([^:]+)$" "\\1" TRIPLET "${STRIPPED_LINE}")
+                                    endif()
+
+                                    # Create key
+                                    if(TRIPLET)
+                                        set(KEY "${PACKAGE_NAME}:${TRIPLET}")
+                                    else()
+                                        set(KEY "${PACKAGE_NAME}")
+                                    endif()
+
+                                    # Find existing entry
+                                    set(FOUND_INDEX -1)
+                                    if(PKG_COUNT GREATER 0)
+                                        math(EXPR LAST_PKG "${PKG_COUNT} - 1")
+                                        foreach(I RANGE ${LAST_PKG})
+                                            if(PKG_KEY_${I} STREQUAL KEY)
+                                                set(FOUND_INDEX ${I})
+                                                break()
+                                            endif()
+                                        endforeach()
+                                    endif()
+
+                                    if(FOUND_INDEX EQUAL -1)
+                                        # New entry
+                                        set(PKG_KEY_${PKG_COUNT} "${KEY}")
+                                        set(PKG_FEATURES_${PKG_COUNT} "${FEATURES}")
+                                        math(EXPR PKG_COUNT "${PKG_COUNT} + 1")
+                                    else()
+                                        # Merge features
+                                        if(FEATURES)
+                                            set(EXISTING "${PKG_FEATURES_${FOUND_INDEX}}")
+                                            # Split into lists for dedup
+                                            if(EXISTING)
+                                                string(REPLACE "," ";" EXISTING_LIST "${EXISTING}")
+                                            else()
+                                                set(EXISTING_LIST "")
+                                            endif()
+                                            string(REPLACE "," ";" NEW_LIST "${FEATURES}")
+                                            # Add new features
+                                            foreach(FEATURE ${NEW_LIST})
+                                                string(STRIP "${FEATURE}" FCLEAN)
+                                                list(FIND EXISTING_LIST "${FCLEAN}" FIDX)
+                                                if(FIDX EQUAL -1)
+                                                    list(APPEND EXISTING_LIST "${FCLEAN}")
+                                                endif()
+                                            endforeach()
+                                            # Convert back
+                                            list(JOIN EXISTING_LIST "," MERGED)
+                                            set(PKG_FEATURES_${FOUND_INDEX} "${MERGED}")
+                                        endif()
+                                    endif()
+                                endif()
+                            endforeach()
+                        endif()
+                    endforeach()
+
+                    # Build output
+                    set(OUTPUT_LINES "")
+                    if(PKG_COUNT GREATER 0)
+                        math(EXPR LAST_PKG "${PKG_COUNT} - 1")
+                        foreach(I RANGE ${LAST_PKG})
+                            set(KEY "${PKG_KEY_${I}}")
+                            set(FEATURES "${PKG_FEATURES_${I}}")
+
+                            # Split key
+                            if(KEY MATCHES "^([^:]+):(.+)$")
+                                string(REGEX REPLACE "^([^:]+):(.+)$" "\\1" PKG "${KEY}")
+                                string(REGEX REPLACE "^([^:]+):(.+)$" "\\2" TRP "${KEY}")
+                                if(FEATURES)
+                                    set(OUTPUT_LINE "${PKG}[${FEATURES}]:${TRP}")
+                                else()
+                                    set(OUTPUT_LINE "${PKG}:${TRP}")
+                                endif()
+                            else()
+                                if(FEATURES)
+                                    set(OUTPUT_LINE "${KEY}[${FEATURES}]")
+                                else()
+                                    set(OUTPUT_LINE "${KEY}")
+                                endif()
+                            endif()
+
+                            list(APPEND OUTPUT_LINES "${OUTPUT_LINE}")
+                        endforeach()
+                    endif()
+
+                    # Write output
+                    if(OUTPUT_LINES)
+                        list(JOIN OUTPUT_LINES "\n" MERGED_TEXT)
+                        file(WRITE "${OUTPUT_FILE}" "${MERGED_TEXT}\n")
+                        message(STATUS "Created merged manifest: ${OUTPUT_FILE}")
+                    endif()
+                endif()
+            endfunction()
+
+            # Merge each type of manifest file
+            get_property(MQ_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
+            get_property(X86_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
+            get_property(X64_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
+
+            merge_manifest_files("${MQ_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq.txt")
+            merge_manifest_files("${X86_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq_x86.txt")
+            merge_manifest_files("${X64_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq_x64.txt")
+
+            # Execute vcpkg once with merged manifests
+            message(STATUS "")
+            message(STATUS "Installing vcpkg packages for MacroQuest...")
+
+            set(VCPKG_MQ_ARGS
+                    -ProjectName "MacroQuest"
+                    -ProjectDirectory "${VCPKG_MANIFEST_DIR}"
+                    -MQRoot "${CMAKE_CURRENT_SOURCE_DIR}"
+                    -Platform "${VCPKG_ARCH}"
+                    -Toolchain "${CMAKE_GENERATOR_TOOLSET}"
+            )
+
+            execute_process(
+                    COMMAND "${POWERSHELL_PATH}" -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "${VCPKG_MQ_PATH}" ${VCPKG_MQ_ARGS}
+                    COMMAND_ECHO STDOUT
+                    RESULT_VARIABLE VCPKG_MQ_RESULT
+                    OUTPUT_VARIABLE VCPKG_MQ_OUTPUT
+                    ECHO_OUTPUT_VARIABLE
+                    ERROR_VARIABLE VCPKG_MQ_ERROR
+            )
+
+            if(NOT VCPKG_MQ_RESULT EQUAL 0)
+                message(FATAL_ERROR "Failed to install vcpkg packages with error: ${VCPKG_MQ_ERROR}")
+            else()
+                message(STATUS "Successfully installed all vcpkg packages")
+            endif()
+        else()
+            message(WARNING "Could not find powershell, not running vcpkg_mq update")
+        endif()
     endif()
 endfunction()
 
@@ -293,6 +468,9 @@ if(MQ_BUILD_TESTS)
     add_vcxproj(src/tests/Actors Actors "core/applications/tests")
     add_vcxproj(src/tests/NamedPipeClient NamedPipeClient "core/applications/tests")
 endif()
+
+# Finalize vcpkg installation - merge all manifests and install packages, must be called after all add_vcxproj
+finalize_vcpkg_installation()
 
 # Print configuration summary
 message(STATUS "")
