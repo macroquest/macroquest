@@ -26,7 +26,19 @@
 .vs/
 
 build/
+build_*/
 packages/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake.in
+CTestTestfile.cmake
+_deps/
+
+# Auto-generated CMakeLists for custom plugins
+plugins/**/CMakeLists.txt.generated
 
 UpgradeLog.htm
 
