@@ -1,6 +1,11 @@
+
+
 ## Live Patch Update 11/12/2025
 
 - Includes all changes from previous test patches.
+
+Additional fixes:
+- Fix crash when inspecting cash loot bag.
 
 
 ## Test Patch Update 11/6/2025
