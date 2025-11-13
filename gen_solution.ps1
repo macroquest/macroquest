@@ -142,7 +142,7 @@ if ($Help) {
     Write-Host ""
     Write-Host "NOTES:" -ForegroundColor Yellow
     Write-Host "  - This script is idempotent (safe to run multiple times)"
-    Write-Host "  - Platform changes (Win32 ↔ x64) automatically trigger a clean rebuild"
+    Write-Host "  - Platform changes (Win32 <-> x64) automatically trigger a clean rebuild"
     Write-Host "  - The cleaned solution file removes ALL_BUILD and CMakePredefinedTargets"
     Write-Host "  - Requires: Git, CMake, Visual Studio 2022"
     Write-Host ""
