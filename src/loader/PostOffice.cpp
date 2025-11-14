@@ -215,6 +215,8 @@ bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 
 			s_postOffice->SendPipeMessage(pipeConnection->GetConnectionId(),
 				mq::MQMessageId::MSG_MAIN_FOCUS_ACTIVATE_WND, &message, sizeof(message));
+
+			return true;
 		}
 	}
 	
