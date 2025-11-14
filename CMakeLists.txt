@@ -366,7 +366,7 @@ endif()
 
 # Add custom plugins from root plugins directory
 if(MQ_BUILD_CUSTOM_PLUGINS)
-    add_subdirectory(plugins)
+    include(plugins.cmake)
 endif()
 
 # Add tests

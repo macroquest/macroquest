@@ -60,7 +60,7 @@ function(add_mq2main_dependency_to_vcxproj VCXPROJ_FILE)
 endfunction()
 
 # Scan for custom plugins in the plugins directory
-file(GLOB CUSTOM_PLUGIN_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/*/")
+file(GLOB CUSTOM_PLUGIN_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/plugins/*/")
 foreach(PLUGIN_DIR ${CUSTOM_PLUGIN_DIRS})
     if(IS_DIRECTORY ${PLUGIN_DIR})
         get_filename_component(PLUGIN_NAME ${PLUGIN_DIR} NAME)
