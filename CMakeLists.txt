@@ -84,6 +84,7 @@ option(MQ_BUILD_PLUGINS "Build built-in plugins" ON)
 option(MQ_BUILD_CUSTOM_PLUGINS "Build custom plugins from plugins directory" ON)
 option(MQ_BUILD_LAUNCHER "Build MacroQuest loader" ON)
 option(MQ_BUILD_TESTS "Build tests" OFF)
+option(MQ_ADD_MQ2MAIN_DEPENDENCY "Add MQ2Main as dependency to custom plugins if not present" OFF)
 
 # Global properties
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -135,7 +136,6 @@ function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
             get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
             list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq.txt")
             set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "${EXISTING_FILES}")
-            message(STATUS "Collecting vcpkg_mq.txt from ${PROJECT_NAME}")
         endif()
 
         # Check for vcpkg_mq_x86.txt
@@ -143,7 +143,6 @@ function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
             get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
             list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x86.txt")
             set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "${EXISTING_FILES}")
-            message(STATUS "Collecting vcpkg_mq_x86.txt from ${PROJECT_NAME}")
         endif()
 
         # Check for vcpkg_mq_x64.txt
@@ -151,7 +150,6 @@ function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
             get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
             list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x64.txt")
             set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "${EXISTING_FILES}")
-            message(STATUS "Collecting vcpkg_mq_x64.txt from ${PROJECT_NAME}")
         endif()
     endif()
 endfunction()
@@ -328,139 +326,47 @@ function(finalize_vcpkg_installation)
     endif()
 endfunction()
 
+# These could all be in their respective subdirectories, but prefer in this case a single
+# file to specify the entire core project since everything here is maintained with
+# bespoke vcxproj and prop files without CMakeLists.txt to build projects.
+
 # Add main components
 add_vcxproj(src/eqlib eqlib "core")
-add_vcxproj(src/main MQ2Main "core")
-
-# Set MQ2Main as the default startup project in Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MQ2Main)
-
 add_vcxproj(src/imgui imgui "core/libraries")
 add_vcxproj(src/routing routing "core/libraries")
 add_vcxproj(src/login login "core/libraries")
 add_vcxproj(contrib/zep zep "core/libraries")
+add_vcxproj(src/main MQ2Main "core" eqlib imgui routing zep)
+
+# Set MQ2Main as the default startup project in Visual Studio
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MQ2Main)
 
 if(MQ_BUILD_LAUNCHER)
-    add_vcxproj(src/loader MacroQuest "core/applications")
+    add_vcxproj(src/loader MacroQuest "core/applications" imgui login routing)
 endif()
 
 # Add plugins
 if(MQ_BUILD_PLUGINS)
-    add_vcxproj(src/plugins/autobank MQ2AutoBank "core/plugins")
-    add_vcxproj(src/plugins/autologin MQ2AutoLogin "core/plugins")
-    add_vcxproj(src/plugins/bzsrch MQ2Bzsrch "core/plugins")
-    add_vcxproj(src/plugins/chat MQ2Chat "core/plugins")
-    add_vcxproj(src/plugins/chatwnd MQ2ChatWnd "core/plugins")
-    add_vcxproj(src/plugins/custombinds MQ2CustomBinds "core/plugins")
-    add_vcxproj(src/plugins/eqbugfix MQ2EQBugFix "core/plugins")
-    add_vcxproj(src/plugins/hud MQ2HUD "core/plugins")
-    add_vcxproj(src/plugins/itemdisplay MQ2ItemDisplay "core/plugins")
-    add_vcxproj(src/plugins/labels MQ2Labels "core/plugins")
-    add_vcxproj(src/plugins/lua MQ2Lua "core/plugins")
-    add_vcxproj(src/plugins/map MQ2Map "core/plugins")
-    add_vcxproj(src/plugins/pluginapi pluginapi "core/plugins")
-    add_vcxproj(src/plugins/targetinfo MQ2TargetInfo "core/plugins")
-    add_vcxproj(src/plugins/xtarinfo MQ2XTarInfo "core/plugins")
+    add_vcxproj(src/plugins/pluginapi pluginapi "core/plugins" routing)
+    add_vcxproj(src/plugins/autobank MQ2AutoBank "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/autologin MQ2AutoLogin "core/plugins" login pluginapi MQ2Main)
+    add_vcxproj(src/plugins/bzsrch MQ2Bzsrch "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/chat MQ2Chat "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/chatwnd MQ2ChatWnd "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/custombinds MQ2CustomBinds "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/eqbugfix MQ2EQBugFix "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/hud MQ2HUD "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/itemdisplay MQ2ItemDisplay "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/labels MQ2Labels "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/lua MQ2Lua "core/plugins" imgui pluginapi MQ2Main)
+    add_vcxproj(src/plugins/map MQ2Map "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/targetinfo MQ2TargetInfo "core/plugins" pluginapi MQ2Main)
+    add_vcxproj(src/plugins/xtarinfo MQ2XTarInfo "core/plugins" pluginapi MQ2Main)
 endif()
 
 # Add custom plugins from root plugins directory
 if(MQ_BUILD_CUSTOM_PLUGINS)
-    # Scan for custom plugins in the plugins directory
-    file(GLOB CUSTOM_PLUGIN_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/plugins/*/")
-    foreach(PLUGIN_DIR ${CUSTOM_PLUGIN_DIRS})
-        if(IS_DIRECTORY ${PLUGIN_DIR})
-            get_filename_component(PLUGIN_NAME ${PLUGIN_DIR} NAME)
-
-            if(EXISTS "${PLUGIN_DIR}/CMakeLists.txt")
-                # Priority 1: Check if the plugin has a top-level CMakeLists.txt TODO: this is completely untested
-                message(STATUS "Found custom plugin with CMakeLists.txt: ${PLUGIN_NAME}")
-                add_subdirectory(${PLUGIN_DIR})
-                # Set folder for the target (assuming target name matches plugin name)
-                if(TARGET ${PLUGIN_NAME})
-                    set_property(TARGET ${PLUGIN_NAME} PROPERTY FOLDER "external")
-                    # Add dependency on MQ2Main
-                    add_dependencies(${PLUGIN_NAME} MQ2Main)
-                endif()
-            else()
-                # Priority 2: Find all vcxproj files recursively
-                file(GLOB_RECURSE PLUGIN_VCXPROJS "${PLUGIN_DIR}/*.vcxproj")
-
-                # First pass: count compatible vcxprojs
-                set(COMPATIBLE_COUNT 0)
-                foreach(VCXPROJ_FILE ${PLUGIN_VCXPROJS})
-                    file(READ "${VCXPROJ_FILE}" VCXPROJ_CONTENT)
-
-                    set(PLATFORM_MATCH FALSE)
-                    if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
-                        if(VCXPROJ_CONTENT MATCHES "ProjectConfiguration Include=\"[^\"]*\\|x64\"")
-                            set(PLATFORM_MATCH TRUE)
-                        endif()
-                    elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-                        if(VCXPROJ_CONTENT MATCHES "ProjectConfiguration Include=\"[^\"]*\\|Win32\"")
-                            set(PLATFORM_MATCH TRUE)
-                        endif()
-                    endif()
-
-                    if(PLATFORM_MATCH)
-                        math(EXPR COMPATIBLE_COUNT "${COMPATIBLE_COUNT} + 1")
-                    endif()
-                endforeach()
-
-                # Second pass: add projects with appropriate folder structure
-                foreach(VCXPROJ_FILE ${PLUGIN_VCXPROJS})
-                    # Read the vcxproj file to check if it supports the current architecture
-                    file(READ "${VCXPROJ_FILE}" VCXPROJ_CONTENT)
-
-                    # Check if the vcxproj contains the current platform
-                    set(PLATFORM_MATCH FALSE)
-                    if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
-                        if(VCXPROJ_CONTENT MATCHES "ProjectConfiguration Include=\"[^\"]*\\|x64\"")
-                            set(PLATFORM_MATCH TRUE)
-                        endif()
-                    elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-                        if(VCXPROJ_CONTENT MATCHES "ProjectConfiguration Include=\"[^\"]*\\|Win32\"")
-                            set(PLATFORM_MATCH TRUE)
-                        endif()
-                    endif()
-
-                    if(PLATFORM_MATCH)
-                        # Extract project name from vcxproj filename
-                        get_filename_component(PROJECT_NAME ${VCXPROJ_FILE} NAME_WE)
-
-                        # Get directory containing the vcxproj
-                        get_filename_component(VCXPROJ_DIR ${VCXPROJ_FILE} DIRECTORY)
-
-                        # Build the project location relative to CMAKE_CURRENT_SOURCE_DIR
-                        file(RELATIVE_PATH PROJECT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR} ${VCXPROJ_DIR})
-
-                        # Determine folder structure based on number of compatible projects
-                        if(COMPATIBLE_COUNT EQUAL 1)
-                            # Single project: place directly in external folder
-                            set(PROJECT_PREFIX "external")
-                        else()
-                            # Multiple projects: organize under external/PluginName/...
-                            # Get relative path from PLUGIN_DIR to vcxproj directory
-                            file(RELATIVE_PATH RELATIVE_PATH ${PLUGIN_DIR} ${VCXPROJ_DIR})
-
-                            if(RELATIVE_PATH STREQUAL "" OR RELATIVE_PATH STREQUAL ".")
-                                set(PROJECT_PREFIX "external/${PLUGIN_NAME}")
-                            else()
-                                # Replace backslashes with forward slashes for folder hierarchy
-                                string(REPLACE "\\" "/" RELATIVE_PATH_CLEAN ${RELATIVE_PATH})
-                                set(PROJECT_PREFIX "external/${PLUGIN_NAME}/${RELATIVE_PATH_CLEAN}")
-                            endif()
-                        endif()
-
-                        message(STATUS "Adding custom plugin vcxproj: ${PROJECT_NAME} → ${PROJECT_PREFIX}")
-                        add_vcxproj(${PROJECT_LOCATION} ${PROJECT_NAME} ${PROJECT_PREFIX} MQ2Main)
-                    else()
-                        get_filename_component(PROJECT_NAME ${VCXPROJ_FILE} NAME_WE)
-                        message(STATUS "Skipping ${PROJECT_NAME} (incompatible architecture)")
-                    endif()
-                endforeach()
-            endif()
-        endif()
-    endforeach()
+    add_subdirectory(plugins)
 endif()
 
 # Add tests

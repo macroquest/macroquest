@@ -1,3 +1,5 @@
 
 # ignore user plugins by default - remove to track your plugins in git
 /*
+!CMakeLists.txt
+!.gitignore

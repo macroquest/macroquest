@@ -23,15 +23,16 @@
 # This preserves your compiled binaries in build\bin\
 
 param(
-    [switch]$Help,           # Display help information
-    [switch]$Verbose,        # Show detailed output
-    [switch]$Clean,          # Clean the build directory only
-    [switch]$SyncSubmodules, # Sync the submodules if they are already cloned
-    [switch]$SkipVcpkg,      # Skip running vcpkg in cmake
-    [switch]$SkipLauncher,   # Skip adding the launcher
-    [switch]$SkipCustom,     # Skip adding custom plugins
-    [switch]$SkipPlugins,    # Skip adding core plugins
-    [switch]$BuildTest,      # Add the test exes
+    [switch]$Help,                 # Display help information
+    [switch]$Verbose,              # Show detailed output
+    [switch]$Clean,                # Clean the build directory only
+    [switch]$SyncSubmodules,       # Sync the submodules if they are already cloned
+    [switch]$SkipVcpkg,            # Skip running vcpkg in cmake
+    [switch]$SkipLauncher,         # Skip adding the launcher
+    [switch]$SkipCustom,           # Skip adding custom plugins
+    [switch]$SkipPlugins,          # Skip adding core plugins
+    [switch]$BuildTest,            # Add the test exes
+    [switch]$AddMQ2MainDependency, # Add MQ2Main dependency to custom plugins if not present
     [string]$OutputDir = "build",
     [string]$SolutionName = "MacroQuest.sln"
 )
@@ -109,6 +110,12 @@ if ($Help) {
     Write-Host "    Include test projects in the generated solution."
     Write-Host "    Sets: -DMQ_BUILD_TESTS=ON"
     Write-Host ""
+    Write-Host "  -AddMQ2MainDependency" -ForegroundColor Cyan
+    Write-Host "    Automatically add MQ2Main as a dependency to custom plugin vcxproj files"
+    Write-Host "    if it is not already present. This modifies the .vcxproj files directly."
+    Write-Host "    Sets: -DMQ_ADD_MQ2MAIN_DEPENDENCY=ON"
+    Write-Host "    Default: OFF (vcxproj files are not modified)"
+    Write-Host ""
     Write-Host "  -OutputDir <path>" -ForegroundColor Cyan
     Write-Host "    Specify the output directory for build artifacts."
     Write-Host "    Default: 'build'"
@@ -139,6 +146,9 @@ if ($Help) {
     Write-Host ""
     Write-Host "  Configure with tests enabled:" -ForegroundColor Cyan
     Write-Host "    .\gen_solution.ps1 -BuildTest"
+    Write-Host ""
+    Write-Host "  Add MQ2Main dependency to custom plugins:" -ForegroundColor Cyan
+    Write-Host "    .\gen_solution.ps1 -AddMQ2MainDependency"
     Write-Host ""
     Write-Host "NOTES:" -ForegroundColor Yellow
     Write-Host "  - This script is idempotent (safe to run multiple times)"
@@ -452,6 +462,10 @@ function New-Platform {
 
     if ($BuildTest) {
         $cmakeArgs += "-DMQ_BUILD_TESTS=ON"
+    }
+
+    if ($AddMQ2MainDependency) {
+        $cmakeArgs += "-DMQ_ADD_MQ2MAIN_DEPENDENCY=ON"
     }
 
     & cmake @cmakeArgs
