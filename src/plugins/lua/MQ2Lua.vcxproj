@@ -115,10 +115,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.pb.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <DependentUpon>Actor.proto</DependentUpon>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="bindings\lua_Bit32.cpp" />
     <ClCompile Include="bindings\lua_EQBindings.cpp" />
@@ -153,6 +151,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor.pb.h">
+      <DependentUpon>Actor.proto</DependentUpon>
+    </ClInclude>
     <ClInclude Include="bindings\lua_Bindings.h" />
     <ClInclude Include="bindings\lua_MQBindings.h" />
     <ClInclude Include="LuaActor.h" />

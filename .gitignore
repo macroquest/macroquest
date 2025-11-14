@@ -27,8 +27,8 @@
 .idea/
 .claude/
 
-build/
-build_*/
+/build/
+/build_*/
 packages/
 
 # CMake generated files
