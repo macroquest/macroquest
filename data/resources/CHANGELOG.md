@@ -1,3 +1,8 @@
+## Update 11/13/2025
+
+- Fix achievements not reading properly
+- Fix Item.CashLoot not returning the proper value
+- Fix FindItemWnd additional columns overlapping existing columns
 
 
 ## Live Patch Update 11/12/2025
