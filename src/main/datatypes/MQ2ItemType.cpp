@@ -1789,6 +1789,7 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 #else
 		Dest.Set(false);
 #endif
+		return true;
 
 	default: break;
 	}

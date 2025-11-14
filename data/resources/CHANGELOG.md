@@ -1,3 +1,19 @@
+## Update 11/13/2025
+
+Updated for live hotfix.
+
+- Fix achievements not reading properly
+- Fix Item.CashLoot not returning the proper value
+- Fix FindItemWnd additional columns overlapping existing columns
+
+## Live Patch Update 11/12/2025
+
+- Includes all changes from previous test patches.
+
+Additional fixes:
+- Fix crash when inspecting cash loot bag.
+
+
 ## Test Patch Update 11/6/2025
 
 - Added new EquipmentItem TLO that provides access to the new equipment keyring. Usage is

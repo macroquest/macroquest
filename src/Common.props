@@ -103,7 +103,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
 
-  <Target Name="VcpkgMQInstallManifestDependencies" BeforeTargets="PreBuildEvent">
+  <Target Name="VcpkgMQInstallManifestDependencies" BeforeTargets="PreBuildEvent" Condition="'$(SelectedFiles)' == ''">
     <Message Text="Checking vcpkg_mq manifest for $(MSBuildProjectName)..." Importance="High" />
     <Exec Condition="'$(Platform)'=='Win32'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQRoot.TrimEnd('\'))%22 -Platform %22x86%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
     <Exec Condition="'$(Platform)'=='x64'" Command="if exist %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File %22$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), tools\build_scripts\vcpkg_mq.ps1))\tools\build_scripts\vcpkg_mq.ps1%22 -ProjectName %22$(MSBuildProjectName)%22 -ProjectDirectory %22$(MSBuildProjectDirectory)%22 -MQRoot %22$(MQRoot.TrimEnd('\'))%22 -Platform %22x64%22 -Toolchain %22$(PlatformToolset)%22" StandardOutputImportance="High" />
