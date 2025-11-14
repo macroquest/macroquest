@@ -1,3 +1,7 @@
+## Update 11/14/2025
+
+- loader: Fix SendSetForegroundWindow - should help resolve some issues with focus swapping
+
 ## Update 11/13/2025
 
 Updated for live hotfix.
