@@ -452,7 +452,6 @@ public:
 		case eItemContainerMountKeyRingItems:
 			ImGui::Text("Mount Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eMount]);
 			break;
-#endif
 
 		case eItemContainerIllusionKeyRingItems:
 			ImGui::Text("Illusion Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eIllusion]);
@@ -481,6 +480,7 @@ public:
 			ImGui::Text("Equipment Key Ring Max Capacity: %d (base)", pLocalPC->BaseKeyRingSlots[eEquipmentKeyRing]);
 			break;
 #endif
+#endif // HAS_KEYRING_WINDOW
 
 		// This case is just to remove warnings when all above cases are gated
 		case eItemContainerInvalid:
