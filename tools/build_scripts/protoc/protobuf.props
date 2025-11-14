@@ -21,10 +21,9 @@
 		<ProtocolBuffer>
 			<CommandLineTemplate>"$(ProtocPath)" --cpp_out="%(RootDir)%(Directory)." --proto_path="%(RootDir)%(Directory)." --proto_path="$(ProtoImportPath)" "%(FullPath)"</CommandLineTemplate>
 			<Outputs>$(MSBuildProjectDirectory)\%(RelativeDir)%(Filename).pb.cc;$(MSBuildProjectDirectory)\%(RelativeDir)%(Filename).pb.h</Outputs>
-			<AdditionalOutputs>$(ProtocPath)</AdditionalOutputs>
 			<ExecutionDescription> proto: %(FullPath)</ExecutionDescription>
 			<ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
-			<AdditionalDependencies></AdditionalDependencies>
+			<AdditionalDependencies>$(ProtocPath)</AdditionalDependencies>
 		</ProtocolBuffer>
 	</ItemDefinitionGroup>
 </Project>

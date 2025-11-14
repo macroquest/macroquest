@@ -186,6 +186,7 @@ enum class ItemMembers
 	IDFile,
 	IDFile2,
 	RefCount,
+	CashLoot,
 };
 
 enum class ItemMethods
@@ -362,6 +363,7 @@ MQ2ItemType::MQ2ItemType() : MQ2Type("item")
 	ScopedTypeMember(ItemMembers, IDFile);
 	ScopedTypeMember(ItemMembers, IDFile2);
 	ScopedTypeMember(ItemMembers, RefCount);
+	ScopedTypeMember(ItemMembers, CashLoot);
 
 	ScopedTypeMethod(ItemMethods, Inspect);
 }
@@ -1777,6 +1779,15 @@ bool MQ2ItemType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 #else
 		Dest.Ptr = pItem->GetItemDefinition()->IDFile2;
 		Dest.Type = pStringType;
+#endif
+		return true;
+
+	case ItemMembers::CashLoot:
+		Dest.Type = pBoolType;
+#if IS_CLIENT_DATE(20251103)
+		Dest.Set(pItem->GetItemDefinition()->CashLoot);
+#else
+		Dest.Set(false);
 #endif
 		return true;
 

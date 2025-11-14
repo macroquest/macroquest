@@ -49,8 +49,13 @@ constexpr int ContextMenu_CheckboxFeatureEnabled = 50;
 constexpr int ContextMenu_ColorsFeatureEnabled = 51;
 
 // CFindItemWnd columns
+#if IS_CLIENT_DATE(20251103)
+constexpr int Column_CheckBox = 7;
+constexpr int Column_Value = 8;
+#else
 constexpr int Column_CheckBox = 6;
 constexpr int Column_Value = 7;
+#endif
 
 // TODO: We should really be using these instead of the constants above. These have the
 // dynamically assigned column ids when the columns are added.
@@ -863,10 +868,6 @@ static void AddFindItemMenu()
 		{
 			if (CListWnd* list = static_cast<CListWnd*>(pFIWnd->GetChildItem("FIW_ItemList")))
 			{
-				list->bHasItemTooltips = true;
-
-				// if we don't do this the column tooltip is not drawn, I don't know why, possibly a listwindow bug
-				list->SetTooltip("Find item Window has a sixth column now.");
 				list->ListWndStyle |= 0x00020000; // ok to multiselect, if we add a 1 here we can edit lines as well
 				pUnChecked = pSidlMgr->FindAnimation("A_CheckBoxNormal");
 				pChecked = pSidlMgr->FindAnimation("A_CheckBoxPressed");

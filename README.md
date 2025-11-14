@@ -51,7 +51,7 @@ At this point, the source should be ready to compile. Proceed to building.
 
 ### Build Steps
 
-1. Open the `MacroQuest.sln` file in src.
+1. Open the `src\MacroQuest.sln` file.
 1. Select the `Release` and `(x64)` configuration from the drop-down menu near the top of the window.
 1. Since the project moved to 64-bit, ensure all project configurations are set to `(x64)` in the **Solution Macroquest** Property Pages.  From the Visual Studio main menu, select **Build** then **Configuration Manager** then ensure the Platform column for each project is set to `(x64)`.
 1. Select `Build -> Build Solution` from the menu.
@@ -61,24 +61,14 @@ The built files will be placed in `build/bin/Release`. To start MacroQuest, run 
 ### Adding Your Own Plugins
 
 _NOTE:_ If you have any custom plugins you want to build, put the sources for them in the `plugins` folder, for example:
-`plugins/MQ2Foo/MQ2Foo.cpp`. Do not put them in src/plugins - this path is reserved for the MacroQuest developers
+`plugins/MQ2Foo/MQ2Foo.cpp`. Do not put them in src/plugins - this path is reserved for the MacroQuest developers.
 
-To add any personal plugins to the solution:
-1. Right clicking the solution in solution explorer and clicking `Add -> Add Existing Project...`.
+You can create new plugins from template using the `mkplugin.exe` tool located in the `plugins` folder.
+
+To add any existing personal plugins to the solution:
+1. Right click the solution in solution explorer and click `Add -> Add Existing Project...`.
 1. Select your .vcxproj file.
 1. Repeat as necessary
-
-### Updating Plugins from Legacy MacroQuest
-
-If you are converting plugins over from Legacy MacroQuest, it is recommended that you re-run the plugin generator first, and copy your source files into the generated project.
-
-For Example:
-```
-cd plugins
-mkplugin MQ2Foo
-```
-
-This will generate a MQ2Foo.vcxproj, MQ2Foo.cpp and several other files in a MQ2Foo folder. You can now add this project to the solution and add/replace the sources with your own.
 
 ## Directory Structure
 

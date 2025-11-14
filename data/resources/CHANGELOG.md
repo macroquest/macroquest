@@ -1,5 +1,34 @@
+## Update 11/13/2025
+
+Updated for live hotfix.
+
+- Fix achievements not reading properly
+- Fix Item.CashLoot not returning the proper value
+- Fix FindItemWnd additional columns overlapping existing columns
+
+## Live Patch Update 11/12/2025
+
+- Includes all changes from previous test patches.
+
+Additional fixes:
+- Fix crash when inspecting cash loot bag.
+
+
+## Test Patch Update 11/6/2025
+
+- Added new EquipmentItem TLO that provides access to the new equipment keyring. Usage is
+  the same as other keyrings.
+- Locked Items are added to the client, but access through MQ is not available yet.
+- Added CashLoot member to Item type
+
+
+## Previous Updates
+
 November 11, 2025:
 - bzsrch: handle case of bad data being sent from server causing a crash
+
+November 1, 2025:
+- test: Update for test patch
 
 October 27, 2025:
 - Added network capability for actors

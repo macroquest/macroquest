@@ -116,6 +116,9 @@
     <ClInclude Include="LuaActor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Actor.pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="LuaJIT.natvis">

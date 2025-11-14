@@ -24,9 +24,20 @@
 *.vspscc
 *.zip
 .vs/
+.idea/
+.claude/
 
-build/
+/build/
+/build_*/
 packages/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake.in
+CTestTestfile.cmake
+_deps/
 
 UpgradeLog.htm
 

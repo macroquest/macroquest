@@ -21,7 +21,7 @@
 		Condition="'@(ProtocolBuffer)' != ''"
 		DependsOnTargets="$(ProtocolBufferDependsOn);ComputeProtocolBufferOutput"
 		Outputs="%(ProtocolBuffer.Outputs)"
-		Inputs="%(ProtocolBuffer.Identity);%(ProtocolBuffer.AdditionalDependencies);$(MSBuildProjectFile)">
+		Inputs="%(ProtocolBuffer.Identity);%(ProtocolBuffer.AdditionalDependencies);$(ProtocPath);$(MSBuildProjectFile)">
 		<ItemGroup
 			Condition="'@(SelectedFiles)' != ''">
 			<ProtocolBuffer
@@ -29,19 +29,11 @@
 				Condition="'%(Identity)' != '@(SelectedFiles)'" />
 		</ItemGroup>
 		<ItemGroup>
-			<ProtocolBuffer_tlog
-				Include="%(ProtocolBuffer.Outputs)"
-				Condition="'%(ProtocolBuffer.Outputs)' != '' and '%(ProtocolBuffer.ExcludedFromBuild)' != 'true'">
-				<Source>@(ProtocolBuffer, '|')</Source>
-			</ProtocolBuffer_tlog>
+			<ProtocolBufferFilesToDelete Include="%(ProtocolBuffer.Outputs)" />
 		</ItemGroup>
 		<Message
 			Importance="High"
 			Text="%(ProtocolBuffer.ExecutionDescription)" />
-		<WriteLinesToFile
-			Condition="'@(ProtocolBuffer_tlog)' != '' and '%(ProtocolBuffer_tlog.ExcludedFromBuild)' != 'true'"
-			File="$(IntDir)$(ProjectName).write.1.tlog"
-			Lines="^%(ProtocolBuffer_tlog.Source);@(ProtocolBuffer_tlog-&gt;'%(Fullpath)')" />
 		<ProtocolBuffer
 			Condition="'@(ProtocolBuffer)' != '' and '%(ProtocolBuffer.ExcludedFromBuild)' != 'true'"
 			CommandLineTemplate="%(ProtocolBuffer.CommandLineTemplate)"
@@ -80,5 +72,8 @@
 		</ItemGroup>
 		<MakeDir
 			Directories="@(ProtocolBufferDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+	</Target>
+	<Target Name="_CleanProtocolBufferOutput" BeforeTargets="Clean" Condition="'@(ProtocolBuffer)' != ''">
+		<Delete Files="@(ProtocolBufferFilesToDelete)" TreatErrorsAsWarnings="true" />
 	</Target>
 </Project>

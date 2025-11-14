@@ -416,8 +416,8 @@ public:
 
 #if defined(_M_AMD64)
 // Defined in AssemblyFunctions.asm, need the forward declare
-void Throttler_Detour();
-void(*Throttler_Trampoline)();
+void Throttler_Detour(uint32_t);
+void(*Throttler_Trampoline)(uint32_t);
 #else
 DETOUR_TRAMPOLINE_DEF(void, Throttler_Trampoline, ());
 void Throttler_Detour()
@@ -973,8 +973,7 @@ public:
 	};
 
 	template <LimiterSetting Value>
-	static constexpr const char* SettingName() { static_assert(false, "Unsupported SettingName in FrameLimiter"); }
-
+	static constexpr const char* SettingName();
 	template <> static constexpr const char* SettingName<LimiterSetting::Enable>() { return "Enable"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::ForegroundEnable>() { return "ForegroundEnable"; }
 	template <> static constexpr const char* SettingName<LimiterSetting::SaveByChar>() { return "SaveByChar"; }
@@ -989,8 +988,7 @@ public:
 
 private:
 	template <typename T, LimiterSetting Value>
-	static constexpr T GetDefault() { static_assert(false, "Unsupported bool FrameLimiter setting type"); }
-
+	static constexpr T GetDefault();
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::Enable>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::ForegroundEnable>() { return false; }
 	template <> static constexpr bool GetDefault<bool, LimiterSetting::SaveByChar>() { return false; }
@@ -1093,8 +1091,7 @@ public:
 	}
 
 	template <LimiterSetting Setting>
-	bool Set(bool Value) { static_assert(false, "Attempting to set a bool setting that doesn't exist in FrameLimiter"); }
-
+	bool Set(bool Value);
 	template<> bool Set<LimiterSetting::Enable>(bool Value) { return InternalSet<bool, LimiterSetting::Enable>(m_enabled, Value); }
 	template<> bool Set<LimiterSetting::ForegroundEnable>(bool Value) { return InternalSet<bool, LimiterSetting::ForegroundEnable>(m_enabledInForeground, Value); }
 	template<> bool Set<LimiterSetting::SaveByChar>(bool Value) { return InternalSet<bool, LimiterSetting::SaveByChar>(m_saveByChar, Value); }
@@ -1108,7 +1105,7 @@ public:
 	bool Toggle() { return Set<Setting>(!GetSetting<bool, Setting>()); }
 
 	template <LimiterSetting Setting>
-	float Set(float Value) { static_assert(false, "Attempting to set a float setting that doesn't exist in FrameLimiter"); }
+	float Set(float Value);
 	template<> float Set<LimiterSetting::BackgroundFPS>(float Value) { return InternalSet<float, LimiterSetting::BackgroundFPS>(m_backgroundFPS, Value); }
 	template<> float Set<LimiterSetting::ForegroundFPS>(float Value) { return InternalSet<float, LimiterSetting::ForegroundFPS>(m_foregroundFPS, Value); }
 	template<> float Set<LimiterSetting::MinSimulationFPS>(float Value) { return InternalSet<float, LimiterSetting::MinSimulationFPS>(m_minSimulationFPS, Value); }
