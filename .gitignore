@@ -70,3 +70,6 @@ src/MacroQuest*.sln
 *.DotSettings.user
 src/_ReSharper*/
 src/*.[Rr]e[Ss]harper
+
+# ignore .custom files
+*.custom
