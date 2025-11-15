@@ -823,7 +823,9 @@ void MacroQuest::CoreShutdown()
 
 void MacroQuest::Initialize()
 {
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOB)
 	InitializeDetours();
+#endif
 
 	pDataAPI = new MQDataAPI();
 	pDataAPI->Initialize();
@@ -887,7 +889,9 @@ void MacroQuest::Shutdown()
 	delete pActorAPI;
 	pActorAPI = nullptr;
 
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_TOB)
 	ShutdownDetours();
+#endif
 
 	g_Loaded = false;
 
@@ -898,7 +902,7 @@ void MacroQuest::Shutdown()
 bool MacroQuest::InitializeEQLib()
 {
 	eqlib::LibraryConfig config;
-	config.flags = eqlib::ConfigFlags::EnableAllEvents;
+	config.flags = eqlib::ConfigFlags::NoMainHooks;
 	config.eventReceiver = this;
 	config.logger = m_eqlibLogger;
 

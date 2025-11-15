@@ -19,24 +19,40 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClientPostOffice.h" />
     <ClInclude Include="NamedPipes.h" />
     <ClInclude Include="NamedPipesProtocol.h" />
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="Network.pb.h">
+      <DependentUpon>Network.proto</DependentUpon>
+    </ClInclude>
     <ClInclude Include="PostOffice.h" />
     <ClInclude Include="ProtoPipes.h" />
     <ClInclude Include="Routing.h" />
+    <ClInclude Include="Routing.pb.h">
+      <DependentUpon>Routing.proto</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="ServerPostOffice.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProtocolBuffer Include="Network.proto" />
     <ProtocolBuffer Include="Routing.proto" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClientPostOffice.cpp" />
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="NamedPipes.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Network.pb.cc">
+      <DependentUpon>Network.proto</DependentUpon>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="PostOffice.cpp" />
     <ClCompile Include="Routing.pb.cc">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
+      <DependentUpon>Routing.proto</DependentUpon>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="ServerPostOffice.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

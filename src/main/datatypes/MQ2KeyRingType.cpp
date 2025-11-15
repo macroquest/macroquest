@@ -151,6 +151,13 @@ bool MQ2KeyRingType::dataActivatedItem(const char* szIndex, MQTypeVar& Ret)
 }
 #endif
 
+#if HAS_EQUIPMENT_KEYRING
+bool MQ2KeyRingType::dataEquipmentItem(const char* szIndex, MQTypeVar& Ret)
+{
+	return dataGetKeyRing(eEquipmentKeyRing, szIndex, Ret);
+}
+#endif
+
 //============================================================================
 // MQ2KeyRingItemType
 

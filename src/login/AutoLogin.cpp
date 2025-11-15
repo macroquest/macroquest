@@ -454,7 +454,7 @@ void ServerNameInfo::List(const Action& select_action)
 		const bool is_selected = mq::ci_equals(short_name, ShortName) &&
 			mq::ci_equals(long_name, LongName);
 
-		format_to(buf_ins, "[{}] {}", short_name, long_name);
+		fmt::format_to(buf_ins, "[{}] {}", short_name, long_name);
 		buf.push_back(0);
 
 		if (ImGui::Selectable(buf.data(), is_selected, ImGuiSelectableFlags_SpanAvailWidth))
@@ -855,7 +855,7 @@ void ProfileGroupInfo::List(const Action& select_action)
 		profile_groups,
 		[this](const std::string& match) { return mq::ci_equals(match, profileName); },
 		[](fmt::memory_buffer& buf, const std::string& match)
-		{ fmt::format_to(std::back_inserter(buf), match); }
+		{ fmt::format_to(std::back_inserter(buf), "{}", match); }
 	);
 }
 

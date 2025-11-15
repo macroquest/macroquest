@@ -444,7 +444,7 @@ BYTE LightBrightness[] = {
 };
 
 const char* szSkills[] = {
-#include "../eqdata/skills.h"
+#include "eqdata/skills.h"
 	nullptr
 };
 
@@ -510,6 +510,7 @@ const char* szZoneExpansionName[] = {
 	"Night of Shadows",         // 29
 	"Laurion's Song",           // 30
 	"The Outer Brood",          // 31
+	"The Shattering of Ro",     // 32
 };
 
 const char* GetZoneExpansionName(int expansion)
@@ -759,11 +760,11 @@ int  gOldCameraType = -1;
 fEQGetMelee get_melee_range = GetMeleeRange;
 fEQW_GetDisplayWindow EQW_GetDisplayWindow = nullptr;
 
-bool ExecuteCmd(unsigned int command, bool keyDown, void* data)
+bool ExecuteCmd(unsigned int command, bool keyDown, void* data, const KeyCombo* combo)
 {
 	if (!pLocalPC)
 		return false;
-	return eqlib::EQExecuteCmd(command, keyDown, data, nullptr);
+	return eqlib::EQExecuteCmd(command, keyDown, data, combo);
 }
 
 int gbGroundDeprecateCount = -1;

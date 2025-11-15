@@ -16,9 +16,6 @@
 
 #define MQ_NO_EXPORTS
 
-#include "../common/Common.h"
-#include "../common/HotKeys.h"
-
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
@@ -47,8 +44,6 @@
 #include <windef.h>
 #include <wincrypt.h>
 #include <filesystem>
-
-using namespace mq;
 
 // Constants
 
@@ -132,8 +127,6 @@ std::string GetVersionStringRemote(const std::string& versionURL);
 void ShowWarningBlocking(const std::string& Message);
 void ShowErrorBlocking(const std::string& Message);
 void ThreadedMessage(const std::string& Message, int MessageType);
-void SetFocusWindowPID(uint32_t pid, bool state);
-void SetForegroundWindowInternal(HWND hWnd);
 
 // RemoteOps
 HMODULE WINAPI GetRemoteModuleHandle(HANDLE hProcess, LPCSTR lpModuleName);
@@ -146,3 +139,4 @@ std::string GetLocalPlayer(DWORD pid);
 void InitializeAutoLogin();
 void ShutdownAutoLogin();
 void AutoLoginRemoveProcess(uint32_t process_id);
+

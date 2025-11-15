@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2022 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -189,6 +189,7 @@ struct LuaMessage
 		if (message && message->Sender)
 		{
 			sol::table table = sol::state_view(s).create_table();
+			if (message->Sender->UUID) table["uuid"] = *message->Sender->UUID;
 			if (message->Sender->PID) table["pid"] = *message->Sender->PID;
 			if (message->Sender->Name) table["name"] = *message->Sender->Name;
 			if (message->Sender->Mailbox) table["mailbox"] = *message->Sender->Mailbox;
@@ -408,6 +409,7 @@ Address LuaDropbox::ParseHeader(sol::table header, const std::shared_ptr<LuaThre
 	}
 
 	// it's not likely these are set, but if they are we want to make sure they get routed correctly
+	addr.UUID = header.get<std::optional<std::string>>("uuid");
 	addr.PID = header.get<std::optional<uint32_t>>("pid");
 	addr.Name = header.get<std::optional<std::string>>("name");
 
@@ -533,7 +535,7 @@ sol::object StatelessIterator(sol::object, sol::object k, sol::this_state s)
 	{
 		// if any of these mailboxes are invalid, just erase them from the map, this will
 		// return as soon as a valid mailbox is found.
-		for (auto& it = s_dropboxes.begin(); it != s_dropboxes.end(); it = s_dropboxes.erase(it))
+		for (auto it = s_dropboxes.begin(); it != s_dropboxes.end(); it = s_dropboxes.erase(it))
 		{
 			if (auto ptr = it->second.lock())
 				return sol::make_object(s, ptr);
@@ -619,7 +621,7 @@ void LuaActors::Stop()
 
 void LuaActors::Process()
 {
-	for (auto& dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
+	for (auto dropbox_it = s_dropboxes.begin(); dropbox_it != s_dropboxes.end();)
 	{
 		auto ptr = dropbox_it->second.lock();
 		if (ptr)

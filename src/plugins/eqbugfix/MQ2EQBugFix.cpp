@@ -154,9 +154,6 @@ public:
 					// 74 ??                 jz      short loc_1405383A4
 					if (sourceAddress[0] == 0x80 && sourceAddress[1] == 0xB9 && sourceAddress[7] == 0x74)
 					{
-						// Copy original bytes
-						memcpy(m_origData, sourceAddress, CopyByteSize);
-
 						// Create new bytes
 						uint8_t newData[CopyByteSize];
 						memcpy(newData, sourceAddress, CopyByteSize);
@@ -168,9 +165,8 @@ public:
 						newData[7] = 0xEB; // JMP rel8 to replace the JZ rel8
 
 						m_patchedAddress = (uintptr_t)sourceAddress;
-						AddDetourBytes(m_patchedAddress, "DestroyAllWindows_BugFix");
-
-						PatchMemory(sourceAddress, newData, CopyByteSize);
+						
+						AddPatch(m_patchedAddress, newData, CopyByteSize, nullptr, "DestroyAllWindows_BugFix");
 						m_applied = true;
 						return;
 					}
@@ -185,12 +181,10 @@ public:
 	{
 		if (m_applied)
 		{
-			PatchMemory((void*)m_patchedAddress, m_origData, CopyByteSize);
-			RemoveDetour(m_patchedAddress);
+			RemovePatch(m_patchedAddress);
 
 			m_applied = false;
 			m_patchedAddress = 0;
-			memset(m_origData, 0, CopyByteSize);
 		}
 	}
 
@@ -239,20 +233,8 @@ private:
 		return {};
 	}
 
-	static void PatchMemory(void* dest, void* src, size_t length)
-	{
-		HANDLE hProcess = GetCurrentProcess();
-
-		DWORD oldPerms = 0;
-		FlushInstructionCache(hProcess, dest, length);
-		VirtualProtectEx(hProcess, dest, length, PAGE_EXECUTE_READWRITE, &oldPerms);
-		WriteProcessMemory(hProcess, dest, src, length, nullptr);
-		VirtualProtectEx(hProcess, dest, length, oldPerms, &oldPerms);
-	}
-
 	bool m_applied = false;
 	uintptr_t m_patchedAddress = 0;
-	uint8_t m_origData[CopyByteSize] = { 0 };
 };
 
 DestroyAllWindows_BugFix_Handler DestroyAllWindows_BugFix;

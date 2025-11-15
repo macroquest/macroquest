@@ -1,6 +1,6 @@
 /*
  * MacroQuest: The extension platform for EverQuest
- * Copyright (C) 2002-2023 MacroQuest Authors
+ * Copyright (C) 2002-present MacroQuest Authors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2, as published by
@@ -25,7 +25,7 @@
 #include "spdlog/spdlog.h"
 
  // map of panels in the main GUI window
-static imgui::ImGuiTreePanelWindow* s_mainWindow = nullptr;
+static mq::imgui::ImGuiTreePanelWindow* s_mainWindow = nullptr;
 static std::map<const char*, void(*)()> s_pendingPanels;
 
 // map of viewport windows to render
@@ -360,7 +360,7 @@ bool RemoveContextGroup(const std::string& name)
 void MaybeShowContextMenu();
 void Run(const std::function<bool()>& mainLoop)
 {
-	s_mainWindow = new imgui::ImGuiTreePanelWindow("MacroQuest", { 640.f, 480.f });
+	s_mainWindow = new mq::imgui::ImGuiTreePanelWindow("MacroQuest", { 640.f, 480.f });
 	for (const auto& [name, callback] : s_pendingPanels)
 		s_mainWindow->AddPanel(name, callback);
 

@@ -18,6 +18,7 @@
 #include "LuaThread.h"
 
 #include <mq/Plugin.h>
+#include <mq/api/MacroAPI.h>
 
 namespace mq::lua {
 
@@ -315,9 +316,11 @@ MQTypeVar lua_MQTypeVar::EvaluateMember(const char* index) const
 
 	// the ternary in index is because datatypes are all over the place on whether or not they can
 	// accept null pointers. They all seem to agree that an empty string is the same thing, though.
+	char buffer[1] = "";
 	MQTypeVar var;
-	if (EvaluateMacroDataMember(m_self.Type, m_self.GetVarPtr(), var, m_member.c_str(), index ? index : "") == 1)
-		return std::move(var);
+
+	if (EvaluateMacroDataMember(m_self.Type, m_self.GetVarPtr(), var, m_member.c_str(), const_cast<char*>(index ? index : buffer)) == 1)
+		return var;
 
 	// can't guarantee result didn't Get modified, but we want to return nil if GetMember was false
 	return MQTypeVar();
@@ -614,6 +617,21 @@ const char* mq_gettype_MQTypeVar(lua_MQTypeVar* item)
 	return type->GetName();
 }
 
+static sol::table lua_getDataTypes(sol::this_state s)
+{
+	sol::state_view lua(s);
+	sol::table result = lua.create_table();
+
+	const auto dataTypes = GetDataTypeNames();
+	int index = 1;
+	for (const auto& name : dataTypes)
+	{
+		result[index++] = name;
+	}
+
+	return result;
+}
+
 #pragma endregion
 
 //============================================================================
@@ -860,7 +878,7 @@ static bool ConvertCallbackResultToMacroType(sol::function_result& result, MQTyp
 {
 	if (result.valid() && result.return_count() > 1)
 	{
-		auto& [nameValue, typeValue] = result.get<std::tuple<sol::object, sol::object>>();
+		auto [nameValue, typeValue] = result.get<std::tuple<sol::object, sol::object>>();
 		if (nameValue != sol::lua_nil && typeValue != sol::lua_nil)
 		{
 			const auto& typeName = nameValue.as<std::optional<const char*>>();
@@ -889,7 +907,7 @@ static bool ConvertCallbackResultToMacroType(sol::function_result& result, MQTyp
 
 bool lua_AddTopLevelObject(const char* name, sol::function func, sol::this_state s)
 {
-	auto& [_1, _2, numArgs, varargs] = GetArgInfo(func);
+	auto [_1, _2, numArgs, varargs] = GetArgInfo(func);
 
 	if (!name || name[0] == 0)
 	{
@@ -1111,6 +1129,7 @@ void RegisterBindings_MQMacroData(sol::table& mq)
 		                                             &mq_gettype_MQTypeVar,
 		                                             &mq_gettype_MQTopLevelObject
 		                                         ));
+	mq.set_function("GetDataTypeNames",              &lua_getDataTypes);
 
 	//----------------------------------------------------------------------------
 	// DataTypes and TLOs

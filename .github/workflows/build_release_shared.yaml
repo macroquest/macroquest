@@ -117,7 +117,7 @@ jobs:
       - name: Set Versioning for eqlib
         shell: pwsh
         run: |
-          $versionFile = "src/eqlib/eqlibVersionInfo.h"
+          $versionFile = "src/eqlib/src/eqlibVersionInfo.h"
           $versionInfo = Get-Content $versionFile
           $versionInfo = $versionInfo -replace '#define EQLIB_GIT_HASH "(.*)"', "#define EQLIB_GIT_HASH `"$eqlibCommitHash`""
           $versionInfo | Set-Content $versionFile
@@ -163,8 +163,11 @@ jobs:
             ${{ runner.os }}-vcpkg-${{ env.platform }}-
             ${{ runner.os }}-vcpkg-
 
+      - name: Build MQ2Main:${{ env.platform }} Release for ${{ inputs.client_target }}
+        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m /t:core\MQ2Main /p:PreferredToolArchitecture=x64
+
       - name: Build ${{ env.platform }} Release for ${{ inputs.client_target }}
-        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }}
+        run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m /p:PreferredToolArchitecture=x64
 
       - name: Create Symbols Archive
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb

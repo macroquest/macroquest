@@ -14,10 +14,13 @@
 
 #pragma once
 
-#include "eqlib/PcClient.h"
-#include "eqlib/EQClasses.h"
+#include "mq/base/Common.h"
 
-using namespace eqlib;
+#include "eqlib/game/EQClasses.h"
+#include "eqlib/game/Globals.h"
+#include "eqlib/game/PcClient.h"
+
+#include <string_view>
 
 namespace mq {
 
@@ -35,7 +38,7 @@ namespace mq {
  **/
 inline int GetAdjustedSkill(int nSkill)
 {
-	return pLocalPC ? pLocalPC->GetAdjustedSkill(nSkill) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetAdjustedSkill(nSkill) : 0;
 }
 
 /**
@@ -52,7 +55,7 @@ inline int GetAdjustedSkill(int nSkill)
  **/
 inline int GetBaseSkill(int nSkill)
 {
-	return pLocalPC ? pLocalPC->GetBaseSkill(nSkill) : 0;
+	return eqlib::pLocalPC ? eqlib::pLocalPC->GetBaseSkill(nSkill) : 0;
 }
 
 /**
@@ -69,7 +72,7 @@ inline int GetBaseSkill(int nSkill)
  **/
 inline bool HasSkill(int nSkill)
 {
-	return pLocalPC && pLocalPC->HasSkill(nSkill);
+	return eqlib::pLocalPC && eqlib::pLocalPC->HasSkill(nSkill);
 }
 
 /**
@@ -86,7 +89,9 @@ inline bool HasSkill(int nSkill)
  **/
 inline bool SkillIsActivatable(int nSkill)
 {
-	return nSkill < NUM_SKILLS && pSkillMgr && pSkillMgr->pSkill[nSkill]->Activated;
+	return nSkill < eqlib::NUM_SKILLS
+		&& eqlib::pSkillMgr
+		&& eqlib::pSkillMgr->pSkill[nSkill]->Activated;
 }
 
 /**

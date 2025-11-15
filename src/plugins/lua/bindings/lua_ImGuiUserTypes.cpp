@@ -14,16 +14,16 @@
 
 #include "pch.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <sol/sol.hpp>
+#include "eqlib/game/UITextures.h"
+#include "mq/imgui/Widgets.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "sol/sol.hpp"
 
 #include <optional>
 #include <string>
-
-#include "eqlib/UITextures.h"
-#include "mq/imgui/Widgets.h"
 
 namespace mq::lua::bindings {
 
@@ -304,7 +304,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 	imDrawList.set_function("AddTextureAnimation",
 		[](ImDrawList& mThis, const std::unique_ptr<eqlib::CTextureAnimation>& anim, const ImVec2& pos, std::optional<ImVec2> size) {
-			return imgui::DrawTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? *size : eqlib::CXSize());
+			return imgui::DrawTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? eqlib::CXSize(*size) : eqlib::CXSize());
 		});
 
 

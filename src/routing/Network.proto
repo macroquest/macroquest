@@ -1,0 +1,50 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-present MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+syntax = "proto3";
+
+import "Routing.proto";
+
+package mq.peernetwork;
+
+enum MessageType {
+	Route = 0; // normally everything is a route, everything after this is a bookkeeping message type
+	Leader = 1;
+	Handshake = 2;
+	Response = 3;
+}
+
+message Identity {
+	string uuid = 1;
+	uint32 port = 2;
+}
+
+message Header {
+	MessageType type = 1;
+	uint32 length = 2;
+
+	// optional handling of relay requests
+	optional string address = 11;
+	optional uint32 port = 12;
+}
+
+message NetworkMessage {
+	oneof contents {
+		mq.proto.routing.AddIdentity add = 1;
+		mq.proto.routing.DropIdentity drop = 2;
+		mq.proto.routing.RequestIdentities request = 3;
+
+		bytes routed = 10;
+	}
+}

@@ -330,7 +330,7 @@ void LuaEventProcessor::RemoveBinds(const std::vector<std::string>& binds)
 
 void LuaEventProcessor::HandleBindCallback(LuaBind* bind, const char* args)
 {
-	auto& args_view = tokenize_args(args);
+	std::vector<std::string_view> args_view = tokenize_args(args);
 	if (args_view.empty())
 	{
 		m_bindsPending.emplace_back(bind);

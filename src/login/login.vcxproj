@@ -22,10 +22,8 @@
     <ClCompile Include="AutoLogin.cpp" />
     <ClCompile Include="Login.cpp" />
     <ClCompile Include="Login.pb.cc">
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267</DisableSpecificWarnings>
+      <DependentUpon>Login.proto</DependentUpon>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +33,9 @@
     <ClInclude Include="AutoLogin.h" />
     <ClInclude Include="Companies.h" />
     <ClInclude Include="Login.h" />
+    <ClInclude Include="Login.pb.h">
+      <DependentUpon>Login.proto</DependentUpon>
+    </ClInclude>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

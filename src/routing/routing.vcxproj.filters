@@ -18,13 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Routing.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProtoPipes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostOffice.h">
+    <ClInclude Include="ClientPostOffice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NamedPipes.h">
@@ -33,20 +27,59 @@
     <ClInclude Include="NamedPipesProtocol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostOffice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProtoPipes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Routing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerPostOffice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Routing.pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ProtocolBuffer Include="Routing.proto">
       <Filter>Proto Files</Filter>
     </ProtocolBuffer>
+    <ProtocolBuffer Include="Network.proto">
+      <Filter>Proto Files</Filter>
+    </ProtocolBuffer>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Routing.pb.cc">
+    <ClCompile Include="ServerPostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientPostOffice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedPipes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PostOffice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NamedPipes.cpp">
+    <ClCompile Include="Network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Routing.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

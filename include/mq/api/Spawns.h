@@ -14,10 +14,9 @@
 
 #pragma once
 
-#include "eqlib/Globals.h"
-#include "eqlib/PlayerClient.h"
+#include "mq/base/Common.h"
 
-using namespace eqlib;
+#include "eqlib/game/PlayerClient.h"
 
 namespace mq {
 
@@ -27,7 +26,7 @@ namespace mq {
  * @param pSpawn The spawn to check
  * @return Whether the spawn is marked or not.
  */
-MQLIB_API bool IsMarkedNPC(PlayerClient* pSpawn);
+MQLIB_API bool IsMarkedNPC(eqlib::PlayerClient* pSpawn);
 
 /**
  * Returns the mark number for the given spawn if the spawn is marked.
@@ -36,7 +35,7 @@ MQLIB_API bool IsMarkedNPC(PlayerClient* pSpawn);
  * @param pSpawn The spawn to check
  * @return The mark number of the spawn if it is marked.
  */
-MQLIB_API int GetNPCMarkNumber(PlayerClient* pSpawn);
+MQLIB_API int GetNPCMarkNumber(eqlib::PlayerClient* pSpawn);
 
 /**
  * Returns the Spawn ID of the group main assist target, if one exists.
@@ -61,7 +60,7 @@ MQLIB_API uint32_t GetRaidMainAssistTargetID(int index);
  * @param pSpawn The spawn to check
  * @return True if the spawn is an assist target.
  */
-MQLIB_API bool IsAssistNPC(PlayerClient* pSpawn);
+MQLIB_API bool IsAssistNPC(eqlib::PlayerClient* pSpawn);
 
 
 } // namespace mq

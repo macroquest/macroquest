@@ -15,10 +15,13 @@
 #include "MacroQuest.h"
 #include "resource.h"
 
-#include <wil/resource.h>
-#include <spdlog/spdlog.h>
-#include <fmt/chrono.h>
-#include <fmt/os.h>
+#include "mq/base/Base.h"
+#include "mq/base/String.h"
+
+#include "wil/resource.h"
+#include "spdlog/spdlog.h"
+#include "fmt/chrono.h"
+#include "fmt/os.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -360,7 +363,7 @@ bool ProcessMQ2MainModule(DWORD processId, const std::function<bool(MODULEENTRY3
 
 	do
 	{
-		if (ci_find_substr(me32.szExePath, s_mainDLL) != -1)
+		if (mq::ci_find_substr(me32.szExePath, s_mainDLL) != -1)
 		{
 			bool result = cb(&me32);
 			return result;
@@ -544,12 +547,14 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 	for (size_t i = 0; i < size; ++i)
 	{
 		uint8_t* pData = pBuf + i;
+		bool skip = false;
 
-		for (size_t q = 0; q < lengthof(pattern); ++q)
+		for (size_t q = 0; q < lengthof(pattern) && !skip; ++q)
 		{
 			if ((pData[q] & mask[q]) != pattern[q])
-				goto next;
+				skip = true;
 		}
+		if (skip) continue;
 
 		// if we made it here, the pattern matches. convert our physical offset into a relative virtual address.
 		uintptr_t baseRva = 0;
@@ -563,7 +568,7 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 
 		uintptr_t stringRef = stringRefRVA + stringRefDisplacement;
 		if (!convertAddress(peFile, stringRef, AddressType::RelativeVirtualAddress, AddressType::VirtualAddress, stringRefVirtualAddress))
-			continue; // failed to convert address. its probably not a valid address..?
+			continue; // failed to convert address. its probably not a valid address...?
 		
 		if (stringRefVirtualAddress != versionStringVirtualAddress)
 			continue; // not the string we're looking for.
@@ -580,12 +585,7 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 		eqDate = ReadStringAtVA(peFile.get(), dateVA);
 		eqTime = ReadStringAtVA(peFile.get(), timeVA);
 		break;
-
-	next:
-		continue;
 	}
-
-
 #else
 	// a.k.a. convert rva to address.
 	PIMAGE_SECTION_HEADER pImgSect = ImageRvaToSection(nthdrs, pBuf, (ULONG)versionStringPhysicalOffset);
@@ -672,7 +672,7 @@ std::vector<DWORD> GetAllEqGameSessions()
 	{
 		do
 		{
-			if (ci_find_substr(pe32.szExeFile, "eqgame.exe") != -1)
+			if (mq::ci_find_substr(pe32.szExeFile, "eqgame.exe") != -1)
 			{
 				theList.push_back(pe32.th32ProcessID);
 			}
@@ -731,7 +731,7 @@ void ForceRemoteUnloadMQ2(int pID)
 		do
 		{
 			fs::path modulePath{ me32.szModule };
-			if (ci_find_substr(modulePath.filename().string(), "mq2main") == 0)
+			if (mq::ci_find_substr(modulePath.filename().string(), "mq2main") == 0)
 			{
 				using fMQShutdownPlugin = void(__cdecl*)();
 
@@ -815,7 +815,7 @@ HWND GetEQWindowHandleForProcessId(DWORD processId)
 			return TRUE;
 
 		char className[32];
-		if (!GetClassName(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
+		if (!::GetClassNameA(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
 			return TRUE;
 
 		param->outHWnd = hWnd;
@@ -840,7 +840,7 @@ std::vector<HWND> GetEQWindowHandles()
 		Param* param = reinterpret_cast<Param*>(lParam);
 
 		char className[32];
-		if (!GetClassName(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
+		if (!::GetClassNameA(hWnd, className, 32) || strcmp(className, "_EverQuestwndclass"))
 			return TRUE;
 
 		param->hWnds.push_back(hWnd);
@@ -951,9 +951,20 @@ static InjectResult DoInject(uint32_t PID)
 	HMODULE hEqGameMod = (HMODULE)GetEQGameBaseAddressByPID(PID);
 	if (!hEqGameMod)
 	{
+		DWORD lastError = GetLastError();
+
+#if !defined(_WIN64)
+		if (lastError == ERROR_PARTIAL_COPY)
+		{
+			SPDLOG_ERROR("Failed to get eqgame.exe base address for pid={}: eqgame.exe "
+				"process is 64-bit but the launcher is 32-bit", PID);
+			return InjectResult::FailedPermanent;
+		}
+#endif
+
 		// Something went wrong - we couldn't get the EQ base address
 		SPDLOG_ERROR("{}",
-			fmt::windows_error(GetLastError(), "Failed to get eqgame.exe base address for pid={}", PID).what());
+			fmt::windows_error(lastError, "Failed to get eqgame.exe base address for pid={}", PID).what());
 		return InjectResult::FailedRetry;
 	}
 

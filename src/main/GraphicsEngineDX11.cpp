@@ -70,7 +70,7 @@ struct ScopedStateBlock
 		Capture();
 	}
 
-	ScopedStateBlock::~ScopedStateBlock()
+	~ScopedStateBlock()
 	{
 		Release();
 	}

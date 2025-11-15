@@ -1,34 +1,94 @@
+/*
+ * MacroQuest: The extension platform for EverQuest
+ * Copyright (C) 2002-present MacroQuest Authors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 syntax = "proto3";
 
 package mq.proto.routing;
 
-message Address {
-	oneof target {
-		uint32 pid = 1;
-		string name = 2;
+message Process {
+	uint32 pid = 1;
+}
+
+message Peer {
+	string ip = 1;
+	uint32 port = 2;
+}
+
+message Client {
+	optional string account = 1;
+	optional string server = 2;
+	optional string character = 3;
+}
+
+message Identification {
+	oneof container {
+		Process process = 1;
+		Peer peer = 2;
 	}
-	optional string account = 3;
-	optional string server = 4;
-	optional string character = 5;
+
+	string uuid = 3;
+
+	oneof address {
+		string name = 11;
+		Client client = 12;
+	}
+}
+
+// this is exactly the same as Identification with the additon of mailbox
+// but there's no inheritance and it's convenient to keep the call chains
+// short
+message Address {
+	oneof container {
+		Process process = 1;
+		Peer peer = 2;
+	}
+
+	oneof address {
+		string name = 3;
+		Client client = 4;
+	}
+
 	optional string mailbox = 6;
+	optional string uuid = 7;
+}
+
+message AddIdentity {
+	Identification id = 1;
+}
+
+message DropIdentity {
+	Identification id = 1;
+}
+
+message RequestIdentities {
+	oneof container {
+		Process process = 1;
+		Peer peer = 2;
+	}
+
+	string uuid = 3;
 }
 
 message Envelope {
 	Address address = 1;
 	Address return_address = 2;
+
+	uint32 mode = 3;
+	int32 status = 4;
+	uint32 sequence = 5;
+
 	optional bytes payload = 99;
-}
-
-message Identification {
-	uint32 pid = 1;
-	optional string name = 2;
-	optional string account = 3;
-	optional string server = 4;
-	optional string character = 5;
-}
-
-message Identifications {
-	repeated Identification ids = 1;
 }
 
 enum NotifyLevel {

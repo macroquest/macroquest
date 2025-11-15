@@ -17,12 +17,12 @@
 
 #include "MQ2KeyBinds.h"
 
-#include <fmt/format.h>
+#include "MQ2DeveloperTools.h"
+#include "fmt/format.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace mq {
-
-//void InjectMQ2Binds(COptionsWnd* pWnd);
-//void EjectMQ2Binds(COptionsWnd* pWnd);
 
 using KeybindMap = std::map<std::string, int, ci_less>;
 
@@ -91,7 +91,7 @@ bool MQ2HandleKeyDown(const KeyCombo& combo)
 		if (pKeypressHandler->CommandState[index] == 0
 			&& (pKeypressHandler->NormalKey[index] == combo || pKeypressHandler->AltKey[index] == combo))
 		{
-			ExecuteCmd(index, true);
+			ExecuteCmd(index, true, nullptr,  &combo);
 
 			pKeypressHandler->CommandState[index] = 1;
 			Ret = true;
@@ -182,39 +182,6 @@ public:
 		return MQ2HandleKeyUp(combo) || ret;
 	}
 };
-
-static void DoRangedBind(const char* Name, bool Down);
-
-void InitializeMQ2KeyBinds()
-{
-	AddMQ2KeyBind("RANGED", DoRangedBind);
-
-	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
-	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
-
-	// Validate that our constants are correct
-	assert(ci_equals(szEQMappableCommands[CMD_AUTORUN], "autorun"));
-	assert(ci_equals(szEQMappableCommands[CMD_JUMP], "jump"));
-	assert(ci_equals(szEQMappableCommands[CMD_FORWARD], "forward"));
-	assert(ci_equals(szEQMappableCommands[CMD_BACK], "back"));
-	assert(ci_equals(szEQMappableCommands[CMD_RIGHT], "right"));
-	assert(ci_equals(szEQMappableCommands[CMD_LEFT], "left"));
-	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_LEFT], "strafe_left"));
-	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_RIGHT], "strafe_right"));
-	assert(ci_equals(szEQMappableCommands[CMD_DUCK], "duck"));
-	assert(ci_equals(szEQMappableCommands[CMD_RUN_WALK], "run_walk"));
-}
-
-void ShutdownMQ2KeyBinds()
-{
-	gKeyBinds.clear();
-	gKeybindMap.clear();
-
-	RemoveDetour(KeypressHandler__ClearCommandStateArray);
-	RemoveDetour(KeypressHandler__HandleKeyDown);
-	RemoveDetour(KeypressHandler__HandleKeyUp);
-}
 
 bool AddMQ2KeyBind(const char* name, fMQExecuteCmd function)
 {
@@ -545,6 +512,396 @@ bool DumpBinds(const char* Filename)
 
 	fclose(file);
 	return true;
+}
+
+//============================================================================
+// KeyBinds Settings
+//============================================================================
+
+static ImVec4 GetKeyBindColor(bool empty, bool hovered)
+{
+	if (hovered)
+		return ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+	if (empty)
+		return ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+
+	return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+static bool sEditKeyBind = false;
+static std::string sEditKeyBindName;
+static bool sEditKeyBindAlt = false;
+static bool sEditKeyBindEQ = false;
+static char sEditKeyCombo[64];
+
+void DoEditKeyCombo(const std::string& name, const std::string& keyCombo, bool alt, bool eq)
+{
+	sEditKeyBindName = name;
+	sEditKeyBindAlt = alt;
+	sEditKeyBindEQ = eq;
+	strcpy_s(sEditKeyCombo, keyCombo.c_str());
+
+	ImGui::OpenPopup("Edit Key Binding");
+}
+
+int DoEditKeyComboTextEditCallback(ImGuiInputTextCallbackData* data)
+{
+	return 1;
+}
+
+void DoEditKeyComboPopup()
+{
+	bool unused_open = true;
+	if (ImGui::BeginPopupModal("Edit Key Binding", &unused_open))
+	{
+		ImGui::Text("Editing %s key binding for \"%s\"",
+			sEditKeyBindAlt ? "alt" : "normal", sEditKeyBindName.c_str());
+
+		ImGui::InputText("", sEditKeyCombo, sizeof(sEditKeyCombo), 0, DoEditKeyComboTextEditCallback);
+
+		eqlib::KeyCombo keyCombo;
+		bool valid = ParseKeyCombo(sEditKeyCombo, keyCombo);
+
+		if (!valid)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		if (ImGui::Button("Save", ImVec2(80, 0)))
+		{
+			if (sEditKeyBindEQ)
+				SetEQKeyBind(sEditKeyBindName.c_str(), sEditKeyBindAlt, keyCombo);
+			else
+				SetMQ2KeyBind(sEditKeyBindName.c_str(), sEditKeyBindAlt, keyCombo);
+
+			ImGui::CloseCurrentPopup();
+		}
+
+		if (!valid)
+		{
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(80, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}
+
+void DoKeybindSettings()
+{
+	ImGui::Text("Clicking a binding will allow you to change it.");
+
+	std::string clickedName;
+	bool clickedAlt = false;
+	bool clickedEQ = false;
+	std::string clickedCombo;
+	bool clicked = false;
+
+	if (ImGui::BeginTabBar("Keybinds"))
+	{
+		char label[64];
+		sprintf_s(label, "MacroQuest Key Bindings (%d)###MQKeyBindings", GetKeyBindsCount());
+
+		if (ImGui::BeginTabItem(label))
+		{
+			static int sHoveredIndex = -1;
+			static bool sHoveredAlt = false;
+			bool isAnyHovered = false;
+
+			if (ImGui::BeginTable("##MQKeybindTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
+			{
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
+
+				bool hovered = false;
+
+				EnumerateKeyBinds(
+					[&](const mq::MQKeyBind& keyBind)
+					{
+						char keyComboDesc[64];
+
+						ImGui::TableNextRow();
+
+						ImGui::TableNextColumn();
+						ImGui::Text(keyBind.Name.c_str());
+
+						ImGui::TableNextColumn();
+
+						DescribeKeyCombo(keyBind.Normal, keyComboDesc, sizeof(keyComboDesc));
+						hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == false);
+						ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+						if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
+						if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = false; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
+
+						ImGui::TableNextColumn();
+						DescribeKeyCombo(keyBind.Alt, keyComboDesc, sizeof(keyComboDesc));
+						hovered = (sHoveredIndex == keyBind.Id && sHoveredAlt == true);
+						ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+						if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = keyBind.Id; isAnyHovered = true; }
+						if (ImGui::IsItemClicked()) { clickedName = keyBind.Name; clickedAlt = true; clickedEQ = false; clickedCombo = keyComboDesc; clicked = true; }
+					});
+
+				ImGui::EndTable();
+			}
+
+			if (!isAnyHovered)
+			{
+				sHoveredIndex = -1;
+				sHoveredAlt = false;
+			}
+
+			ImGui::EndTabItem();
+		}
+
+		// Count the keybinds.
+		int eqCount = 0;
+		for (auto& szEQMappableCommand : szEQMappableCommands)
+		{
+			if (szEQMappableCommand == nullptr)
+				continue;
+
+			eqCount++;
+		}
+		sprintf_s(label, "EverQuest Key Bindings (%d)###EQKeyBindings", eqCount);
+
+		if (ImGui::BeginTabItem(label))
+		{
+			static int sHoveredIndex = -1;
+			static bool sHoveredAlt = false;
+			bool isAnyHovered = false;
+
+			if (ImGui::BeginTable("##EQKeybindTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
+			{
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed);
+				ImGui::TableSetupScrollFreeze(0, 1);
+				ImGui::TableHeadersRow();
+
+				bool hovered = false;
+
+				for (int i = 0; i < nEQMappableCommands; ++i)
+				{
+					if (szEQMappableCommands[i] == nullptr)
+						continue;
+
+					char keyComboDesc[64];
+
+					ImGui::TableNextRow();
+
+					ImGui::TableNextColumn();
+					ImGui::Text(szEQMappableCommands[i]);
+
+					ImGui::TableNextColumn();
+
+					DescribeKeyCombo(pKeypressHandler->NormalKey[i], keyComboDesc, sizeof(keyComboDesc));
+					hovered = (sHoveredIndex == i && sHoveredAlt == false);
+					ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+					if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = i; isAnyHovered = true; }
+					if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = false; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+
+					ImGui::TableNextColumn();
+					DescribeKeyCombo(pKeypressHandler->AltKey[i], keyComboDesc, sizeof(keyComboDesc));
+					hovered = (sHoveredIndex == i && sHoveredAlt == true);
+					ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+					if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = i; isAnyHovered = true; }
+					if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = true; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+				}
+
+				ImGui::EndTable();
+			}
+
+			if (!isAnyHovered)
+			{
+				sHoveredIndex = -1;
+				sHoveredAlt = false;
+			}
+
+			ImGui::EndTabItem();
+		}
+
+		ImGui::EndTabBar();
+	}
+
+	if (clicked)
+	{
+		DoEditKeyCombo(clickedName, clickedCombo, clickedAlt, clickedEQ);
+	}
+
+	DoEditKeyComboPopup();
+}
+
+//============================================================================
+// KeyBinds Inspector
+//============================================================================
+
+
+class KeyBindsInspector : public ImGuiWindowBase
+{
+public:
+	KeyBindsInspector() : ImGuiWindowBase("Key Bindings Inspector")
+	{
+		SetDefaultSize(ImVec2(600, 400));
+	}
+
+	virtual  ~KeyBindsInspector() override
+	{
+	}
+
+	bool IsEnabled() const override
+	{
+		return true;
+	}
+
+	void Draw() override
+	{
+		std::string clickedName;
+		bool clickedAlt = false;
+		bool clickedEQ = false;
+		std::string clickedCombo;
+		bool clicked = false;
+
+		static int sHoveredIndex = -1;
+		static bool sHoveredAlt = false;
+		bool isAnyHovered = false;
+
+		if (ImGui::BeginTable("##EQKeybindTable", 7, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Bind", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Alt", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupColumn("KeyDown", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupColumn("Enabled", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableHeadersRow();
+	
+			for (int i = 0; i < nEQMappableCommands; ++i)
+			{
+				ImGui::PushID(i);
+				char keyComboDesc[64];
+
+				ImGui::TableNextRow();
+
+				// ID
+				ImGui::TableNextColumn();
+				ImGui::Text("%d", i);
+
+				// Name
+				ImGui::TableNextColumn();
+				if (szEQMappableCommands[i])
+					ImGui::Text("%s", szEQMappableCommands[i]);
+				else
+					ImGui::TextColored(ImColor(255, 0, 0), "(Unmapped:%d)", i);
+
+				// Bind
+				ImGui::TableNextColumn();
+				DescribeKeyCombo(pKeypressHandler->NormalKey[i], keyComboDesc, sizeof(keyComboDesc));
+				bool hovered = (sHoveredIndex == i && sHoveredAlt == false);
+				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+				if (ImGui::IsItemHovered()) { sHoveredAlt = false; sHoveredIndex = i; isAnyHovered = true; }
+				if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = false; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+
+				// Alt Bind
+				ImGui::TableNextColumn();
+				DescribeKeyCombo(pKeypressHandler->AltKey[i], keyComboDesc, sizeof(keyComboDesc));
+				hovered = (sHoveredIndex == i && sHoveredAlt == true);
+				ImGui::TextColored(GetKeyBindColor(ci_equals("clear", keyComboDesc), hovered), "%s", keyComboDesc);
+				if (ImGui::IsItemHovered()) { sHoveredAlt = true; sHoveredIndex = i; isAnyHovered = true; }
+				if (ImGui::IsItemClicked()) { clickedName = szEQMappableCommands[i]; clickedAlt = true; clickedEQ = true; clickedCombo = keyComboDesc; clicked = true; }
+
+				// State
+				ImGui::TableNextColumn();
+				bool state = pKeypressHandler->CommandState[i];
+				ImGui::TextColored(state ? ImColor(0, 255, 0) : ImColor(255, 0, 0), "%s", state ? "ON" : "OFF");
+
+				// KeyDown
+				ImGui::TableNextColumn();
+				state = pEverQuestInfo->keyDown[i];
+				ImGui::TextColored(state ? ImColor(0, 255, 0) : ImColor(255, 0, 0), "%s", state ? "ON" : "OFF");
+
+				// Enabled
+				ImGui::TableNextColumn();
+				state = EQbCommandStates[i] != 0;
+				ImGui::TextColored(state ? ImColor(0, 255, 0) : ImColor(255, 0, 0), "%s", state ? "ON" : "OFF");
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
+
+		if (!isAnyHovered)
+		{
+			sHoveredIndex = -1;
+			sHoveredAlt = false;
+		}
+
+		if (clicked)
+		{
+			DoEditKeyCombo(clickedName, clickedCombo, clickedAlt, clickedEQ);
+		}
+
+		DoEditKeyComboPopup();
+	}
+};
+static KeyBindsInspector* s_inspector = nullptr;
+
+
+//============================================================================
+//============================================================================
+
+void InitializeMQ2KeyBinds()
+{
+	AddMQ2KeyBind("RANGED", DoRangedBind);
+	AddSettingsPanel("Key Bindings", DoKeybindSettings);
+
+	s_inspector = new KeyBindsInspector();
+	DeveloperTools_RegisterMenuItem(s_inspector, "Key Bindings", s_menuNameInspectors);
+
+	EzDetour(KeypressHandler__ClearCommandStateArray, &KeypressHandlerHook::ClearCommandStateArray_Hook, &KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyDown, &KeypressHandlerHook::HandleKeyDown_Hook, &KeypressHandlerHook::HandleKeyDown_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyUp, &KeypressHandlerHook::HandleKeyUp_Hook, &KeypressHandlerHook::HandleKeyUp_Trampoline);
+
+	// Validate that our constants are correct
+	assert(ci_equals(szEQMappableCommands[CMD_AUTORUN], "autorun"));
+	assert(ci_equals(szEQMappableCommands[CMD_JUMP], "jump"));
+	assert(ci_equals(szEQMappableCommands[CMD_FORWARD], "forward"));
+	assert(ci_equals(szEQMappableCommands[CMD_BACK], "back"));
+	assert(ci_equals(szEQMappableCommands[CMD_RIGHT], "right"));
+	assert(ci_equals(szEQMappableCommands[CMD_LEFT], "left"));
+	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_LEFT], "strafe_left"));
+	assert(ci_equals(szEQMappableCommands[CMD_STRAFE_RIGHT], "strafe_right"));
+	assert(ci_equals(szEQMappableCommands[CMD_DUCK], "duck"));
+	assert(ci_equals(szEQMappableCommands[CMD_RUN_WALK], "run_walk"));
+}
+
+void ShutdownMQ2KeyBinds()
+{
+	gKeyBinds.clear();
+	gKeybindMap.clear();
+
+	RemoveSettingsPanel("Key Bindings");
+
+	DeveloperTools_UnregisterMenuItem(s_inspector);
+	delete s_inspector; s_inspector = nullptr;
+
+	RemoveDetour(KeypressHandler__ClearCommandStateArray);
+	RemoveDetour(KeypressHandler__HandleKeyDown);
+	RemoveDetour(KeypressHandler__HandleKeyUp);
 }
 
 } // namespace mq

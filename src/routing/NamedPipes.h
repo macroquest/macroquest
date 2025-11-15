@@ -171,12 +171,12 @@ public:
 
 	// Send a simple message
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
-	void SendMessage(PipeMessagePtr&& message);
+	void SendMessage(PipeMessagePtr message);
 
 	// Send a call-and-response message to the server
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
-	void SendMessageWithResponse(PipeMessagePtr&& message,
+	void SendMessageWithResponse(PipeMessagePtr message,
 		const PipeMessageResponseCb& response);
 
 	void Close();
@@ -196,10 +196,10 @@ private:
 	void HandleReadComplete(uint32_t dwErrorCode, uint32_t dwNumBytes);
 
 	// This sends the message to the named pipe. It expects to be called from the named pipe thread.
-	void InternalSendMessage(PipeMessagePtr&& message,
+	void InternalSendMessage(PipeMessagePtr message,
 		const PipeMessageResponseCb& response = nullptr);
 
-	void InternalReceiveMessage(PipeMessagePtr&& message);
+	void InternalReceiveMessage(PipeMessagePtr message);
 
 	void InternalBeginRead();
 	void ProcessBuffers();
@@ -228,13 +228,7 @@ private:
 	bool m_pendingWrite = false;
 
 	// mapping of sequence id to callbacks
-	struct RpcRequest
-	{
-		PipeMessageResponseCb callback;
-		uint32_t sequenceId;
-		std::chrono::steady_clock::time_point sendTime; // for timeouts
-	};
-	std::unordered_map<uint32_t, RpcRequest> m_rpcRequests;
+	std::unordered_map<uint32_t, RpcRequest<PipeMessageResponseCb>> m_rpcRequests;
 };
 using PipeConnectionPtr = std::shared_ptr<PipeConnection>;
 
@@ -244,14 +238,14 @@ public:
 	virtual ~NamedPipeEvents() {}
 
 	// (required) Handle an incoming message
-	virtual void OnIncomingMessage(PipeMessagePtr&& message) = 0;
+	virtual void OnIncomingMessage(PipeMessagePtr message) = 0;
 
 	// (optional) Handle a request to process events immediately. Called from the
 	// named pipe thread.
 	virtual void OnRequestProcessEvents() {}
 
 	// (optional) For NamedPipeServer: notification of an incoming connection.
-	virtual void OnIncomingConnection(int connectionId, int processid) {}
+	virtual void OnIncomingConnection(int connectionId, int processId) {}
 
 	// (optional) For NamedPipeServer: notification of a closing connection
 	virtual void OnConnectionClosed(int connectionId, int processId) {}
@@ -268,7 +262,7 @@ class NamedPipeEndpointBase
 
 public:
 	NamedPipeEndpointBase(std::string threadName, std::string pipeName);
-	~NamedPipeEndpointBase();
+	virtual ~NamedPipeEndpointBase();
 
 	inline bool IsRunning() const { return m_running; }
 	void SetHandler(std::shared_ptr<NamedPipeEvents> handler) { m_handler = handler; };
@@ -284,7 +278,7 @@ public:
 	virtual void PostToPipeThread(std::function<void()>&& callback);
 
 	// dispatches a message to be handled by the client.
-	void DispatchMessage(PipeMessagePtr&& message);
+	void DispatchMessage(PipeMessagePtr message);
 
 protected:
 	virtual void NamedPipeThread() = 0;
@@ -338,10 +332,10 @@ public:
 
 	virtual void PostToMainThread(std::function<void()>&& callback) override;
 
-	void SendMessage(int connectionId, PipeMessagePtr&& message);
+	void SendMessage(int connectionId, PipeMessagePtr message);
 	void SendMessage(int connectionId, MQMessageId messageId, const void* data, size_t dataLength);
 
-	void BroadcastMessage(PipeMessagePtr&& message);
+	void BroadcastMessage(const PipeMessagePtr& message);
 	void BroadcastMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 private:
@@ -373,11 +367,11 @@ public:
 	~NamedPipeClient();
 
 	// Send a simple message to the server
-	void SendMessage(PipeMessagePtr&& message);
+	void SendMessage(PipeMessagePtr message);
 	void SendMessage(MQMessageId messageId, const void* data, size_t dataLength);
 
 	// Send a call-and-response message to the server
-	void SendMessageWithResponse(PipeMessagePtr&& message, const PipeMessageResponseCb& response);
+	void SendMessageWithResponse(PipeMessagePtr message, const PipeMessageResponseCb& response);
 	void SendMessageWithResponse(MQMessageId messageId, const void* data, size_t dataLength,
 		const PipeMessageResponseCb& response);
 

@@ -204,12 +204,6 @@ bool MQ2AutoLoginType::dataAutoLogin(const char* szName, MQTypeVar& Ret)
 	return true;
 }
 
-template <typename T>
-static void Post(const proto::login::MessageId& messageId, const T& data)
-{
-	Post(messageId, data.SerializeAsString());
-}
-
 static void Post(const proto::login::MessageId& messageId, const std::string& data)
 {
 	proto::login::LoginMessage message;
@@ -222,6 +216,12 @@ static void Post(const proto::login::MessageId& messageId, const std::string& da
 	address.AbsoluteMailbox = true;
 
 	s_autologinDropbox.Post(address, message);
+}
+
+template <typename T>
+static void Post(const proto::login::MessageId& messageId, const T& data)
+{
+	Post(messageId, data.SerializeAsString());
 }
 
 void NotifyCharacterLoad(const std::shared_ptr<ProfileRecord>& ptr)
@@ -1090,6 +1090,31 @@ CXStr GetListItemText(CListWnd* pWnd, int row, int col)
 #endif
 
 	return pWnd->GetItemText(row, col);
+}
+
+bool IsListItemEnabled(CListWnd* pWnd, int row, int col)
+{
+	if (!pWnd) return false;
+
+#if HAS_GAMEFACE_UI
+	if (GetGameState() == GAMESTATE_PRECHARSELECT)
+	{
+		auto pListWnd = reinterpret_cast<eqlib::eqmain::CListWnd*>(pWnd);
+
+		if (row >= 0 && row < pListWnd->ItemsArray.GetCount())
+		{
+			return pListWnd->ItemsArray[row].bEnabled;
+		}
+
+		return false;
+	}
+#endif // HAS_GAMEFACE_UI
+
+	if (row >= 0 && row < pWnd->ItemsArray.GetCount())
+	{
+		return pWnd->ItemsArray[row].bEnabled;
+	}
+	return false;
 }
 
 int GetListCurSel(CListWnd* pWnd)

@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include "eqlib/Items.h"
+#include "eqlib/game/Items.h"
 
 namespace mq {
 
 template <typename T>
-static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlot, T& checkItem)
+static int CountContainerItems(ItemContainer& container, int fromSlot, int toSlot, T checkItem)
 {
 	int count = 0;
 	auto predicatedCountVisitor = [&](const ItemPtr& pItem, const ItemIndex& index)

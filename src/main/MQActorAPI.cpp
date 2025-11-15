@@ -13,12 +13,14 @@
  */
 
 #include "pch.h"
-#include "MQ2Main.h"
 
 #include "MQActorAPI.h"
+#include "MQPostOffice.h"
 
 #include "routing/Routing.h"
 #include "routing/PostOffice.h"
+
+#include "MQ2Main.h"
 
 namespace mq {
 using namespace postoffice;
@@ -51,7 +53,7 @@ MQActorAPI* pActorAPI = nullptr;
 std::unordered_map<MQPlugin*, std::vector<std::unique_ptr<postoffice::Dropbox>>> s_dropboxes;
 
 // this is to allow for replies while not exposing message internals to the API
-std::map<PipeMessage*, std::unique_ptr<ProtoMessage>> s_messageStorage;
+std::map<proto::routing::Envelope*, std::unique_ptr<proto::routing::Envelope>> s_messageStorage;
 
 static void OnPostUnloadPluginActorAPI(const char* pluginName)
 {
@@ -78,11 +80,35 @@ void MQActorAPI::SendToActor(
 
 	// Treat Main plugin handle as having no owner.
 	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
+	
+	if (address.UUID)
+		addr.set_uuid(*address.UUID);
 
 	if (address.PID)
-		addr.set_pid(*address.PID);
-	else if (address.Name)
+		addr.mutable_process()->set_pid(*address.PID);
+
+	if (address.Peer)
+	{
+		addr.mutable_peer()->set_ip(address.Peer->IP);
+		if (address.Peer->Port)
+			addr.mutable_peer()->set_port(*address.Peer->Port);
+	}
+
+	if (address.Name)
 		addr.set_name(*address.Name);
+	else
+	{
+		const auto client = addr.mutable_client();
+
+		if (address.Account)
+			client->set_account(*address.Account);
+
+		if (address.Server)
+			client->set_server(*address.Server);
+
+		if (address.Character)
+			client->set_character(*address.Character);
+	}
 
 	if (address.Mailbox && (address.AbsoluteMailbox || owner == nullptr))
 		addr.set_mailbox(*address.Mailbox);
@@ -92,55 +118,37 @@ void MQActorAPI::SendToActor(
 		addr.set_mailbox(owner->name);
 	// else we have no mailbox or owner, so it must remain blank
 
-	if (address.Account)
-		addr.set_account(*address.Account);
-
-	if (address.Server)
-		addr.set_server(*address.Server);
-
-	if (address.Character)
-		addr.set_character(*address.Character);
-
-	PipeMessageResponseCb pipe_callback = nullptr;
+	MessageResponseCallback pipe_callback = nullptr;
 	if (callback != nullptr)
 	{
-		pipe_callback = [callback, address](int status, PipeMessagePtr&& message)
+		pipe_callback = [callback, address](int status, MessagePtr message)
 			{
 				// no need to store this message in the message storage since we know it
 				// can't be replied to -- which means we also don't need the custom deleter
 				// assume that the sender is the address we sent to
-				if (message->GetMessageId() == MQMessageId::MSG_ROUTE)
+				std::optional<postoffice::Address> sender;
+				if (message->has_return_address())
 				{
-					auto envelope = ProtoMessage::Parse<proto::routing::Envelope>(message);
-
-					std::optional<postoffice::Address> sender;
-					if (envelope.has_return_address())
-					{
-						auto s = envelope.return_address();
-						sender = postoffice::Address{
-							s.has_pid() ? std::make_optional(s.pid()) : std::nullopt,
-							s.has_name() ? std::make_optional(s.name()) : std::nullopt,
-							s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
-							s.has_account() ? std::make_optional(s.account()) : std::nullopt,
-							s.has_server() ? std::make_optional(s.server()) : std::nullopt,
-							s.has_character() ? std::make_optional(s.character()) : std::nullopt,
-							true
-						};
-					}
-
-					std::optional<std::string> data;
-					if (envelope.has_payload())
-						data = envelope.payload();
-
-					callback(status, std::make_shared<postoffice::Message>(
-						postoffice::Message{message.get(), sender, data}));
+					const auto& s = message->return_address();
+					sender = postoffice::Address{
+						s.has_uuid() ? std::make_optional(s.uuid()) : std::nullopt,
+						s.has_process() ? std::make_optional(s.process().pid()) : std::nullopt,
+						s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
+						s.has_name() ? std::make_optional(s.name()) : std::nullopt,
+						s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
+						s.has_client() && s.client().has_account() ? std::make_optional(s.client().account()) : std::nullopt,
+						s.has_client() && s.client().has_server() ? std::make_optional(s.client().server()) : std::nullopt,
+						s.has_client() && s.client().has_character() ? std::make_optional(s.client().character()) : std::nullopt,
+						true
+					};
 				}
-				else
-				{
-					callback(status, std::make_shared<postoffice::Message>(postoffice::Message{
-						message.get(), address, std::string(message->get<const char>(), message->size())
-					}));
-				}
+
+				std::optional<std::string> data;
+				if (message->has_payload())
+					data = message->payload();
+
+				callback(status, std::make_shared<postoffice::Message>(
+					postoffice::Message{ nullptr, sender, data }));
 			};
 	}
 
@@ -152,9 +160,19 @@ void MQActorAPI::SendToActor(
 	{
 		dropbox->Post(addr, data, pipe_callback);
 	}
+	else if (pipe_callback != nullptr)
+	{
+		auto env = std::make_unique<proto::routing::Envelope>();
+		*env->mutable_address() = addr;
+		env->set_payload(data);
+
+		std::string_view plugin_name = owner != nullptr ? owner->name : "None";
+
+		GetPostOffice().RoutingFailed(MsgError_RoutingFailed, std::move(env), fmt::format("No dropbox registered in plugin {}", plugin_name));
+	}
 	else
 	{
-		GetPostOffice().RouteMessage(addr, data, pipe_callback);
+		GetPostOffice().RouteMessage(addr, data);
 	}
 }
 
@@ -187,28 +205,31 @@ postoffice::Dropbox* MQActorAPI::AddActor(
 	MQPlugin* owner = GetPluginByHandle(pluginHandle, true);
 
 	auto dropbox = std::make_unique<Dropbox>(GetPostOffice().RegisterAddress(localAddress,
-		[receive = std::move(receive)](ProtoMessagePtr&& message)
+		[receive = std::move(receive)](MessagePtr message)
 		{
 			//auto sender = message->GetSender().value_or(proto::routing::Address());
 			std::optional<postoffice::Address> sender;
-			if (auto s = message->GetSender())
+			if (message->has_return_address())
 			{
+				proto::routing::Address s = message->return_address();
 				sender = postoffice::Address{
-					s->has_pid() ? std::make_optional(s->pid()) : std::nullopt,
-					s->has_name() ? std::make_optional(s->name()) : std::nullopt,
-					s->has_mailbox() ? std::make_optional(s->mailbox()) : std::nullopt,
-					s->has_account() ? std::make_optional(s->account()) : std::nullopt,
-					s->has_server() ? std::make_optional(s->server()) : std::nullopt,
-					s->has_character() ? std::make_optional(s->character()) : std::nullopt,
+					s.has_uuid() ? std::make_optional(s.uuid()) : std::nullopt,
+					s.has_process() ? std::make_optional(s.process().pid()) : std::nullopt,
+					s.has_peer() ? std::make_optional(postoffice::Peer{s.peer().ip(), static_cast<uint16_t>(s.peer().port())}) : std::nullopt,
+					s.has_name() ? std::make_optional(s.name()) : std::nullopt,
+					s.has_mailbox() ? std::make_optional(s.mailbox()) : std::nullopt,
+					s.has_client() && s.client().has_account() ? std::make_optional(s.client().account()) : std::nullopt,
+					s.has_client() && s.client().has_server() ? std::make_optional(s.client().server()) : std::nullopt,
+					s.has_client() && s.client().has_character() ? std::make_optional(s.client().character()) : std::nullopt,
 					true
 				};
 			}
 
 			std::optional<std::string> data;
-			if (message->size() > 0)
-				data = std::string(message->get<char>(), message->size());
+			if (message->has_payload() && message->payload().size() > 0)
+				data = message->payload();
 
-			ProtoMessage* message_ptr = message.get();
+			auto message_ptr = message.get();
 			s_messageStorage.emplace(message_ptr, std::move(message));
 
 			receive(std::shared_ptr<postoffice::Message>(

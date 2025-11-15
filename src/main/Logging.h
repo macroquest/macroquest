@@ -18,7 +18,7 @@
 
 namespace mq {
 
-extern std::shared_ptr<spdlog::logger> logger;
+extern std::shared_ptr<spdlog::logger> g_logger;
 
 } // namespace eqlib
 

@@ -6,17 +6,17 @@
   </ImportGroup>
 
   <PropertyGroup>
-    <OutDir>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName)\plugins\</OutDir>
+    <OutDir>$(MQBuildDirectory)bin\$(MQBinaryDirName)\plugins\</OutDir>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
     <!-- Debug only compiler settings props-->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">
 
     </ClCompile>
 
     <!-- Release only compiler settings -->
-    <ClCompile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">
 
     </ClCompile>
 
@@ -26,45 +26,47 @@
     </ClCompile>
 
     <!-- Debug only linker settings -->
-    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Debug|x64'">
       <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Link Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">
       <AdditionalDependencies>fmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Release only linker settings -->
-    <Link Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Release|x64'">
       <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Link Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">
       <AdditionalDependencies>fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
 
     <!-- Shared linker settings -->
     <Link>
-      <AdditionalLibraryDirectories>$(MQ2BuildDirectory)bin\$(MQ2BinaryDirName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MQBuildDirectory)bin\$(MQBinaryDirName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mq2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
   <Target Name="CopyMQPluginFiles" AfterTargets="AfterBuild">
     <ItemGroup>
-        <MQRESOURCES Include=".\resources\**\*.*" />
-        <MQLUASCRIPTS Include=".\lua\**\*.*" />
-        <MQMACROS Include=".\macros\**\*.*" />
-        <MQCONFIG Include=".\config\**\*.*" />
+      <MQRESOURCES Include=".\resources\**\*.*" />
+      <MQLUASCRIPTS Include=".\lua\**\*.*" />
+      <MQMACROS Include=".\macros\**\*.*" />
+      <MQCONFIGS Include=".\config\**\*.*" />
     </ItemGroup>
     <PropertyGroup>
-        <HardLink Condition="'$(Configuration)'=='Release'">false</HardLink>
-        <HardLink Condition="'$(Configuration)'=='Debug'">true</HardLink>
+      <HardLink Condition="'$(MQConfig)'=='Release'">false</HardLink>
+      <HardLink Condition="'$(MQConfig)'=='Debug'">true</HardLink>
     </PropertyGroup>
+
     <!-- Never overwrite config files -->
-    <Copy SourceFiles="@(MQCONFIG)" DestinationFolder="$(TargetDir)\..\config\%(RecursiveDir)"
+    <Copy SourceFiles="@(MQCONFIGS)" DestinationFolder="$(TargetDir)\..\config\%(RecursiveDir)"
       SkipUnchangedFiles="true"
       UseHardlinksIfPossible="$(HardLink)"
       Condition="%(Filename)!='' AND !Exists('$(TargetDir)\..\config\%(RecursiveDir)\%(Filename)%(Extension)')"
     />
+
     <!-- Only overwrite if the destionation file is older -->
     <Copy SourceFiles="@(MQLUASCRIPTS)" DestinationFolder="$(TargetDir)\..\lua\%(RecursiveDir)"
       SkipUnchangedFiles="true"

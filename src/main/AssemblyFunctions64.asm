@@ -10,7 +10,7 @@ extern ?SetAssist@mq@@YAXPEAE@Z
 ; MQ2FrameLimiter
 extern ?DoThrottleFrameRate@mq@@YA_NXZ
 extern __imp___ThrottleFrameRateEnd
-extern ?Throttler_Trampoline@mq@@3P6AXXZEA
+extern ?Throttler_Trampoline@mq@@3P6AXI@ZEA
 
 section .text
 
@@ -35,14 +35,16 @@ section .text
 ; want to just call the original code. If it returns true then we
 ; are engaged with the frame limiter and we want to skip past the
 ; built-in throttling.
-global ?Throttler_Detour@mq@@YAXXZ
-?Throttler_Detour@mq@@YAXXZ:
+global ?Throttler_Detour@mq@@YAXI@Z
+?Throttler_Detour@mq@@YAXI@Z:
+	mov r14, rcx
 	call ?DoThrottleFrameRate@mq@@YA_NXZ
 	test rax, rax
 	jz call_to_trampoline
 	mov rax, [rel __imp___ThrottleFrameRateEnd]
 	jmp [rax]
 call_to_trampoline:
-	mov rax, [qword ?Throttler_Trampoline@mq@@3P6AXXZEA]
+	mov rax, [qword ?Throttler_Trampoline@mq@@3P6AXI@ZEA]
+	mov rcx, r14
 	jmp rax
 

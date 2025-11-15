@@ -20,9 +20,9 @@
 #include "GraphicsEngine.h"
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
-#include "../common/Common.h"
-#include "eqlib/EQDX9.h"
-#include "eqlib/GraphicsResources.h"
+
+#include "eqlib/game/EQDX9.h"
+#include "eqlib/graphics/GraphicsResources.h"
 
 #include <imgui.h>
 

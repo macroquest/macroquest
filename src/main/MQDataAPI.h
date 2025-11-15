@@ -14,7 +14,7 @@
 
 #pragma once
 
-#ifndef MQ2MAIN_EXPORTS
+#if !defined(MQ2MAIN_IMPL) && !defined(__clang__)
 #error This header should only be included from the MQ2Main project
 #endif
 
@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace mq {
 
@@ -48,6 +49,7 @@ public:
 	bool RemoveDataType(MQ2Type& TypeInstance, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
 
 	MQ2Type* FindDataType(const char* Name) const;
+	std::vector<std::string> GetDataTypeNames() const;
 
 	// Type Extensions
 	bool AddTypeExtension(const char* szName, MQ2Type* extension, const MQPluginHandle& pluginHandle = mqplugin::ThisPluginHandle);
@@ -62,7 +64,7 @@ public:
 		Success,
 		NotFound,
 	};
-	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr& VarPtr, MQTypeVar& Result,
+	EvaluateResult EvaluateMacroDataMember(MQ2Type* type, MQVarPtr&& VarPtr, MQTypeVar& Result,
 		const std::string& Member, char* pIndex, bool checkFirst) const;
 
 	bool EvaluateDataExpression(MQTypeVar& Result, const char* pStart, char* pIndex, bool allowFunction = false) const;
@@ -129,6 +131,5 @@ bool AddMQ2DataVariableFromData(const char* Name, const char* Index, MQ2Type* pT
 MQDataVar** FindVariableScope(const char* Name);
 bool DeleteMQ2DataVariable(const char* Name);
 void ClearMQ2DataVariables(MQDataVar** ppHead);
-
 
 } // namespace mq

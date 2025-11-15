@@ -14,12 +14,4 @@
 
 #pragma once
 
-#if defined(DEPRECATE)
-#undef (DEPRECATE)
-#endif
-
-#if defined(COMMENT_UPDATER)
-#define DEPRECATE(x)
-#else
-#define DEPRECATE(x) [[deprecated(x)]]
-#endif
+#include "eqlib/Deprecate.h"
