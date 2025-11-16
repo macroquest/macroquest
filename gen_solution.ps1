@@ -419,6 +419,7 @@ function Copy-CleanedSolution {
 
         # Build immutable exclusion data
         $allBuildBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"ALL_BUILD".*\{([0-9A-F-]+)\}'
+        $zeroCheckBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"ZERO_CHECK".*\{([0-9A-F-]+)\}'
         $predefinedBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"CMakePredefinedTargets".*\{([0-9A-F-]+)\}'
 
         if ($allBuildBlock) {
@@ -426,13 +427,40 @@ function Copy-CleanedSolution {
             Write-VerboseLog "Removing ALL_BUILD project (lines $( $allBuildBlock.StartIndex )-$( $allBuildBlock.EndIndex ))"
         }
 
+        if ($zeroCheckBlock) {
+            Write-VerboseLog "Found ZERO_CHECK project GUID: $( $zeroCheckBlock.Guid )"
+            Write-VerboseLog "Removing ZERO_CHECK project (lines $( $zeroCheckBlock.StartIndex )-$( $zeroCheckBlock.EndIndex ))"
+        }
+
         if ($predefinedBlock) {
             Write-VerboseLog "Found CMakePredefinedTargets folder GUID: $( $predefinedBlock.Guid )"
             Write-VerboseLog "Removing CMakePredefinedTargets folder (lines $( $predefinedBlock.StartIndex )-$( $predefinedBlock.EndIndex ))"
         }
 
-        $excludedBlocks = @($allBuildBlock, $predefinedBlock) | Where-Object { $_ -ne $null }
-        $excludedGuids = @($allBuildBlock.Guid, $predefinedBlock.Guid) | Where-Object { $_ -ne $null }
+        # Find all VCXPROJ_DUMMY_ projects
+        $dummyBlocks = @()
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match 'Project\(".*"\)\s*=\s*"VCXPROJ_DUMMY_.*"\s*,.*\{([0-9A-F-]+)\}') {
+                $projectGuid = $matches[1]
+                $endIndex = ($i + 1)..($lines.Count - 1) | Where-Object {
+                    $lines[$_] -match '^\s*EndProject\s*$'
+                } | Select-Object -First 1
+
+                if ($endIndex) {
+                    $block = @{
+                        Guid = $projectGuid
+                        StartIndex = $i
+                        EndIndex = $endIndex
+                    }
+                    $dummyBlocks += $block
+                    Write-VerboseLog "Found VCXPROJ_DUMMY_ project GUID: $projectGuid"
+                    Write-VerboseLog "Removing VCXPROJ_DUMMY_ project (lines $i-$endIndex)"
+                }
+            }
+        }
+
+        $excludedBlocks = @($allBuildBlock, $zeroCheckBlock, $predefinedBlock) + $dummyBlocks | Where-Object { $_ -ne $null }
+        $excludedGuids = @($allBuildBlock.Guid, $zeroCheckBlock.Guid, $predefinedBlock.Guid) + ($dummyBlocks | ForEach-Object { $_.Guid }) | Where-Object { $_ -ne $null }
 
         # Filter lines using pure predicate and write the result
         0..($lines.Count - 1) | Where-Object {
