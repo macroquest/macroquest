@@ -165,6 +165,7 @@ void MQActorAPI::SendToActor(
 		auto env = std::make_unique<proto::routing::Envelope>();
 		*env->mutable_address() = addr;
 		env->set_payload(data);
+		env->set_mode(static_cast<uint32_t>(MQRequestMode::CallAndResponse));
 
 		std::string_view plugin_name = owner != nullptr ? owner->name : "None";
 
