@@ -1,3 +1,8 @@
+## Live Patch Update 12/2/2025
+
+Update for live patch
+
+
 ## Test Patch Update 11/24/2025
 
 Update for latest test patch
