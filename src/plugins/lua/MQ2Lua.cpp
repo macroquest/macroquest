@@ -21,6 +21,7 @@
 #include "LuaActor.h"
 #include "LuaImGui.h"
 #include "bindings/lua_Bindings.h"
+#include <bindings/lua_MQBindings.h>
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -86,7 +87,67 @@ std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
+struct CallbackInstance
+{
+	sol::function m_callback;
+	sol::thread m_thread;
+	sol::thread m_parentThread;
+	sol::coroutine m_coroutine;
+
+	CallbackInstance(const sol::thread& parent_thread, const sol::function& callback)
+		: m_callback(callback)
+		, m_parentThread(parent_thread)
+	{
+		m_thread = sol::thread::create(parent_thread.state());
+		m_coroutine = sol::coroutine(m_thread.state(), m_callback);
+	}
+
+	~CallbackInstance()
+	{
+	}
+
+	template <typename... Args>
+	void Exectue(Args&&... args)
+	{
+		try
+		{
+			ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+
+			sol::function_result result = m_coroutine(std::forward<Args>(args)...);
+			if (!result.valid())
+			{
+				LuaError("Lua Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
+				result.abandon();
+			}
+		}
+		catch (std::runtime_error& e)
+		{
+			LuaError("Lua Failure:\n%s", e.what());
+		}
+	}
+};
+
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnAddSpawnCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnRemoveSpawnCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnAddGroundItemCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnRemoveGroundItemCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnBeginZoneCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnEndZoneCallbacks;
+std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>> s_OnZonedCallbacks;
+
+
 #pragma region Shared Function Definitions
+
+static void ClearCallback(std::shared_ptr<LuaThread> thread)
+{
+	s_OnAddSpawnCallbacks.erase(thread->GetPID());
+	s_OnRemoveSpawnCallbacks.erase(thread->GetPID());
+	s_OnAddGroundItemCallbacks.erase(thread->GetPID());
+	s_OnRemoveGroundItemCallbacks.erase(thread->GetPID());
+	s_OnBeginZoneCallbacks.erase(thread->GetPID());
+	s_OnEndZoneCallbacks.erase(thread->GetPID());
+	s_OnZonedCallbacks.erase(thread->GetPID());
+}
 
 void DebugStackTrace(lua_State* L, const char* message)
 {
@@ -205,6 +266,7 @@ void OnLuaThreadDestroyed(LuaThread* destroyedThread)
 			if (thread && thread.get() != destroyedThread
 				&& thread->IsDependency(destroyedThread))
 			{
+				ClearCallback(thread);
 				// Exit the thread immediately
 				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
 
@@ -230,6 +292,7 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 			if (thread && thread->GetPID() != pidOwner
 				&& thread->IsDependency(tlo))
 			{
+				ClearCallback(thread);
 				// Exit the thread immediately
 				thread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
 
@@ -546,6 +609,16 @@ bool MQ2LuaType::dataLua(const char* Index, MQTypeVar& Dest)
 
 #pragma region Commands
 
+static void SetCallback(const std::string& name, std::shared_ptr<LuaThread> thread, std::unordered_map<uint32_t, std::unique_ptr<CallbackInstance>>& cache) {
+	auto state = thread->GetLuaThread().state();
+	std::optional<sol::function> callback = sol::state_view(state)[name].get<std::optional<sol::function>>();
+	if (callback.has_value())
+	{
+		auto m_callback_instance = std::make_unique<CallbackInstance>(thread->GetLuaThread(), callback.value());
+		cache.emplace(thread->GetPID(), std::move(m_callback_instance));
+	}
+}
+
 static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::string>& args)
 {
 	// Need to do this first to get the script path and compare paths instead of just the names
@@ -593,6 +666,15 @@ static uint32_t LuaRunCommand(const std::string& script, const std::vector<std::
 	{
 		result->status = LuaThreadStatus::Running;
 		s_infoMap.emplace(result->pid, *result);
+
+		SetCallback("OnAddSpawn", entry, s_OnAddSpawnCallbacks);
+		SetCallback("OnRemoveSpawn", entry, s_OnRemoveSpawnCallbacks);
+		SetCallback("OnAddGroundItem", entry, s_OnAddGroundItemCallbacks);
+		SetCallback("OnRemoveGroundItem", entry, s_OnRemoveGroundItemCallbacks);
+		SetCallback("OnBeginZone", entry, s_OnBeginZoneCallbacks);
+		SetCallback("OnEndZone", entry, s_OnEndZoneCallbacks);
+		SetCallback("OnZoned", entry, s_OnZonedCallbacks);
+
 		return result->pid;
 	}
 
@@ -687,6 +769,7 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 
 			WriteChatStatus("Ending running lua script '%s' with PID %d", thread->GetName().c_str(), thread->GetPID());
 
+			ClearCallback(thread);
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			thread->Exit();
 		}
@@ -700,6 +783,7 @@ static void LuaStopCommand(std::optional<std::string> script = std::nullopt)
 		// kill all scripts
 		for (std::shared_ptr<LuaThread>& thread : s_running)
 		{
+			ClearCallback(thread);
 			thread->Exit();
 		}
 
@@ -1847,14 +1931,14 @@ PLUGIN_API void InitializePlugin()
 	s_pluginInterface = new LuaPluginInterfaceImpl();
 
 	bindings::InitializeBindings_MQMacroData();
-
+	
 	LuaActors::Start();
 }
 
 PLUGIN_API void ShutdownPlugin()
 {
 	using namespace mq::lua;
-
+	
 	LuaActors::Stop();
 
 	bindings::ShutdownBindings_MQMacroData();
@@ -1899,7 +1983,7 @@ PLUGIN_API void OnPulse()
 
 			return false;
 		}), s_running.end());
-
+	
 	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
 	LuaActors::Process();
 
@@ -2306,4 +2390,95 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 			return false;
 		}), end(s_running));
+}
+
+PLUGIN_API void OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	using namespace mq::lua;
+
+	if (s_OnAddSpawnCallbacks.empty())
+	{
+		return;
+	}
+
+	for (const auto& [_, callback] : s_OnAddSpawnCallbacks)
+	{
+		auto lua_spawn = bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+		callback->Exectue(lua_spawn);
+	}
+}
+
+PLUGIN_API void OnRemoveSpawn(PSPAWNINFO pNewSpawn)
+{
+	using namespace mq::lua;
+
+	if (s_OnRemoveSpawnCallbacks.empty())
+	{
+		return;
+	}
+
+	for (const auto& [_, callback] : s_OnRemoveSpawnCallbacks)
+	{
+		auto lua_spawn = bindings::lua_MQTypeVar::lua_MQTypeVar(datatypes::pSpawnType->MakeTypeVar(pNewSpawn));
+		callback->Exectue(lua_spawn);
+	}
+}
+
+PLUGIN_API void OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	using namespace mq::lua;
+
+	if (s_OnAddGroundItemCallbacks.empty())
+	{
+		return;
+	}
+
+	for (const auto& [_, callback] : s_OnAddGroundItemCallbacks)
+	{
+		auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pNewGroundItem));
+		auto lua_ground = bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+		callback->Exectue(lua_ground);
+	}
+}
+
+PLUGIN_API void OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	using namespace mq::lua;
+
+	if (s_OnRemoveGroundItemCallbacks.empty())
+	{
+		return;
+	}
+
+	for (const auto& [_, callback] : s_OnRemoveGroundItemCallbacks)
+	{
+		auto groundTypeVar = datatypes::MQ2GroundType::MakeTypeVar(MQGroundSpawn(pGroundItem));
+		auto lua_ground = bindings::lua_MQTypeVar::lua_MQTypeVar(groundTypeVar);
+		callback->Exectue(lua_ground);
+	}
+}
+
+PLUGIN_API void OnBeginZone()
+{
+	using namespace mq::lua;
+	for (const auto& [_, callback] : mq::lua::s_OnBeginZoneCallbacks)
+	{
+		callback->Exectue();
+	}
+}
+
+PLUGIN_API void OnEndZone()
+{
+	for (const auto& [_, callback] : mq::lua::s_OnEndZoneCallbacks)
+	{
+		callback->Exectue();
+	}
+}
+
+PLUGIN_API void OnZoned()
+{
+	for (const auto& [_, callback] : mq::lua::s_OnZonedCallbacks)
+	{
+		callback->Exectue();
+	}
 }
