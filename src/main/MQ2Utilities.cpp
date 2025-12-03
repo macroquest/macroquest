@@ -6631,7 +6631,7 @@ int GetCharMaxBuffSlots()
 	return NumBuffs;
 }
 
-static std::pair<int64_t, int> s_maxLevelPerExpansion[] = {
+static const std::pair<int64_t, int> s_maxLevelPerExpansion[] = {
 	{ EXPANSION_SOR,     130 },
 	{ EXPANSION_LS,      125 },
 	{ EXPANSION_TOB,     125 },
