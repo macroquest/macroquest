@@ -1,3 +1,8 @@
+## Update 12/3/2025
+
+- Updated Zones.ini to include new zones from latest expansion patch.
+
+
 ## Live Patch Update 12/2/2025
 
 Update for live patch
