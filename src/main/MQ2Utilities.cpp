@@ -6631,72 +6631,52 @@ int GetCharMaxBuffSlots()
 	return NumBuffs;
 }
 
+static std::pair<int64_t, int> s_maxLevelPerExpansion[] = {
+	{ EXPANSION_SOR,     130 },
+	{ EXPANSION_LS,      125 },
+	{ EXPANSION_TOB,     125 },
+	{ EXPANSION_TOL,     120 },
+	{ EXPANSION_NOS,     120 },
+	{ EXPANSION_COV,     115 },
+	{ EXPANSION_TOV,     115 },
+	{ EXPANSION_TBL,     110 },
+	{ EXPANSION_RoS,     110 },
+	{ EXPANSION_EoK,     105 },
+	{ EXPANSION_TBM,     105 },
+	{ EXPANSION_TDS,     105 },
+	{ EXPANSION_CotF,    100 },
+	{ EXPANSION_RoF,     100 },
+	{ EXPANSION_VoA,     95 },
+	{ EXPANSION_HoT,     90 },
+	{ EXPANSION_UFT,     85 },
+	{ EXPANSION_SoD,     85 },
+	{ EXPANSION_SoF,     80 },
+	{ EXPANSION_TBS,     75 },
+	{ EXPANSION_TSS,     75 },
+	{ EXPANSION_PoR,     70 },
+	{ EXPANSION_DoD,     70 },
+	{ EXPANSION_DoN,     70 },
+	{ EXPANSION_OoW,     70 },
+	{ EXPANSION_GoD,     65 },
+	{ EXPANSION_LDoN,    65 },
+	{ EXPANSION_LoY,     65 },
+	{ EXPANSION_PoP,     65 },
+	{ EXPANSION_SoL,     60 },
+	{ EXPANSION_SoV,     60 },
+	{ EXPANSION_RoK,     60 },
+};
+
 int GetCharMaxLevel()
 {
-	int MaxLevel = 50;
-
-	if (HasExpansion(EXPANSION_SOR))
+	for (const auto [expansion, level] : s_maxLevelPerExpansion)
 	{
-		MaxLevel = 130;
-	}
-	else if (HasExpansion(EXPANSION_LS) || HasExpansion(EXPANSION_TOB))
-	{
-		MaxLevel = 125;
-	}
-	else if (HasExpansion(EXPANSION_TOL) || HasExpansion(EXPANSION_NOS))
-	{
-		MaxLevel = 120;
-	}
-	else if (HasExpansion(EXPANSION_COV) || HasExpansion(EXPANSION_TOV))
-	{
-		MaxLevel = 115;
-	}
-	else if (HasExpansion(EXPANSION_TBL) || HasExpansion(EXPANSION_RoS))
-	{
-		MaxLevel = 110;
-	}
-	else if (HasExpansion(EXPANSION_EoK) || HasExpansion(EXPANSION_TBM) || HasExpansion(EXPANSION_TDS))
-	{
-		MaxLevel = 105;
-	}
-	else if (HasExpansion(EXPANSION_CotF) || HasExpansion(EXPANSION_RoF))
-	{
-		MaxLevel = 100;
-	}
-	else if (HasExpansion(EXPANSION_VoA))
-	{
-		MaxLevel = 95;
-	}
-	else if (HasExpansion(EXPANSION_HoT))
-	{
-		MaxLevel = 90;
-	}
-	else if (HasExpansion(EXPANSION_UFT) || HasExpansion(EXPANSION_SoD))
-	{
-		MaxLevel = 85;
-	}
-	else if (HasExpansion(EXPANSION_SoF))
-	{
-		MaxLevel = 80;
-	}
-	else if (HasExpansion(EXPANSION_TBS) || HasExpansion(EXPANSION_TSS))
-	{
-		MaxLevel = 75;
-	}
-	else if (HasExpansion(EXPANSION_PoR) || HasExpansion(EXPANSION_DoD) || HasExpansion(EXPANSION_DoN) || HasExpansion(EXPANSION_OoW))
-	{
-		MaxLevel = 70;
-	}
-	else if (HasExpansion(EXPANSION_GoD) || HasExpansion(EXPANSION_LDoN) || HasExpansion(EXPANSION_LoY) || HasExpansion(EXPANSION_PoP))
-	{
-		MaxLevel = 65;
-	}
-	else if (HasExpansion(EXPANSION_SoL) || HasExpansion(EXPANSION_SoV) || HasExpansion(EXPANSION_RoK))
-	{
-		MaxLevel = 60;
+		if (HasExpansion(expansion))
+		{
+			return level;
+		}
 	}
 
-	return MaxLevel;
+	return 50;
 }
 
 int GetBodyType(PlayerClient* pSpawn)
