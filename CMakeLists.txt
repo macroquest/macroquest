@@ -19,6 +19,9 @@ project(MacroQuest
     LANGUAGES CXX
 )
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
 # ============================================================================
 # Dual-Purpose Build System
 # ============================================================================
@@ -89,9 +92,6 @@ option(MQ_ADD_MQ2MAIN_DEPENDENCY "Add MQ2Main as dependency to custom plugins if
 # Global properties
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Suppress CMake predefined targets in Visual Studio solution
-set(CMAKE_SUPPRESS_REGENERATION TRUE)  # Removes ZERO_CHECK target
-
 # vcpkg triplet setup based on platform
 if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
     set(VCPKG_ARCH "x64" CACHE STRING "")
@@ -112,45 +112,100 @@ set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "")
 set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "")
 set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "")
 
+function(list_all_subdirs BASE_DIR FOUND_DIRS)
+    file(GLOB_RECURSE FOUND_FILES LIST_DIRECTORIES true "${BASE_DIR}/*")
+
+    set(DIR_LIST ${BASE_DIR})
+
+    foreach(FILE ${FOUND_FILES})
+        if(IS_DIRECTORY ${FILE})
+            list(APPEND DIR_LIST ${FILE})
+        endif()
+    endforeach()
+
+    set(${FOUND_DIRS} ${DIR_LIST} PARENT_SCOPE)
+endfunction()
+
+function(get_vcxproj_includes VCXPROJ_LOCATION VCXPROJ_INCLUDES)
+    # Extract include directories from vcxproj file
+    file(READ "${VCXPROJ_LOCATION}" VCXPROJ_CONTENT)
+    get_filename_component(VCXPROJ_DIR "${VCXPROJ_LOCATION}" DIRECTORY)
+
+    set(EXTRACTED_INCLUDES "")
+
+    # Find all Include directives
+    string(REGEX MATCHALL "<(ClCompile|ClInclude)[^>]*Include\\s*=\\s*\"([^\"]*)\"[^>]*>" INCLUDE_MATCHES "${VCXPROJ_CONTENT}")
+    foreach(MATCH ${INCLUDE_MATCHES})
+        # This assumes always a relative path without variable expansion, which is true in MQ (because that's how VS adds includes in the UI)
+        string(REGEX REPLACE "^<(ClCompile|ClInclude)[^>]*Include\\s*=\\s*\"([^\"]*)\"[^>]*>$" "\\2" INCLUDE "${MATCH}")
+
+        get_filename_component(INCLUDE "${INCLUDE}" ABSOLUTE BASE_DIR "${VCXPROJ_DIR}")
+
+        # Normalize path separators
+        string(REPLACE "\\" "/" INCLUDE "${INCLUDE}")
+
+        # Add to list if not already present
+        list(FIND EXTRACTED_INCLUDES "${INCLUDE}" INCLUDE_INDEX)
+        if(INCLUDE_INDEX EQUAL -1)
+            list(APPEND EXTRACTED_INCLUDES "${INCLUDE}")
+        endif()
+    endforeach ()
+
+    if(EXTRACTED_INCLUDES)
+        set(${VCXPROJ_INCLUDES} ${EXTRACTED_INCLUDES} PARENT_SCOPE)
+    endif()
+endfunction()
+
 function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
     # Optional 4th argument for dependencies
     set(DEPENDENCIES ${ARGN})
 
-    find_file(VCXPROJ_LOCATION NAMES ${PROJECT_NAME}.vcxproj PATHS ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION} NO_DEFAULT_PATH REQUIRED)
+    find_file(VCXPROJ_LOCATION NAMES ${PROJECT_NAME}.vcxproj PATHS "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}" NO_DEFAULT_PATH REQUIRED)
+    if(VCXPROJ_LOCATION)
+        if(DEPENDENCIES)
+            include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION} ${DEPENDENCIES})
+        else()
+            include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION})
+        endif()
 
-    if(DEPENDENCIES)
-        include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION} ${DEPENDENCIES})
+        # add dummy targets so IDEs will index the files
+        get_vcxproj_includes(${VCXPROJ_LOCATION} VCXPROJ_SOURCES)
+        message(STATUS "Adding ${PROJECT_NAME} from ${VCXPROJ_LOCATION}")
+
+        add_library("VCXPROJ_DUMMY_${PROJECT_NAME}" EXCLUDE_FROM_ALL ${VCXPROJ_SOURCES})
+        set_target_properties("VCXPROJ_DUMMY_${PROJECT_NAME}" PROPERTIES LINKER_LANGUAGE CXX)
+
+        set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${PROJECT_PREFIX})
+        unset(VCXPROJ_LOCATION CACHE)  # Clear cache to allow next call to search fresh
+
+
+        # Collect vcpkg manifest files for later merging
+        if(MQ_BUILD_VCPKG)
+            set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}")
+
+            # Check for vcpkg_mq.txt
+            if(EXISTS "${PROJECT_DIR}/vcpkg_mq.txt")
+                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
+                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq.txt")
+                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "${EXISTING_FILES}")
+            endif()
+
+            # Check for vcpkg_mq_x86.txt
+            if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x86.txt")
+                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
+                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x86.txt")
+                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "${EXISTING_FILES}")
+            endif()
+
+            # Check for vcpkg_mq_x64.txt
+            if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x64.txt")
+                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
+                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x64.txt")
+                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "${EXISTING_FILES}")
+            endif()
+        endif()
     else()
-        include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION})
-    endif()
-
-    set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${PROJECT_PREFIX})
-    unset(VCXPROJ_LOCATION CACHE)  # Clear cache to allow next call to search fresh
-
-    # Collect vcpkg manifest files for later merging
-    if(MQ_BUILD_VCPKG)
-        set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}")
-
-        # Check for vcpkg_mq.txt
-        if(EXISTS "${PROJECT_DIR}/vcpkg_mq.txt")
-            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
-            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq.txt")
-            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "${EXISTING_FILES}")
-        endif()
-
-        # Check for vcpkg_mq_x86.txt
-        if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x86.txt")
-            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
-            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x86.txt")
-            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "${EXISTING_FILES}")
-        endif()
-
-        # Check for vcpkg_mq_x64.txt
-        if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x64.txt")
-            get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
-            list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x64.txt")
-            set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "${EXISTING_FILES}")
-        endif()
+        MESSAGE(WARNING "Attempted to include non-existent vcxproj ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}/${PROJECT_NAME}.vcxproj")
     endif()
 endfunction()
 
@@ -326,6 +381,10 @@ function(finalize_vcpkg_installation)
     endif()
 endfunction()
 
+# Specify any include directories here
+list_all_subdirs("${CMAKE_CURRENT_SOURCE_DIR}/include" MQ_INCLUDE_DIRS)
+include_directories(${MQ_INCLUDE_DIRS})
+
 # These could all be in their respective subdirectories, but prefer in this case a single
 # file to specify the entire core project since everything here is maintained with
 # bespoke vcxproj and prop files without CMakeLists.txt to build projects.
@@ -366,7 +425,7 @@ endif()
 
 # Add custom plugins from root plugins directory
 if(MQ_BUILD_CUSTOM_PLUGINS)
-    add_subdirectory(plugins)
+    include(plugins.cmake)
 endif()
 
 # Add tests

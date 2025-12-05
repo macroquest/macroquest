@@ -1,3 +1,21 @@
+## Update 12/3/2025
+
+- Updated Zones.ini to include new zones from latest expansion patch.
+
+
+## Live Patch Update 12/2/2025
+
+Update for live patch
+
+
+## Test Patch Update 11/24/2025
+
+Update for latest test patch
+
+## Update 11/17/2025
+
+Updated for live hotfix.
+
 ## Update 11/14/2025
 
 - loader: Fix SendSetForegroundWindow - should help resolve some issues with focus swapping

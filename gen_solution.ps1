@@ -33,6 +33,8 @@ param(
     [switch]$SkipPlugins,          # Skip adding core plugins
     [switch]$BuildTest,            # Add the test exes
     [switch]$AddMQ2MainDependency, # Add MQ2Main dependency to custom plugins if not present
+    [string]$CustomPluginsFile,    # Path to custom plugins CMake file (overrides auto-detection)
+    [string]$WritePluginsFile,     # Path to write auto-detected plugins as CMake file
     [string]$OutputDir = "build",
     [string]$SolutionName = "MacroQuest.sln"
 )
@@ -116,6 +118,18 @@ if ($Help) {
     Write-Host "    Sets: -DMQ_ADD_MQ2MAIN_DEPENDENCY=ON"
     Write-Host "    Default: OFF (vcxproj files are not modified)"
     Write-Host ""
+    Write-Host "  -CustomPluginsFile <path>" -ForegroundColor Cyan
+    Write-Host "    Path to a custom CMake file that defines which plugins to include."
+    Write-Host "    When specified, this overrides auto-detection of plugins in plugins/."
+    Write-Host "    The file should contain add_subdirectory() or add_custom_vcxproj() calls."
+    Write-Host "    Sets: -DMQ_CUSTOM_PLUGINS_FILE=<path>"
+    Write-Host ""
+    Write-Host "  -WritePluginsFile <path>" -ForegroundColor Cyan
+    Write-Host "    Path to write auto-detected plugins as a CMake file."
+    Write-Host "    Generates a plugin configuration file from the current scan that can"
+    Write-Host "    be used later with -CustomPluginsFile."
+    Write-Host "    Sets: -DMQ_WRITE_PLUGINS_FILE=<path>"
+    Write-Host ""
     Write-Host "  -OutputDir <path>" -ForegroundColor Cyan
     Write-Host "    Specify the output directory for build artifacts."
     Write-Host "    Default: 'build'"
@@ -149,6 +163,12 @@ if ($Help) {
     Write-Host ""
     Write-Host "  Add MQ2Main dependency to custom plugins:" -ForegroundColor Cyan
     Write-Host "    .\gen_solution.ps1 -AddMQ2MainDependency"
+    Write-Host ""
+    Write-Host "  Generate plugin configuration file:" -ForegroundColor Cyan
+    Write-Host "    .\gen_solution.ps1 -WritePluginsFile my_plugins.cmake"
+    Write-Host ""
+    Write-Host "  Use custom plugin configuration:" -ForegroundColor Cyan
+    Write-Host "    .\gen_solution.ps1 -CustomPluginsFile my_plugins.cmake"
     Write-Host ""
     Write-Host "NOTES:" -ForegroundColor Yellow
     Write-Host "  - This script is idempotent (safe to run multiple times)"
@@ -399,6 +419,7 @@ function Copy-CleanedSolution {
 
         # Build immutable exclusion data
         $allBuildBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"ALL_BUILD".*\{([0-9A-F-]+)\}'
+        $zeroCheckBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"ZERO_CHECK".*\{([0-9A-F-]+)\}'
         $predefinedBlock = Find-ProjectBlock -Lines $lines -ProjectPattern 'Project\(".*"\)\s*=\s*"CMakePredefinedTargets".*\{([0-9A-F-]+)\}'
 
         if ($allBuildBlock) {
@@ -406,13 +427,40 @@ function Copy-CleanedSolution {
             Write-VerboseLog "Removing ALL_BUILD project (lines $( $allBuildBlock.StartIndex )-$( $allBuildBlock.EndIndex ))"
         }
 
+        if ($zeroCheckBlock) {
+            Write-VerboseLog "Found ZERO_CHECK project GUID: $( $zeroCheckBlock.Guid )"
+            Write-VerboseLog "Removing ZERO_CHECK project (lines $( $zeroCheckBlock.StartIndex )-$( $zeroCheckBlock.EndIndex ))"
+        }
+
         if ($predefinedBlock) {
             Write-VerboseLog "Found CMakePredefinedTargets folder GUID: $( $predefinedBlock.Guid )"
             Write-VerboseLog "Removing CMakePredefinedTargets folder (lines $( $predefinedBlock.StartIndex )-$( $predefinedBlock.EndIndex ))"
         }
 
-        $excludedBlocks = @($allBuildBlock, $predefinedBlock) | Where-Object { $_ -ne $null }
-        $excludedGuids = @($allBuildBlock.Guid, $predefinedBlock.Guid) | Where-Object { $_ -ne $null }
+        # Find all VCXPROJ_DUMMY_ projects
+        $dummyBlocks = @()
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match 'Project\(".*"\)\s*=\s*"VCXPROJ_DUMMY_.*"\s*,.*\{([0-9A-F-]+)\}') {
+                $projectGuid = $matches[1]
+                $endIndex = ($i + 1)..($lines.Count - 1) | Where-Object {
+                    $lines[$_] -match '^\s*EndProject\s*$'
+                } | Select-Object -First 1
+
+                if ($endIndex) {
+                    $block = @{
+                        Guid = $projectGuid
+                        StartIndex = $i
+                        EndIndex = $endIndex
+                    }
+                    $dummyBlocks += $block
+                    Write-VerboseLog "Found VCXPROJ_DUMMY_ project GUID: $projectGuid"
+                    Write-VerboseLog "Removing VCXPROJ_DUMMY_ project (lines $i-$endIndex)"
+                }
+            }
+        }
+
+        $excludedBlocks = @($allBuildBlock, $zeroCheckBlock, $predefinedBlock) + $dummyBlocks | Where-Object { $_ -ne $null }
+        $excludedGuids = @($allBuildBlock.Guid, $zeroCheckBlock.Guid, $predefinedBlock.Guid) + ($dummyBlocks | ForEach-Object { $_.Guid }) | Where-Object { $_ -ne $null }
 
         # Filter lines using pure predicate and write the result
         0..($lines.Count - 1) | Where-Object {
@@ -466,6 +514,14 @@ function New-Platform {
 
     if ($AddMQ2MainDependency) {
         $cmakeArgs += "-DMQ_ADD_MQ2MAIN_DEPENDENCY=ON"
+    }
+
+    if ($CustomPluginsFile) {
+        $cmakeArgs += "-DMQ_CUSTOM_PLUGINS_FILE=$CustomPluginsFile"
+    }
+
+    if ($WritePluginsFile) {
+        $cmakeArgs += "-DMQ_WRITE_PLUGINS_FILE=$WritePluginsFile"
     }
 
     & cmake @cmakeArgs
