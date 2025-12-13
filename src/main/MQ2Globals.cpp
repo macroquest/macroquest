@@ -556,7 +556,9 @@ const char* szDmgBonusType[] = {
 	"Fire",
 	"Cold",
 	"Poison",
-	"Disease"
+	"Disease",
+	"Chromatic",
+	"Prismatic"
 };
 
 const char* szBodyType[] = {
