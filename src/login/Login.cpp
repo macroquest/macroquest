@@ -580,7 +580,7 @@ std::optional<std::string> login::db::GetMasterPass()
 	return s_masterPass;
 }
 
-static std::wstring GetRegistryKey()
+std::string GetCompanyName()
 {
 	auto company = login::db::ReadSetting("reg_company");
 	if (company.value_or("").empty())
@@ -589,7 +589,14 @@ static std::wstring GetRegistryKey()
 		login::db::WriteSetting("reg_company", *company, "Company for caching the password in the registry");
 	}
 
-	return utf8_to_wstring(fmt::format("Software\\{}", *company));
+	return *company;
+}
+
+static std::wstring GetRegistryKey()
+{
+	std::string companyName = GetCompanyName();
+
+	return utf8_to_wstring(fmt::format("Software\\{}", companyName));
 }
 
 void login::db::CacheMasterPass(std::string_view pass)
