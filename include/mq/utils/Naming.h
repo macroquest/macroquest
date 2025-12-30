@@ -21,19 +21,32 @@
 
 namespace mq {
 
-inline std::string GetRandomString(const int stringLength)
+inline std::string GetRandomString(const int stringMinLength, const int stringMaxLength = -1)
 {
-	static const char availableChars[] =
+	static constexpr char availableChars[] =
 		"0123456789"
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz";
+	static std::default_random_engine s_randomEngine(std::random_device{}());
+
+	int stringLength;
+
+	// Calculate string length
+	if (stringMaxLength != -1 && stringMaxLength > stringMinLength)
+	{
+		std::uniform_int_distribution<int> dist(stringMinLength, stringMaxLength);
+
+		stringLength = dist(s_randomEngine);
+	}
+	else
+	{
+		stringLength = stringMinLength;
+	}
 
 	std::string returnString;
 	returnString.reserve(stringLength);
 
 	std::uniform_int_distribution<uint32_t> dist(0, static_cast<uint8_t>((lengthof(availableChars) - 2)));
-
-	static std::default_random_engine s_randomEngine(std::random_device{}());
 
 	for (int i = 0; i < stringLength; ++i)
 	{
@@ -62,7 +75,7 @@ inline std::filesystem::path GetUniqueFileName(const std::filesystem::path& base
 	std::error_code ec;
 	do
 	{
-		returnPath = basePath / (GetRandomString(8) + fullExtension);
+		returnPath = basePath / (GetRandomString(8, 16) + fullExtension);
 	} while (exists(returnPath, ec));
 
 	return returnPath;
