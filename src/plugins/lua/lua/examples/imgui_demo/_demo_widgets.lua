@@ -390,14 +390,13 @@ function WidgetsDemo_Images:Draw()
     imgui.TextWrapped("And now some textured buttons..")
     for i = 0, 7 do
         imgui.PushID(i)
-        local frame_padding = -1 + i  -- -1 == uses default padding (style.FramePadding)
 
         local size = ImVec2(32, 32)
         local uv0 = ImVec2(0, 0)
         local uv1 = ImVec2(32 / my_tex_w, 32 / my_tex_h)
         local bg_col = ImVec4(0, 0, 0, 1)
 
-        if imgui.ImageButton(my_tex_id, size, uv0, uv1, frame_padding, bg_col, tint_col) then
+        if imgui.ImageButton("", my_tex_id, size, uv0, uv1, bg_col, tint_col) then
             self.pressed_count = self.pressed_count + 1
         end
         imgui.PopID()
@@ -435,6 +434,8 @@ function WidgetsDemo_Combos:Draw()
     self.flags = imgui.CheckboxFlags("ImGuiComboFlags.PopupAlignLeft", self.flags, ImGuiComboFlags.PopupAlignLeft)
     imgui.SameLine()
     imgui.HelpMarker("Only makes a difference if the popup is larger than the combo")
+
+    local pressed
     self.flags, pressed = imgui.CheckboxFlags("ImGuiComboFlags.NoArrowButton", self.flags, ImGuiComboFlags.NoArrowButton)
     if pressed then  -- clear the other flag, as we cannot combine both
         self.flags = bit32.setflag(self.flags, ImGuiComboFlags.NoPreview, false)
@@ -696,6 +697,189 @@ function WidgetsDemo_Selectables:AllExampleFCellsSelected()
     return true
 end
 
+---@enum DragDropMode
+local DragDropMode = {
+    Copy = 1,
+    Move = 2,
+    Swap = 3,
+}
+
+
+local WidgetsDemo_DragAndDrop = {
+    col1 = { 1.0, 0.0, 0.2 },
+    col2 = { 0.4, 0.7, 0.0, 0.5 },
+
+    col4 = { 1.0, 0.0, 0.2, 1.0 },
+
+    mode = DragDropMode.Copy, ---@type DragDropMode
+    names = {
+        "Bobby", "Beatrice", "Betty",
+        "Brianna", "Barry", "Bernard",
+        "Bibi", "Blaine", "Bryn",
+    },
+    button_colors = {},
+    custom_name = "",
+}
+
+
+function WidgetsDemo_DragAndDrop:Draw()
+
+    if imgui.TreeNode("Drag and Drop in standard widgets") then
+        -- ColorEdit widgets automatically act as drag source and drag target.
+        -- They are using standardized payload strings IMGUI_PAYLOAD_TYPE_COLOR_3F and IMGUI_PAYLOAD_TYPE_COLOR_4F
+        -- to allow your own widgets to use colors in their drag and drop interaction.
+        -- Also see 'Demo->Widgets->Color/Picker Widgets->Palette' demo.
+        imgui.HelpMarker("You can drag from the color squares.")
+
+        imgui.ColorEdit3("color 1", self.col1)
+        imgui.ColorEdit4("color 2", self.col2)
+
+        imgui.TreePop()
+    end
+
+    if imgui.TreeNode("Drag and drop to copy/swap items") then
+
+        if imgui.RadioButton("Copy", self.mode == DragDropMode.Copy) then
+            self.mode = DragDropMode.Copy
+        end
+        imgui.SameLine()
+        if imgui.RadioButton("Move", self.mode == DragDropMode.Move) then
+            self.mode = DragDropMode.Move
+        end
+        imgui.SameLine()
+        if imgui.RadioButton("Swap", self.mode == DragDropMode.Swap) then
+            self.mode = DragDropMode.Swap
+        end
+
+        -- Set input box that can be used to rename a button
+        self.custom_name = imgui.InputText("Customize Name", self.custom_name)
+        if imgui.BeginDragDropSource(ImGuiDragDropFlags.None) then
+            -- Set payload to be the text in the input box.
+            imgui.SetDragDropPayload("DND_DEMO_CELL_TEXT", self.custom_name)
+
+            imgui.Text("%s", self.custom_name)
+
+            imgui.EndDragDropSource()
+        end
+
+        -- We can drop a color onto a button to change its color.
+        imgui.Text("Drop a color onto a button to change its color")
+
+        for index, value in ipairs(self.names) do
+            imgui.PushID(index)
+
+            if (index - 1) % 3 ~= 0 then
+                imgui.SameLine()
+            end
+            local button_color = self.button_colors[index]
+            if button_color ~= nil then
+                imgui.PushStyleColor(ImGuiCol.Button, button_color)
+                imgui.PushStyleColor(ImGuiCol.ButtonHovered, button_color)
+                imgui.PushStyleColor(ImGuiCol.ButtonActive, button_color)
+            end
+            imgui.Button(value, ImVec2(60, 60))
+            if button_color ~= nil then
+                imgui.PopStyleColor(3)
+            end
+
+            -- Our buttons are both drag sources and drag targets here!
+            if imgui.BeginDragDropSource(ImGuiDragDropFlags.None) then
+                -- Set payload to carry the index of our item (could be anything)
+                imgui.SetDragDropPayload("DND_DEMO_CELL", index)
+
+                -- Display preview (could be anything, e.g. when dragging an image we could decide to display
+                -- the filename and a small preview of the image, etc.)
+                if self.mode == DragDropMode.Copy then
+                    imgui.Text("Copy %s", value)
+                elseif self.mode == DragDropMode.Move then
+                    imgui.Text("Move %s", value)
+                elseif self.mode == DragDropMode.Swap then
+                    imgui.Text("Swap %s", value)
+                end
+
+                imgui.EndDragDropSource()
+            end
+
+            if imgui.BeginDragDropTarget() then
+                local payload = imgui.AcceptDragDropPayload("DND_DEMO_CELL")
+                if payload ~= nil then
+                    local payload_n = payload.Data  --- @type number
+                    
+                    if self.mode == DragDropMode.Copy then
+                        self.names[index] = self.names[payload_n]
+                    elseif self.mode == DragDropMode.Move then
+                        self.names[index] = self.names[payload_n]
+                        self.names[payload_n] = ""
+                    elseif self.mode == DragDropMode.Swap then
+                        local tmp = self.names[index]
+                        self.names[index] = self.names[payload_n]
+                        self.names[payload_n] = tmp
+                    end
+                end
+
+                payload = imgui.AcceptDragDropPayload("DND_DEMO_CELL_TEXT")
+                if payload ~= nil then
+                    self.names[index] = payload.Data
+                end
+
+                payload = imgui.AcceptDragDropPayload("_COL4F") or imgui.AcceptDragDropPayload("_COL3F")
+                if payload ~= nil then
+                    self.button_colors[index] = ImColor(payload.Data)
+                end
+
+                imgui.EndDragDropTarget()
+            end
+
+            imgui.PopID()
+        end
+
+        imgui.TreePop()
+    end
+
+    --[[
+    if imgui.TreeNode("Drag to reorder items (simple)") then
+        -- FIXME: there is temporary (usually single-frame) ID Conflict during reordering as a same item may be submitting twice.
+        -- This code was always slightly faulty but in a way which was not easily noticeable.
+        -- Until we fix this, enable ImGuiItemFlags_AllowDuplicateId to disable detecting the issue.
+        imgui.PushItemFlag(ImGuiItemFlags.AllowDuplicateId, true)
+
+        -- Simple reordering
+        imgui.HelpMarker("We don't use drag and drop api at all here! "
+            .. "Instead we query when the item is held but not hovered, and order items accordingly")
+
+        imgui.Text("Implement Me!")
+
+        imgui.PopItemFlag()
+        imgui.TreePop()
+    end
+    --]]
+
+    if imgui.TreeNode("Tooltip at target location") then
+
+        for n = 1, 2, 1 do
+            -- Drop targets
+            imgui.Button(string.format("drop here##%d", n))
+
+            if imgui.BeginDragDropTarget() then
+                local drop_target_flags = bit32.bor(ImGuiDragDropFlags.AcceptBeforeDelivery,
+                    ImGuiDragDropFlags.AcceptNoPreviewTooltip)
+                local payload = imgui.AcceptDragDropPayload("_COL4F", drop_target_flags)
+                if payload ~= nil then
+                    imgui.SetMouseCursor(ImGuiMouseCursor.NotAllowed)
+                    imgui.SetTooltip("Cannot drop here!")
+                end
+                imgui.EndDragDropTarget()
+            end
+
+            if n == 1 then
+                imgui.ColorButton("drag me", self.col4)
+            end
+        end
+
+        imgui.TreePop()
+    end
+end
+
 local disable_all = false
 
 
@@ -741,6 +925,11 @@ function ShowDemoWindowWidgets()
 
     if imgui.TreeNode('Selectables') then
         WidgetsDemo_Selectables:Draw()
+        imgui.TreePop()
+    end
+
+    if imgui.TreeNode('Drag and Drop') then
+        WidgetsDemo_DragAndDrop:Draw()
         imgui.TreePop()
     end
 
