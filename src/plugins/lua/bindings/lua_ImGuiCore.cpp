@@ -110,7 +110,7 @@ struct LuaImGuiPayload
 			[&](lua_Number value) { return sol::make_object(L, value); },
 			[&](const std::string& value) { return sol::make_object(L, value); },
 			[&](const std::vector<float>& value) { return sol::make_object(L, sol::as_table(value)); },
-			[&](const ImVec4& value) { return value; }
+			[&](const ImVec4& value) { return sol::make_object(L, value); }
 		}, data);
 	}
 
