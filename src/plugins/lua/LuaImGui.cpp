@@ -107,7 +107,12 @@ bool LuaImGui::Pulse() const
 			success = false;
 		}
 	}
-	catch (std::runtime_error& e)
+	catch (const sol::error& e)
+	{
+		LuaError("ImGui Failure:\n%s", e.what());
+		success = false;
+	}
+	catch (const std::runtime_error& e)
 	{
 		LuaError("ImGui Failure:\n%s", e.what());
 		success = false;

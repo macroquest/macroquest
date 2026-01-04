@@ -1,3 +1,29 @@
+## Upcoming changes
+
+### Fixes
+
+- Fix lua drag & drop to properly support the following primitive types:
+    - boolean, number, string, ImVec4, and list of numbers.
+- Fix ContainerManager structure causing crashes when accessing world container inventory
+
+### Lua Improvements
+
+- Drag and Drop improvements for lua:
+    - Add support for `_COL3F` and `_COL4F` payloads used by color widgets. These
+      will return a list of 3 or 4 numbers, which can be converted into an ImVec4
+      using `ImColor(data)`.
+    - LuaImGuiDragDropPayload can now access the payload's type and the raw data as a
+      string using `DataType` and `RawData`, respectively.
+    - Note: It continues to be true that a payload will only be valid during the
+      frame in which is is received, and should not be stored.
+- Add `ImGuiItemFlags` enumeration, along with `PushItemFlags` and `PopItemFlags`.
+- Add `ImColor` function to convert various parameters into an ImVec4 representing a color.
+- Extended examples/imgui_demo to include some of the drag and drop examples with some
+  modifications to exercise more of the drag and drop code.
+
+
+
+
 ## Update 12/3/2025
 
 - Updated Zones.ini to include new zones from latest expansion patch.
