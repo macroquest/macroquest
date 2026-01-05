@@ -580,7 +580,7 @@ std::optional<std::string> login::db::GetMasterPass()
 	return s_masterPass;
 }
 
-static std::wstring GetRegistryKey()
+std::string GetCompanyName()
 {
 	auto company = login::db::ReadSetting("reg_company");
 	if (company.value_or("").empty())
@@ -589,7 +589,14 @@ static std::wstring GetRegistryKey()
 		login::db::WriteSetting("reg_company", *company, "Company for caching the password in the registry");
 	}
 
-	return utf8_to_wstring(fmt::format("Software\\{}", *company));
+	return *company;
+}
+
+static std::wstring GetRegistryKey()
+{
+	std::string companyName = GetCompanyName();
+
+	return utf8_to_wstring(fmt::format("Software\\{}", companyName));
 }
 
 void login::db::CacheMasterPass(std::string_view pass)
@@ -1013,7 +1020,7 @@ void login::db::CreateAccount(const ProfileRecord& profile)
 		});
 }
 
-std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
+std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile, bool skipEqPath)
 {
 	return WithDb::Query<std::optional<std::string>>(SQLITE_OPEN_READONLY,
 		R"(
@@ -1022,7 +1029,7 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 				JOIN characters ON account_id = accounts.id
 				JOIN server_types ON server_type = type
 				WHERE server = LOWER(?) AND character = LOWER(?))",
-		[&profile](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
+		[&profile, skipEqPath](sqlite3_stmt* stmt, sqlite3* db) -> std::optional<std::string>
 		{
 			BindText(stmt, 1, profile.serverName);
 			BindText(stmt, 2, profile.characterName);
@@ -1031,7 +1038,10 @@ std::optional<std::string> login::db::ReadAccount(ProfileRecord& profile)
 			{
 				profile.accountName = ReadText(stmt, 0);
 				profile.serverType = ReadText(stmt, 2);
-				profile.eqPath = ReadText(stmt, 3);
+				if (!skipEqPath)
+				{
+					profile.eqPath = ReadText(stmt, 3);
+				}
 
 				std::string pass(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
 				if (const auto master_pass = GetMasterPass())

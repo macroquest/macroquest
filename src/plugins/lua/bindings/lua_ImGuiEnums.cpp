@@ -78,6 +78,17 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"FrameStyle"                   , ImGuiChildFlags_FrameStyle
 	);
 
+	// Item Flags
+	lua.new_enum("ImGuiItemFlags",
+		"None"                         , ImGuiItemFlags_None,
+		"NoTabStop"                    , ImGuiItemFlags_NoTabStop,
+		"NoNav"                        , ImGuiItemFlags_NoNav,
+		"NoNavDefaultFocus"            , ImGuiItemFlags_NoNavDefaultFocus,
+		"ButtonRepeat"                 , ImGuiItemFlags_ButtonRepeat,
+		"AutoClosePopups"              , ImGuiItemFlags_AutoClosePopups,
+		"AllowDuplicateId"             , ImGuiItemFlags_AllowDuplicateId
+	);
+
 	// InputText Flags
 	lua.new_enum("ImGuiInputTextFlags",
 		"None"                         , ImGuiInputTextFlags_None,
