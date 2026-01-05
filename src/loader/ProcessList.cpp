@@ -635,26 +635,18 @@ std::pair<std::string, std::string> GetEQGameVersionStrings(const std::string& P
 
 std::string GetInjecteePath()
 {
-	static std::string path;
-	if (path.empty())
+	static std::string injecteePath;
+	if (injecteePath.empty())
 	{
+		std::error_code ec;
+
 		// Create path to MQ2Main.dll
-		char szModuleFile[MAX_PATH] = { 0 };
-		GetModuleFileNameA(nullptr, szModuleFile, 255);
+		fs::path currentPath = fs::current_path(ec);
 
-		if (char* pDest = strrchr(szModuleFile, '\\'))
-		{
-			pDest[0] = '\0';
-
-			path = fmt::format("{}\\{}", szModuleFile, s_mainDLL);
-		}
-		else
-		{
-			path = szModuleFile;
-		}
+		injecteePath = (currentPath / s_mainDLL).string();
 	}
 
-	return path;
+	return injecteePath;
 }
 
 std::vector<DWORD> GetAllEqGameSessions()
@@ -1036,7 +1028,7 @@ static InjectResult DoInject(uint32_t PID)
 	void* pRemoteBuffer = (void*)::VirtualAllocEx(hEQGame.get(), nullptr, 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
 	std::string injectee = GetInjecteePath();
-	std::filesystem::path injecteePath{ injectee };
+	fs::path injecteePath{ injectee };
 	auto injecteeDirectory = injecteePath.parent_path().string();
 
 	// Call SetDllDirectoryA(<mq2 directory>)
@@ -1171,7 +1163,7 @@ bool InitializeInjector(bool injectOnce)
 	std::string injectee = GetInjecteePath();
 
 	std::error_code ec;
-	if (!std::filesystem::exists(injectee, ec))
+	if (!fs::exists(injectee, ec))
 	{
 		SPDLOG_ERROR("Fatal Error: Could not find MQ2Main.dll");
 		MessageBox(nullptr, "Could not find MQ2Main.dll. Make sure that the file exists next to MacroQuest.exe and try again.\n\nMacroQuest will now exit.", "Could not start MacroQuest", MB_SYSTEMMODAL | MB_OK | MB_ICONERROR);

@@ -33,6 +33,10 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui);
 void RegisterBindings_ImGuiUserTypes(sol::state_view state);
 void RegisterBindings_ImGuiEnums(sol::state_view state);
 
+
+template <typename... Ts> struct overload : Ts... { using Ts::operator()...; };
+template <typename... Ts> overload(Ts...) -> overload<Ts...>;
+
 std::string format_text(sol::this_state s, sol::variadic_args va)
 {
 	sol::function string_format = sol::state_view(s)["string"]["format"];
@@ -40,46 +44,318 @@ std::string format_text(sol::this_state s, sol::variadic_args va)
 	return text;
 }
 
+ImVec4 TableToColor(sol::this_state L, sol::table table)
+{
+	ImVec4 color(0.0f, 0.0f, 0.0f, 1.0f);
+	float* floats = &color.x;
+
+	for (size_t i = 0; i < table.size(); ++i)
+	{
+		auto value = table.get<std::optional<float>>(i + 1);
+		if (value.has_value())
+		{
+			floats[i] = value.value();
+		}
+		else
+		{
+			auto value_proxy = table[i + 1];
+			sol::type type = value_proxy.get_type();
+
+			luaL_error(L, "PushStyleColor: Expected number in index %d, got %s", static_cast<int>(i + 1), sol::type_name(L, type).c_str());
+		}
+	}
+
+	return color;
+}
+
+void ImGuiPushStyleColorTable(sol::this_state L, ImGuiCol idx, sol::table table)
+{
+	// Needs to have 3 or 4 elements.
+	if (table.size() != 3 && table.size() != 4)
+	{
+		luaL_error(L, "PushStyleColor: Expected a color, found table with %zu values", table.size());
+	}
+
+	ImVec4 color = TableToColor(L, table);
+
+	ImGui::PushStyleColor(idx, color);
+}
+
 #pragma region Drag and Drop
+
 // Create a type to add as a lua usertype
 struct LuaImGuiPayload
 {
-	// TODO: expand this variant to handle more complex types. The issue with that is that SetDragDropPayload will
-	// shallow copy data (with memcpy), so we need to specially handle any complex types (like sol::function) that
-	// would lose their refs on both the Set and Accept ends
-	using VarType = std::variant<int, float, std::string>;
-	VarType Data;
+	// This may only contain serializable types. See SetDragDropPayload, etc.
+	using VarType = std::variant<bool, int, lua_Number, std::string, std::vector<float>, ImVec4>;
+	VarType data;
+
+	const ImGuiPayload* payload;
 
 	LuaImGuiPayload(const ImGuiPayload* payload)
-		: Data(*static_cast<VarType*>(payload->Data)) {}
+		: payload(payload)
+	{
+	}
+
+	const char* GetType() const
+	{
+		return payload ? payload->DataType : "";
+	}
+
+	sol::object GetData(sol::this_state L) const
+	{
+		return std::visit(overload{
+			[&](bool value) { return sol::make_object(L, value); },
+			[&](int value) { return sol::make_object(L, value); },
+			[&](lua_Number value) { return sol::make_object(L, value); },
+			[&](const std::string& value) { return sol::make_object(L, value); },
+			[&](const std::vector<float>& value) { return sol::make_object(L, sol::as_table(value)); },
+			[&](const ImVec4& value) { return sol::make_object(L, value); }
+		}, data);
+	}
+
+	std::string GetRawDataAsString() const
+	{
+		return payload
+			? std::string(static_cast<char*>(payload->Data), static_cast<char*>(payload->Data) + payload->DataSize)
+			: std::string();
+	}
 };
 
-static bool SetDragDropPayload(const char* type, sol::object data, std::optional<int> cond)
+enum class DragDropPayloadType : uint8_t
 {
-	if (data.get_type() == sol::type::nil)
-		return false;
+	Bool = 0,
+	Int = 1,
+	Number = 2,
+	String = 3,
+	NumberList = 4,
+	Vec4 = 5,
+};
 
-	auto vardata = data.as<LuaImGuiPayload::VarType>();
-	return ImGui::SetDragDropPayload(type, &vardata, sizeof(vardata), cond.value_or(0));
+static bool SetDragDropPayload(sol::this_state L, const char* type, bool boolVal, std::optional<int> cond)
+{
+	uint8_t buffer[1 + sizeof(bool)];
+	buffer[0] = static_cast<uint8_t>(DragDropPayloadType::Bool);
+	memcpy(&buffer[1], &boolVal, sizeof(bool));
+
+	return ImGui::SetDragDropPayload(type, buffer, sizeof(buffer), cond.value_or(0));
+}
+
+static bool SetDragDropPayload(sol::this_state L, const char* type, int intVal, std::optional<int> cond)
+{
+	uint8_t buffer[1 + sizeof(int)];
+	buffer[0] = static_cast<uint8_t>(DragDropPayloadType::Int);
+	memcpy(&buffer[1], &intVal, sizeof(int));
+
+	return ImGui::SetDragDropPayload(type, buffer, sizeof(buffer), cond.value_or(0));
+}
+
+static bool SetDragDropPayload(sol::this_state L, const char* type, lua_Number numVal, std::optional<int> cond)
+{
+	uint8_t buffer[1 + sizeof(lua_Number)];
+	buffer[0] = static_cast<uint8_t>(DragDropPayloadType::Number);
+	memcpy(&buffer[1], &numVal, sizeof(lua_Number));
+
+	return ImGui::SetDragDropPayload(type, buffer, sizeof(buffer), cond.value_or(0));
+}
+
+static bool SetDragDropPayload(sol::this_state L, const char* type, std::string_view strVal, std::optional<int> cond)
+{
+	fmt::memory_buffer buffer;
+	buffer.push_back(static_cast<char>(DragDropPayloadType::String));
+	buffer.append(strVal);
+
+	return ImGui::SetDragDropPayload(type, buffer.data(), buffer.size(), cond.value_or(0));
+}
+
+static bool SetDragDropPayload(sol::this_state L, const char* type, const std::vector<float>& vectorVal, std::optional<int> cond)
+{
+	if (strcmp(type, IMGUI_PAYLOAD_TYPE_COLOR_3F) == 0)
+	{
+		if (vectorVal.size() != 3)
+			luaL_error(L, "Invalid payload for datatype: %s", IMGUI_PAYLOAD_TYPE_COLOR_3F);
+
+		return ImGui::SetDragDropPayload(type, vectorVal.data(), sizeof(float) * vectorVal.size(), cond.value_or(0));
+	}
+	if (strcmp(type, IMGUI_PAYLOAD_TYPE_COLOR_4F) == 0)
+	{
+		if (vectorVal.size() != 4)
+			luaL_error(L, "Invalid payload for datatype: %s", IMGUI_PAYLOAD_TYPE_COLOR_4F);
+
+		return ImGui::SetDragDropPayload(type, vectorVal.data(), sizeof(float) * vectorVal.size(), cond.value_or(0));
+	}
+
+	size_t bufferSize = 1 + sizeof(int) + sizeof(float) * vectorVal.size();
+	auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+	buffer[0] = static_cast<uint8_t>(DragDropPayloadType::NumberList);
+
+	uint8_t* bufferPtr = buffer.get() + 1;
+	int size = static_cast<int>(vectorVal.size());
+	memcpy(bufferPtr, &size, sizeof(int));
+	bufferPtr += sizeof(int);
+	memcpy(bufferPtr, vectorVal.data(), sizeof(float) * vectorVal.size());
+
+	return ImGui::SetDragDropPayload(type, buffer.get(), bufferSize, cond.value_or(0));
+}
+
+static bool SetDragDropPayload(sol::this_state L, const char* type, const ImVec4& vec4Val, std::optional<int> cond)
+{
+	// Special case: If we set _COL3F as our datatype, only store three components of the color val.
+	if (strcmp(type, IMGUI_PAYLOAD_TYPE_COLOR_3F) == 0)
+	{
+		return ImGui::SetDragDropPayload(type, &vec4Val.x, sizeof(float) * 3, cond.value_or(0));
+	}
+
+	return ImGui::SetDragDropPayload(type, &vec4Val.x, sizeof(float) * 4, cond.value_or(0));
+}
+
+static std::unique_ptr<LuaImGuiPayload> DeserializePayload(const ImGuiPayload* payload)
+{
+	if (!payload)
+		return nullptr;
+
+	if (payload->DataSize <= 1)
+		return nullptr;
+
+	switch (DragDropPayloadType type = static_cast<DragDropPayloadType>(*(static_cast<uint8_t*>(payload->Data))))
+	{
+	case DragDropPayloadType::Bool:
+	{
+		if (payload->DataSize != 1 + sizeof(bool))
+			return nullptr;
+
+		bool boolVal;
+		memcpy(&boolVal, static_cast<uint8_t*>(payload->Data) + 1, sizeof(bool));
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { boolVal };
+		return luaPayload;
+	}
+
+	case DragDropPayloadType::Int:
+	{
+		if (payload->DataSize != 1 + sizeof(int))
+			return nullptr;
+
+		int intVal;
+		memcpy(&intVal, static_cast<uint8_t*>(payload->Data) + 1, sizeof(int));
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { intVal };
+		return luaPayload;
+	}
+
+	case DragDropPayloadType::Number:
+	{
+		if (payload->DataSize != 1 + sizeof(lua_Number))
+			return nullptr;
+
+		lua_Number numVal;
+		memcpy(&numVal, static_cast<uint8_t*>(payload->Data) + 1, sizeof(lua_Number));
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { numVal };
+		return luaPayload;
+	}
+
+	case DragDropPayloadType::String:
+	{
+		std::string strVal{
+			reinterpret_cast<char*>(static_cast<uint8_t*>(payload->Data) + 1),
+			static_cast<size_t>(payload->DataSize - 1)
+		};
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { std::move(strVal) };
+		return luaPayload;
+	}
+
+	case DragDropPayloadType::NumberList:
+	{
+		if (payload->DataSize < static_cast<int>(1 + sizeof(int)))
+			return nullptr;
+
+		uint8_t* data = static_cast<uint8_t*>(payload->Data) + 1;
+		int size = *reinterpret_cast<int*>(data);
+		data += sizeof(int);
+
+		if (payload->DataSize != 1 + sizeof(int) + sizeof(float) * size)
+			return nullptr;
+		
+		std::vector<float> floatList(size);
+		memcpy(floatList.data(), data, sizeof(float) * size);
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { std::move(floatList) };
+		return luaPayload;
+	}
+
+	case DragDropPayloadType::Vec4:
+	{
+		if (payload->DataSize != sizeof(float) * 4)
+			return nullptr;
+
+		ImVec4* data = reinterpret_cast<ImVec4*>(static_cast<uint8_t*>(payload->Data) + 1);
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = { *data };
+		return luaPayload;
+	}
+
+	default:
+		return nullptr;
+	}
 }
 
 static std::unique_ptr<LuaImGuiPayload> AcceptDragDropPayload(const char* type, std::optional<int> flags)
 {
-	auto payload = ImGui::AcceptDragDropPayload(type, flags.value_or(0));
-	return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+	const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type, flags.value_or(0));
+
+	if (payload == nullptr)
+		return nullptr;
+
+	if (strcmp(type, IMGUI_PAYLOAD_TYPE_COLOR_3F) == 0)
+	{
+		if (payload->DataSize != sizeof(float) * 3)
+			return nullptr;
+
+		float* payloadData = static_cast<float*>(payload->Data);
+		std::vector<float> vectorVal(payloadData, payloadData + 3);
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = vectorVal;
+
+		return luaPayload;
+	}
+
+	if (strcmp(type, IMGUI_PAYLOAD_TYPE_COLOR_4F) == 0)
+	{
+		if (payload->DataSize != sizeof(float) * 4)
+			return nullptr;
+
+		float* payloadData = static_cast<float*>(payload->Data);
+		std::vector<float> vectorVal(payloadData, payloadData + 4);
+
+		auto luaPayload = std::make_unique<LuaImGuiPayload>(payload);
+		luaPayload->data = vectorVal;
+
+		return luaPayload;
+	}
+
+	return DeserializePayload(payload);
 }
 
 static std::unique_ptr<LuaImGuiPayload> GetDragDropPayload()
 {
-	auto payload = ImGui::GetDragDropPayload();
-	return payload == nullptr ? nullptr : std::make_unique<LuaImGuiPayload>(payload);
+	const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+	return DeserializePayload(payload);
 }
 #pragma endregion
 
 #pragma region Color Utilities
 static sol::as_table_t<std::vector<float>> ColorConvertU32ToFloat4(unsigned int in)
 {
-	const auto vec4 = ImGui::ColorConvertU32ToFloat4(in);
+	const ImVec4 vec4 = ImGui::ColorConvertU32ToFloat4(in);
 	sol::as_table_t rgba = sol::as_table(std::vector<float>{
 		vec4.x, vec4.y, vec4.z, vec4.w
 	});
@@ -292,7 +568,8 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("PushStyleColor", sol::overload(
 		[](int idx, int col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), ImU32(col)); },
 		[](int idx, float colR, float colG, float colB, float colA) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), { colR, colG, colB, colA }); },
-		[](int idx, const ImVec4& col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), col); }
+		[](int idx, const ImVec4& col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), col); },
+		[](sol::this_state L, int idx, sol::table col) { ImGuiPushStyleColorTable(L, static_cast<ImGuiCol>(idx), col); }
 	));
 	ImGui.set_function("PopStyleColor", [](std::optional<int> count) { ImGui::PopStyleColor(count.value_or(1)); });
 	ImGui.set_function("PushStyleVar", sol::overload(
@@ -300,11 +577,15 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		[](int idx, float valX, float valY) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), { valX, valY }); },
 		[](int idx, const ImVec2& val) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
 	));
+	// PushStyleVarX
+	// PushStyleVarY
 	ImGui.set_function("PopStyleVar", [](std::optional<int> count) { ImGui::PopStyleVar(count.value_or(1)); });
-	ImGui.set_function("PushTabStop", &ImGui::PushTabStop);
-	ImGui.set_function("PopTabStop", &ImGui::PopTabStop);
-	ImGui.set_function("PushButtonRepeat", &ImGui::PushButtonRepeat);
-	ImGui.set_function("PopButtonRepeat", &ImGui::PopButtonRepeat);
+	ImGui.set_function("PushTabStop", &ImGui::PushTabStop); // DEPRECATED
+	ImGui.set_function("PopTabStop", &ImGui::PopTabStop); // DEPRECATED
+	ImGui.set_function("PushButtonRepeat", &ImGui::PushButtonRepeat); // DEPRECATED
+	ImGui.set_function("PopButtonRepeat", &ImGui::PopButtonRepeat); // DEPRECATED
+	ImGui.set_function("PushItemFlag", &ImGui::PushItemFlag);
+	ImGui.set_function("PopItemFlag", &ImGui::PopItemFlag);
 	#pragma endregion
 
 	#pragma region Parameters stacks (current window)
@@ -518,7 +799,14 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	#pragma region Drag Drop
 	ImGui.set_function("BeginDragDropSource", [](std::optional<int> flags) { return ImGui::BeginDragDropSource(flags.value_or(0)); });
-	ImGui.set_function("SetDragDropPayload", &SetDragDropPayload);
+	ImGui.set_function("SetDragDropPayload", sol::overload(
+		[](sol::this_state L, const char* type, int value, std::optional<int> cond) { SetDragDropPayload(L, type, value, cond); },
+		[](sol::this_state L, const char* type, lua_Number value, std::optional<int> cond) { SetDragDropPayload(L, type, value, cond); },
+		[](sol::this_state L, const char* type, bool value, std::optional<int> cond) { SetDragDropPayload(L, type, value, cond); },
+		[](sol::this_state L, const char* type, sol::string_view data, std::optional<int> cond) { SetDragDropPayload(L, type, data, cond); },
+		[](sol::this_state L, const char* type, const std::vector<float>& table, std::optional<int> cond) { SetDragDropPayload(L, type, table, cond); },
+		[](sol::this_state L, const char* type, const ImVec4& value, std::optional<int> cond) { SetDragDropPayload(L, type, value, cond); }
+	));
 	ImGui.set_function("EndDragDropSource", &ImGui::EndDragDropSource);
 	ImGui.set_function("BeginDragDropTarget", &ImGui::BeginDragDropTarget);
 	ImGui.set_function("AcceptDragDropPayload", &AcceptDragDropPayload);
@@ -527,7 +815,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	state.new_usertype<LuaImGuiPayload>(
 		"ImGuiPayload", sol::no_constructor,
-		"Data",         sol::readonly(&LuaImGuiPayload::Data)
+		"DataType",     sol::readonly_property(&LuaImGuiPayload::GetType),
+		"Data",         sol::readonly_property(&LuaImGuiPayload::GetData),
+		"RawData",      sol::readonly_property(&LuaImGuiPayload::GetRawDataAsString)
 	);
 	#pragma endregion
 

@@ -29,6 +29,34 @@ namespace mq::lua::bindings {
 
 //============================================================================
 
+ImVec4 TableToColor(sol::this_state L, sol::table table);
+
+// Wrapper function to simulate inheritance with ImVec4 for simpler usage in lua
+ImVec4 LuaImcolor()
+{
+	return ImVec4();
+}
+
+ImVec4 LuaImColor(float r, float g, float b)
+{
+	return ImVec4(r, g, b, 1.0f);
+}
+
+ImVec4 LuaImColor(float r, float g, float b, float a)
+{
+	return ImVec4(r, g, b, a);
+}
+
+ImVec4 LuaImColor(sol::this_state L, sol::table table)
+{
+	return TableToColor(L, table);
+}
+
+ImVec4 LuaImColor(const ImVec4& vec)
+{
+	return vec;
+}
+
 void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 {
 	// ImVec2
@@ -87,6 +115,15 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		sol::meta_function::less_than                   , [](const ImVec4& a, const ImVec4& b) { return std::tie(a.x, a.y, a.z, a.w) < std::tie(b.x, b.y, b.z, b.w); },
 		sol::meta_function::less_than_or_equal_to       , [](const ImVec4& a, const ImVec4& b) { return std::tie(a.x, a.y, a.z, a.w) <= std::tie(b.x, b.y, b.z, b.w); }
 	);
+
+	// ImColor, function pretends to be a constructor, but returns an ImVec4
+	lua.set_function("ImColor", sol::overload(
+		static_cast<ImVec4(*)()>(&LuaImcolor),
+		static_cast<ImVec4(*)(float, float, float)>(&LuaImColor),
+		static_cast<ImVec4(*)(float, float, float, float)>(&LuaImColor),
+		static_cast<ImVec4(*)(sol::this_state, sol::table)>(&LuaImColor),
+		static_cast<ImVec4(*)(const ImVec4&)>(&LuaImColor)
+	));
 
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(

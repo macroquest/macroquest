@@ -624,29 +624,25 @@ bool InitializeDirectory(std::string& strPathToInit,
 	return false;
 }
 
-bool InitializePaths()
+bool InitializePaths(const fs::path& rootPath)
 {
-	// Get path right to the exe and then strip off the filename.
-	char szFileName[_MAX_PATH] = { 0 };
-	::GetModuleFileNameA(nullptr, szFileName, _MAX_PATH);
-
-	char* szProcessName = strrchr(szFileName, '\\');
-	*szProcessName = 0;
-
-	internal_paths::MQRoot = szFileName;
+	std::error_code ec;
 
 	// Initialize the MacroQuest.ini and read in paths preferences, if any
 
-	fs::path pathMQRoot = internal_paths::MQRoot;
+	fs::path pathMQRoot;
 
 	// If we still have a relative path to the MQ2 directory, make it absolute.
-	if (pathMQRoot.is_relative())
+	if (rootPath.is_relative())
 	{
-		pathMQRoot = fs::absolute(pathMQRoot).string();
+		pathMQRoot = fs::absolute(pathMQRoot, ec);
+	}
+	else
+	{
+		pathMQRoot = rootPath;
 	}
 
 	internal_paths::MQRoot = pathMQRoot.string();
-	std::error_code ec;
 
 	// If the path to MQ2 doesn't exist none of our relative paths are going to work.
 	if (fs::exists(pathMQRoot, ec))
@@ -1749,24 +1745,9 @@ int WINAPI CALLBACK WinMain(
 	_In_ int nShowCmd)
 {
 	g_hInst = hInstance;
+	std::error_code ec;
 
-	// Initialize Paths so we know where to put our logs and where to load our config from
-	InitializePaths();
-
-	bool showConsole = mq::GetPrivateProfileBool("MacroQuest", "ShowLoaderConsole", false, internal_paths::MQini);
-	UpdateShowConsole(showConsole, false);
-
-	// Initialize Logging
-	InitializeLogging();
-
-	s_isElevated = IsElevated();
-
-	SPDLOG_INFO("Starting MacroQuest Loader{}. Built {}", s_isElevated ? " (Elevated)" : "", __TIMESTAMP__);
-
-	// Initialize COM
-	auto coCleanup = wil::CoInitializeEx(COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
-
-	// TODO:  Allow argument processing of passing ini file so the file can be launched from anywhere
+	// Process arguments first so we know where we need to set our working directory
 	std::string fullCommandLine = "";
 	bool spawnedProcess = false;
 	bool disableAppCompatCheck = false;
@@ -1796,12 +1777,56 @@ int WINAPI CALLBACK WinMain(
 		// Only need this if we're not already the spawned process
 		else if (!spawnedProcess && mq::ci_find_substr(thisArg, "spawnedprocess") != -1)
 		{
-			SPDLOG_INFO("I am a spawned process");
 			spawnedProcess = true;
 		}
 	}
 
-	if (!spawnedProcess)
+	if (spawnedProcess)
+	{
+		// Spawned process will have its working directory set for us, so leave it alone.
+	}
+	else
+	{
+		fs::path currentDir = fs::current_path(ec);
+
+		// If the working directory is the temp path, we want to change it. If the working directory
+		// has an MQ2Main.dll in it, we do NOT want to change it. Otherwise, change the directory
+		// to the location of this .exe
+		if (fs::equivalent(currentDir, fs::temp_directory_path(ec), ec)
+			|| !fs::exists(currentDir / "MQ2Main.dll", ec))
+		{
+			wchar_t szFileName[MAX_PATH] = { 0 };
+			::GetModuleFileNameW(nullptr, szFileName, MAX_PATH);
+			fs::path newCurrentDir = fs::path(szFileName).parent_path();
+
+			fs::current_path(newCurrentDir, ec);
+		}
+	}
+
+	// Working directory should be set to the root of our MQ install
+	fs::path rootPath = fs::current_path(ec);
+
+	// Initialize Paths so we know where to put our logs and where to load our config from
+	InitializePaths(rootPath);
+
+	bool showConsole = mq::GetPrivateProfileBool("MacroQuest", "ShowLoaderConsole", false, internal_paths::MQini);
+	UpdateShowConsole(showConsole, false);
+
+	// Initialize Logging
+	InitializeLogging();
+
+	s_isElevated = IsElevated();
+
+	SPDLOG_INFO("Starting MacroQuest Loader{}. Built {}", s_isElevated ? " (Elevated)" : "", __TIMESTAMP__);
+
+	// Initialize COM
+	auto coCleanup = wil::CoInitializeEx(COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+
+	if (spawnedProcess)
+	{
+		SPDLOG_INFO("I am a spawned process");
+	}
+	else
 	{
 		char szFileName[MAX_PATH] = { 0 };
 		GetModuleFileName(nullptr, szFileName, MAX_PATH);
@@ -1813,29 +1838,38 @@ int WINAPI CALLBACK WinMain(
 			thisProgramPath = absolute(thisProgramPath, ec);
 		}
 
-		std::filesystem::path ProgramPath;
-
-		const std::string oldProcessName = mq::GetPrivateProfileString("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
-		if (oldProcessName.empty())
+		fs::path processPath;
+		if (mq::GetPrivateProfileBool("MacroQuest", "RunFromTemp", false, internal_paths::MQini))
 		{
-			ProgramPath = mq::GetUniqueFileName(thisProgramPath.parent_path(), "exe");
+			processPath = fs::temp_directory_path();
 		}
 		else
 		{
-			ProgramPath = thisProgramPath.parent_path() / oldProcessName;
+			processPath = thisProgramPath.parent_path();
+		}
+
+		fs::path programPath;
+		const std::string oldProcessName = mq::GetPrivateProfileString("Internal", "SpawnedProcess", "", internal_paths::MQini.c_str());
+		if (oldProcessName.empty())
+		{
+			programPath = mq::GetUniqueFileName(processPath, "exe");
+		}
+		else
+		{
+			programPath = processPath / oldProcessName;
 		}
 
 		// Launch a new process if this process isn't the renamed process
-		if (!mq::ci_equals(ProgramPath.filename().string(), thisProgramPath.filename().string()))
+		if (!mq::ci_equals(programPath.filename().string(), thisProgramPath.filename().string()))
 		{
-			std::string programPathStr = ProgramPath.string();
+			std::string programPathStr = programPath.string();
 
 			std::error_code ec;
-			if (exists(ProgramPath, ec))
+			if (exists(programPath, ec))
 			{
 				if (mq::IsProcessRunning(oldProcessName))
 				{
-					if (!mq::file_equals(thisProgramPath, ProgramPath))
+					if (!mq::file_equals(thisProgramPath, programPath))
 					{
 						ShowWarningBlocking("Please exit out of the alternate loader for an update: " + oldProcessName);
 					}
@@ -1845,28 +1879,31 @@ int WINAPI CALLBACK WinMain(
 						exit(0);
 					}
 				}
-				if (!mq::file_equals(thisProgramPath, ProgramPath) && !remove(ProgramPath, ec))
+				if (!mq::file_equals(thisProgramPath, programPath) && !remove(programPath, ec))
 				{
 					ShowErrorBlocking("Could not delete alternate loader: " + programPathStr);
 					exit(1);
 				}
 			}
-			if (!exists(ProgramPath, ec) && !std::filesystem::copy_file(thisProgramPath, ProgramPath, ec))
+			if (!exists(programPath, ec) && !std::filesystem::copy_file(thisProgramPath, programPath, ec))
 			{
 				ShowErrorBlocking("Could not create duplicate of this program at: " + programPathStr);
 				exit(1);
 			}
 
-			std::wstring arguments = mq::utf8_to_wstring(fmt::format("\"{}\" {} /spawnedprocess", ProgramPath.string(), fullCommandLine));
+			std::wstring arguments = mq::utf8_to_wstring(fmt::format("\"{}\" {} /spawnedprocess", programPath.string(), fullCommandLine));
 			SPDLOG_INFO("Relaunching as spawned process");
 
 			STARTUPINFOW si = {};
 			wil::unique_process_information pi;
 
-			if (::CreateProcessW(ProgramPath.wstring().c_str(), &arguments[0], nullptr, nullptr, false, CREATE_NEW_CONSOLE,
-				nullptr, nullptr, &si, &pi))
+			// We spawn new process from non-spawned process. Non-spawned process path should be where the exe resides.
+			fs::path currentDirectory = thisProgramPath.parent_path();
+
+			if (::CreateProcessW(programPath.wstring().c_str(), &arguments[0], nullptr, nullptr, false, CREATE_NEW_CONSOLE,
+				nullptr, currentDirectory.wstring().c_str(), &si, &pi))
 			{
-				mq::WritePrivateProfileString("Internal", "SpawnedProcess", ProgramPath.filename().string(), internal_paths::MQini);
+				mq::WritePrivateProfileString("Internal", "SpawnedProcess", programPath.filename().string(), internal_paths::MQini);
 			}
 			else
 			{

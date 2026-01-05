@@ -114,6 +114,7 @@ MQModule* GetPostOfficeModule();
 #if IS_EMU_CLIENT
 MQModule* GetEmuExtensionsModule();
 #endif
+MQModule* GetDisplayHookModule();
 
 void InitializeMQ2AutoInventory();
 void ShutdownMQ2AutoInventory();
@@ -832,7 +833,6 @@ void MacroQuest::Initialize()
 
 	pActorAPI = new MQActorAPI();
 
-	InitializeDisplayHook();
 	GraphicsResources_Initialize();
 	ImGuiManager_Initialize();
 
@@ -851,6 +851,7 @@ void MacroQuest::Initialize()
 	AddInternalModule(GetSpawnsModule());
 	AddInternalModule(GetItemsModule());
 	AddInternalModule(GetPostOfficeModule());
+	AddInternalModule(GetDisplayHookModule());
 #if IS_EMU_CLIENT
 	AddInternalModule(GetEmuExtensionsModule());
 #endif
@@ -869,7 +870,6 @@ void MacroQuest::Shutdown()
 
 	ShutdownCachedBuffs();
 	ShutdownMQ2KeyBinds();
-	ShutdownDisplayHook();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownLoginFrontend();

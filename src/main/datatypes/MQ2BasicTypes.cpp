@@ -15,7 +15,8 @@
 #include "pch.h"
 #include "MQ2DataTypes.h"
 
-#include <date/date.h>
+#include "date/date.h"
+#include "fmt/chrono.h"
 
 namespace mq::datatypes {
 
@@ -1624,6 +1625,7 @@ enum class TimeMembers
 	MillisecondsSinceMidnight,
 	Hour12,
 	MillisecondsSinceEpoch,
+	Format,
 };
 
 MQ2TimeType::MQ2TimeType() : MQ2Type("time")
@@ -1644,6 +1646,7 @@ MQ2TimeType::MQ2TimeType() : MQ2Type("time")
 	ScopedTypeMember(TimeMembers, MillisecondsSinceMidnight);
 	ScopedTypeMember(TimeMembers, Hour12);
 	ScopedTypeMember(TimeMembers, MillisecondsSinceEpoch);
+	ScopedTypeMember(TimeMembers, Format);
 }
 
 bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1756,6 +1759,37 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 		Dest.Int64 = std::chrono::duration_cast<std::chrono::milliseconds>(pTimePoint->timePoint.time_since_epoch()).count();
 		Dest.Type = pInt64Type;
 		return true;
+
+	case TimeMembers::Format: {
+		if (!Index[0])
+			return false;
+
+		try
+		{
+			std::time_t time_val{ std::chrono::duration_cast<std::chrono::seconds>(pTimePoint->timePoint.time_since_epoch()).count() };
+			std::tm tm;
+			gmtime_s(&tm, &time_val);
+
+			fmt::memory_buffer format_buffer;
+
+			sprintf_s(DataTypeTemp, MAX_STRING, "{:%s}", Index);
+			const char* format_string = &DataTypeTemp[0];
+			fmt::format_to(fmt::appender(format_buffer), fmt::runtime(format_string), tm);
+
+			sprintf_s(DataTypeTemp, MAX_STRING, "%.*s", (int)format_buffer.size(), format_buffer.data());
+
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+
+			return true;
+		}
+		catch (const std::exception& e)
+		{
+			MacroError("Invalid format string: %s", Index);
+		}
+
+		return false;
+	}
 
 	default: break;
 	}
