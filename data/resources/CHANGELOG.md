@@ -3,8 +3,9 @@
 ### Fixes
 
 - Fix lua drag & drop to properly support the following primitive types:
-    - boolean, number, string, ImVec4, and list of numbers.
+    - boolean, number, string, ImVec4, and list of numbers. (#955)
 - Fix ContainerManager structure causing crashes when accessing world container inventory
+- Fix UI not being reloaded after shrouding. (#949)
 
 ### Lua Improvements
 

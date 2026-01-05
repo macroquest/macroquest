@@ -20,7 +20,50 @@
 
 namespace mq {
 
+static void DisplayHook_Initialize();
+static void DisplayHook_Shutdown();
+static void DisplayHook_Pulse();
+
+static MQModule g_displayHookModule = {
+	"DisplayHook",                // Name
+	false,                        // CanUnload
+	DisplayHook_Initialize,       // Initialize
+	DisplayHook_Shutdown,         // Shutdown
+	DisplayHook_Pulse,            // Pulse
+	nullptr,                      // SetGameState
+	nullptr,                      // UpdateImGui
+	nullptr,                      // Zoned
+	nullptr,                      // WriteChatColor
+	nullptr,                      // SpawnAdded
+	nullptr,                      // SpawnRemoved
+	nullptr,                      // BeginZone
+};
+MQModule* GetDisplayHookModule() { return &g_displayHookModule; }
+
 const char* g_customCaption = "MacroQuest: Even when you're loading.";
+static bool s_uiInitialized = false;
+
+static void ShutdownUI()
+{
+	s_uiInitialized = false;
+
+	{
+		MQScopedBenchmark bm(bmPluginsCleanUI);
+		PluginsCleanUI();
+	}
+}
+
+static void InitializeUI()
+{
+	s_uiInitialized = true;
+
+	InitializeInGameUI();
+
+	{
+		MQScopedBenchmark bm(bmPluginsReloadUI);
+		PluginsReloadUI();
+	}
+}
 
 class CDisplayHook
 {
@@ -28,35 +71,21 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, CleanUI_Trampoline, ())
 	void CleanUI_Detour()
 	{
-		{
-			MQScopedBenchmark bm(bmPluginsCleanUI);
-			PluginsCleanUI();
-		}
-
+		ShutdownUI();
 		CleanUI_Trampoline();
-	}
-
-	void ReloadUI_Hook()
-	{
-		InitializeInGameUI();
-
-		{
-			MQScopedBenchmark bm(bmPluginsReloadUI);
-			PluginsReloadUI();
-		}
 	}
 
 #ifdef CDisplay__RestartUI_x
 	DETOUR_TRAMPOLINE_DEF(void, RestartUI_Trampoline, ())
 	void RestartUI_Detour()
 	{
+		// This is similar to ReloadUI, but it doesn't reload XML. This is the function
+		// that is used to restart the UI after swapping personas.
+
 		RestartUI_Trampoline();
 
 		gDrawWindowFrameSkipCount = 2;
-
-		// This is similar to ReloadUI, but it doesn't reload XML. This is the function
-		// that is used to restart the UI after swapping personas.
-		ReloadUI_Hook();
+		InitializeUI();
 	}
 #endif // CDisplay__RestartUI_x
 
@@ -65,14 +94,14 @@ public:
 	void ReloadUI_Detour(bool UseINI)
 	{
 		ReloadUI_Trampoline(UseINI);
-		ReloadUI_Hook();
+		InitializeUI();
 	}
 #else
 	DETOUR_TRAMPOLINE_DEF(void, ReloadUI_Trampoline, (bool, bool))
 	void ReloadUI_Detour(bool UseINI, bool bUnknown)
 	{
 		ReloadUI_Trampoline(UseINI, bUnknown);
-		ReloadUI_Hook();
+		InitializeUI();
 	}
 #endif
 
@@ -172,7 +201,7 @@ static void Cmd_NetStatusYPos(SPAWNINFO* pChar, char* szLine)
 
 static std::vector<std::string> s_oldStrings;
 
-void InitializeDisplayHook()
+static void DisplayHook_Initialize()
 {
 	DebugSpew("Initializing Display Hooks");
 
@@ -208,7 +237,7 @@ void InitializeDisplayHook()
 	}
 }
 
-void ShutdownDisplayHook()
+static void DisplayHook_Shutdown()
 {
 	DebugSpew("Shutting down Display Hooks");
 
@@ -238,6 +267,24 @@ void ShutdownDisplayHook()
 #ifdef CDisplay__RestartUI_x
 	RemoveDetour(CDisplay__RestartUI);
 #endif
+}
+
+static void DisplayHook_Pulse()
+{
+	if (gGameState == GAMESTATE_INGAME)
+	{
+		// In some situations we will shutdown the UI but not reload it. Rather than hook
+		// every place that this happens, we will just take note that the UI is not initialized
+		// and then initialize it.
+		if (!s_uiInitialized)
+		{
+			// Verify that some part of the UI exists before we do this
+			if (pPlayerWnd)
+			{
+				InitializeUI();
+			}
+		}
+	}
 }
 
 } // namespace mq
