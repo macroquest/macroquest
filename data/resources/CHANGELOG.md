@@ -7,6 +7,7 @@
 - Fix ContainerManager structure causing crashes when accessing world container inventory
 - Fix UI not being reloaded after shrouding. (#949)
 - Fix /target clearing target buffs unnecessarily. (#937)
+- Add missing damage type strings for Prismatic, Chromatic, Corruption and Physical. (#953)
 
 ### Lua Improvements
 
@@ -22,8 +23,6 @@
 - Add `ImColor` function to convert various parameters into an ImVec4 representing a color.
 - Extended examples/imgui_demo to include some of the drag and drop examples with some
   modifications to exercise more of the drag and drop code.
-
-
 
 
 ## Update 12/3/2025
