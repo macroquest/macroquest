@@ -6,6 +6,7 @@
     - boolean, number, string, ImVec4, and list of numbers. (#955)
 - Fix ContainerManager structure causing crashes when accessing world container inventory
 - Fix UI not being reloaded after shrouding. (#949)
+- Fix /target clearing target buffs unnecessarily. (#937)
 
 ### Lua Improvements
 

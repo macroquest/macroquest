@@ -3008,8 +3008,6 @@ void Cast(PlayerClient* pChar, const char* szLine)
 // ***************************************************************************
 void Target(PlayerClient* pChar, const char* szLine)
 {
-	gTargetbuffs = false;
-
 	if (!pSpawnManager)
 		return;
 	if (!pSpawnList)
@@ -3056,6 +3054,7 @@ void Target(PlayerClient* pChar, const char* szLine)
 		}
 		else if (!strcmp(szArg, "clear"))
 		{
+			gTargetbuffs = false;
 			pTarget = nullptr;
 			pLocalPlayer->GroupMemberTargeted = -1;
 
@@ -3091,6 +3090,10 @@ void Target(PlayerClient* pChar, const char* szLine)
 	}
 	else
 	{
+		// Clear target buffs flag if the target is changing
+		if (pSpawnClosest != pTarget)
+			gTargetbuffs = false;
+
 		pTarget = pSpawnClosest;
 
 		DebugSpew("Target - %s selected", pSpawnClosest->Name);
