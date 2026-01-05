@@ -319,7 +319,7 @@ void DeleteProfileGroup(std::string_view name);
 Results<std::pair<std::string, std::string>> ListAccounts();
 login::db::Results<ProfileRecord> ListAccountMatches(std::string_view search);
 void CreateAccount(const ProfileRecord& profile);
-std::optional<std::string> ReadAccount(ProfileRecord& profile);
+std::optional<std::string> ReadAccount(ProfileRecord& profile, bool skipEqPath = false);
 std::optional<std::string> ReadPassword(std::string_view account, std::string_view server_type, std::optional<std::string_view> password_override = {});
 void UpdateAccount(std::string_view account, std::string_view server_type, const ProfileRecord& record);
 void DeleteAccount(std::string_view account, std::string_view server_type);

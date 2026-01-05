@@ -966,7 +966,7 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 				{
 					profileInfo.characterName = profileInfo.Character.Character;
 					profileInfo.serverName = profileInfo.Character.Server;
-					login::db::ReadAccount(profileInfo);
+					login::db::ReadAccount(profileInfo, true);
 				}
 			});
 
