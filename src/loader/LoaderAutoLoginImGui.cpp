@@ -203,7 +203,7 @@ template <typename Info>
 static void DefaultCombo(Info& info, const Action& select_action)
 {
 	static Info selected;
-	ImGui::PushID(&info);
+	ImGui::PushID(&selected);
 
 	static constexpr std::string_view hidden_prefix = "##";
 	const auto width = ImGui::CalcItemWidth()
