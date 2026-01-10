@@ -31,14 +31,14 @@
     <MQAmalgamDefines>MQLIB_STATIC;EQLIB_STATIC;IMGUI_STATIC</MQAmalgamDefines>
 
     <!-- vcpkg paths -->
-    <VCPKG_IncludeStatic Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\include</VCPKG_IncludeStatic>
-    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows\include</VCPKG_IncludeDynamic>
-    <VCPKG_IncludeStatic Condition="'$(Platform)'=='x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\include</VCPKG_IncludeStatic>
-    <VCPKG_IncludeDynamic Condition="'$(Platform)'=='x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows\include</VCPKG_IncludeDynamic>
-    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Debug|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\debug\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Release|Win32'">$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x86-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x86-windows\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Debug|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\debug\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\debug\lib</VCPKG_LibraryDirs>
-    <VCPKG_LibraryDirs Condition="'$(MQConfig)|$(Platform)'=='Release|x64'">$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib;$(MQRoot)contrib\vcpkg\installed\x64-windows-static\lib\manual-link;$(MQRoot)contrib\vcpkg\installed\x64-windows\lib</VCPKG_LibraryDirs>
+    <VCPKG_InstalledRoot>$(MQRoot)contrib\vcpkg\installed\</VCPKG_InstalledRoot>
+    <VCPKG_Triplet Condition="'$(Platform)'=='Win32'">x86-windows</VCPKG_Triplet>
+    <VCPKG_Triplet Condition="'$(Platform)'=='x64'">x64-windows</VCPKG_Triplet>
+  
+    <VCPKG_IncludeStatic>$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\include</VCPKG_IncludeStatic>
+    <VCPKG_IncludeDynamic>$(VCPKG_InstalledRoot)$(VCPKG_Triplet)\include</VCPKG_IncludeDynamic>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)' == 'Debug'">$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\debug\lib;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\debug\lib\manual-link;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)\debug\lib</VCPKG_LibraryDirs>
+    <VCPKG_LibraryDirs Condition="'$(MQConfig)' == 'Release'">$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\lib;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\lib\manual-link;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)\lib</VCPKG_LibraryDirs>
 
     <!-- 32-bit linker settings -->
     <PlatformLibraryDirectories Condition="'$(Platform)'=='Win32'">$(MQRoot)contrib\detours\lib</PlatformLibraryDirectories>
