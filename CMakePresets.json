@@ -1,0 +1,69 @@
+{
+    "version": 9,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 30,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+            "toolset": "v143",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "MQ_CUSTOM_PLUGINS_FILE": "custom_plugins.cmake"
+            },
+            "environment": {
+                "VCPKG_ROOT": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\vcpkg"
+            }
+        },
+        {
+            "name": "live",
+            "displayName": "Live (x64)",
+            "description": "Configuration for live servers (x64 architecture)",
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "set"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+            }
+        },
+        {
+            "name": "emu",
+            "displayName": "Emu (Win32)",
+            "description": "Configuration for emu servers (Win32 architecture)",
+            "inherits": "base",
+            "architecture": {
+                "value": "Win32",
+                "strategy": "set"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x86-windows-static"
+            }
+        },
+        {
+            "name": "live-sln",
+            "displayName": "Rebuild Live/Test Solution",
+            "description": "Rebuild the live/test solution for use in Visual Studio",
+            "binaryDir": "${sourceDir}/build/solution",
+            "inherits": "live",
+            "cacheVariables": {
+                "MQ_REGENERATE_SOLUTION": "ON"
+            }
+        },
+        {
+            "name": "emu-sln",
+            "displayName": "Rebuild Emu Solution",
+            "description": "Rebuild the emu solution for use in Visual Studio",
+            "binaryDir": "${sourceDir}/build/solution",
+            "inherits": "emu",
+            "cacheVariables": {
+                "MQ_REGENERATE_SOLUTION": "ON"
+            }
+        }
+    ]
+}

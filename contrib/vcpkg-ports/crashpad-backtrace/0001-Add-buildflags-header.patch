@@ -1,0 +1,24 @@
+From a4bcf01345f1a409634b54ba2615a275dc6457f1 Mon Sep 17 00:00:00 2001
+From: Knightly <knightly.cavalier@gmail.com>
+Date: Sun, 29 Jan 2023 11:21:54 -1000
+Subject: [PATCH] Add buildflags header
+
+---
+ handler/handler_main.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/handler/handler_main.cc b/handler/handler_main.cc
+index d22106aa..bc112e1a 100644
+--- a/handler/handler_main.cc
++++ b/handler/handler_main.cc
+@@ -38,6 +38,7 @@
+ #include "base/strings/stringprintf.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "build/build_config.h"
++#include "build/chromeos_buildflags.h"
+ #include "client/crash_report_database.h"
+ #include "client/crashpad_client.h"
+ #include "client/crashpad_info.h"
+-- 
+2.39.1.windows.1
+

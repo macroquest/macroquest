@@ -1,0 +1,27 @@
+{
+  "name": "crashpad-backtrace",
+  "version-string": "2023-01-30",
+  "port-version": 1,
+  "description": [
+    "Crashpad is a crash-reporting system.  Backtrace interface provided.",
+    "Crashpad is a library for capturing, storing and transmitting postmortem crash reports from a client to an upstream collection server. Crashpad aims to make it possible for clients to capture process state at the time of crash with the best possible fidelity and coverage, with the minimum of fuss."
+  ],
+  "homepage":  "https://github.com/backtrace-labs/crashpad/blob/backtrace/README.md",
+  "license": "Apache-2.0",
+  "supports": "osx | (windows & !uwp)",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake-get-vars",
+      "host": true
+    },
+    {
+      "name": "vcpkg-gn",
+      "host": true
+    },
+    {
+      "name": "vcpkg-tool-gn",
+      "host": true
+    },
+    "zlib"
+  ]
+}

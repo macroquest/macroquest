@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\dannu\workspace\macroquest\src\plugins\pluginapi\pluginapi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\dannu\workspace\macroquest\src\plugins\pluginapi\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{39BD338F-7943-31AB-800B-4A60E0F6D68A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

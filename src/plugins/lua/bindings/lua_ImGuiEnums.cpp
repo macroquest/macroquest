@@ -679,11 +679,13 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"ResizeGrip"                   , ImGuiCol_ResizeGrip,
 		"ResizeGripHovered"            , ImGuiCol_ResizeGripHovered,
 		"ResizeGripActive"             , ImGuiCol_ResizeGripActive,
-		"Tab"                          , ImGuiCol_Tab,
 		"TabHovered"                   , ImGuiCol_TabHovered,
-		"TabActive"                    , ImGuiCol_TabActive,
-		"TabUnfocused"                 , ImGuiCol_TabUnfocused,
-		"TabUnfocusedActive"           , ImGuiCol_TabUnfocusedActive,
+		"Tab"                          , ImGuiCol_Tab,
+		"TabSelected"                  , ImGuiCol_TabSelected,
+		"TabSelectedOverline"          , ImGuiCol_TabSelectedOverline,
+		"TabDimmed"                    , ImGuiCol_TabDimmed,
+		"TabDimmedSelected"            , ImGuiCol_TabDimmedSelected,
+		"TabDimmedSelectedOverline"    , ImGuiCol_TabDimmedSelectedOverline,
 		"DockingPreview"               , ImGuiCol_DockingPreview,
 		"DockingEmptyBg"               , ImGuiCol_DockingEmptyBg,
 		"PlotLines"                    , ImGuiCol_PlotLines,
@@ -695,14 +697,21 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"TableBorderLight"             , ImGuiCol_TableBorderLight,
 		"TableRowBg"                   , ImGuiCol_TableRowBg,
 		"TableRowBgAlt"                , ImGuiCol_TableRowBgAlt,
+		"TextLink"                     , ImGuiCol_TextLink,
 		"TextSelectedBg"               , ImGuiCol_TextSelectedBg,
 		"DragDropTarget"               , ImGuiCol_DragDropTarget,
-		"NavHighlight"                 , ImGuiCol_NavHighlight,
+		"NavCursor"                    , ImGuiCol_NavCursor,
 		"NavWindowingHighlight"        , ImGuiCol_NavWindowingHighlight,
 		"NavWindowingDimBg"            , ImGuiCol_NavWindowingDimBg,
 		"ModalWindowDimBg"             , ImGuiCol_ModalWindowDimBg,
-		"ModalWindowDarkening"         , ImGuiCol_ModalWindowDimBg, // Previous deprecated/removed
-		"COUNT"                        , ImGuiCol_COUNT
+		"COUNT"                        , ImGuiCol_COUNT,
+
+		// [[DEPRECATED]]
+		"ModalWindowDarkening"         , ImGuiCol_ModalWindowDimBg,      // Previous deprecated/removed
+		"NavHighlight"                 , ImGuiCol_NavCursor,             // [renamed in 1.91.4]
+		"TabUnfocused"                 , ImGuiCol_TabDimmed,             // [renamed in 1.90.9]
+		"TabUnfocusedActive"           , ImGuiCol_TabDimmedSelected,     // [renamed in 1.90.9]
+		"TabActive"                    , ImGuiCol_TabSelected            // [renamed in 1.90.9]
 	);
 
 	// Style
