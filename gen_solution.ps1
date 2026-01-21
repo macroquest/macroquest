@@ -176,11 +176,6 @@ if ($Help) {
     Write-Host "  - The cleaned solution file removes ALL_BUILD and CMakePredefinedTargets"
     Write-Host "  - Requires: Git, CMake, Visual Studio 2022"
     Write-Host ""
-    Write-Host "For more information, see:" -ForegroundColor Yellow
-    Write-Host "  BUILD_WORKFLOWS.md - Detailed build workflow documentation"
-    Write-Host "  CMAKE_BUILD.md - Complete CMake build system documentation"
-    Write-Host "  CLAUDE.md - Claude Code assistant guidance"
-    Write-Host ""
     exit 0
 }
 
@@ -489,7 +484,8 @@ function New-Platform {
         "--fresh",
         "-B", $BuildDir,
         "-G", "Visual Studio 17 2022",
-        "-A", $Arch
+        "-A", $Arch,
+        "-DMQ_REGENERATE_SOLUTION=ON"
     )
 
     if ($SkipVcpkg) {
@@ -523,6 +519,9 @@ function New-Platform {
     if ($WritePluginsFile) {
         $cmakeArgs += "-DMQ_WRITE_PLUGINS_FILE=$WritePluginsFile"
     }
+
+    # Testing: this generates the compile commands json for running nonstandard IDEs
+    #$cmakeArgs += "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 
     & cmake @cmakeArgs
 

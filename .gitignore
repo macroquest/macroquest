@@ -73,3 +73,7 @@ src/*.[Rr]e[Ss]harper
 
 # ignore .custom files
 *.custom
+custom_plugins.cmake
+
+# ignore conversion analysis
+*conversion-analysis.txt

@@ -1,0 +1,10 @@
+{
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/macroquest/vcpkg",
+    "baseline": "d612d36b35530eb356113ca1e3245c90e7636c2a"
+  },
+  "overlay-ports": [
+@VCPKG_OVERLAY_PORTS_PATH@
+  ]
+}

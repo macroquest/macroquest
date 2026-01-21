@@ -1,101 +1,171 @@
-cmake_minimum_required(VERSION 3.2)
+﻿# Generated from zep.vcxproj
+# This file is designed to work with add_subdirectory()
 
-message(STATUS "CMakeLists: Zep")
+# ---------------------------------------------------------------------
+# Props file includes
+# ---------------------------------------------------------------------
+include("../../src/Common.cmake")
 
-# Global Options
-option(BUILD_QT "Make Qt Library" OFF)
-option(BUILD_IMGUI "Make Imgui Library" ON)
-option(BUILD_DEMOS "Make the demo app" ON)
-option(BUILD_TESTS "Make the tests" ON)
-option(BUILD_EXTENSIONS "Make the extension library (required for demo)" OFF)
-option(ZEP_FEATURE_CPP_FILE_SYSTEM "Default File system enabled" ON)
+# ---------------------------------------------------------------------
+# vcpkg dependencies
+# ---------------------------------------------------------------------
+find_package(fmt REQUIRED)
 
-# Global Settings
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-set(gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll" FORCE)
-
-set(CMAKE_DEBUG_POSTFIX "-debug")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "-reldbg")
-
-if (BUILD_DEMOS OR BUILD_EXTENSIONS)
-if (WIN32)
-set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
-endif()
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
-endif()
-
-project(Zep
-    LANGUAGES CXX C
-    VERSION 0.5.0
+# ---------------------------------------------------------------------
+# Header files
+# ---------------------------------------------------------------------
+set(zep_HEADERS
+    "../../include/mq/zep/ImGuiZepConsole.h"
+    "../../include/mq/zep/ImGuiZepEditor.h"
+    "include/zep.h"
+    "include/zep/buffer.h"
+    "include/zep/commands.h"
+    "include/zep/display.h"
+    "include/zep/editor.h"
+    "include/zep/filesystem.h"
+    "include/zep/gap_buffer.h"
+    "include/zep/glyph_iterator.h"
+    "include/zep/indexer.h"
+    "include/zep/keymap.h"
+    "include/zep/line_widgets.h"
+    "include/zep/mcommon/animation/timer.h"
+    "include/zep/mcommon/callback.h"
+    "include/zep/mcommon/file/cpptoml.h"
+    "include/zep/mcommon/file/fnmatch.h"
+    "include/zep/mcommon/file/path.h"
+    "include/zep/mcommon/gsl-lite.hpp"
+    "include/zep/mcommon/logger.h"
+    "include/zep/mcommon/math/color.h"
+    "include/zep/mcommon/math/math.h"
+    "include/zep/mcommon/platform.h"
+    "include/zep/mcommon/registrar.h"
+    "include/zep/mcommon/signals.h"
+    "include/zep/mcommon/string/stringutils.h"
+    "include/zep/mcommon/threadpool.h"
+    "include/zep/mcommon/threadutils.h"
+    "include/zep/mcommon/utf8.h"
+    "include/zep/mcommon/utf8/checked.h"
+    "include/zep/mcommon/utf8/core.h"
+    "include/zep/mcommon/utf8/cpp11.h"
+    "include/zep/mcommon/utf8/unchecked.h"
+    "include/zep/mode.h"
+    "include/zep/mode_search.h"
+    "include/zep/mode_standard.h"
+    "include/zep/mode_tree.h"
+    "include/zep/mode_vim.h"
+    "include/zep/range_markers.h"
+    "include/zep/regress.h"
+    "include/zep/scroller.h"
+    "include/zep/splits.h"
+    "include/zep/syntax.h"
+    "include/zep/syntax_markdown.h"
+    "include/zep/syntax_providers.h"
+    "include/zep/syntax_rainbow_brackets.h"
+    "include/zep/syntax_tree.h"
+    "include/zep/tab_window.h"
+    "include/zep/theme.h"
+    "include/zep/window.h"
+    "include/zep/zep_config.h"
+    "pch.h"
 )
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+source_groups("Header Files" ${zep_HEADERS})
 
-# Can I remove these now?
-if (ZEP_FEATURE_CPP_FILE_SYSTEM)
-add_definitions(-DZEP_FEATURE_CPP_FILE_SYSTEM)
-endif()
-
-if (BUILD_DEMOS)
-SET(BUILD_EXTENSIONS ON)
-endif()
-
-# config_app.h checks
-# This makes a config_shared.h file which can be included for system settings
-#  Must be after setting up the platforms
-set (ZEP_ROOT ${CMAKE_CURRENT_LIST_DIR})
-set (M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
-
-configure_file(${ZEP_ROOT}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
-
-include(GNUInstallDirs)
-
-# Set all compiler flags 
-include(cmake/all.cmake)
-
-# Functions for file copying
-include(m3rdparty/cmake/copy_files.cmake)
-
-enable_testing()
-
-# The main library
-add_subdirectory(src)
-add_subdirectory(extensions)
-add_subdirectory(tests)
-add_subdirectory(demos)
-
-# Make the CMake bits that ensure find_package does the right thing
-install(EXPORT zep-targets
-    FILE zep-targets.cmake
-    NAMESPACE Zep::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
+# ---------------------------------------------------------------------
+# Other files
+# ---------------------------------------------------------------------
+set(zep_OTHERFILES
+    "zep.natvis"
 )
 
-include(CMakePackageConfigHelpers)
+source_group("Resource Files" FILES ${zep_OTHERFILES})
 
-configure_package_config_file(
-    ${ZEP_ROOT}/cmake/zep-config.cmake.in
-    ${CMAKE_BINARY_DIR}/cmake/zep-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
+# ---------------------------------------------------------------------
+# Source files
+# ---------------------------------------------------------------------
+set(zep_SOURCES
+    "../../src/zep/ImGuiZepConsole.cpp"
+    "../../src/zep/ImGuiZepEditor.cpp"
+    "src/buffer.cpp"
+    "src/commands.cpp"
+    "src/display.cpp"
+    "src/editor.cpp"
+    "src/filesystem.cpp"
+    "src/glyph_iterator.cpp"
+    "src/indexer.cpp"
+    "src/keymap.cpp"
+    "src/line_widgets.cpp"
+    "src/mcommon/animation/timer.cpp"
+    "src/mcommon/file/path.cpp"
+    "src/mcommon/string/stringutils.cpp"
+    "src/mode.cpp"
+    "src/mode_search.cpp"
+    "src/mode_standard.cpp"
+    "src/mode_tree.cpp"
+    "src/mode_vim.cpp"
+    "src/range_markers.cpp"
+    "src/regress.cpp"
+    "src/scroller.cpp"
+    "src/splits.cpp"
+    "src/syntax.cpp"
+    "src/syntax_markdown.cpp"
+    "src/syntax_providers.cpp"
+    "src/syntax_rainbow_brackets.cpp"
+    "src/syntax_tree.cpp"
+    "src/tab_window.cpp"
+    "src/theme.cpp"
+    "src/window.cpp"
 )
 
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/cmake/zep-config-version.cmake
-    VERSION 1.0
-    COMPATIBILITY AnyNewerVersion
+source_groups("Source Files" ${zep_SOURCES})
+
+# ---------------------------------------------------------------------
+# Target definition
+# ---------------------------------------------------------------------
+add_library(zep STATIC
+    ${zep_HEADERS}
+    ${zep_OTHERFILES}
+    ${zep_SOURCES}
 )
 
-install(
-    FILES
-        ${CMAKE_BINARY_DIR}/cmake/zep-config.cmake
-        ${CMAKE_BINARY_DIR}/cmake/zep-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
+set_target_properties(zep PROPERTIES FOLDER "core/libraries")
+
+# ---------------------------------------------------------------------
+# Apply props file configurations
+# ---------------------------------------------------------------------
+target_Common_props(zep)
+
+# ---------------------------------------------------------------------
+# Link vcpkg dependencies
+# ---------------------------------------------------------------------
+target_link_libraries(zep PRIVATE
+    fmt::fmt
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack_installer.cmake)
+# ---------------------------------------------------------------------
+# Preprocessor definitions
+# ---------------------------------------------------------------------
+target_compile_definitions(zep PRIVATE
+    "_CRT_SECURE_NO_WARNINGS"
+    "ZEP_FEATURE_CPP_FILE_SYSTEM"
+    "NOGDI"
+)
 
+# ---------------------------------------------------------------------
+# Character set defines
+# ---------------------------------------------------------------------
+target_compile_definitions(zep PRIVATE
+    "_UNICODE"
+    "UNICODE"
+)
+
+# ---------------------------------------------------------------------
+# Precompiled header
+# ---------------------------------------------------------------------
+target_precompile_headers(zep PRIVATE "pch.h")
+
+# ============================================================================
+# MANUAL CONVERSION NOTES
+# ============================================================================
+#
+# - Review and adjust as needed
