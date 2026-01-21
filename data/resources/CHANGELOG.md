@@ -1,3 +1,8 @@
+## Update 1/21/2026
+
+Update for latest test patch
+
+
 ## Update 1/4/2026
 
 ### Fixes
@@ -30,6 +35,11 @@
  - Add `ImColor` function to convert various parameters into an ImVec4 representing a color.
  - Extended examples/imgui_demo to include some of the drag and drop examples with some
    modifications to exercise more of the drag and drop code.
+
+
+## Test Patch Update 12/21/2025
+
+Update for latest test patch
 
 
 ## Update 12/3/2025
