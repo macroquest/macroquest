@@ -4350,15 +4350,15 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 
 	ColumnArrayList("Reference List", "FindableReference", static_cast<int>(pWnd->referenceList.size()),
 		pWnd->referenceList.begin(), pWnd->referenceList.end(),
-		[pWnd](const std::pair<CFindLocationWnd::FindableReference, int>& data)
+		[pWnd](const auto& data)
 	{
-		ColumnText("Reference Key", "%d", data.second);
-		ColumnText("Type", "%s", FindLocationTypeToString(data.first.type));
+		ColumnText("Reference Key", "%d", data.key());
+		ColumnText("Type", "%s", FindLocationTypeToString(data.value().type));
 
-		if (data.first.type == FindLocation_Player)
+		if (data.value().type == FindLocation_Player)
 		{
-			ColumnText("Spawn ID", "%d", data.first.index);
-			if (PlayerClient* pPlayer = GetSpawnByID(data.first.index))
+			ColumnText("Spawn ID", "%d", data.value().index);
+			if (PlayerClient* pPlayer = GetSpawnByID(data.value().index))
 			{
 				if (pPlayer->Lastname[0] && pPlayer->Type == SPAWN_NPC)
 					ColumnText("Name", "%s (%s)", pPlayer->DisplayedName, pPlayer->Lastname);
@@ -4369,12 +4369,12 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 			return;
 		}
 
-		ColumnText("Index", "%d", data.first.index);
+		ColumnText("Index", "%d", data.value() .index);
 
-		switch (data.first.type)
+		switch (data.value().type)
 		{
 		case FindLocation_Switch: {
-			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.value().index];
 			ColumnEQZoneIndex("Zone Connection", connData.zoneId);
 			ColumnCVector3("Location", connData.location);
 
@@ -4387,7 +4387,7 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 		}
 
 		case FindLocation_Location: {
-			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.value().index];
 			ColumnEQZoneIndex("Zone Connection", connData.zoneId);
 			ColumnCVector3("Location", connData.location);
 			break;
@@ -4396,13 +4396,13 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 		default: break;
 		}
 	},
-		[pWnd](char* szLabel, size_t len, const std::pair<CFindLocationWnd::FindableReference, int>& data)
+		[pWnd](char* szLabel, size_t len, const auto& data)
 	{
-		sprintf_s(szLabel, len, "%d - %s: ", data.second, FindLocationTypeToString(data.first.type));
+		sprintf_s(szLabel, len, "%d - %s: ", data.key(), FindLocationTypeToString(data.value().type));
 
-		if (data.first.type == FindLocation_Player)
+		if (data.value().type == FindLocation_Player)
 		{
-			if (PlayerClient* pPlayer = GetSpawnByID(data.first.index))
+			if (PlayerClient* pPlayer = GetSpawnByID(data.value().index))
 			{
 				char szTemp[64] = { 0 };
 				if (pPlayer->Lastname[0] && pPlayer->Type == SPAWN_NPC)
@@ -4412,9 +4412,9 @@ static void WindowProperties_FindLocationWnd(CSidlScreenWnd* pSidlWindow, ImGuiW
 				strcat_s(szLabel, len, szTemp);
 			}
 		}
-		else if (data.first.type == FindLocation_Switch || data.first.type == FindLocation_Location)
+		else if (data.value().type == FindLocation_Switch || data.value().type == FindLocation_Location)
 		{
-			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.first.index];
+			const CFindLocationWnd::FindZoneConnectionData& connData = pWnd->unfilteredZoneConnectionList[data.value().index];
 			strcat_s(szLabel, len, GetFullZone(connData.zoneId));
 		}
 		else

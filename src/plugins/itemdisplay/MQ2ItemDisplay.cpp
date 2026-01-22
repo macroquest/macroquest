@@ -934,6 +934,7 @@ static void CreateSpellTextDetails(fmt::memory_buffer& out, EQ_Spell* pSpell)
 			case ResistType_Fire:       fmt::format_to(buffer, "Resist: Fire"); break;
 			case ResistType_Magic:      fmt::format_to(buffer, "Resist: Magic"); break;
 			case ResistType_None:       fmt::format_to(buffer, "Resist: Unresistable"); break;
+			case ResistType_Physical:   fmt::format_to(buffer, "Resist: Physical"); break;
 			}
 
 			if (pSpell->ResistAdj != 0)

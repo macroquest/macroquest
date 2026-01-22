@@ -1,0 +1,7 @@
+{
+  "name": "macroquest",
+  "version-string": "3.0.0",
+  "dependencies": [
+@VCPKG_DEPENDENCIES@
+  ]
+}

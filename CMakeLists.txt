@@ -1,27 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
-# ============================================================================
-# vcpkg Integration (MUST be set before project() call)
-# ============================================================================
-# Enable vcpkg integration if available via environment variable
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-endif()
-
-# Use the local contrib/vcpkg installation
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/contrib/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-endif()
-
-# TODO: move semver here?
-project(MacroQuest
-    VERSION 3.0.0
-    LANGUAGES CXX
-)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
 # ============================================================================
 # Dual-Purpose Build System
 # ============================================================================
@@ -32,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 #    - Solution: build/solution/MacroQuest.sln
 #    - Auto-detects architecture from BuildType.h
 #    - Regenerate with: .\gen_solution.ps1
-#    - Useful when upstream changes occur or CMake files are modified
+#    - Useful when upstream changes occur to the solution
 #
 # 2. COMPLETE BUILD CHAIN
 #    - Build directly via CMake without opening Visual Studio
@@ -40,411 +16,244 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 #    - Ideal for CI/CD pipelines and automated builds
 #
 # CLEANING:
-#    To clean CMake files only:  Remove-Item -Recurse build/solution
-#    This preserves compiled binaries in build/bin/
+#    To clean CMake files only:  Remove-Item -Recurse build
+#    where build is the build directory.
 #
 # MANUAL GENERATION (if needed):
 #    cmake -B build/solution -G "Visual Studio 17 2022" -A x64
 # ============================================================================
 
-# Match existing project configurations: Debug, Release, Debug-Static, Release-Static
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Debug-Static;Release-Static" CACHE STRING "Available build configurations" FORCE)
+# TODO: Fix the loader cmake
+
+cmake_minimum_required(VERSION 3.30)
+
+# ============================================================================
+# Requirements checks
+# ============================================================================
+# Only Visual Studio generators make sense for MQ due to architecture restrictions
+if(NOT CMAKE_GENERATOR MATCHES "Visual Studio")
+    message(FATAL_ERROR "Only Visual Studio generators are viable for MacroQuest compilation")
+endif()
 
 # Validate architecture is specified for Visual Studio generator
-if(CMAKE_GENERATOR MATCHES "Visual Studio")
-    if(NOT CMAKE_GENERATOR_PLATFORM)
-        message(FATAL_ERROR
+# vcpkg triplet setup MUST be before project() call, do it here because it's convenient
+# Determine architecture from CMAKE_GENERATOR_PLATFORM (set by -A flag)
+if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+    set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
+    set(VCPKG_ARCH "x64" CACHE STRING "")
+elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+    set(VCPKG_TARGET_TRIPLET "x86-windows-static" CACHE STRING "")
+    set(VCPKG_ARCH "x86" CACHE STRING "")
+elseif(NOT CMAKE_GENERATOR_PLATFORM)
+    message(FATAL_ERROR
             "Architecture must be specified with -A flag:\n"
             "  Win32: cmake -B build_win32 -G \"Visual Studio 17 2022\" -A Win32\n"
             "  x64:   cmake -B build_x64 -G \"Visual Studio 17 2022\" -A x64\n"
-        )
-    endif()
-
-    # Validate only Win32 or x64
-    if(NOT CMAKE_GENERATOR_PLATFORM MATCHES "^(Win32|x64)$")
-        message(FATAL_ERROR
+    )
+else()
+    message(FATAL_ERROR
             "Only Win32 and x64 platforms are supported. Got: ${CMAKE_GENERATOR_PLATFORM}"
-        )
+    )
+endif()
+
+message(STATUS "Configuring for platform: ${CMAKE_GENERATOR_PLATFORM}")
+
+# ============================================================================
+# Options
+# ============================================================================
+option(MQ_REGENERATE_SOLUTION "Just generate a macroquest solution file from vcxproj files" OFF)
+option(MQ_BUILD_PLUGINS "Build built-in plugins" ON)
+option(MQ_BUILD_CUSTOM_PLUGINS "Build custom plugins from plugins directory" OFF)
+option(MQ_BUILD_LAUNCHER "Build MacroQuest loader" OFF)
+option(MQ_STATIC_BUILD "Change build type for core libraries to static" OFF)
+option(MQ_BUILD_TESTS "Build tests" OFF)
+option(MQ_ADD_MQ2MAIN_DEPENDENCY "Add MQ2Main as dependency to custom plugins if not present" OFF)
+option(MQ_FORCE_VCXPROJ_CONVERSION "Force reconversion of vcxproj files even if CMakeLists.txt exists" OFF)
+option(MQ_FORCE_OVERLAY_REBUILD "Force rebuild of vcpkg.json files in projects that have legacy vcpkg manifests" OFF)
+
+# Custom plugin configuration options
+set(MQ_CUSTOM_PLUGINS_FILE "" CACHE FILEPATH "Path to a CMake file that adds custom plugins (overrides auto-detection)")
+set(MQ_WRITE_PLUGINS_FILE "" CACHE FILEPATH "Write auto-detected plugins as a CMake file (generated from scan)")
+
+# Set the output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# Suppress developer warnings (occurs in some vcpkg configs)
+if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
+endif()
+
+# Solution-wide shared config
+include(cmake/common.cmake)
+include(cmake/plugins.cmake)
+
+# ============================================================================
+# Define all subdirectories to include in the build
+# This list is used for both vcpkg overlay generation and add_subdirectory calls
+# ============================================================================
+set(MQ_CORE_SUBDIRS
+    "src/eqlib"
+    "src/imgui"
+    "src/routing"
+    "src/login"
+    "src/main"
+    "contrib/zep"
+)
+
+set(MQ_LAUNCHER_SUBDIRS
+    "src/loader"
+)
+
+set(MQ_PLUGIN_SUBDIRS
+    "src/plugins/pluginapi"
+    "src/plugins/autobank"
+    "src/plugins/autologin"
+    "src/plugins/bzsrch"
+    "src/plugins/chat"
+    "src/plugins/chatwnd"
+    "src/plugins/custombinds"
+    "src/plugins/eqbugfix"
+    "src/plugins/hud"
+    "src/plugins/itemdisplay"
+    "src/plugins/labels"
+    "src/plugins/lua"
+    "src/plugins/map"
+    "src/plugins/targetinfo"
+    "src/plugins/xtarinfo"
+)
+
+set(MQ_TEST_SUBDIRS
+    "src/tests/Actors"
+    "src/tests/NamedPipeClient"
+)
+
+set(MQ_ALL_SUBDIRS ${MQ_CORE_SUBDIRS})
+
+if (MQ_BUILD_LAUNCHER)
+    list(APPEND MQ_ALL_SUBDIRS ${MQ_LAUNCHER_SUBDIRS})
+endif()
+
+if (MQ_BUILD_PLUGINS)
+    list(APPEND MQ_ALL_SUBDIRS ${MQ_PLUGIN_SUBDIRS})
+endif()
+
+if (MQ_BUILD_TESTS)
+    list(APPEND MQ_ALL_SUBDIRS ${MQ_TEST_SUBDIRS})
+endif()
+
+if (MQ_BUILD_CUSTOM_PLUGINS)
+    detect_custom_plugins(MQ_CUSTOM_PLUGIN_SUBDIRS "${CMAKE_SOURCE_DIR}/${MQ_CUSTOM_PLUGINS_FILE}")
+
+    # Add custom plugin subdirs to the main list, after converting if needed
+    if(MQ_CUSTOM_PLUGIN_SUBDIRS)
+        build_custom_plugin_directories(MQ_CUSTOM_PLUGIN_SUBDIRS "${MQ_CUSTOM_PLUGIN_SUBDIRS}" ${MQ_FORCE_VCXPROJ_CONVERSION})
+        list(APPEND MQ_ALL_SUBDIRS ${MQ_CUSTOM_PLUGIN_SUBDIRS})
+
+        # Write the list if configured to do so
+        if(MQ_WRITE_PLUGINS_FILE)
+            write_custom_plugins_file("${CMAKE_SOURCE_DIR}/${MQ_WRITE_PLUGINS_FILE}" "add_subdirectory" "${MQ_CUSTOM_PLUGIN_SUBDIRS}")
+        endif()
+    endif()
+endif()
+
+# ============================================================================
+# vcpkg Integration (MUST be set before project() call)
+# ============================================================================
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+endif()
+
+# Extract port names from subdirectories
+# For plugins, extract the direct descendant of plugins/ (e.g., "src/plugins/lua" -> "lua")
+# For others, extract the leaf directory (e.g., "src/eqlib" -> "eqlib")
+set(MQ_VCPKG_PORTS "")
+foreach(SUBDIR ${MQ_ALL_SUBDIRS})
+    if(SUBDIR MATCHES "^plugins/([^/]+)")
+        # For plugins, use the direct descendant of plugins/
+        list(APPEND MQ_VCPKG_PORTS "${CMAKE_MATCH_1}")
+    else()
+        # For others, use the leaf directory
+        get_filename_component(PORT_NAME "${SUBDIR}" NAME)
+        list(APPEND MQ_VCPKG_PORTS "${PORT_NAME}")
+    endif()
+endforeach()
+
+# Remove any duplicates
+list(REMOVE_DUPLICATES MQ_VCPKG_PORTS)
+
+if(NOT MQ_REGENERATE_SOLUTION)
+    # if we are just regenerating the solution, don't build the manifests
+    message(STATUS "Generating VCPKG manifest (FORCE OVERLAY REBUILD: ${MQ_FORCE_OVERLAY_REBUILD})")
+    include(cmake/vcpkg_manifest.cmake)
+
+    if(MQ_FORCE_OVERLAY_REBUILD)
+        set(FORCE_REBUILD FORCE_REBUILD)
+    else()
+        set(FORCE_REBUILD "")
     endif()
 
-    message(STATUS "Configuring for platform: ${CMAKE_GENERATOR_PLATFORM}")
+    create_vcpkg_overlays(
+            PORTS ${MQ_VCPKG_PORTS}
+            OUTPUT_DIR ${CMAKE_BINARY_DIR}
+            ${FORCE_REBUILD}
+    )
 endif()
 
-# Build type (for single-configuration generators)
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "Debug-Static" "Release-Static")
-endif()
+# ============================================================================
+# Global settings
+# ============================================================================
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Available build configurations" FORCE)
 
 # Toolset selection
 if(NOT CMAKE_GENERATOR_TOOLSET)
     set(CMAKE_GENERATOR_TOOLSET "v143" CACHE STRING "Choose MSVC toolset." FORCE)
 endif()
 
-# Options
-option(MQ_BUILD_VCPKG "Build vcpkg deps" ON)
-option(MQ_BUILD_PLUGINS "Build built-in plugins" ON)
-option(MQ_BUILD_CUSTOM_PLUGINS "Build custom plugins from plugins directory" ON)
-option(MQ_BUILD_LAUNCHER "Build MacroQuest loader" ON)
-option(MQ_BUILD_TESTS "Build tests" OFF)
-option(MQ_ADD_MQ2MAIN_DEPENDENCY "Add MQ2Main as dependency to custom plugins if not present" OFF)
+# ============================================================================
+# Begin project definition
+# ============================================================================
+# TODO: move semver here? They are technically already handled in the resource files, maybe they can be tied together
+project(MacroQuest
+    VERSION 3.0.0
+    LANGUAGES CXX
+)
 
-# Global properties
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# Universal packages and compile flags
+find_package(detours REQUIRED)
+find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
+string(REPLACE "/D_WINDOWS" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+string(REPLACE "/DNDEBUG" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+string(REPLACE "/DWIN32" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
-# vcpkg triplet setup based on platform
-if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
-    set(VCPKG_ARCH "x64" CACHE STRING "")
-elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-    set(VCPKG_ARCH "x86" CACHE STRING "")
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    # Fallback for non-VS generators
-    set(VCPKG_ARCH "x64" CACHE STRING "")
+if(MQ_REGENERATE_SOLUTION)
+    # just generate the solution, do nothing else
+    message(STATUS "Regenerating macroquest solution file")
+    include(cmake/vcxproj_sln.cmake)
 else()
-    # Fallback for non-VS generators
-    set(VCPKG_ARCH "x86" CACHE STRING "")
-endif()
-
-set(VCPKG_TARGET_TRIPLET "${VCPKG_ARCH}-windows-static" CACHE STRING "")
-
-# Initialize global properties to collect vcpkg manifest files
-set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "")
-set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "")
-set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "")
-
-function(list_all_subdirs BASE_DIR FOUND_DIRS)
-    file(GLOB_RECURSE FOUND_FILES LIST_DIRECTORIES true "${BASE_DIR}/*")
-
-    set(DIR_LIST ${BASE_DIR})
-
-    foreach(FILE ${FOUND_FILES})
-        if(IS_DIRECTORY ${FILE})
-            list(APPEND DIR_LIST ${FILE})
-        endif()
+    list(REMOVE_DUPLICATES MQ_ALL_SUBDIRS)
+    foreach(SUBDIR ${MQ_ALL_SUBDIRS})
+        add_subdirectory(${SUBDIR})
     endforeach()
-
-    set(${FOUND_DIRS} ${DIR_LIST} PARENT_SCOPE)
-endfunction()
-
-function(get_vcxproj_includes VCXPROJ_LOCATION VCXPROJ_INCLUDES)
-    # Extract include directories from vcxproj file
-    file(READ "${VCXPROJ_LOCATION}" VCXPROJ_CONTENT)
-    get_filename_component(VCXPROJ_DIR "${VCXPROJ_LOCATION}" DIRECTORY)
-
-    set(EXTRACTED_INCLUDES "")
-
-    # Find all Include directives
-    string(REGEX MATCHALL "<(ClCompile|ClInclude)[^>]*Include\\s*=\\s*\"([^\"]*)\"[^>]*>" INCLUDE_MATCHES "${VCXPROJ_CONTENT}")
-    foreach(MATCH ${INCLUDE_MATCHES})
-        # This assumes always a relative path without variable expansion, which is true in MQ (because that's how VS adds includes in the UI)
-        string(REGEX REPLACE "^<(ClCompile|ClInclude)[^>]*Include\\s*=\\s*\"([^\"]*)\"[^>]*>$" "\\2" INCLUDE "${MATCH}")
-
-        get_filename_component(INCLUDE "${INCLUDE}" ABSOLUTE BASE_DIR "${VCXPROJ_DIR}")
-
-        # Normalize path separators
-        string(REPLACE "\\" "/" INCLUDE "${INCLUDE}")
-
-        # Add to list if not already present
-        list(FIND EXTRACTED_INCLUDES "${INCLUDE}" INCLUDE_INDEX)
-        if(INCLUDE_INDEX EQUAL -1)
-            list(APPEND EXTRACTED_INCLUDES "${INCLUDE}")
-        endif()
-    endforeach ()
-
-    if(EXTRACTED_INCLUDES)
-        set(${VCXPROJ_INCLUDES} ${EXTRACTED_INCLUDES} PARENT_SCOPE)
-    endif()
-endfunction()
-
-function(add_vcxproj PROJECT_LOCATION PROJECT_NAME PROJECT_PREFIX)
-    # Optional 4th argument for dependencies
-    set(DEPENDENCIES ${ARGN})
-
-    find_file(VCXPROJ_LOCATION NAMES ${PROJECT_NAME}.vcxproj PATHS "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}" NO_DEFAULT_PATH REQUIRED)
-    if(VCXPROJ_LOCATION)
-        if(DEPENDENCIES)
-            include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION} ${DEPENDENCIES})
-        else()
-            include_external_msproject(${PROJECT_NAME} ${VCXPROJ_LOCATION})
-        endif()
-
-        # add dummy targets so IDEs will index the files
-        get_vcxproj_includes(${VCXPROJ_LOCATION} VCXPROJ_SOURCES)
-        message(STATUS "Adding ${PROJECT_NAME} from ${VCXPROJ_LOCATION}")
-
-        add_library("VCXPROJ_DUMMY_${PROJECT_NAME}" EXCLUDE_FROM_ALL ${VCXPROJ_SOURCES})
-        set_target_properties("VCXPROJ_DUMMY_${PROJECT_NAME}" PROPERTIES LINKER_LANGUAGE CXX)
-
-        set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${PROJECT_PREFIX})
-        unset(VCXPROJ_LOCATION CACHE)  # Clear cache to allow next call to search fresh
-
-
-        # Collect vcpkg manifest files for later merging
-        if(MQ_BUILD_VCPKG)
-            set(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}")
-
-            # Check for vcpkg_mq.txt
-            if(EXISTS "${PROJECT_DIR}/vcpkg_mq.txt")
-                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
-                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq.txt")
-                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_FILES "${EXISTING_FILES}")
-            endif()
-
-            # Check for vcpkg_mq_x86.txt
-            if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x86.txt")
-                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
-                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x86.txt")
-                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES "${EXISTING_FILES}")
-            endif()
-
-            # Check for vcpkg_mq_x64.txt
-            if(EXISTS "${PROJECT_DIR}/vcpkg_mq_x64.txt")
-                get_property(EXISTING_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
-                list(APPEND EXISTING_FILES "${PROJECT_DIR}/vcpkg_mq_x64.txt")
-                set_property(GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES "${EXISTING_FILES}")
-            endif()
-        endif()
-    else()
-        MESSAGE(WARNING "Attempted to include non-existent vcxproj ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_LOCATION}/${PROJECT_NAME}.vcxproj")
-    endif()
-endfunction()
-
-function(finalize_vcpkg_installation)
-    if(MQ_BUILD_VCPKG)
-        # set up powershell availability to use the vcpkg_mq script
-        find_program(POWERSHELL_PATH NAMES powershell powershell.exe)
-        set(VCPKG_MQ_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_scripts/vcpkg_mq.ps1")
-
-        if(POWERSHELL_PATH)
-            # Create build directory for merged manifest files
-            set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_manifests")
-            file(MAKE_DIRECTORY "${VCPKG_MANIFEST_DIR}")
-
-            # Helper function to merge manifest files
-            function(merge_manifest_files FILE_LIST OUTPUT_FILE)
-                if(FILE_LIST)
-                    # Use indexed variables: PKG_KEY_N and PKG_FEATURES_N
-                    set(PKG_COUNT 0)
-
-                    foreach(MANIFEST_FILE ${FILE_LIST})
-                        if(EXISTS "${MANIFEST_FILE}")
-                            file(STRINGS "${MANIFEST_FILE}" FILE_LINES)
-                            foreach(LINE ${FILE_LINES})
-                                # Skip empty lines and comments
-                                string(STRIP "${LINE}" STRIPPED_LINE)
-                                if(STRIPPED_LINE AND NOT STRIPPED_LINE MATCHES "^#")
-                                    # Parse package format: package[feature1,feature2]:triplet
-                                    # Extract package name (before [ or :)
-                                    string(REGEX REPLACE "([^:\\[]+).*" "\\1" PACKAGE_NAME "${STRIPPED_LINE}")
-
-                                    # Extract features (between [ and ])
-                                    set(FEATURES "")
-                                    if(STRIPPED_LINE MATCHES "\\[(.+)\\]")
-                                        string(REGEX REPLACE ".*\\[(.+)\\].*" "\\1" FEATURES "${STRIPPED_LINE}")
-                                    endif()
-
-                                    # Extract triplet (after :)
-                                    set(TRIPLET "")
-                                    if(STRIPPED_LINE MATCHES ":([^:]+)$")
-                                        string(REGEX REPLACE ".*:([^:]+)$" "\\1" TRIPLET "${STRIPPED_LINE}")
-                                    endif()
-
-                                    # Create key
-                                    if(TRIPLET)
-                                        set(KEY "${PACKAGE_NAME}:${TRIPLET}")
-                                    else()
-                                        set(KEY "${PACKAGE_NAME}")
-                                    endif()
-
-                                    # Find existing entry
-                                    set(FOUND_INDEX -1)
-                                    if(PKG_COUNT GREATER 0)
-                                        math(EXPR LAST_PKG "${PKG_COUNT} - 1")
-                                        foreach(I RANGE ${LAST_PKG})
-                                            if(PKG_KEY_${I} STREQUAL KEY)
-                                                set(FOUND_INDEX ${I})
-                                                break()
-                                            endif()
-                                        endforeach()
-                                    endif()
-
-                                    if(FOUND_INDEX EQUAL -1)
-                                        # New entry
-                                        set(PKG_KEY_${PKG_COUNT} "${KEY}")
-                                        set(PKG_FEATURES_${PKG_COUNT} "${FEATURES}")
-                                        math(EXPR PKG_COUNT "${PKG_COUNT} + 1")
-                                    else()
-                                        # Merge features
-                                        if(FEATURES)
-                                            set(EXISTING "${PKG_FEATURES_${FOUND_INDEX}}")
-                                            # Split into lists for dedup
-                                            if(EXISTING)
-                                                string(REPLACE "," ";" EXISTING_LIST "${EXISTING}")
-                                            else()
-                                                set(EXISTING_LIST "")
-                                            endif()
-                                            string(REPLACE "," ";" NEW_LIST "${FEATURES}")
-                                            # Add new features
-                                            foreach(FEATURE ${NEW_LIST})
-                                                string(STRIP "${FEATURE}" FCLEAN)
-                                                list(FIND EXISTING_LIST "${FCLEAN}" FIDX)
-                                                if(FIDX EQUAL -1)
-                                                    list(APPEND EXISTING_LIST "${FCLEAN}")
-                                                endif()
-                                            endforeach()
-                                            # Convert back
-                                            list(JOIN EXISTING_LIST "," MERGED)
-                                            set(PKG_FEATURES_${FOUND_INDEX} "${MERGED}")
-                                        endif()
-                                    endif()
-                                endif()
-                            endforeach()
-                        endif()
-                    endforeach()
-
-                    # Build output
-                    set(OUTPUT_LINES "")
-                    if(PKG_COUNT GREATER 0)
-                        math(EXPR LAST_PKG "${PKG_COUNT} - 1")
-                        foreach(I RANGE ${LAST_PKG})
-                            set(KEY "${PKG_KEY_${I}}")
-                            set(FEATURES "${PKG_FEATURES_${I}}")
-
-                            # Split key
-                            if(KEY MATCHES "^([^:]+):(.+)$")
-                                string(REGEX REPLACE "^([^:]+):(.+)$" "\\1" PKG "${KEY}")
-                                string(REGEX REPLACE "^([^:]+):(.+)$" "\\2" TRP "${KEY}")
-                                if(FEATURES)
-                                    set(OUTPUT_LINE "${PKG}[${FEATURES}]:${TRP}")
-                                else()
-                                    set(OUTPUT_LINE "${PKG}:${TRP}")
-                                endif()
-                            else()
-                                if(FEATURES)
-                                    set(OUTPUT_LINE "${KEY}[${FEATURES}]")
-                                else()
-                                    set(OUTPUT_LINE "${KEY}")
-                                endif()
-                            endif()
-
-                            list(APPEND OUTPUT_LINES "${OUTPUT_LINE}")
-                        endforeach()
-                    endif()
-
-                    # Write output
-                    if(OUTPUT_LINES)
-                        list(JOIN OUTPUT_LINES "\n" MERGED_TEXT)
-                        file(WRITE "${OUTPUT_FILE}" "${MERGED_TEXT}\n")
-                        message(STATUS "Created merged manifest: ${OUTPUT_FILE}")
-                    endif()
-                endif()
-            endfunction()
-
-            # Merge each type of manifest file
-            get_property(MQ_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_FILES)
-            get_property(X86_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X86_FILES)
-            get_property(X64_FILES GLOBAL PROPERTY MQ_VCPKG_MQ_X64_FILES)
-
-            merge_manifest_files("${MQ_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq.txt")
-            merge_manifest_files("${X86_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq_x86.txt")
-            merge_manifest_files("${X64_FILES}" "${VCPKG_MANIFEST_DIR}/vcpkg_mq_x64.txt")
-
-            # Execute vcpkg once with merged manifests
-            message(STATUS "")
-            message(STATUS "Installing vcpkg packages for MacroQuest...")
-
-            set(VCPKG_MQ_ARGS
-                    -ProjectName "MacroQuest"
-                    -ProjectDirectory "${VCPKG_MANIFEST_DIR}"
-                    -MQRoot "${CMAKE_CURRENT_SOURCE_DIR}"
-                    -Platform "${VCPKG_ARCH}"
-                    -Toolchain "${CMAKE_GENERATOR_TOOLSET}"
-            )
-
-            execute_process(
-                    COMMAND "${POWERSHELL_PATH}" -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "${VCPKG_MQ_PATH}" ${VCPKG_MQ_ARGS}
-                    COMMAND_ECHO STDOUT
-                    RESULT_VARIABLE VCPKG_MQ_RESULT
-                    OUTPUT_VARIABLE VCPKG_MQ_OUTPUT
-                    ECHO_OUTPUT_VARIABLE
-                    ERROR_VARIABLE VCPKG_MQ_ERROR
-            )
-
-            if(NOT VCPKG_MQ_RESULT EQUAL 0)
-                message(FATAL_ERROR "Failed to install vcpkg packages with error: ${VCPKG_MQ_ERROR}")
-            else()
-                message(STATUS "Successfully installed all vcpkg packages")
-            endif()
-        else()
-            message(WARNING "Could not find powershell, not running vcpkg_mq update")
-        endif()
-    endif()
-endfunction()
-
-# Specify any include directories here
-list_all_subdirs("${CMAKE_CURRENT_SOURCE_DIR}/include" MQ_INCLUDE_DIRS)
-include_directories(${MQ_INCLUDE_DIRS})
-
-# These could all be in their respective subdirectories, but prefer in this case a single
-# file to specify the entire core project since everything here is maintained with
-# bespoke vcxproj and prop files without CMakeLists.txt to build projects.
-
-# Add main components
-add_vcxproj(src/eqlib eqlib "core")
-add_vcxproj(src/imgui imgui "core/libraries")
-add_vcxproj(src/routing routing "core/libraries")
-add_vcxproj(src/login login "core/libraries")
-add_vcxproj(contrib/zep zep "core/libraries")
-add_vcxproj(src/main MQ2Main "core" eqlib imgui routing zep)
-
-# Set MQ2Main as the default startup project in Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MQ2Main)
-
-if(MQ_BUILD_LAUNCHER)
-    add_vcxproj(src/loader MacroQuest "core/applications" imgui login routing)
 endif()
-
-# Add plugins
-if(MQ_BUILD_PLUGINS)
-    add_vcxproj(src/plugins/pluginapi pluginapi "core/plugins" routing)
-    add_vcxproj(src/plugins/autobank MQ2AutoBank "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/autologin MQ2AutoLogin "core/plugins" login pluginapi MQ2Main)
-    add_vcxproj(src/plugins/bzsrch MQ2Bzsrch "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/chat MQ2Chat "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/chatwnd MQ2ChatWnd "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/custombinds MQ2CustomBinds "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/eqbugfix MQ2EQBugFix "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/hud MQ2HUD "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/itemdisplay MQ2ItemDisplay "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/labels MQ2Labels "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/lua MQ2Lua "core/plugins" imgui pluginapi MQ2Main)
-    add_vcxproj(src/plugins/map MQ2Map "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/targetinfo MQ2TargetInfo "core/plugins" pluginapi MQ2Main)
-    add_vcxproj(src/plugins/xtarinfo MQ2XTarInfo "core/plugins" pluginapi MQ2Main)
-endif()
-
-# Add custom plugins from root plugins directory
-if(MQ_BUILD_CUSTOM_PLUGINS)
-    include(plugins.cmake)
-endif()
-
-# Add tests
-if(MQ_BUILD_TESTS)
-    add_vcxproj(src/tests/Actors Actors "core/applications/tests")
-    add_vcxproj(src/tests/NamedPipeClient NamedPipeClient "core/applications/tests")
-endif()
-
-# Finalize vcpkg installation - merge all manifests and install packages, must be called after all add_vcxproj
-finalize_vcpkg_installation()
 
 # Print configuration summary
 message(STATUS "")
 message(STATUS "MacroQuest Configuration Summary:")
-message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Build Types: ${CMAKE_CONFIGURATION_TYPES}")
 message(STATUS "  MSVC Toolchain: ${CMAKE_GENERATOR_TOOLSET}")
 message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  Only Regenerate Solution: ${MQ_REGENERATE_SOLUTION}")
 message(STATUS "  Build Plugins: ${MQ_BUILD_PLUGINS}")
 message(STATUS "  Build Custom Plugins: ${MQ_BUILD_CUSTOM_PLUGINS}")
 message(STATUS "  Build Loader: ${MQ_BUILD_LAUNCHER}")
 message(STATUS "  Build Tests: ${MQ_BUILD_TESTS}")
+message(STATUS "  Force VCXProj Conversion: ${MQ_FORCE_VCXPROJ_CONVERSION}")
 message(STATUS "")

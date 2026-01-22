@@ -3473,9 +3473,9 @@ public:
 			for (auto& p : access->playersToGroups)
 			{
 				ImGui::TableNextRow();
-				ImGui::TableNextColumn(); ImGui::Text("%s", p.second.c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", p.key());
 				ImGui::TableNextColumn(); ImGui::Text("%s (%d)",
-					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.first)), p.first);
+					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.value())), p.value());
 			}
 
 			ImGui::TreePop();
@@ -3504,7 +3504,7 @@ public:
 		ImGui::TableNextColumn();
 		if (ImGui::TreeNode("realEstateItems"))
 		{
-			for (const auto& [item, id] : *items)
+			for (const auto& [id, item] : *items)
 			{
 				char label[256];
 				sprintf_s(label, "%s (%d)", item->GetItem()->GetName(), item->GetRealEstateItemId());
@@ -3761,11 +3761,11 @@ public:
 					ImGui::TableNextColumn();
 
 					char label[64];
-					sprintf_s(label, "%d##%p", p.second, (void*)&p);
+					sprintf_s(label, "%d##%p", p.key(), (void*)&p);
 
 					if (ImGui::TreeNode(label))
 					{
-						RealEstate* realEstate = p.first;
+						RealEstate* realEstate = p.value();
 
 						DrawRealEstateTableRow(realEstate);
 
@@ -3790,11 +3790,11 @@ public:
 					ImGui::TableNextColumn();
 
 					char label[64];
-					sprintf_s(label, "%s##%p", p.second.c_str(), (void*)&p);
+					sprintf_s(label, "%s##%p", p.key().c_str(), (void*)&p);
 
 					if (ImGui::TreeNode(label))
 					{
-						RealEstate* realEstate = p.first;
+						RealEstate* realEstate = p.value();
 
 						DrawRealEstateTableRow(realEstate);
 
@@ -3847,7 +3847,7 @@ public:
 
 			if (ImGui::TreeNode("accessLists"))
 			{
-				for (auto& [accessList, realEstateId] : pMgr->accessLists)
+				for (auto& [realEstateId, accessList] : pMgr->accessLists)
 				{
 					char label[64];
 					sprintf_s(label, "%d", realEstateId);
@@ -3875,7 +3875,7 @@ public:
 
 			if (ImGui::TreeNode("itemLists"))
 			{
-				for (auto& [itemsClient, realEstateId] : pMgr->itemLists)
+				for (auto& [realEstateId, itemsClient] : pMgr->itemLists)
 				{
 					char label[64];
 					sprintf_s(label, "%d", realEstateId);
@@ -3904,7 +3904,7 @@ public:
 			{
 				for (const auto& p : pMgr->definitions->definitions)
 				{
-					const RealEstateDefinition& def = p.first;
+					const RealEstateDefinition& def = p.value();
 
 					char label[64];
 					sprintf_s(label, "%d", def.id);

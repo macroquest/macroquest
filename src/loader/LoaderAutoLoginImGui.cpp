@@ -203,6 +203,7 @@ template <typename Info>
 static void DefaultCombo(Info& info, const Action& select_action)
 {
 	static Info selected;
+	ImGui::PushID(&selected);
 
 	static constexpr std::string_view hidden_prefix = "##";
 	const auto width = ImGui::CalcItemWidth()
@@ -265,6 +266,8 @@ static void DefaultCombo(Info& info, const Action& select_action)
 		ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
 		ImGui::TextUnformatted(JoinLabels<Info::label>::literal);
 	}
+
+	ImGui::PopID();
 }
 
 static bool IsEQGameInFolder(const std::string& path)
