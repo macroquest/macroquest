@@ -3473,7 +3473,7 @@ public:
 			for (auto& p : access->playersToGroups)
 			{
 				ImGui::TableNextRow();
-				ImGui::TableNextColumn(); ImGui::Text("%s", p.key());
+				ImGui::TableNextColumn(); ImGui::Text("%s", p.key().c_str());
 				ImGui::TableNextColumn(); ImGui::Text("%s (%d)",
 					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.value())), p.value());
 			}
