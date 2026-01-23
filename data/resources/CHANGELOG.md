@@ -1,3 +1,8 @@
+## Update 1/23/2026
+
+Update for latest live patch
+
+
 ## Update 1/21/2026
 
 Update for latest live patch
