@@ -41,7 +41,11 @@ enum class TradeskillDepotTypeMethods
 #if HAS_TRADESKILL_DEPOT
 static void SelectItemByName(std::string_view name)
 {
+#if HAS_HASHMAP_TRADESKILL_DEPOT
+	for (const auto& [_, pItem] : pTradeskillDepotWnd->Items)
+#else
 	for (const ItemPtr& pItem : pTradeskillDepotWnd->Items)
+#endif
 	{
 		if (MaybeExactCompare(pItem->GetName(), name))
 		{
@@ -86,8 +90,6 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 {
 	if (!pLocalPC)
 		return false;
-
-	ItemContainer* pItemContainer = GetItemContainerByType(eItemContainerTradeskillDepot);
 
 	//----------------------------------------------------------------------------
 	// methods
@@ -180,7 +182,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 	{
 	case TradeskillDepotTypeMembers::Count:
 		Dest.Type = pIntType;
-		Dest.Int = pItemContainer ? pItemContainer->GetCount() : 0;
+		Dest.Int =  pTradeskillDepotWnd ? pTradeskillDepotWnd->Items.GetCount() : 0;
 		return true;
 
 	case TradeskillDepotTypeMembers::Capacity:
@@ -199,6 +201,37 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		return true;
 
 	case TradeskillDepotTypeMembers::FindItem: {
+#if HAS_HASHMAP_TRADESKILL_DEPOT
+		if (!pTradeskillDepotWnd || !Index[0])
+			return false;
+
+		const auto& pItemContainer = pTradeskillDepotWnd->Items;
+
+		// Find by ID
+		if (IsNumber(Index))
+		{
+			int findID = GetIntFromString(Index, 0);
+			auto foundItem = pItemContainer.Find(findID);
+			if (foundItem == nullptr || !*foundItem)
+				return false;
+
+			Dest = pItemType->MakeTypeVar(*foundItem);
+			return true;
+		}
+
+		// Find by Name
+		for (const auto& [_, item] : pItemContainer)
+		{
+			if (MaybeExactCompare(item->GetName(), Index))
+			{
+				Dest = pItemType->MakeTypeVar(item);
+				return true;
+			}
+		}
+
+		return false;
+#elif HAS_TRADESKILL_DEPOT
+		ItemContainer* pItemContainer = GetItemContainerByType(eItemContainerTradeskillDepot);
 		if (!pItemContainer || !Index[0])
 			return false;
 
@@ -237,9 +270,43 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 
 		Dest = pItemType->MakeTypeVar(foundItem);
 		return true;
+#endif
 	}
 
 	case TradeskillDepotTypeMembers::FindItemCount: {
+#if HAS_HASHMAP_TRADESKILL_DEPOT
+		if (!pTradeskillDepotWnd || !Index[0])
+			return false;
+
+		const auto& pItemContainer = pTradeskillDepotWnd->Items;
+
+		Dest.Type = pIntType;
+		Dest.Int = 0;
+
+		// Find by ID
+		if (IsNumber(Index))
+		{
+			int ItemID = GetIntFromString(Index, 0);
+			auto foundItem = pItemContainer.Find(ItemID);
+			if (foundItem == nullptr || !*foundItem)
+				return false;
+
+			Dest.Int = (*foundItem)->GetItemCount();
+			return true;
+		}
+
+		for (const auto& [_, item] : pItemContainer)
+		{
+			if (MaybeExactCompare(item->GetName(), Index))
+			{
+				Dest.Int = item->GetItemCount();
+				return true;
+			}
+		}
+
+		return false;
+#elif HAS_TRADESKILL_DEPOT
+		ItemContainer* pItemContainer = GetItemContainerByType(eItemContainerTradeskillDepot);
 		if (!pItemContainer || !Index[0])
 			return false;
 
@@ -259,6 +326,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		Dest.Int = CountContainerItems(*pItemContainer, -1, -1,
 			[Index](const ItemPtr& pItem) { return MaybeExactCompare(pItem->GetName(), Index); });
 		return true;
+#endif
 	}
 
 	case TradeskillDepotTypeMembers::SelectedItem: {
