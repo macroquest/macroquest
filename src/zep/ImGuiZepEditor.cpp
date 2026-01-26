@@ -50,7 +50,7 @@ class ZepFont_ImGui : public Zep::ZepFont
 {
 public:
 	ZepFont_ImGui(ZepDisplay& display, ImFont* pFont)
-		: ZepFont(display, static_cast<int>(pFont->FontSize))
+		: ZepFont(display, static_cast<int>(pFont->LegacySize))
 		, m_pFont(pFont)
 	{
 	}
@@ -59,7 +59,7 @@ public:
 	{
 		// This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
 		// need as we draw one character at a time...
-		const float font_size = m_pFont->FontSize;
+		const float font_size = m_pFont->LegacySize;
 		ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
 		if (text_size.x == 0.0)
 		{

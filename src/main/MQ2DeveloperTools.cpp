@@ -5253,7 +5253,7 @@ public:
 				char label[32];
 				sprintf_s(label, "%d", pSwitch->ID);
 
-				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap))
+				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 				{
 					if (ImGui::GetIO().KeyCtrl)
 						ShowSwitchViewer(pSwitch->ID, true);

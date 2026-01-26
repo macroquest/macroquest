@@ -840,6 +840,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	// Overlapping mode
 	ImGui.set_function("SetNextItemAllowOverlap", &ImGui::SetNextItemAllowOverlap);
+#pragma warning(suppress: 4996)
 	ImGui.set_function("SetItemAllowOverlap", &ImGui::SetItemAllowOverlap); // OBSOLETE
 
 	#pragma region Item/Widgets Utilities and Query Functions
@@ -965,8 +966,8 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 #pragma region Obsolete Functions
 	// OBSOLETE 
-	ImGui.set_function("PushAllowKeyboardFocus", &ImGui::PushAllowKeyboardFocus);
-	ImGui.set_function("PopAllowKeyboardFocus", &ImGui::PopAllowKeyboardFocus);
+	ImGui.set_function("PushAllowKeyboardFocus", [](bool tab_stop) { ImGui::PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); });
+	ImGui.set_function("PopAllowKeyboardFocus", []() { ImGui::PopItemFlag(); });
 	ImGui.set_function("CaptureKeyboardFromApp", [](std::optional<bool> want_capture_keyboard) { ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard.value_or(true)); });
 	ImGui.set_function("CaptureMouseFromApp", [](std::optional<bool> want_capture_mouse) { ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse.value_or(true)); });
 

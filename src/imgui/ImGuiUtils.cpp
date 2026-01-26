@@ -160,10 +160,9 @@ void DrawSplitter(bool split_vertically, float thickness, float* size0, float* s
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));          // We don't draw while active/pressed because as we move the panes the splitter button will be 1 frame late
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.6f, 0.10f));
+	ImGui::SetNextItemAllowOverlap(); // This is to allow having other buttons OVER our splitter.
 	ImGui::Button("##Splitter", ImVec2(!split_vertically ? thickness : -1.0f, split_vertically ? thickness : -1.0f));
 	ImGui::PopStyleColor(3);
-
-	ImGui::SetItemAllowOverlap(); // This is to allow having other buttons OVER our splitter.
 
 	if (ImGui::IsItemActive())
 	{

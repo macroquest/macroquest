@@ -156,7 +156,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"LogSliderDeadzone"                             , &ImGuiStyle::LogSliderDeadzone,
 		"TabRounding"                                   , &ImGuiStyle::TabRounding,
 		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
-		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabMinWidthForCloseButton,
+		"TabCloseButtonMinWidthUnselected"              , &ImGuiStyle::TabCloseButtonMinWidthUnselected,
 		"TabBarBorderSize"                              , &ImGuiStyle::TabBarBorderSize,
 		"TableAngledHeadersAngle"                       , &ImGuiStyle::TableAngledHeadersAngle,
 		"ColorButtonPosition"                           , &ImGuiStyle::ColorButtonPosition,
@@ -186,7 +186,8 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ScaleAllSizes"                                 , &ImGuiStyle::ScaleAllSizes,
 
 		// Deprecated
-		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError
+		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
+		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabCloseButtonMinWidthUnselected
 	);
 
 	// ImGuiIO
@@ -393,9 +394,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ImFontAtlas"                  , sol::no_constructor,
 
 		"Flags"                        , &ImFontAtlas::Flags,
-		"TexID"                        , &ImFontAtlas::TexID,
-		"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
-		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
+		"TexID"                        , &ImFontAtlas::TexID
+		//"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
+		//"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
 	);
 
 
