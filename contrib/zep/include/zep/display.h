@@ -98,6 +98,8 @@ public:
 
     virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
     virtual ZepFont& GetFont(ZepTextType type) = 0;
+    //virtual void SetFontSize(ZepTextType type, int fontSize);
+    //virtual int GetFontSize(ZepTextType type);
     const NVec2f& GetPixelScale() const;
 
     virtual void DrawScroller(const Scroller& scroller, ZepTheme& theme);

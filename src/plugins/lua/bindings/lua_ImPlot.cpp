@@ -826,8 +826,8 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	ImPlot.set_function("PlotHistogram", &PlotHistogram);
 	ImPlot.set_function("PlotHistogram2D", &PlotHistogram2D);
 	ImPlot.set_function("PlotDigital", sol::overload(&PlotDigital, &PlotDigitalG));
-	ImPlot.set_function("PlotImage", [](const char* label_id, ImTextureID user_texture_id, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<int> flags) {
-		ImPlot::PlotImage(label_id, user_texture_id, bounds_min, bounds_max, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), flags.value_or(0));
+	ImPlot.set_function("PlotImage", [](const char* label_id, const ImTextureRef& tex_ref, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<int> flags) {
+		ImPlot::PlotImage(label_id, tex_ref, bounds_min, bounds_max, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), flags.value_or(0));
 	});
 	ImPlot.set_function("PlotText", [](const char* text, double x, double y, std::optional<ImVec2> pix_offset, std::optional<int> flags) { ImPlot::PlotText(text, x, y, pix_offset.value_or(ImVec2(0, 0)), flags.value_or(0)); });
 	ImPlot.set_function("PlotDummy", [](const char* label_id, std::optional<int> flags) { ImPlot::PlotDummy(label_id, flags.value_or(0)); });

@@ -766,7 +766,7 @@ public:
 //============================================================================
 
 static ImGuiDockNodeFlags s_dockspace_flags = ImGuiDockNodeFlags_None
-	| ImGuiDockNodeFlags_NoDockingInCentralNode
+	| ImGuiDockNodeFlags_NoDockingOverCentralNode
 	| ImGuiDockNodeFlags_PassthruCentralNode;
 
 void DrawDockSpace(bool* p_open)

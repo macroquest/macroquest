@@ -70,7 +70,7 @@ public:
 	ImGuiZepEditor(std::string_view id = "");
 	virtual ~ImGuiZepEditor();
 
-	void SetFont(Zep::ZepTextType, ImFont* pFont);
+	void SetFont(Zep::ZepTextType, ImFont* pFont, int fontSize);
 
 	virtual void Render(const char* id, const ImVec2& displaySize = ImVec2());
 

@@ -250,7 +250,7 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 	}
 
 	const auto viewport = static_cast<ImGuiViewportP*>(ImGui::FindViewportByID(modal.ParentViewportID));
-	if (viewport != nullptr && (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos) == 0)
+	if (viewport != nullptr && (g.NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasPos) == 0)
 	{
 		ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
 	}
@@ -264,7 +264,7 @@ bool BeginModal(const std::string& name, bool* p_open, ImGuiWindowFlags flags)
 		ImGui::SetNextWindowFocus();
 	}
 
-	if ((g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSize) == 0)
+	if ((g.NextWindowData.HasFlags & ImGuiNextWindowDataFlags_HasSize) == 0)
 		flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
 	flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings;
@@ -290,11 +290,12 @@ void EndModal()
 		ImGui::NavMoveRequestTryWrapping(window, ImGuiNavMoveFlags_LoopY);
 
 	// Child-popups don't need to be laid out
-	IM_ASSERT(g.WithinEndChild == false);
+	IM_ASSERT(g.WithinEndChildID != 0);
+	const ImGuiID backup_within_end_child_id = g.WithinEndChildID;
 	if (window->Flags & ImGuiWindowFlags_ChildWindow)
-		g.WithinEndChild = true;
+		g.WithinEndChildID = window->ID;
 	ImGui::End();
-	g.WithinEndChild = false;
+	g.WithinEndChildID = backup_within_end_child_id;
 }
 
 void CloseModal()

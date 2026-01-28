@@ -20,6 +20,7 @@
 #include "Logging.h"
 
 #include "mq/api/RenderDoc.h"
+#include "imgui/imgui_internal.h"
 
 #include <cfenv>
 
@@ -506,7 +507,7 @@ void MQGraphicsEngine::ImGui_DrawFrame()
 
 	try
 	{
-		ImGui::NewFrame();
+		ImGuiManager_NewFrame();
 
 		ImGuiManager_DrawFrame();
 

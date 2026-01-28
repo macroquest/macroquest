@@ -92,7 +92,7 @@ public:
 		// Left Pane
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), ImGuiChildFlags_Border);
+			ImGui::BeginChild("TreeListView", ImVec2(m_leftPaneSize, ImGui::GetContentRegionAvail().y - 1), ImGuiChildFlags_Borders);
 			ImGui::PopStyleVar();
 
 			if (m_treeRoot)
@@ -112,7 +112,7 @@ public:
 		// Right Pane
 		{
 			ImVec2 rightPaneContentSize = ImGui::GetContentRegionAvail();
-			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), ImGuiChildFlags_Border);
+			ImGui::BeginChild("ContentView", ImVec2(rightPaneContentSize.x, rightPaneContentSize.y - 1), ImGuiChildFlags_Borders);
 
 			if (!m_selectedPanel)
 			{
