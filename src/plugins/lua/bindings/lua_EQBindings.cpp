@@ -238,13 +238,11 @@ static sol::table lua_getFilteredGroundItems(sol::this_state L, sol::unsafe_func
 
 void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 {
-	mq.new_usertype<CTextureAnimation>(
-		"CTextureAnimation", sol::no_constructor,
-		"SetTextureCell", &CTextureAnimation::SetCurCell,
-		"GetTextureCell", &CTextureAnimation::GetCurCell,
-		"GetSize", [](CTextureAnimation& mThis) -> ImVec2 { return mThis.Size; },
-		"GetCellSize", [](CTextureAnimation& mThis) -> ImVec2 { return ImVec2((float)mThis.CellWidth, (float)mThis.CellHeight); }
-	);
+	auto texAnim = mq.new_usertype<CTextureAnimation>("CTextureAnimation", sol::no_constructor);
+	texAnim.set("SetTextureCell"          , &CTextureAnimation::SetCurCell);
+	texAnim.set("GetTextureCell"          , &CTextureAnimation::GetCurCell);
+	texAnim.set("GetSize"                 , [](CTextureAnimation& mThis) -> ImVec2 { return mThis.Size; });
+	texAnim.set("GetCellSize"             , [](CTextureAnimation& mThis) -> ImVec2 { return ImVec2((float)mThis.CellWidth, (float)mThis.CellHeight); });
 
 	mq.set_function("FindTextureAnimation", &FindTextureAnimation);
 
@@ -276,44 +274,42 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	mq.set_function("ParseSpellLink"      , &lua_ParseSpellLink);
 	mq.set_function("StripTextLinks"      , &lua_StripTextLinks);
 
-	mq.new_usertype<TextTagInfo>(
-		"TextTagInfo"                     , sol::no_constructor,
-		"type"                            , sol::readonly(&TextTagInfo::tagCode),
-		"link"                            , sol::readonly(&TextTagInfo::link),
-		"text"                            , sol::readonly(&TextTagInfo::text));
+	auto textTagInfo = mq.new_usertype<TextTagInfo>("TextTagInfo", sol::no_constructor);
+	textTagInfo.set("type"                , sol::readonly(&TextTagInfo::tagCode));
+	textTagInfo.set("link"                , sol::readonly(&TextTagInfo::link));
+	textTagInfo.set("text"                , sol::readonly(&TextTagInfo::text));
 
-	mq.new_enum("LinkTypes",
-		"Item"                            , ETAG_ITEM,
-		"Player"                          , ETAG_PLAYER,
-		"Spam"                            , ETAG_SPAM,
-		"Achievement"                     , ETAG_ACHIEVEMENT,
-		"Dialog"                          , ETAG_DIALOG_RESPONSE,
-		"Command"                         , ETAG_COMMAND,
-		"Spell"                           , ETAG_SPELL,
-		"Faction"                         , ETAG_FACTION,
-		"Invalid"                         , ETAG_INVALID);
+	auto linkTypes = mq.new_enum("LinkTypes");
+	linkTypes.set("Item"                  , ETAG_ITEM);
+	linkTypes.set("Player"                , ETAG_PLAYER);
+	linkTypes.set("Spam"                  , ETAG_SPAM);
+	linkTypes.set("Achievement"           , ETAG_ACHIEVEMENT);
+	linkTypes.set("Dialog"                , ETAG_DIALOG_RESPONSE);
+	linkTypes.set("Command"               , ETAG_COMMAND);
+	linkTypes.set("Spell"                 , ETAG_SPELL);
+	linkTypes.set("Faction"               , ETAG_FACTION);
+	linkTypes.set("Invalid"               , ETAG_INVALID);
 
-	mq.new_usertype<DialogLinkInfo>(
-		"DialogLinkInfo"                  , sol::no_constructor,
-		"keyword"                         , sol::readonly(&DialogLinkInfo::keyword),
-		"text"                            , sol::readonly(&DialogLinkInfo::text));
-	mq.new_usertype<ItemLinkInfo>(
-		"ItemLinkInfo"                    , sol::no_constructor,
-		"itemID"                          , sol::readonly(&ItemLinkInfo::itemID),
-		"sockets"                         , [](ItemLinkInfo* pThis) { return &pThis->sockets; },
-		"socketLuck"                      , [](ItemLinkInfo* pThis) { return &pThis->socketLuck; },
-		"isEvolving"                      , sol::readonly(&ItemLinkInfo::isEvolving),
-		"evolutionGroup"                  , sol::readonly(&ItemLinkInfo::evolutionGroup),
-		"evolutionLevel"                  , sol::readonly(&ItemLinkInfo::evolutionLevel),
-		"ornamentationIconID"             , sol::readonly(&ItemLinkInfo::ornamentationIconID),
-		"luck"                            , sol::readonly(&ItemLinkInfo::luck),
-		"itemHash"                        , sol::readonly(&ItemLinkInfo::itemHash),
-		"itemName"                        , sol::readonly(&ItemLinkInfo::itemName),
-		"IsSocketed"                      , &ItemLinkInfo::IsSocketed);
-	mq.new_usertype<SpellLinkInfo>(
-		"SpellLinkInfo"                   , sol::no_constructor,
-		"spellID"                         , sol::readonly(&SpellLinkInfo::spellID),
-		"spellName"                       , sol::readonly(&SpellLinkInfo::spellName));
+	auto dialogLinkInfo = mq.new_usertype<DialogLinkInfo>("DialogLinkInfo", sol::no_constructor);
+	dialogLinkInfo.set("keyword"          , sol::readonly(&DialogLinkInfo::keyword));
+	dialogLinkInfo.set("text"             , sol::readonly(&DialogLinkInfo::text));
+
+	auto itemLinkInfo = mq.new_usertype<ItemLinkInfo>("ItemLinkInfo", sol::no_constructor);
+	itemLinkInfo.set("itemID"             , sol::readonly(&ItemLinkInfo::itemID));
+	itemLinkInfo.set("sockets"            , [](ItemLinkInfo* pThis) { return &pThis->sockets; });
+	itemLinkInfo.set("socketLuck"         , [](ItemLinkInfo* pThis) { return &pThis->socketLuck; });
+	itemLinkInfo.set("isEvolving"         , sol::readonly(&ItemLinkInfo::isEvolving));
+	itemLinkInfo.set("evolutionGroup"     , sol::readonly(&ItemLinkInfo::evolutionGroup));
+	itemLinkInfo.set("evolutionLevel"     , sol::readonly(&ItemLinkInfo::evolutionLevel));
+	itemLinkInfo.set("ornamentationIconID", sol::readonly(&ItemLinkInfo::ornamentationIconID));
+	itemLinkInfo.set("luck"               , sol::readonly(&ItemLinkInfo::luck));
+	itemLinkInfo.set("itemHash"           , sol::readonly(&ItemLinkInfo::itemHash));
+	itemLinkInfo.set("itemName"           , sol::readonly(&ItemLinkInfo::itemName));
+	itemLinkInfo.set("IsSocketed"         , &ItemLinkInfo::IsSocketed);
+
+	auto spellLinkInfo = mq.new_usertype<SpellLinkInfo>("SpellLinkInfo", sol::no_constructor);
+	spellLinkInfo.set("spellID"           , sol::readonly(&SpellLinkInfo::spellID));
+	spellLinkInfo.set("spellName"         , sol::readonly(&SpellLinkInfo::spellName));
 
 	mq.set("MAX_AUG_SOCKETS"              , MAX_AUG_SOCKETS);
 

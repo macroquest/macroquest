@@ -848,6 +848,19 @@ static bool ImGuiManager_DetectCursorAttachment()
 	return s_showForFrames > 0;
 }
 
+void ImGuiManager_NewFrame()
+{
+	ImGuiContext* g = ImGui::GetCurrentContext();
+	const bool has_textures = (g->IO.BackendFlags & ImGuiBackendFlags_RendererHasTextures) != 0;
+
+	if (s_fontAtlas)
+	{
+		ImFontAtlasUpdateNewFrame(s_fontAtlas, g->FrameCount, has_textures);
+	}
+	
+	ImGui::NewFrame();
+}
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
@@ -991,7 +1004,7 @@ void ImGuiManager_DrawCursorAttachment()
 					|| type == eCursorAttachment_ItemLink
 					|| type == eCursorAttachment_KronoSlot)
 				{
-					int textWidth = static_cast<int>(font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, buf.data(), nullptr).x);
+					int textWidth = static_cast<int>(font->CalcTextSizeA(static_cast<float>(eqFont->nHeight), FLT_MAX, -1.0f, buf.data(), nullptr).x);
 					if (textWidth < 10) textWidth = 10;
 
 					CXRect textRect = rect;

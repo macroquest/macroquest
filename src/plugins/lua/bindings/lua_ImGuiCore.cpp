@@ -385,7 +385,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	bindings::RegisterBindings_ImGuiUserTypes(state);
 
 	// Main
-	ImGui.set_function("GetIO", ImGui::GetIO);
+	ImGui.set_function("GetIO", []() { return &ImGui::GetIO(); });
 	ImGui.set_function("GetStyle", []() { return &ImGui::GetStyle(); });
 
 	#pragma region Demo, Debug, Information
@@ -439,11 +439,11 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		// Old format with bool for border: Deprecated
 		[](const char* str_id, std::optional<float> size_x, std::optional<float> size_y, std::optional<bool> border, std::optional<int> flags)
 		{
-			return ImGui::BeginChild(str_id, ImVec2(size_x.value_or(0.f), size_y.value_or(0.f)), border.value_or(false) ? ImGuiChildFlags_Border : 0, flags.value_or(0));
+			return ImGui::BeginChild(str_id, ImVec2(size_x.value_or(0.f), size_y.value_or(0.f)), border.value_or(false) ? ImGuiChildFlags_Borders : 0, flags.value_or(0));
 		},
 		[](const char* str_id, const ImVec2& size, std::optional<bool> border, std::optional<int> flags)
 		{
-			return ImGui::BeginChild(str_id, size, border.value_or(false) ? ImGuiChildFlags_Border : 0, flags.value_or(0));
+			return ImGui::BeginChild(str_id, size, border.value_or(false) ? ImGuiChildFlags_Borders : 0, flags.value_or(0));
 		},
 		// New format with child flags param
 		[](const char* str_id, std::optional<float> size_x, std::optional<float> size_y, std::optional<int> child_flags, std::optional<int> flags)
@@ -531,7 +531,8 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		[]() { ImGui::SetWindowFocus(); },
 		[](std::optional<const char*> name) { ImGui::SetWindowFocus(name.value_or(nullptr)); }
 	));
-	ImGui.set_function("SetWindowFontScale", &ImGui::SetWindowFontScale);
+#pragma warning(suppress: 4996)
+	ImGui.set_function("SetWindowFontScale", &ImGui::SetWindowFontScale); // DEPRECATED
 	#pragma endregion
 
 	#pragma region Content Region
@@ -561,10 +562,22 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("SetScrolFromPosY", [](float local_y, std::optional<float> center_y_ratio) { ImGui::SetScrollFromPosY(local_y, center_y_ratio.value_or(0.5f)); });
 	#pragma endregion
 
+	#pragma region Parameter stacks (font)
+	ImGui.set_function("PushFont", sol::overload(
+		// Switch font and set size
+		[](ImFont* font, float fontSize) { ImGui::PushFont(font, fontSize); },
+		// Switch font and set to its default font size
+		[](ImFont* font) { ImGui::PushFont(font, font ? font->LegacySize : 0.0f); },
+		// Reset to default font and font size
+		[]() { ImGui::PushFont(nullptr, 0.0f); }
+	));
+	ImGui.set_function("PopFont", &ImGui::PopFont);
+	ImGui.set_function("GetFont", &ImGui::GetFont);
+	ImGui.set_function("GetFontSize", &ImGui::GetFontSize);
+	#pragma endregion
+
 	#pragma region Parameters Stacks (Shared)
 	// Parameters stacks (shared)
-	ImGui.set_function("PushFont", [](std::optional<ImFont*> font) { ImGui::PushFont(font.value_or(nullptr)); });
-	ImGui.set_function("PopFont", &ImGui::PopFont);
 	ImGui.set_function("PushStyleColor", sol::overload(
 		[](int idx, int col) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), ImU32(col)); },
 		[](int idx, float colR, float colG, float colB, float colA) { ImGui::PushStyleColor(static_cast<ImGuiCol>(idx), { colR, colG, colB, colA }); },
@@ -577,8 +590,8 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		[](int idx, float valX, float valY) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), { valX, valY }); },
 		[](int idx, const ImVec2& val) { ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(idx), val); }
 	));
-	// PushStyleVarX
-	// PushStyleVarY
+	ImGui.set_function("PushStyleVarX", [](int idx, float valX) { ImGui::PushStyleVarX(static_cast<ImGuiStyleVar>(idx), valX); });
+	ImGui.set_function("PushStyleVarY", [](int idx, float valY) { ImGui::PushStyleVarY(static_cast<ImGuiStyleVar>(idx), valY); });
 	ImGui.set_function("PopStyleVar", [](std::optional<int> count) { ImGui::PopStyleVar(count.value_or(1)); });
 	ImGui.set_function("PushTabStop", &ImGui::PushTabStop); // DEPRECATED
 	ImGui.set_function("PopTabStop", &ImGui::PopTabStop); // DEPRECATED
@@ -600,8 +613,6 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	#pragma region Style read access
 	// Style read access
-	ImGui.set_function("GetFont", &ImGui::GetFont);
-	ImGui.set_function("GetFontSize", &ImGui::GetFontSize);
 	ImGui.set_function("GetFontTexUvWhitePixel", &ImGui::GetFontTexUvWhitePixel);
 	ImGui.set_function("GetColorU32", sol::overload(
 		[](int idx, float alpha_mul) { return ImGui::GetColorU32(static_cast<ImGuiCol>(idx), alpha_mul); },
@@ -666,6 +677,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("PopID", &ImGui::PopID);
 	ImGui.set_function("GetID", sol::overload(
 		[](std::string_view str_id) { ImGui::GetID(str_id.data(), str_id.data() + str_id.length()); },
+		[](int int_id) { ImGui::GetID(int_id); },
 		[](sol::object obj) { ImGui::GetID(obj.pointer()); }
 	));
 	#pragma endregion
@@ -701,7 +713,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("BeginPopupContextWindow", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { return ImGui::BeginPopupContextWindow(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
 	ImGui.set_function("BeginPopupContextVoid", [](std::optional<const char*> str_id, std::optional<int> popup_flags) { return ImGui::BeginPopupContextVoid(str_id.value_or(nullptr), popup_flags.value_or(ImGuiPopupFlags_MouseButtonRight)); });
 	ImGui.set_function("IsPopupOpen", [](const char* str_id, std::optional<int> flags) { return ImGui::IsPopupOpen(str_id, flags.value_or(0)); });
-#pragma endregion
+	#pragma endregion
 
 	#pragma region Tables
 	ImGui.set_function("BeginTable", sol::overload(
@@ -730,6 +742,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("TableGetColumnName", [](std::optional<int> column_n) { return ImGui::TableGetColumnName(column_n.value_or(-1)); });
 	ImGui.set_function("TableGetColumnFlags", [](std::optional<int> column_n) { return ImGui::TableGetColumnFlags(column_n.value_or(-1)); });
 	ImGui.set_function("TableSetColumnEnabled", [](int column_n, bool v) { ImGui::TableSetColumnEnabled(column_n, v); });
+	ImGui.set_function("TableGetHoveredColumn", &ImGui::TableGetHoveredColumn);
 	ImGui.set_function("TableSetBgColor", sol::overload(
 		[](int target, const ImVec4& color, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32(color), column_n.value_or(-1)); },
 		[](int target, float colorR, float colorG, float colorB, float colorA, std::optional<int> column_n) { ImGui::TableSetBgColor(target, ImGui::ColorConvertFloat4ToU32({colorR, colorG, colorB, colorA}), column_n.value_or(-1)); },
@@ -738,7 +751,6 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	ImGui.set_function("TableGetColumnIsVisible", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsVisible) != 0; });
 	ImGui.set_function("TableGetColumnIsSorted", [](std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & ImGuiTableColumnFlags_IsSorted) != 0; });
-	ImGui.set_function("TableGetHoveredColumn", &ImGui::TableGetHoveredColumn);
 	ImGui.set_function("TableGetColumnHasFlag", [](int flag, std::optional<int> column_n) { return (ImGui::TableGetColumnFlags(column_n.value_or(-1)) & flag) != 0; });
 	#pragma endregion
 
@@ -838,6 +850,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("SetItemDefaultFocus", &ImGui::SetItemDefaultFocus);
 	ImGui.set_function("SetKeyboardFocusHere", [](std::optional<int> offset) { ImGui::SetKeyboardFocusHere(offset.value_or(0)); });
 
+	// Keyboard/Gamepad Navigation
+	ImGui.set_function("SetNavCursorVisible", &ImGui::SetNavCursorVisible);
+
 	// Overlapping mode
 	ImGui.set_function("SetNextItemAllowOverlap", &ImGui::SetNextItemAllowOverlap);
 #pragma warning(suppress: 4996)
@@ -858,6 +873,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("IsAnyItemHovered", &ImGui::IsAnyItemHovered);
 	ImGui.set_function("IsAnyItemActive", &ImGui::IsAnyItemActive);
 	ImGui.set_function("IsAnyItemFocused", &ImGui::IsAnyItemFocused);
+	ImGui.set_function("GetItemID", &ImGui::GetItemID);
 	ImGui.set_function("GetItemRectMinVec", &ImGui::GetItemRectMin);
 	ImGui.set_function("GetItemRectMin", []() { ImVec2 vec2 = ImGui::GetItemRectMin(); return std::make_tuple(vec2.x, vec2.y); });
 	ImGui.set_function("GetItemRectMaxVec", &ImGui::GetItemRectMax);
@@ -914,12 +930,24 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("GetKeyIndex", [](uint32_t key) { return key; }); // Deprecated
 	#pragma endregion
 
+	#pragma region Inputs Utilities: Keyboard
+	// Inputs Utilities: Shortcut Testing & Routing
+	ImGui.set_function("Shortcut", [](ImGuiKeyChord key_chord, std::optional<ImGuiInputFlags> flags) { return ImGui::Shortcut(key_chord, flags.value_or(0)); });
+	ImGui.set_function("SetNextItemShortcut", [](ImGuiKeyChord key_chord, std::optional<ImGuiInputFlags> flags) { return ImGui::SetNextItemShortcut(key_chord, flags.value_or(0)); });
+	#pragma endregion
+
+	#pragma region Inputs Utilities: Key/Input Ownership
+	// Inputs Utilities: Key/Input Ownership
+	ImGui.set_function("SetItemKeyOwner", [](ImGuiKey key_chord) { ImGui::SetItemKeyOwner(key_chord); });
+	#pragma endregion
+
 	#pragma region Inputs Utilities: Mouse
 	// Inputs Utilities: Mouse
 	ImGui.set_function("IsMouseDown", [](int button) { return ImGui::IsMouseDown(button); });
 	ImGui.set_function("IsMouseClicked", [](int button, std::optional<bool> repeat) { return ImGui::IsMouseClicked(button, repeat.value_or(true)); });
 	ImGui.set_function("IsMouseReleased", [](int button) { return ImGui::IsMouseReleased(button); });
 	ImGui.set_function("IsMouseDoubleClicked", [](int button) { return ImGui::IsMouseDoubleClicked(button); });
+	ImGui.set_function("IsMouseReleasedWithDelay", [](int button, float delay) { return ImGui::IsMouseReleasedWithDelay(button, delay); });
 	ImGui.set_function("GetMouseClickedCount", [](int button) { return ImGui::GetMouseClickedCount(button); });
 	ImGui.set_function("IsMouseHoveringRect", sol::overload(
 		[](const ImVec2& r_min, const ImVec2& r_max, std::optional<bool> clip) { return ImGui::IsMouseHoveringRect(r_min, r_max, clip.value_or(true)); },
@@ -945,7 +973,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("SetClipboardText", &ImGui::SetClipboardText);
 
 #if IMGUI_HAS_STACK_LAYOUT
-#pragma region StackLayout Functions
+	#pragma region StackLayout Functions
 	ImGui.set_function("BeginHorizontal", sol::overload(
 		[](const char* str_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(str_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
 		[](int int_id, std::optional<ImVec2> size, std::optional<float> align) { ImGui::BeginHorizontal(int_id, size.value_or(ImVec2(0, 0)), align.value_or(-1.0f)); },
@@ -961,10 +989,10 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	ImGui.set_function("Spring", [](std::optional<float> weight, std::optional<float> spacing) { ImGui::Spring(weight.value_or(1.0f), spacing.value_or(-1.0f)); });
 	ImGui.set_function("SuspendLayout", &ImGui::SuspendLayout);
 	ImGui.set_function("ResumeLayout", &ImGui::ResumeLayout);
-#pragma endregion
+	#pragma endregion
 #endif // IMGUI_HAS_STACK_LAYOUT
 
-#pragma region Obsolete Functions
+	#pragma region Obsolete Functions
 	// OBSOLETE 
 	ImGui.set_function("PushAllowKeyboardFocus", [](bool tab_stop) { ImGui::PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); });
 	ImGui.set_function("PopAllowKeyboardFocus", []() { ImGui::PopItemFlag(); });
@@ -976,7 +1004,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		[](ImGuiID id, const ImVec2& size, std::optional<int> flags) { return ImGui::BeginChild(id, size, ImGuiChildFlags_FrameStyle, flags.value_or(0)); }
 	));
 	ImGui.set_function("EndChildFrame", &ImGui::EndChildFrame);
-#pragma endregion
+	#pragma endregion
 
 	bindings::RegisterBindings_ImGuiWidgets(ImGui);
 	bindings::RegisterBindings_ImGuiCustom(ImGui);

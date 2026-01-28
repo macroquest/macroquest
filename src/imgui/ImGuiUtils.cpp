@@ -127,8 +127,6 @@ void ConfigureFonts(ImFontAtlas* atlas)
 {
 	ConfigureDefaultFont(atlas);
 	ConfigureLargeFont(atlas);
-
-	atlas->Build();
 }
 
 void ConfigureStyle()
