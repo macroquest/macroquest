@@ -18,10 +18,12 @@
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "LuaActor.h"
+#include "LuaModuleRegistry.h"
 #include "bindings/lua_Bindings.h"
 #include "bindings/lua_MQBindings.h"
 
 #include <mq/Plugin.h>
+#include <lauxlib.h>
 #include <luajit.h>
 #include <chrono>
 #include <fmt/format.h>
@@ -237,6 +239,31 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 	if (pkg == "Zep")
 	{
 		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
+		return 1;
+	}
+
+	//check plugin module registry
+	if (auto entry = GetLuaModuleRegistry().Find(pkg))
+	{
+		MQPlugin* ownerPlugin = GetPluginByHandle(entry->owner);
+		if (!ownerPlugin)
+			return 0;
+
+		sol::stack::push(L, std::function([this, entry, ownerPlugin, pkg = pkg](sol::this_state L) {
+			if (AddDependency(ownerPlugin))
+				AddNamedDependency(fmt::format("module:{}(plugin:{})", pkg, entry->ownerName));
+
+			try
+			{
+				return entry->factory(L);
+			}
+			catch (const std::exception& e)
+			{
+				luaL_error(L, "Module '%s' factory failed: %s", pkg.c_str(), e.what());
+				return sol::make_object(L, sol::nil);
+			}
+		}));
+
 		return 1;
 	}
 
