@@ -65,6 +65,27 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		"AlwaysUseWindowPadding"       , ImGuiWindowFlags_AlwaysUseWindowPadding  // Obsolete
 	);
 
+	// Viewport Flags
+	lua.new_enum("ImGuiViewportFlags",
+		"None"                         , ImGuiViewportFlags_None,
+		"IsPlatformWindow"             , ImGuiViewportFlags_IsPlatformWindow,
+		"IsPlatformMonitor"            , ImGuiViewportFlags_IsPlatformMonitor,
+		"OwnedByApp"                   , ImGuiViewportFlags_OwnedByApp,
+		"NoDecoration"                 , ImGuiViewportFlags_NoDecoration,
+		"NoTaskBarIcon"                , ImGuiViewportFlags_NoTaskBarIcon,
+		"NoFocusOnAppearing"           , ImGuiViewportFlags_NoFocusOnAppearing,
+		"NoFocusOnClick"               , ImGuiViewportFlags_NoFocusOnClick,
+		"NoInputs"                     , ImGuiViewportFlags_NoInputs,
+		"NoRendererClear"              , ImGuiViewportFlags_NoRendererClear,
+		"NoAutoMerge"                  , ImGuiViewportFlags_NoAutoMerge,
+		"TopMost"                      , ImGuiViewportFlags_TopMost,
+		"CanHostOtherWindows"          , ImGuiViewportFlags_CanHostOtherWindows,
+
+		// Output status flags (read-only from platform)
+		"IsMinimized"                  , ImGuiViewportFlags_IsMinimized,
+		"IsFocused"                    , ImGuiViewportFlags_IsFocused
+	);
+
 	// Child Window Flags
 	lua.new_enum("ImGuiChildFlags",
 		"None"                         , ImGuiChildFlags_None,

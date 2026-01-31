@@ -398,6 +398,21 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
 	);
 
+	// ImGuiWindowClass
+	lua.new_usertype<ImGuiWindowClass>(
+		"ImGuiWindowClass"             , sol::call_constructor
+		                               , sol::constructors<ImGuiWindowClass()>(),
+		"ClassId"                      , &ImGuiWindowClass::ClassId,
+		"ParentViewportId"             , &ImGuiWindowClass::ParentViewportId,
+		"FocusRouteParentWindowId"     , &ImGuiWindowClass::FocusRouteParentWindowId,
+		"ViewportFlagsOverrideSet"     , &ImGuiWindowClass::ViewportFlagsOverrideSet,
+		"ViewportFlagsOverrideClear"   , &ImGuiWindowClass::ViewportFlagsOverrideClear,
+		"TabItemFlagsOverrideSet"      , &ImGuiWindowClass::TabItemFlagsOverrideSet,
+		"DockNodeFlagsOverrideSet"     , &ImGuiWindowClass::DockNodeFlagsOverrideSet,
+		"DockingAlwaysTabBar"          , &ImGuiWindowClass::DockingAlwaysTabBar,
+		"DockingAllowUnclassed"        , &ImGuiWindowClass::DockingAllowUnclassed
+	);
+
 
 	// ImGuiViewport
 	lua.new_usertype<ImGuiViewport>(
