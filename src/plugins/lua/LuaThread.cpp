@@ -212,36 +212,6 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 {
 	sol::state_view sv{ L };
 
-	if (pkg == "mq")
-	{
-		sol::stack::push(L, std::function([this](sol::this_state L) { return RegisterMQNamespace(L); }));
-		return 1;
-	}
-
-	if (pkg == "actors")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return LuaActors::RegisterLua(L); }));
-		return 1;
-	}
-
-	if (pkg == "ImGui")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImGui(L); }));
-		return 1;
-	}
-
-	if (pkg == "ImPlot")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImPlot(L); }));
-		return 1;
-	}
-
-	if (pkg == "Zep")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
-		return 1;
-	}
-
 	//check plugin module registry
 	if (auto entry = GetLuaModuleRegistry().Find(pkg))
 	{

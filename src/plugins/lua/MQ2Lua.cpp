@@ -22,6 +22,7 @@
 #include "LuaImGui.h"
 #include "LuaModuleRegistry.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -29,7 +30,6 @@
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
-#include <lauxlib.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -88,24 +88,44 @@ std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
-static sol::object ReservedModuleFactory(sol::this_state s)
-{
-	luaL_error(s, "This module name is reserved by MQ2Lua");
-	return sol::make_object(s, sol::nil);
-}
-
 static void RegisterBuiltInModules()
 {
+	// Register built-in modules through the same registry path as external plugins.
 	const char* ownerName = "Lua";
 	if (MQPlugin* plugin = GetPluginByHandle(mqplugin::ThisPluginHandle))
 		ownerName = plugin->name.c_str();
 
 	auto& registry = GetLuaModuleRegistry();
-	registry.Register("mq", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
-	registry.Register("actors", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
-	registry.Register("ImGui", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
-	registry.Register("ImPlot", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
-	registry.Register("Zep", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+	registry.Register("mq",
+		[](sol::this_state s) {
+			sol::state_view sv{ s };
+			sol::table mq = sv.create_table();
+			if (auto thread = LuaThread::get_from(sv))
+			{
+				bindings::RegisterBindings_MQ(thread.get(), mq);
+				bindings::RegisterBindings_MQMacroData(mq);
+				return sol::make_object(s, mq);
+			}
+
+			return sol::make_object(s, sol::nil);
+		},
+		mqplugin::ThisPluginHandle, ownerName);
+
+	registry.Register("actors",
+		[](sol::this_state s) { return sol::make_object(s, LuaActors::RegisterLua(s)); },
+		mqplugin::ThisPluginHandle, ownerName);
+
+	registry.Register("ImGui",
+		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_ImGui(s)); },
+		mqplugin::ThisPluginHandle, ownerName);
+
+	registry.Register("ImPlot",
+		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_ImPlot(s)); },
+		mqplugin::ThisPluginHandle, ownerName);
+
+	registry.Register("Zep",
+		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_Zep(s)); },
+		mqplugin::ThisPluginHandle, ownerName);
 }
 
 #pragma region Shared Function Definitions
