@@ -69,4 +69,10 @@ public:
 	virtual bool IsLuaModuleRegistered(const char* name) = 0;
 };
 
+// Convenience function to get the Lua interface from MQ2Lua.
+inline LuaPluginInterface* GetLuaInterface()
+{
+	return static_cast<LuaPluginInterface*>(GetPluginInterface("Lua"));
+}
+
 } // namespace mq::lua
