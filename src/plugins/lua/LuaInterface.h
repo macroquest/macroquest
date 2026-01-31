@@ -28,6 +28,7 @@ namespace mq::lua {
 class LuaThread;
 using LuaScript = LuaThread;
 using LuaScriptPtr = std::shared_ptr<LuaScript>;
+using LuaModuleFactory = sol::object(*)(sol::this_state);
 
 class LuaPluginInterface : public PluginInterface
 {
@@ -61,6 +62,11 @@ public:
 
 	// Get the lua state for a thread
 	virtual sol::state_view GetLuaState(const LuaScriptPtr& scriptPtr) = 0;
+
+	// Module registration for external plugins
+	virtual bool RegisterLuaModule(const char* name, LuaModuleFactory factory, MQPluginHandle owner) = 0;
+	virtual bool UnregisterLuaModule(const char* name, MQPluginHandle owner) = 0;
+	virtual bool IsLuaModuleRegistered(const char* name) = 0;
 };
 
 } // namespace mq::lua

@@ -20,6 +20,7 @@
 #include "LuaEvent.h"
 #include "LuaActor.h"
 #include "LuaImGui.h"
+#include "LuaModuleRegistry.h"
 #include "bindings/lua_Bindings.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
@@ -1529,6 +1530,25 @@ public:
 	sol::state_view GetLuaState(const LuaScriptPtr& thread) override
 	{
 		return thread->GetState();
+	}
+
+	bool RegisterLuaModule(const char* name, LuaModuleFactory factory, MQPluginHandle owner) override
+	{
+		const char* ownerName = "";
+		if (MQPlugin* plugin = GetPluginByHandle(owner))
+			ownerName = plugin->name.c_str();
+
+		return GetLuaModuleRegistry().Register(name, factory, owner, ownerName);
+	}
+
+	bool UnregisterLuaModule(const char* name, MQPluginHandle owner) override
+	{
+		return GetLuaModuleRegistry().Unregister(name, owner);
+	}
+
+	bool IsLuaModuleRegistered(const char* name) override
+	{
+		return name ? GetLuaModuleRegistry().IsRegistered(name) : false;
 	}
 };
 
