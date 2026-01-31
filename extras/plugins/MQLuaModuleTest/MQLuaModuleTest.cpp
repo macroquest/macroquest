@@ -24,20 +24,23 @@ static sol::object RegisterLuaModule(sol::this_state s)
 	module.set_function("ping", []() { return "pong"; });
 	module.set_function("add", sol::overload(
 		[](int a, int b) { return a + b; },
-		[](sol::table t) {
+		[](sol::table t)
+		{
 			int a = t.get_or("a", 0);
 			int b = t.get_or("b", 0);
 			return a + b;
 		}));
 	module.set_function("echo", [](sol::object value) { return value; });
-	module.set_function("make_point", [](double x, double y, sol::this_state s) {
+	module.set_function("make_point", [](double x, double y, sol::this_state s)
+	{
 		sol::state_view state{ s };
 		sol::table point = state.create_table();
 		point["x"] = x;
 		point["y"] = y;
 		return point;
 	});
-	module.set_function("boom", []() {
+	module.set_function("boom", []()
+	{
 		throw std::runtime_error("boom");
 	});
 

@@ -49,8 +49,11 @@ public:
 	// Unregister all modules owned by a plugin.
 	void UnregisterAll(MQPluginHandle owner);
 
+	// Unregister all modules owned by a plugin name.
+	void UnregisterAllByName(std::string_view ownerName);
+
 private:
-	mutable std::recursive_mutex m_mutex;
+	mutable std::mutex m_mutex;
 	std::unordered_map<std::string, LuaModuleEntry> m_modules;
 };
 

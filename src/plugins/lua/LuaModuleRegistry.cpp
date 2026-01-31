@@ -90,4 +90,20 @@ void LuaModuleRegistry::UnregisterAll(MQPluginHandle owner)
 	}
 }
 
+void LuaModuleRegistry::UnregisterAllByName(std::string_view ownerName)
+{
+	if (ownerName.empty())
+		return;
+
+	std::scoped_lock lock(m_mutex);
+
+	for (auto it = m_modules.begin(); it != m_modules.end();)
+	{
+		if (it->second.ownerName == ownerName)
+			it = m_modules.erase(it);
+		else
+			++it;
+	}
+}
+
 } // namespace mq::lua

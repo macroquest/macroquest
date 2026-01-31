@@ -215,12 +215,21 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 	//check plugin module registry
 	if (auto entry = GetLuaModuleRegistry().Find(pkg))
 	{
-		MQPlugin* ownerPlugin = GetPluginByHandle(entry->owner);
+		const MQPluginHandle ownerHandle = entry->owner;
+		MQPlugin* ownerPlugin = GetPluginByHandle(ownerHandle);
 		if (!ownerPlugin)
 			return 0;
 
-		sol::stack::push(L, std::function([this, entry, ownerPlugin, pkg = pkg](sol::this_state L) {
-			if (AddDependency(ownerPlugin))
+		sol::stack::push(L, std::function([this, entry, ownerHandle, pkg = pkg](sol::this_state L)
+		{
+			MQPlugin* plugin = GetPluginByHandle(ownerHandle);
+			if (!plugin)
+			{
+				luaL_error(L, "Module '%s' owner is no longer loaded", pkg.c_str());
+				return sol::make_object(L, sol::nil);
+			}
+
+			if (AddDependency(plugin))
 				AddNamedDependency(fmt::format("module:{}(plugin:{})", pkg, entry->ownerName));
 
 			try

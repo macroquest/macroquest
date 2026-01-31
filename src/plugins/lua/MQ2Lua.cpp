@@ -96,11 +96,20 @@ static void RegisterBuiltInModules()
 		ownerName = plugin->name.c_str();
 
 	auto& registry = GetLuaModuleRegistry();
-	registry.Register("mq",
-		[](sol::this_state s) {
+	auto register_builtin = [&](const char* name, const LuaModuleFactory factory)
+	{
+		if (!registry.Register(name, factory, mqplugin::ThisPluginHandle, ownerName))
+		{
+			WriteChatf("MQ2Lua: Failed to register built-in module '%s'.", name);
+		}
+	};
+
+	register_builtin("mq",
+		[](const sol::this_state s)
+		{
 			sol::state_view sv{ s };
 			sol::table mq = sv.create_table();
-			if (auto thread = LuaThread::get_from(sv))
+			if (const auto thread = LuaThread::get_from(sv))
 			{
 				bindings::RegisterBindings_MQ(thread.get(), mq);
 				bindings::RegisterBindings_MQMacroData(mq);
@@ -108,24 +117,36 @@ static void RegisterBuiltInModules()
 			}
 
 			return sol::make_object(s, sol::nil);
-		},
-		mqplugin::ThisPluginHandle, ownerName);
+		}
+		);
 
-	registry.Register("actors",
-		[](sol::this_state s) { return sol::make_object(s, LuaActors::RegisterLua(s)); },
-		mqplugin::ThisPluginHandle, ownerName);
+	register_builtin("actors",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, LuaActors::RegisterLua(s));
+		}
+		);
 
-	registry.Register("ImGui",
-		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_ImGui(s)); },
-		mqplugin::ThisPluginHandle, ownerName);
+	register_builtin("ImGui",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_ImGui(s));
+		}
+		);
 
-	registry.Register("ImPlot",
-		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_ImPlot(s)); },
-		mqplugin::ThisPluginHandle, ownerName);
+	register_builtin("ImPlot",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_ImPlot(s));
+		}
+		);
 
-	registry.Register("Zep",
-		[](sol::this_state s) { return sol::make_object(s, bindings::RegisterBindings_Zep(s)); },
-		mqplugin::ThisPluginHandle, ownerName);
+	register_builtin("Zep",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_Zep(s));
+		}
+		);
 }
 
 #pragma region Shared Function Definitions
@@ -1575,6 +1596,9 @@ public:
 
 	bool RegisterLuaModule(const char* name, LuaModuleFactory factory, MQPluginHandle owner) override
 	{
+		if (!name || !name[0] || !factory)
+			return false;
+
 		const char* ownerName = "";
 		if (MQPlugin* plugin = GetPluginByHandle(owner))
 			ownerName = plugin->name.c_str();
@@ -1584,12 +1608,15 @@ public:
 
 	bool UnregisterLuaModule(const char* name, MQPluginHandle owner) override
 	{
+		if (!name || !name[0])
+			return false;
+
 		return GetLuaModuleRegistry().Unregister(name, owner);
 	}
 
 	bool IsLuaModuleRegistered(const char* name) override
 	{
-		return name ? GetLuaModuleRegistry().IsRegistered(name) : false;
+		return name && name[0] ? GetLuaModuleRegistry().IsRegistered(name) : false;
 	}
 };
 
@@ -2350,6 +2377,11 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
 	MQPlugin* plugin = GetPlugin(pluginName);
+	if (plugin)
+	{
+		// Best-effort cleanup in case a plugin forgets to unregister its module.
+		GetLuaModuleRegistry().UnregisterAllByName(plugin->name);
+	}
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[&](const std::shared_ptr<LuaThread>& thread) -> bool
