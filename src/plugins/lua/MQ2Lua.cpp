@@ -29,6 +29,7 @@
 #include <mq/Plugin.h>
 #include <mq/utils/Args.h>
 #include <fmt/format.h>
+#include <lauxlib.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -86,6 +87,26 @@ std::vector<std::shared_ptr<LuaThread>> s_running;
 std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
+
+static sol::object ReservedModuleFactory(sol::this_state s)
+{
+	luaL_error(s, "This module name is reserved by MQ2Lua");
+	return sol::make_object(s, sol::nil);
+}
+
+static void RegisterBuiltInModules()
+{
+	const char* ownerName = "Lua";
+	if (MQPlugin* plugin = GetPluginByHandle(mqplugin::ThisPluginHandle))
+		ownerName = plugin->name.c_str();
+
+	auto& registry = GetLuaModuleRegistry();
+	registry.Register("mq", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+	registry.Register("actors", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+	registry.Register("ImGui", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+	registry.Register("ImPlot", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+	registry.Register("Zep", &ReservedModuleFactory, mqplugin::ThisPluginHandle, ownerName);
+}
 
 #pragma region Shared Function Definitions
 
@@ -1865,6 +1886,7 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+	RegisterBuiltInModules();
 
 	bindings::InitializeBindings_MQMacroData();
 
