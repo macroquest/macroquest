@@ -182,7 +182,11 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 	{
 	case TradeskillDepotTypeMembers::Count:
 		Dest.Type = pIntType;
+#if HAS_TRADESKILL_DEPOT
 		Dest.Int =  pTradeskillDepotWnd ? pTradeskillDepotWnd->Items.GetCount() : 0;
+#else
+		Dest.Int = 0;
+#endif
 		return true;
 
 	case TradeskillDepotTypeMembers::Capacity:
@@ -205,13 +209,13 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		if (!pTradeskillDepotWnd || !Index[0])
 			return false;
 
-		const auto& pItemContainer = pTradeskillDepotWnd->Items;
+		const auto& items = pTradeskillDepotWnd->Items;
 
 		// Find by ID
 		if (IsNumber(Index))
 		{
 			int findID = GetIntFromString(Index, 0);
-			auto foundItem = pItemContainer.Find(findID);
+			auto foundItem = items.Find(findID);
 			if (foundItem == nullptr || !*foundItem)
 				return false;
 
@@ -220,7 +224,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		}
 
 		// Find by Name
-		for (const auto& [_, item] : pItemContainer)
+		for (const auto& [_, item] : items)
 		{
 			if (MaybeExactCompare(item->GetName(), Index))
 			{
@@ -278,7 +282,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		if (!pTradeskillDepotWnd || !Index[0])
 			return false;
 
-		const auto& pItemContainer = pTradeskillDepotWnd->Items;
+		const auto& items = pTradeskillDepotWnd->Items;
 
 		Dest.Type = pIntType;
 		Dest.Int = 0;
@@ -287,7 +291,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 		if (IsNumber(Index))
 		{
 			int ItemID = GetIntFromString(Index, 0);
-			auto foundItem = pItemContainer.Find(ItemID);
+			auto foundItem = items.Find(ItemID);
 			if (foundItem == nullptr || !*foundItem)
 				return false;
 
@@ -295,7 +299,7 @@ bool MQ2TradeskillDepotType::GetMember(MQVarPtr VarPtr, const char* Member, char
 			return true;
 		}
 
-		for (const auto& [_, item] : pItemContainer)
+		for (const auto& [_, item] : items)
 		{
 			if (MaybeExactCompare(item->GetName(), Index))
 			{
