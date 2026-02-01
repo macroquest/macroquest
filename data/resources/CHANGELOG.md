@@ -6,6 +6,7 @@
 
 ### Fixes
 
+- ROF2 Emu: Fix Item.Evolving.ExpOn not returning correct value
 - Fix EQ Font rendering in ImGui
 - Fix crash when opening chat window settings before being in game
 - Fix renderdoc integration crashing on startup
