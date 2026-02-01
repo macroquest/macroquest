@@ -22,6 +22,7 @@
 #include "bindings/lua_Bindings.h"
 #include "bindings/lua_MQBindings.h"
 
+#include <mq/base/String.h>
 #include <mq/Plugin.h>
 #include <lauxlib.h>
 #include <luajit.h>
@@ -210,28 +211,70 @@ sol::table LuaThread::RegisterMQNamespace(sol::this_state L)
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 {
-	sol::state_view sv{ L };
+	constexpr std::string_view kPluginPrefixDot = "plugin.";
+	constexpr std::string_view kPluginPrefixSlash = "plugin/";
+	std::string_view pkg_view{ pkg };
+	std::string_view plugin_name;
 
-	//check plugin module registry
-	if (auto entry = GetLuaModuleRegistry().Find(pkg))
+	if (ci_starts_with(pkg_view, kPluginPrefixDot))
+		plugin_name = pkg_view.substr(kPluginPrefixDot.size());
+	else if (ci_starts_with(pkg_view, kPluginPrefixSlash))
+		plugin_name = pkg_view.substr(kPluginPrefixSlash.size());
+
+	if (!plugin_name.empty())
 	{
-		const MQPluginHandle ownerHandle = entry->owner;
-		MQPlugin* ownerPlugin = GetPluginByHandle(ownerHandle);
+		MQPlugin* ownerPlugin = GetPlugin(plugin_name);
 		if (!ownerPlugin)
 			return 0;
 
-		sol::stack::push(L, std::function([this, entry, ownerHandle, pkg = pkg](sol::this_state L)
+		using CreateLuaModule = sol::object (*)(sol::this_state);
+		auto module_proc = reinterpret_cast<CreateLuaModule>(
+			GetPluginProc(ownerPlugin->szFilename, "CreateLuaModule"));
+		if (!module_proc)
+			return 0;
+
+		std::string owner_name = ownerPlugin->name;
+		std::string module_name = pkg;
+		sol::stack::push(L, std::function([this, owner_name, module_name](sol::this_state L)
 		{
-			MQPlugin* plugin = GetPluginByHandle(ownerHandle);
+			MQPlugin* plugin = GetPlugin(owner_name);
 			if (!plugin)
 			{
-				luaL_error(L, "Module '%s' owner is no longer loaded", pkg.c_str());
+				luaL_error(L, "Module '%s' owner is no longer loaded", module_name.c_str());
+				return sol::make_object(L, sol::nil);
+			}
+
+			using CreateLuaModule = sol::object (*)(sol::this_state);
+			auto proc = reinterpret_cast<CreateLuaModule>(
+				GetPluginProc(plugin->szFilename, "CreateLuaModule"));
+			if (!proc)
+			{
+				luaL_error(L, "Module '%s' does not export CreateLuaModule", module_name.c_str());
 				return sol::make_object(L, sol::nil);
 			}
 
 			if (AddDependency(plugin))
-				AddNamedDependency(fmt::format("module:{}(plugin:{})", pkg, entry->ownerName));
+				AddNamedDependency(fmt::format("module:{}(plugin:{})", module_name, plugin->name));
 
+			try
+			{
+				return proc(L);
+			}
+			catch (const std::exception& e)
+			{
+				luaL_error(L, "Module '%s' factory failed: %s", module_name.c_str(), e.what());
+				return sol::make_object(L, sol::nil);
+			}
+		}));
+
+		return 1;
+	}
+
+	//check built-in module registry
+	if (auto entry = GetLuaModuleRegistry().Find(pkg))
+	{
+		sol::stack::push(L, std::function([entry, pkg = pkg](sol::this_state L)
+		{
 			try
 			{
 				return entry->factory(L);

@@ -14,46 +14,30 @@
 
 #pragma once
 
-#include "LuaInterface.h"
-
-#include <mq/Plugin.h>
+#include <sol/sol.hpp>
 #include <optional>
-#include <mutex>
 #include <string>
 #include <unordered_map>
 
 namespace mq::lua {
 
+using LuaModuleFactory = sol::object (*)(sol::this_state);
+
 struct LuaModuleEntry
 {
 	LuaModuleFactory factory;
-	MQPluginHandle owner;
-	std::string ownerName;
 };
 
 class LuaModuleRegistry
 {
 public:
 	// Returns false if name already registered or parameters are invalid.
-	bool Register(const char* name, LuaModuleFactory factory, MQPluginHandle owner, const char* ownerName);
-
-	// Returns false if caller is not owner or name not found.
-	bool Unregister(const char* name, MQPluginHandle owner);
+	bool Register(const char* name, LuaModuleFactory factory);
 
 	// Returns empty if not found (copy by value avoids dangling references).
-	std::optional<LuaModuleEntry> Find(const std::string& name) const;
-
-	// Check if module exists.
-	bool IsRegistered(const std::string& name) const;
-
-	// Unregister all modules owned by a plugin.
-	void UnregisterAll(MQPluginHandle owner);
-
-	// Unregister all modules owned by a plugin name.
-	void UnregisterAllByName(std::string_view ownerName);
+	std::optional<LuaModuleEntry> Find(std::string_view name) const;
 
 private:
-	mutable std::mutex m_mutex;
 	std::unordered_map<std::string, LuaModuleEntry> m_modules;
 };
 

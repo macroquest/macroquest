@@ -91,14 +91,10 @@ std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 static void RegisterBuiltInModules()
 {
 	// Register built-in modules through the same registry path as external plugins.
-	const char* ownerName = "Lua";
-	if (MQPlugin* plugin = GetPluginByHandle(mqplugin::ThisPluginHandle))
-		ownerName = plugin->name.c_str();
-
 	auto& registry = GetLuaModuleRegistry();
 	auto register_builtin = [&](const char* name, const LuaModuleFactory factory)
 	{
-		if (!registry.Register(name, factory, mqplugin::ThisPluginHandle, ownerName))
+		if (!registry.Register(name, factory))
 		{
 			WriteChatf("MQ2Lua: Failed to register built-in module '%s'.", name);
 		}
@@ -1593,31 +1589,6 @@ public:
 	{
 		return thread->GetState();
 	}
-
-	bool RegisterLuaModule(const char* name, LuaModuleFactory factory, MQPluginHandle owner) override
-	{
-		if (!name || !name[0] || !factory)
-			return false;
-
-		const char* ownerName = "";
-		if (MQPlugin* plugin = GetPluginByHandle(owner))
-			ownerName = plugin->name.c_str();
-
-		return GetLuaModuleRegistry().Register(name, factory, owner, ownerName);
-	}
-
-	bool UnregisterLuaModule(const char* name, MQPluginHandle owner) override
-	{
-		if (!name || !name[0])
-			return false;
-
-		return GetLuaModuleRegistry().Unregister(name, owner);
-	}
-
-	bool IsLuaModuleRegistered(const char* name) override
-	{
-		return name && name[0] ? GetLuaModuleRegistry().IsRegistered(name) : false;
-	}
 };
 
 LuaPluginInterfaceImpl* s_pluginInterface = nullptr;
@@ -2380,7 +2351,6 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 	if (plugin)
 	{
 		// Best-effort cleanup in case a plugin forgets to unregister its module.
-		GetLuaModuleRegistry().UnregisterAllByName(plugin->name);
 	}
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),

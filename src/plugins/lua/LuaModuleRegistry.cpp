@@ -23,87 +23,22 @@ LuaModuleRegistry& GetLuaModuleRegistry()
 	return s_registry;
 }
 
-bool LuaModuleRegistry::Register(const char* name, LuaModuleFactory factory, MQPluginHandle owner, const char* ownerName)
+bool LuaModuleRegistry::Register(const char* name, LuaModuleFactory factory)
 {
 	if (!name || !name[0] || !factory)
 		return false;
 
-	std::scoped_lock lock(m_mutex);
-
-	if (m_modules.find(name) != m_modules.end())
-		return false;
-
-	LuaModuleEntry entry{
-		factory,
-		owner,
-		ownerName ? ownerName : ""
-	};
-	m_modules.emplace(name, std::move(entry));
-	return true;
+	auto [it, inserted] = m_modules.try_emplace(name, LuaModuleEntry{ factory });
+	return inserted;
 }
 
-bool LuaModuleRegistry::Unregister(const char* name, MQPluginHandle owner)
+std::optional<LuaModuleEntry> LuaModuleRegistry::Find(std::string_view name) const
 {
-	if (!name || !name[0])
-		return false;
-
-	std::scoped_lock lock(m_mutex);
-
-	auto it = m_modules.find(name);
-	if (it == m_modules.end())
-		return false;
-
-	if (it->second.owner != owner)
-		return false;
-
-	m_modules.erase(it);
-	return true;
-}
-
-std::optional<LuaModuleEntry> LuaModuleRegistry::Find(const std::string& name) const
-{
-	std::scoped_lock lock(m_mutex);
-
-	auto it = m_modules.find(name);
+	auto it = m_modules.find(std::string(name));
 	if (it == m_modules.end())
 		return std::nullopt;
 
 	return it->second;
-}
-
-bool LuaModuleRegistry::IsRegistered(const std::string& name) const
-{
-	std::scoped_lock lock(m_mutex);
-	return m_modules.find(name) != m_modules.end();
-}
-
-void LuaModuleRegistry::UnregisterAll(MQPluginHandle owner)
-{
-	std::scoped_lock lock(m_mutex);
-
-	for (auto it = m_modules.begin(); it != m_modules.end();)
-	{
-		if (it->second.owner == owner)
-			it = m_modules.erase(it);
-		else
-			++it;
-	}
-}
-
-void LuaModuleRegistry::UnregisterAllByName(std::string_view ownerName)
-{
-	if (ownerName.empty())
-		return;
-
-	std::scoped_lock lock(m_mutex);
-
-	for (auto it = m_modules.begin(); it != m_modules.end();)
-	{
-		if (it->second.ownerName == ownerName)
-			it = m_modules.erase(it);
-		else
-			++it;
-	}
 }
 
 } // namespace mq::lua
