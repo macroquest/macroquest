@@ -25,6 +25,11 @@ using LuaModuleFactory = sol::object (*)(sol::this_state);
 
 struct LuaModuleEntry
 {
+	explicit LuaModuleEntry(LuaModuleFactory inFactory)
+		: factory(inFactory)
+	{
+	}
+
 	LuaModuleFactory factory;
 };
 

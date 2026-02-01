@@ -28,7 +28,7 @@ bool LuaModuleRegistry::Register(const char* name, LuaModuleFactory factory)
 	if (!name || !name[0] || !factory)
 		return false;
 
-	auto [it, inserted] = m_modules.try_emplace(name, LuaModuleEntry{ factory });
+	auto [it, inserted] = m_modules.try_emplace(name, factory);
 	return inserted;
 }
 
