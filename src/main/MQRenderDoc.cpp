@@ -106,14 +106,22 @@ static void DXCaptureReplay_Initialize()
 {
 	if (s_hDXCaptureReplayModule == nullptr)
 	{
-		s_hDXCaptureReplayModule = ::LoadLibraryW(L"DXCaptureReplay.dll");
+		s_hDXCaptureReplayModule = ::LoadLibraryW(L"d3d9.dll");
 		if (s_hDXCaptureReplayModule != nullptr)
 		{
-			g_knownModules.insert(s_hDXCaptureReplayModule);
-
 			pD3DPERF_BeginEvent = (D3DPERF_BeginEvent_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_BeginEvent");
 			pD3DPERF_EndEvent = (D3DPERF_EndEvent_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_EndEvent");
 			pD3DPERF_SetMarker = (D3DPERF_SetMarker_FPtr)::GetProcAddress(s_hDXCaptureReplayModule, "D3DPERF_SetMarker");
+
+			if (!pD3DPERF_BeginEvent || !pD3DPERF_EndEvent || !pD3DPERF_SetMarker)
+			{
+				pD3DPERF_BeginEvent = nullptr;
+				pD3DPERF_EndEvent = nullptr;
+				pD3DPERF_SetMarker = nullptr;
+
+				FreeLibrary(s_hDXCaptureReplayModule);
+				s_hDXCaptureReplayModule = nullptr;
+			}
 		}
 	}
 }
@@ -155,7 +163,7 @@ static void LoadRenderDoc()
 
 	if (!fs::is_regular_file(renderDocDLL))
 	{
-		WriteChatf("\arCould not start renderdoc integration: DLL not found at %s", renderDocDLL.string().c_str());
+		DebugSpewAlways("Could not start renderdoc integration: DLL not found at %s", renderDocDLL.string().c_str());
 		return;
 	}
 
@@ -167,7 +175,7 @@ static void LoadRenderDoc()
 		hModule = wil::unique_hmodule(::LoadLibraryA(renderDocDLL.string().c_str()));
 		if (!hModule)
 		{
-			WriteChatf("\arCould not start renderdoc integration: LoadLibrary failed");
+			DebugSpewAlways("Could not start renderdoc integration: LoadLibrary failed");
 			return;
 		}
 	}
@@ -176,7 +184,7 @@ static void LoadRenderDoc()
 	pRENDERDOC_GetAPI pRenderDoc_GetAPI = (pRENDERDOC_GetAPI)::GetProcAddress(hModule.get(), "RENDERDOC_GetAPI");
 	if (pRenderDoc_GetAPI == nullptr)
 	{
-		WriteChatf("\arCould not start renderdoc integration: Could not load RENDERDOC_GetAPI");
+		DebugSpewAlways("Could not start renderdoc integration: Could not load RENDERDOC_GetAPI");
 		return;
 	}
 
@@ -188,7 +196,7 @@ static void LoadRenderDoc()
 	{
 		s_renderDocAPI = nullptr;
 
-		WriteChatf("\arCould not start renderdoc integration: Version %d is not supported", static_cast<int>(version));
+		DebugSpewAlways("Could not start renderdoc integration: Version %d is not supported", static_cast<int>(version));
 		return;
 	}
 
@@ -209,7 +217,7 @@ static void LoadRenderDoc()
 	s_renderDocAPI->SetFocusToggleKeys(nullptr, 0);
 	s_renderDocAPI->SetCaptureKeys(nullptr, 0);
 
-	LOG_INFO("\agRenderDoc support enabled");
+	DebugSpewAlways("RenderDoc support enabled");
 
 	// Sleep for a bit to give RenderDoc time to initialize
 	Sleep(1000);
@@ -515,12 +523,19 @@ static void DBG_EndBlock(int)
 	RenderDoc_EndEvent();
 }
 
+static void DBG_StubFunc()
+{
+}
+
 struct GraphicsDebugAPI
 {
 	using BeginBlock = void(*)(int, int, const char* filename, int*, int lineNumber, const char* label, int*);
 	using EndBlock = void(*)(int);
+	using StubFunc = void(*)();
 
-	/*0x00*/ uint8_t unknown0[0xa0];
+	/*0x00*/ uint8_t unknown0[0x40];
+	/*0x40*/ StubFunc stub40;
+	/*0x48*/ uint8_t unknown48[0x58];
 	/*0xa0*/ BeginBlock begin;
 	/*0xa8*/ uint64_t padding;
 	/*0xb0*/ EndBlock end;
@@ -563,6 +578,7 @@ static void RenderDoc_Initialize()
 		AddCommand("/renderdoc", RenderDoc_Command);
 		AddSettingsPanel("RenderDoc", RenderDoc_ImGuiDraw);
 
+		s_fakeDebugAPI.stub40 = DBG_StubFunc;
 		s_fakeDebugAPI.begin = DBG_BeginBlock;
 		s_fakeDebugAPI.end = DBG_EndBlock;
 

@@ -200,7 +200,7 @@ uint32_t ProcessKeyboardEvents_Detour()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-		if (io.WantCaptureKeyboard)
+		if (io.WantTextInput || (io.WantCaptureKeyboard && !io.WantCaptureMouse))
 		{
 			// FlushDxKeyboard will consume any keyboard data that is currently
 			// buffered by direct input so that the keyboard inputs don't get

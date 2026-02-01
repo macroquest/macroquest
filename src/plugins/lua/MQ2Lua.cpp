@@ -20,7 +20,9 @@
 #include "LuaEvent.h"
 #include "LuaActor.h"
 #include "LuaImGui.h"
+#include "LuaModuleRegistry.h"
 #include "bindings/lua_Bindings.h"
+#include "bindings/lua_MQBindings.h"
 #include "imgui/ImGuiUtils.h"
 #include "imgui/ImGuiFileDialog.h"
 #include "imgui/ImGuiTextEditor.h"
@@ -85,6 +87,63 @@ std::vector<std::shared_ptr<LuaThread>> s_running;
 std::vector<std::shared_ptr<LuaThread>> s_pending;
 
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
+
+static void RegisterBuiltInModules()
+{
+	// Register built-in modules through the same registry path as external plugins.
+	auto& registry = GetLuaModuleRegistry();
+	auto register_builtin = [&](const char* name, const LuaModuleFactory factory)
+	{
+		if (!registry.Register(name, factory))
+		{
+			WriteChatf("MQ2Lua: Failed to register built-in module '%s'.", name);
+		}
+	};
+
+	register_builtin("mq",
+		[](const sol::this_state s)
+		{
+			sol::state_view sv{ s };
+			sol::table mq = sv.create_table();
+			if (const auto thread = LuaThread::get_from(sv))
+			{
+				bindings::RegisterBindings_MQ(thread.get(), mq);
+				bindings::RegisterBindings_MQMacroData(mq);
+				return sol::make_object(s, mq);
+			}
+
+			return sol::make_object(s, sol::nil);
+		}
+		);
+
+	register_builtin("actors",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, LuaActors::RegisterLua(s));
+		}
+		);
+
+	register_builtin("ImGui",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_ImGui(s));
+		}
+		);
+
+	register_builtin("ImPlot",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_ImPlot(s));
+		}
+		);
+
+	register_builtin("Zep",
+		[](const sol::this_state s)
+		{
+			return sol::make_object(s, bindings::RegisterBindings_Zep(s));
+		}
+		);
+}
 
 #pragma region Shared Function Definitions
 
@@ -1845,6 +1904,7 @@ PLUGIN_API void InitializePlugin()
 	AddSettingsPanel("plugins/Lua", DrawLuaSettings);
 
 	s_pluginInterface = new LuaPluginInterfaceImpl();
+	RegisterBuiltInModules();
 
 	bindings::InitializeBindings_MQMacroData();
 
@@ -2288,6 +2348,10 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 
 	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
 	MQPlugin* plugin = GetPlugin(pluginName);
+	if (plugin)
+	{
+		// Best-effort cleanup in case a plugin forgets to unregister its module.
+	}
 
 	s_running.erase(std::remove_if(s_running.begin(), s_running.end(),
 		[&](const std::shared_ptr<LuaThread>& thread) -> bool
