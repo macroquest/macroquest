@@ -1,4 +1,4 @@
-## Updaet 2/1/2026
+## Update 2/1/2026
 
 ### Features
 
