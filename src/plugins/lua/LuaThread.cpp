@@ -18,10 +18,13 @@
 #include "LuaEvent.h"
 #include "LuaImGui.h"
 #include "LuaActor.h"
+#include "LuaModuleRegistry.h"
 #include "bindings/lua_Bindings.h"
 #include "bindings/lua_MQBindings.h"
 
+#include <mq/base/String.h>
 #include <mq/Plugin.h>
+#include <lauxlib.h>
 #include <luajit.h>
 #include <chrono>
 #include <fmt/format.h>
@@ -208,35 +211,81 @@ sol::table LuaThread::RegisterMQNamespace(sol::this_state L)
 
 int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 {
-	sol::state_view sv{ L };
+	constexpr std::string_view kPluginPrefixDot = "plugin.";
+	constexpr std::string_view kPluginPrefixSlash = "plugin/";
+	std::string_view pkg_view{ pkg };
+	std::string_view plugin_name;
 
-	if (pkg == "mq")
+	if (ci_starts_with(pkg_view, kPluginPrefixDot))
+		plugin_name = pkg_view.substr(kPluginPrefixDot.size());
+	else if (ci_starts_with(pkg_view, kPluginPrefixSlash))
+		plugin_name = pkg_view.substr(kPluginPrefixSlash.size());
+
+	if (!plugin_name.empty())
 	{
-		sol::stack::push(L, std::function([this](sol::this_state L) { return RegisterMQNamespace(L); }));
+		MQPlugin* ownerPlugin = GetPlugin(plugin_name);
+		if (!ownerPlugin)
+			return 0;
+
+		using CreateLuaModule = sol::object (*)(sol::this_state);
+		auto module_proc = reinterpret_cast<CreateLuaModule>(
+			GetPluginProc(ownerPlugin->szFilename, "CreateLuaModule"));
+		if (!module_proc)
+			return 0;
+
+		std::string owner_name = ownerPlugin->name;
+		std::string module_name = pkg;
+		sol::stack::push(L, std::function([this, owner_name, module_name](sol::this_state L)
+		{
+			MQPlugin* plugin = GetPlugin(owner_name);
+			if (!plugin)
+			{
+				luaL_error(L, "Module '%s' owner is no longer loaded", module_name.c_str());
+				return sol::make_object(L, sol::nil);
+			}
+
+			using CreateLuaModule = sol::object (*)(sol::this_state);
+			auto proc = reinterpret_cast<CreateLuaModule>(
+				GetPluginProc(plugin->szFilename, "CreateLuaModule"));
+			if (!proc)
+			{
+				luaL_error(L, "Module '%s' does not export CreateLuaModule", module_name.c_str());
+				return sol::make_object(L, sol::nil);
+			}
+
+			if (AddDependency(plugin))
+				AddNamedDependency(fmt::format("module:{}(plugin:{})", module_name, plugin->name));
+
+			try
+			{
+				return proc(L);
+			}
+			catch (const std::exception& e)
+			{
+				luaL_error(L, "Module '%s' factory failed: %s", module_name.c_str(), e.what());
+				return sol::make_object(L, sol::nil);
+			}
+		}));
+
 		return 1;
 	}
 
-	if (pkg == "actors")
+	//check built-in module registry
+	if (auto entry = GetLuaModuleRegistry().Find(pkg))
 	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return LuaActors::RegisterLua(L); }));
-		return 1;
-	}
+		sol::stack::push(L, std::function([entry, pkg = pkg](sol::this_state L)
+		{
+			try
+			{
+				return entry->factory(L);
+			}
+			catch (const std::exception& e)
+			{
+				luaL_error(L, "Module '%s' factory failed: %s", pkg.c_str(), e.what());
+				return sol::make_object(L, sol::nil);
+			}
+		}));
 
-	if (pkg == "ImGui")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImGui(L); }));
-		return 1;
-	}
-
-	if (pkg == "ImPlot")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_ImPlot(L); }));
-		return 1;
-	}
-
-	if (pkg == "Zep")
-	{
-		sol::stack::push(L, std::function([](sol::this_state L) { return bindings::RegisterBindings_Zep(L); }));
 		return 1;
 	}
 

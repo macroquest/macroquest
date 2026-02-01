@@ -34,6 +34,7 @@ char szChatINISection[MAX_STRING] = { 0 };
 bool bAutoScroll = true;
 bool bNoCharSelect = false;
 bool bSaveByChar = true;
+static int s_fontSize = 4;
 
 static uint32_t s_pendingRemoveStyle = 0;
 static uint32_t s_pendingAddStyle = 0;
@@ -191,7 +192,7 @@ public:
 		}
 
 		return CSidlScreenWnd::WndNotification(pWnd, Message, data);
-	};
+	}
 
 	void SetChatFont(int size) // brainiac 12-12-2007
 	{
@@ -209,7 +210,6 @@ public:
 		{
 			return;
 		}
-		//DebugSpew("Setting Size: %i", size);
 
 		// Save the text, change the font, then restore the text
 		CXStr str = OutputBox->GetSTMLText();
@@ -222,7 +222,7 @@ public:
 		OutputBox->SetVScrollPos(OutputBox->GetVScrollMax());
 
 		FontSize = size;
-	};
+	}
 
 	void Clear()
 	{
@@ -245,12 +245,12 @@ private:
 
 CMQChatWnd* MQChatWnd = nullptr;
 
-
 void LoadChatSettings()
 {
 	bAutoScroll = GetPrivateProfileBool("Settings", "AutoScroll", bAutoScroll, INIFileName);
 	bNoCharSelect = GetPrivateProfileBool("Settings", "NoCharSelect", bNoCharSelect, INIFileName);
 	bSaveByChar = GetPrivateProfileBool("Settings", "SaveByChar", bSaveByChar, INIFileName);
+	s_fontSize = GetPrivateProfileInt(szChatINISection, "FontSize", 4, INIFileName);
 }
 
 void LoadChatFromINI(CSidlScreenWnd* pWindow)
@@ -279,7 +279,9 @@ void LoadChatFromINI(CSidlScreenWnd* pWindow)
 	col.G = GetPrivateProfileInt(szChatINISection, "BGTint.green", 0, INIFileName);
 	col.B = GetPrivateProfileInt(szChatINISection, "BGTint.blue", 0, INIFileName);
 	pWindow->SetBGColor(col.ARGB);
-	MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection, "FontSize", 4, INIFileName));
+
+	s_fontSize = GetPrivateProfileInt(szChatINISection, "FontSize", 4, INIFileName);
+	MQChatWnd->SetChatFont(s_fontSize);
 	GetPrivateProfileString(szChatINISection, "WindowTitle", "MQ", szTemp, MAX_STRING, INIFileName);
 	pWindow->SetWindowText(szTemp);
 	pWindow->bKeepOnScreen = GetPrivateProfileBool(szChatINISection, "KeepOnScreen", true, INIFileName);
@@ -319,7 +321,7 @@ void SaveChatToINI(CSidlScreenWnd* pWindow)
 	WritePrivateProfileString(szChatINISection, "BGTint.red", std::to_string(col.R), INIFileName);
 	WritePrivateProfileString(szChatINISection, "BGTint.green", std::to_string(col.G), INIFileName);
 	WritePrivateProfileString(szChatINISection, "BGTint.blue", std::to_string(col.B), INIFileName);
-	WritePrivateProfileString(szChatINISection, "FontSize", std::to_string(MQChatWnd->FontSize), INIFileName);
+	WritePrivateProfileString(szChatINISection, "FontSize", std::to_string(s_fontSize), INIFileName);
 	WritePrivateProfileString(szChatINISection, "WindowTitle", pWindow->GetWindowText().c_str(), INIFileName);
 	WritePrivateProfileBool(szChatINISection, "KeepOnScreen", pWindow->bKeepOnScreen, INIFileName);
 }
@@ -836,11 +838,18 @@ void ChatWndImGuiSettingsPanel()
 	}
 
 	ImGui::SetNextItemWidth(-125);
-	if (ImGui::InputInt("Font 0 - 10", &MQChatWnd->FontSize)) {
-		int iFontSize = std::clamp(MQChatWnd->FontSize, 0, 10);
-		MQChatWnd->SetChatFont(iFontSize);
-		WritePrivateProfileInt("Settings", "FontSize", iFontSize, INIFileName);
+
+	if (ImGui::InputInt("Font 0 - 10", &s_fontSize))
+	{
+		s_fontSize = std::clamp(s_fontSize, 0, static_cast<int>(NumFontStyles) - 1);
+		if (MQChatWnd != nullptr)
+		{
+			MQChatWnd->SetChatFont(s_fontSize);
+		}
+
+		WritePrivateProfileInt("Settings", "FontSize", s_fontSize, INIFileName);
 	}
+
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("Font 0 - 10. These are 10 font faces of various styles and sizes from EQ.\n\nINISetting: FontSize");
 }

@@ -1,3 +1,23 @@
+## Update 2/1/2026
+
+### Features
+
+- Add support for plugin-created lua modules. See #961 and docs at https://docs.macroquest.org/plugins/developing/lua-modules/
+
+### Fixes
+
+- Fix EQ Font rendering in ImGui
+- Fix crash when opening chat window settings before being in game
+- Fix renderdoc integration crashing on startup
+- Fix potential TradeskillDepotWnd crash if hash table is empty
+- Allow EQ to capture keyboard input while ImGui is capturing mouse input
+
+
+## Update 1/23/2026
+
+Update for latest live patch
+
+
 ## Update 1/21/2026
 
 Update for latest live patch

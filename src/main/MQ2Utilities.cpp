@@ -5217,7 +5217,10 @@ ItemContainer* GetItemContainerByType(ItemContainerInstance type)
 	case eItemContainerDragonHoard:
 		return pDragonHoardWnd ? &pDragonHoardWnd->Items : nullptr;
 #endif
-#if HAS_TRADESKILL_DEPOT
+#if HAS_HASHMAP_TRADESKILL_DEPOT
+	case eItemContainerTradeskillDepot:
+		return nullptr; // can't use ItemContainer for the later client
+#elif HAS_TRADESKILL_DEPOT
 	case eItemContainerTradeskillDepot:
 		return pTradeskillDepotWnd ? &pTradeskillDepotWnd->Items : nullptr;
 #endif

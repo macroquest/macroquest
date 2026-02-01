@@ -61,6 +61,13 @@ public:
 
 	// Get the lua state for a thread
 	virtual sol::state_view GetLuaState(const LuaScriptPtr& scriptPtr) = 0;
+
 };
+
+// Convenience function to get the Lua interface from MQ2Lua.
+inline LuaPluginInterface* GetLuaInterface()
+{
+	return static_cast<LuaPluginInterface*>(GetPluginInterface("Lua"));
+}
 
 } // namespace mq::lua
