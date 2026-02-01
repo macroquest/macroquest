@@ -474,3 +474,21 @@ void EndColumnHeadersSync(ColumnHeader* headers, int count)
 }
 
 }} // namespace mq::imgui
+
+
+void ImGuiLogDebug(const char* fmt, ...)
+{
+	va_list vaList;
+	va_start(vaList, fmt);
+
+	// _vscprintf doesn't count // terminating '\0'
+	int len = _vscprintf(fmt, vaList) + 1;
+	size_t theLen = len + 32;
+
+	auto out = std::make_unique<char[]>(theLen);
+	char* szOutput = out.get();
+
+	vsprintf_s(szOutput, theLen, fmt, vaList);
+
+	OutputDebugStringA(szOutput);
+}

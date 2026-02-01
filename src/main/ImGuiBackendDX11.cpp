@@ -122,7 +122,7 @@ static void ImGui_ImplDX11_InitMultiViewportSupport();
 static void ImGui_ImplDX11_ShutdownMultiViewportSupport();
 
 // Functions
-static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceContext* device_ctx)
+static void ImGui_ImplDX11_SetupRenderState(const ImDrawData* draw_data, ID3D11DeviceContext* device_ctx)
 {
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
 
@@ -405,7 +405,7 @@ static void ImGui_ImplDX11_DestroyTexture(ImTextureData* tex)
 {
 	if (ImGui_ImplDX11_Texture* backend_tex = (ImGui_ImplDX11_Texture*)tex->BackendUserData)
 	{
-		IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)(intptr_t)tex->TexID);
+		IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)tex->TexID);
 		backend_tex->pTextureView->Release();
 		backend_tex->pTexture->Release();
 		IM_DELETE(backend_tex);
@@ -461,7 +461,7 @@ static void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
 
 
 		// Store identifiers
-		tex->SetTexID((ImTextureID)(intptr_t)backend_tex->pTextureView);
+		tex->SetTexID(backend_tex->pTextureView);
 		tex->SetStatus(ImTextureStatus_OK);
 		tex->BackendUserData = backend_tex;
 	}
@@ -470,7 +470,7 @@ static void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
 		// Update selected blocks. We only ever write to textures regions which have never been used before!
 		// This backend choose to use tex->Updates[] but you can use tex->UpdateRect to upload a single region.
 		ImGui_ImplDX11_Texture* backend_tex = (ImGui_ImplDX11_Texture*)tex->BackendUserData;
-		IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)(intptr_t)tex->TexID);
+		IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)tex->TexID);
 		for (ImTextureRect& r : tex->Updates)
 		{
 			D3D11_BOX box = { (UINT)r.x, (UINT)r.y, (UINT)0, (UINT)(r.x + r.w), (UINT)(r.y + r.h), (UINT)1 };
@@ -539,9 +539,9 @@ PS_INPUT main(VS_INPUT input)
 		// Create the input layout
 		D3D11_INPUT_ELEMENT_DESC local_layout[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 		if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &bd->pInputLayout) != S_OK)
 		{
@@ -659,11 +659,14 @@ void ImGui_ImplDX11_InvalidateDeviceObjects()
 	if (!bd->pd3dDevice)
 		return;
 
+	ImGuiPlatformIO& platform = ImGui::GetPlatformIO();
+
 	// Destroy all textures
-	for (ImTextureData* tex : ImGui::GetPlatformIO().Textures)
+	for (ImTextureData* tex : platform.Textures)
 	{
-		if (tex->RefCount == 1)
-			ImGui_ImplDX11_DestroyTexture(tex);
+		// Ignoring the ref count on the texture because we only have one backend, and ImGui thinks that
+		// the refcount on the atlas is somehow a reflection of the number of refcounts on the texture.
+		ImGui_ImplDX11_DestroyTexture(tex);
 	}
 
 	if (bd->pTexSamplerLinear) { bd->pTexSamplerLinear->Release(); bd->pTexSamplerLinear = nullptr; }
@@ -765,13 +768,13 @@ void ImGui_ImplDX11_NewFrame()
 //--------------------------------------------------------------------------------------------------------
 
 // Helper structure we store in the void* RendererUserData field of each ImGuiViewport to easily retrieve our backend data.
-struct ImGuiViewportDataDX11 : public ImGuiViewportData
+struct ImGui_ImplDX11_ViewportData : public ImGuiViewportData
 {
 	IDXGISwapChain* SwapChain;
 	ID3D11RenderTargetView* RTView;
 
-	ImGuiViewportDataDX11() { SwapChain = nullptr; RTView = nullptr; }
-	~ImGuiViewportDataDX11() { IM_ASSERT(SwapChain == nullptr && RTView == nullptr); }
+	ImGui_ImplDX11_ViewportData() { SwapChain = nullptr; RTView = nullptr; }
+	~ImGui_ImplDX11_ViewportData() { IM_ASSERT(SwapChain == nullptr && RTView == nullptr); }
 };
 
 // Multi-Viewports: configure templates used when creating swapchains for secondary viewports. Will try them in order.
@@ -788,14 +791,16 @@ void ImGui_ImplDX11_SetSwapChainDescs(const DXGI_SWAP_CHAIN_DESC* desc_templates
 static void ImGui_ImplDX11_CreateWindow(ImGuiViewport* viewport)
 {
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
-	ImGuiViewportDataDX11* vd = IM_NEW(ImGuiViewportDataDX11)();
+	ImGui_ImplDX11_ViewportData* vd = IM_NEW(ImGui_ImplDX11_ViewportData)();
 	viewport->RendererUserData = vd;
 
 	// PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL_Window*).
 	// Some backends will leave PlatformHandleRaw == 0, in which case we assume PlatformHandle will contain the HWND.
 	HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw : (HWND)viewport->PlatformHandle;
 	IM_ASSERT(hwnd != 0);
+	IM_ASSERT(vd->SwapChain == nullptr && vd->RTView == nullptr);
 
+	// Assign the device window to our viewport data so we can access list of viewport window handles
 	vd->hDeviceWindow = hwnd;
 
 	// Create swap chain
@@ -827,7 +832,7 @@ static void ImGui_ImplDX11_CreateWindow(ImGuiViewport* viewport)
 static void ImGui_ImplDX11_DestroyWindow(ImGuiViewport* viewport)
 {
 	// The main viewport (owned by the application) will always have RendererUserData == nullptr since we didn't create the data for it.
-	if (ImGuiViewportDataDX11* vd = (ImGuiViewportDataDX11*)viewport->RendererUserData)
+	if (ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData)
 	{
 		if (vd->SwapChain)
 			vd->SwapChain->Release();
@@ -843,7 +848,7 @@ static void ImGui_ImplDX11_DestroyWindow(ImGuiViewport* viewport)
 static void ImGui_ImplDX11_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 {
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
-	ImGuiViewportDataDX11* vd = (ImGuiViewportDataDX11*)viewport->RendererUserData;
+	ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData;
 	if (vd->RTView)
 	{
 		vd->RTView->Release();
@@ -863,7 +868,7 @@ static void ImGui_ImplDX11_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 static void ImGui_ImplDX11_RenderWindow(ImGuiViewport* viewport, void*)
 {
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
-	ImGuiViewportDataDX11* vd = (ImGuiViewportDataDX11*)viewport->RendererUserData;
+	ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData;
 	ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 	bd->pd3dDeviceContext->OMSetRenderTargets(1, &vd->RTView, nullptr);
 	if (!(viewport->Flags & ImGuiViewportFlags_NoRendererClear))
@@ -873,7 +878,7 @@ static void ImGui_ImplDX11_RenderWindow(ImGuiViewport* viewport, void*)
 
 static void ImGui_ImplDX11_SwapBuffers(ImGuiViewport* viewport, void*)
 {
-	ImGuiViewportDataDX11* vd = (ImGuiViewportDataDX11*)viewport->RendererUserData;
+	ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData;
 	if (vd->SwapChain)
 		vd->SwapChain->Present(0, 0); // Present without vsync
 }

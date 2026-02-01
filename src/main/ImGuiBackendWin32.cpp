@@ -107,6 +107,7 @@
 #include "ImGuiBackend.h"
 #include "ImGuiManager.h"
 #include "../common/Common.h"
+#include "imgui/imgui_internal.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -127,12 +128,6 @@
 typedef DWORD(WINAPI* PFN_XInputGetCapabilities)(DWORD, DWORD, XINPUT_CAPABILITIES*);
 typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
 #endif
-
-namespace ImGui
-{
-	extern ImGuiIO& GetIO(ImGuiContext*);
-	extern ImGuiPlatformIO& GetPlatformIO(ImGuiContext*);
-}
 
 namespace mq {
 
@@ -289,7 +284,7 @@ void ImGui_ImplWin32_Shutdown()
 
 	io.BackendPlatformName = nullptr;
 	io.BackendPlatformUserData = nullptr;
-	io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+	io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport | ImGuiBackendFlags_HasParentViewport);
 	platform_io.ClearPlatformHandlers();
 	IM_DELETE(bd);
 }
@@ -605,7 +600,7 @@ ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam)
 	case VK_ESCAPE: return ImGuiKey_Escape;
 	//case VK_OEM_7: return ImGuiKey_Apostrophe;
 	case VK_OEM_COMMA: return ImGuiKey_Comma;
-	case VK_OEM_MINUS: return ImGuiKey_Minus;
+	//case VK_OEM_MINUS: return ImGuiKey_Minus;
 	case VK_OEM_PERIOD: return ImGuiKey_Period;
 	//case VK_OEM_2: return ImGuiKey_Slash;
 	//case VK_OEM_1: return ImGuiKey_Semicolon;

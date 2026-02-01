@@ -426,6 +426,13 @@ static bool ImGui_ImplFreeType_FontBakedInit(ImFontAtlas* atlas, ImFontConfig* s
         size *= (src->SizePixels / baked->OwnerFont->Sources[0]->SizePixels);
 
     ImGui_ImplFreeType_FontSrcData* bd_font_data = (ImGui_ImplFreeType_FontSrcData*)src->FontLoaderData;
+    // BUGFIX: ImGui can re-cycle the font but not initialize the font loader. Lazy-init it here until ImGui fixes this.
+    if (bd_font_data == nullptr)
+    {
+        ImGui_ImplFreeType_FontSrcInit(atlas, src);
+        bd_font_data = (ImGui_ImplFreeType_FontSrcData*)src->FontLoaderData;
+        IM_ASSERT(bd_font_data != nullptr);
+    }
     bd_font_data->BakedLastActivated = baked;
 
     // We use one FT_Size per (source + baked) combination.

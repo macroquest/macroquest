@@ -78,6 +78,8 @@ private:
 
 //----------------------------------------------------------------------------
 
+constexpr int DEFAULT_CONSOLE_FONT_SIZE = 13;
+
 class ZepEditor_ImGui : public Zep::ZepDisplay, public Zep::ZepEditor
 {
 public:
@@ -86,9 +88,9 @@ public:
 		, Zep::ZepEditor(this, root, flags, pFileSystem)
 	{
 		m_fonts[static_cast<int>(Zep::ZepTextType::Text)] =
-			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, 16);
+			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, DEFAULT_CONSOLE_FONT_SIZE);
 		m_fonts[static_cast<int>(Zep::ZepTextType::UI)] =
-			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, 16);
+			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, DEFAULT_CONSOLE_FONT_SIZE);
 	}
 
 	void HandleInput();
