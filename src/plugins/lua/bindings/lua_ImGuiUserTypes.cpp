@@ -249,6 +249,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"Step"                                          , &ImGuiListClipper::Step,
 		"DisplayStart"                                  , &ImGuiListClipper::DisplayStart,
 		"DisplayEnd"                                    , &ImGuiListClipper::DisplayEnd,
+		"Flags"                                         , &ImGuiListClipper::Flags,
 
 		"IncludeItemByIndex"                            , &ImGuiListClipper::IncludeItemByIndex,
 		"IncludeItemsByIndex"                           , &ImGuiListClipper::IncludeItemsByIndex,
@@ -548,6 +549,20 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ImTextureRef"                 , sol::no_constructor,
 
 		"GetTexID"                     , &ImTextureRef::GetTexID
+	);
+
+	// ImGuiWindowClass
+	lua.new_usertype<ImGuiWindowClass>(
+		"ImGuiWindowClass"             , sol::call_constructor
+		                               , sol::constructors<ImGuiWindowClass()>(),
+		"ClassId"                      , &ImGuiWindowClass::ClassId,
+		"FocusRouteParentWindowId"     , &ImGuiWindowClass::FocusRouteParentWindowId,
+		"ViewportFlagsOverrideSet"     , &ImGuiWindowClass::ViewportFlagsOverrideSet,
+		"ViewportFlagsOverrideClear"   , &ImGuiWindowClass::ViewportFlagsOverrideClear,
+		"TabItemFlagsOverrideSet"      , &ImGuiWindowClass::TabItemFlagsOverrideSet,
+		"DockNodeFlagsOverrideSet"     , &ImGuiWindowClass::DockNodeFlagsOverrideSet,
+		"DockingAlwaysTabBar"          , &ImGuiWindowClass::DockingAlwaysTabBar,
+		"DockingAllowUnclassed"        , &ImGuiWindowClass::DockingAllowUnclassed
 	);
 }
 

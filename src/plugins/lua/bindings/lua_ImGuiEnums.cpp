@@ -944,6 +944,32 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		{ "AntiAliasedFill"              , ImDrawListFlags_AntiAliasedFill },
 		{ "AllowVtxOffset"               , ImDrawListFlags_AllowVtxOffset }
 	});
+
+	//  Viewport flags
+	lua.new_enum("ImGuiViewportFlags", std::initializer_list<std::pair<std::string_view, int>> {
+		{ "None"                        , ImGuiViewportFlags_None},
+		{ "IsPlatformWindow"            , ImGuiViewportFlags_IsPlatformWindow },
+		{ "IsPlatformMonitor"           , ImGuiViewportFlags_IsPlatformMonitor },
+		{ "OwnedByApp"                  , ImGuiViewportFlags_OwnedByApp },
+		{ "NoDecoration"                , ImGuiViewportFlags_NoDecoration },
+		{ "NoTaskBarIcon"               , ImGuiViewportFlags_NoTaskBarIcon },
+		{ "NoFocusOnAppearing"          , ImGuiViewportFlags_NoFocusOnAppearing },
+		{ "NoFocusOnClick"              , ImGuiViewportFlags_NoFocusOnClick },
+		{ "NoInputs"                    , ImGuiViewportFlags_NoInputs },
+		{ "NoRendererClear"             , ImGuiViewportFlags_NoRendererClear },
+		{ "NoAutoMerge"                 , ImGuiViewportFlags_NoAutoMerge },
+		{ "TopMost"                     , ImGuiViewportFlags_TopMost },
+		{ "CanHostOtherWindows"         , ImGuiViewportFlags_CanHostOtherWindows },
+		{ "IsMinimized"                 , ImGuiViewportFlags_IsMinimized },
+		{ "IsFocused"                   , ImGuiViewportFlags_IsFocused },
+	});
+
+	// ImGuiListClipperFlags
+	lua.new_enum("ImGuiListClipperFlags", std::initializer_list<std::pair<std::string_view, int>> {
+		{ "None"                        , ImGuiListClipperFlags_None },
+		{ "NoSetTableRowCounters"       , ImGuiListClipperFlags_NoSetTableRowCounters },
+	});
+
 }
 
 } // namespace mq::lua::bindings
