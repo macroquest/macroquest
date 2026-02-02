@@ -279,16 +279,17 @@ void RegisterBindings_EQ(LuaThread* thread, sol::table& mq)
 	textTagInfo.set("link"                , sol::readonly(&TextTagInfo::link));
 	textTagInfo.set("text"                , sol::readonly(&TextTagInfo::text));
 
-	auto linkTypes = mq.new_enum("LinkTypes");
-	linkTypes.set("Item"                  , ETAG_ITEM);
-	linkTypes.set("Player"                , ETAG_PLAYER);
-	linkTypes.set("Spam"                  , ETAG_SPAM);
-	linkTypes.set("Achievement"           , ETAG_ACHIEVEMENT);
-	linkTypes.set("Dialog"                , ETAG_DIALOG_RESPONSE);
-	linkTypes.set("Command"               , ETAG_COMMAND);
-	linkTypes.set("Spell"                 , ETAG_SPELL);
-	linkTypes.set("Faction"               , ETAG_FACTION);
-	linkTypes.set("Invalid"               , ETAG_INVALID);
+	mq.new_enum("LinkTypes", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Item"                  , ETAG_ITEM },
+		{ "Player"                , ETAG_PLAYER },
+		{ "Spam"                  , ETAG_SPAM },
+		{ "Achievement"           , ETAG_ACHIEVEMENT },
+		{ "Dialog"                , ETAG_DIALOG_RESPONSE },
+		{ "Command"               , ETAG_COMMAND },
+		{ "Spell"                 , ETAG_SPELL },
+		{ "Faction"               , ETAG_FACTION },
+		{ "Invalid"               , ETAG_INVALID },
+	});
 
 	auto dialogLinkInfo = mq.new_usertype<DialogLinkInfo>("DialogLinkInfo", sol::no_constructor);
 	dialogLinkInfo.set("keyword"          , sol::readonly(&DialogLinkInfo::keyword));
