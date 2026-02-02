@@ -23114,7 +23114,7 @@ void ImGui::DebugNodeFont(ImFont* font)
     Indent();
     if (cfg->ShowFontPreview)
     {
-        PushFont(font, 0.0f);
+        PushFont(font, font->LegacySize);
         Text("The quick brown fox jumps over the lazy dog");
         PopFont();
     }
