@@ -36,6 +36,9 @@ void     ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX9_InvalidateDeviceObjects();
 bool     ImGui_ImplDX9_CreateDeviceObjects();
 
+// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = NULL to handle this manually.
+void     ImGui_ImplDX9_UpdateTexture(ImTextureData* tex);
+
 #endif // HAS_DIRECTX_9
 
 //----------------------------------------------------------------------------

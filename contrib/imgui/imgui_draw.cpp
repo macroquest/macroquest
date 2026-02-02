@@ -4636,6 +4636,13 @@ static bool ImGui_ImplStbTrueType_FontBakedInit(ImFontAtlas* atlas, ImFontConfig
     IM_UNUSED(atlas);
 
     ImGui_ImplStbTrueType_FontSrcData* bd_font_data = (ImGui_ImplStbTrueType_FontSrcData*)src->FontLoaderData;
+    // BUGFIX: ImGui can re-cycle the font but not initialize the font loader. Lazy-init it here until ImGui fixes this.
+    if (bd_font_data == nullptr)
+    {
+        ImGui_ImplStbTrueType_FontSrcInit(atlas, src);
+        bd_font_data = (ImGui_ImplStbTrueType_FontSrcData*)src->FontLoaderData;
+        IM_ASSERT(bd_font_data != nullptr);
+    }
     if (src->MergeMode == false)
     {
         // FIXME-NEWFONTS: reevaluate how to use sizing metrics

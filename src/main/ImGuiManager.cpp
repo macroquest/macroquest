@@ -378,7 +378,7 @@ bool gbManualResetRequired = false;
 
 static ImFontAtlas* s_fontAtlas = nullptr;
 static ImFontAtlas* s_eqFontAtlas = nullptr;
-static bool s_useFreeType = false;
+static bool s_useFreeType = true;
 
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static char ImGuiLogFile[MAX_PATH] = { 0 };
