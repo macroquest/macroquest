@@ -986,7 +986,7 @@ void ShowProfilesMenu(bool showLoadAll)
 						}
 
 						ImGui::TableNextColumn();
-						if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_DontClosePopups))
+						if (ImGui::Selectable(profile.characterName.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_NoAutoClosePopups))
 						{
 							if (!ImGui::IsKeyDown(ImGuiMod_Ctrl))
 							{
