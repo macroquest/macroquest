@@ -111,9 +111,80 @@ void LuaThreadInfo::EndRun()
 //============================================================================
 //============================================================================
 
+static int lua_at_panic(lua_State* L)
+{
+	//return sol::default_at_panic(L);
+
+	size_t messageSize;
+	const char* message = lua_tolstring(L, -1, &messageSize);
+	if (message)
+	{
+		std::string err(message, messageSize);
+		lua_settop(L, 0);
+
+		throw sol::error(err);
+	}
+
+	lua_settop(L, 0);
+	throw sol::error(std::string("An unexpected error occurred and panic has been invoked"));
+}
+
+static int lua_traceback_error_handler(lua_State* L)
+{
+	//return sol::default_traceback_error_handler(L);
+	std::string msg = "An unknown error has triggered the default error handler";
+	sol::optional<std::string_view> maybeTopMsg = sol::stack::unqualified_check_get<sol::string_view>(L, 1, &sol::no_panic);
+	if (maybeTopMsg)
+	{
+		const std::string_view& topMsg = maybeTopMsg.value();
+		msg.assign(topMsg.data(), topMsg.size());
+	}
+
+	luaL_traceback(L, L, msg.c_str(), 1);
+
+	sol::optional<std::string_view> maybeTraceback = sol::stack::unqualified_check_get<std::string_view>(L, -1, &sol::no_panic);
+	if (maybeTraceback)
+	{
+		const std::string_view& traceback = maybeTraceback.value();
+		msg.assign(traceback.data(), traceback.size());
+	}
+
+	sol::state_view sv{ L };
+	sol::table tracebacks = sv.registry()["mq2lua.tracebacks"];
+	tracebacks.add(msg);
+
+	return sol::stack::push(L, msg);
+}
+
+static int lua_exception_handler(lua_State* L, sol::optional<const std::exception&> ex, sol::string_view what)
+{
+	//return sol::detail::default_exception_handler(L, ex, what);
+
+	DebugSpew("[sol2] An exception occurred: %.*s", static_cast<int>(what.length()), what.data());
+
+	lua_pushlstring(L, what.data(), what.size());
+	return 1;
+}
+
+static sol::state state_factory()
+{
+	sol::state new_state;
+
+	sol::set_default_state(new_state.lua_state(), lua_at_panic,
+		sol::c_call<decltype(&lua_traceback_error_handler), &lua_traceback_error_handler>,
+		lua_exception_handler);
+
+	new_state.registry()["mq2lua.tracebacks"] = new_state.create_table();
+
+	return new_state;
+}
+
+//============================================================================
+
 LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
-	: m_luaEnvironmentSettings(environment)
-	, m_name("(unnamed)")
+	: m_name("(unnamed)")
+	, m_luaEnvironmentSettings(environment)
+	, m_globalState(state_factory())
 	, m_pid(NextID())
 	, m_coroutine(LuaCoroutine::Create(sol::thread::create(m_globalState), this))
 {

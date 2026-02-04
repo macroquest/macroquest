@@ -147,9 +147,9 @@ static void RegisterBuiltInModules()
 
 #pragma region Shared Function Definitions
 
-void DebugStackTrace(lua_State* L, const char* message)
+void DebugStackTrace(lua_State* L, const sol::error& message)
 {
-	std::string_view svMessage{ message ? message : "nil" };
+	std::string_view svMessage{ message.what() };
 	LuaError("%.*s", svMessage.length(), svMessage.data());
 
 	if (s_verboseErrors)
@@ -176,7 +176,7 @@ void DebugStackTrace(lua_State* L, const char* message)
 			{
 			case LUA_TSTRING: {
 				const char* str = lua_tostring(L, i);
-				if (string_equals(str, message) && i == top) {
+				if (string_equals(str, svMessage) && i == top) {
 					top -= 3; // skip exception, location, and error.
 					i -= 2;
 					break;
