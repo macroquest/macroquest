@@ -1,3 +1,8 @@
+## Update 2/5/2026
+
+Add Fangbreaker to list of supported live servers.
+
+
 ## Update 2/1/2026
 
 ### Features
