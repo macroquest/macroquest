@@ -116,7 +116,7 @@ protobuf_generate(
 )
 
 # Link the proto library to main project
-target_link_libraries(MQ2Lua PRIVATE
+target_link_libraries(MQ2Lua PUBLIC
     MQ2Lua-proto
 )
 
@@ -148,7 +148,7 @@ target_compile_definitions(MQ2Lua PRIVATE
 # Include directories
 # ---------------------------------------------------------------------
 target_include_directories(MQ2Lua PRIVATE
-    "${ProjectDir}"
+    "${CMAKE_CURRENT_LIST_DIR}/"
 )
 
 # ---------------------------------------------------------------------

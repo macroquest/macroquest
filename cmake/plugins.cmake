@@ -1,12 +1,12 @@
 function(detect_custom_plugins OUT_PLUGIN_SUBDIRS PLUGINS_FILE)
     # Determine custom plugins: either from file or auto-detect
-    if(PLUGINS_FILE AND EXISTS "${PLUGINS_FILE}")
+    if(PLUGINS_FILE AND EXISTS ${PLUGINS_FILE})
         # Parse the custom plugins file to extract directory paths
         file(STRINGS "${PLUGINS_FILE}" PLUGIN_FILE_LINES)
         foreach(LINE ${PLUGIN_FILE_LINES})
             # Look for add_subdirectory or add_custom_vcxproj calls
             # Pattern: add_subdirectory("path") or add_custom_vcxproj("path" ...
-            if(LINE MATCHES "add_subdirectory\\(\"?([^\"\\)]+)\"?\\)")
+            if(LINE MATCHES "add_subdirectory *\\(\"?([^\"\\)]+)\"?\\)")
                 set(PLUGIN_PATH "${CMAKE_MATCH_1}")
                 # Truncate to plugins/<folder> format
                 if(PLUGIN_PATH MATCHES "plugins/([^/]+)")
