@@ -89,7 +89,8 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 
 		if (!result.valid())
 		{
-			luaL_error(thread.state(), "Call to mq.delay failed");
+			sol::error err = result;
+			luaL_error(thread.state(), "Error in mq.delay callback: %s", err.what());
 		}
 
 		auto result_bool = result.get<sol::optional<bool>>();
