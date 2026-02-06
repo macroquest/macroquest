@@ -30,9 +30,9 @@ CoroutineResult Run(const std::vector<T>& args, LuaCoroutine* co)
 		if (result.valid())
 			return result;
 
-		//sol::table tracebacks = co->luaThread->GetState().registry()["mq2lua.tracebacks"];
+		sol::table stackTraces = co->luaThread->GetState().registry()["mq2lua.tracebacks"];
 		sol::error err = result;
-		DebugStackTrace(result.lua_state(), err);
+		DebugStackTrace(result.lua_state(), err, stackTraces);
 		result.abandon();
 	}
 	catch (const sol::error& err)
@@ -89,8 +89,7 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 
 		if (!result.valid())
 		{
-			sol::error err = result;
-			luaL_error(thread.state(), "Error in mq.delay callback: %s", err.what());
+			luaL_error(thread.state(), "Error received from mq.delay callback");
 		}
 
 		auto result_bool = result.get<sol::optional<bool>>();

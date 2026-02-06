@@ -225,7 +225,7 @@ static void lua_doevents(sol::variadic_args va, sol::this_state s)
 					args.emplace_back(*arg);
 			}
 
-			events->PrepareEvents(args);
+			events->PrepareEvents(std::move(args));
 			thread_ptr->DoYield(); // doevents needs to yield, event processing will pick up next frame
 		}
 	}
