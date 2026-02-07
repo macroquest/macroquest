@@ -523,7 +523,7 @@ The generated `.cmake` files may contain:
 3. **Compiler/Linker Options**: Listed as comments for manual conversion
    ```cmake
    # Compiler options from props (manual conversion needed)
-   # LanguageStandard = stdcpp17
+   # LanguageStandard = stdcpp20
    # WarningLevel = Level3
    ```
 
