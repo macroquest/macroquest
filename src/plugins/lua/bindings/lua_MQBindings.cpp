@@ -225,7 +225,7 @@ static void lua_doevents(sol::variadic_args va, sol::this_state s)
 					args.emplace_back(*arg);
 			}
 
-			events->PrepareEvents(args);
+			events->PrepareEvents(std::move(args));
 			thread_ptr->DoYield(); // doevents needs to yield, event processing will pick up next frame
 		}
 	}
@@ -569,7 +569,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 		"MQTexture"                  , sol::no_constructor,
 		"size"                       , sol::property([](const MQTexture& mThis) -> ImVec2 { return mThis.GetTextureSize(); }),
 		"fileName"                   , sol::property(&mq::MQTexture::GetFilename),
-		"GetTextureID"               , &mq::MQTexture::GetTextureID
+		"GetTextureID"               , [](const MQTexture& mThis) -> ImTextureRef { return mThis.GetTextureID(); }
 	);
 	mq.set_function("CreateTexture", [](const std::string& name) { return CreateTexturePtr(name); });
 }

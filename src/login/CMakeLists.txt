@@ -79,7 +79,7 @@ protobuf_generate(
 )
 
 # Link the proto library to main project
-target_link_libraries(login PRIVATE
+target_link_libraries(login PUBLIC
     login-proto
 )
 

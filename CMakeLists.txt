@@ -56,6 +56,8 @@ else()
     )
 endif()
 
+set(VCPKG_INSTALL_OPTIONS "--allow-unsupported")
+
 message(STATUS "Configuring for platform: ${CMAKE_GENERATOR_PLATFORM}")
 
 # ============================================================================
@@ -144,7 +146,11 @@ if (MQ_BUILD_TESTS)
 endif()
 
 if (MQ_BUILD_CUSTOM_PLUGINS)
-    detect_custom_plugins(MQ_CUSTOM_PLUGIN_SUBDIRS "${CMAKE_SOURCE_DIR}/${MQ_CUSTOM_PLUGINS_FILE}")
+    if(MQ_CUSTOM_PLUGINS_FILE)
+        get_filename_component(MQ_CUSTOM_PLUGINS_FILE ${MQ_CUSTOM_PLUGINS_FILE} ABSOLUTE)
+    endif()
+
+    detect_custom_plugins(MQ_CUSTOM_PLUGIN_SUBDIRS ${MQ_CUSTOM_PLUGINS_FILE})
 
     # Add custom plugin subdirs to the main list, after converting if needed
     if(MQ_CUSTOM_PLUGIN_SUBDIRS)
@@ -215,6 +221,10 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Available build conf
 if(NOT CMAKE_GENERATOR_TOOLSET)
     set(CMAKE_GENERATOR_TOOLSET "v143" CACHE STRING "Choose MSVC toolset." FORCE)
 endif()
+
+# Disable CMake's automatic MSVC runtime library handling
+# Runtime library flags (/MT, /MTd) are set manually in Common.cmake
+set(CMAKE_MSVC_RUNTIME_LIBRARY "" CACHE STRING "" FORCE)
 
 # ============================================================================
 # Begin project definition

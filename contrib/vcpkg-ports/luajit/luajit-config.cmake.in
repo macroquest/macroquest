@@ -1,0 +1,57 @@
+@PACKAGE_INIT@
+
+# LuaJIT CMake Config File
+
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+if(_IMPORT_PREFIX STREQUAL "/")
+  set(_IMPORT_PREFIX "")
+endif()
+
+# Create imported target
+if(NOT TARGET luajit::luajit)
+    add_library(luajit::luajit STATIC IMPORTED)
+
+    set_target_properties(luajit::luajit PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/luajit"
+    )
+
+    # Set library location for different configurations
+    find_library(LUAJIT_LIBRARY_RELEASE NAMES lua51 PATHS "${_IMPORT_PREFIX}/lib" NO_DEFAULT_PATH)
+    find_library(LUAJIT_LIBRARY_DEBUG NAMES lua51 PATHS "${_IMPORT_PREFIX}/debug/lib" NO_DEFAULT_PATH)
+
+    if(LUAJIT_LIBRARY_RELEASE)
+        set_property(TARGET luajit::luajit APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+        set_target_properties(luajit::luajit PROPERTIES
+            IMPORTED_LOCATION_RELEASE "${LUAJIT_LIBRARY_RELEASE}"
+        )
+    endif()
+
+    if(LUAJIT_LIBRARY_DEBUG)
+        set_property(TARGET luajit::luajit APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+        set_target_properties(luajit::luajit PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${LUAJIT_LIBRARY_DEBUG}"
+        )
+    endif()
+
+    # Fallback if only one configuration is available
+    if(LUAJIT_LIBRARY_RELEASE AND NOT LUAJIT_LIBRARY_DEBUG)
+        set_target_properties(luajit::luajit PROPERTIES
+            IMPORTED_LOCATION "${LUAJIT_LIBRARY_RELEASE}"
+        )
+    elseif(LUAJIT_LIBRARY_DEBUG AND NOT LUAJIT_LIBRARY_RELEASE)
+        set_target_properties(luajit::luajit PROPERTIES
+            IMPORTED_LOCATION "${LUAJIT_LIBRARY_DEBUG}"
+        )
+    endif()
+endif()
+
+# Legacy variables for backwards compatibility
+set(LUAJIT_FOUND TRUE)
+set(LUAJIT_INCLUDE_DIRS "${_IMPORT_PREFIX}/include/luajit")
+set(LUAJIT_LIBRARIES luajit::luajit)
+
+unset(_IMPORT_PREFIX)
+
+check_required_components(luajit)

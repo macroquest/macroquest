@@ -216,6 +216,7 @@ private:
 	static void lua_forceYield(lua_State* L, lua_Debug* D);
 
 private:
+	std::string m_name;
 	LuaEnvironmentSettings* m_luaEnvironmentSettings = nullptr;
 
 	// this needs to be first in initialization order because other things depend on it
@@ -225,7 +226,6 @@ private:
 	sol::table m_threadTable;
 	uint32_t m_threadIndex = 0;
 
-	std::string m_name;
 	std::string m_path;
 	uint32_t m_pid = 0;
 	uint32_t m_turboNum = 500;

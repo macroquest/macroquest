@@ -1,0 +1,57 @@
+@PACKAGE_INIT@
+
+# Detours CMake Config File
+
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+if(_IMPORT_PREFIX STREQUAL "/")
+  set(_IMPORT_PREFIX "")
+endif()
+
+# Create imported target
+if(NOT TARGET detours::detours)
+    add_library(detours::detours STATIC IMPORTED)
+
+    set_target_properties(detours::detours PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+    )
+
+    # Set library location for different configurations
+    find_library(DETOURS_LIBRARY_RELEASE NAMES detours PATHS "${_IMPORT_PREFIX}/lib" NO_DEFAULT_PATH)
+    find_library(DETOURS_LIBRARY_DEBUG NAMES detours PATHS "${_IMPORT_PREFIX}/debug/lib" NO_DEFAULT_PATH)
+
+    if(DETOURS_LIBRARY_RELEASE)
+        set_property(TARGET detours::detours APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+        set_target_properties(detours::detours PROPERTIES
+            IMPORTED_LOCATION_RELEASE "${DETOURS_LIBRARY_RELEASE}"
+        )
+    endif()
+
+    if(DETOURS_LIBRARY_DEBUG)
+        set_property(TARGET detours::detours APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+        set_target_properties(detours::detours PROPERTIES
+            IMPORTED_LOCATION_DEBUG "${DETOURS_LIBRARY_DEBUG}"
+        )
+    endif()
+
+    # Fallback if only one configuration is available
+    if(DETOURS_LIBRARY_RELEASE AND NOT DETOURS_LIBRARY_DEBUG)
+        set_target_properties(detours::detours PROPERTIES
+            IMPORTED_LOCATION "${DETOURS_LIBRARY_RELEASE}"
+        )
+    elseif(DETOURS_LIBRARY_DEBUG AND NOT DETOURS_LIBRARY_RELEASE)
+        set_target_properties(detours::detours PROPERTIES
+            IMPORTED_LOCATION "${DETOURS_LIBRARY_DEBUG}"
+        )
+    endif()
+endif()
+
+# Legacy variables for backwards compatibility
+set(DETOURS_FOUND TRUE)
+set(DETOURS_INCLUDE_DIRS "${_IMPORT_PREFIX}/include")
+set(DETOURS_LIBRARIES detours::detours)
+
+unset(_IMPORT_PREFIX)
+
+check_required_components(detours)

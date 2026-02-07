@@ -22,6 +22,8 @@
 #include "bindings/lua_Bindings.h"
 #include "bindings/lua_MQBindings.h"
 
+#include "sol/compatibility/compat-5.3.c.h"
+
 #include <mq/base/String.h>
 #include <mq/Plugin.h>
 #include <lauxlib.h>
@@ -29,22 +31,47 @@
 #include <chrono>
 #include <fmt/format.h>
 
-#if LUAJIT_VERSION_NUM == 20005
-bool lua_isyieldable(lua_State* L)
-{
 #if _M_AMD64
-	constexpr int offset = 0x30;
+// natvis assist
+struct MRef
+{
+	uint64_t ptr64;
+};
+
+struct GCRef
+{
+	uint64_t gcptr64;
+};
+
+union TValue
+{
+	uint64_t u64;
+	lua_Number n;
+	GCRef gcr;
+	int64_t it64;
+	struct
+	{
+		int32_t i;
+		uint32_t it;
+	};
+	int64_t ftsz;
+	struct
+	{
+		uint32_t lo;
+		uint32_t hi;
+	};
+};
+
+struct LJNode
+{
+	TValue val;
+	TValue key;
+	MRef next;
+};
+
+LJNode s_natvisNode;
 #else
-	constexpr int offset = 0x28;
-#endif
 
-	// this is defined in luajit 2.1, but not in 2.0.5 -- this is a hack that is steady because
-	// it's a single version, and it's preferable to pulling in 2 internal luajit headers to do
-	// this nicely (lj_obj.h and lj_frame.h)
-
-	// return ((intptr_t)(L->cframe) & CFRAME_RESUME);
-	return (*(intptr_t*)((char*)L + offset) & 1);
-}
 #endif
 
 namespace mq::lua {
@@ -61,6 +88,8 @@ static uint32_t NextID()
 std::shared_ptr<mq::lua::LuaThread> GetLuaThreadByPID(int pid);
 void OnLuaThreadDestroyed(LuaThread* thread);
 void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner);
+
+extern bool g_verboseErrors;
 
 
 // Mapping of TLOs to the pid of the script that created it
@@ -111,9 +140,220 @@ void LuaThreadInfo::EndRun()
 //============================================================================
 //============================================================================
 
+static int lua_at_panic(lua_State* L)
+{
+	//return sol::default_at_panic(L);
+
+	size_t messageSize;
+	const char* message = lua_tolstring(L, -1, &messageSize);
+	if (message)
+	{
+		std::string err(message, messageSize);
+		lua_settop(L, 0);
+
+		throw sol::error(err);
+	}
+
+	lua_settop(L, 0);
+	throw sol::error(std::string("An unexpected error occurred and panic has been invoked"));
+}
+
+#define COMPAT53_LEVELS1 12 /* size of the first part of the stack */
+#define COMPAT53_LEVELS2 10 /* size of the second part of the stack */
+
+static sol::table rich_traceback(sol::state_view L, sol::state_view L1, std::string_view msg, int level)
+{
+	lua_Debug ar;
+	int top = lua_gettop(L);
+	int numlevels = compat53_countlevels(L1);
+	int mark = (numlevels > COMPAT53_LEVELS1 + COMPAT53_LEVELS2) ? COMPAT53_LEVELS1 : 0;
+
+	sol::table t = L.create_table_with(
+		"message", msg
+	);
+
+	std::string message;
+	if (!msg.empty())
+	{
+		message = fmt::format("{}\n", msg);
+	}
+
+	sol::table tracebackTable = L.create_table();
+
+	lua_pushliteral(L, "stack traceback:");
+	while (lua_getstack(L1, level++, &ar)) {
+		if (level == mark) {                       /* too many levels? */
+			lua_pushliteral(L, "\n\t...");        /* add a '...' */
+			level = numlevels - COMPAT53_LEVELS2; /* and skip to last ones */
+		}
+		else {
+			lua_getinfo(L1, "Slnt", &ar);
+			lua_pushfstring(L, "\n\t%s:", ar.short_src);
+			if (ar.currentline > 0)
+				lua_pushfstring(L, "%d:", ar.currentline);
+			lua_pushliteral(L, " in ");
+			compat53_pushfuncname(L, &ar);
+			lua_concat(L, lua_gettop(L) - top);
+
+			compat53_pushfuncname(L, &ar);
+			std::string_view funcName = sol::stack::pop<std::string_view>(L);
+
+			sol::table entry = L.create_table_with(
+				"source", ar.source,
+				"name", ar.name,
+				"namewhat", ar.namewhat,
+				"what", ar.what,
+				"currentline", ar.currentline,
+				"short_src", ar.short_src,
+				"funcname", funcName
+			);
+			tracebackTable[tracebackTable.size() + 1] = entry;
+		}
+	}
+	lua_concat(L, lua_gettop(L) - top);
+
+	t["traceback"] = tracebackTable;
+
+	message += sol::stack::pop<std::string_view>(L);
+	t["formatted"] = std::move(message);
+
+	return t;
+}
+
+static int lua_traceback_error_handler(lua_State* L)
+{
+	//return sol::default_traceback_error_handler(L);
+
+	sol::state_view sv{ L };
+	std::string_view msg = sol::stack::pop<std::optional<sol::string_view>>(L).value_or(
+		"An unknown error has triggered the default error handler");
+
+	auto table = rich_traceback(L, L, msg, 1);
+
+	sol::table tracebacks = sv.registry()["mq2lua.tracebacks"];
+	tracebacks.add(table);
+
+	return sol::stack::push(L, table["formatted"]);
+}
+
+void DebugStackTrace(lua_State* L, const sol::error& message, sol::table stackTraces)
+{
+	std::string_view svMessage = "";
+
+	if (!stackTraces.empty())
+	{
+		for (const auto& [_, object] : stackTraces)
+		{
+			if (!object.is<sol::object>())
+				continue;
+
+			sol::table t = object.as<sol::table>();
+
+			svMessage = t.get<std::string_view>("formatted");
+			LuaError("%.*s", svMessage.length(), svMessage.data());
+		}
+	}
+	else
+	{
+		svMessage = message.what();
+		LuaError("%.*s", svMessage.length(), svMessage.data());
+	}
+
+	if (g_verboseErrors)
+	{
+		int top = lua_gettop(L);
+
+		struct StackLine
+		{
+			std::string str;
+			int a;
+			int b;
+
+			StackLine(std::string str_, int i_, int top_)
+				: str(std::move(str_))
+				, a(i_)
+				, b(i_ - (top_ + 1))
+			{
+			}
+		};
+		std::vector<StackLine> lines;
+
+		for (int i = top; i >= 1; i--)
+		{
+			int t = lua_type(L, i);
+			switch (t)
+			{
+			case LUA_TSTRING: {
+				const char* str = lua_tostring(L, i);
+				if (string_equals(str, svMessage) && i == top) {
+					top -= 3; // skip exception, location, and error.
+					i -= 2;
+					break;
+				}
+				lines.emplace_back(fmt::format("`{}'", str), i, top);
+				break;
+			}
+
+			case LUA_TBOOLEAN:
+				lines.emplace_back(lua_toboolean(L, i) ? "true" : "false", i, top);
+				break;
+
+			case LUA_TNUMBER:
+				lines.emplace_back(fmt::format("{}", lua_tonumber(L, i)), i, top);
+				break;
+
+			case LUA_TUSERDATA:
+				lines.emplace_back(fmt::format("[{}]", luaL_tolstring(L, i, NULL)), i, top);
+				break;
+
+			default:
+				lines.emplace_back(fmt::format("{}", lua_typename(L, t)), i, top);
+				break;
+			}
+		}
+
+		if (lines.size() > 0)
+		{
+			LuaError("---- Begin Stack (size: %i) ----", lines.size());
+			for (const StackLine& line : lines)
+			{
+				LuaError("%i -- (%i) ---- %s", line.a, line.b, line.str.c_str());
+			}
+			LuaError("---- End Stack ----\n");
+		}
+	}
+}
+
+
+static int lua_exception_handler(lua_State* L, sol::optional<const std::exception&> ex, sol::string_view what)
+{
+	//return sol::detail::default_exception_handler(L, ex, what);
+
+	DebugSpew("[sol2] An exception occurred: %.*s", static_cast<int>(what.length()), what.data());
+
+	lua_pushlstring(L, what.data(), what.size());
+	return 1;
+}
+
+static sol::state state_factory()
+{
+	sol::state new_state;
+
+	sol::set_default_state(new_state.lua_state(), lua_at_panic,
+		sol::c_call<decltype(&lua_traceback_error_handler), &lua_traceback_error_handler>,
+		lua_exception_handler);
+
+	new_state.registry()["mq2lua.tracebacks"] = new_state.create_table();
+
+	return new_state;
+}
+
+//============================================================================
+
 LuaThread::LuaThread(this_is_private&&, LuaEnvironmentSettings* environment)
-	: m_luaEnvironmentSettings(environment)
-	, m_name("(unnamed)")
+	: m_name("(unnamed)")
+	, m_luaEnvironmentSettings(environment)
+	, m_globalState(state_factory())
 	, m_pid(NextID())
 	, m_coroutine(LuaCoroutine::Create(sol::thread::create(m_globalState), this))
 {

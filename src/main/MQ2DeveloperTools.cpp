@@ -2200,28 +2200,45 @@ public:
 		ImGui::Text("Rounding Mode: %s", roundingMode);
 	}
 
-	void DrawFonts()
+	static CFontManager* GetFontManager(CResourceManagerInterface* resourceMgr)
 	{
-		if (!pGraphicsEngine) return;
-		auto resourceMgr = pGraphicsEngine->pResourceManager;
-		if (!resourceMgr) return;
-
+		EStatus status;
 		CCachedFont* pCachedFont;
-		CCachedFont* pSelectedFont = nullptr;
-		EStatus status = eStatusFailure;
 
 		// GetCachedFont may crash here if the font manager hasn't been created yet, but we're
 		// using this routine to get access to the font manager. If it throws an access violation,
 		// the application state is fine, we can just bail on this attempt.
 		__try {
 			status = resourceMgr->GetCachedFont(0, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
-		} __except (EXCEPTION_EXECUTE_HANDLER) {
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
 			status = eStatusFailure;
 		}
 
-		if (status != eStatusSuccess) return;
-		CFontManager* fontMgr = pCachedFont->pFontManager;
-		if (!fontMgr) return;
+		if (status != eStatusSuccess)
+			return nullptr;
+
+		if (!pCachedFont)
+			return nullptr;
+
+		return pCachedFont->pFontManager;
+	}
+
+	void DrawFonts()
+	{
+		if (!pGraphicsEngine)
+			return;
+
+		auto resourceMgr = pGraphicsEngine->pResourceManager;
+		if (!resourceMgr)
+			return;
+
+		CCachedFont* pSelectedFont = nullptr;
+		CCachedFont* pCachedFont;
+
+		CFontManager* fontMgr = GetFontManager(resourceMgr);
+		if (!fontMgr)
+			return;
 
 		ImVec2 availSize = ImGui::GetContentRegionAvail();
 		if (m_rightPaneSize == 0.0f)
@@ -5253,7 +5270,7 @@ public:
 				char label[32];
 				sprintf_s(label, "%d", pSwitch->ID);
 
-				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap))
+				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 				{
 					if (ImGui::GetIO().KeyCtrl)
 						ShowSwitchViewer(pSwitch->ID, true);

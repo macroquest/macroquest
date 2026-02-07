@@ -38,8 +38,9 @@ extern "C" HINSTANCE ghInstance;
 // written by Brainiac, based off of example code from github.com/ocornut/imgui
 
 // Implemented features:
-//  [X] Renderer: User texture binding. Use 'LPDIRECT3DTEXTURE9' as ImTextureID. Read the FAQ about ImTextureID!
+//  [X] Renderer: User texture binding. Use 'LPDIRECT3DTEXTURE9' as texture identifier. Read the FAQ about ImTextureID/ImTextureRef!
 //  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
+//  [X] Renderer: Texture updates support for dynamic font atlas (ImGuiBackendFlags_RendererHasTextures).
 //  [X] Renderer: IMGUI_USE_BGRA_PACKED_COLOR support, as this is the optimal color encoding for DirectX9.
 //  [X] Renderer: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
@@ -53,7 +54,9 @@ extern "C" HINSTANCE ghInstance;
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-09-18: Call platform_io.ClearRendererHandlers() on shutdown.
+//  2025-06-11: DirectX9: Added support for ImGuiBackendFlags_RendererHasTextures, for dynamic font atlas.
 //  2024-10-07: DirectX9: Changed default texture sampler to Clamp instead of Repeat/Wrap.
 //  2024-02-12: DirectX9: Using RGBA format when supported by the driver to avoid CPU side conversion. (#6575)
 //  2022-10-11: Using 'nullptr' instead of 'NULL' as per our switch to C++11.
@@ -75,12 +78,18 @@ extern "C" HINSTANCE ghInstance;
 //  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed ImGui_ImplDX9_RenderDrawData() in the .h file so you can call it yourself.
 //  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
 
+// Clang/GCC warnings with -Weverything
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wold-style-cast"         // warning: use of old-style cast                            // yes, they are more terse.
+#pragma clang diagnostic ignored "-Wsign-conversion"        // warning: implicit conversion changes signedness
+#endif
+
+// DirectX data
 struct ImGui_ImplDX9_Data
 {
 	wil::com_ptr_nothrow<IDirect3DDevice9>         pd3dDevice;
 	wil::com_ptr_nothrow<IDirect3DVertexBuffer9>   pVB;
 	wil::com_ptr_nothrow<IDirect3DIndexBuffer9>    pIB;
-	wil::com_ptr_nothrow<IDirect3DTexture9>        FontTexture;
 	int                                            VertexBufferSize = 5000;
 	int                                            IndexBufferSize = 10000;
 	bool                                           HasRgbaSupport;
@@ -203,6 +212,17 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	auto device = bd->pd3dDevice;
 
+	// Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to do.
+	// (This almost always points to ImGui::GetPlatformIO().Textures[] but is part of ImDrawData to allow overriding or disabling texture updates).
+	if (drawData->Textures != nullptr)
+	{
+		for (ImTextureData* tex : *drawData->Textures)
+		{
+			if (tex->Status != ImTextureStatus_OK)
+				ImGui_ImplDX9_UpdateTexture(tex);
+		}
+	}
+
 	if (!bd->pVB || bd->VertexBufferSize < drawData->TotalVtxCount)
 	{
 		bd->VertexBufferSize = drawData->TotalVtxCount + 5000;
@@ -258,9 +278,8 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	// FIXME-OPT: This is a waste of resource, the ideal is to use imconfig.h and
 	//  1) to avoid repacking colors:   #define IMGUI_USE_BGRA_PACKED_COLOR
 	//  2) to avoid repacking vertices: #define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT struct ImDrawVert { ImVec2 pos; float z; ImU32 col; ImVec2 uv; }
-	for (int n = 0; n < drawData->CmdListsCount; n++)
+	for (const ImDrawList* drawList : drawData->CmdLists)
 	{
-		const ImDrawList* drawList = drawData->CmdLists[n];
 		const ImDrawVert* vtxSrc = drawList->VtxBuffer.Data;
 
 		for (int i = 0; i < drawList->VtxBuffer.Size; i++)
@@ -293,9 +312,8 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	int globalVtxOffset = 0;
 	int globalIdxOffset = 0;
 	ImVec2 clipOff = drawData->DisplayPos;
-	for (int n = 0; n < drawData->CmdListsCount; n++)
+	for (const ImDrawList* drawList : drawData->CmdLists)
 	{
-		const ImDrawList* drawList = drawData->CmdLists[n];
 		for (int cmdIndex = 0; cmdIndex < drawList->CmdBuffer.Size; cmdIndex++)
 		{
 			const ImDrawCmd* pCmd = &drawList->CmdBuffer[cmdIndex];
@@ -370,7 +388,11 @@ bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
 	io.BackendRendererUserData = (void*)bd;
 	io.BackendRendererName = "imgui_impl_dx9";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+	io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;   // We can honor ImGuiPlatformIO::Textures[] requests during render.
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;  // We can create multi-viewports on the Renderer side (optional)
+
+	ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+	platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight = 4096;
 
 	bd->pd3dDevice = device;
 	bd->HasRgbaSupport = ImGui_ImplDX9_CheckFormatSupport(bd->pd3dDevice.get(), D3DFMT_A8B8G8R8);
@@ -389,17 +411,20 @@ void ImGui_ImplDX9_Shutdown()
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
 	ImGuiIO& io = ImGui::GetIO();
+	ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
 	ImGui_ImplDX9_ShutdownMultiViewportSupport();
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 
 	io.BackendRendererName = nullptr;
 	io.BackendRendererUserData = nullptr;
+	io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures | ImGuiBackendFlags_RendererHasViewports);
+	platform_io.ClearRendererHandlers();
 	delete bd;
 }
 
 // Convert RGBA32 to BGRA32 (because RGBA32 is not well supported by DX9 devices)
-static void ImGui_ImplDX9_CopyTextureRegion(bool tex_use_colors, ImU32* src, int src_pitch, ImU32* dst, int dst_pitch, int w, int h)
+static void ImGui_ImplDX9_CopyTextureRegion(bool tex_use_colors, const ImU32* src, int src_pitch, ImU32* dst, int dst_pitch, int w, int h)
 {
 #ifndef IMGUI_USE_BGRA_PACKED_COLOR
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
@@ -410,8 +435,8 @@ static void ImGui_ImplDX9_CopyTextureRegion(bool tex_use_colors, ImU32* src, int
 #endif
 	for (int y = 0; y < h; y++)
 	{
-		ImU32* src_p = (ImU32*)((unsigned char*)src + src_pitch * y);
-		ImU32* dst_p = (ImU32*)((unsigned char*)dst + dst_pitch * y);
+		const ImU32* src_p = (const ImU32*)(const void*)((const unsigned char*)src + src_pitch * y);
+		ImU32* dst_p = (ImU32*)(void*)((unsigned char*)dst + dst_pitch * y);
 		if (convert_rgba_to_bgra)
 			for (int x = w; x > 0; x--, src_p++, dst_p++) // Convert copy
 				*dst_p = IMGUI_COL_TO_DX9_ARGB(*src_p);
@@ -420,38 +445,76 @@ static void ImGui_ImplDX9_CopyTextureRegion(bool tex_use_colors, ImU32* src, int
 	}
 }
 
-bool ImGui_ImplDX9_CreateFontsTexture()
+void ImGui_ImplDX9_UpdateTexture(ImTextureData* tex)
 {
-	// Build texture atlas
-	ImGuiIO& io = ImGui::GetIO();
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 
-	unsigned char* pixels;
-	int width, height, bytes_per_pixel;
-	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytes_per_pixel);
+	if (tex->Status == ImTextureStatus_WantCreate)
+	{
+		// Create and upload new texture to graphics system
+		//IMGUI_DEBUG_LOG("UpdateTexture #%03d: WantCreate %dx%d\n", tex->UniqueID, tex->Width, tex->Height);
+		IM_ASSERT(tex->TexID == ImTextureID_Invalid && tex->BackendUserData == nullptr);
+		IM_ASSERT(tex->Format == ImTextureFormat_RGBA32);
+		LPDIRECT3DTEXTURE9 dxTex = nullptr;
+		HRESULT hr = bd->pd3dDevice->CreateTexture(tex->Width, tex->Height, 1, D3DUSAGE_DYNAMIC,
+			bd->HasRgbaSupport ? D3DFMT_A8B8G8R8 : D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &dxTex, nullptr);
+		if (hr < 0)
+		{
+			IM_ASSERT(hr >= 0 && "Backend failed to create texture!");
+			return;
+		}
 
-	// Upload texture to graphics system
-	if (bd->pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, bd->HasRgbaSupport ? D3DFMT_A8B8G8R8 : D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &bd->FontTexture, nullptr) < 0)
-		return false;
+		D3DLOCKED_RECT locked_rect;
+		if (dxTex->LockRect(0, &locked_rect, nullptr, 0) == D3D_OK)
+		{
+			ImGui_ImplDX9_CopyTextureRegion(tex->UseColors, (ImU32*)tex->GetPixels(), tex->Width * 4,
+				(ImU32*)locked_rect.pBits, (ImU32)locked_rect.Pitch, tex->Width, tex->Height);
+			dxTex->UnlockRect(0);
+		}
 
-	D3DLOCKED_RECT tex_locked_rect;
-	if (bd->FontTexture->LockRect(0, &tex_locked_rect, nullptr, 0) != D3D_OK)
-		return false;
+		// Store identifiers
+		tex->SetTexID((ImTextureID)(intptr_t)dxTex);
+		tex->SetStatus(ImTextureStatus_OK);
+	}
+	else if (tex->Status == ImTextureStatus_WantUpdates)
+	{
+		// Update selected blocks. We only ever write to textures regions which have never been used before!
+		// This backend choose to use tex->Updates[] but you can use tex->UpdateRect to upload a single region.
+		LPDIRECT3DTEXTURE9 backendTex = (LPDIRECT3DTEXTURE9)(intptr_t)tex->TexID;
+		RECT updateRect = { (LONG)tex->UpdateRect.x, (LONG)tex->UpdateRect.y, (LONG)(tex->UpdateRect.x + tex->UpdateRect.w), (LONG)(tex->UpdateRect.y + tex->UpdateRect.h) };
+		D3DLOCKED_RECT lockedRect;
 
-	ImGui_ImplDX9_CopyTextureRegion(io.Fonts->TexPixelsUseColors, (ImU32*)pixels, width * bytes_per_pixel, (ImU32*)tex_locked_rect.pBits, (int)tex_locked_rect.Pitch, width, height);
-	bd->FontTexture->UnlockRect(0);
+		if (backendTex->LockRect(0, &lockedRect, &updateRect, 0) == D3D_OK)
+		{
+			for (ImTextureRect& r : tex->Updates)
+			{
+				ImGui_ImplDX9_CopyTextureRegion(tex->UseColors, (ImU32*)tex->GetPixelsAt(r.x, r.y), tex->Width * 4,
+					(ImU32*)lockedRect.pBits + (r.x - updateRect.left) + (r.y - updateRect.top) * (lockedRect.Pitch / 4), (int)lockedRect.Pitch, r.w, r.h);
+			}
+		}
 
-	// Store our identifier
-	io.Fonts->SetTexID((ImTextureID)bd->FontTexture.get());
-	return true;
+		backendTex->UnlockRect(0);
+		tex->SetStatus(ImTextureStatus_OK);
+	}
+	else if (tex->Status == ImTextureStatus_WantDestroy)
+	{
+		if (LPDIRECT3DTEXTURE9 backendTex = (LPDIRECT3DTEXTURE9)tex->TexID)
+		{
+			IM_ASSERT(tex->TexID == (ImTextureID)(intptr_t)backendTex);
+			backendTex->Release();
+
+			// Clear identifiers and mark as destroyed (in order to allow e.g. calling InvalidateDeviceObjects while running)
+			tex->SetTexID(ImTextureID_Invalid);
+		}
+
+		tex->SetStatus(ImTextureStatus_Destroyed);
+	}
 }
 
 bool ImGui_ImplDX9_CreateDeviceObjects()
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	if (!bd || !bd->pd3dDevice)
-		return false;
-	if (!ImGui_ImplDX9_CreateFontsTexture())
 		return false;
 	ImGui_ImplDX9_CreateDeviceObjectsForPlatformWindows();
 	return true;
@@ -460,15 +523,18 @@ bool ImGui_ImplDX9_CreateDeviceObjects()
 void ImGui_ImplDX9_InvalidateDeviceObjects()
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
-	if (bd)
+	if (!bd || !bd->pd3dDevice)
+		return;
+
+	// Destroy all textures
+	for (ImTextureData* tex : ImGui::GetPlatformIO().Textures)
 	{
-		bd->pVB.reset();
-		bd->pIB.reset();
-		bd->FontTexture.reset();
+		tex->SetStatus(ImTextureStatus_WantDestroy);
+		ImGui_ImplDX9_UpdateTexture(tex);
 	}
 
-	// We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
-	ImGui::GetIO().Fonts->SetTexID(nullptr);
+	bd->pVB.reset();
+	bd->pIB.reset();
 
 	ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
@@ -477,9 +543,7 @@ void ImGui_ImplDX9_NewFrame()
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplDX9_Init()?");
-
-	if (!bd->FontTexture)
-		ImGui_ImplDX9_CreateDeviceObjects();
+	IM_UNUSED(bd);
 }
 
 #pragma endregion
@@ -507,7 +571,7 @@ static void ImGui_ImplDX9_CreateWindow(ImGuiViewport* viewport)
 	ImGuiViewportDataDx9* vd = new ImGuiViewportDataDx9();
 	viewport->RendererUserData = vd;
 
-	// PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL_Window*).
+	// PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL's WindowID).
 	// Some back-ends will leave PlatformHandleRaw NULL, in which case we assume PlatformHandle will contain the HWND.
 	HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw : (HWND)viewport->PlatformHandle;
 	IM_ASSERT(hwnd != nullptr);

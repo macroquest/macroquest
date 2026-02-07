@@ -1,4 +1,4 @@
-﻿# Generated from Common.props
+# Generated from Common.props
 # This file should be included in CMakeLists.txt files that need these settings
 # NOTE: Import order preserved from original .props file
 
