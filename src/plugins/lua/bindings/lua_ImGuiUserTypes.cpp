@@ -128,11 +128,17 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(
 		"ImGuiStyle"                                    , sol::no_constructor,
+
+		"FontSizeBase"                                  , &ImGuiStyle::FontSizeBase,
+		"FontScaleMain"                                 , &ImGuiStyle::FontScaleMain,
+		"FontScaleDpi"                                  , &ImGuiStyle::FontScaleDpi,
+
 		"Alpha"                                         , &ImGuiStyle::Alpha,
 		"DisabledAlpha"                                 , &ImGuiStyle::DisabledAlpha,
 		"WindowPadding"                                 , &ImGuiStyle::WindowPadding,
 		"WindowRounding"                                , &ImGuiStyle::WindowRounding,
 		"WindowBorderSize"                              , &ImGuiStyle::WindowBorderSize,
+		"WindowBorderHoverPadding"                      , &ImGuiStyle::WindowBorderHoverPadding,
 		"WindowMinSize"                                 , &ImGuiStyle::WindowMinSize,
 		"WindowTitleAlign"                              , &ImGuiStyle::WindowTitleAlign,
 		"WindowMenuButtonPosition"                      , &ImGuiStyle::WindowMenuButtonPosition,
@@ -151,14 +157,28 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ColumnsMinSpacing"                             , &ImGuiStyle::ColumnsMinSpacing,
 		"ScrollbarSize"                                 , &ImGuiStyle::ScrollbarSize,
 		"ScrollbarRounding"                             , &ImGuiStyle::ScrollbarRounding,
+		"ScrollbarPadding"                              , &ImGuiStyle::ScrollbarPadding,
 		"GrabMinSize"                                   , &ImGuiStyle::GrabMinSize,
 		"GrabRounding"                                  , &ImGuiStyle::GrabRounding,
+		"LayoutAlign"                                   , &ImGuiStyle::LayoutAlign,
 		"LogSliderDeadzone"                             , &ImGuiStyle::LogSliderDeadzone,
+		"ImageBorderSize"                               , &ImGuiStyle::ImageBorderSize,
 		"TabRounding"                                   , &ImGuiStyle::TabRounding,
 		"TabBorderSize"                                 , &ImGuiStyle::TabBorderSize,
-		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabMinWidthForCloseButton,
+		"TabMinWidthBase"                               , &ImGuiStyle::TabMinWidthBase,
+		"TabMinWidthShrink"                             , &ImGuiStyle::TabMinWidthShrink,
+		"TabCloseButtonMinWidthSelected"                , &ImGuiStyle::TabCloseButtonMinWidthSelected,
+		"TabCloseButtonMinWidthUnselected"              , &ImGuiStyle::TabCloseButtonMinWidthUnselected,
 		"TabBarBorderSize"                              , &ImGuiStyle::TabBarBorderSize,
+		"TabBarOverlineSize"                            , &ImGuiStyle::TabBarOverlineSize,
 		"TableAngledHeadersAngle"                       , &ImGuiStyle::TableAngledHeadersAngle,
+		"TableAngledHeadersTextAlign"                   , &ImGuiStyle::TableAngledHeadersTextAlign,
+		"TreeLinesFlags"                                , &ImGuiStyle::TreeLinesFlags,
+		"TreeLinesSize"                                 , &ImGuiStyle::TreeLinesSize,
+		"TreeLinesRounding"                             , &ImGuiStyle::TreeLinesRounding,
+		"DragDropTargetRounding"                        , &ImGuiStyle::DragDropTargetRounding,
+		"DragDropTargetBorderSize"                      , &ImGuiStyle::DragDropTargetBorderSize,
+		"DragDropTargetPadding"                         , &ImGuiStyle::DragDropTargetPadding,
 		"ColorButtonPosition"                           , &ImGuiStyle::ColorButtonPosition,
 		"ButtonTextAlign"                               , &ImGuiStyle::ButtonTextAlign,
 		"SelectableTextAlign"                           , &ImGuiStyle::SelectableTextAlign,
@@ -167,6 +187,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"SeparatorTextPadding"                          , &ImGuiStyle::SeparatorTextPadding,
 		"DisplayWindowPadding"                          , &ImGuiStyle::DisplayWindowPadding,
 		"DisplaySafeAreaPadding"                        , &ImGuiStyle::DisplaySafeAreaPadding,
+		"DockingNodeHasCloseButton"                     , &ImGuiStyle::DockingNodeHasCloseButton,
 		"DockingSeparatorSize"                          , &ImGuiStyle::DockingSeparatorSize,
 		"MouseCursorScale"                              , &ImGuiStyle::MouseCursorScale,
 		"AntiAliasedLines"                              , &ImGuiStyle::AntiAliasedLines,
@@ -186,7 +207,8 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ScaleAllSizes"                                 , &ImGuiStyle::ScaleAllSizes,
 
 		// Deprecated
-		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError
+		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
+		"TabMinWidthForCloseButton"                     , &ImGuiStyle::TabCloseButtonMinWidthUnselected
 	);
 
 	// ImGuiIO
@@ -194,12 +216,18 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ImGuiIO"                                       , sol::no_constructor,
 
 		"ConfigFlags"                                   , sol::readonly(&ImGuiIO::ConfigFlags),
+		"BackendFlags"                                  , sol::readonly(&ImGuiIO::BackendFlags),
 		"DisplaySize"                                   , sol::readonly(&ImGuiIO::DisplaySize),
+		"DisplayFramebufferScale"                       , sol::readonly(&ImGuiIO::DisplayFramebufferScale),
 		"DeltaTime"                                     , sol::readonly(&ImGuiIO::DeltaTime),
+		"IniSavingRate"                                 , sol::readonly(&ImGuiIO::IniSavingRate),
+		"IniFilename"                                   , sol::readonly(&ImGuiIO::IniFilename),
+		"LogFilename"                                   , sol::readonly(&ImGuiIO::LogFilename),
 
 		"Fonts"                                         , sol::readonly(&ImGuiIO::Fonts),
-		"FontGlobalScale"                               , sol::readonly(&ImGuiIO::FontGlobalScale),
 		"FontDefault"                                   , sol::readonly(&ImGuiIO::FontDefault),
+		"FontAllowUserScaling"                          , sol::readonly(&ImGuiIO::FontAllowUserScaling),
+		"FontGlobalScale"                               , sol::readonly(&ImGuiIO::FontGlobalScale), // OBSOLETE -> Moved to style.FontScaleMain
 
 		"Framerate"                                     , sol::readonly(&ImGuiIO::Framerate),
 		"MouseDelta"                                    , sol::readonly(&ImGuiIO::MouseDelta),
@@ -215,29 +243,88 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 	lua.new_usertype<ImGuiListClipper>(
 		"ImGuiListClipper"                              ,
 		"Begin"                                         , sol::overload(
-			                                              [](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
-			                                              &ImGuiListClipper::Begin),
+		                                                  [](ImGuiListClipper& mthis, int items_count) { mthis.Begin(items_count); },
+		                                                  &ImGuiListClipper::Begin),
 		"End"                                           , &ImGuiListClipper::End,
 		"Step"                                          , &ImGuiListClipper::Step,
 		"DisplayStart"                                  , &ImGuiListClipper::DisplayStart,
 		"DisplayEnd"                                    , &ImGuiListClipper::DisplayEnd,
+		"Flags"                                         , &ImGuiListClipper::Flags,
 
 		"IncludeItemByIndex"                            , &ImGuiListClipper::IncludeItemByIndex,
-		"IncludeItemsByIndex"                           , &ImGuiListClipper::IncludeItemsByIndex
+		"IncludeItemsByIndex"                           , &ImGuiListClipper::IncludeItemsByIndex,
+		"SeekCursorForItem"                             , &ImGuiListClipper::SeekCursorForItem
 	);
+
+	//----------------------------------------------------------------------------
+	// Multi-selection system
+
+	// Flags for BeginMultiSelect()
+	lua.new_enum("ImGuiMultiSelectFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                                        , ImGuiMultiSelectFlags_None },
+		{ "SingleSelect"                                , ImGuiMultiSelectFlags_SingleSelect },
+		{ "NoSelectAll"                                 , ImGuiMultiSelectFlags_NoSelectAll },
+		{ "NoRangeSelect"                               , ImGuiMultiSelectFlags_NoRangeSelect },
+		{ "NoAutoSelect"                                , ImGuiMultiSelectFlags_NoAutoSelect },
+		{ "NoAutoClear"                                 , ImGuiMultiSelectFlags_NoAutoClear },
+		{ "NoAutoClearOnReselect"                       , ImGuiMultiSelectFlags_NoAutoClearOnReselect },
+		{ "BoxSelect1d"                                 , ImGuiMultiSelectFlags_BoxSelect1d },
+		{ "BoxSelect2d"                                 , ImGuiMultiSelectFlags_BoxSelect2d },
+		{ "BoxSelectNoScroll"                           , ImGuiMultiSelectFlags_BoxSelectNoScroll },
+		{ "ClearOnEscape"                               , ImGuiMultiSelectFlags_ClearOnEscape },
+		{ "ClearOnClickVoid"                            , ImGuiMultiSelectFlags_ClearOnClickVoid },
+		{ "ScopeWindow"                                 , ImGuiMultiSelectFlags_ScopeWindow },
+		{ "ScopeRect"                                   , ImGuiMultiSelectFlags_ScopeRect },
+		{ "SelectOnClick"                               , ImGuiMultiSelectFlags_SelectOnClick },
+		{ "SelectOnClickRelease"                        , ImGuiMultiSelectFlags_SelectOnClickRelease },
+		{ "NavWrapX"                                    , ImGuiMultiSelectFlags_NavWrapX },
+		{ "NoSelectOnRightClick"                        , ImGuiMultiSelectFlags_NoSelectOnRightClick },
+	});
+
+	lua.new_usertype<ImGuiMultiSelectIO>(
+		"ImGuiMultiSelectIO"                            , sol::no_constructor
+
+		// TODO
+	);
+
+	lua.new_enum("ImGuiSelectionRequestType", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                                        , ImGuiSelectionRequestType_None },
+		{ "SetAll"                                      , ImGuiSelectionRequestType_SetAll },
+		{ "SetRange"                                    , ImGuiSelectionRequestType_SetRange },
+	});
+
+
+	lua.new_usertype<ImGuiSelectionRequest>(
+		"ImGuiSelectionRequest"                         , sol::no_constructor
+
+		// TODO
+	);
+
+	// ImGuiSelectionBasicStorage?
+	// ImGuiSelectionExternalStorage?
+
+	// BeginMultiSelect
+	// EndMultiSelect
+	// SetNextItemSelectionUserData
+	// IsItemToggledSelection
 
 	//----------------------------------------------------------------------------
 	// ImDrawListSharedData
 	lua.new_usertype<ImDrawListSharedData>(
-		"ImDrawListSharedData", sol::no_constructor,
+		"ImDrawListSharedData"                          , sol::no_constructor,
 
 		"TexUvWhitePixel"                               , &ImDrawListSharedData::TexUvWhitePixel,
+		"TexUvLines"                                    , &ImDrawListSharedData::TexUvLines,
+		"FontAtlas"                                     , &ImDrawListSharedData::FontAtlas,
 		"Font"                                          , &ImDrawListSharedData::Font,
 		"FontSize"                                      , &ImDrawListSharedData::FontSize,
+		"FontScale"                                     , &ImDrawListSharedData::FontScale,
 		"CurveTessellationTol"                          , &ImDrawListSharedData::CurveTessellationTol,
 		"CircleSegmentMaxError"                         , &ImDrawListSharedData::CircleSegmentMaxError,
-		"ClipRectFullscreen"                            , &ImDrawListSharedData::ClipRectFullscreen,
+		"InitialFringeScale"                            , &ImDrawListSharedData::InitialFringeScale,
 		"InitialFlags"                                  , &ImDrawListSharedData::InitialFlags,
+		"ClipRectFullscreen"                            , &ImDrawListSharedData::ClipRectFullscreen,
+		// DrawLists
 
 		"SetCircleTessellationMaxError"                 , &ImDrawListSharedData::SetCircleTessellationMaxError
 	);
@@ -257,8 +344,10 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		&ImDrawList::PushClipRect));
 	imDrawList.set_function("PushClipRectFullScreen", &ImDrawList::PushClipRectFullScreen);
 	imDrawList.set_function("PopClipRect", &ImDrawList::PopClipRect);
-	imDrawList.set_function("PushTextureID", &ImDrawList::PushTextureID);
-	imDrawList.set_function("PopTextureID", &ImDrawList::PopTextureID);
+	imDrawList.set_function("PushTexture", &ImDrawList::PushTexture);
+	imDrawList.set_function("PopTexture", &ImDrawList::PopTexture);
+	imDrawList.set_function("PushTextureID", &ImDrawList::PushTexture);
+	imDrawList.set_function("PopTextureID", &ImDrawList::PopTexture);
 	imDrawList.set_function("GetClipRectMin", &ImDrawList::GetClipRectMin);
 	imDrawList.set_function("GetClipRectMax", &ImDrawList::GetClipRectMax);
 	imDrawList.set_function("ChannelsSplit", &ImDrawList::ChannelsSplit);
@@ -298,10 +387,17 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddNgon(center, radius, col, num_segments); },
 		&ImDrawList::AddNgon));
 	imDrawList.set_function("AddNgonFilled", &ImDrawList::AddNgonFilled);
+	// AddEllipse
+	// AddEllipseFilled
 	imDrawList.set_function("AddText", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& pos, int col, std::string_view text) { mThis.AddText(pos, ImU32(col), text.data(), text.data() + text.size()); },
 		[](ImDrawList& mThis, ImFont* font, float font_size, const ImVec2& pos, int col, std::string_view text) { mThis.AddText(font, font_size, pos, ImU32(col), text.data(), text.data() + text.size()); }));
-
+	imDrawList.set_function("AddBezierCubic", sol::overload(
+		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int col, float thickness) { mThis.AddBezierCubic(p1, p2, p3, p4, ImU32(col), thickness); },
+		&ImDrawList::AddBezierCubic));
+	imDrawList.set_function("AddBezierQuadratic", sol::overload(
+		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, int col, float thickness) { mThis.AddBezierQuadratic(p1, p2, p3, ImU32(col), thickness); },
+		&ImDrawList::AddBezierQuadratic));
 	imDrawList.set_function("AddPolyline", [](ImDrawList& mThis, const sol::as_table_t<std::vector<ImVec2>>& points, int col, int flags, float thickness)
 		{
 			const std::vector<ImVec2>& vecs = points.value();
@@ -312,31 +408,25 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 			const std::vector<ImVec2>& vecs = points.value();
 			mThis.AddConvexPolyFilled(&vecs[0], (int)vecs.size(), ImU32(col));
 		});
-	imDrawList.set_function("AddBezierCubic", sol::overload(
-		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int col, float thickness) { mThis.AddBezierCubic(p1, p2, p3, p4, ImU32(col), thickness); },
-		&ImDrawList::AddBezierCubic));
-	imDrawList.set_function("AddBezierQuadratic", sol::overload(
-		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, int col, float thickness) { mThis.AddBezierQuadratic(p1, p2, p3, ImU32(col), thickness); },
-		&ImDrawList::AddBezierQuadratic));
 
-		// Image primitives
+	// Image primitives
 	imDrawList.set_function("AddImage", sol::overload(
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max) { mThis.AddImage(user_texture_id, p_min, p_max);  },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min) { mThis.AddImage(user_texture_id, p_min, p_max, uv_min); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max) { mThis.AddImage(user_texture_id, p_min, p_max, uv_min, uv_max); }, [](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max) { mThis.AddImage(user_texture_id, p_min, p_max, uv_min, uv_max); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col) { mThis.AddImage(user_texture_id, p_min, p_max, uv_min, uv_max, ImU32(col)); }
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max) { mThis.AddImage(tex_ref, p_min, p_max);  },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min) { mThis.AddImage(tex_ref, p_min, p_max, uv_min); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max) { mThis.AddImage(tex_ref, p_min, p_max, uv_min, uv_max); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col) { mThis.AddImage(tex_ref, p_min, p_max, uv_min, uv_max, ImU32(col)); }
 	));
 	imDrawList.set_function("AddImageQuad", sol::overload(
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4, uv1); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4, uv1, uv2); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4, uv1, uv2, uv3); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4, uv1, uv2, uv3, uv4); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4, int col) { mThis.AddImageQuad(user_texture_id, p1, p2, p3, p4, uv1, uv2, uv3, uv4, ImU32(col)); }
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4, uv1); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4, uv1, uv2); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4, uv1, uv2, uv3); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4, uv1, uv2, uv3, uv4); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec2& uv4, int col) { mThis.AddImageQuad(tex_ref, p1, p2, p3, p4, uv1, uv2, uv3, uv4, ImU32(col)); }
 	));
 	imDrawList.set_function("AddImageRounded", sol::overload(
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding) { mThis.AddImageRounded(user_texture_id, p_min, p_max, uv_min, uv_max, ImU32(col), rounding); },
-		[](ImDrawList& mThis, ImTextureID user_texture_id, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding, int flags) { mThis.AddImageRounded(user_texture_id, p_min, p_max, uv_min, uv_max, ImU32(col), rounding, ImDrawFlags(flags)); }
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding) { mThis.AddImageRounded(tex_ref, p_min, p_max, uv_min, uv_max, ImU32(col), rounding); },
+		[](ImDrawList& mThis, const ImTextureRef& tex_ref, const ImVec2& p_min, const ImVec2& p_max, const ImVec2& uv_min, const ImVec2& uv_max, int col, float rounding, int flags) { mThis.AddImageRounded(tex_ref, p_min, p_max, uv_min, uv_max, ImU32(col), rounding, ImDrawFlags(flags)); }
 	));
 
 	imDrawList.set_function("AddTextureAnimation",
@@ -344,12 +434,12 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 			return imgui::DrawTextureAnimation(&mThis, anim.get(), pos, size.has_value() ? eqlib::CXSize(*size) : eqlib::CXSize());
 		});
 
-
 	// Stateful Path API
 	imDrawList.set_function("PathClear", &ImDrawList::PathClear);
 	imDrawList.set_function("PathLineTo", &ImDrawList::PathLineTo);
 	imDrawList.set_function("PathLineToMergeDuplicate", &ImDrawList::PathLineToMergeDuplicate);
 	imDrawList.set_function("PathFillConvex", &ImDrawList::PathFillConvex);
+	// PathFillConcave
 	imDrawList.set_function("PathStroke", sol::overload(
 		[](ImDrawList& mThis, int col) { mThis.PathStroke(ImU32(col)); },
 		[](ImDrawList& mThis, int col, int flags) { mThis.PathStroke(ImU32(col), ImDrawFlags(flags)); },
@@ -360,6 +450,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& center, float radius, float a_min, float a_max, int num_segments) { mThis.PathArcTo(center, radius, a_min, a_max, num_segments); }
 	));
 	imDrawList.set_function("PathArcToFast", &ImDrawList::PathArcToFast);
+	// EllipticalArcTo
 	imDrawList.set_function("PathBezierCubicCurveTo", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4) { mThis.PathBezierCubicCurveTo(p2, p3, p4); },
 		[](ImDrawList& mThis, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int num_segments) { mThis.PathBezierCubicCurveTo(p2, p3, p4, num_segments); }
@@ -373,6 +464,18 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& rect_min, const ImVec2& rect_max, float rounding) { mThis.PathRect(rect_min, rect_max, rounding); },
 		[](ImDrawList& mThis, const ImVec2& rect_min, const ImVec2& rect_max, float rounding, int flags) { mThis.PathRect(rect_min, rect_max, rounding, ImDrawFlags(flags)); }
 	));
+	// AddCallback
+	// AddDrawCmd
+	// CloneOutput
+
+	// PrimReserve
+	// PrimUnreserve
+	// PrimRect
+	// PrimRectUV
+	// PrimQuadUV
+	// PrimWriteVtx
+	// PrimWriteIdx
+	// PrimVtx
 
 	lua.new_usertype<ImGuiTableColumnSortSpecs>(
 		"ImGuiTableSortSpecsColumn"    , sol::no_constructor,
@@ -394,8 +497,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 		"Flags"                        , &ImFontAtlas::Flags,
 		"TexID"                        , &ImFontAtlas::TexID,
-		"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
-		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
+		"TexRef"                       , &ImFontAtlas::TexRef
+		//"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
+		//"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
 	);
 
 
@@ -407,10 +511,13 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"Flags"                        , sol::readonly(&ImGuiViewport::Flags),
 		"Pos"                          , sol::readonly(&ImGuiViewport::Pos),
 		"Size"                         , sol::readonly(&ImGuiViewport::Size),
+		// FramebufferScale
 		"WorkPos"                      , sol::readonly(&ImGuiViewport::WorkPos),
 		"WorkSize"                     , sol::readonly(&ImGuiViewport::WorkSize),
 		"DpiScale"                     , sol::readonly(&ImGuiViewport::DpiScale),
 		"ParentViewportId"             , sol::readonly(&ImGuiViewport::ParentViewportId),
+		// ParentViewport
+		// DrawData
 
 		"GetCenter"                    , &ImGuiViewport::GetCenter,
 		"GetWorkCenter"                , &ImGuiViewport::GetWorkCenter
@@ -435,6 +542,27 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"SelectAll"                    , [](ImGuiInputTextCallbackData& mThis) { mThis.SelectAll(); },
 		"ClearSelection"               , [](ImGuiInputTextCallbackData& mThis) { mThis.ClearSelection(); },
 		"HasSelection"                 , [](ImGuiInputTextCallbackData& mThis) { return mThis.HasSelection(); }
+	);
+
+	// ImTextureRef - opaque type
+	lua.new_usertype<ImTextureRef>(
+		"ImTextureRef"                 , sol::no_constructor,
+
+		"GetTexID"                     , &ImTextureRef::GetTexID
+	);
+
+	// ImGuiWindowClass
+	lua.new_usertype<ImGuiWindowClass>(
+		"ImGuiWindowClass"             , sol::call_constructor
+		                               , sol::constructors<ImGuiWindowClass()>(),
+		"ClassId"                      , &ImGuiWindowClass::ClassId,
+		"FocusRouteParentWindowId"     , &ImGuiWindowClass::FocusRouteParentWindowId,
+		"ViewportFlagsOverrideSet"     , &ImGuiWindowClass::ViewportFlagsOverrideSet,
+		"ViewportFlagsOverrideClear"   , &ImGuiWindowClass::ViewportFlagsOverrideClear,
+		"TabItemFlagsOverrideSet"      , &ImGuiWindowClass::TabItemFlagsOverrideSet,
+		"DockNodeFlagsOverrideSet"     , &ImGuiWindowClass::DockNodeFlagsOverrideSet,
+		"DockingAlwaysTabBar"          , &ImGuiWindowClass::DockingAlwaysTabBar,
+		"DockingAllowUnclassed"        , &ImGuiWindowClass::DockingAllowUnclassed
 	);
 }
 

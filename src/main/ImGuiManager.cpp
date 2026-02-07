@@ -30,6 +30,7 @@
 #include "imgui/imgui_internal.h"
 #include "imgui/implot/implot.h"
 #include "imgui/implot/implot_internal.h"
+#include "misc/freetype/imgui_freetype.h"
 
 namespace ImGui
 {
@@ -376,6 +377,8 @@ static bool gbToggleConsoleHotkeyReady = false;
 bool gbManualResetRequired = false;
 
 static ImFontAtlas* s_fontAtlas = nullptr;
+static ImFontAtlas* s_eqFontAtlas = nullptr;
+static bool s_useFreeType = true;
 
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static char ImGuiLogFile[MAX_PATH] = { 0 };
@@ -454,7 +457,7 @@ int CALLBACK FontNameProc(
 	return 1;
 }
 
-void LoadFonts()
+void LoadSystemFonts()
 {
 	s_fontInfo.clear();
 
@@ -490,10 +493,12 @@ struct EQFontData
 	ImFont*          pImFont = nullptr;
 	ImFontConfig     fontConfig;
 	CCachedFont*     pCachedFont = nullptr;
+
+	std::unique_ptr<uint8_t[]> rawData; // pointer owning raw data used by ImFontConfig
 };
 
 static std::vector<EQFontData> s_eqFontData;
-static bool s_eqFontsLoaded = false;
+static bool s_fontsLoaded = false;
 
 ImFont* ImGuiManager_GetEQImFont(int fontID)
 {
@@ -534,7 +539,8 @@ static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData)
 		return false;
 
 	fontData.fontConfig = ImFontConfig();
-	fontData.fontConfig.FontData = fontDataBuffer.get();
+	fontData.rawData = std::move(fontDataBuffer);
+	fontData.fontConfig.FontData = fontData.rawData.get();
 	fontData.fontConfig.FontDataSize = fontDataSize;
 	fontData.fontConfig.FontDataOwnedByAtlas = false;
 	fontData.fontConfig.OversampleH = 2;
@@ -583,9 +589,12 @@ static std::string CreateFontDisplayName(SLogFontEntry& fontEntry, int num)
 	return name;
 }
 
-static bool LoadEQFonts(ImFontAtlas* fontAtlas)
+static void BuildEQFonts(ImFontAtlas* fontAtlas)
 {
-	s_eqFontData.resize(NumFontStyles);
+	if (!s_eqFontData.empty())
+		return;
+
+	s_eqFontData.reserve(NumFontStyles);
 
 	for (int i = 0; i < NumFontStyles; ++i)
 	{
@@ -598,7 +607,7 @@ static bool LoadEQFonts(ImFontAtlas* fontAtlas)
 		if (font->hDC == INVALID_HANDLE_VALUE || font->hFont == INVALID_HANDLE_VALUE)
 			continue;
 
-		EQFontData& fontData = s_eqFontData[i];
+		EQFontData& fontData = s_eqFontData.emplace_back();
 
 		fontData.pCachedFont = font;
 		fontData.fontID = i;
@@ -610,24 +619,18 @@ static bool LoadEQFonts(ImFontAtlas* fontAtlas)
 
 		LoadFontData(fontAtlas, fontData);
 	}
-
-	return true;
 }
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas)
 {
-	LoadFonts();
+	if (!s_fontsLoaded)
+	{
+		LoadSystemFonts();
+
+		s_fontsLoaded = true;
+	}
 
 	mq::imgui::ConfigureFonts(fontAtlas);
-	s_eqFontsLoaded = LoadEQFonts(fontAtlas);
-}
-
-void ImGuiManager_CleanupFonts()
-{
-	delete s_fontAtlas;
-	s_fontAtlas = nullptr;
-
-	s_eqFontsLoaded = false;
 }
 
 void FontPicker()
@@ -848,6 +851,24 @@ static bool ImGuiManager_DetectCursorAttachment()
 	return s_showForFrames > 0;
 }
 
+void ImGuiManager_NewFrame()
+{
+	ImGuiContext* g = ImGui::GetCurrentContext();
+	const bool has_textures = (g->IO.BackendFlags & ImGuiBackendFlags_RendererHasTextures) != 0;
+
+	if (s_fontAtlas)
+	{
+		ImFontAtlasUpdateNewFrame(s_fontAtlas, g->FrameCount, has_textures);
+	}
+
+	if (s_eqFontAtlas)
+	{
+		ImFontAtlasUpdateNewFrame(s_eqFontAtlas, g->FrameCount, has_textures);
+	}
+	
+	ImGui::NewFrame();
+}
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
@@ -991,7 +1012,7 @@ void ImGuiManager_DrawCursorAttachment()
 					|| type == eCursorAttachment_ItemLink
 					|| type == eCursorAttachment_KronoSlot)
 				{
-					int textWidth = static_cast<int>(font->CalcTextSizeA(font->FontSize, FLT_MAX, -1.0f, buf.data(), nullptr).x);
+					int textWidth = static_cast<int>(font->CalcTextSizeA(static_cast<float>(eqFont->nHeight), FLT_MAX, -1.0f, buf.data(), nullptr).x);
 					if (textWidth < 10) textWidth = 10;
 
 					CXRect textRect = rect;
@@ -1116,11 +1137,38 @@ void* ImGuiManager_GetCursorForImGui(ImGuiMouseCursor imguiCursor)
 	return nullptr;
 }
 
+struct FontAtlasRef
+{
+	FontAtlasRef(ImFontAtlas* atlas)
+		: atlas(atlas)
+	{
+		if (atlas)
+		{
+			++atlas->RefCount;
+		}
+	}
+
+	~FontAtlasRef()
+	{
+		if (atlas)
+		{
+			--atlas->RefCount;
+		}
+	}
+
+private:
+	ImFontAtlas* atlas;
+};
+
 void ImGuiManager_ReloadContext()
 {
 	if (ImGui::GetCurrentContext() != nullptr)
 	{
-		ImGui::DestroyContext();
+		// Preserve the font atlas across this call
+		FontAtlasRef ref1(s_fontAtlas);
+		FontAtlasRef ref2(s_eqFontAtlas);
+
+		ImGuiManager_DestroyContext();
 	}
 
 	ImGuiManager_CreateContext();
@@ -1132,13 +1180,31 @@ void ImGuiManager_CreateContext()
 	if (s_fontAtlas == nullptr)
 	{
 		s_fontAtlas = new ImFontAtlas();
+		s_eqFontAtlas = new ImFontAtlas();
+
+		if (s_useFreeType)
+		{
+			s_fontAtlas->SetFontLoader(ImGuiFreeType::GetFontLoader());
+		}
+		else
+		{
+			s_fontAtlas->SetFontLoader(ImFontAtlasGetFontLoaderForStbTruetype());
+		}
+
+		s_eqFontAtlas->SetFontLoader(ImGuiFreeType::GetFontLoader());
+
 		buildFonts = true;
 	}
 	else
 	{
 		// If we crashed in the middle of a frame, the atlas might be locked.
 		s_fontAtlas->Locked = false;
+		s_eqFontAtlas->Locked = false;
 	}
+
+	// We hold a ref to this atlas, so increment the count so ImGui doesn't destroy it.
+	++s_fontAtlas->RefCount;
+	++s_eqFontAtlas->RefCount;
 
 	// Initialize ImGui context
 	ImGui::CreateContext(s_fontAtlas);
@@ -1147,6 +1213,13 @@ void ImGuiManager_CreateContext()
 	if (buildFonts)
 	{
 		ImGuiManager_BuildFonts(s_fontAtlas);
+
+		ImGui::RegisterFontAtlas(s_eqFontAtlas);
+		BuildEQFonts(s_eqFontAtlas);
+	}
+	else
+	{
+		ImGui::RegisterFontAtlas(s_eqFontAtlas);
 	}
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -1180,12 +1253,52 @@ void ImGuiManager_CreateContext()
 	}
 }
 
+static void CleanFontAtlasForContextDestroy(ImFontAtlas* fontAtlas)
+{
+	if (fontAtlas)
+	{
+		// Clean up fonts
+		for (ImFont* font : fontAtlas->Fonts)
+		{
+			ImFontAtlasBuildNotifySetFont(fontAtlas, font, nullptr);
+		}
+
+		ImFontAtlasBuildDestroy(fontAtlas);
+
+		// Remove atlas from ImGui context
+		ImGui::UnregisterFontAtlas(fontAtlas);
+	}
+}
+
+static bool CheckDestroyFontAtlas(ImFontAtlas*& fontAtlas)
+{
+	if (fontAtlas)
+	{
+		if (--fontAtlas->RefCount <= 0)
+		{
+			delete fontAtlas;
+			fontAtlas = nullptr;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void ImGuiManager_DestroyContext()
 {
+	// Detach our atlas/fonts from render state
+	CleanFontAtlasForContextDestroy(s_fontAtlas);
+	CleanFontAtlasForContextDestroy(s_eqFontAtlas);
+
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 
-	ImGuiManager_CleanupFonts();
+	CheckDestroyFontAtlas(s_fontAtlas);
+	if (CheckDestroyFontAtlas(s_eqFontAtlas))
+	{
+		s_eqFontData.clear();
+	}
 }
 
 void ImGuiManager_OverlaySettings()
@@ -1272,6 +1385,26 @@ void ImGuiManager_OverlaySettings()
 
 	ImGui::SameLine();
 	mq::imgui::HelpMarker("For ISBoxer users, enable this if your ImGui window positions reset when switching windows");
+
+	if (ImGui::Checkbox("Use FreeType font renderer", &s_useFreeType))
+	{
+		WritePrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
+
+		if (s_fontAtlas)
+		{
+			if (s_useFreeType)
+			{
+				s_fontAtlas->SetFontLoader(ImGuiFreeType::GetFontLoader());
+			}
+			else
+			{
+				s_fontAtlas->SetFontLoader(ImFontAtlasGetFontLoaderForStbTruetype());
+			}
+		}
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, Will use the FreeType font renderer instead of the built-in stb_truetype font renderer. "
+		"Will affect the appearance of text in the overlay.");
 
 	ImGui::NewLine();
 
@@ -1412,7 +1545,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		WriteChatf("\ay  resume\ax    - Resumes the overlay in the event that an error has occurred.");
 		WriteChatf("\ay  stop\ax      - Turns off the overlay. This state does not persist between MQ sessions.");
 		WriteChatf("\ay  start\ax     - Turns on the overlay.");
-		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no parma will toggle).");
+		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no param will toggle).");
 	}
 }
 
@@ -1431,6 +1564,7 @@ void ImGuiManager_Initialize()
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
 	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
+	s_useFreeType = GetPrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
 
 	if (gbWriteAllConfig)
 	{
@@ -1441,6 +1575,7 @@ void ImGuiManager_Initialize()
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
 	}
 
 	// TODO: application-wide keybinds could use an encapsulated interface. For now I'm just dumping his here since we need it to

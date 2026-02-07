@@ -18,6 +18,7 @@
 
 #include "bindings/lua_Bindings.h"
 #include "imgui/implot/implot.h"
+#include "imgui/imgui_internal.h"
 #include <mq/Plugin.h>
 
 namespace mq::lua {
@@ -96,16 +97,25 @@ bool LuaImGui::Pulse() const
 	bool success = true;
 	try
 	{
-		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+		std::shared_ptr<LuaThread> luaThread = LuaThread::get_from(m_thread.state());
+		ScopedYieldDisabler disableYield(luaThread);
 
 		sol::function_result result = m_coroutine();
+
 		if (!result.valid())
 		{
-			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-			result.abandon();
+			sol::table stackTraces = luaThread->GetState().registry()["mq2lua.tracebacks"];
+			sol::error err = result;
 
+			DebugStackTrace(result.lua_state(), err, stackTraces);
+			result.abandon();
 			success = false;
 		}
+	}
+	catch (const ImGuiException& e)
+	{
+		LuaError("ImGui Exception:\n%s", e.what());
+		success = false;
 	}
 	catch (const sol::error& e)
 	{
@@ -117,6 +127,24 @@ bool LuaImGui::Pulse() const
 		LuaError("ImGui Failure:\n%s", e.what());
 		success = false;
 	}
+	catch (const std::exception& e)
+	{
+		LuaError("ImGui Failure:\n%s", e.what());
+		success = false;
+	}
+
+#if 0
+	try
+	{
+		ImGuiContext* context = ImGui::GetCurrentContext();
+		ImGui::ErrorRecoveryTryToRecoverState(&context->StackSizesInNewFrame);
+	}
+	catch (const ImGuiException& e)
+	{
+		LuaError("ImGui Exception:\n%s", e.what());
+		//success = false;
+	}
+#endif
 
 	if (!success)
 	{

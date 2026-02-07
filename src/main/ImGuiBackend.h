@@ -36,6 +36,9 @@ void     ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX9_InvalidateDeviceObjects();
 bool     ImGui_ImplDX9_CreateDeviceObjects();
 
+// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = NULL to handle this manually.
+void     ImGui_ImplDX9_UpdateTexture(ImTextureData* tex);
+
 #endif // HAS_DIRECTX_9
 
 //----------------------------------------------------------------------------
@@ -53,6 +56,9 @@ void     ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 void     ImGui_ImplDX11_InvalidateDeviceObjects();
 bool     ImGui_ImplDX11_CreateDeviceObjects();
 
+// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = NULL to handle this manually.
+void     ImGui_ImplDX11_UpdateTexture(ImTextureData* tex);
+
 // [BETA] Selected render state data shared with callbacks.
 // This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplDX11_RenderDrawData() call.
 // (Please open an issue if you feel you need access to more data)
@@ -61,6 +67,7 @@ struct ImGui_ImplDX11_RenderState
 	ID3D11Device* Device;
 	ID3D11DeviceContext* DeviceContext;
 	ID3D11SamplerState* SamplerDefault;
+	ID3D11Buffer* VertexConstantBuffer;
 };
 
 #endif // HAS_DIRECTX_11
