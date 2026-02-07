@@ -191,7 +191,7 @@
 	</Type>
 
 	<!-- table -->
-	<Type Name="Node">
+	<Type Name="LJNode" Priority="High">
 		<DisplayString>{val}</DisplayString>
 		<Expand>
 			<Item Name="[key]">key</Item>
@@ -210,15 +210,15 @@
 			</Synthetic>
 			<CustomListItems Condition="hmask > 0 || asize > 0">
 				<Variable Name="index" InitialValue="0" />
-				<Variable Name="nodes" InitialValue="(Node*)(node.ptr64)" />
+				<Variable Name="nodes" InitialValue="(LJNode*)(node.ptr64)" />
 				<Variable Name="array" InitialValue="(TValue*)(array.ptr64)" />
 				<Variable Name="count" InitialValue="0" />
 				<Loop>
 					<Break Condition="index &gt;= hmask" />
 
 					<!-- don't display nil values -->
-					<If Condition="(*((Node*)(nodes + index))).val.it != 0xffffffff">
-						<Item Name="[{((Node*)(nodes + index))->key}]">*((Node*)(nodes + index))</Item>
+					<If Condition="(*((LJNode*)(nodes + index))).val.it != 0xffffffff">
+						<Item Name="[{((LJNode*)(nodes + index))->key}]">*((LJNode*)(nodes + index))</Item>
 						<Exec>count = count + 1</Exec>
 					</If>
 					<Exec>index = index + 1</Exec>

@@ -595,7 +595,7 @@ void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXR
 		{
 			for (auto& charPos : textLine.arCharPos)
 			{
-				eqFont->RenderChar(drawList, eqFont->FontSize,
+				eqFont->RenderChar(drawList, static_cast<float>(font->nHeight),
 					ImVec2(static_cast<float>(textLine.nXOffset + charPos.x), static_cast<float>(textLine.y + yOffset)),
 					color.ToImU32(), charPos.c);
 			}

@@ -1,6 +1,40 @@
-## Update 2/1/2026 (test)
+## 2/7/2026
 
-Update for latest test patch
+### ImGui 1.92.5 Update
+
+ImGui has been updated to the latest release! This release includes a new font renderig
+system that supports dynamic font scaling. This new system allows fonts to be rendered
+at any font size.
+
+For description of all the font scaling changes, see: https://github.com/ocornut/imgui/releases/v1.92.0
+
+The short version is: ImGui::SetWindowFontScale is now deprecated. You should use the
+PushFont function to change the font size now with the new font size parameter: 
+
+```c++
+    //  - PushFont(font, 0.0f)                       // Change font and keep current size
+    //  - PushFont(NULL, 20.0f)                      // Keep font and change current size
+    //  - PushFont(font, 20.0f)                      // Change font and set size to 20.0f
+    //  - PushFont(font, style.FontSizeBase * 2.0f)  // Change font and set size to be twice bigger than current size.
+    //  - PushFont(font, font->LegacySize)           // Change font and set size to size passed to AddFontXXX() function. Same as pre-1.92 behavior.
+```
+
+### C++20 Update
+
+The MacroQuest project now compiles with c++20 mode enabled by default. This might introduce
+compilation errors in some cases for non-conforming code. The fixes are pretty trivial in
+majority of cases.
+
+The project doesn't currently expose any c++20 code to plugins, so if you're stuck in a bind
+you can set your project back to c++17 manually, but be warned that the project may begin
+introducing c++20 code that will render that option unavailable. So get your code updated!
+
+If you need help updating your plugins please drop by our discord server.
+
+
+## Update 2/5/2026
+
+Add Fangbreaker to list of supported live servers.
 
 
 ## Update 2/1/2026
@@ -11,6 +45,7 @@ Update for latest test patch
 
 ### Fixes
 
+- ROF2 Emu: Fix Item.Evolving.ExpOn not returning correct value
 - Fix EQ Font rendering in ImGui
 - Fix crash when opening chat window settings before being in game
 - Fix renderdoc integration crashing on startup
@@ -114,6 +149,9 @@ Additional fixes:
 
 
 ## Previous Updates
+
+November 11, 2025:
+- bzsrch: handle case of bad data being sent from server causing a crash
 
 November 1, 2025:
 - test: Update for test patch

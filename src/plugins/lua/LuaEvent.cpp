@@ -225,8 +225,27 @@ void LuaEventProcessor::HandleBlechEvent(LuaEvent* pEvent, BLECHVALUE* pValues)
 	}
 }
 
-static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEventFunction>>& vec)
+struct ProcessingGuard
 {
+	ProcessingGuard(bool& processing)
+		: m_processing(processing)
+	{
+		assert(!m_processing);
+		m_processing = true;
+	}
+
+	~ProcessingGuard()
+	{
+		m_processing = false;
+	}
+
+	bool& m_processing;
+};
+
+static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEventFunction>>& vec, bool& processing)
+{
+	ProcessingGuard guard(processing);
+
 	vec.erase(std::remove_if(vec.begin(), vec.end(),
 		[&thread](std::shared_ptr<LuaEventFunction> co) -> bool
 	{
@@ -251,25 +270,40 @@ static void loop_and_run(LuaThread& thread, std::vector<std::shared_ptr<LuaEvent
 
 void LuaEventProcessor::RunEvents(LuaThread& thread)
 {
-	loop_and_run(thread, m_bindsRunning);
-	if (!thread.ShouldYield()) loop_and_run(thread, m_eventsRunning);
+	// Execute and binds in the running list
+	loop_and_run(thread, m_bindsRunning, m_processingBinds);
+
+	if (thread.ShouldYield())
+	{
+		return;
+	}
+
+	// Execute any events in the running list
+	loop_and_run(thread, m_eventsRunning, m_processingEvents);
+
+	if (!m_deferredDoEvents.empty())
+	{
+		PrepareEvents(std::move(m_deferredDoEvents));
+	}
 }
 
-template <typename R>
-static void emplace_running(
-	std::vector<std::shared_ptr<LuaEventFunction>>& running_vec,
-	LuaEventInstance<R>& to_run)
+void LuaEventProcessor::PrepareEvents(std::vector<std::string> events)
 {
-	running_vec.emplace_back(std::make_shared<LuaEventFunction>(to_run));
-}
+	if (m_processingEvents)
+	{
+		for (auto&& event : events)
+		{
+			m_deferredDoEvents.emplace_back(std::move(event));
+		}
 
-void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
-{
+		return;
+	}
+
 	if (events.empty())
 	{
 		for (LuaEventInstance<LuaEvent>& ev : m_eventsPending)
 		{
-			emplace_running(m_eventsRunning, ev);
+			m_eventsRunning.emplace_back(std::make_shared<LuaEventFunction>(ev));
 		}
 
 		m_eventsPending.clear();
@@ -281,7 +315,7 @@ void LuaEventProcessor::PrepareEvents(const std::vector<std::string>& events)
 		{
 			if (std::find(events.cbegin(), events.cend(), ev.definition->GetName()) != events.cend())
 			{
-				emplace_running(m_eventsRunning, ev);
+				m_eventsRunning.emplace_back(std::make_shared<LuaEventFunction>(ev));
 				return true;
 			}
 
@@ -308,7 +342,7 @@ void LuaEventProcessor::PrepareBinds()
 {
 	for (auto& b : m_bindsPending)
 	{
-		emplace_running(m_bindsRunning, b);
+		m_bindsRunning.emplace_back(std::make_shared<LuaEventFunction>(b));
 	}
 
 	m_bindsPending.clear();
@@ -399,7 +433,8 @@ LuaBind::~LuaBind()
 //----------------------------------------------------------------------------
 
 template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaBind>& instance)
-	: luaThread(instance.definition->GetEventProcessor()->GetThread())
+	: name(instance.definition->GetName())
+	, luaThread(instance.definition->GetEventProcessor()->GetThread())
 	, solThreadInfo(luaThread->CreateThread())
 	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
 	, args(std::move(instance.args))
@@ -408,7 +443,8 @@ template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaBind>& instanc
 }
 
 template<> LuaEventFunction::LuaEventFunction(LuaEventInstance<LuaEvent>& instance)
-	: luaThread(instance.definition->GetEventProcessor()->GetThread())
+	: name(instance.definition->GetName())
+	, luaThread(instance.definition->GetEventProcessor()->GetThread())
 	, solThreadInfo(luaThread->CreateThread())
 	, coroutine(LuaCoroutine::Create(solThreadInfo.second, luaThread))
 	, args(std::move(instance.args))

@@ -30,14 +30,18 @@ CoroutineResult Run(const std::vector<T>& args, LuaCoroutine* co)
 		if (result.valid())
 			return result;
 
-		std::string message = sol::stack::get<std::optional<std::string>>(result.lua_state(), result.stack_index()).value_or("nil");
-
-		DebugStackTrace(result.lua_state(), message.c_str());
+		sol::table stackTraces = co->luaThread->GetState().registry()["mq2lua.tracebacks"];
+		sol::error err = result;
+		DebugStackTrace(result.lua_state(), err, stackTraces);
 		result.abandon();
 	}
-	catch (const sol::error& ex)
+	catch (const sol::error& err)
 	{
-		DebugStackTrace(co->coroutine.lua_state(), ex.what());
+		DebugStackTrace(co->coroutine.lua_state(), err);
+	}
+	catch (...)
+	{
+		LuaError("Abnormal exception thrown from coroutine!");
 	}
 
 	return std::nullopt;
@@ -85,11 +89,16 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 
 		if (!result.valid())
 		{
-			sol::error err = result;
-			luaL_error(thread.state(), "Error in mq.delay callback: %s", err.what());
+			luaL_error(thread.state(), "Error received from mq.delay callback");
 		}
 
-		return result.get<bool>();
+		auto result_bool = result.get<sol::optional<bool>>();
+		if (!result_bool.has_value())
+		{
+			luaL_error(thread.state(), "Error in mq.delay callback result:\nexpected bool, got %s", sol::type_name(thread.state(), result.get_type()).c_str());
+		}
+
+		return result_bool.value();
 	}
 	catch (sol::error& ex)
 	{

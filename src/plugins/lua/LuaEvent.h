@@ -95,6 +95,7 @@ struct LuaEventInstance
 
 struct LuaEventFunction
 {
+	std::string name;
 	LuaThread* luaThread;
 
 	std::pair<uint32_t, sol::thread> solThreadInfo;
@@ -127,7 +128,7 @@ public:
 	void RunEvents(LuaThread& thread);
 
 	// we need two separate functions here because we need to be able to run these at separate points, independently
-	void PrepareEvents(const std::vector<std::string>& events);
+	void PrepareEvents(std::vector<std::string> events);
 	void RemoveEvents(const std::vector<std::string>& events);
 	void PrepareBinds();
 	void RemoveBinds(const std::vector<std::string>& binds);
@@ -151,11 +152,14 @@ private:
 	std::vector<std::unique_ptr<LuaEvent>> m_eventDefinitions;
 	std::vector<LuaEventInstance<LuaEvent>> m_eventsPending;
 	std::vector<std::shared_ptr<LuaEventFunction>> m_eventsRunning;
+	bool m_processingEvents = false;
+	std::vector<std::string> m_deferredDoEvents;
 
 	// Binds
 	std::vector<std::unique_ptr<LuaBind>> m_bindDefinitions;
 	std::vector<LuaEventInstance<LuaBind>> m_bindsPending;
 	std::vector<std::shared_ptr<LuaEventFunction>> m_bindsRunning;
+	bool m_processingBinds = false;
 };
 
 } // namespace mq::lua
