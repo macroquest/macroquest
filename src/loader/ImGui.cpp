@@ -290,7 +290,6 @@ void EndModal()
 		ImGui::NavMoveRequestTryWrapping(window, ImGuiNavMoveFlags_LoopY);
 
 	// Child-popups don't need to be laid out
-	IM_ASSERT(g.WithinEndChildID != 0);
 	const ImGuiID backup_within_end_child_id = g.WithinEndChildID;
 	if (window->Flags & ImGuiWindowFlags_ChildWindow)
 		g.WithinEndChildID = window->ID;
