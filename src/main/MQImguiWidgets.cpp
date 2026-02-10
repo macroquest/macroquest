@@ -591,6 +591,8 @@ void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXR
 			yOffset += std::max<int>(0, (rect.GetHeight() - totalLineHeight) / 2) + 1;
 		}
 
+		ImGui::PushFont(eqFont, eqFont->LegacySize);
+
 		for (auto& textLine : textLines)
 		{
 			for (auto& charPos : textLine.arCharPos)
@@ -600,6 +602,8 @@ void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXR
 					color.ToImU32(), charPos.c);
 			}
 		}
+
+		ImGui::PopFont();
 
 		drawList->PopClipRect();
 	}
