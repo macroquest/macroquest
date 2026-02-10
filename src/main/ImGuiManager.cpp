@@ -989,7 +989,7 @@ void ImGuiManager_DrawCursorAttachment()
 				textRect = rect;
 			}
 
-			mq::imgui::DrawEQText(window->DrawList, FontStyle_14, pCursorAttachment->ButtonText.c_str(),
+			mq::imgui::DrawEQText(window->DrawList, FontStyle_12, pCursorAttachment->ButtonText.c_str(),
 				textRect, MQColor(255, 255, 255), DrawText_VCenter | DrawText_HCenter);
 		}
 
