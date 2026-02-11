@@ -584,7 +584,7 @@ void Doors(PlayerClient* pChar, const char* szLine)
 	{
 		std::string name;
 		int angle;
-		int ID;
+		uint32_t ID;
 	};
 	std::map<float, doorinfo> doorsMap;
 
