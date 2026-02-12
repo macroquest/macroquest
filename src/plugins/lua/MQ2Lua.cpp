@@ -2027,21 +2027,37 @@ PLUGIN_API void OnPulse()
 
 		for (RunningScript& script : s_runningScripts)
 		{
-			DebugSpewAlways("  pid=%d name=%d dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
+			DebugSpewAlways("  pid=%d name=%s dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
 				script.mainThread != nullptr ? 1 : 0);
 		}
 
-		std::erase_if(s_runningScripts,
+		auto remove_iter = std::remove_if(s_runningScripts.begin(), s_runningScripts.end(),
 			[](RunningScript& script)
 			{
 				return script.dead;
 			});
+		if (remove_iter != s_runningScripts.end())
+		{
+			// Transfer scripts to remove to temporary vector, then release the vector.
+			// This will allow us to purge the dead scripts without re-entering the running scripts list.
+			std::vector<RunningScript> removedScripts;
+
+			for (auto iter = remove_iter; iter != s_runningScripts.end(); ++iter)
+			{
+				DebugSpewAlways("OnPulse: Queuing script up for removal: pid=%d name=%s", iter->pid, iter->name.c_str());
+				removedScripts.push_back(std::move(*iter));
+			}
+
+			s_runningScripts.erase(remove_iter, s_runningScripts.end());
+
+			DebugSpewAlways("OnPulse: Removing dead scripts now");
+		}
 
 		DebugSpewAlways("OnPulse: Done removing dead scripts");
 
 		for (RunningScript& script : s_runningScripts)
 		{
-			DebugSpewAlways("  pid=%d name=%d dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
+			DebugSpewAlways("  pid=%d name=%s dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
 				script.mainThread != nullptr ? 1 : 0);
 		}
 	}
