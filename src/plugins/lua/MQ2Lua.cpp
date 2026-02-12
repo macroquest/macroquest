@@ -205,7 +205,7 @@ void OnLuaThreadDestroyed(LuaThread* destroyedThread)
 		if (script.mainThread.get() != destroyedThread
 			&& script.mainThread->IsDependency(destroyedThread))
 		{
-			DebugSpewAlways("OnLuadThreadDestroyed: Exit %s", script.name.c_str());
+			DebugSpewAlways("OnLuaThreadDestroyed: Exit %s", script.name.c_str());
 
 			// Exit the thread immediately
 			script.mainThread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
@@ -1985,49 +1985,65 @@ PLUGIN_API void OnPulse()
 		s_pending.clear();
 	}
 
-	bool didRemoval = false;
-
-	std::erase_if(s_runningScripts,
-		[&didRemoval](RunningScript& script) -> bool
-		{
-			if (script.dead)
-			{
-				DebugSpewAlways("OnPulse: Found dead script. Removing. name=%s hasThread=%d",
-					script.name.c_str(), script.mainThread != nullptr ? 1 : 0);
-				didRemoval = true;
-
-				return true;
-			}
-
-			if (script.mainThread == nullptr)
-			{
-				DebugSpewAlways("OnPulse: script PID %d (%s) mainThread is NULL!!!",
-					script.pid, script.name.c_str());
-				return true;
-			}
-
-			const std::shared_ptr<LuaThread>& thread = script.mainThread;
-			LuaThread::RunResult result = thread->Run();
-
-			if (result.first != sol::thread_status::yielded)
-			{
-				EndScript(thread, result, true);
-			
-				DebugSpewAlways("OnPulse: Marking script dead, and then removing name=%s",
-					script.name.c_str());
-
-				didRemoval = true;
-
-				script.dead = true;
-				return true;
-			}
-
-			return false;
-		});
-
-	if (didRemoval)
+	bool hasDeadScripts = false;
+	for (RunningScript& script : s_runningScripts)
 	{
-		DebugSpewAlways("OnPulse: Done removing scripts");
+		if (script.dead)
+		{
+			DebugSpewAlways("OnPulse: Found dead script. Removing. pid=%d name=%s hasThread=%d",
+				script.pid, script.name.c_str(), script.mainThread != nullptr ? 1 : 0);
+			hasDeadScripts = true;
+			continue;
+		}
+
+		if (script.mainThread == nullptr)
+		{
+			DebugSpewAlways("OnPulse: Found script with no thread!!! Removing. pid=%d name=%s",
+				script.pid, script.name.c_str());
+			script.dead = true;
+			hasDeadScripts = true;
+			continue;
+		}
+
+		const std::shared_ptr<LuaThread>& thread = script.mainThread;
+		LuaThread::RunResult result = thread->Run();
+
+		if (result.first != sol::thread_status::yielded)
+		{
+			DebugSpewAlways("OnPulse: Script has ended. pid=%d name=%s", script.pid, script.name.c_str());
+
+			EndScript(thread, result, true);
+
+			DebugSpewAlways("OnPulse: Marking script dead. pid=%d name=%s", script.pid, script.name.c_str());
+
+			hasDeadScripts = true;
+			script.dead = true;
+		}
+	}
+
+	if (hasDeadScripts)
+	{
+		DebugSpewAlways("OnPulse: Removing dead scripts");
+
+		for (RunningScript& script : s_runningScripts)
+		{
+			DebugSpewAlways("  pid=%d name=%d dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
+				script.mainThread != nullptr ? 1 : 0);
+		}
+
+		std::erase_if(s_runningScripts,
+			[](RunningScript& script)
+			{
+				return script.dead;
+			});
+
+		DebugSpewAlways("OnPulse: Done removing dead scripts");
+
+		for (RunningScript& script : s_runningScripts)
+		{
+			DebugSpewAlways("  pid=%d name=%d dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
+				script.mainThread != nullptr ? 1 : 0);
+		}
 	}
 
 	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
