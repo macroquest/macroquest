@@ -694,8 +694,6 @@ static void LuaStopCommand(std::optional<std::string> scriptName = std::nullopt)
 
 			WriteChatStatus("Ending running lua script '%s' with PID %d", script.name.c_str(), script.pid);
 
-			script.dead = true;
-
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			script.mainThread->Exit();
 		}
@@ -709,7 +707,6 @@ static void LuaStopCommand(std::optional<std::string> scriptName = std::nullopt)
 		// kill all scripts
 		for (RunningScript& script : s_runningScripts)
 		{
-			script.dead = true;
 			script.mainThread->Exit();
 		}
 
@@ -1957,9 +1954,8 @@ PLUGIN_API void OnPulse()
 
 			if (result.first != sol::thread_status::yielded)
 			{
-				script.dead = true;
-
 				EndScript(thread, result, true);
+				script.dead = true;
 				return true;
 			}
 
