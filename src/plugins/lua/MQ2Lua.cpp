@@ -2031,35 +2031,38 @@ PLUGIN_API void OnPulse()
 				script.mainThread != nullptr ? 1 : 0);
 		}
 
-		auto remove_iter = std::remove_if(s_runningScripts.begin(), s_runningScripts.end(),
-			[](RunningScript& script)
-			{
-				return script.dead;
-			});
-		if (remove_iter != s_runningScripts.end())
+		std::vector<RunningScript> runningScripts;
+		runningScripts.reserve(s_runningScripts.size());
+
+		// Transfer scripts that are still alive to new vector, then swap that vector into the running scripts
+		// list. This will keep all of our current scripts and free the dead ones all at once.
+		for (RunningScript& script : s_runningScripts)
 		{
-			// Transfer scripts to remove to temporary vector, then release the vector.
-			// This will allow us to purge the dead scripts without re-entering the running scripts list.
-			std::vector<RunningScript> removedScripts;
-
-			for (auto iter = remove_iter; iter != s_runningScripts.end(); ++iter)
+			if (!script.dead)
 			{
-				DebugSpewAlways("OnPulse: Queuing script up for removal: pid=%d name=%s", iter->pid, iter->name.c_str());
-				removedScripts.push_back(std::move(*iter));
+				runningScripts.push_back(std::move(script));
+
+				script.dead = true;
+				script.pid = -1;
 			}
-
-			s_runningScripts.erase(remove_iter, s_runningScripts.end());
-
-			DebugSpewAlways("OnPulse: Removing dead scripts now");
 		}
 
-		DebugSpewAlways("OnPulse: Done removing dead scripts");
+		std::swap(runningScripts, s_runningScripts);
+
+		DebugSpewAlways("OnPulse: New scripts list");
 
 		for (RunningScript& script : s_runningScripts)
 		{
 			DebugSpewAlways("  pid=%d name=%s dead=%d thread=%d", script.pid, script.name.c_str(), script.dead ? 1 : 0,
 				script.mainThread != nullptr ? 1 : 0);
 		}
+
+		DebugSpewAlways("OnPulse: Removing dead scripts now");
+		
+		// Now free the dead stuff.
+		runningScripts.clear();
+
+		DebugSpewAlways("OnPulse: Done removing dead scripts");
 	}
 
 	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
