@@ -128,9 +128,6 @@ public:
 	sol::thread GetLuaThread() const;
 	sol::thread_status GetThreadStatus() const;
 
-	// Buffer to get swapped in for DataTypeTemp
-	char buffer[SGlobalBuffer::bufferSize] = { 0 };
-
 	void InjectMQNamespace();
 	void SetTurbo(uint32_t turboVal) { m_turboNum = turboVal; }
 	void SetEvaluateResult(bool evaluate) { m_evaluateResult = evaluate; }
@@ -249,6 +246,9 @@ private:
 	// memoized table references
 	sol::table m_spawnTable = sol::nil;
 	sol::table m_groundItemTable = sol::nil;
+
+	// Buffer to get swapped in for DataTypeTemp
+	char buffer[SGlobalBuffer::bufferSize] = { 0 };
 };
 
 //============================================================================
