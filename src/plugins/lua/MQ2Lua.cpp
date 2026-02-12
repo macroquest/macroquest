@@ -81,16 +81,14 @@ static imgui::TextEditor* s_luaCodeViewer = nullptr;
 // use a vector for s_running because we need to iterate it every pulse, and find only if a command is issued
 struct RunningScript
 {
-	std::string name;
-	int pid = 0;
 	std::shared_ptr<LuaThread> mainThread;
+	int pid = 0;
+	std::string name;
 
 	bool dead = false;
 };
 std::vector<RunningScript> s_runningScripts;
-
 std::vector<std::shared_ptr<LuaThread>> s_pending;
-
 std::unordered_map<uint32_t, LuaThreadInfo> s_infoMap;
 
 static void RegisterBuiltInModules()
@@ -150,6 +148,8 @@ bool DoStatus()
 void EndScript(const std::shared_ptr<LuaThread>& thread, const LuaThread::RunResult& result,
 	bool announce)
 {
+	DebugSpewAlways("EndScript: %s", thread->GetName().c_str());
+
 	if (!thread->IsString() && announce)
 	{
 		WriteChatStatus("Ending lua script '%s' with PID %d and status %d",
@@ -188,14 +188,25 @@ std::shared_ptr<LuaThread> GetLuaThreadByPID(int pid)
 
 void OnLuaThreadDestroyed(LuaThread* destroyedThread)
 {
+	DebugSpewAlways("OnLuaThreadDestroyed: Enter %s", destroyedThread->GetName().c_str());
+
 	for (RunningScript& script : s_runningScripts)
 	{
 		if (script.dead)
 			continue;
 
+		if (script.mainThread == nullptr)
+		{
+			DebugSpewAlways("OnLuaThreadDestroyed: script PID %d (%s) mainThread is NULL!!!",
+				script.pid, script.name.c_str());
+			continue;
+		}
+
 		if (script.mainThread.get() != destroyedThread
 			&& script.mainThread->IsDependency(destroyedThread))
 		{
+			DebugSpewAlways("OnLuadThreadDestroyed: Exit %s", script.name.c_str());
+
 			// Exit the thread immediately
 			script.mainThread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
 
@@ -204,14 +215,24 @@ void OnLuaThreadDestroyed(LuaThread* destroyedThread)
 			WriteChatStatus("Running lua script '%s' with PID %d terminated due to stopping of '%s'",
 				script.name.c_str(), script.pid, destroyedThread->GetName().c_str());
 
+			DebugSpewAlways("OnLuaThreadDestroyed: START marking dependent script as dead. destroyedThread=%s dependentThread=%s",
+				destroyedThread->GetName().c_str(), script.name.c_str());
+
 			script.dead = true;
 			script.mainThread.reset();
+
+			DebugSpewAlways("OnLuaThreadDestroyed: DONE  marking dependent script as dead. destroyedThread=%s dependentThread=%s",
+				destroyedThread->GetName().c_str(), script.name.c_str());
 		}
 	}
+
+	DebugSpewAlways("OnLuaThreadDestroyed: Exit  %s", destroyedThread->GetName().c_str());
 }
 
 void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 {
+	DebugSpewAlways("OnLuaTLORemoved: Enter tlo=%s", tlo->Name.c_str());
+
 	auto iter = std::ranges::find_if(s_runningScripts,
 		[pidOwner](const auto& thread) { return thread.pid == pidOwner; });
 
@@ -220,8 +241,17 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 		if (script.dead || script.pid == pidOwner)
 			continue;
 
+		if (script.mainThread == nullptr)
+		{
+			DebugSpewAlways("OnLuaTLORemoved: script PID %d (%s) mainThread is NULL!!!",
+				script.pid, script.name.c_str());
+			continue;
+		}
+
 		if (script.mainThread->IsDependency(tlo))
 		{
+			DebugSpewAlways("OnLuaTLORemoved: Exit %s", script.name.c_str());
+
 			// Exit the thread immediately
 			script.mainThread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
 
@@ -238,10 +268,18 @@ void OnLuaTLORemoved(MQTopLevelObject* tlo, int pidOwner)
 					script.name.c_str(), script.pid, tlo->Name.c_str());
 			}
 
+			DebugSpewAlways("OnLuaTLORemoved: START marking dependent script as dead. destroyedTLO=%s dependentThread=%s",
+				tlo->Name.c_str(), script.name.c_str());
+
 			script.dead = true;
 			script.mainThread.reset();
+
+			DebugSpewAlways("OnLuaTLORemoved: DONE  marking dependent script as dead. destroyedTLO=%s dependentThread=%s",
+				tlo->Name.c_str(), script.name.c_str());
 		}
 	}
+
+	DebugSpewAlways("OnLuaTLORemoved: Exit  tlo=%s", tlo->Name.c_str());
 }
 
 #pragma endregion
@@ -694,8 +732,12 @@ static void LuaStopCommand(std::optional<std::string> scriptName = std::nullopt)
 
 			WriteChatStatus("Ending running lua script '%s' with PID %d", script.name.c_str(), script.pid);
 
+			DebugSpewAlways("LuaStopCommand: START Stop thread. thread=%s", script.name.c_str());
+
 			// this will force the coroutine to yield, and removing this thread from the vector will cause it to gc
 			script.mainThread->Exit();
+
+			DebugSpewAlways("LuaStopCommand: DONE  Stop thread. thread=%s", script.name.c_str());
 		}
 		else
 		{
@@ -1943,11 +1985,26 @@ PLUGIN_API void OnPulse()
 		s_pending.clear();
 	}
 
+	bool didRemoval = false;
+
 	std::erase_if(s_runningScripts,
-		[](RunningScript& script) -> bool
+		[&didRemoval](RunningScript& script) -> bool
 		{
 			if (script.dead)
+			{
+				DebugSpewAlways("OnPulse: Found dead script. Removing. name=%s hasThread=%d",
+					script.name.c_str(), script.mainThread != nullptr ? 1 : 0);
+				didRemoval = true;
+
 				return true;
+			}
+
+			if (script.mainThread == nullptr)
+			{
+				DebugSpewAlways("OnPulse: script PID %d (%s) mainThread is NULL!!!",
+					script.pid, script.name.c_str());
+				return true;
+			}
 
 			const std::shared_ptr<LuaThread>& thread = script.mainThread;
 			LuaThread::RunResult result = thread->Run();
@@ -1955,12 +2012,23 @@ PLUGIN_API void OnPulse()
 			if (result.first != sol::thread_status::yielded)
 			{
 				EndScript(thread, result, true);
+			
+				DebugSpewAlways("OnPulse: Marking script dead, and then removing name=%s",
+					script.name.c_str());
+
+				didRemoval = true;
+
 				script.dead = true;
 				return true;
 			}
 
 			return false;
 		});
+
+	if (didRemoval)
+	{
+		DebugSpewAlways("OnPulse: Done removing scripts");
+	}
 
 	// Process messages after any threads have ended or started (the order likely won't matter since cleanup is checked)
 	LuaActors::Process();
@@ -2359,6 +2427,13 @@ PLUGIN_API void OnWriteChatColor(const char* Line, int Color, int Filter)
 
 		const std::shared_ptr<LuaThread>& thread = script.mainThread;
 
+		if (script.mainThread == nullptr)
+		{
+			DebugSpewAlways("OnWriteChatColor: script PID %d (%s) mainThread is NULL!!!",
+				script.pid, script.name.c_str());
+			continue;
+		}
+
 		if (!thread->IsPaused())
 		{
 			if (LuaEventProcessor* events = thread->GetEventProcessor())
@@ -2397,6 +2472,8 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 {
 	using namespace mq::lua;
 
+	DebugSpewAlways("OnUnloadPlugin: Enter %s", pluginName);
+
 	// Visit all of our currently running scripts and terminate any that might be utilizing this plugin as a dependency.
 	MQPlugin* plugin = GetPlugin(pluginName);
 
@@ -2405,8 +2482,17 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 		if (script.dead)
 			continue;
 
+		if (script.mainThread == nullptr)
+		{
+			DebugSpewAlways("OnUnloadPlugin: script PID %d (%s) mainThread is NULL!!!",
+				script.pid, script.name.c_str());
+			continue;
+		}
+
 		if (script.mainThread->IsDependency(plugin))
 		{
+			DebugSpewAlways("OnUnloadPlugin: Exit %s", script.name.c_str());
+
 			// Exit the thread immediately
 			script.mainThread->Exit(lua::LuaThreadExitReason::DependencyRemoved);
 
@@ -2415,8 +2501,16 @@ PLUGIN_API void OnUnloadPlugin(const char* pluginName)
 			WriteChatStatus("Running lua script '%s' with PID %d terminated due to unloading of %s",
 				script.name.c_str(), script.pid, pluginName);
 
+			DebugSpewAlways("OnUnloadPlugin: START marking dependent script as dead. pluginName=%s dependentThread=%s",
+				pluginName, script.name.c_str());
+
 			script.dead = true;
 			script.mainThread.reset();
+
+			DebugSpewAlways("OnUnloadPlugin: DONE  marking dependent script as dead. pluginName=%s dependentThread=%s",
+				pluginName, script.name.c_str());
 		}
 	}
+
+	DebugSpewAlways("OnUnloadPlugin: Exit  %s", pluginName);
 }
