@@ -556,6 +556,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"ImGuiWindowClass"             , sol::call_constructor
 		                               , sol::constructors<ImGuiWindowClass()>(),
 		"ClassId"                      , &ImGuiWindowClass::ClassId,
+		"ParentViewportId"             , &ImGuiWindowClass::ParentViewportId,
 		"FocusRouteParentWindowId"     , &ImGuiWindowClass::FocusRouteParentWindowId,
 		"ViewportFlagsOverrideSet"     , &ImGuiWindowClass::ViewportFlagsOverrideSet,
 		"ViewportFlagsOverrideClear"   , &ImGuiWindowClass::ViewportFlagsOverrideClear,
