@@ -133,19 +133,6 @@ bool LuaImGui::Pulse() const
 		success = false;
 	}
 
-#if 0
-	try
-	{
-		ImGuiContext* context = ImGui::GetCurrentContext();
-		ImGui::ErrorRecoveryTryToRecoverState(&context->StackSizesInNewFrame);
-	}
-	catch (const ImGuiException& e)
-	{
-		LuaError("ImGui Exception:\n%s", e.what());
-		//success = false;
-	}
-#endif
-
 	if (!success)
 	{
 		// ImGui failure: terminate the script

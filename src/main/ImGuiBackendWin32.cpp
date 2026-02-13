@@ -999,7 +999,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
 	case WM_ACTIVATE:
 		// Clear any delayed mouse inputs.
 		io.ClearInputKeys();
-		io.ClearInputMouse();
+		//io.ClearInputMouse();
 		return 0;
 
 	default: break;
