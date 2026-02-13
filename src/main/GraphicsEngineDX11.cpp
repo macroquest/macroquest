@@ -35,6 +35,8 @@ namespace mq {
 IDXGISwapChain* gpDXGISwapChain = nullptr;
 ID3D11Device* gpD3D11Device = nullptr;
 
+static bool s_inDrawFrame = false;
+
 struct ScopedStateBlock
 {
 	uint32_t                    ScissorRectsCount, ViewportsCount;
@@ -488,7 +490,7 @@ HRESULT MQGraphicsEngineDX11::OnPresent(IDXGISwapChain* pSwapChain, UINT SyncInt
 	// Prevent re-entrancy. This happens because we will render ImGui from this call, which also calls Present
 	// on its own viewport swap chains.
 	static bool sbInPresentDetour = false;
-	if (sbInPresentDetour || (Flags & DXGI_PRESENT_TEST) != 0)
+	if (sbInPresentDetour || (Flags & DXGI_PRESENT_TEST) != 0 || s_inDrawFrame)
 	{
 		return DXGISwapChainHook::Present(pSwapChain, SyncInterval, Flags);
 	}
@@ -544,7 +546,9 @@ void MQGraphicsEngineDX11::ImGui_DrawFrame()
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 
+	s_inDrawFrame = true;
 	MQGraphicsEngine::ImGui_DrawFrame();
+	s_inDrawFrame = false;
 }
 
 void MQGraphicsEngineDX11::ImGui_RenderDrawData()
