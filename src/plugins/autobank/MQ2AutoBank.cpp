@@ -450,7 +450,6 @@ PLUGIN_API void InitializePlugin()
 	EzDetour(CBankWnd__WndNotification,
 		&AutoBank::BankWnd_Hook::WndNotification_Detour,
 		&AutoBank::BankWnd_Hook::WndNotification_Trampoline);
-	sprintf_s(INIFileName, MAX_PATH, "%s/AutoBank.ini", gPathConfig);
 }
 
 PLUGIN_API void ShutdownPlugin()
