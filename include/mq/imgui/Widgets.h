@@ -204,6 +204,8 @@ MQLIB_OBJECT void DrawSpellGem(ImDrawList* drawList,
 // Misc
 //
 
+MQLIB_OBJECT ImFont* GetEQImFont(int eqFontStyle);
+
 
 // Draw text in the style of an EQ font. Flags is a value of DrawTextFlags.
 MQLIB_OBJECT void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const eqlib::CXRect& rect,

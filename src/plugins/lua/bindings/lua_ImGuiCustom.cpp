@@ -52,6 +52,7 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		[](CTextureAnimation* anim, int x, int y, std::optional<bool> drawBorder) { return mq::imgui::DrawTextureAnimation(anim, CXSize(x, y), drawBorder.value_or(false)); },
 		[](CTextureAnimation* anim) { return mq::imgui::DrawTextureAnimation(anim); }
 	));
+	ImGui.set_function("GetEQImFont", &mq::imgui::GetEQImFont);
 
 	// Widgets: Utility
 	ImGui.set_function("HelpMarker", [](const char* text, std::optional<float> width, std::optional<ImFont*> font) { mq::imgui::HelpMarker(text, width.value_or(450), font.value_or(nullptr)); });
