@@ -380,6 +380,7 @@ bool gbManualResetRequired = false;
 static ImFontAtlas* s_fontAtlas = nullptr;
 static ImFontAtlas* s_eqFontAtlas = nullptr;
 static bool s_useFreeType = true;
+static std::chrono::steady_clock::time_point s_lastImAnimGc = {};
 
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static char ImGuiLogFile[MAX_PATH] = { 0 };
@@ -874,6 +875,12 @@ void ImGuiManager_NewFrame()
 	{
 		ImFontAtlasUpdateNewFrame(s_eqFontAtlas, g->FrameCount, has_textures);
 	}
+
+	if (s_lastImAnimGc + std::chrono::seconds(10) < std::chrono::steady_clock::now())
+	{
+		iam_gc(300);
+		s_lastImAnimGc = std::chrono::steady_clock::now();
+	}
 	
 	ImGui::NewFrame();
 
@@ -1310,6 +1317,8 @@ void ImGuiManager_DestroyContext()
 
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
+
+	iam_pool_clear();
 
 	CheckDestroyFontAtlas(s_fontAtlas);
 	if (CheckDestroyFontAtlas(s_eqFontAtlas))
