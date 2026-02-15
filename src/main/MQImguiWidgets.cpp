@@ -564,6 +564,11 @@ void DrawSpellGem(ImDrawList* drawList,
 
 //----------------------------------------------------------------------------
 
+ImFont* GetEQImFont(int eqFontStyle)
+{
+	return ImGuiManager_GetEQImFont(eqFontStyle);
+}
+
 void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXRect& rect,
 	MQColor color, uint16_t flags)
 {
