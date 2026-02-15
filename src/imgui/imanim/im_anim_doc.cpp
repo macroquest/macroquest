@@ -334,10 +334,8 @@ static void DocSection_TweenTypes()
 		int value = iam_tween_int(id, DOC_CH_VALUE, target_int, 0.8f,
 			iam_ease_preset(iam_ease_out_expo), iam_policy_crossfade, dt);
 
-		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
-		ImGui::SetWindowFontScale(2.0f);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * 2.0f);
 		ImGui::Text("%d", value);
-		ImGui::SetWindowFontScale(1.0f);
 		ImGui::PopFont();
 
 		ImGui::TreePop();
@@ -5870,13 +5868,9 @@ static void DocSection_DebugTools()
 // MAIN DOCUMENTATION WINDOW
 // ============================================================
 
-void ImAnimDocWindow()
+IMGUI_API void ImAnimDocWindow(bool* p_open)
 {
-	// Update animation systems
-	iam_update_begin_frame();
-	iam_clip_update(GetDocDeltaTime());
-
-	if (!ImGui::Begin("ImAnim Documentation"))
+	if (!ImGui::Begin("ImAnim Documentation", p_open))
 	{
 		ImGui::End();
 		return;

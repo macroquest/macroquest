@@ -454,7 +454,7 @@ static void ShowHeroAnimation()
 					float local = (t - start) / dur;
 					float alpha = fade_alpha(local, 0.1f, 0.85f);
 					float angle = (t - start) * orbit_speeds[c] + i * 2.094f;
-					float radius = 35 + i * 15;
+					float radius = static_cast<float>(35 + i * 15);
 					float px = orbit_centers[c].x + ImCos(angle) * radius;
 					float py = orbit_centers[c].y + ImSin(angle) * radius;
 					int a = (int)(alpha * 200);
@@ -1708,10 +1708,8 @@ static void ShowBasicTweensDemo()
 		int animated_value = iam_tween_int(id, 0, counter_target, 0.8f,
 			iam_ease_preset(iam_ease_out_cubic), iam_policy_crossfade, dt);
 
-		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);
-		ImGui::SetWindowFontScale(2.0f);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * 2.0f);
 		ImGui::Text("%d", animated_value);
-		ImGui::SetWindowFontScale(1.0f);
 		ImGui::PopFont();
 
 		ImGui::TextDisabled("Target: %d", counter_target);
@@ -2552,9 +2550,9 @@ static void ShowClipSystemDemo()
 			if (scale > 10.0f) scale = 10.0f;
 
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-			ImGui::SetWindowFontScale(scale);
+			ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 			ImGui::Text("Fading Text (a:%.2f s:%.2f)", alpha, scale);
-			ImGui::SetWindowFontScale(1.0f);
+			ImGui::PopFont();
 			ImGui::PopStyleVar();
 		}
 
@@ -2584,9 +2582,9 @@ static void ShowClipSystemDemo()
 			ImVec2 cur = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cur.x + offset.x, cur.y + offset.y));
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-			ImGui::SetWindowFontScale(scale);
+			ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 			ImGui::Text("Bouncing!");
-			ImGui::SetWindowFontScale(1.0f);
+			ImGui::PopFont();
 			ImGui::PopStyleVar();
 		}
 
@@ -2618,9 +2616,9 @@ static void ShowClipSystemDemo()
 			ImVec2 cur = ImGui::GetCursorPos();
 			ImGui::SetCursorPos(ImVec2(cur.x + offset.x, cur.y + offset.y));
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-			ImGui::SetWindowFontScale(scale);
+			ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 			ImGui::TextColored(color, "Multi-channel Animation");
-			ImGui::SetWindowFontScale(1.0f);
+			ImGui::PopFont();
 			ImGui::PopStyleVar();
 		}
 
@@ -2756,9 +2754,9 @@ static void ShowClipSystemDemo()
 		if (scale > 10.0f) scale = 10.0f;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-		ImGui::SetWindowFontScale(scale);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 		ImGui::Text("Delayed Text");
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 		ImGui::PopStyleVar();
 
 		if (was_playing) {
@@ -2796,9 +2794,9 @@ static void ShowClipSystemDemo()
 		if (scale > 10.0f) scale = 10.0f;
 
 		ImGui::SameLine();
-		ImGui::SetWindowFontScale(scale);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 		ImGui::Text("Scaling");
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 
 		ImGui::Text("on_begin called:    %d times", s_callback_begin_count);
 		ImGui::Text("on_update called:   %d times", s_callback_update_count);
@@ -4892,11 +4890,11 @@ static void ShowOscillatorsDemo()
 		float fixed_height = 40 * max_scale + ImGui::GetStyle().ItemSpacing.y;
 		ImGui::BeginChild("##PulsingButtonContainer", ImVec2(0, fixed_height), false, ImGuiWindowFlags_NoScrollbar);
 
-		ImGui::SetWindowFontScale(scale);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * scale);
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f + pulse * 0.5f, 0.5f, 0.8f, 1.0f));
 		ImGui::Button("Click Me!", ImVec2(120 * scale, 40 * scale));
 		ImGui::PopStyleColor();
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 
 		ImGui::SameLine();
 		ImGui::TextDisabled("Button pulses continuously");
@@ -7418,11 +7416,8 @@ static void ShowStressTestDemo()
 // ============================================================
 // MAIN DEMO WINDOW
 // ============================================================
-void ImAnimDemoWindow()
+IMGUI_API void ImAnimDemoWindow(bool* p_open)
 {
-	// Start profiler frame
-	iam_profiler_begin_frame();
-
 	// Note: iam_update_begin_frame() and iam_clip_update() should be called once per frame
 	// in the main loop, not here. If called in main.cpp, don't call again here.
 	// Uncomment if this demo is the only ImAnim user:
@@ -7432,7 +7427,6 @@ void ImAnimDemoWindow()
 	ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin("Anim Demo")) {
 		ImGui::End();
-		iam_profiler_end_frame();
 		return;
 	}
 
@@ -7726,7 +7720,4 @@ void ImAnimDemoWindow()
 		iam_show_unified_inspector(&show_debug_window);
 		iam_profiler_end();
 	}
-
-	// End profiler frame
-	iam_profiler_end_frame();
 }

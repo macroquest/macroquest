@@ -1230,7 +1230,7 @@ static void ShowUsecase_AnimatedCounter()
 		else
 			snprintf(value_text, sizeof(value_text), "%d%s", display_value, stats[i].suffix);
 
-		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize); // Use default font
 		ImVec2 value_size = ImGui::CalcTextSize(value_text);
 		dl->AddText(ImVec2(center.x - value_size.x * 0.5f, center.y - 20.0f),
 			IM_COL32(91, 194, 231, 255), value_text);
@@ -1315,7 +1315,7 @@ static void ShowUsecase_TypewriterText()
 
 	// Draw text
 	char display_text[256];
-	strncpy(display_text, current, visible_chars);
+	strncpy_s(display_text, current, visible_chars);
 	display_text[visible_chars] = '\0';
 
 	ImVec2 text_pos(pos.x + 20.0f, pos.y + (canvas_size.y - ImGui::GetTextLineHeight()) * 0.5f);
@@ -1404,7 +1404,7 @@ static void ShowUsecase_SkeletonLoading()
 			for (int j = 0; j < 3; j++)
 			{
 				float offset = j * shimmer_width * 0.3f;
-				float alpha = 0.15f * (1.0f - fabsf(j - 1) * 0.5f);
+				float alpha = 0.15f * (1.0f - fabsf(static_cast<float>(j - 1)) * 0.5f);
 				dl->AddRectFilledMultiColor(
 					ImVec2(shimmer_x + offset, elem_pos.y),
 					ImVec2(shimmer_x + offset + shimmer_width * 0.3f, elem_pos.y + elem_size.y),
@@ -7927,15 +7927,13 @@ static void ShowUsecase_PercentageCounter()
 	char pct_text[16];
 	snprintf(pct_text, sizeof(pct_text), "%.0f%%", current_pct);
 
-	ImGui::PushFont(ImGui::GetFont());
 	float font_scale = 3.0f;
+	ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * font_scale);
 	ImVec2 text_size = ImGui::CalcTextSize(pct_text);
 	text_size.x *= font_scale;
 	text_size.y *= font_scale;
 
-	ImGui::SetWindowFontScale(font_scale);
 	dl->AddText(pos, IM_COL32(100, 200, 255, 255), pct_text);
-	ImGui::SetWindowFontScale(1.0f);
 	ImGui::PopFont();
 
 	ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + text_size.y + 10 * scale));
@@ -9051,7 +9049,7 @@ static void ShowUsecase_CountdownDisplay()
 	dl->AddRectFilled(tens_pos, ImVec2(tens_pos.x + digit_width, tens_pos.y + digit_height),
 		IM_COL32(50, 55, 65, 255), 4 * scale);
 	char tens_str[2] = {(char)('0' + tens), '\0'};
-	ImGui::SetWindowFontScale(2.5f);
+	ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * 2.5f);
 	ImVec2 tens_size = ImGui::CalcTextSize(tens_str);
 	dl->AddText(ImVec2(tens_pos.x + (digit_width - tens_size.x) * 0.5f,
 		tens_pos.y + (digit_height - tens_size.y) * 0.5f + tens_y), IM_COL32(255, 255, 255, 255), tens_str);
@@ -9063,7 +9061,7 @@ static void ShowUsecase_CountdownDisplay()
 	char ones_str[2] = {(char)('0' + ones), '\0'};
 	dl->AddText(ImVec2(ones_pos.x + (digit_width - tens_size.x) * 0.5f,
 		ones_pos.y + (digit_height - tens_size.y) * 0.5f + ones_y), IM_COL32(255, 255, 255, 255), ones_str);
-	ImGui::SetWindowFontScale(1.0f);
+	ImGui::PopFont();
 
 	ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + digit_height + 10 * scale));
 }
@@ -9116,9 +9114,9 @@ static void ShowUsecase_WordCloud()
 
 		ImU32 word_col = hovered ? IM_COL32(100, 200, 255, 255) : IM_COL32(200, 200, 210, 255);
 
-		ImGui::SetWindowFontScale(word_scale);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * word_scale);
 		dl->AddText(word_pos, word_col, words[i]);
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 	}
 
 	ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + container_size.y + 10 * scale));
@@ -9342,7 +9340,7 @@ static void ShowUsecase_ConfettiBurst()
 		for (int i = 0; i < 20; i++)
 		{
 			float angle = (float)i / 20.0f * 6.28318f;
-			float speed = 50 + (i % 5) * 30;
+			float speed = 50 + static_cast<float>(i % 5) * 30;
 			float x = center.x + cosf(angle) * speed * burst_time * scale;
 			float y = center.y + sinf(angle) * speed * burst_time * scale + burst_time * burst_time * 100 * scale;
 			float alpha = 1.0f - burst_time * 0.5f;
@@ -9516,11 +9514,11 @@ static void ShowUsecase_DamageNumber()
 		char dmg_str[8];
 		snprintf(dmg_str, sizeof(dmg_str), "-%d", dmg_value);
 
-		ImGui::SetWindowFontScale(pop_scale * 1.5f);
+		ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize * pop_scale * 1.5f);
 		ImVec2 dmg_size = ImGui::CalcTextSize(dmg_str);
 		dl->AddText(ImVec2(target_center.x - dmg_size.x * 0.5f, target_center.y - 30 * scale - float_y),
 			IM_COL32(255, 100, 100, (int)(alpha * 255)), dmg_str);
-		ImGui::SetWindowFontScale(1.0f);
+		ImGui::PopFont();
 	}
 
 	ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + container_size.y + 10 * scale));
@@ -9602,11 +9600,11 @@ static void ShowUsecase_XPProgress()
 // ============================================================
 // MAIN USECASE WINDOW
 // ============================================================
-void ImAnimUsecaseWindow()
+IMGUI_API void ImAnimUsecaseWindow(bool* p_open)
 {
 	ImGui::SetNextWindowSize(ImVec2(700, 800), ImGuiCond_FirstUseEver);
 
-	if (!ImGui::Begin("ImAnim Usecases - UI Mockups"))
+	if (!ImGui::Begin("ImAnim Usecases - UI Mockups", p_open))
 	{
 		ImGui::End();
 		return;

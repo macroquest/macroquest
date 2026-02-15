@@ -744,7 +744,7 @@ struct profiler_state {
 		// Create new section
 		if (section_count >= PROFILER_MAX_SECTIONS) return -1;
 		int idx = section_count++;
-		strncpy(sections[idx].name, name, 63);
+		strncpy_s(sections[idx].name, name, 63);
 		sections[idx].name[63] = '\0';
 		sections[idx].active = true;
 		return idx;
@@ -3704,7 +3704,8 @@ iam_result iam_clip_save(ImGuiID clip_id, char const* path) {
 	if (!clip) return iam_err_not_found;
 	if (!path) return iam_err_bad_arg;
 
-	FILE* f = fopen(path, "wb");
+	FILE* f = nullptr;
+	fopen_s(&f, path, "wb");
 	if (!f) return iam_err_bad_arg;
 
 	// Write header
@@ -3762,7 +3763,8 @@ iam_result iam_clip_load(char const* path, ImGuiID* out_clip_id) {
 	using namespace iam_clip_detail;
 	if (!path || !out_clip_id) return iam_err_bad_arg;
 
-	FILE* f = fopen(path, "rb");
+	FILE* f = nullptr;
+	fopen_s(&f, path, "rb");
 	if (!f) return iam_err_not_found;
 
 	// Read and verify header
@@ -7425,7 +7427,7 @@ void iam_show_debug_timeline(ImGuiID instance_id) {
 						ImGui::Text("Value: (%.3f, %.3f, %.3f, %.3f)", key.value[0], key.value[1], key.value[2], key.value[3]);
 						{
 							ImVec4 col(key.value[0], key.value[1], key.value[2], key.value[3]);
-							ImGui::ColorButton("##val", col, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_AlphaPreview, ImVec2(16, 16));
+							ImGui::ColorButton("##val", col, ImGuiColorEditFlags_NoTooltip, ImVec2(16, 16));
 						}
 						break;
 					case iam_chan_int:
@@ -7435,7 +7437,7 @@ void iam_show_debug_timeline(ImGuiID instance_id) {
 						ImGui::Text("Color: (%.3f, %.3f, %.3f, %.3f)", key.value[0], key.value[1], key.value[2], key.value[3]);
 						{
 							ImVec4 col(key.value[0], key.value[1], key.value[2], key.value[3]);
-							ImGui::ColorButton("##val", col, ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_AlphaPreview, ImVec2(16, 16));
+							ImGui::ColorButton("##val", col, ImGuiColorEditFlags_NoTooltip, ImVec2(16, 16));
 							char const* space_names[] = { "sRGB", "Linear", "HSV", "OKLAB", "OKLCH" };
 							if (key.color_space >= 0 && key.color_space < 5) {
 								ImGui::SameLine();
