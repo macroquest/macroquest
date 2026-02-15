@@ -152,7 +152,7 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		{ "SpanFullWidth"                , ImGuiTreeNodeFlags_SpanFullWidth },
 		{ "SpanLabelWidth"               , ImGuiTreeNodeFlags_SpanLabelWidth },
 		{ "SpanAllColumns"               , ImGuiTreeNodeFlags_SpanAllColumns },
-		{ "LabelSpanAllColumn"           , ImGuiTreeNodeFlags_LabelSpanAllColumns },
+		{ "LabelSpanAllColumns"          , ImGuiTreeNodeFlags_LabelSpanAllColumns },
 		{ "NavLeftJumpsToParent"         , ImGuiTreeNodeFlags_NavLeftJumpsToParent },
 		{ "CollapsingHeader"             , ImGuiTreeNodeFlags_CollapsingHeader },
 
@@ -528,6 +528,21 @@ void RegisterBindings_ImGuiEnums(sol::state_view lua)
 		{ "Super"                        , ImGuiMod_Super },
 		{ "Shortcut"                     , ImGuiMod_Ctrl },
 		{ "Mask_"                        , ImGuiMod_Mask_ }
+	});
+
+	// ImGuiInputFlags
+	lua.new_enum("ImGuiInputFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImGuiInputFlags_None },
+		{ "Repeat"                       , ImGuiInputFlags_Repeat },
+		{ "RouteActive"                  , ImGuiInputFlags_RouteActive },
+		{ "RouteFocused"                 , ImGuiInputFlags_RouteFocused },
+		{ "RouteGlobal"                  , ImGuiInputFlags_RouteGlobal },
+		{ "RouteAlways"                  , ImGuiInputFlags_RouteAlways },
+		{ "RouteOverFocused"             , ImGuiInputFlags_RouteOverFocused },
+		{ "RouteOverActive"              , ImGuiInputFlags_RouteOverActive },
+		{ "RouteUnlessBgFocused"         , ImGuiInputFlags_RouteUnlessBgFocused },
+		{ "RouteFromRootWindow"          , ImGuiInputFlags_RouteFromRootWindow },
+		{ "Tooltip"                      , ImGuiInputFlags_Tooltip },
 	});
 
 	// ImGuiConfigFlags

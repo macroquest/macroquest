@@ -567,11 +567,12 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 		// Switch font and set size
 		[](ImFont* font, float fontSize) { ImGui::PushFont(font, fontSize); },
 		// Switch font and set to its default font size
-		[](ImFont* font) { ImGui::PushFont(font, font ? font->LegacySize : 0.0f); },
-		// Reset to default font and font size
-		[]() { ImGui::PushFont(nullptr, 0.0f); }
+		[](ImFont* font) { ImGui::PushFont(font ? font : ImGui::GetDefaultFont() , font ? font->LegacySize : 0.0f); },
+		// Revert to default font and size
+		[]() { ImGui::PushFont(ImGui::GetDefaultFont(), ImGui::GetDefaultFont()->LegacySize); }
 	));
 	ImGui.set_function("PopFont", &ImGui::PopFont);
+	ImGui.set_function("GetDefaultFont", &ImGui::GetDefaultFont);
 	ImGui.set_function("GetFont", &ImGui::GetFont);
 	ImGui.set_function("GetFontSize", &ImGui::GetFontSize);
 	#pragma endregion
