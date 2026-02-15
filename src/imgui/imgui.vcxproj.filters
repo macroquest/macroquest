@@ -40,6 +40,12 @@
     <Filter Include="Header Files\mq\imgui">
       <UniqueIdentifier>{3d599319-7261-47b0-b492-554b8d84df98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\imanim">
+      <UniqueIdentifier>{b38c54d7-4354-4b75-82b0-9f198843ac15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\imanim">
+      <UniqueIdentifier>{480d8e54-01a4-46b9-9675-940a6e05efa1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -114,6 +120,9 @@
     <ClInclude Include="..\..\contrib\imgui\imgui_stacklayout_internal.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="imanim\im_anim.h">
+      <Filter>Header Files\imanim</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -169,6 +178,18 @@
     </ClCompile>
     <ClCompile Include="..\..\contrib\imgui\imgui_stacklayout.cpp">
       <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imanim\im_anim_doc.cpp">
+      <Filter>Source Files\imanim</Filter>
+    </ClCompile>
+    <ClCompile Include="imanim\im_anim_usecase.cpp">
+      <Filter>Source Files\imanim</Filter>
+    </ClCompile>
+    <ClCompile Include="imanim\im_anim.cpp">
+      <Filter>Source Files\imanim</Filter>
+    </ClCompile>
+    <ClCompile Include="imanim\im_anim_demo.cpp">
+      <Filter>Source Files\imanim</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
