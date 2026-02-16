@@ -18,6 +18,7 @@
 
 #include "bindings/lua_Bindings.h"
 #include "imgui/implot/implot.h"
+#include "imgui/imanim/im_anim.h"
 #include "imgui/imgui_internal.h"
 #include <mq/Plugin.h>
 
@@ -53,6 +54,28 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 	) != m_imguis.cend();
 }
 
+struct ScopedImAnimContext
+{
+	ScopedImAnimContext(std::unique_ptr<LuaImAnimState>& state)
+	{
+		if (state)
+		{
+			orig_context = iam_context_get_current();
+			iam_context_set_current(state->ctx);
+		}
+	}
+
+	~ScopedImAnimContext()
+	{
+		if (orig_context)
+		{
+			iam_context_set_current(orig_context);
+		}
+	}
+
+	iam_context* orig_context = nullptr;
+};
+
 void LuaImGuiProcessor::Pulse()
 {
 	if (m_thread->IsPaused()) return;
@@ -60,6 +83,8 @@ void LuaImGuiProcessor::Pulse()
 	// Backup context and set our own
 	ImPlotContext* context = ImPlot::GetCurrentContext();
 	ImPlot::SetCurrentContext(m_imPlotContext.get());
+
+	ScopedImAnimContext scoped_iam_context(m_imAnimState);
 
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
@@ -73,6 +98,22 @@ void LuaImGuiProcessor::Pulse()
 
 	// Restore context
 	ImPlot::SetCurrentContext(context);
+}
+
+LuaImAnimState::LuaImAnimState()
+{
+	ctx = iam_context_create();
+}
+
+LuaImAnimState::~LuaImAnimState()
+{
+	iam_context_destroy(ctx);
+	ctx = nullptr;
+}
+
+void LuaImGuiProcessor::InitImAnimContext()
+{
+	m_imAnimState = std::make_unique<LuaImAnimState>();
 }
 
 //============================================================================

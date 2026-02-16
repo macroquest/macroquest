@@ -55,6 +55,7 @@ set(MQ2Lua_SOURCES
     "bindings/lua_ImGuiEnums.cpp"
     "bindings/lua_ImGuiWidgets.cpp"
     "bindings/lua_ImGuiUserTypes.cpp"
+    "bindings/lua_ImAnim.cpp"
     "bindings/lua_ImPlot.cpp"
     "bindings/lua_MQBindings.cpp"
     "bindings/lua_MQMacroData.cpp"

@@ -7425,7 +7425,7 @@ IMGUI_API void ImAnimDemoWindow(bool* p_open)
 	// iam_clip_update(GetSafeDeltaTime());
 
 	ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("Anim Demo")) {
+	if (!ImGui::Begin("Anim Demo", p_open)) {
 		ImGui::End();
 		return;
 	}

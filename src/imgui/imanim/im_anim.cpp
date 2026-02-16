@@ -34,6 +34,49 @@ ImU32 const ZimaBlue = IM_COL32( 91, 194, 231, 255 );
 ImU32 const AgedCopper = IM_COL32( 204, 120, 88, 255 );
 
 // ----------------------------------------------------
+// Internal: Per-context state
+// ----------------------------------------------------
+
+namespace iam_scroll_detail {
+
+struct scroll_anim {
+	ImGuiID window_id;
+	float start_x, start_y;
+	float target_x, target_y;
+	float duration;
+	float elapsed;
+	iam_ease_desc ease;
+	bool active_x, active_y;
+	unsigned last_frame;
+};
+
+} // namespace iam_scroll_detail
+
+namespace iam_clip_detail {
+
+struct iam_clip_system {
+	ImVector<iam_clip_data>		clips;
+	ImVector<iam_instance_data>	instances;
+	ImGuiStorage				clip_map;		// clip_id -> index+1
+	ImGuiStorage				inst_map;		// inst_id -> index+1
+	unsigned					frame_counter;
+	bool						initialized;
+
+	iam_clip_system() : frame_counter(0), initialized(false) {}
+};
+
+} // namespace iam_clip_detail
+
+struct iam_context {
+	ImVector<iam_scroll_detail::scroll_anim> scroll_anims;
+	iam_clip_detail::iam_clip_system clip_sys;
+	iam_ease_fn custom_ease[16];
+	void* user_data;
+};
+
+static ImVector<iam_context*> g_contexts;
+
+// ----------------------------------------------------
 // Internal: parameterized easing LUT cache (ImPool)
 // ----------------------------------------------------
 namespace iam_detail {
@@ -224,8 +267,15 @@ struct ease_lut_pool {
 
 static ease_lut_pool& ease_lut_pool_singleton() { static ease_lut_pool S; return S; }
 
-// Forward declaration for custom easing (defined later with other globals)
-static iam_ease_fn g_custom_ease[16];
+static iam_context g_default_context = {};
+static iam_context* g_current_context = &g_default_context;
+
+struct DefaultContextInitializer {
+	DefaultContextInitializer() {
+		g_contexts.push_back(&g_default_context);
+	}
+};
+static DefaultContextInitializer g_default_context_initializer;
 
 // ----------------------------------------------------
 // Easing implementation - base functions + transforms
@@ -323,9 +373,9 @@ static float eval(iam_ease_desc const& d, float t) {
 			return eval_preset_internal(d.type, t);
 		case iam_ease_custom: {
 			int slot = (int)d.p0;
-			if (slot >= 0 && slot < 16 && g_custom_ease[slot]) {
+			if (slot >= 0 && slot < 16 && g_current_context->custom_ease[slot]) {
 				if (t < 0.f) t = 0.f; if (t > 1.f) t = 1.f;
-				return g_custom_ease[slot](t);
+				return g_current_context->custom_ease[slot](t);
 			}
 			return t; // fallback to linear if no callback registered
 		}
@@ -696,8 +746,6 @@ static unsigned g_frame = 0;
 // Lazy initialization - defer channel creation until animation is needed
 static bool g_lazy_init_enabled = true;
 
-// Note: g_custom_ease is forward-declared earlier and initialized to nullptr here
-
 // ----------------------------------------------------
 // Profiler data structures
 // ----------------------------------------------------
@@ -917,15 +965,42 @@ void iam_profiler_end() {
 
 void iam_register_custom_ease(int slot, iam_ease_fn fn) {
 	if (slot >= 0 && slot < 16) {
-		iam_detail::g_custom_ease[slot] = fn;
+		iam_detail::g_current_context->custom_ease[slot] = fn;
 	}
 }
 
 iam_ease_fn iam_get_custom_ease(int slot) {
 	if (slot >= 0 && slot < 16) {
-		return iam_detail::g_custom_ease[slot];
+		return iam_detail::g_current_context->custom_ease[slot];
 	}
 	return nullptr;
+}
+
+iam_context* iam_context_create() {
+	iam_context* ctx = new iam_context();
+	memset(ctx, 0, sizeof(iam_context));
+	g_contexts.push_back(ctx);
+	return ctx;
+}
+
+void iam_context_destroy(iam_context* ctx) {
+	if (!ctx || ctx == &iam_detail::g_default_context) return;
+	if (iam_detail::g_current_context == ctx)
+		iam_detail::g_current_context = &iam_detail::g_default_context;
+	g_contexts.find_erase(ctx);
+	delete ctx;
+}
+
+void iam_context_set_current(iam_context* ctx) {
+	iam_detail::g_current_context = ctx ? ctx : &iam_detail::g_default_context;
+}
+
+iam_context* iam_context_get_current() {
+	return iam_detail::g_current_context;
+}
+
+void* iam_context_get_user_data() {
+	return iam_detail::g_current_context->user_data;
 }
 
 float iam_eval_preset(int type, float t) {
@@ -1554,28 +1629,18 @@ struct iam_instance_data {
 
 namespace iam_clip_detail {
 
-// Global clip system state
-static struct iam_clip_system {
-	ImVector<iam_clip_data>		clips;
-	ImVector<iam_instance_data>	instances;
-	ImGuiStorage				clip_map;		// clip_id -> index+1
-	ImGuiStorage				inst_map;		// inst_id -> index+1
-	unsigned					frame_counter;
-	bool						initialized;
-
-	iam_clip_system() : frame_counter(0), initialized(false) {}
-} g_clip_sys;
-
 static iam_clip_data* find_clip(ImGuiID clip_id) {
-	int idx = g_clip_sys.clip_map.GetInt(clip_id, 0);
+	iam_context* context = iam_detail::g_current_context;
+	int idx = context->clip_sys.clip_map.GetInt(clip_id, 0);
 	if (idx == 0) return nullptr;
-	return &g_clip_sys.clips[idx - 1];
+	return &context->clip_sys.clips[idx - 1];
 }
 
 static iam_instance_data* find_instance(ImGuiID inst_id) {
-	int idx = g_clip_sys.inst_map.GetInt(inst_id, 0);
+	iam_context* context = iam_detail::g_current_context;
+	int idx = context->clip_sys.inst_map.GetInt(inst_id, 0);
 	if (idx == 0) return nullptr;
-	return &g_clip_sys.instances[idx - 1];
+	return &context->clip_sys.instances[idx - 1];
 }
 
 // Evaluate easing for clip keyframes
@@ -2253,20 +2318,23 @@ static iam_clip_data* get_clip_data(ImGuiID clip_id) {
 
 iam_clip iam_clip::begin(ImGuiID clip_id) {
 	using namespace iam_clip_detail;
-	if (!g_clip_sys.initialized) {
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	if (!clip_sys.initialized) {
 		iam_clip_init();
 	}
 
 	// Find or create clip
-	int idx = g_clip_sys.clip_map.GetInt(clip_id, 0);
+	int idx = clip_sys.clip_map.GetInt(clip_id, 0);
 	iam_clip_data* clip;
 	if (idx == 0) {
-		g_clip_sys.clips.push_back(iam_clip_data());
-		clip = &g_clip_sys.clips.back();
+		clip_sys.clips.push_back(iam_clip_data());
+		clip = &clip_sys.clips.back();
 		clip->id = clip_id;
-		g_clip_sys.clip_map.SetInt(clip_id, g_clip_sys.clips.Size);
+		clip_sys.clip_map.SetInt(clip_id, clip_sys.clips.Size);
 	} else {
-		clip = &g_clip_sys.clips[idx - 1];
+		clip = &clip_sys.clips[idx - 1];
 	}
 
 	// Reset for building
@@ -2865,10 +2933,13 @@ void iam_instance::stop() {
 
 void iam_instance::destroy() {
 	using namespace iam_clip_detail;
-	int idx = g_clip_sys.inst_map.GetInt(m_inst_id, 0);
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	int idx = clip_sys.inst_map.GetInt(m_inst_id, 0);
 	if (idx == 0) return;
 	// Clear the instance data
-	iam_instance_data* inst = &g_clip_sys.instances[idx - 1];
+	iam_instance_data* inst = &clip_sys.instances[idx - 1];
 	inst->inst_id = 0;
 	inst->clip_id = 0;
 	inst->playing = false;
@@ -2877,7 +2948,7 @@ void iam_instance::destroy() {
 	inst->values_vec4.clear();
 	inst->values_int.Clear();
 	// Remove from map
-	g_clip_sys.inst_map.SetInt(m_inst_id, 0);
+	clip_sys.inst_map.SetInt(m_inst_id, 0);
 	m_inst_id = 0;
 }
 
@@ -3140,24 +3211,33 @@ bool iam_instance::get_color(ImGuiID channel, ImVec4* out, int color_space) cons
 
 void iam_clip_init(int initial_clip_cap, int initial_inst_cap) {
 	using namespace iam_clip_detail;
-	if (g_clip_sys.initialized) return;
-	g_clip_sys.clips.reserve(initial_clip_cap);
-	g_clip_sys.instances.reserve(initial_inst_cap);
-	g_clip_sys.initialized = true;
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	if (clip_sys.initialized) return;
+	clip_sys.clips.reserve(initial_clip_cap);
+	clip_sys.instances.reserve(initial_inst_cap);
+	clip_sys.initialized = true;
 }
 
 void iam_clip_shutdown() {
 	using namespace iam_clip_detail;
-	g_clip_sys.clips.clear();
-	g_clip_sys.instances.clear();
-	g_clip_sys.clip_map.Clear();
-	g_clip_sys.inst_map.Clear();
-	g_clip_sys.initialized = false;
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	clip_sys.clips.clear();
+	clip_sys.instances.clear();
+	clip_sys.clip_map.Clear();
+	clip_sys.inst_map.Clear();
+	clip_sys.initialized = false;
 }
 
 void iam_clip_update(float dt) {
 	using namespace iam_clip_detail;
-	g_clip_sys.frame_counter++;
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	clip_sys.frame_counter++;
 
 	// Apply global time scale
 	dt *= iam_detail::g_time_scale;
@@ -3166,8 +3246,8 @@ void iam_clip_update(float dt) {
 	if (dt < 0.0f) dt = 0.0f;
 	if (dt > 1.0f) dt = 1.0f;
 
-	for (int i = 0; i < g_clip_sys.instances.Size; ++i) {
-		iam_instance_data* inst = &g_clip_sys.instances[i];
+	for (int i = 0; i < clip_sys.instances.Size; ++i) {
+		iam_instance_data* inst = &clip_sys.instances[i];
 		iam_clip_data* clip = find_clip(inst->clip_id);
 		if (!inst->playing || inst->paused || !clip) continue;
 
@@ -3182,7 +3262,7 @@ void iam_clip_update(float dt) {
 				for (int tr = 0; tr < clip->iam_tracks.Size; ++tr) {
 					eval_iam_track(clip->iam_tracks[tr], 0.0f, inst);
 				}
-				inst->last_seen_frame = g_clip_sys.frame_counter;
+				inst->last_seen_frame = clip_sys.frame_counter;
 				continue;
 			}
 			inst_dt = -inst->delay_left;
@@ -3276,7 +3356,7 @@ void iam_clip_update(float dt) {
 			for (int tr = 0; tr < clip->iam_tracks.Size; ++tr) {
 				eval_iam_track(clip->iam_tracks[tr], inst->time, inst);
 			}
-			inst->last_seen_frame = g_clip_sys.frame_counter;
+			inst->last_seen_frame = clip_sys.frame_counter;
 			if (clip->cb_complete)
 				clip->cb_complete(inst->inst_id, clip->cb_complete_user);
 
@@ -3340,22 +3420,25 @@ void iam_clip_update(float dt) {
 		if (clip->cb_update)
 			clip->cb_update(inst->inst_id, clip->cb_update_user);
 
-		inst->last_seen_frame = g_clip_sys.frame_counter;
+		inst->last_seen_frame = clip_sys.frame_counter;
 	}
 }
 
 void iam_clip_gc(unsigned int max_age_frames) {
 	using namespace iam_clip_detail;
-	for (int i = 0; i < g_clip_sys.instances.Size; ++i) {
-		iam_instance_data* inst = &g_clip_sys.instances[i];
-		if (g_clip_sys.frame_counter - inst->last_seen_frame > max_age_frames) {
-			g_clip_sys.inst_map.SetInt(inst->inst_id, 0);
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	for (int i = 0; i < clip_sys.instances.Size; ++i) {
+		iam_instance_data* inst = &clip_sys.instances[i];
+		if (clip_sys.frame_counter - inst->last_seen_frame > max_age_frames) {
+			clip_sys.inst_map.SetInt(inst->inst_id, 0);
 			// Swap with last and remove
-			g_clip_sys.instances[i] = g_clip_sys.instances[g_clip_sys.instances.Size - 1];
-			g_clip_sys.instances.pop_back();
+			clip_sys.instances[i] = clip_sys.instances[clip_sys.instances.Size - 1];
+			clip_sys.instances.pop_back();
 			// Update swapped instance's map entry
-			if (i < g_clip_sys.instances.Size) {
-				g_clip_sys.inst_map.SetInt(g_clip_sys.instances[i].inst_id, i + 1);
+			if (i < clip_sys.instances.Size) {
+				clip_sys.inst_map.SetInt(clip_sys.instances[i].inst_id, i + 1);
 			}
 			i--;
 		}
@@ -3364,20 +3447,23 @@ void iam_clip_gc(unsigned int max_age_frames) {
 
 iam_instance iam_play(ImGuiID clip_id, ImGuiID instance_id) {
 	using namespace iam_clip_detail;
-	if (!g_clip_sys.initialized) iam_clip_init();
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	if (!clip_sys.initialized) iam_clip_init();
 
 	iam_clip_data* clip = find_clip(clip_id);
 	if (!clip) return iam_instance(0);
 
-	int idx = g_clip_sys.inst_map.GetInt(instance_id, 0);
+	int idx = clip_sys.inst_map.GetInt(instance_id, 0);
 	iam_instance_data* inst;
 	if (idx == 0) {
-		g_clip_sys.instances.push_back(iam_instance_data());
-		inst = &g_clip_sys.instances.back();
+		clip_sys.instances.push_back(iam_instance_data());
+		inst = &clip_sys.instances.back();
 		inst->inst_id = instance_id;
-		g_clip_sys.inst_map.SetInt(instance_id, g_clip_sys.instances.Size);
+		clip_sys.inst_map.SetInt(instance_id, clip_sys.instances.Size);
 	} else {
-		inst = &g_clip_sys.instances[idx - 1];
+		inst = &clip_sys.instances[idx - 1];
 	}
 
 	inst->clip_id = clip_id;  // Store ID instead of pointer
@@ -3390,7 +3476,7 @@ iam_instance iam_play(ImGuiID clip_id, ImGuiID instance_id) {
 	inst->begin_called = false;  // Reset so on_begin will be called
 	inst->dir_sign = (clip->direction == iam_dir_reverse) ? -1 : 1;
 	inst->loops_left = clip->loop_count;
-	inst->last_seen_frame = g_clip_sys.frame_counter;
+	inst->last_seen_frame = clip_sys.frame_counter;
 
 	// Initialize marker tracking
 	inst->prev_time = (inst->dir_sign > 0) ? 0.0f : clip->duration;
@@ -3467,7 +3553,10 @@ float iam_stagger_delay(ImGuiID clip_id, int index) {
 
 iam_instance iam_play_stagger(ImGuiID clip_id, ImGuiID instance_id, int index) {
 	using namespace iam_clip_detail;
-	if (!g_clip_sys.initialized) iam_clip_init();
+	using namespace iam_detail;
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
+	if (!clip_sys.initialized) iam_clip_init();
 
 	iam_clip_data* clip = find_clip(clip_id);
 	if (!clip) return iam_instance(0);
@@ -3761,6 +3850,7 @@ iam_result iam_clip_save(ImGuiID clip_id, char const* path) {
 
 iam_result iam_clip_load(char const* path, ImGuiID* out_clip_id) {
 	using namespace iam_clip_detail;
+	using namespace iam_detail;
 	if (!path || !out_clip_id) return iam_err_bad_arg;
 
 	FILE* f = nullptr;
@@ -3786,19 +3876,21 @@ iam_result iam_clip_load(char const* path, ImGuiID* out_clip_id) {
 		return iam_err_bad_arg;
 	}
 
+	iam_clip_system& clip_sys = g_current_context->clip_sys;
+
 	// Initialize system if needed
-	if (!g_clip_sys.initialized) iam_clip_init();
+	if (!clip_sys.initialized) iam_clip_init();
 
 	// Create or get clip
-	int idx = g_clip_sys.clip_map.GetInt(clip_id, 0);
+	int idx = clip_sys.clip_map.GetInt(clip_id, 0);
 	iam_clip_data* clip;
 	if (idx == 0) {
-		g_clip_sys.clips.push_back(iam_clip_data());
-		clip = &g_clip_sys.clips.back();
+		clip_sys.clips.push_back(iam_clip_data());
+		clip = &clip_sys.clips.back();
 		clip->id = clip_id;
-		g_clip_sys.clip_map.SetInt(clip_id, g_clip_sys.clips.Size);
+		clip_sys.clip_map.SetInt(clip_id, clip_sys.clips.Size);
 	} else {
-		clip = &g_clip_sys.clips[idx - 1];
+		clip = &clip_sys.clips[idx - 1];
 		clip->iam_tracks.clear();
 	}
 
@@ -4241,23 +4333,10 @@ ImVec4 iam_wiggle_color(ImGuiID id, ImVec4 base_color, ImVec4 amplitude, float f
 // ----------------------------------------------------
 namespace iam_scroll_detail {
 
-struct scroll_anim {
-	ImGuiID window_id;
-	float start_x, start_y;
-	float target_x, target_y;
-	float duration;
-	float elapsed;
-	iam_ease_desc ease;
-	bool active_x, active_y;
-	unsigned last_frame;
-};
-
-static ImVector<scroll_anim> g_scroll_anims;
-
-static scroll_anim* find_or_create(ImGuiID window_id) {
-	for (int i = 0; i < g_scroll_anims.Size; i++) {
-		if (g_scroll_anims[i].window_id == window_id) {
-			return &g_scroll_anims[i];
+static scroll_anim* find_or_create(iam_context* context, ImGuiID window_id) {
+	for (int i = 0; i < context->scroll_anims.Size; i++) {
+		if (context->scroll_anims[i].window_id == window_id) {
+			return &context->scroll_anims[i];
 		}
 	}
 	scroll_anim sa;
@@ -4265,8 +4344,8 @@ static scroll_anim* find_or_create(ImGuiID window_id) {
 	sa.active_x = sa.active_y = false;
 	sa.elapsed = 0;
 	sa.last_frame = 0;
-	g_scroll_anims.push_back(sa);
-	return &g_scroll_anims.back();
+	context->scroll_anims.push_back(sa);
+	return &context->scroll_anims.back();
 }
 
 } // namespace iam_scroll_detail
@@ -4276,7 +4355,7 @@ void iam_scroll_to_y(float target_y, float duration, iam_ease_desc const& ez) {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (!window) return;
 
-	scroll_anim* sa = find_or_create(window->ID);
+	scroll_anim* sa = find_or_create(iam_detail::g_current_context, window->ID);
 	sa->start_y = window->Scroll.y;
 	sa->target_y = target_y;
 	sa->duration = duration;
@@ -4290,7 +4369,7 @@ void iam_scroll_to_x(float target_x, float duration, iam_ease_desc const& ez) {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (!window) return;
 
-	scroll_anim* sa = find_or_create(window->ID);
+	scroll_anim* sa = find_or_create(iam_detail::g_current_context, window->ID);
 	sa->start_x = window->Scroll.x;
 	sa->target_x = target_x;
 	sa->duration = duration;
@@ -4310,15 +4389,14 @@ void iam_scroll_to_bottom(float duration, iam_ease_desc const& ez) {
 	iam_scroll_to_y(max_y, duration, ez);
 }
 
-// Call this in iam_update_begin_frame to process scroll animations
-static void iam_scroll_update_internal(float dt) {
+static void iam_scroll_update_internal(iam_context* context, float dt) {
 	using namespace iam_scroll_detail;
 	dt *= iam_detail::g_time_scale;
 
-	for (int i = g_scroll_anims.Size - 1; i >= 0; i--) {
-		scroll_anim& sa = g_scroll_anims[i];
+	for (int i = context->scroll_anims.Size - 1; i >= 0; i--) {
+		scroll_anim& sa = context->scroll_anims[i];
 		if (!sa.active_x && !sa.active_y) {
-			g_scroll_anims.erase(&g_scroll_anims[i]);
+			context->scroll_anims.erase(&context->scroll_anims[i]);
 			continue;
 		}
 
@@ -4343,6 +4421,14 @@ static void iam_scroll_update_internal(float dt) {
 			window->Scroll.x = new_x;
 			if (t >= 1.0f) sa.active_x = false;
 		}
+	}
+}
+
+// Call this in iam_update_begin_frame to process scroll animations
+static void iam_scroll_update_internal(float dt)
+{
+	for (int i = 0; i < g_contexts.Size; i++) {
+		iam_scroll_update_internal(g_contexts[i], dt);
 	}
 }
 
@@ -6937,8 +7023,15 @@ void iam_show_unified_inspector(bool* p_open) {
 
 			// Clip stats
 			if (ImGui::CollapsingHeader("Clip Stats")) {
-				ImGui::Text("Registered Clips: %d", iam_clip_detail::g_clip_sys.clips.Size);
-				ImGui::Text("Active Instances: %d", iam_clip_detail::g_clip_sys.instances.Size);
+				int clips_size = 0;
+				int instances_size = 0;
+				for (int i = 0; i < g_contexts.Size; i++) {
+					iam_context* ctx = g_contexts[i];
+					clips_size += ctx->clip_sys.clips.Size;
+					instances_size += ctx->clip_sys.instances.Size;
+				}
+				ImGui::Text("Registered Clips: %d", clips_size);
+				ImGui::Text("Active Instances: %d", instances_size);
 			}
 
 			ImGui::EndTabItem();
@@ -6947,12 +7040,13 @@ void iam_show_unified_inspector(bool* p_open) {
 		// Animation Inspector Tab
 		if (ImGui::BeginTabItem("Animations")) {
 			// List active clips/instances
-			auto& instances = iam_clip_detail::g_clip_sys.instances;
-			if (instances.Size == 0) {
-				ImGui::TextDisabled("No active animation instances");
-			} else {
+			bool has_instances = false;
+			for (int ctx_i = 0; ctx_i < g_contexts.Size; ctx_i++) {
+				iam_context* ctx = g_contexts[ctx_i];
+				auto& instances = ctx->clip_sys.instances;
 				for (int i = 0; i < instances.Size; i++) {
 					auto& inst = instances[i];
+					has_instances = true;
 					ImGui::PushID(i);
 					if (ImGui::TreeNode("Instance", "Instance %d (clip 0x%08X)", i, inst.clip_id)) {
 						ImGui::Text("Clip ID: 0x%08X", inst.clip_id);
@@ -6963,6 +7057,9 @@ void iam_show_unified_inspector(bool* p_open) {
 					}
 					ImGui::PopID();
 				}
+			}
+			if (!has_instances) {
+				ImGui::TextDisabled("No active animation instances");
 			}
 			ImGui::EndTabItem();
 		}
