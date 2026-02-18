@@ -381,7 +381,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddCircle(center, radius, ImU32(col), num_segments); },
 		&ImDrawList::AddCircle));
 	imDrawList.set_function("AddCircleFilled", sol::overload(
-		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddCircleFilled(center, radius, ImU32(col), num_segments); },
+		[](ImDrawList& mThis, const ImVec2& center, float radius, int col) { mThis.AddCircleFilled(center, radius, ImU32(col)); },
 		&ImDrawList::AddCircleFilled));
 	imDrawList.set_function("AddNgon", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddNgon(center, radius, col, num_segments); },
