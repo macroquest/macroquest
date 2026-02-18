@@ -113,6 +113,7 @@ struct iam_context;
 IMGUI_API iam_context* iam_context_create();                                        // Create a new context
 IMGUI_API void         iam_context_destroy(iam_context* ctx);                       // Destroy a context.
 IMGUI_API void         iam_context_set_current(iam_context* ctx);                   // Set active context. Pass nullptr to revert to default context.
+IMGUI_API void         iam_context_set_user_data(iam_context* ctx, void* user_data);// Set user data to the specified context
 IMGUI_API iam_context* iam_context_get_current();                                   // Get active context.
 IMGUI_API void*        iam_context_get_user_data();                                 // Get user data pointer from current context.
 

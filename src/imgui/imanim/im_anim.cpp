@@ -999,6 +999,11 @@ iam_context* iam_context_get_current() {
 	return iam_detail::g_current_context;
 }
 
+void iam_context_set_user_data(iam_context* ctx, void* user_data) {
+	if (!ctx) return;
+	ctx->user_data = user_data;
+}
+
 void* iam_context_get_user_data() {
 	return iam_detail::g_current_context->user_data;
 }

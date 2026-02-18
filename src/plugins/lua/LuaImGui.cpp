@@ -54,6 +54,14 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 	) != m_imguis.cend();
 }
 
+static float GetSafeDeltaTime()
+{
+	float dt = ImGui::GetIO().DeltaTime;
+	if (dt <= 0.0f) dt = 1.0f / 60.0f;
+	if (dt > 0.1f) dt = 0.1f;
+	return dt;
+}
+
 struct ScopedImAnimContext
 {
 	ScopedImAnimContext(std::unique_ptr<LuaImAnimState>& state)
@@ -62,6 +70,8 @@ struct ScopedImAnimContext
 		{
 			orig_context = iam_context_get_current();
 			iam_context_set_current(state->ctx);
+
+			iam_clip_update(GetSafeDeltaTime());
 		}
 	}
 
@@ -103,6 +113,7 @@ void LuaImGuiProcessor::Pulse()
 LuaImAnimState::LuaImAnimState()
 {
 	ctx = iam_context_create();
+	iam_context_set_user_data(ctx, this);
 }
 
 LuaImAnimState::~LuaImAnimState()

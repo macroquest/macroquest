@@ -20,6 +20,12 @@ local function GetSafeDeltaTime()
     return dt
 end
 
+local function ApplyOpenAll()
+    if s_open_all ~= 0 then
+        imgui.SetNextItemOpen(s_open_all > 0, ImGuiCond.Always)
+    end
+end
+
 -- ============================================================
 -- SECTION: Hero Animation - Dynamic Brand Showcase
 -- ============================================================
@@ -176,6 +182,7 @@ local function ShowHeroAnimation()
     dl:AddRectFilled(cp, ImVec2(cp.x + cs.x, cp.y + cs.y), IM_COL32(15, 18, 30, 255))
 
     -- === MOUSE TRAIL: Spawn particles when mouse moves inside hero area ===
+    do
         local mouse = imgui.GetMousePosVec()
         local in_area = mouse.x >= cp.x and mouse.x <= cp.x + cs.x and mouse.y >= cp.y and mouse.y <= cp.y + cs.y
 
@@ -276,12 +283,14 @@ local function ShowHeroAnimation()
                 end
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 1: CONTINUOUS CORNER PULSES (0.0 - 10.0)
     -- Four corners emit pulses at different rates, overlapping
     -- ================================================================
 
+    do
         local pulses = {
             { pos = TL, period = 1.8, phase = 0.0, col = CYAN },
             { pos = TR, period = 2.2, phase = 0.3, col = CORAL },
@@ -299,12 +308,14 @@ local function ShowHeroAnimation()
                 dl:AddCircle(p.pos, radius, ColorAlpha(p.col, a), 32, 2.0)
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 2: CORNER LAUNCHES (0.2 - 2.5)
     -- All 4 corners launch shapes simultaneously that travel along edges
     -- ================================================================
 
+    do
         -- TL -> TR (top edge)
         for i = 0, 3 do
             local start = 0.2 + i * 0.15
@@ -368,12 +379,14 @@ local function ShowHeroAnimation()
                 dl:AddCircleFilled(ImVec2(px, py), size, ColorAlpha(PURPLE, a))
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 3: DIAGONAL CROSS-STREAMS (1.5 - 4.5)
     -- TL->BR and TR->BL simultaneously, shapes "pass" each other
     -- ================================================================
 
+    do
         -- TL -> BR diagonal
         for i = 0, 5 do
             local start = 1.5 + i * 0.12
@@ -410,12 +423,14 @@ local function ShowHeroAnimation()
                 DrawRotatedEllipse(dl, ImVec2(px, py), ImVec2(size, size * 0.7), -local_ * 5.0, ColorAlpha(state.colors[((i + 2) % 5) + 1], a))
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 4: FOUR CORNER SIMULTANEOUS BURST (3.0 - 5.5)
     -- All corners explode shapes outward at once
     -- ================================================================
 
+    do
         local corners = { TL, TR, BL, BR }
         local corner_cols = { CYAN, CORAL, TEAL, PURPLE }
         local corner_angles = { 0.785, 2.356, -0.785, -2.356 } --  45deg directions away from center
@@ -443,12 +458,14 @@ local function ShowHeroAnimation()
                 end
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 5: WAVE FROM EDGES (4.5 - 7.0)
     -- Left and right edges launch waves that meet and bounce
     -- ================================================================
 
+    do
         -- Left wave moving right
         for i = 0, 7 do
             local start = 4.5 + i * 0.06
@@ -483,12 +500,14 @@ local function ShowHeroAnimation()
                 DrawRotatedRect(dl, ImVec2(px, py), ImVec2(size * 1.2, size * 0.5), -local_ * 4, ColorAlpha(state.colors[((i + 2) % 5) + 1], a), 0)
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 6: ORBITING SHAPES AROUND CORNERS (5.5 - 8.0)
     -- Each corner has shapes orbiting it
     -- ================================================================
 
+    do
         local orbit_centers = { TL, TR, BL, BR }
         local orbit_cols = { GOLD, TEAL, CORAL, CYAN }
         local orbit_speeds = { 3.0, -2.5, 2.8, -3.2 }
@@ -514,12 +533,14 @@ local function ShowHeroAnimation()
                 end
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 7: CONNECTING LINES BETWEEN CORNERS (6.5 - 9.0)
     -- Lines draw between corners, creating a frame effect
     -- ================================================================
 
+    do
         local lines = {
             { from = TL, to = TR, start = 6.5, col = CYAN },
             { from = TR, to = BR, start = 6.7, col = CORAL },
@@ -545,12 +566,14 @@ local function ShowHeroAnimation()
                 end
             end
         end
+    end
 
     -- ================================================================
     -- LAYER 8: FINAL CORNER COLLAPSE (8.5 - 10.0)
     -- All corners send shapes toward each other but they curve away
     -- ================================================================
 
+    do
         local corners = { TL, TR, BL, BR }
         local targets = { BR, BL, TR, TL } -- opposite corners
         local cols = { CYAN, CORAL, TEAL, PURPLE }
@@ -575,12 +598,14 @@ local function ShowHeroAnimation()
                 end
             end
         end
+    end
 
     -- ================================================================
     -- "ImAnim" LOGO - Stays in center, shapes work around it
     -- Hoverable with scale animation after reveal
     -- ================================================================
 
+    do
         local logo = "ImAnim"
         local base_size = imgui.GetFontSize()
         local logo_scale = 3.2
@@ -680,7 +705,7 @@ local function ShowHeroAnimation()
             end
 
             -- === "1.0.0" VERSION TEXT ===
-
+            do
                 local version = "1.0.0"
                 local ver_scale = 1.8
                 local ver_alpha = logo_alpha
@@ -721,13 +746,15 @@ local function ShowHeroAnimation()
                         vchar_x = vchar_x + (vch_size.x * ver_scale * 1.1)
                     end
                 end
-
+            end
         end
+    end
 
     -- ================================================================
     -- FRAME CORNERS
     -- ================================================================
 
+    do
         local corner_alpha = 1.0
         if t < 0.2 then
             corner_alpha = iam.EvalPreset(IamEaseType.OutExpo, t / 0.2)
@@ -747,12 +774,14 @@ local function ShowHeroAnimation()
         dl:AddLine(ImVec2(cp.x + m, cp.y + cs.y - m), ImVec2(cp.x + m, cp.y + cs.y - m - len), IM_COL32(204, 120, 88, a), 2.5)
         dl:AddLine(ImVec2(cp.x + cs.x - m, cp.y + cs.y - m), ImVec2(cp.x + cs.x - m - len, cp.y + cs.y - m), IM_COL32(204, 120, 88, a), 2.5)
         dl:AddLine(ImVec2(cp.x + cs.x - m, cp.y + cs.y - m), ImVec2(cp.x + cs.x - m, cp.y + cs.y - m - len), IM_COL32(204, 120, 88, a), 2.5)
+    end
 
     -- ================================================================
     -- PROGRESS BAR - White line tracing the border anti-clockwise
     -- Starts from middle of right edge, completes in 10 seconds
     -- ================================================================
 
+    do
         -- Progress 0-1 over the 10 second cycle
         local progress = t / CYCLE
 
@@ -824,28 +853,354 @@ local function ShowHeroAnimation()
             end
             -- Segment 3
             if dist > seg2 then
-                local d3 = math.min(dist, seg3);
-                dl:AddLine(get_point(seg2), get_point(d3), prog_col, line_thick);
+                local d3 = math.min(dist, seg3)
+                dl:AddLine(get_point(seg2), get_point(d3), prog_col, line_thick)
             end
             -- Segment 4
             if dist > seg3 then
-                local d4 = math.min(dist, seg4);
-                dl:AddLine(get_point(seg3), get_point(d4), prog_col, line_thick);
+                local d4 = math.min(dist, seg4)
+                dl:AddLine(get_point(seg3), get_point(d4), prog_col, line_thick)
             end
             -- Segment 5
             if dist > seg4 then
-                dl:AddLine(get_point(seg4), get_point(dist), prog_col, line_thick);
+                dl:AddLine(get_point(seg4), get_point(dist), prog_col, line_thick)
             end
 
             -- Draw a bright dot at the current position
-            local head = get_point(dist);
-            dl:AddCircleFilled(head, 5.0, IM_COL32(255, 255, 255, 255));
-            dl:AddCircle(head, 8.0, IM_COL32(255, 255, 255, 100), 12, 2.0);
+            local head = get_point(dist)
+            dl:AddCircleFilled(head, 5.0, IM_COL32(255, 255, 255, 255))
+            dl:AddCircle(head, 8.0, IM_COL32(255, 255, 255, 100), 12, 2.0)
         end
-
+    end
 
     imgui.Dummy(cs)
     imgui.Spacing()
+end
+
+-- ============================================================
+-- SECTION: Clip System
+-- ============================================================
+
+-- Clip IDs
+local CLIP_FADE_IN = 0x1001
+local CLIP_BOUNCE = 0x1002
+local CLIP_COLOR_CYCLE = 0x1003
+local CLIP_COMPLEX = 0x1004
+local CLIP_DELAYED = 0x1005
+local CLIP_WITH_CALLBACKS = 0x1006
+local CLIP_INT_ANIM = 0x1007
+local CLIP_SEQUENTIAL = 0x1008
+local CLIP_PARALLEL = 0x1009
+local CLIP_STAGGER = 0x100A
+local CLIP_STAGGER_LIST = 0x100B
+local CLIP_STAGGER_GRID = 0x100C
+local CLIP_STAGGER_CARDS = 0x100D
+local CLIP_COLOR_OKLCH = 0x100E
+local CLIP_VAR_BOUNCE = 0x100F
+local CLIP_VAR_DECAY = 0x1010
+local CLIP_VAR_RANDOM = 0x1011
+local CLIP_VAR_COLOR = 0x1012
+local CLIP_VAR_TIMING = 0x1013
+local CLIP_VAR_PARTICLES = 0x1014
+local CLIP_VAR_RACE = 0x1015
+
+-- Channel IDs for clips
+local CLIP_CH_ALPHA = 0x2001
+local CLIP_CH_SCALE = 0x2002
+local CLIP_CH_OFFSET = 0x2003
+local CLIP_CH_COLOR = 0x2004
+local CLIP_CH_ROTATION = 0x2005
+local CLIP_CH_COUNTER = 0x2006
+local CLIP_CH_POS_X = 0x2007
+local CLIP_CH_POS_Y = 0x2008
+
+-- Callback state for demo
+local s_callback_begin_count = 0
+local s_callback_update_count = 0
+local s_callback_complete_count = 0
+
+local s_clips_initialized = false
+
+local function InitDemoClips()
+    if s_clips_initialized then
+        return
+    end
+    s_clips_initialized = true
+
+    -- Clip 1: Simple fade in with scale
+    IamClip.Begin(CLIP_FADE_IN)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_ALPHA, 0.8, 1.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.5, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.8, 1.0, IamEaseType.OutCubic)
+        :End()
+
+    -- Clip 2: Bounce with multiple keyframes
+    local spring = IamSpringParams{mass = 1.0, stiffness = 180.0, damping = 22.0, initial_velocity = 0.0 }
+    IamClip.Begin(CLIP_BOUNCE)
+        :KeyVec2(CLIP_CH_OFFSET, 0.0, ImVec2(0, -50), IamEaseType.Linear)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.6, IamEaseType.Linear)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.3, IamEaseType.Linear)
+        :KeyVec2(CLIP_CH_OFFSET, 0.3, ImVec2(0, 10), IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ALPHA, 0.3, 1.0, IamEaseType.OutQuad)
+        :KeyVec2(CLIP_CH_OFFSET, 0.5, ImVec2(0, -15), IamEaseType.OutQuad)
+        :KeyVec2(CLIP_CH_OFFSET, 0.7, ImVec2(0, 5), IamEaseType.OutQuad)
+        :KeyVec2(CLIP_CH_OFFSET, 0.9, ImVec2(0, 0), IamEaseType.OutBounce)
+        :KeyFloatSpring(CLIP_CH_SCALE, 0.3, 1.0, spring)
+        :End()
+
+    -- Clip 3: Color cycle (looping)
+    IamClip.Begin(CLIP_COLOR_CYCLE)
+        :KeyVec4(CLIP_CH_COLOR, 0.0, ImVec4(1.0, 0.3, 0.3, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 1.5, ImVec4(1.0, 1.0, 0.3, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 3.0, ImVec4(0.3, 1.0, 0.3, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 4.5, ImVec4(0.3, 1.0, 1.0, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 6.0, ImVec4(0.3, 0.3, 1.0, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 7.5, ImVec4(1.0, 0.3, 1.0, 1.0), IamEaseType.InOutSine)
+        :KeyVec4(CLIP_CH_COLOR, 9.0, ImVec4(1.0, 0.3, 0.3, 1.0), IamEaseType.InOutSine)
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End();
+
+    -- Clip 4: Complex multi-channel animation (slower)
+    IamClip.Begin(CLIP_COMPLEX)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0,  IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_ALPHA, 0.8, 1.0,  IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.3,  IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_SCALE, 0.6, 1.08,  IamEaseType.InOutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 1.0, 0.97,  IamEaseType.InOutSine)
+        :KeyFloat(CLIP_CH_SCALE, 1.5, 1.0,  IamEaseType.OutCubic)
+        :KeyVec2(CLIP_CH_OFFSET, 0.0, ImVec2(-80, 0),  IamEaseType.OutCubic)
+        :KeyVec2(CLIP_CH_OFFSET, 0.5, ImVec2(8, 0),  IamEaseType.InOutCubic)
+        :KeyVec2(CLIP_CH_OFFSET, 1.0, ImVec2(0, 0),  IamEaseType.OutCubic)
+        :KeyVec4(CLIP_CH_COLOR, 0.0, ImVec4(1.0, 1.0, 1.0, 1.0),  IamEaseType.OutCubic)
+        :KeyVec4(CLIP_CH_COLOR, 0.6, ImVec4(1.0, 0.8, 0.3, 1.0),  IamEaseType.InOutCubic)
+        :KeyVec4(CLIP_CH_COLOR, 1.5, ImVec4(0.3, 0.7, 1.0, 1.0),  IamEaseType.OutCubic)
+        :End()
+
+    -- Clip 6: Animation with callbacks
+    IamClip.Begin(CLIP_WITH_CALLBACKS)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.5, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.5, 1.2, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_SCALE, 1.0, 1.0, IamEaseType.InOutSine)
+        :OnBegin(function () s_callback_begin_count = s_callback_begin_count + 1 end)
+        :OnUpdate(function () s_callback_update_count = s_callback_update_count + 1 end)
+        :OnComplete(function () s_callback_complete_count = s_callback_complete_count + 1 end)
+        :End()
+end
+
+local clip_state = {
+    basic_fade_inst_id = ImHashStr('fade_inst'),
+    basic_bounce_inst_id = ImHashStr('bounce_inst'),
+    basic_complex_inst_id = ImHashStr('complex_inst'),
+
+    looping_inst_id = ImHashStr('loop_inst'),
+    looping_playing = false,
+
+    calbacks_inst_id = ImHashStr('callback_inst'),
+}
+
+local function ShowClipSystemDemo()
+    local dt = GetSafeDeltaTime()
+    InitDemoClips()
+
+    imgui.TextWrapped(
+        "The Clip system provides timeline-based animations with multiple keyframes. " ..
+        "Define clips once, then play them on instances with full playback control.")
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Basic clip playback
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Basic Playback') then
+        -- Fade In with scale
+        do
+            local inst_id = clip_state.basic_fade_inst_id
+            if imgui.Button('Play Fade+Scale') then
+                iam.Play(CLIP_FADE_IN, inst_id)
+            end
+            imgui.SameLine()
+
+            local inst = iam.GetInstance(inst_id)
+            local alpha = 1.0
+            local scale = 1.0
+
+            if inst:Valid() then
+                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                _, scale = inst:GetFloat(CLIP_CH_SCALE)
+            end
+            -- Clamp scale to valid range for SetWindowFontScale
+            if scale < 0.1 then scale = 0.1 end
+            if scale > 10.0 then scale = 10.0 end
+
+            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.Text('Fading Text (a:%.2f s:%.2f)', alpha, scale)
+            imgui.PopFont()
+            imgui.PopStyleVar()
+        end
+
+        imgui.Spacing()
+
+        -- Bounce
+        do
+            local inst_id = clip_state.basic_bounce_inst_id
+            if imgui.Button('Play Bounce') then
+                iam.Play(CLIP_BOUNCE, inst_id)
+            end
+            imgui.SameLine()
+
+            local inst = iam.GetInstance(inst_id)
+            local offset = ImVec2(0, 0)
+            local scale = 1.0
+            local alpha = 1.0
+
+            if inst:Valid() then
+                _, offset = inst:GetVec2(CLIP_CH_OFFSET)
+                _, scale = inst:GetFloat(CLIP_CH_SCALE)
+                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
+            end
+            -- Clamp scale to valid range for SetWindowFontScale
+            if scale < 0.1 then scale = 0.1 end
+            if scale > 10.0 then scale = 10.0 end
+
+            local cur = imgui.GetCursorPosVec()
+            imgui.SetCursorPos(cur + offset)
+            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.Text('Bouncing!')
+            imgui.PopFont()
+            imgui.PopStyleVar()
+        end
+
+        imgui.Spacing()
+
+        -- Complex
+        do
+            local inst_id = clip_state.basic_complex_inst_id
+            if imgui.Button('Play Complex') then
+                iam.Play(CLIP_COMPLEX, inst_id)
+            end
+            imgui.SameLine()
+
+            local inst = iam.GetInstance(inst_id)
+            local alpha = 1.0
+            local scale = 1.0
+            local offset = ImVec2(0, 0)
+            local color = ImVec4(1, 1, 1, 1)
+            if inst:Valid() then
+                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                _, scale = inst:GetFloat(CLIP_CH_SCALE)
+                _, offset = inst:GetVec2(CLIP_CH_OFFSET)
+                _, color = inst:GetVec4(CLIP_CH_COLOR)
+            end
+            -- Clamp scale to valid range for SetWindowFontScale
+            if scale < 0.1 then scale = 0.1 end
+            if scale > 10.0 then scale = 10.0 end
+
+            local cur = imgui.GetCursorPosVec()
+            imgui.SetCursorPos(cur + offset)
+            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.TextColored(color, 'Multi-channel Animation')
+            imgui.PopFont()
+            imgui.PopStyleVar()
+        end
+
+        imgui.Spacing()
+        imgui.TextWrapped("Note: Font scale animations may appear slightly jumpy due to text rasterization. " ..
+            "Small scale changes (e.g. 1.05 to 1.0) produce sub-pixel differences that don't render smoothly.")
+
+        imgui.TreePop()
+    end
+
+    -- Looping animations
+    ApplyOpenAll()
+    if imgui.TreeNode('Looping Animations') then
+        local inst_id = clip_state.looping_inst_id
+
+        if not clip_state.looping_playing then
+            if imgui.Button('Start Color Cycle') then
+                iam.Play(CLIP_COLOR_CYCLE, inst_id)
+                clip_state.looping_playing = true
+            end
+        else
+            if imgui.Button('Stop') then
+                local inst = iam.GetInstance(inst_id)
+                if inst:Valid() then
+                    inst:Stop()
+                end
+            end
+        end
+
+        imgui.SameLine()
+
+        local inst = iam.GetInstance(inst_id)
+        local color = ImVec4(1, 1, 1, 1)
+        local time = 0.0
+        if inst:Valid() then
+            _, color = inst:GetVec4(CLIP_CH_COLOR)
+            time = inst:Time()
+        end
+
+        -- Draw as a larger square
+        local pos = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+        local square_size = ImVec2(100, 100)
+
+        draw_list:AddRectFilled(pos, pos + square_size, imgui.ColorConvertFloat4ToU32(color), 8.0)
+        imgui.Dummy(square_size)
+
+        imgui.SameLine()
+        imgui.Text('Time: %.2fs / 9.0s', time)
+
+        imgui.TreePop()
+    end
+
+    -- Playback control
+
+    -- Delayed Playback
+
+    -- Callbacks
+    ApplyOpenAll()
+    if imgui.TreeNode('Callbacks') then
+        imgui.TextWrapped(
+            "on_begin(), on_update(), and on_complete() let you hook into animation lifecycle events.")
+
+        local inst_id = clip_state.calbacks_inst_id
+
+        if imgui.Button('Play with Callbacks') then
+            iam.Play(CLIP_WITH_CALLBACKS, inst_id)
+        end
+
+        imgui.SameLine()
+
+        if imgui.Button('Reset Counters') then
+            s_callback_begin_count = 0
+            s_callback_update_count = 0
+            s_callback_complete_count = 0
+        end
+
+        local inst = iam.GetInstance(inst_id)
+        local scale = 1.0
+        if inst:Valid() then
+            _, scale = inst:GetFloat(CLIP_CH_SCALE)
+        end
+        -- Clamp scale to valid range for SetWindowFontScale
+        if scale < 0.1 then scale = 0.1 end
+        if scale > 10.0 then scale = 10.0 end
+
+        imgui.SameLine()
+        imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+        imgui.Text('Scaling')
+        imgui.PopFont()
+
+        imgui.Text('on_begin called:    %d times', s_callback_begin_count)
+        imgui.Text('on_update called:   %d times', s_callback_update_count)
+        imgui.Text('on_complete called: %d times', s_callback_complete_count)
+        
+        imgui.TreePop()
+    end
 end
 
 local function ImAnimDemoWindow()
@@ -896,6 +1251,24 @@ local function ImAnimDemoWindow()
     -- ========================================
     -- 1. EASING & TWEENS
     -- ========================================
+
+    -- ========================================
+    -- 2. INTERACTIVE WIDGETS
+    -- ========================================
+
+    -- ========================================
+    -- 3. CLIP-BASED ANIMATIONS
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Clip-Based Animations') then
+        iam.ProfilerBegin('Clip-Based Animations (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Clip System') then
+            ShowClipSystemDemo()
+            imgui.TreePop()
+        end
+    end
 
     -- Reset open/class all state after processing all headers
     s_open_all = 0

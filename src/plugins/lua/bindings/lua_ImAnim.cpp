@@ -114,6 +114,16 @@ static bool ExtractBezier4(const std::optional<sol::table>& tbl, float out[4])
 	return true;
 }
 
+static iam_spring_params IamSpringParamsFromTable(sol::table table)
+{
+	return iam_spring_params{
+		.mass = table["mass"].get<float>(),
+		.stiffness = table["stiffness"].get<float>(),
+		.damping = table["damping"].get<float>(),
+		.initial_velocity = table["initial_velocity"].get<float>()
+	};
+}
+
 sol::table RegisterBindings_ImAnim(sol::this_state L)
 {
 	sol::state_view state{ L };
@@ -761,8 +771,9 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 
 	// Spring parameters for physics-based animation
 	state.new_usertype<iam_spring_params>(
-		"IamSpringParams"                , sol::call_constructor,
-		                                   sol::constructors<iam_spring_params()>(),
+		"IamSpringParams"                , sol::call_constructor
+		                                 , sol::factories(&IamSpringParamsFromTable,
+		                                   []() { return iam_spring_params(); }),
 		"mass"                           , &iam_spring_params::mass,
 		"stiffness"                      , &iam_spring_params::stiffness,
 		"damping"                        , &iam_spring_params::damping,

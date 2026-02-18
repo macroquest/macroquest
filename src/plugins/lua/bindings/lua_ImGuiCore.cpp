@@ -15,11 +15,11 @@
 #include "pch.h"
 #include "lua_Bindings.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
-#include <imgui/imgui_stacklayout.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#include <sol/sol.hpp>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "imgui/imgui_stacklayout.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "sol/sol.hpp"
 
 #include <optional>
 #include <string>
@@ -913,7 +913,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	#pragma region Color Utilities
 	// Color Utilities
 	ImGui.set_function("ColorConvertU32ToFloat4", ColorConvertU32ToFloat4);
-	ImGui.set_function("ColorConvertFloat4ToU32", ColorConvertFloat4ToU32);
+	ImGui.set_function("ColorConvertFloat4ToU32", sol::overload(ImGui::ColorConvertFloat4ToU32, ColorConvertFloat4ToU32));
 	ImGui.set_function("ColorConvertRGBtoHSV", [](float r, float g, float b) { float h, s, v; ImGui::ColorConvertRGBtoHSV(r, g, b, h, s, v); return std::make_tuple(h, s, v); });
 	ImGui.set_function("ColorConvertHSVtoRGB", [](float h, float s, float v) { float r, g, b; ImGui::ColorConvertHSVtoRGB(h, s, v, r, g, b); return std::make_tuple(r, g, b); });
 	state.set_function("IM_COL32", [](int colR, int colG, int colB, std::optional<int> colA) -> int { return IM_COL32(colR, colG, colB, colA.value_or(255)); });
@@ -1009,6 +1009,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 
 	bindings::RegisterBindings_ImGuiWidgets(ImGui);
 	bindings::RegisterBindings_ImGuiCustom(ImGui);
+
+	// Helpers
+	state.set_function("ImHashStr", [](std::string_view sv, std::optional<ImGuiID> seed) { return ImHashStr(sv.data(), sv.size(), seed.value_or(0)); });
 
 	return ImGui;
 }
