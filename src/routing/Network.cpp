@@ -29,8 +29,7 @@
 #include <atomic>
 #include <optional>
 
-// TODO: Unit tests
-// TODO: Leader (later work, get internal networking done first):
+// Some stubbing for leader work has been done if it is desirable to implement it later
 //	-- leader gets PAT from router
 //	-- only leader will have the external IP in hosts
 //	-- does leader need to be an explicitly configured option? maybe can detect external IPs in hosts?
@@ -440,18 +439,221 @@ private:
 	bool m_reading = false;
 };
 
+class Announcer
+{
+public:
+	explicit Announcer(
+		asio::io_service& io, // io service to use
+		const uint16_t port, // port where the peer exists
+		const uint32_t multicastPeriod = 1000, // milliseconds for the loop to resend multicasts
+		const uint16_t multicastPort = 30000 + DEFAULT_NETWORK_PEER_PORT, // port the udp multicast sender sends to
+		const asio::ip::address& multicastAddress = asio::ip::address::from_string("239.255.77.81")) // multicast address to use (http://en.wikipedia.org/wiki/Multicast_address)
+		: m_endpoint(multicastAddress, multicastPort)
+		, m_socket(io, m_endpoint.protocol())
+		, m_period(std::chrono::milliseconds(multicastPeriod))
+		, m_timer(io)
+		, m_port(port)
+	{
+		WriteMessage(); // kickoff write loop
+	}
+
+private:
+	void HandleSend(const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("HandleSend: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		             m_port, ec.value(), ec.message());
+		else
+		{
+			m_timer.expires_from_now(m_period);
+			m_timer.async_wait([this](const std::error_code& _ec)
+			{
+				this->HandleTimeout(_ec);
+			});
+		}
+	}
+
+	void HandleTimeout(const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("HandleTimeout: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		             m_port, ec.value(), ec.message());
+		else
+			WriteMessage(); // restart write loop
+	}
+
+	void WriteMessage()
+	{
+		asio::error_code ec;
+		std::string ip = asio::ip::host_name(ec);
+
+		if (ec)
+			SPDLOG_WARN("WriteMessage: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		            m_port, ec.value(), ec.message());
+		else
+		{
+			peernetwork::Announce announce;
+			announce.set_address(ip);
+			announce.set_port(m_port);
+
+			m_messageLength = static_cast<int>(announce.ByteSizeLong());
+			m_messageBuffer = std::make_unique<uint8_t[]>(m_messageLength);
+			announce.SerializeToArray(m_messageBuffer.get(), m_messageLength);
+
+			m_messageLengthNetwork = htonl(m_messageLength);
+			std::vector<asio::const_buffer> buffers{
+				asio::buffer(&m_messageLengthNetwork, sizeof(uint32_t)),
+				asio::buffer(m_messageBuffer.get(), m_messageLength)
+			};
+
+			m_socket.async_send_to(
+				buffers, m_endpoint,
+				[this](const asio::error_code& _ec, size_t /* bytes_transferred */)
+				{
+					this->HandleSend(_ec);
+				});
+		}
+	}
+
+	asio::ip::udp::endpoint m_endpoint;
+	asio::ip::udp::socket m_socket;
+	std::chrono::steady_clock::duration m_period;
+	asio::steady_timer m_timer;
+	const uint16_t m_port;
+
+	// mutable variables for passing the discovery message
+	int m_messageLength = 0;
+	uint32_t m_messageLengthNetwork = 0;
+	std::unique_ptr<uint8_t[]> m_messageBuffer;
+};
+
+class Discoverer
+{
+public:
+	using OnPeerDiscovered = std::function<void(const std::string& address, uint16_t port)>;
+
+	// TODO: should this maintain a list of connected peers so we don't need to pass it all the way into Network to determine if its a new peer?
+	Discoverer(
+		asio::io_service& io,
+		OnPeerDiscovered onPeerDiscovered, // gets called when a peer is discovered
+		const uint16_t multicastPort = 30000 + DEFAULT_NETWORK_PEER_PORT, // the UDP multicast port to listen on
+		const asio::ip::address& listenAddress = asio::ip::address::from_string("0.0.0.0"), // address to listen on
+		const asio::ip::address& multicastAddress = asio::ip::address::from_string("239.255.77.81"))
+	// must match the one used in Announcer
+		: m_onPeerDiscovered(std::move(onPeerDiscovered))
+		, m_socket(io)
+	{
+		asio::ip::udp::endpoint listenEndpoint(listenAddress, multicastPort);
+		m_socket.open(listenEndpoint.protocol());
+		m_socket.set_option(asio::ip::udp::socket::reuse_address(true));
+		m_socket.bind(listenEndpoint);
+
+		// join the multicast group
+		m_socket.set_option(asio::ip::multicast::join_group(multicastAddress));
+
+		Receive();
+	}
+
+private:
+	void HandleMessage(const std::shared_ptr<uint8_t[]>& payload, uint32_t length,
+	                   const asio::ip::udp::endpoint& senderEndpoint) const
+	{
+		try
+		{
+			peernetwork::Announce announce;
+			announce.ParseFromArray(payload.get(), static_cast<int>(length));
+
+			if (senderEndpoint.address().to_string() == announce.address())
+				m_onPeerDiscovered(announce.address(), announce.port());
+			else
+				SPDLOG_INFO("HandleMessage: sender ({}) and message ({}) address mismatch",
+			            senderEndpoint.address().to_string(), announce.address());
+		}
+		catch (const std::exception& e)
+		{
+			SPDLOG_WARN("HandleMessage: Failed to parse message: {}", e.what());
+		}
+	}
+
+	void ReceiveFrom(
+		const std::shared_ptr<uint8_t[]>& receiveBuffer,
+		const std::shared_ptr<uint32_t>& receiveLength,
+		const std::shared_ptr<asio::ip::udp::endpoint>& senderEndpoint,
+		const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("ReceiveFrom error {}: {}", ec.value(), ec.message());
+		else
+			this->HandleMessage(receiveBuffer, ntohl(*receiveLength), *senderEndpoint);
+
+		// always restart the receive loop
+		this->Receive();
+	}
+
+	void Receive(const asio::error_code& ec)
+	{
+		if (ec)
+		{
+			SPDLOG_ERROR("Receive error {}: {}", ec.value(), ec.message());
+			this->Receive(); // restart the receive loop without trying to handle the message
+		}
+		else
+		{
+			size_t available = m_socket.available();
+
+			auto receiveLength = std::make_shared<uint32_t>(sizeof(uint32_t));
+			auto receiveBuffer = std::make_shared<uint8_t[]>(available - sizeof(uint32_t));
+			auto senderEndpoint = std::make_shared<asio::ip::udp::endpoint>();
+
+			std::vector<asio::mutable_buffer> buffers{
+				asio::buffer(receiveLength.get(), sizeof(uint32_t)),
+				asio::buffer(receiveBuffer.get(), available - sizeof(uint32_t))
+			};
+
+			m_socket.async_receive_from(
+				buffers,
+				*senderEndpoint,
+				[this, receiveLength, receiveBuffer, senderEndpoint](const asio::error_code& _ec, std::size_t)
+				{
+					this->ReceiveFrom(receiveBuffer, receiveLength, senderEndpoint, _ec);
+				});
+		}
+	}
+
+	void Receive()
+	{
+		m_socket.async_receive(
+			asio::null_buffers(),
+			[this](const asio::error_code& ec, std::size_t)
+			{
+				this->Receive(ec);
+			});
+	}
+
+	const OnPeerDiscovered m_onPeerDiscovered;
+	asio::ip::udp::socket m_socket;
+};
+
 class NetworkPeer
 {
 public:
 	NetworkPeer(
-		uint16_t port,
+		const NetworkConfiguration& configuration,
 		PeerMessageHandler receiveHandler,
 		OnSessionConnectedHandler connectedHandler,
 		OnSessionDisconnectedHandler disconnectedHandler,
 		OnRequestProcessHandler requestProcessHandler)
-		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
+		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), configuration.Port))
 		, m_port(m_acceptor.local_endpoint().port())
-		, m_uuid(CreateUUID())
+	    , m_uuid(CreateUUID())
+	    , m_announcer(m_ioContext, m_port, configuration.MulticastPeriod, configuration.MulticastPort,
+	    	asio::ip::address::from_string(configuration.MulticastAddress))
+	    , m_discoverer(m_ioContext,
+	        [this](const std::string& address, uint16_t port)
+	        { this->AddHost(NetworkAddress{address, port}); },
+	        configuration.MulticastPort,
+	        asio::ip::address::from_string(configuration.MulticastListenAddress),
+	        asio::ip::address::from_string(configuration.MulticastAddress))
 		, m_receiveHandler(std::move(receiveHandler))
 		, m_sessionConnectedHandler(std::move(connectedHandler))
 		, m_sessionDisconnectedHandler(std::move(disconnectedHandler))
@@ -1118,6 +1320,9 @@ private:
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
 	std::mutex m_sessionMutex; // ensure we block while testing for duplicate sessions
 
+	Announcer m_announcer;
+	Discoverer m_discoverer;
+
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks
 
@@ -1165,18 +1370,18 @@ NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
 {}
 
 NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
-	uint16_t port,
+	const NetworkConfiguration& configuration,
 	PeerMessageHandler receive,
 	OnSessionConnectedHandler connected,
 	OnSessionDisconnectedHandler disconnected,
 	OnRequestProcessHandler process)
 {
-	auto peer_it = s_peers.find(port);
+	auto peer_it = s_peers.find(configuration.Port);
 	if (peer_it == s_peers.end())
 	{
 		// TODO: when leader logic is implemented, the relay to other peers would happen as a wrapper to these callbacks
 		auto peer = std::make_unique<NetworkPeer>(
-			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process));
+			configuration, std::move(receive), std::move(connected), std::move(disconnected), std::move(process));
 		auto peer_port = peer->GetPort();
 		peer_it = s_peers.emplace(peer_port, std::move(peer)).first;
 
@@ -1185,7 +1390,7 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
 		return NetworkPeerAPI(peer_port);
 	}
 
-	return NetworkPeerAPI(port);
+	return NetworkPeerAPI(configuration.Port);
 }
 
 void NetworkPeerAPI::Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const

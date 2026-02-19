@@ -115,7 +115,7 @@ public:
 	};
 
 	TestServerPostOffice(const Config& config)
-		: ServerPostOffice(config.Name, config.PipeName, 0 /* auto-select port */)
+		: ServerPostOffice(config.Name, config.PipeName, mq::NetworkConfiguration{ 0 } /* auto-select port */)
 		, m_config(config)
 	{
 	}

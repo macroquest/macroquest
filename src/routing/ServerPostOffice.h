@@ -69,15 +69,16 @@ class ServerPostOffice : public postoffice::PostOffice
 
 public:
 	ServerPostOffice(const std::string& name, const std::string& pipeName,
-		uint16_t peerPort = mq::DEFAULT_NETWORK_PEER_PORT);
+		const NetworkConfiguration& configuration);
 	virtual ~ServerPostOffice() override;
 
 	const std::string& GetName() const { return m_name; }
 
 	void AddNetworkHost(const std::string& address, uint16_t port) const;
 	void RemoveNetworkHost(const std::string& address, uint16_t port) const;
-	uint16_t GetPeerPort() const { return m_peerPort; }
 	const std::string& GetPipeName() const { return m_pipeName; }
+	uint16_t GetPeerPort() const { return m_peerPort; }
+	const NetworkConfiguration& GetNetworkConfiguration() const {  return m_configuration; }
 
 	bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
 
@@ -140,9 +141,10 @@ private:
 
 protected:
 	uint16_t m_peerPort;
+	const NetworkConfiguration m_configuration;
 	std::string m_name;
 	std::string m_pipeName;
-	std::chrono::seconds m_heartBeatDuuration{ 2 };
+	std::chrono::seconds m_heartBeatDuration{ 2 };
 
 	IdentitiesMap m_identities;
 

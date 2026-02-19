@@ -57,20 +57,39 @@ void SetRequestFocusCallback(const RequestFocusCallback& requestFocus)
 
 //-----------------------------------------------------------------------------
 
-static uint16_t GetConfiguredPort()
+template<typename T>
+T GetConfiguredValue(const std::string& key, const T& defaultValue)
 {
+	// old code put PeerPort as NetworkPeerPort in MacroQuest, so fallback to MacroQuest -> Network<key>
 	if (s_iniLocation)
-	 return static_cast<uint16_t>(mq::GetPrivateProfileInt(
-		 "MacroQuest",
-		 "NetworkPeerPort",
-		 mq::DEFAULT_NETWORK_PEER_PORT,
-		 *s_iniLocation));
+	{
+		if (mq::PrivateProfileSectionExists("Network", *s_iniLocation))
+			return mq::GetPrivateProfileValue(
+				"Network",
+				key,
+				defaultValue,
+				s_iniLocation->c_str());
 
-	return mq::DEFAULT_NETWORK_PEER_PORT;
+		return mq::GetPrivateProfileValue<T>(
+			"MacroQuest",
+			fmt::format("Network{}", key),
+			defaultValue,
+			s_iniLocation->c_str());
+	}
+
+	return defaultValue;
 }
 
 LauncherPostOffice::LauncherPostOffice()
-	: ServerPostOffice("launcher", mq::MQ_PIPE_SERVER_PATH, GetConfiguredPort())
+	: ServerPostOffice(
+		"launcher", mq::MQ_PIPE_SERVER_PATH,
+		mq::NetworkConfiguration{
+			static_cast<uint16_t>(GetConfiguredValue<unsigned int>("PeerPort", mq::DEFAULT_NETWORK_PEER_PORT)),
+			GetConfiguredValue<unsigned int>("MulticastPeriod", 1000),
+			static_cast<uint16_t>(GetConfiguredValue<unsigned int>("MulticastPort", 30000 + mq::DEFAULT_NETWORK_PEER_PORT)),
+			GetConfiguredValue<std::string>("MulticastAddress", mq::DEFAULT_MULTICAST_ADDRESS),
+			GetConfiguredValue<std::string>("MulticastListenAddress", "0.0.0.0")
+		})
 {
 	InitializePostOfficeImGui();
 }
