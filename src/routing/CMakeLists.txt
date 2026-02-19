@@ -41,7 +41,6 @@ set(routing_SOURCES
     "Network.cpp"
     "PostOffice.cpp"
     "ServerPostOffice.cpp"
-        PeerDiscovery.cpp
 )
 
 source_groups("Source Files" ${routing_SOURCES})
