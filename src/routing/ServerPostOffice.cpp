@@ -39,9 +39,10 @@ static void SetThreadName(const wchar_t* threadName)
 	}
 }
 
-ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, uint16_t peerPort)
+ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, const NetworkConfiguration& configuration)
 	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::CurrentProcess, CreateUUID()), "launcher"))
-	, m_peerPort(peerPort)
+	, m_peerPort(configuration.Port)
+	, m_configuration(configuration)
 	, m_pipeName(pipeName)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))
@@ -109,12 +110,13 @@ void ServerPostOffice::ThreadProc()
 	m_threadId = std::this_thread::get_id();
 
 	StartConnections();
+	// TODO: start up the announcer and discoverer here, with the callback for AddNetworkHost
 
 	while (m_running)
 	{
 		{
 			std::unique_lock lock(m_processMutex);
-			m_needsProcessing.wait_for(lock, m_heartBeatDuuration,
+			m_needsProcessing.wait_for(lock, m_heartBeatDuration,
 				[this] { return m_hasMessages || !m_running; });
 
 			// set this before we process to allow for processes to request additional processing

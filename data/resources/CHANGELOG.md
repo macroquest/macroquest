@@ -1,3 +1,15 @@
+## 2/18/2026
+
+Added network discovery for actors on the local network. In general, no configuration is
+required, but the following config changes were added/moved:
+- Moved the `NetworkPeerPort` main ini option into `[Network]` as `PeerPort` (with fallback)
+- Added the following options in the `[Network]` section in the main ini:
+  - `PeerPort` (default 7781): the port to start the actor peer on
+  - `MulticastPeriod` (default 1000): milliseconds between multicast announces
+  - `MulticastPort` (default 37781): port the udp multicast sender sends to
+  - `MulticastAddress` (default 239.255.77.81): multicast address to use (http://en.wikipedia.org/wiki/Multicast_address)
+  - `MulticastListenAddress` (default 0.0.0.0): multicast address to listen on
+
 ## 2/11/2026 (live)
 
 Update for live patch
