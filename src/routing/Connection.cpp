@@ -401,6 +401,11 @@ void PeerConnection::Stop()
 	m_network->Shutdown();
 }
 
+void PeerConnection::EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const
+{
+	m_network->EnsureHosts(hosts);
+}
+
 void PeerConnection::AddHost(const std::string& address, uint16_t port) const
 {
 	m_network->AddHost(address, port > 0 ? port : DEFAULT_NETWORK_PEER_PORT);

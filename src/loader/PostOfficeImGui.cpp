@@ -23,6 +23,7 @@ using namespace mq::postoffice;
 
 void ShowActorsWindow()
 {
+	static bool show_dropped = false;
 	static ImGuiTableFlags table_flags = ImGuiTableFlags_ScrollY
 		| ImGuiTableFlags_ScrollX
 		| ImGuiTableFlags_SizingFixedFit
@@ -38,7 +39,7 @@ void ShowActorsWindow()
 
 	if (ImGui::BeginTable("Actor Stats", 4, table_flags, content_region))
 	{
-		auto stats = GetPostOffice().GetStats();
+		auto stats = GetPostOffice().GetStats(show_dropped);
 		size_t recv_tot = 0, send_tot = 0;
 		for (const auto stat : stats)
 		{
@@ -90,13 +91,18 @@ void ShowActorsWindow()
 		ImGui::EndTable();
 	}
 
+	ImGui::Checkbox("Show Dropped Actors", &show_dropped);
+	ImGui::SameLine();
+
 	static int lookback_seconds = GetPostOffice().GetStatLookback();
+	ImGui::PushItemWidth(ImGui::CalcItemWidth() - ImGui::CalcTextSize("Lookback Seconds").x);
 	if (ImGui::InputInt("Lookback Seconds", &lookback_seconds))
 	{
 		lookback_seconds = std::max(lookback_seconds, 1);
 
 		GetPostOffice().SetStatLookback(lookback_seconds);
 	}
+	ImGui::PopItemWidth();
 }
 
 void InitializePostOfficeImGui()
