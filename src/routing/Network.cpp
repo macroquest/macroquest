@@ -541,7 +541,6 @@ class Discoverer
 public:
 	using OnPeerDiscovered = std::function<void(const std::string& address, uint16_t port)>;
 
-	// TODO: should this maintain a list of connected peers so we don't need to pass it all the way into Network to determine if its a new peer?
 	Discoverer(
 		asio::io_service& io,
 		OnPeerDiscovered onPeerDiscovered, // gets called when a peer is discovered
@@ -777,6 +776,26 @@ public:
 		}
 	}
 
+	void EnsureHosts(const std::unordered_set<NetworkAddress>& addresses)
+	{
+		if (m_running)
+		{
+			std::unique_lock lock(m_hostMutex);
+
+			for (const auto& address : addresses)
+			{
+				if (m_knownHosts.find(address) == m_knownHosts.end())
+				{
+					m_queuedConnects.push_back(address);
+					m_knownHosts.insert(address);
+				}
+			}
+
+			if (!m_queuedConnects.empty())
+				m_ioContext.post([this] { AddConnections(); });
+		}
+	}
+
 	void AddHost(const NetworkAddress& address)
 	{
 		if (m_running)
@@ -878,7 +897,8 @@ private:
 				else
 				{
 					// connection refused is when the peer is not available, don't throw an error for that
-					if (m_running && ec != asio::error::connection_refused)
+					// also don't worry about timing out for the same reason
+					if (m_running && ec != asio::error::connection_refused && ec != asio::error::timed_out)
 						SPDLOG_ERROR("{}: Connect failed with ERR {}: {}", m_port, ec.value(), ec.message());
 
 					// make sure to close the socket on failure
@@ -886,6 +906,7 @@ private:
 
 					// if the session has failed then let the user handle it
 					m_sessionDisconnectedHandler(address);
+					m_knownHosts.erase(address);
 				}
 
 				// no matter the outcome, remove one instance of this address from pending connects
@@ -944,33 +965,33 @@ private:
 					switch (header.type())
 					{
 					case peernetwork::Route:
-						{
-							auto msg = std::make_unique<peernetwork::NetworkMessage>();
-							msg->ParseFromArray(payload.get(), length);
+					{
+						auto msg = std::make_unique<peernetwork::NetworkMessage>();
+						msg->ParseFromArray(payload.get(), length);
 
-							AddProcess(session->KnownAddress(), std::move(msg));
-							break;
-						}
-						case peernetwork::Leader:
+						AddProcess(session->KnownAddress(), std::move(msg));
+						break;
+					}
+					case peernetwork::Leader:
 						// set the leader here (for when the session lookup fails)
 						m_leaderAddress = session->KnownAddress();
 						break;
 					case peernetwork::Handshake:
-						{
-							peernetwork::Identity id;
-							id.ParseFromArray(payload.get(), length);
-							ResolveHandshake(session->Address(), id.uuid(), id.port());
-							Handshake(peernetwork::MessageType::Response, session, NetworkAddress{ session->Address().IP, static_cast<uint16_t>(id.port()) });
-							break;
-						}
-						case peernetwork::Response:
-						{
-							peernetwork::Identity id;
-							id.ParseFromArray(payload.get(), length);
-							ResolveHandshake(session->Address(), id.uuid(), id.port());
-							break;
-						}
-						default:
+					{
+						peernetwork::Identity id;
+						id.ParseFromArray(payload.get(), length);
+						ResolveHandshake(session->Address(), id.uuid(), id.port());
+						Handshake(peernetwork::MessageType::Response, session, NetworkAddress{ session->Address().IP, static_cast<uint16_t>(id.port()) });
+						break;
+					}
+					case peernetwork::Response:
+					{
+						peernetwork::Identity id;
+						id.ParseFromArray(payload.get(), length);
+						ResolveHandshake(session->Address(), id.uuid(), id.port());
+						break;
+					}
+					default:
 						SPDLOG_WARN("{}: Got unreconized header type {}", m_port, static_cast<uint32_t>(header.type()));
 						break;
 					}
@@ -1096,6 +1117,7 @@ private:
 		{
 			AddProcess([this, addr = std::move(addr)]
 			{
+				m_knownHosts.erase(addr);
 				m_sessionDisconnectedHandler(addr);
 			});
 		};
@@ -1313,7 +1335,7 @@ private:
 	static std::unordered_set<std::string> GetAdaptersAddresses()
 	{
 		DWORD outLen = 1 << 12; // start with 4k
-		IP_ADAPTER_ADDRESSES* addresses;
+		IP_ADAPTER_ADDRESSES* addresses = nullptr;
 		DWORD retVal = 0;
 		size_t iterations = 0;
 
@@ -1525,6 +1547,13 @@ void NetworkPeerAPI::Shutdown() const
 		peer->second->Shutdown();
 		s_peers.erase(peer);
 	}
+}
+
+void NetworkPeerAPI::EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		peer->second->EnsureHosts(hosts);
 }
 
 void NetworkPeerAPI::AddHost(const std::string& address, uint16_t port) const

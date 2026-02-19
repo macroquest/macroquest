@@ -111,6 +111,7 @@ void LauncherPostOffice::AddConfiguredHosts()
 		{
 			const uint16_t port = static_cast<uint16_t>(mq::GetUIntFromString(port_raw, 0));
 			AddNetworkHost(address, port > 0 ? port : default_port);
+			m_persistentHosts.insert(mq::NetworkAddress{ address, port > 0 ? port : default_port });
 		}
 	}
 }
