@@ -563,14 +563,14 @@ public:
 	}
 
 private:
-	void HandleMessage() const
+	void HandleMessage(const std::shared_ptr<DiscoveryMessage>& message) const
 	{
 		try
 		{
 			peernetwork::Announce announce;
-			announce.ParseFromArray(m_messageBuffer->m_payload.get(), static_cast<int>(m_messageBuffer->m_length));
+			announce.ParseFromArray(message->m_payload.get(), static_cast<int>(message->m_length));
 
-			m_onPeerDiscovered(m_messageBuffer->m_endpoint.address().to_string(), announce.port());
+			m_onPeerDiscovered(message->m_endpoint.address().to_string(), announce.port());
 		}
 		catch (const std::exception& e)
 		{
@@ -578,14 +578,14 @@ private:
 		}
 	}
 
-	void ReceiveFrom(const asio::error_code& ec)
+	void ReceiveFrom(const std::shared_ptr<DiscoveryMessage>& message, const asio::error_code& ec)
 	{
 		if (ec)
 			SPDLOG_ERROR("ReceiveFrom error {}: {}", ec.value(), ec.message());
 		else
 		{
-			m_messageBuffer->m_length = ntohl(m_messageBuffer->m_length);
-			this->HandleMessage();
+			message->m_length = ntohl(message->m_length);
+			this->HandleMessage(message);
 		}
 
 		// always restart the receive loop
@@ -603,20 +603,20 @@ private:
 		{
 			size_t available = m_socket.available();
 
-			m_messageBuffer = std::make_unique<DiscoveryMessage>();
-			m_messageBuffer->m_payload = std::make_unique<uint8_t[]>(available - sizeof(uint32_t));
+			auto message = std::make_shared<DiscoveryMessage>();
+			message->m_payload = std::make_unique<uint8_t[]>(available - sizeof(uint32_t));
 
 			std::vector<asio::mutable_buffer> buffers{
-				asio::buffer(&m_messageBuffer->m_length, sizeof(uint32_t)),
-				asio::buffer(m_messageBuffer->m_payload.get(), available - sizeof(uint32_t))
+				asio::buffer(&message->m_length, sizeof(uint32_t)),
+				asio::buffer(message->m_payload.get(), available - sizeof(uint32_t))
 			};
 
 			m_socket.async_receive_from(
 				buffers,
-				m_messageBuffer->m_endpoint,
-				[this](const asio::error_code& _ec, std::size_t)
+				message->m_endpoint,
+				[this, message](const asio::error_code& _ec, std::size_t)
 				{
-					this->ReceiveFrom(_ec);
+					this->ReceiveFrom(message, _ec);
 				});
 		}
 	}
@@ -635,8 +635,6 @@ private:
 	asio::ip::udp::socket m_socket;
 
 	std::set<std::string> m_connected;
-
-	std::unique_ptr<DiscoveryMessage> m_messageBuffer;
 };
 
 class NetworkPeer
