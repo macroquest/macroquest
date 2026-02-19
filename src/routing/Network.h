@@ -88,6 +88,7 @@ public:
 
 	void Shutdown() const;
 
+	void EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const;
 	void AddHost(const std::string& address, uint16_t port) const;
 	void RemoveHost(const std::string& address, uint16_t port) const;
 	bool HasHost(const std::string& address, uint16_t port) const;
