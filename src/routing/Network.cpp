@@ -842,6 +842,7 @@ public:
 
 	bool HasHost(const NetworkAddress& address)
 	{
+		std::unique_lock lock(m_hostMutex);
 		return m_running && m_knownHosts.find(address) != m_knownHosts.end();
 	}
 
@@ -906,6 +907,7 @@ private:
 
 					// if the session has failed then let the user handle it
 					m_sessionDisconnectedHandler(address);
+					std::unique_lock lock(m_hostMutex);
 					m_knownHosts.erase(address);
 				}
 
@@ -1117,7 +1119,10 @@ private:
 		{
 			AddProcess([this, addr = std::move(addr)]
 			{
-				m_knownHosts.erase(addr);
+				{
+					std::unique_lock lock(m_hostMutex);
+					m_knownHosts.erase(addr);
+				}
 				m_sessionDisconnectedHandler(addr);
 			});
 		};
