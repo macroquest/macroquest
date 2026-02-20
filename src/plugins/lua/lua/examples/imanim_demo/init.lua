@@ -878,6 +878,168 @@ local function ShowHeroAnimation()
 end
 
 -- ============================================================
+-- SECTION: Easing Functions
+-- ============================================================
+
+local easing_state = {}
+
+local function ShowEasingDemo()
+end
+
+-- ============================================================
+-- SECTION: Custom Easing
+-- ============================================================
+---@param t number
+---@return number
+local function CustomEaseSmooth(t)
+    -- Attempt a smoothstep-like ease
+    return t * t * (3.0 - 2.0 * t)
+end
+
+---@param t number
+---@return number
+local function CustomEaseBouncy(t)
+    -- Custom bouncy effect
+    local n = 7.5625
+    local d = 2.75
+
+    if t < 1.0 / d then
+        return n * t * t
+    end
+
+    if (t < 2.0 / d) then
+       t = t - (1.5 / d)
+       return n * t * t + 0.75
+    end
+
+    if t < 2.5 / d then
+        t = t - (2.25 / d)
+        return n * t * t + 0.9375
+    end
+
+    t = t - (2.625 / d)
+    return n * t * t + 0.984375
+end
+
+---@param t number
+---@return number
+local function CustomEaseWobble(t)
+    -- Wobble with overshoot
+    local result = t + math.sin(t * math.pi * 3.0) * (1.0 - t) * 0.3
+    return result
+end
+
+local custom_easing_state = {
+    initialized = false,
+    selected_slot = 0,
+    playing = false,
+    target = 0.0,
+    id = ImHashStr('custom_ease_demo'),
+    pos_id = ImHashStr('pos')
+}
+
+local function ShowCustomEasingDemo()
+    local dt = GetSafeDeltaTime()
+    local state = custom_easing_state
+
+    imgui.TextWrapped(
+        "Register your own easing functions using iam_register_custom_ease(). " ..
+        "You get 16 slots (0-15) for custom easing callbacks.")
+
+    if not state.initialized then
+        iam.RegisterCustomEase(0, CustomEaseSmooth)
+        iam.RegisterCustomEase(1, CustomEaseBouncy)
+        iam.RegisterCustomEase(2, CustomEaseWobble)
+        state.initialized = true
+    end
+
+    imgui.Spacing()
+
+    -- Show registered slots
+    imgui.Text('Registered Custom Easings:')
+    imgui.BulletText('Slot 0: Smooth (smoothstep)')
+    imgui.BulletText('Slot 1: Bouncy (bounce variation)')
+    imgui.BulletText('Slot 2: Wobble (overshoot with sine)')
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Interactive demo
+    imgui.Text('Test Custom Easing:')
+    state.selected_slot = imgui.RadioButton('Smooth##custom', state.selected_slot, 0)
+    imgui.SameLine()
+    state.selected_slot = imgui.RadioButton('Bouncy##custom', state.selected_slot, 1)
+    imgui.SameLine()
+    state.selected_slot = imgui.RadioButton('Wobble##custom', state.selected_slot, 2)
+
+    if imgui.Button(state.playing and 'Reset##custom' or 'Play##custom') then
+        state.playing = not state.playing
+        state.target = state.playing and 1.0 or 0.0
+    end
+
+    local value = iam.TweenFloat(state.id, state.pos_id, state.target, 1.0,
+        iam.EaseCustomFn(state.selected_slot), IamPolicy.Crossfade, dt)
+
+    -- Draw animated bar
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_w = imgui.GetContentRegionAvailVec().x
+    local canvas_h = 30.0
+    local draw_list = imgui.GetWindowDrawList()
+
+    draw_list:AddRectFilled(canvas_pos,
+        ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+        IM_COL32(40, 42, 48, 255), 4.0)
+
+    local bar_w = value * (canvas_w - 10.0)
+    draw_list:AddRectFilled(
+        ImVec2(canvas_pos.x + 5, canvas_pos.y + 5),
+        ImVec2(canvas_pos.x + 5 + bar_w, canvas_pos.y + canvas_h - 5),
+        IM_COL32(100, 180, 255, 255), 3.0)
+
+    imgui.Dummy(ImVec2(canvas_w, canvas_h))
+
+    -- Show code example
+    imgui.Spacing()
+    imgui.TextDisabled('Usage:')
+    imgui.TextDisabled('  iam.RegisterCustomEase(0, MyEaseFunc)')
+    imgui.TextDisabled('  iam.TweenFloat(id, ch, target, dur, iam.EaseCustomFn(0), policy, dt)')
+end
+
+-- ============================================================
+-- SECTION: Basic Tweens
+-- ============================================================
+local basic_tweens_state = {
+    float_target = 50.0,
+    float_id = ImHashStr('float_demo')
+}
+
+local function ShowBasicTweensDemo()
+    local state = basic_tweens_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        "Tweens smoothly interpolate values over time. Each tween is identified by a unique (id, channel) pair. " ..
+        "Call the tween function every frame with your target value - the library handles the animation.")
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Float tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Float Tween') then
+        state.float_target = imgui.SliderFloat('Target', state.float_target, 0, 100)
+        local value = iam.TweenFloat(state.float_id, 0, state.float_target, 1.0, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        imgui.ProgressBar(value / 100.0, ImVec2(-1, 0), "")
+        imgui.SameLine()
+        imgui.Text('%.1f', value)
+
+        imgui.TextDisabled('iam.TweenFloat(id, channel, %.1f, 1.0, IamEaseType.OutCubic, IamPolicy.Crossfade, dt)', state.float_target)
+        imgui.TreePop()
+    end
+end
+
+-- ============================================================
 -- SECTION: Clip System
 -- ============================================================
 
@@ -1251,6 +1413,28 @@ local function ImAnimDemoWindow()
     -- ========================================
     -- 1. EASING & TWEENS
     -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Easing & Tweens') then
+        iam.ProfilerBegin('Easing & Tweens (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Easing Function') then
+            ShowEasingDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Custom Easing') then
+            ShowCustomEasingDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Basic Tweens') then
+            ShowBasicTweensDemo()
+            imgui.TreePop()
+        end
+    end
 
     -- ========================================
     -- 2. INTERACTIVE WIDGETS
