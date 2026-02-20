@@ -267,7 +267,7 @@ local function ShowHeroAnimation()
                 -- Render with eased alpha and scale
                 local alpha = 1.0 - iam.EvalPreset(IamEaseType.InQuad, lt)
                 local scale = iam.EvalPreset(IamEaseType.OutBack, math.min(lt * 5.0, 1.0)) * (1.0 - lt * 0.3)
-                local a = math.modf(alpha * 200)
+                local a = math.floor(alpha * 200)
 
                 if a > 5 and p.pos.x >= cp.x and p.pos.x <= cp.x + cs.x and p.pos.y >= cp.y and p.pos.y <= cp.y + cs.y then
                     local col = ColorAlpha(state.colors[p.color_idx], a)
@@ -303,7 +303,7 @@ local function ShowHeroAnimation()
             local expand = iam.EvalPreset(IamEaseType.OutExpo, pt)
             local alpha = (1.0 - pt) * 0.4
             if alpha > 0.02 then
-                local a = math.modf(alpha * 255)
+                local a = math.floor(alpha * 255)
                 local radius = 15 + expand * 80
                 dl:AddCircle(p.pos, radius, ColorAlpha(p.col, a), 32, 2.0)
             end
@@ -326,7 +326,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.1, 0.85)
                 local px = TL.x + (TR.x - TL.x) * travel
                 local py = TL.y + math.sin(local_ * 6.28) * 15
-                local a = math.modf(alpha * 200)
+                local a = math.floor(alpha * 200)
                 local size = 14.0 + i * 3.0
                 DrawRotatedRect(dl, ImVec2(px, py), ImVec2(size, size * 0.6), local_ * 4.0, ColorAlpha(CYAN, a), 0)
             end
@@ -342,7 +342,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.1, 0.85)
                 local px = TR.x + math.sin(local_ * 6.28) * 15
                 local py = TR.y + (BR.y - TR.y) * travel
-                local a = math.modf(alpha * 200)
+                local a = math.floor(alpha * 200)
                 local size = 12.0 + i * 3.0
                 DrawRotatedEllipse(dl, ImVec2(px, py), ImVec2(size, size * 0.7), -local_ * 3.0, ColorAlpha(CORAL, a))
             end
@@ -358,7 +358,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.1, 0.85)
                 local px = BR.x - (BR.x - BL.x) * travel
                 local py = BR.y + math.sin(local_ * 6.28 + 1.57) * 15
-                local a = math.modf(alpha * 200)
+                local a = math.floor(alpha * 200)
                 local size = 13.0 + i * 2.0
                 DrawRotatedRect(dl, ImVec2(px, py), ImVec2(size, size * 0.5), local_ * 5.0, ColorAlpha(TEAL, a), 0)
             end
@@ -374,7 +374,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.1, 0.85)
                 local px = BL.x + math.sin(local_ * 6.28 + 3.14) * 15
                 local py = BL.y - (BL.y - TL.y) * travel
-                local a = math.modf(alpha * 200)
+                local a = math.floor(alpha * 200)
                 local size = 11.0 + i * 3.0
                 dl:AddCircleFilled(ImVec2(px, py), size, ColorAlpha(PURPLE, a))
             end
@@ -399,7 +399,7 @@ local function ShowHeroAnimation()
                 local curve = math.sin(local_ * 3.14159) * 60
                 local px = TL.x + (BR.x - TL.x) * travel - curve
                 local py = TL.y + (BR.y - TL.y) * travel
-                local a = math.modf(alpha * 180)
+                local a = math.floor(alpha * 180)
                 local size = 10.0 + (i % 3) * 5.0
                 local rot = local_ * 6.0 + i
                 DrawRotatedRect(dl, ImVec2(px, py), ImVec2(size * 1.2, size * 0.6), rot, ColorAlpha(state.colors[(i % 5) + 1], a), 0)
@@ -418,7 +418,7 @@ local function ShowHeroAnimation()
                 local curve = math.sin(local_ * 3.14159) * 60
                 local px = TR.x - (TR.x - BL.x) * travel + curve
                 local py = TR.y + (BL.y - TR.y) * travel
-                local a = math.modf(alpha * 180)
+                local a = math.floor(alpha * 180)
                 local size = 9.0 + (i % 3) * 4.0
                 DrawRotatedEllipse(dl, ImVec2(px, py), ImVec2(size, size * 0.7), -local_ * 5.0, ColorAlpha(state.colors[((i + 2) % 5) + 1], a))
             end
@@ -447,7 +447,7 @@ local function ShowHeroAnimation()
                     local dist = 20 + explode * 100
                     local px = corners[c + 1].x + math.cos(angle) * dist
                     local py = corners[c + 1].y + math.sin(angle) * dist
-                    local a = math.modf(alpha * 200)
+                    local a = math.floor(alpha * 200)
                     local size = 8.0 + i * 3.0
                     local scale = 1.0 + (1.0 - local_) * 0.5
                     if i % 2 == 0 then
@@ -478,7 +478,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.05, 0.85)
                 local px = cp.x + 30 + move * (cs.x * 0.35)
                 local py = cp.y + 40 + i * 30
-                local a = math.modf(alpha * 180)
+                local a = math.floor(alpha * 180)
                 local size = 12.0 + (i % 3) * 4.0
                 DrawRotatedEllipse(dl, ImVec2(px, py), ImVec2(size, size * 0.6), local_ * 3, ColorAlpha(state.colors[(i % 5) + 1], a))
             end
@@ -495,7 +495,7 @@ local function ShowHeroAnimation()
                 local alpha = fade_alpha(local_, 0.05, 0.85)
                 local px = cp.x + cs.x - 30 - move * (cs.x * 0.35)
                 local py = cp.y + 55 + i * 30
-                local a = math.modf(alpha * 180)
+                local a = math.floor(alpha * 180)
                 local size = 11.0 + (i % 3) * 4.0
                 DrawRotatedRect(dl, ImVec2(px, py), ImVec2(size * 1.2, size * 0.5), -local_ * 4, ColorAlpha(state.colors[((i + 2) % 5) + 1], a), 0)
             end
@@ -523,7 +523,7 @@ local function ShowHeroAnimation()
                     local radius = (35 + i * 15)
                     local px = orbit_centers[c + 1].x + math.cos(angle) * radius
                     local py = orbit_centers[c + 1].y + math.sin(angle) * radius
-                    local a = math.modf(alpha * 200)
+                    local a = math.floor(alpha * 200)
                     local size = 7.0 + i * 3.0
                     if i % 2 == 0 then
                         dl:AddCircleFilled(ImVec2(px, py), size, ColorAlpha(orbit_cols[c + 1], a))
@@ -557,7 +557,7 @@ local function ShowHeroAnimation()
                 local local_ = (t - l.start) / dur
                 local draw = iam.EvalPreset(IamEaseType.OutExpo, math.min(local_ * 2.0, 1.0))
                 local alpha = fade_alpha(local_, 0.05, 0.8)
-                local a = math.modf(alpha * 150)
+                local a = math.floor(alpha * 150)
                 local end_ = ImVec2(l.from.x + (l.to.x - l.from.x) * draw, l.from.y + (l.to.y - l.from.y) * draw)
                 dl:AddLine(l.from, end_, ColorAlpha(l.col, a), 2.0)
                 -- Dot at the drawing tip
@@ -591,7 +591,7 @@ local function ShowHeroAnimation()
                     local px = corners[c + 1].x + (targets[c + 1].x - corners[c + 1].x) * travel * 0.4
                     local py = corners[c + 1].y + (targets[c + 1].y - corners[c + 1].y) * travel * 0.4
                     px = px + (c < 2 and curve or -curve)
-                    local a = math.modf(alpha * 180)
+                    local a = math.floor(alpha * 180)
                     local size = 10.0 + i * 3.0
                     local shrink = 1.0 - local_ * 0.5
                     DrawRotatedEllipse(dl, ImVec2(px, py), ImVec2(size * shrink, size * shrink * 0.6), local_ * 5, ColorAlpha(cols[c + 1], a))
@@ -678,10 +678,10 @@ local function ShowHeroAnimation()
                 end
 
                 local hue_t = i / 5.0
-                local r = math.modf(91 + (204 - 91) * hue_t)
-                local g = math.modf(194 + (120 - 194) * hue_t)
-                local b = math.modf(231 + (88 - 231) * hue_t)
-                local a = math.modf(logo_alpha * 255)
+                local r = math.floor(91 + (204 - 91) * hue_t)
+                local g = math.floor(194 + (120 - 194) * hue_t)
+                local b = math.floor(231 + (88 - 231) * hue_t)
+                local a = math.floor(logo_alpha * 255)
 
                 local char_size_scaled = font_size * char_scale
                 local y_adjust = (char_scale - 1.0) * font_size * 0.3
@@ -699,7 +699,7 @@ local function ShowHeroAnimation()
             end
 
             if line_w > 1.0 and logo_alpha > 0.1 then
-                local la = math.modf(logo_alpha * 200)
+                local la = math.floor(logo_alpha * 200)
                 dl:AddLine(ImVec2(cc.x - line_w * 0.5, line_y), ImVec2(cc.x, line_y), IM_COL32(91, 194, 231, la), 3.0)
                 dl:AddLine(ImVec2(cc.x, line_y), ImVec2(cc.x + line_w * 0.5, line_y), IM_COL32(204, 120, 88, la), 3.0)
             end
@@ -736,7 +736,7 @@ local function ShowHeroAnimation()
                         local vr = 230
                         local vg = 190 - vi * 5
                         local vb = 90 + vi * 10
-                        local va = math.modf(ver_alpha * 255)
+                        local va = math.floor(ver_alpha * 255)
 
                         -- Shadow
                         dl:AddText(nil, ver_font_size, ImVec2(vchar_x + 1, ver_y + 1), IM_COL32(0, 0, 0, va / 3), vch)
@@ -763,7 +763,7 @@ local function ShowHeroAnimation()
         end
 
         local len = 30.0
-        local a = math.modf(corner_alpha * 180)
+        local a = math.floor(corner_alpha * 180)
         local m = 10.0
 
         dl:AddLine(ImVec2(cp.x + m, cp.y + m), ImVec2(cp.x + m + len, cp.y + m), IM_COL32(91, 194, 231, a), 2.5)
@@ -2303,6 +2303,15 @@ local function InitDemoClips()
         :KeyVec4(CLIP_CH_COLOR, 1.5, ImVec4(0.3, 0.7, 1.0, 1.0),  IamEaseType.OutCubic)
         :End()
 
+    -- Clip 5: Animation with delay
+    IamClip.Begin(CLIP_DELAYED)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_ALPHA, 0.5, 1.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.5, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_SCALE, 0.5, 1.0, IamEaseType.OutBack)
+        :SetDelay(1.0)
+        :End()
+
     -- Clip 6: Animation with callbacks
     IamClip.Begin(CLIP_WITH_CALLBACKS)
         :KeyFloat(CLIP_CH_SCALE, 0.0, 0.5, IamEaseType.OutCubic)
@@ -2311,6 +2320,174 @@ local function InitDemoClips()
         :OnBegin(function () s_callback_begin_count = s_callback_begin_count + 1 end)
         :OnUpdate(function () s_callback_update_count = s_callback_update_count + 1 end)
         :OnComplete(function () s_callback_complete_count = s_callback_complete_count + 1 end)
+        :End()
+
+    -- Clip 7: Integer keyframes (counter animation)
+    IamClip.Begin(CLIP_INT_ANIM)
+        :KeyInt(CLIP_CH_COUNTER, 0.0, 0, IamEaseType.Linear)
+        :KeyInt(CLIP_CH_COUNTER, 2.0, 100, IamEaseType.OutCubic)
+        :End()
+
+    -- Clip 8: Sequential timeline (animations play one after another)
+    -- Total duration: 0.5 + 0.5 + 0.5 = 1.5s
+    IamClip.Begin(CLIP_SEQUENTIAL)
+        :SeqBegin()
+            -- First: move right
+            :KeyFloat(CLIP_CH_POS_X, 0.0, 0.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_POS_X, 0.5, 100.0, IamEaseType.OutCubic)
+        :SeqEnd()
+        :SeqBegin()
+            -- Then: move down
+            :KeyFloat(CLIP_CH_POS_Y, 0.0, 0.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_POS_Y, 0.5, 50.0, IamEaseType.OutCubic)
+        :SeqEnd()
+        :SeqBegin()
+            -- Finally: scale up
+            :KeyFloat(CLIP_CH_SCALE, 0.0, 1.0, IamEaseType.OutBack)
+            :KeyFloat(CLIP_CH_SCALE, 0.5, 1.5, IamEaseType.OutBack)
+        :SeqEnd()
+        :End()
+
+    -- Clip 9: Parallel timeline (all animations start at the same time)
+    -- Total duration: max(0.6, 0.6, 0.6, 0.6) = 0.6s
+    IamClip.Begin(CLIP_PARALLEL)
+        :ParBegin()
+            -- All at once: move, scale, and fade
+            :KeyFloat(CLIP_CH_POS_X, 0.0, 0.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_POS_X, 0.6, 100.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_POS_Y, 0.0, 0.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_POS_Y, 0.6, 50.0, IamEaseType.OutCubic)
+            :KeyFloat(CLIP_CH_SCALE, 0.0, 0.5, IamEaseType.OutElastic)
+            :KeyFloat(CLIP_CH_SCALE, 0.6, 1.2, IamEaseType.OutElastic)
+            :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutQuad)
+            :KeyFloat(CLIP_CH_ALPHA, 0.6, 1.0, IamEaseType.OutQuad)
+        :ParEnd()
+        :End()
+
+    -- Clip 10: Stagger animation - cascading wave effect
+    IamClip.Begin(CLIP_STAGGER)
+        -- Pop in from below with scale
+        :KeyFloat(CLIP_CH_POS_Y, 0.0, 40.0, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_POS_Y, 0.5, 0.0, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.0, IamEaseType.OutElastic)
+        :KeyFloat(CLIP_CH_SCALE, 0.6, 1.0, IamEaseType.OutElastic)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ALPHA, 0.3, 1.0, IamEaseType.OutQuad)
+        :SetStagger(12, 0.06, 0.0) -- 12 items, 60ms delay for smooth wave
+        :End()
+
+    -- Clip 11: Stagger list items - slide in from left
+    IamClip.Begin(CLIP_STAGGER_LIST)
+        :KeyFloat(CLIP_CH_POS_X, 0.0, -50.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_POS_X, 0.4, 0.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ALPHA, 0.3, 1.0, IamEaseType.OutQuad)
+        :SetStagger(6, 0.08, 0.0)
+        :End()
+
+    -- Clip 12: Stagger grid - scale in with rotation feel
+    IamClip.Begin(CLIP_STAGGER_GRID)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.0, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_SCALE, 0.5, 1.0, IamEaseType.OutBack)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ALPHA, 0.25, 1.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ROTATION, 0.0, -15.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_ROTATION, 0.5, 0.0, IamEaseType.OutCubic)
+        :SetStagger(16, 0.04, 0.0)
+        :End()
+
+    -- Clip 13: Stagger cards - drop from top with bounce
+    IamClip.Begin(CLIP_STAGGER_CARDS)
+        :KeyFloat(CLIP_CH_POS_Y, 0.0, -80.0, IamEaseType.OutBounce)
+        :KeyFloat(CLIP_CH_POS_Y, 0.6, 0.0, IamEaseType.OutBounce)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 0.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_ALPHA, 0.2, 1.0, IamEaseType.OutQuad)
+        :KeyFloat(CLIP_CH_SCALE, 0.0, 0.8, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_CH_SCALE, 0.4, 1.0, IamEaseType.OutCubic)
+        :SetStagger(5, 0.12, 0.0)
+        :End()
+
+    -- Color keyframe clips - demonstrating different color spaces
+    -- 5-color cycle in OKLCH (perceptually uniform with smooth hue transitions)
+    IamClip.Begin(CLIP_COLOR_OKLCH)
+        :KeyColor(CLIP_CH_COLOR, 0.0, ImVec4(1.0, 0.2, 0.2, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Red
+        :KeyColor(CLIP_CH_COLOR, 1.0, ImVec4(1.0, 0.7, 0.1, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Orange
+        :KeyColor(CLIP_CH_COLOR, 2.0, ImVec4(0.2, 0.9, 0.3, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Green
+        :KeyColor(CLIP_CH_COLOR, 3.0, ImVec4(0.2, 0.5, 1.0, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Blue
+        :KeyColor(CLIP_CH_COLOR, 4.0, ImVec4(0.8, 0.2, 0.9, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Purple
+        :KeyColor(CLIP_CH_COLOR, 5.0, ImVec4(1.0, 0.2, 0.2, 1.0), IamColorSpace.OKLCH, IamEaseType.InOutCubic)   -- Back to Red
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    -- Variation clips - demonstrating per-loop parameter variations
+    -- Bouncing ball with decaying height
+    IamClip.Begin(CLIP_VAR_BOUNCE)
+        :KeyFloatVar(CLIP_CH_POS_Y, 0.0, 0.0, iam.VarfNone(), IamEaseType.OutQuad)
+        :KeyFloatVar(CLIP_CH_POS_Y, 0.25, -100.0, iam.VarfMul(0.7), IamEaseType.OutQuad)  -- Height decays 70% each loop
+        :KeyFloatVar(CLIP_CH_POS_Y, 0.5, 0.0, iam.VarfNone(), IamEaseType.InQuad)
+        :SetDurationVar(iam.VarfMul(0.85))  -- Duration also shortens
+        :SetLoop(true, IamDirection.Normal, 8)
+        :End()
+
+    -- Scale decay animation - gets smaller each loop
+    IamClip.Begin(CLIP_VAR_DECAY)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 1.0, IamEaseType.Linear)
+        :KeyFloatVar(CLIP_CH_SCALE, 0.0, 1.0, iam.VarfMul(0.8), IamEaseType.OutCubic)
+        :KeyFloatVar(CLIP_CH_SCALE, 0.5, 1.2, iam.VarfMul(0.8), IamEaseType.InOutCubic)
+        :KeyFloatVar(CLIP_CH_SCALE, 1.0, 1.0, iam.VarfMul(0.8), IamEaseType.InCubic)
+        :SetLoop(true, IamDirection.Normal, 6)
+        :End()
+
+    -- Random position variation - jitter effect
+    IamClip.Begin(CLIP_VAR_RANDOM)
+        :KeyVec2Var(CLIP_CH_OFFSET, 0.0, ImVec2(0, 0),
+            iam.Varv2Axis(iam.VarfRand(20.0), iam.VarfRand(20.0)), IamEaseType.OutElastic)
+        :KeyVec2Var(CLIP_CH_OFFSET, 0.3, ImVec2(0, 0),
+            iam.Varv2Axis(iam.VarfRand(20.0), iam.VarfRand(20.0)), IamEaseType.OutCubic)
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    -- Color hue shift variation - cycles through colors
+    IamClip.Begin(CLIP_VAR_COLOR)
+        :KeyColorVar(CLIP_CH_COLOR, 0.0, ImVec4(1.0, 0.3, 0.3, 1.0),
+            iam.VarcChannel(iam.VarfNone(), iam.VarfInc(0.15), iam.VarfNone(), iam.VarfNone()), IamColorSpace.OKLCH, IamEaseType.InOutCubic)
+        :KeyColorVar(CLIP_CH_COLOR, 0.5, ImVec4(1.0, 0.5, 0.5, 1.0),
+            iam.VarcChannel(iam.VarfNone(), iam.VarfInc(0.15), iam.VarfNone(), iam.VarfNone()), IamColorSpace.OKLCH, IamEaseType.InOutCubic)
+        :KeyColorVar(CLIP_CH_COLOR, 1.0, ImVec4(1.0, 0.3, 0.3, 1.0),
+            iam.VarcChannel(iam.VarfNone(), iam.VarfInc(0.15), iam.VarfNone(), iam.VarfNone()), IamColorSpace.OKLCH, IamEaseType.InOutCubic)
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    -- Timing variation - accelerating animation
+    IamClip.Begin(CLIP_VAR_TIMING)
+        :KeyFloat(CLIP_CH_ROTATION, 0.0, 0.0, IamEaseType.InOutCubic)
+        :KeyFloat(CLIP_CH_ROTATION, 1.0, 360.0, IamEaseType.InOutCubic)
+        :SetTimescaleVar(iam.VarfMul(1.2))  -- Gets 20% faster each loop
+        :SetLoop(true, IamDirection.Normal, 10)
+        :End()
+
+    -- Grid of elements - staggered start, scale and speed pingpong up/down
+    IamClip.Begin(CLIP_VAR_PARTICLES)
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 1.0, IamEaseType.Linear)
+        :KeyFloatVar(CLIP_CH_SCALE, 0.0, 0.5, iam.VarfPingpong(0.08), IamEaseType.OutBack)
+        :KeyFloatVar(CLIP_CH_SCALE, 0.5, 1.0, iam.VarfPingpong(0.08), IamEaseType.InOutCubic)
+        :KeyFloatVar(CLIP_CH_SCALE, 1.0, 0.5, iam.VarfPingpong(0.08), IamEaseType.InCubic)
+        :KeyFloatVar(CLIP_CH_ROTATION, 0.0, 0.0, iam.VarfInc(15.0), IamEaseType.InOutCubic)
+        :KeyFloatVar(CLIP_CH_ROTATION, 1.0, 30.0, iam.VarfInc(15.0), IamEaseType.InOutCubic)
+        :SetTimescaleVar(iam.VarfPingpong(0.15))  -- Speed oscillates: faster then slower
+        :SetStagger(15, 0.08, 0.0)
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    -- Race: 5 squares with stagger delay, timescale set per-instance to sync arrival
+    -- Single clip with 3s duration, stagger adds 0.5s delay per index
+    -- After play, we set timescale per instance: speed = T / (T - delay)
+    -- Using key_float_rel so position is automatically relative to window content width
+    IamClip.Begin(CLIP_VAR_RACE)
+        :KeyFloatRel(CLIP_CH_POS_X, 0.0, 0.0, 35.0, IamAnchorSpace.WindowContent, 0, IamEaseType.Linear)   -- Start at margin (35px)
+        :KeyFloatRel(CLIP_CH_POS_X, 3.0, 1.0, -35.0, IamAnchorSpace.WindowContent, 0, IamEaseType.Linear)  -- End at 100% - margin
+        :KeyFloat(CLIP_CH_ALPHA, 0.0, 1.0, IamEaseType.Linear)
+        :SetStagger(5, 0.5, 0.0)  -- 5 items, 0.5s delay between each
         :End()
 end
 
@@ -2323,6 +2500,64 @@ local clip_state = {
     looping_playing = false,
 
     calbacks_inst_id = ImHashStr('callback_inst'),
+
+    control_inst_id = ImHashStr('control_inst'),
+    control_time_scale = 1.0,
+
+    delayed_inst_id = ImHashStr('delayed_inst'),
+    delayed_elapsed = 0.0,
+    delayed_was_playing = false,
+
+    int_inst_id = ImHashStr('int_inst'),
+    seq_inst_id = ImHashStr('seq_inst'),
+    par_inst_id = ImHashStr('par_inst'),
+
+    stagger_inst_ids = (function()
+        local t = {}
+        for i = 1, 12 do t[i] = ImHashStr('stagger_dot_' .. i) end
+        return t
+    end)(),
+
+    stagger_list_inst_ids = (function()
+        local t = {}
+        for i = 1, 6 do t[i] = ImHashStr('stagger_list_' .. i) end
+        return t
+    end)(),
+
+    stagger_grid_inst_ids = (function()
+        local t = {}
+        for i = 1, 16 do t[i] = ImHashStr('stagger_grid_' .. i) end
+        return t
+    end)(),
+
+    stagger_cards_inst_ids = (function()
+        local t = {}
+        for i = 1, 5 do t[i] = ImHashStr('stagger_card_' .. i) end
+        return t
+    end)(),
+
+    var_bounce_inst = ImHashStr('var_bounce_inst'),
+    var_decay_inst = ImHashStr('var_decay_inst'),
+
+    var_random_inst = ImHashStr('var_random_inst'),
+    var_random_started = false,
+
+    var_color_inst = ImHashStr('var_color_inst'),
+    var_color_started = false,
+
+    var_timing_inst = ImHashStr('var_timing_inst'),
+
+    var_particles_inst_ids = (function()
+        local t = {}
+        for i = 0, 15 do t[i] = ImHashStr('var_grid_' .. i) end
+        return t
+    end)(),
+
+    var_race_inst_ids = (function()
+        local t = {}
+        for i = 1, 5 do t[i] = ImHashStr('var_racer_' .. i) end
+        return t
+    end)(),
 }
 
 local function ShowClipSystemDemo()
@@ -2352,15 +2587,15 @@ local function ShowClipSystemDemo()
             local scale = 1.0
 
             if inst:Valid() then
-                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
-                _, scale = inst:GetFloat(CLIP_CH_SCALE)
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                scale = inst:GetFloat(CLIP_CH_SCALE)
             end
             -- Clamp scale to valid range for SetWindowFontScale
             if scale < 0.1 then scale = 0.1 end
             if scale > 10.0 then scale = 10.0 end
 
             imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
-            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
             imgui.Text('Fading Text (a:%.2f s:%.2f)', alpha, scale)
             imgui.PopFont()
             imgui.PopStyleVar()
@@ -2382,9 +2617,9 @@ local function ShowClipSystemDemo()
             local alpha = 1.0
 
             if inst:Valid() then
-                _, offset = inst:GetVec2(CLIP_CH_OFFSET)
-                _, scale = inst:GetFloat(CLIP_CH_SCALE)
-                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                offset = inst:GetVec2(CLIP_CH_OFFSET)
+                scale = inst:GetFloat(CLIP_CH_SCALE)
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
             end
             -- Clamp scale to valid range for SetWindowFontScale
             if scale < 0.1 then scale = 0.1 end
@@ -2393,7 +2628,7 @@ local function ShowClipSystemDemo()
             local cur = imgui.GetCursorPosVec()
             imgui.SetCursorPos(cur + offset)
             imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
-            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
             imgui.Text('Bouncing!')
             imgui.PopFont()
             imgui.PopStyleVar()
@@ -2415,10 +2650,10 @@ local function ShowClipSystemDemo()
             local offset = ImVec2(0, 0)
             local color = ImVec4(1, 1, 1, 1)
             if inst:Valid() then
-                _, alpha = inst:GetFloat(CLIP_CH_ALPHA)
-                _, scale = inst:GetFloat(CLIP_CH_SCALE)
-                _, offset = inst:GetVec2(CLIP_CH_OFFSET)
-                _, color = inst:GetVec4(CLIP_CH_COLOR)
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                scale = inst:GetFloat(CLIP_CH_SCALE)
+                offset = inst:GetVec2(CLIP_CH_OFFSET)
+                color = inst:GetVec4(CLIP_CH_COLOR)
             end
             -- Clamp scale to valid range for SetWindowFontScale
             if scale < 0.1 then scale = 0.1 end
@@ -2427,7 +2662,7 @@ local function ShowClipSystemDemo()
             local cur = imgui.GetCursorPosVec()
             imgui.SetCursorPos(cur + offset)
             imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
-            imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+            imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
             imgui.TextColored(color, 'Multi-channel Animation')
             imgui.PopFont()
             imgui.PopStyleVar()
@@ -2465,7 +2700,7 @@ local function ShowClipSystemDemo()
         local color = ImVec4(1, 1, 1, 1)
         local time = 0.0
         if inst:Valid() then
-            _, color = inst:GetVec4(CLIP_CH_COLOR)
+            color = inst:GetVec4(CLIP_CH_COLOR)
             time = inst:Time()
         end
 
@@ -2484,14 +2719,103 @@ local function ShowClipSystemDemo()
     end
 
     -- Playback control
+    ApplyOpenAll()
+    if imgui.TreeNode('Playback Control') then
+        local inst_id = clip_state.control_inst_id
+
+        imgui.Text('Controls:')
+        if imgui.Button('Play##ClipPlayback') then iam.Play(CLIP_COMPLEX, inst_id) end
+        imgui.SameLine()
+
+        local inst = iam.GetInstance(inst_id)
+
+        if imgui.Button('Pause') then if inst:Valid() then inst:Pause() end end
+        imgui.SameLine()
+        if imgui.Button('Resume') then if inst:Valid() then inst:Resume() end end
+        imgui.SameLine()
+        if imgui.Button('Stop##playback') then if inst:Valid() then inst:Stop() end end
+
+        -- Seek slider
+        local time = inst:Valid() and inst:Time() or 0.0
+        local duration = inst:Valid() and inst:Duration() or 1.5
+        local new_time, seek_changed = imgui.SliderFloat('Seek', time, 0.0, duration, '%.2f s')
+        if seek_changed and inst:Valid() then inst:Seek(new_time) end
+
+        -- Time scale (applied continuously so it works for new plays and during playback)
+        clip_state.control_time_scale = imgui.SliderFloat('Time Scale', clip_state.control_time_scale, 0.1, 3.0)
+        if inst:Valid() then inst:SetTimeScale(clip_state.control_time_scale) end
+
+        -- Status
+        local status
+        if not inst:Valid() then
+            status = 'Not started'
+        elseif inst:IsPlaying() then
+            status = inst:IsPaused() and 'Paused' or 'Playing'
+        else
+            status = 'Stopped'
+        end
+        imgui.Text('Status: %s  Duration: %.2fs', status, duration)
+
+        -- Show current values
+        if inst:Valid() then
+            local alpha = inst:GetFloat(CLIP_CH_ALPHA)
+            local scale = inst:GetFloat(CLIP_CH_SCALE)
+            local offset = inst:GetVec2(CLIP_CH_OFFSET)
+            imgui.Text('Values: alpha=%.2f scale=%.2f offset=(%.1f,%.1f)', alpha, scale, offset.x, offset.y)
+        end
+
+        imgui.TreePop()
+    end
 
     -- Delayed Playback
+    ApplyOpenAll()
+    if imgui.TreeNode('Delayed Playback') then
+        imgui.TextWrapped('set_delay() adds a delay before the animation starts playing.')
 
-    -- Callbacks
+        local inst_id = clip_state.delayed_inst_id
+
+        if imgui.Button('Play (1s Delay)') then
+            iam.Play(CLIP_DELAYED, inst_id)
+            clip_state.delayed_elapsed = 0.0
+            clip_state.delayed_was_playing = true
+        end
+
+        local inst = iam.GetInstance(inst_id)
+        if clip_state.delayed_was_playing and inst:Valid() then
+            clip_state.delayed_elapsed = clip_state.delayed_elapsed + dt
+        end
+        if inst:Valid() and not inst:IsPlaying() then
+            clip_state.delayed_was_playing = false
+        end
+
+        imgui.SameLine()
+        local alpha = 1.0
+        local scale = 1.0
+        if inst:Valid() then
+            alpha = inst:GetFloat(CLIP_CH_ALPHA)
+            scale = inst:GetFloat(CLIP_CH_SCALE)
+        end
+        if scale < 0.1 then scale = 0.1 end
+        if scale > 10.0 then scale = 10.0 end
+
+        imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+        imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
+        imgui.Text('Delayed Text')
+        imgui.PopFont()
+        imgui.PopStyleVar()
+
+        if clip_state.delayed_was_playing then
+            imgui.Text('Elapsed: %.2fs (delay: 1.0s, anim starts after delay)', clip_state.delayed_elapsed)
+        end
+
+        imgui.TreePop()
+    end
+
+    -- Callbacks demo
     ApplyOpenAll()
     if imgui.TreeNode('Callbacks') then
         imgui.TextWrapped(
-            "on_begin(), on_update(), and on_complete() let you hook into animation lifecycle events.")
+            "OnBegin(), OnUpdate(), and OnComplete() let you hook into animation lifecycle events.")
 
         local inst_id = clip_state.calbacks_inst_id
 
@@ -2510,21 +2834,896 @@ local function ShowClipSystemDemo()
         local inst = iam.GetInstance(inst_id)
         local scale = 1.0
         if inst:Valid() then
-            _, scale = inst:GetFloat(CLIP_CH_SCALE)
+            scale = inst:GetFloat(CLIP_CH_SCALE)
         end
-        -- Clamp scale to valid range for SetWindowFontScale
         if scale < 0.1 then scale = 0.1 end
         if scale > 10.0 then scale = 10.0 end
 
         imgui.SameLine()
-        imgui.PushFont(imgui.GetDefaultFont(), 16 * scale)
+        imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
         imgui.Text('Scaling')
         imgui.PopFont()
 
-        imgui.Text('on_begin called:    %d times', s_callback_begin_count)
-        imgui.Text('on_update called:   %d times', s_callback_update_count)
-        imgui.Text('on_complete called: %d times', s_callback_complete_count)
-        
+        imgui.Text('OnBegin called:    %d times', s_callback_begin_count)
+        imgui.Text('OnUpdate called:   %d times', s_callback_update_count)
+        imgui.Text('OnComplete called: %d times', s_callback_complete_count)
+
+        imgui.TreePop()
+    end
+
+    -- Integer Keyframes demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Integer Keyframes') then
+        imgui.TextWrapped(
+            'KeyInt() animates integer values (useful for counters, frame indices, etc.).')
+
+        local inst_id = clip_state.int_inst_id
+
+        if imgui.Button('Count to 100') then
+            iam.Play(CLIP_INT_ANIM, inst_id)
+        end
+
+        local inst = iam.GetInstance(inst_id)
+        local counter = 0
+        if inst:Valid() then
+            counter = inst:GetInt(CLIP_CH_COUNTER)
+        end
+
+        imgui.SameLine()
+        imgui.Text('Counter: %d', counter)
+
+        -- Progress bar
+        imgui.ProgressBar(counter / 100.0, ImVec2(-1, 0), '')
+
+        imgui.TreePop()
+    end
+
+    -- Sequential Timeline demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Sequential Timeline (SeqBegin/End)') then
+        imgui.TextWrapped(
+            'SeqBegin()/SeqEnd() groups keyframes that play in sequence. ' ..
+            'Each group starts after the previous one completes.')
+
+        local inst_id = clip_state.seq_inst_id
+        if imgui.Button('Play Sequential') then
+            iam.Play(CLIP_SEQUENTIAL, inst_id)
+        end
+
+        local inst = iam.GetInstance(inst_id)
+        local pos_x = 0.0
+        local pos_y = 0.0
+        local scale = 1.0
+        if inst:Valid() then
+            pos_x = inst:GetFloat(CLIP_CH_POS_X)
+            pos_y = inst:GetFloat(CLIP_CH_POS_Y)
+            scale = inst:GetFloat(CLIP_CH_SCALE)
+        end
+        if scale < 0.1 then scale = 0.1 end
+        if scale > 10.0 then scale = 10.0 end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(200, 100)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+
+        -- Draw animated square
+        local sq_size = 20.0 * scale
+        local sq_pos = ImVec2(canvas_pos.x + 20 + pos_x, canvas_pos.y + 20 + pos_y)
+        draw_list:AddRectFilled(sq_pos, ImVec2(sq_pos.x + sq_size, sq_pos.y + sq_size),
+            IM_COL32(100, 200, 255, 255), 4.0)
+
+        imgui.Dummy(canvas_size)
+        imgui.Text('Step 1: Move right | Step 2: Move down | Step 3: Scale up')
+        imgui.Text('X: %.1f  Y: %.1f  Scale: %.2f', pos_x, pos_y, scale)
+
+        imgui.TreePop()
+    end
+
+    -- Parallel Timeline demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Parallel Timeline (ParBegin/End)') then
+        imgui.TextWrapped(
+            'ParBegin()/ParEnd() groups keyframes that play simultaneously. ' ..
+            'All animations in the group start at the same time.')
+
+        local inst_id = clip_state.par_inst_id
+        if imgui.Button('Play Parallel') then
+            iam.Play(CLIP_PARALLEL, inst_id)
+        end
+
+        local inst = iam.GetInstance(inst_id)
+        local pos_x = 0.0
+        local pos_y = 0.0
+        local scale = 1.0
+        local alpha = 1.0
+        if inst:Valid() then
+            pos_x = inst:GetFloat(CLIP_CH_POS_X)
+            pos_y = inst:GetFloat(CLIP_CH_POS_Y)
+            scale = inst:GetFloat(CLIP_CH_SCALE)
+            alpha = inst:GetFloat(CLIP_CH_ALPHA)
+        end
+        if scale < 0.1 then scale = 0.1 end
+        if scale > 10.0 then scale = 10.0 end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(200, 100)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+
+        -- Draw animated circle
+        local radius = 15.0 * scale
+        local circ_pos = ImVec2(canvas_pos.x + 30 + pos_x, canvas_pos.y + 30 + pos_y)
+        local a = math.floor(alpha * 255)
+        draw_list:AddCircleFilled(circ_pos, radius, IM_COL32(255, 150, 100, a))
+
+        imgui.Dummy(canvas_size)
+        imgui.Text('All at once: Move + Scale + Fade')
+        imgui.Text('X: %.1f  Y: %.1f  Scale: %.2f  Alpha: %.2f', pos_x, pos_y, scale, alpha)
+
+        imgui.TreePop()
+    end
+
+    -- Stagger demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Stagger Animation') then
+        imgui.TextWrapped(
+            'SetStagger() applies progressive delays for animating multiple items. ' ..
+            'Each element pops in with a cascading wave effect.')
+
+        local NUM_ITEMS = 12
+        local inst_ids = clip_state.stagger_inst_ids
+
+        if imgui.Button('Play Wave') then
+            for i = 1, NUM_ITEMS do
+                iam.PlayStagger(CLIP_STAGGER, inst_ids[i], i - 1)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##stagger') then
+            for i = 1, NUM_ITEMS do
+                local inst = iam.GetInstance(inst_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+
+        -- Draw cascading circles with rainbow colors
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_w = 400.0
+        local canvas_h = 80.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+            IM_COL32(25, 25, 30, 255), 8.0)
+
+        local spacing = canvas_w / (NUM_ITEMS + 1)
+        local base_y = canvas_pos.y + canvas_h * 0.5
+
+        for i = 1, NUM_ITEMS do
+            local inst = iam.GetInstance(inst_ids[i])
+            local alpha = 0.0
+            local pos_y = 40.0
+            local scale = 0.0
+            if inst:Valid() then
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                pos_y = inst:GetFloat(CLIP_CH_POS_Y)
+                scale = inst:GetFloat(CLIP_CH_SCALE)
+            end
+
+            local x = canvas_pos.x + spacing * i
+            local y = base_y + pos_y
+            local radius = 12.0 * scale
+
+            -- Rainbow hue based on index
+            local hue = (i - 1) / NUM_ITEMS
+            local r, g, b = imgui.ColorConvertHSVtoRGB(hue, 0.8, 0.9)
+            local ai = math.floor(alpha * 255)
+
+            if radius > 0.5 then
+                -- Glow effect
+                draw_list:AddCircleFilled(ImVec2(x, y), radius * 1.5,
+                    IM_COL32(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255), math.floor(alpha * 40)))
+                -- Main circle
+                draw_list:AddCircleFilled(ImVec2(x, y), radius,
+                    IM_COL32(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255), ai))
+                -- Highlight
+                draw_list:AddCircleFilled(ImVec2(x - radius * 0.3, y - radius * 0.3), radius * 0.25,
+                    IM_COL32(255, 255, 255, math.floor(alpha * 150)))
+            end
+        end
+
+        imgui.Dummy(ImVec2(canvas_w, canvas_h))
+
+        imgui.TreePop()
+    end
+
+    -- Stagger List demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Stagger: List Slide-In') then
+        imgui.TextWrapped(
+            'Classic list animation with items sliding in from the left.')
+
+        local NUM_LIST_ITEMS = 6
+        local list_inst_ids = clip_state.stagger_list_inst_ids
+
+        if imgui.Button('Play List') then
+            for i = 1, NUM_LIST_ITEMS do
+                iam.PlayStagger(CLIP_STAGGER_LIST, list_inst_ids[i], i - 1)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##list') then
+            for i = 1, NUM_LIST_ITEMS do
+                local inst = iam.GetInstance(list_inst_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+
+        local frame_h = imgui.GetFrameHeight()
+        local item_spacing = 4.0
+        local padding = 8.0
+        local list_canvas_w = 250.0
+        local list_canvas_h = padding * 2 + NUM_LIST_ITEMS * frame_h + (NUM_LIST_ITEMS - 1) * item_spacing
+
+        local list_canvas_pos = imgui.GetCursorScreenPosVec()
+        local list_draw_list = imgui.GetWindowDrawList()
+
+        list_draw_list:AddRectFilled(list_canvas_pos,
+            ImVec2(list_canvas_pos.x + list_canvas_w, list_canvas_pos.y + list_canvas_h),
+            IM_COL32(30, 32, 38, 255), 6.0)
+
+        local list_labels = { 'Dashboard', 'Projects', 'Tasks', 'Calendar', 'Settings', 'Help' }
+        for i = 1, NUM_LIST_ITEMS do
+            local inst = iam.GetInstance(list_inst_ids[i])
+            local alpha = 0.0
+            local pos_x = -50.0
+            if inst:Valid() then
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                pos_x = inst:GetFloat(CLIP_CH_POS_X)
+            end
+
+            local y = list_canvas_pos.y + padding + (i - 1) * (frame_h + item_spacing)
+            local a = math.floor(alpha * 255)
+
+            -- Draw list item background
+            list_draw_list:AddRectFilled(
+                ImVec2(list_canvas_pos.x + padding + pos_x, y),
+                ImVec2(list_canvas_pos.x + list_canvas_w - padding + pos_x, y + frame_h),
+                IM_COL32(50, 55, 65, a), 4.0)
+
+            -- Draw icon placeholder
+            list_draw_list:AddCircleFilled(
+                ImVec2(list_canvas_pos.x + padding + 14 + pos_x, y + frame_h * 0.5),
+                6.0, IM_COL32(100, 140, 200, a))
+
+            -- Draw label
+            local text_y = y + (frame_h - imgui.GetFontSize()) * 0.5
+            list_draw_list:AddText(
+                ImVec2(list_canvas_pos.x + padding + 28 + pos_x, text_y),
+                IM_COL32(220, 220, 230, a), list_labels[i])
+        end
+
+        imgui.Dummy(ImVec2(list_canvas_w, list_canvas_h))
+        imgui.TreePop()
+    end
+
+    -- Stagger Grid demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Stagger: Grid Reveal') then
+        imgui.TextWrapped(
+            'Grid items appearing with scale and subtle rotation.')
+
+        local GRID_COLS = 4
+        local GRID_ROWS = 4
+        local NUM_GRID_ITEMS = GRID_COLS * GRID_ROWS
+        local grid_inst_ids = clip_state.stagger_grid_inst_ids
+
+        if imgui.Button('Play Grid') then
+            for i = 1, NUM_GRID_ITEMS do
+                iam.PlayStagger(CLIP_STAGGER_GRID, grid_inst_ids[i], i - 1)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##sgrid') then
+            for i = 1, NUM_GRID_ITEMS do
+                local inst = iam.GetInstance(grid_inst_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+
+        local grid_canvas_pos = imgui.GetCursorScreenPosVec()
+        local cell_size = 45.0
+        local grid_spacing = 8.0
+        local grid_canvas_w = GRID_COLS * (cell_size + grid_spacing) + grid_spacing
+        local grid_canvas_h = GRID_ROWS * (cell_size + grid_spacing) + grid_spacing
+        local grid_draw_list = imgui.GetWindowDrawList()
+
+        grid_draw_list:AddRectFilled(grid_canvas_pos,
+            ImVec2(grid_canvas_pos.x + grid_canvas_w, grid_canvas_pos.y + grid_canvas_h),
+            IM_COL32(25, 28, 35, 255), 8.0)
+
+        for row = 0, GRID_ROWS - 1 do
+            for col = 0, GRID_COLS - 1 do
+                local idx = row * GRID_COLS + col + 1
+                local inst = iam.GetInstance(grid_inst_ids[idx])
+                local alpha = 0.0
+                local scale = 0.0
+                local rotation = 0.0
+                if inst:Valid() then
+                    alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                    scale = inst:GetFloat(CLIP_CH_SCALE)
+                    rotation = inst:GetFloat(CLIP_CH_ROTATION)
+                end
+
+                local cx = grid_canvas_pos.x + grid_spacing + col * (cell_size + grid_spacing) + cell_size * 0.5
+                local cy = grid_canvas_pos.y + grid_spacing + row * (cell_size + grid_spacing) + cell_size * 0.5
+
+                local a = math.floor(alpha * 255)
+                local half = cell_size * 0.5 * scale
+
+                -- Pastel colors based on position
+                local hue = (row * GRID_COLS + col) / NUM_GRID_ITEMS
+                local r, g, b = imgui.ColorConvertHSVtoRGB(hue, 0.5, 0.85)
+
+                if scale > 0.01 then
+                    -- Draw rotated rounded rect
+                    local rad = rotation * math.pi / 180.0
+                    local corner_angles = { -0.785, 0.785, 2.356, 3.927 } -- 45, 135, 225, 315 degrees
+                    local dist = half * 1.414
+                    local corners = {}
+                    for ci = 1, 4 do
+                        local ca = corner_angles[ci] + rad
+                        corners[ci] = ImVec2(cx + math.cos(ca) * dist, cy + math.sin(ca) * dist)
+                    end
+                    grid_draw_list:AddQuadFilled(corners[1], corners[2], corners[3], corners[4],
+                        IM_COL32(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255), a))
+                end
+            end
+        end
+
+        imgui.Dummy(ImVec2(grid_canvas_w, grid_canvas_h))
+        imgui.TreePop()
+    end
+
+    -- Stagger Cards demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Stagger: Dropping Cards') then
+        imgui.TextWrapped(
+            'Cards dropping in from above with a bounce effect.')
+
+        local NUM_CARDS = 5
+        local card_inst_ids = clip_state.stagger_cards_inst_ids
+
+        if imgui.Button('Drop Cards') then
+            for i = 1, NUM_CARDS do
+                iam.PlayStagger(CLIP_STAGGER_CARDS, card_inst_ids[i], i - 1)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##cards') then
+            for i = 1, NUM_CARDS do
+                local inst = iam.GetInstance(card_inst_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+
+        local cards_canvas_pos = imgui.GetCursorScreenPosVec()
+        local card_w = 70.0
+        local card_h = 90.0
+        local card_spacing = 12.0
+        local cards_canvas_w = NUM_CARDS * (card_w + card_spacing) + card_spacing
+        local cards_canvas_h = card_h + 100.0 -- Extra space for drop animation
+        local cards_draw_list = imgui.GetWindowDrawList()
+
+        cards_draw_list:AddRectFilled(cards_canvas_pos,
+            ImVec2(cards_canvas_pos.x + cards_canvas_w, cards_canvas_pos.y + cards_canvas_h),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        -- Card suits for visual interest
+        local suits = { 'A', 'K', 'Q', 'J', '10' }
+        local card_colors = {
+            IM_COL32(220, 60, 60, 255),   -- Red
+            IM_COL32(40, 40, 50, 255),    -- Black
+            IM_COL32(220, 60, 60, 255),   -- Red
+            IM_COL32(40, 40, 50, 255),    -- Black
+            IM_COL32(220, 60, 60, 255),   -- Red
+        }
+
+        for i = 1, NUM_CARDS do
+            local inst = iam.GetInstance(card_inst_ids[i])
+            local alpha = 0.0
+            local pos_y = -80.0
+            local scale = 0.8
+            if inst:Valid() then
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                pos_y = inst:GetFloat(CLIP_CH_POS_Y)
+                scale = inst:GetFloat(CLIP_CH_SCALE)
+            end
+
+            local x = cards_canvas_pos.x + card_spacing + (i - 1) * (card_w + card_spacing)
+            local y = cards_canvas_pos.y + 80.0 + pos_y
+
+            local scaled_w = card_w * scale
+            local scaled_h = card_h * scale
+            local offset_x = (card_w - scaled_w) * 0.5
+            local offset_y = (card_h - scaled_h) * 0.5
+            local a = math.floor(alpha * 255)
+
+            if alpha > 0.01 then
+                -- Card shadow
+                cards_draw_list:AddRectFilled(
+                    ImVec2(x + offset_x + 3, y + offset_y + 3),
+                    ImVec2(x + offset_x + scaled_w + 3, y + offset_y + scaled_h + 3),
+                    IM_COL32(0, 0, 0, math.floor(a / 3)), 6.0)
+
+                -- Card background
+                cards_draw_list:AddRectFilled(
+                    ImVec2(x + offset_x, y + offset_y),
+                    ImVec2(x + offset_x + scaled_w, y + offset_y + scaled_h),
+                    IM_COL32(250, 250, 245, a), 6.0)
+
+                -- Card border
+                cards_draw_list:AddRect(
+                    ImVec2(x + offset_x, y + offset_y),
+                    ImVec2(x + offset_x + scaled_w, y + offset_y + scaled_h),
+                    IM_COL32(180, 180, 175, a), 6.0, 0, 1.5)
+
+                -- Suit text
+                local text_col = ColorAlpha(card_colors[i], a)
+                cards_draw_list:AddText(
+                    ImVec2(x + offset_x + 8, y + offset_y + 6),
+                    text_col, suits[i])
+            end
+        end
+
+        imgui.Dummy(ImVec2(cards_canvas_w, cards_canvas_h))
+        imgui.TreePop()
+    end
+
+    -- ============================================================
+    -- Variation Demos
+    -- ============================================================
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Bouncing Ball Decay') then
+        imgui.TextWrapped(
+            'A bouncing ball where each bounce gets lower (70%% of previous height) ' ..
+            'and faster (85%% of previous duration). Uses VarfMul() for multiplicative decay.')
+
+        local inst_bounce = clip_state.var_bounce_inst
+
+        if imgui.Button('Start Bounce') then
+            iam.Play(CLIP_VAR_BOUNCE, inst_bounce)
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##bounce') then
+            local inst = iam.GetInstance(inst_bounce)
+            if inst:Valid() then inst:Destroy() end
+        end
+
+        imgui.Spacing()
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_w = 300.0
+        local canvas_h = 150.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        -- Ground line
+        draw_list:AddLine(
+            ImVec2(canvas_pos.x + 10, canvas_pos.y + canvas_h - 20),
+            ImVec2(canvas_pos.x + canvas_w - 10, canvas_pos.y + canvas_h - 20),
+            IM_COL32(100, 100, 100, 255), 2.0)
+
+        local pos_y = 0.0
+        local inst = iam.GetInstance(inst_bounce)
+        if inst:Valid() then
+            pos_y = inst:GetFloat(CLIP_CH_POS_Y)
+        end
+
+        local ball_x = canvas_pos.x + canvas_w * 0.5
+        local ball_y = canvas_pos.y + canvas_h - 35 + pos_y
+        local ball_radius = 15.0
+
+        draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), ball_radius, IM_COL32(255, 120, 50, 255))
+        draw_list:AddCircle(ImVec2(ball_x, ball_y), ball_radius, IM_COL32(255, 180, 100, 255), 0, 2.0)
+
+        imgui.Dummy(ImVec2(canvas_w, canvas_h))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Scale Decay') then
+        imgui.TextWrapped(
+            'A pulsing element that gets smaller with each loop. Scale decreases by ' ..
+            '20%% each iteration using VarfMul(0.8).')
+
+        local inst_decay = clip_state.var_decay_inst
+
+        if imgui.Button('Start Decay') then
+            iam.Play(CLIP_VAR_DECAY, inst_decay)
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##decay') then
+            local inst = iam.GetInstance(inst_decay)
+            if inst:Valid() then inst:Destroy() end
+        end
+
+        imgui.Spacing()
+
+        local alpha = 1.0
+        local scale = 1.0
+        local inst = iam.GetInstance(inst_decay)
+        if inst:Valid() then
+            alpha = inst:GetFloat(CLIP_CH_ALPHA)
+            scale = inst:GetFloat(CLIP_CH_SCALE)
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = 150.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size, canvas_pos.y + canvas_size),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        local center_x = canvas_pos.x + canvas_size * 0.5
+        local center_y = canvas_pos.y + canvas_size * 0.5
+        local rect_size = 50.0 * scale
+        local a = math.floor(alpha * 255)
+
+        draw_list:AddRectFilled(
+            ImVec2(center_x - rect_size, center_y - rect_size),
+            ImVec2(center_x + rect_size, center_y + rect_size),
+            IM_COL32(100, 200, 255, a), 8.0)
+
+        imgui.Dummy(ImVec2(canvas_size, canvas_size))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Random Jitter') then
+        imgui.TextWrapped(
+            'Each loop iteration applies a random offset to the position using ' ..
+            'VarfRand(). The offset varies between -20 and +20 pixels per axis.')
+
+        if not clip_state.var_random_started then
+            iam.Play(CLIP_VAR_RANDOM, clip_state.var_random_inst)
+            clip_state.var_random_started = true
+        end
+
+        if imgui.Button('Restart##random') then
+            iam.Play(CLIP_VAR_RANDOM, clip_state.var_random_inst)
+        end
+        imgui.SameLine()
+        if imgui.Button('Stop##random') then
+            local inst = iam.GetInstance(clip_state.var_random_inst)
+            if inst:Valid() then inst:Destroy() end
+        end
+
+        imgui.Spacing()
+
+        local offset = ImVec2(0, 0)
+        local inst = iam.GetInstance(clip_state.var_random_inst)
+        if inst:Valid() then
+            offset = inst:GetVec2(CLIP_CH_OFFSET)
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = 150.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size, canvas_pos.y + canvas_size),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        local cx = canvas_pos.x + canvas_size * 0.5 + offset.x
+        local cy = canvas_pos.y + canvas_size * 0.5 + offset.y
+        draw_list:AddCircleFilled(ImVec2(cx, cy), 20.0, IM_COL32(255, 200, 100, 255))
+
+        imgui.Dummy(ImVec2(canvas_size, canvas_size))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Color Shift') then
+        imgui.TextWrapped(
+            'Each loop increments the hue in OKLCH color space using VarfInc(). ' ..
+            'The color smoothly cycles through the spectrum.')
+
+        if not clip_state.var_color_started then
+            iam.Play(CLIP_VAR_COLOR, clip_state.var_color_inst)
+            clip_state.var_color_started = true
+        end
+
+        if imgui.Button('Restart##color') then
+            iam.Play(CLIP_VAR_COLOR, clip_state.var_color_inst)
+        end
+        imgui.SameLine()
+        if imgui.Button('Stop##color') then
+            local inst = iam.GetInstance(clip_state.var_color_inst)
+            if inst:Valid() then inst:Destroy() end
+        end
+
+        imgui.Spacing()
+
+        local color = ImVec4(1.0, 0.3, 0.3, 1.0)
+        local inst = iam.GetInstance(clip_state.var_color_inst)
+        if inst:Valid() then
+            color = inst:GetColor(CLIP_CH_COLOR)
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_w = 200.0
+        local canvas_h = 80.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        local col = IM_COL32(
+            math.floor(color.x * 255),
+            math.floor(color.y * 255),
+            math.floor(color.z * 255),
+            math.floor(color.w * 255))
+
+        draw_list:AddRectFilled(
+            ImVec2(canvas_pos.x + 20, canvas_pos.y + 15),
+            ImVec2(canvas_pos.x + canvas_w - 20, canvas_pos.y + canvas_h - 15),
+            col, 12.0)
+
+        imgui.Dummy(ImVec2(canvas_w, canvas_h))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Accelerating Spin') then
+        imgui.TextWrapped(
+            'A spinning element that gets 20%% faster each loop using SetTimescaleVar(). ' ..
+            'Demonstrates timing variation.')
+
+        local inst_timing = clip_state.var_timing_inst
+
+        if imgui.Button('Start Spin') then
+            iam.Play(CLIP_VAR_TIMING, inst_timing)
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##timing') then
+            local inst = iam.GetInstance(inst_timing)
+            if inst:Valid() then inst:Destroy() end
+        end
+
+        imgui.Spacing()
+
+        local rotation = 0.0
+        local inst = iam.GetInstance(inst_timing)
+        if inst:Valid() then
+            rotation = inst:GetFloat(CLIP_CH_ROTATION)
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = 150.0
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size, canvas_pos.y + canvas_size),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        local center_x = canvas_pos.x + canvas_size * 0.5
+        local center_y = canvas_pos.y + canvas_size * 0.5
+        local arm_length = 40.0
+
+        -- Convert degrees to radians
+        local rad = rotation * math.pi / 180.0
+
+        -- Draw a spinning line/arm
+        local end_pos = ImVec2(
+            center_x + math.cos(rad) * arm_length,
+            center_y + math.sin(rad) * arm_length)
+
+        draw_list:AddLine(ImVec2(center_x, center_y), end_pos, IM_COL32(100, 255, 150, 255), 4.0)
+        draw_list:AddCircleFilled(end_pos, 8.0, IM_COL32(100, 255, 150, 255))
+        draw_list:AddCircleFilled(ImVec2(center_x, center_y), 6.0, IM_COL32(200, 200, 200, 255))
+
+        imgui.Dummy(ImVec2(canvas_size, canvas_size))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Staggered Grid (N Instances)') then
+        imgui.TextWrapped(
+            'A grid with staggered timing (top-left to bottom-right). Scale and speed use ' ..
+            'pingpong variation (grow then shrink), rotation increments continuously.')
+
+        local GRID_COLS = 5
+        local GRID_ROWS = 3
+        local NUM_ITEMS = GRID_COLS * GRID_ROWS
+        local vgrid_ids = clip_state.var_particles_inst_ids
+
+        if imgui.Button('Start') then
+            for i = 1, NUM_ITEMS do
+                iam.PlayStagger(CLIP_VAR_PARTICLES, vgrid_ids[i], i - 1)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##grid') then
+            for i = 1, NUM_ITEMS do
+                local inst = iam.GetInstance(vgrid_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+        imgui.TextDisabled('Pingpong: scale/speed increase then decrease, loops forever')
+        imgui.Spacing()
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local cell_size = 50.0
+        local spacing = 10.0
+        local canvas_w = GRID_COLS * (cell_size + spacing) + spacing
+        local canvas_h = GRID_ROWS * (cell_size + spacing) + spacing
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        for row = 0, GRID_ROWS - 1 do
+            for col = 0, GRID_COLS - 1 do
+                local idx = row * GRID_COLS + col + 1
+
+                local cx = canvas_pos.x + spacing + col * (cell_size + spacing) + cell_size * 0.5
+                local cy = canvas_pos.y + spacing + row * (cell_size + spacing) + cell_size * 0.5
+
+                local alpha = 0.3
+                local scale = 0.6
+                local rotation = 0.0
+                local inst = iam.GetInstance(vgrid_ids[idx])
+                if inst:Valid() then
+                    alpha = inst:GetFloat(CLIP_CH_ALPHA)
+                    scale = inst:GetFloat(CLIP_CH_SCALE)
+                    rotation = inst:GetFloat(CLIP_CH_ROTATION)
+                end
+
+                local rad = rotation * math.pi / 180.0
+                local cos_r = math.cos(rad)
+                local sin_r = math.sin(rad)
+                local half = (cell_size * 0.35) * scale
+
+                -- Rotated square corners
+                local corners = {
+                    ImVec2(cx + (-half * cos_r - -half * sin_r), cy + (-half * sin_r + -half * cos_r)),
+                    ImVec2(cx + ( half * cos_r - -half * sin_r), cy + ( half * sin_r + -half * cos_r)),
+                    ImVec2(cx + ( half * cos_r -  half * sin_r), cy + ( half * sin_r +  half * cos_r)),
+                    ImVec2(cx + (-half * cos_r -  half * sin_r), cy + (-half * sin_r +  half * cos_r)),
+                }
+
+                local a = alpha * 255
+                -- Gradient based on grid position
+                local t = (idx - 1) / (NUM_ITEMS - 1)
+                local r = 100 + 155 * t
+                local g = 180 - 80 * t
+                local b = 220 - 120 * t
+
+                draw_list:AddQuadFilled(corners[1], corners[2], corners[3], corners[4],
+                    IM_COL32(math.floor(r), math.floor(g), math.floor(b), math.floor(a)))
+                draw_list:AddQuad(corners[1], corners[2], corners[3], corners[4],
+                    IM_COL32(255, 255, 255, a * 2 / 3), 2.0)
+            end
+        end
+
+        imgui.Dummy(ImVec2(canvas_w, canvas_h))
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Variation: Synchronized Race') then
+        imgui.TextWrapped(
+            '5 squares start at different times with different speeds, but all arrive ' ..
+            'at the right edge simultaneously. Uses stagger + per-instance SetTimeScale().')
+
+        local NUM_RACERS = 5
+        local TOTAL_TIME = 3.0
+        local DELAY_STEP = 0.5
+        local racer_ids = clip_state.var_race_inst_ids
+
+        if imgui.Button('Start Race') then
+            for i = 1, NUM_RACERS do
+                local inst = iam.PlayStagger(CLIP_VAR_RACE, racer_ids[i], i - 1)
+                -- Set timescale so all arrive at the same time
+                -- Row i has delay = i * DELAY_STEP, so travel time = TOTAL_TIME - delay
+                -- Speed = TOTAL_TIME / travel_time
+                local delay = (i - 1) * DELAY_STEP
+                local travel_time = TOTAL_TIME - delay
+                local speed = TOTAL_TIME / travel_time
+                inst:SetTimeScale(speed)
+            end
+        end
+        imgui.SameLine()
+        if imgui.Button('Reset##race') then
+            for i = 1, NUM_RACERS do
+                local inst = iam.GetInstance(racer_ids[i])
+                if inst:Valid() then inst:Destroy() end
+            end
+        end
+
+        imgui.Spacing()
+        imgui.TextDisabled('Top=slow start, Bottom=fast start. All finish together!')
+        imgui.TextDisabled('Using KeyFloatRel() - position auto-scales with window width')
+        imgui.Spacing()
+
+        -- Canvas sizing - width comes from content region
+        local content_size = iam.AnchorSize(IamAnchorSpace.WindowContent)
+        local canvas_w = content_size.x
+        local row_h = 35.0
+        local canvas_h = NUM_RACERS * row_h + 10.0
+        local square_size = 25.0
+        local margin = 35.0  -- Matches the px_bias in clip definition
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_w, canvas_pos.y + canvas_h),
+            IM_COL32(20, 25, 35, 255), 8.0)
+
+        -- Finish line
+        draw_list:AddLine(
+            ImVec2(canvas_pos.x + canvas_w - margin, canvas_pos.y + 5),
+            ImVec2(canvas_pos.x + canvas_w - margin, canvas_pos.y + canvas_h - 5),
+            IM_COL32(255, 100, 100, 150), 2.0)
+
+        -- Start line
+        draw_list:AddLine(
+            ImVec2(canvas_pos.x + margin, canvas_pos.y + 5),
+            ImVec2(canvas_pos.x + margin, canvas_pos.y + canvas_h - 5),
+            IM_COL32(100, 255, 100, 150), 2.0)
+
+        for i = 1, NUM_RACERS do
+            local pos_x = margin  -- Default to start position
+            local alpha = 0.5
+            local inst = iam.GetInstance(racer_ids[i])
+            if inst:Valid() then
+                -- GetFloat returns actual pixel position thanks to KeyFloatRel!
+                pos_x = inst:GetFloat(CLIP_CH_POS_X)
+                alpha = inst:GetFloat(CLIP_CH_ALPHA)
+            end
+
+            -- pos_x is now the actual X position relative to content area
+            local x = canvas_pos.x + pos_x
+            local y = canvas_pos.y + 5 + (i - 1) * row_h + row_h * 0.5
+
+            local a = math.floor(alpha * 255)
+            -- Color gradient: green (fast) to red (slow)
+            local t = (i - 1) / (NUM_RACERS - 1)
+            local ri = math.floor(100 + 155 * (1.0 - t))
+            local gi = math.floor(100 + 155 * t)
+            local bi = 100
+
+            local half = square_size * 0.5
+            draw_list:AddRectFilled(
+                ImVec2(x - half, y - half),
+                ImVec2(x + half, y + half),
+                IM_COL32(ri, gi, bi, a), 4.0)
+        end
+
+        imgui.Dummy(ImVec2(canvas_w, canvas_h))
         imgui.TreePop()
     end
 end

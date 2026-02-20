@@ -1084,20 +1084,20 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 		"Duration"                       , &iam_instance::duration,
 		"IsPlaying"                      , &iam_instance::is_playing,
 		"IsPaused"                       , &iam_instance::is_paused,
-		"GetFloat", [](iam_instance& self, ImGuiID channel) -> std::tuple<bool, float> {
-			float v = 0; bool ok = self.get_float(channel, &v); return { ok, v };
+		"GetFloat", [](iam_instance& self, ImGuiID channel) -> std::tuple<float, bool> {
+			float v = 0; bool ok = self.get_float(channel, &v); return { v, ok };
 		},
-		"GetVec2", [](iam_instance& self, ImGuiID channel) -> std::tuple<bool, ImVec2> {
-			ImVec2 v(0, 0); bool ok = self.get_vec2(channel, &v); return { ok, v };
+		"GetVec2", [](iam_instance& self, ImGuiID channel) -> std::tuple<ImVec2, bool> {
+			ImVec2 v(0, 0); bool ok = self.get_vec2(channel, &v); return { v, ok };
 		},
-		"GetVec4", [](iam_instance& self, ImGuiID channel) -> std::tuple<bool, ImVec4> {
-			ImVec4 v(0, 0, 0, 0); bool ok = self.get_vec4(channel, &v); return { ok, v };
+		"GetVec4", [](iam_instance& self, ImGuiID channel) -> std::tuple<ImVec4, bool> {
+			ImVec4 v(0, 0, 0, 0); bool ok = self.get_vec4(channel, &v); return { v, ok };
 		},
-		"GetInt", [](iam_instance& self, ImGuiID channel) -> std::tuple<bool, int> {
-			int v = 0; bool ok = self.get_int(channel, &v); return { ok, v };
+		"GetInt", [](iam_instance& self, ImGuiID channel) -> std::tuple<int, bool> {
+			int v = 0; bool ok = self.get_int(channel, &v); return { v, ok };
 		},
-		"GetColor", [](iam_instance& self, ImGuiID channel, std::optional<int> color_space) -> std::tuple<bool, ImVec4> {
-			ImVec4 v(1, 1, 1, 1); bool ok = self.get_color(channel, &v, color_space.value_or(iam_col_oklab)); return { ok, v };
+		"GetColor", [](iam_instance& self, ImGuiID channel, std::optional<int> color_space) -> std::tuple<ImVec4, bool> {
+			ImVec4 v(1, 1, 1, 1); bool ok = self.get_color(channel, &v, color_space.value_or(iam_col_oklab)); return { v, ok };
 		},
 		"Valid"                          , &iam_instance::valid,
 		"Id"                             , &iam_instance::id

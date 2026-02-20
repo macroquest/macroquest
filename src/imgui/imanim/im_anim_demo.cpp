@@ -3399,7 +3399,6 @@ static void ShowClipSystemDemo()
 		if (ImGui::Button("Stop##random")) {
 			iam_instance inst = iam_get_instance(inst_random);
 			if (inst.valid()) inst.destroy();
-			random_started = false;
 		}
 
 		ImGui::Spacing();
@@ -3448,7 +3447,6 @@ static void ShowClipSystemDemo()
 		if (ImGui::Button("Stop##color")) {
 			iam_instance inst = iam_get_instance(inst_color);
 			if (inst.valid()) inst.destroy();
-			color_started = false;
 		}
 
 		ImGui::Spacing();
