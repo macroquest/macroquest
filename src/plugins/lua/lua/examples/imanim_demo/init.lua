@@ -1833,6 +1833,377 @@ local function ShowBasicTweensDemo()
 end
 
 -- ============================================================
+-- SECTION: Color Tweens
+-- ============================================================
+local color_tweens_state = {
+    color_a = ImVec4(1.0, 0.0, 0.0, 1.0),
+    color_b = ImVec4(0.0, 0.0, 1.0, 1.0),
+    toggle = false,
+    id = ImHashStr('color_space_demo'),
+}
+
+local function ShowColorTweensDemo()
+    local state = color_tweens_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        "Color tweening supports multiple color spaces for perceptually pleasing transitions. " ..
+        "OKLAB produces the most visually uniform interpolation.")
+
+    imgui.Spacing()
+
+    state.color_a = imgui.ColorEdit4('Color A', state.color_a, ImGuiColorEditFlags.NoInputs)
+    imgui.SameLine()
+    state.color_b = imgui.ColorEdit4('Color B', state.color_b, ImGuiColorEditFlags.NoInputs)
+    imgui.SameLine()
+    if imgui.Button('Toggle') then state.toggle = not state.toggle end
+
+    local target = state.toggle and state.color_b or state.color_a
+
+    imgui.Spacing()
+
+    local space_names = { 'sRGB', 'Linear sRGB', 'HSV', 'OKLAB', 'OKLCH' }
+    local spaces = { IamColorSpace.SRGB, IamColorSpace.SRGBLinear, IamColorSpace.HSV, IamColorSpace.OKLAB, IamColorSpace.OKLCH }
+
+    for i = 1, #space_names do
+        local value = iam.TweenColor(state.id, i - 1, target, 1.5,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, spaces[i], dt)
+
+        imgui.ColorButton(space_names[i], value, 0, ImVec2(120, 40))
+        imgui.SameLine()
+        imgui.Text('%s', space_names[i])
+    end
+
+    imgui.Spacing()
+    imgui.TextDisabled('OKLAB/OKLCH avoid muddy middle colors. OKLCH uses cylindrical coords (hue interpolation).')
+end
+
+-- ============================================================
+-- SECTION: Per-Axis Easing
+-- ============================================================
+local per_axis_easing_state = {
+    -- Vec2 Per-Axis
+    ease_x = 3,   -- Out Cubic
+    ease_y = 11,  -- Out Bounce
+    vec2_target_pos = ImVec2(300, 100),
+    vec2_toggle = false,
+    vec2_id = ImHashStr('per_axis_vec2_demo'),
+
+    -- Color Per-Channel
+    color_ease_r = 3,  -- Out Cubic
+    color_ease_g = 6,  -- Out Bounce
+    color_ease_b = 5,  -- Out Elastic
+    color_toggle = false,
+    color_id = ImHashStr('per_axis_color_demo'),
+
+    -- Bounce Landing
+    drop_timer = 0.0,
+    dropping = false,
+    landing_id = ImHashStr('bounce_landing_demo'),
+}
+
+local function ShowPerAxisEasingDemo()
+    local state = per_axis_easing_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        "Per-axis easing allows different easing functions for each axis of a vector or color. " ..
+        "This enables effects like elastic bounce on one axis while smooth motion on another.")
+
+    imgui.Spacing()
+
+    -- Demo 1: Vec2 with different X and Y easing
+    ApplyOpenAll()
+    if imgui.TreeNode('Vec2 Per-Axis') then
+        local ease_names = {
+            'Linear', 'Out Quad', 'Out Cubic', 'Out Quart', 'Out Quint',
+            'Out Sine', 'Out Expo', 'Out Circ', 'Out Back', 'Out Elastic', 'Out Bounce'
+        }
+        local ease_vals = {
+            IamEaseType.Linear, IamEaseType.OutQuad, IamEaseType.OutCubic, IamEaseType.OutQuart, IamEaseType.OutQuint,
+            IamEaseType.OutSine, IamEaseType.OutExpo, IamEaseType.OutCirc, IamEaseType.OutBack, IamEaseType.OutElastic, IamEaseType.OutBounce
+        }
+
+        imgui.SetNextItemWidth(150)
+        state.ease_x = imgui.Combo('X Easing##vec2', state.ease_x, ease_names)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(150)
+        state.ease_y = imgui.Combo('Y Easing##vec2', state.ease_y, ease_names)
+
+        if imgui.Button('Toggle Position##vec2') then
+            state.vec2_toggle = not state.vec2_toggle
+            state.vec2_target_pos = state.vec2_toggle and ImVec2(400, 150) or ImVec2(50, 50)
+        end
+
+        -- Draw area
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(500, 200)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Animate with per-axis easing
+        local per_axis = IamEasePerAxis(
+            iam.EasePreset(ease_vals[state.ease_x]),
+            iam.EasePreset(ease_vals[state.ease_y])
+        )
+
+        local pos = iam.TweenVec2PerAxis(state.vec2_id, 1, state.vec2_target_pos, 1.5, per_axis, IamPolicy.Crossfade, dt)
+
+        -- Draw animated circle
+        draw:AddCircleFilled(ImVec2(canvas_pos.x + pos.x, canvas_pos.y + pos.y), 15.0, IM_COL32(100, 200, 255, 255))
+
+        -- Draw ghost targets
+        draw:AddCircle(ImVec2(canvas_pos.x + 50, canvas_pos.y + 50), 18.0, IM_COL32(100, 100, 100, 128), 0, 2.0)
+        draw:AddCircle(ImVec2(canvas_pos.x + 400, canvas_pos.y + 150), 18.0, IM_COL32(100, 100, 100, 128), 0, 2.0)
+
+        imgui.TextDisabled('Notice X uses %s, Y uses %s', ease_names[state.ease_x], ease_names[state.ease_y])
+        imgui.TreePop()
+    end
+
+    -- Demo 2: Color with per-channel easing
+    ApplyOpenAll()
+    if imgui.TreeNode('Color Per-Channel') then
+        local ease_names = {
+            'Linear', 'Out Quad', 'Out Cubic', 'Out Back', 'Out Elastic', 'Out Bounce'
+        }
+        local ease_vals = {
+            IamEaseType.Linear, IamEaseType.OutQuad, IamEaseType.OutCubic, IamEaseType.OutBack, IamEaseType.OutElastic, IamEaseType.OutBounce
+        }
+
+        imgui.SetNextItemWidth(120)
+        state.color_ease_r = imgui.Combo('R Easing', state.color_ease_r, ease_names)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(120)
+        state.color_ease_g = imgui.Combo('G Easing', state.color_ease_g, ease_names)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(120)
+        state.color_ease_b = imgui.Combo('B Easing', state.color_ease_b, ease_names)
+
+        if imgui.Button('Toggle Color##peraxis') then
+            state.color_toggle = not state.color_toggle
+        end
+
+        local target_color = state.color_toggle and ImVec4(1.0, 0.8, 0.0, 1.0) or ImVec4(0.2, 0.4, 1.0, 1.0)
+
+        local per_axis = IamEasePerAxis(
+            iam.EasePreset(ease_vals[state.color_ease_r]),
+            iam.EasePreset(ease_vals[state.color_ease_g]),
+            iam.EasePreset(ease_vals[state.color_ease_b]),
+            iam.EasePreset(IamEaseType.Linear) -- Alpha stays linear
+        )
+
+        local color = iam.TweenColorPerAxis(state.color_id, 1, target_color, 2.0, per_axis, IamPolicy.Crossfade, IamColorSpace.SRGB, dt)
+
+        imgui.ColorButton('##color_result', color, 0, ImVec2(200, 60))
+
+        imgui.SameLine()
+        imgui.BeginGroup()
+        imgui.Text('R: %.2f (ease: %s)', color.x, ease_names[state.color_ease_r])
+        imgui.Text('G: %.2f (ease: %s)', color.y, ease_names[state.color_ease_g])
+        imgui.Text('B: %.2f (ease: %s)', color.z, ease_names[state.color_ease_b])
+        imgui.EndGroup()
+
+        imgui.TextDisabled('Each color channel animates with its own easing function.')
+        imgui.TreePop()
+    end
+
+    -- Demo 3: Practical example - bounce landing effect
+    ApplyOpenAll()
+    if imgui.TreeNode('Bounce Landing Effect') then
+        if imgui.Button('Drop!') then
+            state.dropping = true
+            state.drop_timer = 0.0
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 200)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+
+        -- Ground line
+        local ground_y = canvas_pos.y + canvas_size.y - 30
+        draw:AddLine(ImVec2(canvas_pos.x, ground_y), ImVec2(canvas_pos.x + canvas_size.x, ground_y), IM_COL32(100, 100, 100, 255), 2.0)
+        imgui.Dummy(canvas_size)
+
+        -- Animate: X moves linearly, Y bounces on landing
+        local start_pos = ImVec2(50, 20)
+        local end_pos = ImVec2(350, canvas_size.y - 50)
+
+        local per_axis = IamEasePerAxis(
+            iam.EasePreset(IamEaseType.Linear),     -- X: linear motion
+            iam.EasePreset(IamEaseType.OutBounce)   -- Y: bounce on landing
+        )
+
+        local target = state.dropping and end_pos or start_pos
+        local pos = iam.TweenVec2PerAxis(state.landing_id, 1, target, 1.2, per_axis, IamPolicy.Crossfade, dt)
+
+        -- Draw ball
+        draw:AddCircleFilled(ImVec2(canvas_pos.x + pos.x, canvas_pos.y + pos.y), 20.0, IM_COL32(255, 100, 100, 255))
+
+        -- Reset after animation
+        if state.dropping then
+            state.drop_timer = state.drop_timer + dt
+            if state.drop_timer > 2.0 then state.dropping = false end
+        end
+
+        imgui.TextDisabled('X: linear motion, Y: bounce on landing - creates natural drop effect.')
+        imgui.TreePop()
+    end
+end
+
+-- ============================================================
+-- SECTION: Tween Policies
+-- ============================================================
+local policies_state = {
+    target = 0.0,
+    id_crossfade = ImHashStr('policy_crossfade'),
+    id_cut = ImHashStr('policy_cut'),
+    id_queue = ImHashStr('policy_queue'),
+
+    target_x_positions = { 30.0, 120.0, 220.0, 320.0 },
+    visual_target_idx = 1,
+    id_visual_cut = ImHashStr('policy_visual_cut'),
+    id_visual_crossfade = ImHashStr('policy_visual_crossfade'),
+    id_visual_queue = ImHashStr('policy_visual_queue'),
+}
+
+local function ShowPoliciesDemo()
+    local state = policies_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        "Policies control how tweens behave when the target changes mid-animation:")
+
+    imgui.BulletText('Crossfade: Smoothly blend into new target (default)')
+    imgui.BulletText('Cut: Instantly snap to new target')
+    imgui.BulletText('Queue: Finish current animation, then start new one')
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    if imgui.Button('Target = 0') then state.target = 0.0 end
+    imgui.SameLine()
+    if imgui.Button('Target = 50') then state.target = 50.0 end
+    imgui.SameLine()
+    if imgui.Button('Target = 100') then state.target = 100.0 end
+
+    imgui.Spacing()
+
+    local ez = iam.EasePreset(IamEaseType.OutCubic)
+
+    -- Crossfade
+    do
+        local value = iam.TweenFloat(state.id_crossfade, 0, state.target, 1.5, ez, IamPolicy.Crossfade, dt)
+        imgui.ProgressBar(value / 100.0, ImVec2(250, 0))
+        imgui.SameLine()
+        imgui.Text('Crossfade: %.1f', value)
+    end
+
+    -- Cut
+    do
+        local value = iam.TweenFloat(state.id_cut, 0, state.target, 1.5, ez, IamPolicy.Cut, dt)
+        imgui.ProgressBar(value / 100.0, ImVec2(250, 0))
+        imgui.SameLine()
+        imgui.Text('Cut: %.1f', value)
+    end
+
+    -- Queue
+    do
+        local value = iam.TweenFloat(state.id_queue, 0, state.target, 1.5, ez, IamPolicy.Queue, dt)
+        imgui.ProgressBar(value / 100.0, ImVec2(250, 0))
+        imgui.SameLine()
+        imgui.Text('Queue: %.1f', value)
+    end
+
+    imgui.Spacing()
+    imgui.Separator()
+    imgui.Spacing()
+
+    -- Visual policy comparison - each policy in its own horizontal lane
+    ApplyOpenAll()
+    if imgui.TreeNode('Visual Comparison') then
+        imgui.TextWrapped("Each row shows the same animation with different policies. " ..
+            "Click buttons rapidly to see differences:")
+        imgui.BulletText('Cut (green): Jumps instantly to target')
+        imgui.BulletText('Crossfade (red): Smoothly transitions, interrupts on new target')
+        imgui.BulletText('Queue (blue): Finishes current animation before starting next')
+        imgui.Spacing()
+
+        if imgui.Button('A (Left)') then state.visual_target_idx = 1 end
+        imgui.SameLine()
+        if imgui.Button('B') then state.visual_target_idx = 2 end
+        imgui.SameLine()
+        if imgui.Button('C') then state.visual_target_idx = 3 end
+        imgui.SameLine()
+        if imgui.Button('D (Right)') then state.visual_target_idx = 4 end
+
+        local target_x = state.target_x_positions[state.visual_target_idx]
+
+        local origin = imgui.GetCursorScreenPosVec()
+        local vis_width = 360.0
+        local text_width = 80.0
+        local canvas_size = ImVec2(vis_width, 130)
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Background
+        draw_list:AddRectFilled(origin, ImVec2(origin.x + vis_width, origin.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        draw_list:AddRect(origin, ImVec2(origin.x + vis_width, origin.y + canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Draw vertical lines at target positions
+        for i = 1, 4 do
+            local x = origin.x + state.target_x_positions[i]
+            local col = (i == state.visual_target_idx) and IM_COL32(255, 255, 100, 100) or IM_COL32(80, 80, 80, 100)
+            draw_list:AddLine(ImVec2(x, origin.y), ImVec2(x, origin.y + canvas_size.y), col, 1.0)
+        end
+
+        -- Lane labels (on right side)
+        local lane_height = 40.0
+        local y_cut = origin.y + 20.0
+        local y_crossfade = origin.y + 20.0 + lane_height
+        local y_queue = origin.y + 20.0 + lane_height * 2
+
+        draw_list:AddText(ImVec2(origin.x + vis_width + 10, y_cut - 4), IM_COL32(100, 255, 100, 180), 'Cut')
+        draw_list:AddText(ImVec2(origin.x + vis_width + 10, y_crossfade - 4), IM_COL32(255, 100, 100, 180), 'Crossfade')
+        draw_list:AddText(ImVec2(origin.x + vis_width + 10, y_queue - 4), IM_COL32(100, 100, 255, 180), 'Queue')
+
+        local ez_vis = iam.EasePreset(IamEaseType.OutCubic)
+
+        -- Cut square (green) - top lane - should jump instantly
+        do
+            local x = iam.TweenFloat(state.id_visual_cut, 0, target_x, 0.8, ez_vis, IamPolicy.Cut, dt)
+            draw_list:AddRectFilled(
+                ImVec2(origin.x + x - 14, y_cut - 14),
+                ImVec2(origin.x + x + 14, y_cut + 14),
+                IM_COL32(100, 255, 100, 255))
+        end
+
+        -- Crossfade square (red) - middle lane - smooth transition
+        do
+            local x = iam.TweenFloat(state.id_visual_crossfade, 0, target_x, 0.8, ez_vis, IamPolicy.Crossfade, dt)
+            draw_list:AddRectFilled(
+                ImVec2(origin.x + x - 14, y_crossfade - 14),
+                ImVec2(origin.x + x + 14, y_crossfade + 14),
+                IM_COL32(255, 100, 100, 255))
+        end
+
+        -- Queue square (blue) - bottom lane - finishes before starting next
+        do
+            local x = iam.TweenFloat(state.id_visual_queue, 0, target_x, 0.8, ez_vis, IamPolicy.Queue, dt)
+            draw_list:AddRectFilled(
+                ImVec2(origin.x + x - 14, y_queue - 14),
+                ImVec2(origin.x + x + 14, y_queue + 14),
+                IM_COL32(100, 100, 255, 255))
+        end
+
+        imgui.Dummy(ImVec2(vis_width + text_width, canvas_size.y))
+        imgui.TreePop()
+    end
+end
+
+-- ============================================================
 -- SECTION: Clip System
 -- ============================================================
 
@@ -2225,6 +2596,24 @@ local function ImAnimDemoWindow()
         ApplyOpenAll()
         if imgui.TreeNode('Basic Tweens') then
             ShowBasicTweensDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Color Tweens') then
+            ShowColorTweensDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Per-Axis Easing') then
+            ShowPerAxisEasingDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Tween Policies') then
+            ShowPoliciesDemo()
             imgui.TreePop()
         end
     end
