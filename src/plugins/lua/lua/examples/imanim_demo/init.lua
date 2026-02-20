@@ -2529,6 +2529,167 @@ local function ShowClipSystemDemo()
     end
 end
 
+-- ============================================================
+-- SECTION: Interactive Widgets
+-- ============================================================
+local widgets_demo_state = {
+    toggle         = false,
+    -- Animated Buttons channel IDs
+    alpha_id       = ImHashStr('alpha'),
+    scale_id       = ImHashStr('scale'),
+    offset_id      = ImHashStr('offset'),
+    color_id       = ImHashStr('color'),
+    -- Animated Toggle IDs
+    toggle_id      = ImHashStr('toggle_demo'),
+    bg_id          = ImHashStr('bg'),
+    knob_id        = ImHashStr('knob'),
+    -- Hover Card IDs
+    card_id        = ImHashStr('card_demo'),
+    elevation_id   = ImHashStr('elevation'),
+    lift_id        = ImHashStr('lift'),
+}
+
+local function ShowWidgetsDemo()
+    local state = widgets_demo_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        'Combining tweens with ImGui widgets creates polished UI interactions.')
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Animated buttons - using fixed layout to prevent movement
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Animated Buttons') then
+        imgui.TextDisabled('Hover over buttons to see animation effects')
+        imgui.Spacing()
+
+        -- Use a child window with fixed size to prevent layout shifts
+        local buttons_area = ImVec2(400, 60)
+        imgui.BeginChild('##buttons_area', buttons_area, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)
+
+        for i = 1, 3 do
+            local label = string.format('Button %d', i)
+
+            local id = imgui.GetID(label)
+            local size = ImVec2(110, 35)
+
+            -- Fixed position for each button
+            local btn_x = (i - 1) * 125.0
+            imgui.SetCursorPos(ImVec2(btn_x, 10))
+
+            -- Invisible button for interaction at fixed position
+            local clicked = imgui.InvisibleButton(label, size)
+            local hovered = imgui.IsItemHovered()
+            local active = imgui.IsItemActive()
+
+            -- Animate properties
+            local ez = iam.EasePreset(IamEaseType.OutCubic)
+            local alpha = iam.TweenFloat(id, state.alpha_id, hovered and 1.0 or 0.6, 0.4, ez, IamPolicy.Crossfade, dt)
+            local scale = iam.TweenFloat(id, state.scale_id, hovered and 1.08 or 1.0, 0.3,
+                iam.EaseSpringDesc(1.0, 200.0, 15.0, 0.0), IamPolicy.Crossfade, dt)
+            local offset = iam.TweenVec2(id, state.offset_id, active and ImVec2(0, 2) or ImVec2(0, 0), 0.15, ez, IamPolicy.Crossfade, dt)
+            local color = iam.TweenColor(id, state.color_id,
+                hovered and ImVec4(0.3, 0.6, 1.0, 1.0) or ImVec4(0.2, 0.2, 0.25, 1.0),
+                0.4, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+            -- Calculate scaled button size (scale from center)
+            local scaled_size = ImVec2(size.x * scale, size.y * scale)
+            local size_diff = ImVec2((size.x - scaled_size.x) * 0.5, (size.y - scaled_size.y) * 0.5)
+
+            -- Draw at fixed position with offset
+            imgui.SetCursorPos(ImVec2(btn_x + offset.x + size_diff.x, 10 + offset.y + size_diff.y))
+            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+            imgui.PushStyleColor(ImGuiCol.Button, color)
+            imgui.PushStyleColor(ImGuiCol.ButtonHovered, color)
+            imgui.PushStyleColor(ImGuiCol.ButtonActive, color)
+            imgui.PushID(i + 1000)
+            imgui.Button(label, scaled_size)
+            imgui.PopID()
+            imgui.PopStyleColor(3)
+            imgui.PopStyleVar()
+        end
+
+        imgui.EndChild()
+        imgui.TreePop()
+    end
+
+    -- Animated toggle
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Toggle') then
+        local id = state.toggle_id
+        local toggle_size = ImVec2(60, 30)
+
+        -- Draw toggle background
+        local pos = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Animate background color
+        local bg_color = iam.TweenColor(id, state.bg_id,
+            state.toggle and ImVec4(0.2, 0.7, 0.3, 1.0) or ImVec4(0.3, 0.3, 0.35, 1.0),
+            0.4, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+        -- Animate knob position
+        local knob_x = iam.TweenFloat(id, state.knob_id,
+            state.toggle and (toggle_size.x - 15.0 - 4.0) or 4.0,
+            0.5, iam.EaseSpringDesc(1.0, 180.0, 18.0, 0.0), IamPolicy.Crossfade, dt)
+
+        draw_list:AddRectFilled(pos, ImVec2(pos.x + toggle_size.x, pos.y + toggle_size.y),
+            imgui.ColorConvertFloat4ToU32(bg_color), toggle_size.y * 0.5)
+        draw_list:AddCircleFilled(ImVec2(pos.x + knob_x + 11, pos.y + toggle_size.y * 0.5), 11.0,
+            IM_COL32(255, 255, 255, 255))
+
+        -- Invisible button for interaction
+        if imgui.InvisibleButton('##toggle', toggle_size) then
+            state.toggle = not state.toggle
+        end
+
+        imgui.SameLine()
+        imgui.Text(state.toggle and 'ON' or 'OFF')
+        imgui.TreePop()
+    end
+
+    -- Hover card - larger
+    ApplyOpenAll()
+    if imgui.TreeNode('Hover Card') then
+        local id = state.card_id
+
+        local card_size = ImVec2(480, 140)
+        local pos = imgui.GetCursorScreenPosVec()
+
+        imgui.InvisibleButton('##card', card_size)
+        local hovered = imgui.IsItemHovered()
+
+        -- Animate elevation/shadow
+        local elevation = iam.TweenFloat(id, state.elevation_id, hovered and 16.0 or 4.0, 0.4,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+        local y_offset = iam.TweenFloat(id, state.lift_id, hovered and -6.0 or 0.0, 0.4,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Shadow
+        local shadow_pos = ImVec2(pos.x + elevation, pos.y + y_offset + elevation)
+        draw_list:AddRectFilled(shadow_pos, ImVec2(shadow_pos.x + card_size.x, shadow_pos.y + card_size.y),
+            IM_COL32(255, 255, 255, math.floor(40 + elevation * 3)), 12.0)
+
+        -- Card
+        local card_pos = ImVec2(pos.x, pos.y + y_offset)
+        draw_list:AddRectFilled(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
+            IM_COL32(60, 60, 70, 255), 12.0)
+        draw_list:AddRect(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
+            IM_COL32(80, 80, 90, 255), 12.0)
+
+        -- Text
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 20), IM_COL32(255, 255, 255, 255), 'Hover Card')
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 50), IM_COL32(180, 180, 180, 255), 'Hover to see lift effect')
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 80), IM_COL32(140, 140, 140, 255), 'Shadow grows on hover')
+
+        imgui.TreePop()
+    end
+end
+
 local function ImAnimDemoWindow()
     if not openGUI then
         return
@@ -2616,11 +2777,19 @@ local function ImAnimDemoWindow()
             ShowPoliciesDemo()
             imgui.TreePop()
         end
+
+        iam.ProfilerEnd()
     end
 
     -- ========================================
     -- 2. INTERACTIVE WIDGETS
     -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Interactive Widgets') then
+        iam.ProfilerBegin('Interactive Widgets (lua)')
+        ShowWidgetsDemo()
+        iam.ProfilerEnd()
+    end
 
     -- ========================================
     -- 3. CLIP-BASED ANIMATIONS

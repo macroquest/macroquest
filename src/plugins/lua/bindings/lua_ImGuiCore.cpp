@@ -677,9 +677,9 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	));
 	ImGui.set_function("PopID", &ImGui::PopID);
 	ImGui.set_function("GetID", sol::overload(
-		[](std::string_view str_id) { ImGui::GetID(str_id.data(), str_id.data() + str_id.length()); },
-		[](int int_id) { ImGui::GetID(int_id); },
-		[](sol::object obj) { ImGui::GetID(obj.pointer()); }
+		[](std::string_view str_id) { return ImGui::GetID(str_id.data(), str_id.data() + str_id.length()); },
+		[](int int_id) { return ImGui::GetID(int_id); },
+		[](sol::object obj) { return ImGui::GetID(obj.pointer()); }
 	));
 	#pragma endregion
 
