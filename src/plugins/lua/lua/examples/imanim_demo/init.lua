@@ -881,9 +881,561 @@ end
 -- SECTION: Easing Functions
 -- ============================================================
 
-local easing_state = {}
+local easing_state = {
+    selected_ease = 6,
+    preview_time = 0.0,
+    preview_playing = false,
+    ease_names = {
+        "iam_ease_linear",
+        "iam_ease_in_quad", "iam_ease_out_quad", "iam_ease_in_out_quad",
+        "iam_ease_in_cubic", "iam_ease_out_cubic", "iam_ease_in_out_cubic",
+        "iam_ease_in_quart", "iam_ease_out_quart", "iam_ease_in_out_quart",
+        "iam_ease_in_quint", "iam_ease_out_quint", "iam_ease_in_out_quint",
+        "iam_ease_in_sine", "iam_ease_out_sine", "iam_ease_in_out_sine",
+        "iam_ease_in_expo", "iam_ease_out_expo", "iam_ease_in_out_expo",
+        "iam_ease_in_circ", "iam_ease_out_circ", "iam_ease_in_out_circ",
+        "iam_ease_in_back", "iam_ease_out_back", "iam_ease_in_out_back",
+        "iam_ease_in_elastic", "iam_ease_out_elastic", "iam_ease_in_out_elastic",
+        "iam_ease_in_bounce", "iam_ease_out_bounce", "iam_ease_in_out_bounce",
+    },
+    -- Easing info: name, enum value
+    eases = {
+        { name = "Linear",        type = IamEaseType.Linear },
+        { name = "In Quad",       type = IamEaseType.InQuad },
+        { name = "Out Quad",      type = IamEaseType.OutQuad },
+        { name = "InOut Quad",    type = IamEaseType.InOutQuad },
+        { name = "In Cubic",      type = IamEaseType.InCubic },
+        { name = "Out Cubic",     type = IamEaseType.OutCubic },
+        { name = "InOut Cubic",   type = IamEaseType.InOutCubic },
+        { name = "In Quart",      type = IamEaseType.InQuart },
+        { name = "Out Quart",     type = IamEaseType.OutQuart },
+        { name = "InOut Quart",   type = IamEaseType.InOutQuart },
+        { name = "In Quint",      type = IamEaseType.InQuint },
+        { name = "Out Quint",     type = IamEaseType.OutQuint },
+        { name = "InOut Quint",   type = IamEaseType.InOutQuint },
+        { name = "In Sine",       type = IamEaseType.InSine },
+        { name = "Out Sine",      type = IamEaseType.OutSine },
+        { name = "InOut Sine",    type = IamEaseType.InOutSine },
+        { name = "In Expo",       type = IamEaseType.InExpo },
+        { name = "Out Expo",      type = IamEaseType.OutExpo },
+        { name = "InOut Expo",    type = IamEaseType.InOutExpo },
+        { name = "In Circ",       type = IamEaseType.InCirc },
+        { name = "Out Circ",      type = IamEaseType.OutCirc },
+        { name = "InOut Circ",    type = IamEaseType.InOutCirc },
+        { name = "In Back",       type = IamEaseType.InBack },
+        { name = "Out Back",      type = IamEaseType.OutBack },
+        { name = "InOut Back",    type = IamEaseType.InOutBack },
+        { name = "In Elastic",    type = IamEaseType.InElastic },
+        { name = "Out Elastic",   type = IamEaseType.OutElastic },
+        { name = "InOut Elastic", type = IamEaseType.InOutElastic },
+        { name = "In Bounce",     type = IamEaseType.InBounce },
+        { name = "Out Bounce",    type = IamEaseType.OutBounce },
+        { name = "InOut Bounce",  type = IamEaseType.InOutBounce },
+    },
+
+    bezier = { 0.25, 0.1, 0.25, 1.0 },
+    bezier_preview_time = 0.0,
+    bezier_playing = false,
+
+    mass = 1.0,
+    stiffness = 120.0,
+    damping = 20.0,
+    v0 = 0.0,
+    spring_preview_time = 0.0,
+    spring_playing = false,
+
+    step_count = 5,
+    step_mode = 1,
+    steps_preview_time = 0.0,
+    steps_playing = false,
+
+    gallery_time = 0.0,
+    gallery_playing = true,
+    gallery_duration = 1.5,
+}
 
 local function ShowEasingDemo()
+    local dt = GetSafeDeltaTime()
+    local state = easing_state
+
+    imgui.TextWrapped(
+        "im_anim supports 30+ easing functions inspired by anime.js and CSS transitions. "
+        .. "Each easing controls the rate of change during an animation.")
+
+    imgui.Spacing()
+
+    -- Easing preview
+    imgui.AlignTextToFramePadding()
+    imgui.Text("Preset:")
+    imgui.SameLine()
+    imgui.SetNextItemWidth(350)
+    state.selected_ease = imgui.Combo("##iam_ease_preset", state.selected_ease, state.ease_names, #state.ease_names)
+
+    imgui.SameLine()
+    if imgui.Button(state.preview_playing and "Reset##EasePreview" or "Play##EasePreview") then
+        state.preview_playing = not state.preview_playing
+        state.preview_time = 0.0
+    end
+
+    local ease_enum = state.selected_ease - 1
+
+    -- Show parameter info for eases that have them
+    if ease_enum >= IamEaseType.InBack and ease_enum <= IamEaseType.InOutBack then
+        imgui.TextDisabled("Parameters: overshoot (default: 1.70158)")
+    elseif ease_enum >= IamEaseType.InElastic and ease_enum <= IamEaseType.InOutElastic then
+        imgui.TextDisabled("Parameters: amplitude (default: 1.0), period (default: 0.3)")
+    end
+
+    if state.preview_playing then
+        state.preview_time = state.preview_time + dt
+        if state.preview_time > 2.0 then state.preview_time = 0.0 end
+    end
+
+    -- Draw easing curve
+    imgui.Spacing()
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(300, 300)
+    local draw_list = imgui.GetWindowDrawList()
+
+    -- Background
+    draw_list:AddRectFilled(canvas_pos,
+        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        IM_COL32(40, 40, 45, 255))
+    draw_list:AddRect(canvas_pos,
+        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        IM_COL32(80, 80, 85, 255))
+
+    -- Grid lines
+    for i = 1, 3 do
+        local x = canvas_pos.x + canvas_size.x * (i / 4.0)
+        local y = canvas_pos.y + canvas_size.y * (i / 4.0)
+        draw_list:AddLine(ImVec2(x, canvas_pos.y), ImVec2(x, canvas_pos.y + canvas_size.y), IM_COL32(60, 60, 65, 255))
+        draw_list:AddLine(ImVec2(canvas_pos.x, y), ImVec2(canvas_pos.x + canvas_size.x, y), IM_COL32(60, 60, 65, 255))
+    end
+
+    -- Draw curve using direct evaluation
+    local prev_pt = ImVec2(canvas_pos.x, canvas_pos.y + canvas_size.y)
+
+    for i = 1, 100 do
+        local t = i / 100.0
+        local val = iam.EvalPreset(ease_enum, t)
+
+        -- Clamp for display (elastic/back can overshoot)
+        local display_val = val
+        if display_val < -0.2 then display_val = -0.2 end
+        if display_val > 1.2 then display_val = 1.2 end
+
+        local pt = ImVec2(
+            canvas_pos.x + canvas_size.x * t,
+            canvas_pos.y + canvas_size.y * (1.0 - display_val))
+
+        draw_list:AddLine(prev_pt, pt, IM_COL32(100, 180, 255, 255), 2.0)
+        prev_pt = pt
+    end
+
+    -- Animated ball
+    if state.preview_playing and state.preview_time <= 1.5 then
+        local t = state.preview_time / 1.5  -- Normalize to 0-1 over 1.5 seconds
+        if t > 1.0 then t = 1.0 end
+
+        local eased = iam.EvalPreset(ease_enum, t)
+
+        -- Clamp for display
+        local display_eased = eased
+        if display_eased < -0.2 then display_eased = -0.2 end
+        if display_eased > 1.2 then display_eased = 1.2 end
+
+        local ball_x = canvas_pos.x + canvas_size.x * t
+        local ball_y = canvas_pos.y + canvas_size.y * (1.0 - display_eased)
+        draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), 8.0, IM_COL32(255, 100, 100, 255))
+
+        -- Also show horizontal position bar
+        local bar_y = canvas_pos.y + canvas_size.y + 20
+        draw_list:AddRectFilled(ImVec2(canvas_pos.x, bar_y),
+            ImVec2(canvas_pos.x + canvas_size.x, bar_y + 20),
+            IM_COL32(40, 40, 45, 255))
+        local bar_x = canvas_pos.x + canvas_size.x * math.max(0.0, math.min(eased, 1.0))
+        draw_list:AddCircleFilled(ImVec2(bar_x, bar_y + 10), 8.0, IM_COL32(100, 255, 100, 255))
+    end
+
+    imgui.Dummy(ImVec2(canvas_size.x, canvas_size.y + 40))
+
+    -- Custom easing section
+    ApplyOpenAll()
+    if imgui.TreeNode("Custom Bezier Curve") then
+        state.bezier[1] = imgui.SliderFloat("x1", state.bezier[1], 0.0, 1.0)
+        state.bezier[2] = imgui.SliderFloat("y1", state.bezier[2], -1.0, 2.0)
+        state.bezier[3] = imgui.SliderFloat("x2", state.bezier[3], 0.0, 1.0)
+        state.bezier[4] = imgui.SliderFloat("y2", state.bezier[4], -1.0, 2.0)
+
+        if imgui.Button(state.bezier_playing and "Reset##bezier" or "Play##bezier") then
+            state.bezier_playing = not state.bezier_playing
+            state.bezier_preview_time = 0.0
+        end
+
+        if state.bezier_playing then
+            state.bezier_preview_time = state.bezier_preview_time + dt
+            if state.bezier_preview_time > 2.0 then state.bezier_preview_time = 0.0 end
+        end
+
+        -- Draw bezier curve
+        local bezier_canvas_pos = imgui.GetCursorScreenPosVec()
+        local bezier_canvas_size = ImVec2(300, 300)
+        local bezier_draw_list = imgui.GetWindowDrawList()
+
+        bezier_draw_list:AddRectFilled(bezier_canvas_pos,
+            ImVec2(bezier_canvas_pos.x + bezier_canvas_size.x, bezier_canvas_pos.y + bezier_canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        bezier_draw_list:AddRect(bezier_canvas_pos,
+            ImVec2(bezier_canvas_pos.x + bezier_canvas_size.x, bezier_canvas_pos.y + bezier_canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Draw control points and handles
+        local p0 = ImVec2(bezier_canvas_pos.x, bezier_canvas_pos.y + bezier_canvas_size.y)
+        local p1 = ImVec2(bezier_canvas_pos.x + state.bezier[1] * bezier_canvas_size.x,
+            bezier_canvas_pos.y + bezier_canvas_size.y * (1.0 - state.bezier[2]))
+        local p2 = ImVec2(bezier_canvas_pos.x + state.bezier[3] * bezier_canvas_size.x,
+            bezier_canvas_pos.y + bezier_canvas_size.y * (1.0 - state.bezier[4]))
+        local p3 = ImVec2(bezier_canvas_pos.x + bezier_canvas_size.x, bezier_canvas_pos.y)
+
+        -- Draw control handles
+        bezier_draw_list:AddLine(p0, p1, IM_COL32(255, 100, 100, 150), 1.0)
+        bezier_draw_list:AddLine(p3, p2, IM_COL32(100, 100, 255, 150), 1.0)
+        bezier_draw_list:AddCircleFilled(p1, 5.0, IM_COL32(255, 100, 100, 255))
+        bezier_draw_list:AddCircleFilled(p2, 5.0, IM_COL32(100, 100, 255, 255))
+
+        -- Draw bezier curve
+        bezier_draw_list:AddBezierCubic(p0, p1, p2, p3, IM_COL32(100, 255, 100, 255), 2.0, 64)
+
+        -- Animated ball on curve
+        if state.bezier_playing and state.bezier_preview_time <= 1.5 then
+            local t = state.bezier_preview_time / 1.5
+            if t > 1.0 then t = 1.0 end
+
+            -- Evaluate cubic bezier for Y (the eased value)
+            local function cubic_bezier_y(x, x1, y1, x2, y2)
+                local t_guess = x
+                for _ = 1, 5 do
+                    local mt = 1.0 - t_guess
+                    local bx = 3.0*mt*mt*t_guess*x1 + 3.0*mt*t_guess*t_guess*x2 + t_guess*t_guess*t_guess
+                    local dx = 3.0*mt*mt*x1 + 6.0*mt*t_guess*(x2 - x1) + 3.0*t_guess*t_guess*(1.0 - x2)
+                    if dx ~= 0.0 then t_guess = t_guess - (bx - x) / dx end
+                    if t_guess < 0.0 then t_guess = 0.0 end
+                    if t_guess > 1.0 then t_guess = 1.0 end
+                end
+                local mt = 1.0 - t_guess
+                return 3.0*mt*mt*t_guess*y1 + 3.0*mt*t_guess*t_guess*y2 + t_guess*t_guess*t_guess
+            end
+
+            local eased = cubic_bezier_y(t, state.bezier[1], state.bezier[2], state.bezier[3], state.bezier[4])
+            local ball_x = bezier_canvas_pos.x + bezier_canvas_size.x * t
+            local ball_y = bezier_canvas_pos.y + bezier_canvas_size.y * (1.0 - math.max(-0.2, math.min(eased, 1.2)))
+            bezier_draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), 6.0, IM_COL32(255, 255, 100, 255))
+        end
+
+        imgui.Dummy(bezier_canvas_size)
+        imgui.TextDisabled("Usage: iam_ease_bezier(%.2f, %.2f, %.2f, %.2f)",
+            state.bezier[1], state.bezier[2], state.bezier[3], state.bezier[4])
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode("Spring Physics") then
+        state.mass = imgui.SliderFloat("Mass", state.mass, 0.1, 5.0)
+        state.stiffness = imgui.SliderFloat("Stiffness", state.stiffness, 10.0, 500.0)
+        state.damping = imgui.SliderFloat("Damping", state.damping, 1.0, 50.0)
+        state.v0 = imgui.SliderFloat("Initial Velocity", state.v0, -10.0, 10.0)
+
+        if imgui.Button(state.spring_playing and "Reset##spring" or "Play##spring") then
+            state.spring_playing = not state.spring_playing
+            state.spring_preview_time = 0.0
+        end
+
+        if state.spring_playing then
+            state.spring_preview_time = state.spring_preview_time + dt
+            if state.spring_preview_time > 3.0 then state.spring_preview_time = 0.0 end
+        end
+
+        -- Draw spring response curve
+        local spring_canvas_pos = imgui.GetCursorScreenPosVec()
+        local spring_canvas_size = ImVec2(300, 180)
+        local spring_draw_list = imgui.GetWindowDrawList()
+
+        spring_draw_list:AddRectFilled(spring_canvas_pos,
+            ImVec2(spring_canvas_pos.x + spring_canvas_size.x, spring_canvas_pos.y + spring_canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        spring_draw_list:AddRect(spring_canvas_pos,
+            ImVec2(spring_canvas_pos.x + spring_canvas_size.x, spring_canvas_pos.y + spring_canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Draw target line at y=1
+        local target_y = spring_canvas_pos.y + spring_canvas_size.y * 0.2
+        spring_draw_list:AddLine(ImVec2(spring_canvas_pos.x, target_y),
+            ImVec2(spring_canvas_pos.x + spring_canvas_size.x, target_y), IM_COL32(100, 100, 100, 100), 1.0)
+
+        -- Spring evaluation function
+        local function eval_spring(u, m, k, c, vel0)
+            local wn = math.sqrt(k / m)
+            local zeta = c / (2.0 * math.sqrt(k * m))
+            if zeta < 1.0 then
+                local wdn = wn * math.sqrt(1.0 - zeta * zeta)
+                local A = 1.0
+                local B = (zeta * wn * A + vel0) / wdn
+                local e = math.exp(-zeta * wn * u)
+                return 1.0 - e * (A * math.cos(wdn * u) + B * math.sin(wdn * u))
+            elseif zeta == 1.0 then
+                local e = math.exp(-wn * u)
+                return 1.0 - e * (1.0 + wn * u)
+            else
+                local wd = wn * math.sqrt(zeta * zeta - 1.0)
+                local e1 = math.exp(-(zeta * wn - wd) * u)
+                local e2 = math.exp(-(zeta * wn + wd) * u)
+                return 1.0 - 0.5 * (e1 + e2)
+            end
+        end
+
+        -- Draw spring curve
+        local spring_prev_pt = ImVec2(spring_canvas_pos.x, spring_canvas_pos.y + spring_canvas_size.y)
+        for i = 1, 100 do
+            local t = i / 100.0
+            local val = eval_spring(t * 2.0, state.mass, state.stiffness, state.damping, state.v0)  -- 2 seconds worth
+
+            local display_val = math.max(-0.2, math.min(val, 1.4))
+            local pt = ImVec2(
+                spring_canvas_pos.x + spring_canvas_size.x * t,
+                spring_canvas_pos.y + spring_canvas_size.y * (1.0 - display_val * 0.8))
+
+            spring_draw_list:AddLine(spring_prev_pt, pt, IM_COL32(100, 200, 255, 255), 2.0)
+            spring_prev_pt = pt
+        end
+
+        -- Animated ball
+        if state.spring_playing and state.spring_preview_time <= 2.0 then
+            local t = state.spring_preview_time / 2.0
+            if t > 1.0 then t = 1.0 end
+
+            local val = eval_spring(t * 2.0, state.mass, state.stiffness, state.damping, state.v0)
+            local display_val = math.max(-0.2, math.min(val, 1.4))
+            local ball_x = spring_canvas_pos.x + spring_canvas_size.x * t
+            local ball_y = spring_canvas_pos.y + spring_canvas_size.y * (1.0 - display_val * 0.8)
+            spring_draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), 6.0, IM_COL32(255, 100, 100, 255))
+        end
+
+        imgui.Dummy(spring_canvas_size)
+        imgui.TextDisabled("Usage: iam.EaseSpringDesc(%.1f, %.1f, %.1f, %.1f)",
+            state.mass, state.stiffness, state.damping, state.v0)
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode("Steps Easing") then
+        state.step_count = imgui.SliderInt("Step Count", state.step_count, 1, 12)
+        local mode_names = { "Jump End (0)", "Jump Start (1)", "Jump Both (2)" }
+        state.step_mode = imgui.Combo("Step Mode", state.step_mode, mode_names, 3)
+
+        imgui.SameLine()
+        if imgui.Button(state.steps_playing and "Reset##steps" or "Play##steps") then
+            state.steps_playing = not state.steps_playing
+            state.steps_preview_time = 0.0
+        end
+
+        if state.steps_playing then
+            state.steps_preview_time = state.steps_preview_time + dt
+            if state.steps_preview_time > 2.0 then state.steps_preview_time = 0.0 end
+        end
+
+        -- Draw steps curve
+        local steps_canvas_pos = imgui.GetCursorScreenPosVec()
+        local steps_canvas_size = ImVec2(250, 150)
+        local steps_draw_list = imgui.GetWindowDrawList()
+
+        steps_draw_list:AddRectFilled(steps_canvas_pos,
+            ImVec2(steps_canvas_pos.x + steps_canvas_size.x, steps_canvas_pos.y + steps_canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        steps_draw_list:AddRect(steps_canvas_pos,
+            ImVec2(steps_canvas_pos.x + steps_canvas_size.x, steps_canvas_pos.y + steps_canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Steps evaluation function
+        local function eval_steps(t, steps, mode)
+            if steps < 1 then steps = 1 end
+            local s = steps
+            if mode == 1 then      -- jump-start
+                return math.floor(t * s + 1.0) / s
+            elseif mode == 2 then  -- jump-both
+                return (math.floor(t * s) + 1.0) / (s + 1.0)
+            else                   -- jump-end (default)
+                return math.floor(t * s) / s
+            end
+        end
+
+        local step_mode_0 = state.step_mode - 1
+
+        -- Draw horizontal step lines
+        for i = 0, state.step_count do
+            local y = steps_canvas_pos.y + steps_canvas_size.y * (1.0 - i / state.step_count)
+            steps_draw_list:AddLine(
+                ImVec2(steps_canvas_pos.x, y),
+                ImVec2(steps_canvas_pos.x + steps_canvas_size.x, y),
+                IM_COL32(60, 60, 65, 100), 1.0)
+        end
+
+        -- Draw step function
+        local prev_val = eval_steps(0.0, state.step_count, step_mode_0)
+        for i = 1, 100 do
+            local t = i / 100.0
+            local val = eval_steps(t, state.step_count, step_mode_0)
+
+            local x0 = steps_canvas_pos.x + steps_canvas_size.x * ((i - 1) / 100.0)
+            local x1 = steps_canvas_pos.x + steps_canvas_size.x * t
+            local y0 = steps_canvas_pos.y + steps_canvas_size.y * (1.0 - prev_val)
+            local y1 = steps_canvas_pos.y + steps_canvas_size.y * (1.0 - val)
+
+            -- Draw horizontal segment
+            steps_draw_list:AddLine(ImVec2(x0, y0), ImVec2(x1, y0), IM_COL32(255, 180, 100, 255), 2.0)
+            -- Draw vertical jump
+            if val ~= prev_val then
+                steps_draw_list:AddLine(ImVec2(x1, y0), ImVec2(x1, y1), IM_COL32(255, 180, 100, 100), 1.0)
+            end
+            prev_val = val
+        end
+
+        -- Animated indicator
+        if state.steps_playing and state.steps_preview_time <= 1.5 then
+            local t = state.steps_preview_time / 1.5
+            if t > 1.0 then t = 1.0 end
+
+            local val = eval_steps(t, state.step_count, step_mode_0)
+            local ball_x = steps_canvas_pos.x + steps_canvas_size.x * t
+            local ball_y = steps_canvas_pos.y + steps_canvas_size.y * (1.0 - val)
+            steps_draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), 6.0, IM_COL32(100, 255, 200, 255))
+        end
+
+        imgui.Dummy(steps_canvas_size)
+        imgui.TextDisabled("Usage: iam.EaseStepsDesc(%d, %d)", state.step_count, step_mode_0)
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode("Easing Gallery") then
+        imgui.TextWrapped(
+            "Visual grid showing all standard easing functions side-by-side. "
+            .. "Red disc shows X (time), green disc shows Y (eased value).")
+
+        state.gallery_playing = imgui.Checkbox("Auto-play", state.gallery_playing)
+        imgui.SameLine()
+        if imgui.Button("Reset##gallery") then
+            state.gallery_time = 0.0
+        end
+        imgui.SameLine()
+        state.gallery_duration = imgui.SliderFloat("Duration##EaseGallery", state.gallery_duration, 0.5, 3.0, "%.1fs")
+
+        if state.gallery_playing then
+            state.gallery_time = state.gallery_time + dt
+            if state.gallery_time > state.gallery_duration + 0.5 then state.gallery_time = 0.0 end
+        end
+
+        local t = state.gallery_time / state.gallery_duration
+        if t > 1.0 then t = 1.0 end
+
+        local num_eases = #state.eases
+
+        -- Grid layout - larger cells
+        local cell_size = ImVec2(300, 300)
+        local avail = imgui.GetContentRegionAvailVec()
+        local cols = math.floor(avail.x / (cell_size.x + 10))
+        if cols < 1 then cols = 1 end
+        if cols > 4 then cols = 4 end
+
+        local gallery_draw_list = imgui.GetWindowDrawList()
+
+        for i = 1, num_eases do
+            if (i - 1) % cols ~= 0 then imgui.SameLine() end
+
+            imgui.BeginGroup()
+
+            local cell_pos = imgui.GetCursorScreenPosVec()
+            local margin = 12.0
+            local label_h = 20.0
+            local graph_x = cell_pos.x + margin
+            local graph_y = cell_pos.y + label_h
+            local graph_w = cell_size.x - margin * 2
+            local graph_h = cell_size.y - label_h - margin
+
+            -- Cell background
+            gallery_draw_list:AddRectFilled(cell_pos,
+                ImVec2(cell_pos.x + cell_size.x, cell_pos.y + cell_size.y),
+                IM_COL32(30, 30, 35, 255), 4.0)
+            gallery_draw_list:AddRect(cell_pos,
+                ImVec2(cell_pos.x + cell_size.x, cell_pos.y + cell_size.y),
+                IM_COL32(60, 60, 70, 255), 4.0)
+
+            -- Graph background
+            gallery_draw_list:AddRectFilled(ImVec2(graph_x, graph_y),
+                ImVec2(graph_x + graph_w, graph_y + graph_h),
+                IM_COL32(20, 20, 25, 255), 2.0)
+
+            -- Grid lines
+            for g = 1, 3 do
+                local gx = graph_x + graph_w * (g / 4.0)
+                local gy = graph_y + graph_h * (g / 4.0)
+                gallery_draw_list:AddLine(ImVec2(gx, graph_y), ImVec2(gx, graph_y + graph_h), IM_COL32(50, 50, 55, 100))
+                gallery_draw_list:AddLine(ImVec2(graph_x, gy), ImVec2(graph_x + graph_w, gy), IM_COL32(50, 50, 55, 100))
+            end
+
+            -- Y=0 and Y=1 reference lines
+            local y0_line = graph_y + graph_h
+            local y1_line = graph_y
+            gallery_draw_list:AddLine(ImVec2(graph_x, y0_line), ImVec2(graph_x + graph_w, y0_line), IM_COL32(80, 80, 80, 150))
+            gallery_draw_list:AddLine(ImVec2(graph_x, y1_line), ImVec2(graph_x + graph_w, y1_line), IM_COL32(80, 80, 80, 150))
+
+            -- Draw easing curve
+            local prev_curve_pt = ImVec2(graph_x, graph_y + graph_h)
+            for j = 1, 60 do
+                local ct = j / 60.0
+                local val = iam.EvalPreset(state.eases[i].type, ct)
+                val = math.max(-0.2, math.min(val, 1.2))
+
+                local pt = ImVec2(
+                    graph_x + graph_w * ct,
+                    graph_y + graph_h - graph_h * val)
+
+                gallery_draw_list:AddLine(prev_curve_pt, pt, IM_COL32(100, 180, 255, 255), 2.0)
+                prev_curve_pt = pt
+            end
+
+            -- Animated indicators
+            if t <= 1.0 then
+                local eased = iam.EvalPreset(state.eases[i].type, t)
+                local eased_clamped = math.max(-0.2, math.min(eased, 1.2))
+
+                local ball_x = graph_x + graph_w * t
+                local ball_y = graph_y + graph_h - graph_h * eased_clamped
+
+                -- X axis indicator (red) - horizontal line with disc
+                gallery_draw_list:AddLine(ImVec2(graph_x, ball_y), ImVec2(ball_x, ball_y), IM_COL32(255, 80, 80, 150), 1.0)
+                gallery_draw_list:AddCircleFilled(ImVec2(graph_x - 6, ball_y), 5.0, IM_COL32(255, 80, 80, 255))
+
+                -- Y axis indicator (green) - vertical line with disc
+                gallery_draw_list:AddLine(ImVec2(ball_x, graph_y + graph_h), ImVec2(ball_x, ball_y), IM_COL32(80, 255, 80, 150), 1.0)
+                gallery_draw_list:AddCircleFilled(ImVec2(ball_x, graph_y + graph_h + 6), 5.0, IM_COL32(80, 255, 80, 255))
+
+                -- Ball on curve (yellow)
+                gallery_draw_list:AddCircleFilled(ImVec2(ball_x, ball_y), 6.0, IM_COL32(255, 220, 100, 255))
+                gallery_draw_list:AddCircle(ImVec2(ball_x, ball_y), 6.0, IM_COL32(255, 255, 255, 200), 0, 1.5)
+            end
+
+            -- Label at top
+            local text_size = imgui.CalcTextSizeVec(state.eases[i].name)
+            local text_pos = ImVec2(cell_pos.x + (cell_size.x - text_size.x) * 0.5, cell_pos.y + 3)
+            gallery_draw_list:AddText(text_pos, IM_COL32(220, 220, 220, 255), state.eases[i].name)
+
+            imgui.Dummy(cell_size)
+            imgui.EndGroup()
+        end
+
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================

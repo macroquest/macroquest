@@ -355,10 +355,10 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	// Convenience shorthands for common easings
 	ImAnim.set_function("EasePreset", &iam_ease_preset);
 	ImAnim.set_function("EaseBezier", &iam_ease_bezier);
-	ImAnim.set_function("EaseSteps", &iam_ease_steps_desc);
+	ImAnim.set_function("EaseStepsDesc", &iam_ease_steps_desc);
 	ImAnim.set_function("EaseBack", &iam_ease_back);
 	ImAnim.set_function("EaseElastic", &iam_ease_elastic);
-	ImAnim.set_function("EaseSpring", &iam_ease_spring_desc);
+	ImAnim.set_function("EaseSpringDesc", &iam_ease_spring_desc);
 	ImAnim.set_function("EaseCustomFn", &iam_ease_custom_fn);
 
 	// Scroll animation - smooth scrolling for ImGui windows
@@ -771,9 +771,12 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 
 	// Spring parameters for physics-based animation
 	state.new_usertype<iam_spring_params>(
-		"IamSpringParams"                , sol::call_constructor
-		                                 , sol::factories(&IamSpringParamsFromTable,
-		                                   []() { return iam_spring_params(); }),
+		"IamSpringParams"                , sol::call_constructor,
+		sol::factories(
+			&IamSpringParamsFromTable,
+			[]{ return iam_spring_params(); },
+			[](float mass, float stiffness, float damping, float initial_velocity) { return iam_spring_params{ mass, stiffness, damping, initial_velocity }; }
+		),
 		"mass"                           , &iam_spring_params::mass,
 		"stiffness"                      , &iam_spring_params::stiffness,
 		"damping"                        , &iam_spring_params::damping,
