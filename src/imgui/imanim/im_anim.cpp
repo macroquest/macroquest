@@ -837,7 +837,6 @@ iam_ease_fn iam_get_custom_ease(int slot) {
 
 iam_context* iam_context_create() {
 	iam_context* ctx = new iam_context();
-	memset(ctx, 0, sizeof(iam_context));
 	g_contexts.push_back(ctx);
 	return ctx;
 }

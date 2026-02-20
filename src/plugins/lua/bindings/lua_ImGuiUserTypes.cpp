@@ -502,6 +502,12 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		//"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
 	);
 
+	// ImFont
+	lua.new_usertype<ImFont>(
+		"ImFont"                       , sol::no_constructor,
+		"Flags"                        , sol::readonly(&ImFont::Flags),
+		"LegacySize"                   , sol::readonly(&ImFont::LegacySize)
+	);
 
 	// ImGuiViewport
 	lua.new_usertype<ImGuiViewport>(

@@ -959,8 +959,8 @@ local function ShowEasingDemo()
     local state = easing_state
 
     imgui.TextWrapped(
-        "im_anim supports 30+ easing functions inspired by anime.js and CSS transitions. "
-        .. "Each easing controls the rate of change during an animation.")
+        "im_anim supports 30+ easing functions inspired by anime.js and CSS transitions. " ..
+        "Each easing controls the rate of change during an animation.")
 
     imgui.Spacing()
 
@@ -1134,7 +1134,7 @@ local function ShowEasingDemo()
         end
 
         imgui.Dummy(bezier_canvas_size)
-        imgui.TextDisabled("Usage: iam_ease_bezier(%.2f, %.2f, %.2f, %.2f)",
+        imgui.TextDisabled("Usage: iam.EaseBezier(%.2f, %.2f, %.2f, %.2f)",
             state.bezier[1], state.bezier[2], state.bezier[3], state.bezier[4])
         imgui.TreePop()
     end
@@ -1562,7 +1562,29 @@ end
 -- ============================================================
 local basic_tweens_state = {
     float_target = 50.0,
-    float_id = ImHashStr('float_demo')
+    float_id = ImHashStr('float_demo'),
+
+    vec2_target = ImVec2(150.0, 80.0),
+    vec2_id = ImHashStr('vec2_demo'),
+
+    int_target = 50,
+    int_id = ImHashStr('int_demo'),
+
+    vec4_target = ImVec4(1.0, 0.5, 0.2, 1.0),
+    vec4_id = ImHashStr('vec4_demo'),
+
+    multi_prop_id = ImHashStr('multi_prop_demo'),
+    multi_prop_expanded = false,
+
+    wave_active = false,
+    wave_time = 0.0,
+
+    spring_stiffness = 180.0,
+    spring_damping = 15.0,
+    spring_triggered = false,
+
+    counter_target = 0,
+    counter_id = ImHashStr('counter_demo'),
 }
 
 local function ShowBasicTweensDemo()
@@ -1587,6 +1609,225 @@ local function ShowBasicTweensDemo()
         imgui.Text('%.1f', value)
 
         imgui.TextDisabled('iam.TweenFloat(id, channel, %.1f, 1.0, IamEaseType.OutCubic, IamPolicy.Crossfade, dt)', state.float_target)
+        imgui.TreePop()
+    end
+
+    -- Vec2 tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Vec2 Tween') then
+        state.vec2_target = imgui.SliderFloatVec2('Target', state.vec2_target, 0.0, 280.0)
+        local value = iam.TweenVec2(state.vec2_id, 0, state.vec2_target, 1.0, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        -- Draw a dot at the animated position
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300, 300)
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        draw_list:AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Clamp position to canvas
+        local draw_x = math.max(0.0, math.min(value.x, canvas_size.x - 10.0))
+        local draw_y = math.max(0.0, math.min(value.y, canvas_size.y - 10.0))
+        draw_list:AddCircleFilled(ImVec2(canvas_pos.x + draw_x + 10, canvas_pos.y + draw_y + 10), 10.0,
+            IM_COL32(100, 200, 255, 255))
+        imgui.Dummy(canvas_size)
+
+        imgui.Text('Position: (%.1f, %.1f)', value.x, value.y)
+        imgui.TreePop()
+    end
+
+    -- Int tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Int Tween') then
+        state.int_target = imgui.SliderInt('Target', state.int_target, 0, 100)
+        local value = iam.TweenInt(state.int_id, 0, state.int_target, 1.5, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
+
+        imgui.Text('Value: %d', value)
+        imgui.TextDisabled('Useful for step-based animations, frame indices, etc.')
+        imgui.TreePop()
+    end
+
+    -- Vec4 tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Vec4 Tween') then
+        state.vec4_target = imgui.ColorEdit4('Target', state.vec4_target)
+        local value = iam.TweenVec4(state.vec4_id, 0, state.vec4_target, 1.0, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        imgui.ColorButton('Animated', value, 0, ImVec2(100, 30))
+        imgui.SameLine()
+        imgui.Text('(%.2f, %.2f, %.2f, %.2f)', value.x, value.y, value.z, value.w)
+        imgui.TreePop()
+    end
+
+    -- Multi-property animation
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Multi-Property Animation') then
+        imgui.TextDisabled('Animate multiple properties on the same object with different timings')
+        imgui.Spacing()
+
+        if imgui.Button(state.multi_prop_expanded and 'Collapse' or 'Expand') then
+            state.multi_prop_expanded = not state.multi_prop_expanded
+        end
+        imgui.SameLine()
+
+        local id = state.multi_prop_id
+
+        -- Animate multiple properties
+        local scale = iam.TweenFloat(id, ImHashStr('scale'), state.multi_prop_expanded and 1.2 or 1.0, 0.4,
+            iam.EaseSpringDesc(1.0, 180.0, 15.0, 0.0), IamPolicy.Crossfade, dt)
+        local rotation = iam.TweenFloat(id, ImHashStr('rotation'), state.multi_prop_expanded and 45.0 or 0.0, 0.5,
+            iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
+        local alpha = iam.TweenFloat(id, ImHashStr('alpha'), state.multi_prop_expanded and 1.0 or 0.7, 0.3,
+            iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
+        local color = iam.TweenColor(id, ImHashStr('color'),
+            state.multi_prop_expanded and ImVec4(0.3, 0.8, 0.5, 1.0) or ImVec4(0.5, 0.5, 0.5, 1.0),
+            0.6, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+        -- Draw animated shape
+        local center = imgui.GetCursorScreenPosVec()
+        center.x = center.x + 80
+        center.y = center.y + 60
+
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Draw rotated and scaled rectangle
+        local size = 40.0 * scale
+        local rad = rotation * math.pi / 180.0
+        local corners = {}
+        for i = 1, 4 do
+            local angle = rad + (i - 1) * math.pi * 0.5 + math.pi * 0.25
+            corners[i] = ImVec2(
+                center.x + math.cos(angle) * size * 0.707,
+                center.y + math.sin(angle) * size * 0.707
+            )
+        end
+
+        local col = imgui.ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, alpha))
+        draw_list:AddQuadFilled(corners[1], corners[2], corners[3], corners[4], col)
+        draw_list:AddQuad(corners[1], corners[2], corners[3], corners[4], IM_COL32(255, 255, 255, math.floor(alpha * 100)), 2.0)
+
+        imgui.Dummy(ImVec2(160, 120))
+
+        imgui.Text('Scale: %.2f  Rotation: %.1f  Alpha: %.2f', scale, rotation, alpha)
+        imgui.TreePop()
+    end
+
+    -- Staggered wave animation
+    ApplyOpenAll()
+    if imgui.TreeNode('Staggered Wave Animation') then
+        imgui.TextDisabled('Multiple items with offset timing create a wave effect')
+        imgui.Spacing()
+
+        if imgui.Button(state.wave_active and 'Reset' or 'Start Wave') then
+            state.wave_active = not state.wave_active
+            state.wave_time = 0.0
+        end
+
+        if state.wave_active then state.wave_time = state.wave_time + dt end
+        if state.wave_time > 3.0 then state.wave_time = 0.0 end
+
+        local origin = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(origin, ImVec2(origin.x + 400, origin.y + 80), IM_COL32(40, 40, 45, 255))
+
+        local num_dots = 12
+        for i = 0, num_dots - 1 do
+            local id = i + 100
+            local stagger_delay = i * 0.08
+            local local_time = state.wave_active and math.max(0.0, state.wave_time - stagger_delay) or 0.0
+            local normalized_t = math.max(0.0, math.min(local_time / 0.6, 1.0))
+
+            -- Animate Y position with bounce
+            local y_offset = iam.TweenFloat(id, ImHashStr('wave_y'),
+                state.wave_active and (normalized_t > 0.0 and -25.0 or 0.0) or 0.0,
+                0.5, iam.EasePreset(IamEaseType.OutBounce), IamPolicy.Crossfade, dt)
+
+            -- Animate scale (slower for smoother effect)
+            local dot_scale = iam.TweenFloat(id, ImHashStr('wave_scale'),
+                state.wave_active and (normalized_t > 0.0 and 1.3 or 1.0) or 1.0,
+                0.8, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+            -- Animate color
+            local dot_color = iam.TweenColor(id, ImHashStr('wave_color'),
+                state.wave_active and ImVec4(0.3, 0.7 + i * 0.02, 1.0, 1.0) or ImVec4(0.5, 0.5, 0.5, 1.0),
+                0.4, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+            local x = origin.x + 20 + i * 32
+            local y = origin.y + 50 + y_offset
+            local radius = 10.0 * dot_scale
+
+            draw_list:AddCircleFilled(ImVec2(x, y), radius, imgui.ColorConvertFloat4ToU32(dot_color))
+        end
+
+        imgui.Dummy(ImVec2(400, 80))
+        imgui.TreePop()
+    end
+
+    -- Spring physics comparison
+    ApplyOpenAll()
+    if imgui.TreeNode('Spring Physics Comparison') then
+        imgui.TextDisabled('Compare different spring parameters - adjust stiffness and damping')
+        imgui.Spacing()
+
+        state.spring_stiffness = imgui.SliderFloat('Stiffness', state.spring_stiffness, 50.0, 400.0)
+        state.spring_damping = imgui.SliderFloat('Damping', state.spring_damping, 5.0, 40.0)
+        if imgui.Button('Trigger Spring') then state.spring_triggered = not state.spring_triggered end
+
+        imgui.Spacing()
+
+        local origin = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(origin, ImVec2(origin.x + 300, origin.y + 180), IM_COL32(40, 40, 45, 255))
+
+        local spring_configs = {
+            { name = 'Bouncy', stiffness = 120.0,                    damping = 8.0,                   color = IM_COL32(255, 100, 100, 255) },
+            { name = 'Smooth', stiffness = 200.0,                    damping = 25.0,                  color = IM_COL32(100, 255, 100, 255) },
+            { name = 'Stiff',  stiffness = 300.0,                    damping = 30.0,                  color = IM_COL32(100, 100, 255, 255) },
+            { name = 'Custom', stiffness = state.spring_stiffness,   damping = state.spring_damping,  color = IM_COL32(255, 255, 100, 255) },
+        }
+
+        local vis_width = 300.0
+        local text_width = 100.0
+        for i = 1, 4 do
+            local id = i + 200 - 1
+            local cfg = spring_configs[i]
+            local x_pos = iam.TweenFloat(id, ImHashStr('spring_x'),
+                state.spring_triggered and (vis_width - 20.0) or 20.0,
+                1.5, iam.EaseSpringDesc(1.0, cfg.stiffness, cfg.damping, 0.0),
+                IamPolicy.Crossfade, dt)
+
+            local y = origin.y + 25 + (i - 1) * 38
+            draw_list:AddCircleFilled(ImVec2(origin.x + x_pos, y), 12.0, cfg.color)
+            draw_list:AddText(ImVec2(origin.x + vis_width + 10, y - 8), IM_COL32(200, 200, 200, 255), cfg.name)
+        end
+
+        imgui.Dummy(ImVec2(vis_width + text_width, 180))
+        imgui.TreePop()
+    end
+
+    -- Smooth counter animation
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Counter') then
+        imgui.TextDisabled('Smooth number counting animation using int tweens')
+        imgui.Spacing()
+
+        if imgui.Button('+100') then state.counter_target = state.counter_target + 100 end
+        imgui.SameLine()
+        if imgui.Button('+1000') then state.counter_target = state.counter_target + 1000 end
+        imgui.SameLine()
+        if imgui.Button('Reset') then state.counter_target = 0 end
+
+        local animated_value = iam.TweenInt(state.counter_id, 0, state.counter_target, 0.8,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        local style = imgui.GetStyle()
+        imgui.PushFont(nil, style.FontSizeBase * 2.0)
+        imgui.Text('%d', animated_value)
+        imgui.PopFont()
+
+        imgui.TextDisabled('Target: %d', state.counter_target)
         imgui.TreePop()
     end
 end

@@ -453,11 +453,11 @@ struct drag_state {
 } // namespace iam_detail
 
 struct iam_context {
-	void* user_data;
+	void* user_data = nullptr;
 
 	ImVector<iam_scroll_detail::scroll_anim> scroll_anims;
 	iam_clip_detail::iam_clip_system clip_sys;
-	iam_ease_fn custom_ease[16];
+	iam_ease_fn custom_ease[16] = {};
 	iam_detail::ease_lut_pool ease_lut_pool;
 	iam_detail::pool_t<iam_detail::float_chan> g_float;
 	iam_detail::pool_t<iam_detail::vec2_chan> g_vec2;
