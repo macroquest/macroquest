@@ -154,7 +154,7 @@ struct pool_t {
 	unsigned frame = 0;
 	void begin() { ++frame; }
 	T* get(ImGuiID key) { T* c = pool.GetOrAddByKey(key); c->last_seen_frame = frame; return c; }
-	T* try_get(ImGuiID key) { T* c = pool.GetByKey(key); }  // Returns nullptr if not found
+	T* try_get(ImGuiID key) { T* c = pool.GetByKey(key); if (c) c->last_seen_frame = frame; return c; }  // Returns nullptr if not found
 	bool exists(ImGuiID key) { return pool.GetByKey(key) != nullptr; }
 	void gc(unsigned max_age) {
 		for (int i = 0; i < pool.GetMapSize(); ++i) {
