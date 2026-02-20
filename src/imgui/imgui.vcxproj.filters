@@ -123,6 +123,9 @@
     <ClInclude Include="imanim\im_anim.h">
       <Filter>Header Files\imanim</Filter>
     </ClInclude>
+    <ClInclude Include="imanim\im_anim_internal.h">
+      <Filter>Header Files\imanim</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

@@ -3,6 +3,7 @@
 // License: MIT
 
 #include "im_anim.h"
+#include "im_anim_internal.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <stdio.h>
@@ -32,47 +33,6 @@ static FontType* GetBakedFont(ImFont* font, float font_size) {
 
 ImU32 const ZimaBlue = IM_COL32( 91, 194, 231, 255 );
 ImU32 const AgedCopper = IM_COL32( 204, 120, 88, 255 );
-
-// ----------------------------------------------------
-// Internal: Per-context state
-// ----------------------------------------------------
-
-namespace iam_scroll_detail {
-
-struct scroll_anim {
-	ImGuiID window_id;
-	float start_x, start_y;
-	float target_x, target_y;
-	float duration;
-	float elapsed;
-	iam_ease_desc ease;
-	bool active_x, active_y;
-	unsigned last_frame;
-};
-
-} // namespace iam_scroll_detail
-
-namespace iam_clip_detail {
-
-struct iam_clip_system {
-	ImVector<iam_clip_data>		clips;
-	ImVector<iam_instance_data>	instances;
-	ImGuiStorage				clip_map;		// clip_id -> index+1
-	ImGuiStorage				inst_map;		// inst_id -> index+1
-	unsigned					frame_counter;
-	bool						initialized;
-
-	iam_clip_system() : frame_counter(0), initialized(false) {}
-};
-
-} // namespace iam_clip_detail
-
-struct iam_context {
-	ImVector<iam_scroll_detail::scroll_anim> scroll_anims;
-	iam_clip_detail::iam_clip_system clip_sys;
-	iam_ease_fn custom_ease[16];
-	void* user_data;
-};
 
 static ImVector<iam_context*> g_contexts;
 
@@ -106,166 +66,149 @@ static float const SPRING_DAMPING = 20.0f;    // Default damping (c)
 // Floating point comparison epsilon
 static float const EASE_EPSILON = 1e-6f;
 
-struct ease_lut {
-	iam_ease_desc		desc;
-	ImVector<float>		samples;
-	int					count;
-	ease_lut() { count = 0; }
-};
+float ease_lut_pool::bounce_out(float t) {
+	if (t < 1.0f / BOUNCE_D1) return BOUNCE_N1 * t * t;
+	else if (t < 2.0f / BOUNCE_D1) { t -= 1.5f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.75f; }
+	else if (t < 2.5f / BOUNCE_D1) { t -= 2.25f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.9375f; }
+	else { t -= 2.625f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.984375f; }
+}
 
-struct ease_lut_pool {
-	ImPool<ease_lut>	pool;
-	ImGuiStorage		map;
-	int					sample_count;
-	ease_lut_pool() { sample_count = 129; }
+float ease_lut_pool::elastic_core(float t, float a, float p) {
+	if (t == 0.f || t == 1.f) return t;
+	float A = (a <= 0.f ? ELASTIC_AMPLITUDE : a);
+	float P = (p <= 0.f ? ELASTIC_PERIOD : p);
+	float s = (P / IAM_2PI) * asinf(1.0f / A);
+	return -(A * ImPow(2.f, 10.f * (t - 1.f)) * ImSin((t - 1.f - s) * IAM_2PI / P));
+}
 
-	static ImGuiID hash_desc(iam_ease_desc const& d) { return ImHashData(&d, sizeof(d)); }
+float ease_lut_pool::back_core(float t, float s) { return t * t * ((s + 1.f) * t - s); }
 
-	static float bounce_out(float t) {
-		if (t < 1.0f / BOUNCE_D1) return BOUNCE_N1 * t * t;
-		else if (t < 2.0f / BOUNCE_D1) { t -= 1.5f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.75f; }
-		else if (t < 2.5f / BOUNCE_D1) { t -= 2.25f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.9375f; }
-		else { t -= 2.625f / BOUNCE_D1; return BOUNCE_N1 * t * t + 0.984375f; }
-	}
-
-	static float elastic_core(float t, float a, float p) {
-		if (t == 0.f || t == 1.f) return t;
-		float A = (a <= 0.f ? ELASTIC_AMPLITUDE : a);
-		float P = (p <= 0.f ? ELASTIC_PERIOD : p);
-		float s = (P / IAM_2PI) * asinf(1.0f / A);
-		return -(A * ImPow(2.f, 10.f * (t - 1.f)) * ImSin((t - 1.f - s) * IAM_2PI / P));
-	}
-
-	static float back_core(float t, float s) { return t * t * ((s + 1.f) * t - s); }
-
-	static float cubic_bezier_y(float x, float x1, float y1, float x2, float y2) {
-		float t = x;
-		for (int i = 0; i < 5; ++i) {
-			float mt = 1.f - t;
-			float bx = 3.f*mt*mt*t*x1 + 3.f*mt*t*t*x2 + t*t*t;
-			float dx = 3.f*mt*mt*x1 + 6.f*mt*t*(x2 - x1) + 3.f*t*t*(1.f - x2);
-			if (dx != 0.f) t = t - (bx - x) / dx;
-			if (t < 0.f) t = 0.f; if (t > 1.f) t = 1.f;
-		}
+float ease_lut_pool::cubic_bezier_y(float x, float x1, float y1, float x2, float y2) {
+	float t = x;
+	for (int i = 0; i < 5; ++i) {
 		float mt = 1.f - t;
-		float by = 3.f*mt*mt*t*y1 + 3.f*mt*t*t*y2 + t*t*t;
-		return by;
-	}
-
-	static float spring_unit(float u, float mass, float k, float c, float v0) {
-		float m = (mass <= 0.f ? 1.f : mass);
-		float wn = ImSqrt(k / m);
-		float zeta = c / (2.f * ImSqrt(k * m));
-		float t = u;
-		if (zeta < 1.f) {
-			float wdn = wn * ImSqrt(1.f - zeta*zeta);
-			float A = 1.f;
-			float B = (zeta * wn * A + v0) / wdn;
-			float e = expf(-zeta * wn * t);
-			return 1.f - e * (A * ImCos(wdn*t) + B * ImSin(wdn*t));
-		} else if (zeta == 1.f) {
-			float e = expf(-wn * t);
-			return 1.f - e * (1.f + wn * t);
-		} else {
-			float wd = wn * ImSqrt(zeta*zeta - 1.f);
-			float e1 = expf(-(zeta * wn - wd) * t);
-			float e2 = expf(-(zeta * wn + wd) * t);
-			return 1.f - 0.5f*(e1 + e2);
-		}
-	}
-
-	void build_lut(ease_lut& lut) {
-		iam_ease_desc const& d = lut.desc;
-		lut.samples.resize(sample_count);
-		for (int i = 0; i < sample_count; ++i) {
-			float x = (float)i / (float)(sample_count - 1);
-			float y = x;
-			switch (d.type) {
-				case iam_ease_cubic_bezier:
-					y = cubic_bezier_y(x, d.p0, d.p1, d.p2, d.p3);
-					break;
-				case iam_ease_steps: {
-					int n = (int)(d.p0 < 1.f ? 1.f : d.p0);
-					int mode = (int)d.p1;
-					if (mode == 1)		y = ImFloor(x * n + EASE_EPSILON) / (float)n;
-					else if (mode == 2)	{ y = (ImFloor(x * n - 0.5f + EASE_EPSILON) + 0.5f) / (float)n; if (y<0) y=0; if (y>1) y=1; }
-					else				y = ImFloor(x * n + EASE_EPSILON) / (float)n;
-					break;
-				}
-				case iam_ease_in_elastic: {
-					float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD : d.p1);
-					y = 1.f + elastic_core(1.f - x, a, p);
-					break;
-				}
-				case iam_ease_out_elastic: {
-					float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD : d.p1);
-					y = 1.f - elastic_core(x, a, p);
-					break;
-				}
-				case iam_ease_in_out_elastic: {
-					float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD_INOUT : d.p1);
-					if (x < 0.5f) y = 0.5f * (1.f + elastic_core(1.f - 2.f*x, a, p));
-					else y = 0.5f * (1.f - elastic_core(2.f*x - 1.f, a, p)) + 0.5f;
-					break;
-				}
-				case iam_ease_in_back: {
-					float s = (d.p0 == 0.f ? BACK_OVERSHOOT : d.p0);
-					y = back_core(x, s);
-					break;
-				}
-				case iam_ease_out_back: {
-					float s = (d.p0 == 0.f ? BACK_OVERSHOOT : d.p0);
-					y = 1.f - back_core(1.f - x, s);
-					break;
-				}
-				case iam_ease_in_out_back: {
-					float s = (d.p0 == 0.f ? BACK_OVERSHOOT_INOUT : d.p0);
-					if (x < 0.5f) y = 0.5f * back_core(2.f*x, s);
-					else y = 1.f - 0.5f * back_core(2.f*(1.f - x), s);
-					break;
-				}
-				case iam_ease_in_bounce:
-					y = 1.f - bounce_out(1.f - x);
-					break;
-				case iam_ease_out_bounce:
-					y = bounce_out(x);
-					break;
-				case iam_ease_in_out_bounce:
-					y = (x < 0.5f) ? (0.5f * (1.f - bounce_out(1.f - 2.f*x))) : (0.5f * bounce_out(2.f*x - 1.f) + 0.5f);
-					break;
-				case iam_ease_spring:
-					y = spring_unit(x, (d.p0<=0.f ? SPRING_MASS : d.p0), (d.p1<=0.f ? SPRING_STIFFNESS : d.p1), (d.p2<=0.f ? SPRING_DAMPING : d.p2), d.p3);
-					break;
-				default: y = x; break;
-			}
-			//if (y < 0.f) y = 0.f; if (y > 1.f) y = 1.f;
-			lut.samples[i] = y;
-		}
-	}
-
-	float eval_lut(iam_ease_desc const& d, float t) {
+		float bx = 3.f*mt*mt*t*x1 + 3.f*mt*t*t*x2 + t*t*t;
+		float dx = 3.f*mt*mt*x1 + 6.f*mt*t*(x2 - x1) + 3.f*t*t*(1.f - x2);
+		if (dx != 0.f) t = t - (bx - x) / dx;
 		if (t < 0.f) t = 0.f; if (t > 1.f) t = 1.f;
-		ImGuiID key = hash_desc(d);
-		int idx = map.GetInt(key, -1);
-		ease_lut* lut;
-		if (idx == -1) {
-			lut = pool.GetOrAddByKey(key);
-			lut->desc = d;
-			build_lut(*lut);
-			map.SetInt(key, pool.GetIndex(lut));
-		} else {
-			lut = pool.GetByIndex(idx);
-		}
-		float fi = t * (float)(sample_count - 1);
-		int i0 = (int)fi;
-		int i1 = i0 + 1;
-		if (i1 >= sample_count) i1 = sample_count - 1;
-		float frac = fi - (float)i0;
-		return lut->samples[i0] + (lut->samples[i1] - lut->samples[i0]) * frac;
 	}
-};
+	float mt = 1.f - t;
+	float by = 3.f*mt*mt*t*y1 + 3.f*mt*t*t*y2 + t*t*t;
+	return by;
+}
 
-static ease_lut_pool& ease_lut_pool_singleton() { static ease_lut_pool S; return S; }
+float ease_lut_pool::spring_unit(float u, float mass, float k, float c, float v0) {
+	float m = (mass <= 0.f ? 1.f : mass);
+	float wn = ImSqrt(k / m);
+	float zeta = c / (2.f * ImSqrt(k * m));
+	float t = u;
+	if (zeta < 1.f) {
+		float wdn = wn * ImSqrt(1.f - zeta*zeta);
+		float A = 1.f;
+		float B = (zeta * wn * A + v0) / wdn;
+		float e = expf(-zeta * wn * t);
+		return 1.f - e * (A * ImCos(wdn*t) + B * ImSin(wdn*t));
+	} else if (zeta == 1.f) {
+		float e = expf(-wn * t);
+		return 1.f - e * (1.f + wn * t);
+	} else {
+		float wd = wn * ImSqrt(zeta*zeta - 1.f);
+		float e1 = expf(-(zeta * wn - wd) * t);
+		float e2 = expf(-(zeta * wn + wd) * t);
+		return 1.f - 0.5f*(e1 + e2);
+	}
+}
+
+void ease_lut_pool::build_lut(ease_lut& lut) {
+	iam_ease_desc const& d = lut.desc;
+	lut.samples.resize(sample_count);
+	for (int i = 0; i < sample_count; ++i) {
+		float x = (float)i / (float)(sample_count - 1);
+		float y = x;
+		switch (d.type) {
+			case iam_ease_cubic_bezier:
+				y = cubic_bezier_y(x, d.p0, d.p1, d.p2, d.p3);
+				break;
+			case iam_ease_steps: {
+				int n = (int)(d.p0 < 1.f ? 1.f : d.p0);
+				int mode = (int)d.p1;
+				if (mode == 1)		y = ImFloor(x * n + EASE_EPSILON) / (float)n;
+				else if (mode == 2)	{ y = (ImFloor(x * n - 0.5f + EASE_EPSILON) + 0.5f) / (float)n; if (y<0) y=0; if (y>1) y=1; }
+				else				y = ImFloor(x * n + EASE_EPSILON) / (float)n;
+				break;
+			}
+			case iam_ease_in_elastic: {
+				float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD : d.p1);
+				y = 1.f + elastic_core(1.f - x, a, p);
+				break;
+			}
+			case iam_ease_out_elastic: {
+				float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD : d.p1);
+				y = 1.f - elastic_core(x, a, p);
+				break;
+			}
+			case iam_ease_in_out_elastic: {
+				float a = (d.p0 <= 0.f ? ELASTIC_AMPLITUDE : d.p0), p = (d.p1 <= 0.f ? ELASTIC_PERIOD_INOUT : d.p1);
+				if (x < 0.5f) y = 0.5f * (1.f + elastic_core(1.f - 2.f*x, a, p));
+				else y = 0.5f * (1.f - elastic_core(2.f*x - 1.f, a, p)) + 0.5f;
+				break;
+			}
+			case iam_ease_in_back: {
+				float s = (d.p0 == 0.f ? BACK_OVERSHOOT : d.p0);
+				y = back_core(x, s);
+				break;
+			}
+			case iam_ease_out_back: {
+				float s = (d.p0 == 0.f ? BACK_OVERSHOOT : d.p0);
+				y = 1.f - back_core(1.f - x, s);
+				break;
+			}
+			case iam_ease_in_out_back: {
+				float s = (d.p0 == 0.f ? BACK_OVERSHOOT_INOUT : d.p0);
+				if (x < 0.5f) y = 0.5f * back_core(2.f*x, s);
+				else y = 1.f - 0.5f * back_core(2.f*(1.f - x), s);
+				break;
+			}
+			case iam_ease_in_bounce:
+				y = 1.f - bounce_out(1.f - x);
+				break;
+			case iam_ease_out_bounce:
+				y = bounce_out(x);
+				break;
+			case iam_ease_in_out_bounce:
+				y = (x < 0.5f) ? (0.5f * (1.f - bounce_out(1.f - 2.f*x))) : (0.5f * bounce_out(2.f*x - 1.f) + 0.5f);
+				break;
+			case iam_ease_spring:
+				y = spring_unit(x, (d.p0<=0.f ? SPRING_MASS : d.p0), (d.p1<=0.f ? SPRING_STIFFNESS : d.p1), (d.p2<=0.f ? SPRING_DAMPING : d.p2), d.p3);
+				break;
+			default: y = x; break;
+		}
+		//if (y < 0.f) y = 0.f; if (y > 1.f) y = 1.f;
+		lut.samples[i] = y;
+	}
+}
+
+float ease_lut_pool::eval_lut(iam_ease_desc const& d, float t) {
+	if (t < 0.f) t = 0.f; if (t > 1.f) t = 1.f;
+	ImGuiID key = hash_desc(d);
+	int idx = map.GetInt(key, -1);
+	ease_lut* lut;
+	if (idx == -1) {
+		lut = pool.GetOrAddByKey(key);
+		lut->desc = d;
+		build_lut(*lut);
+		map.SetInt(key, pool.GetIndex(lut));
+	} else {
+		lut = pool.GetByIndex(idx);
+	}
+	float fi = t * (float)(sample_count - 1);
+	int i0 = (int)fi;
+	int i1 = i0 + 1;
+	if (i1 >= sample_count) i1 = sample_count - 1;
+	float frac = fi - (float)i0;
+	return lut->samples[i0] + (lut->samples[i1] - lut->samples[i0]) * frac;
+}
+
 
 static iam_context g_default_context = {};
 static iam_context* g_current_context = &g_default_context;
@@ -276,6 +219,8 @@ struct DefaultContextInitializer {
 	}
 };
 static DefaultContextInitializer g_default_context_initializer;
+
+static ease_lut_pool& ease_lut_pool_singleton() { return g_current_context->ease_lut_pool; }
 
 // ----------------------------------------------------
 // Easing implementation - base functions + transforms
@@ -553,189 +498,95 @@ static double g_global_time = 0.0;
 // Minimum duration to avoid division by zero
 static float const MIN_DURATION = 1e-6f;
 
-// ----------------------------------------------------
-// Channel interpolation traits - define how each type lerps
-// ----------------------------------------------------
-template<typename T> struct chan_traits;
+template <typename T>
+base_chan<T>::base_chan() {
+	current = chan_traits<T>::default_value();
+	start = current;
+	target = current;
+	pending_target = chan_traits<T>::default_value();
+	dur = MIN_DURATION;
+	t = 1.0f;
+	start_time = 0;
+	ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
+	policy = iam_policy_crossfade;
+	last_seen_frame = 0;
+	has_pending = 0;
+	sleeping = 1;
+}
 
-template<> struct chan_traits<float> {
-	static float default_value() { return 0.0f; }
-	static float lerp(float a, float b, float k) { return a + (b - a) * k; }
-};
+template <typename T>
+void base_chan<T>::set(T trg, float d, iam_ease_desc const& e, int pol) {
+	start = current;
+	target = trg;
+	dur = (d <= MIN_DURATION ? MIN_DURATION : d);
+	start_time = g_global_time;
+	t = 0;
+	ez = e;
+	policy = pol;
+	sleeping = 0;
+}
 
-template<> struct chan_traits<ImVec2> {
-	static ImVec2 default_value() { return ImVec2(0, 0); }
-	static ImVec2 lerp(ImVec2 a, ImVec2 b, float k) {
-		return ImVec2(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k);
-	}
-};
+template <typename T>
+float base_chan<T>::progress() {
+	if (sleeping) { t = 1.0f; return 1.0f; }
+	t = (float)((g_global_time - start_time) / dur);
+	if (t < 0.f) t = 0.f;
+	else if (t > 1.f) t = 1.f;
+	return t;
+}
 
-template<> struct chan_traits<ImVec4> {
-	static ImVec4 default_value() { return ImVec4(1, 1, 1, 1); }
-	static ImVec4 lerp(ImVec4 a, ImVec4 b, float k) {
-		return ImVec4(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k,
-		              a.z + (b.z - a.z) * k, a.w + (b.w - a.w) * k);
-	}
-};
+template <typename T>
+T base_chan<T>::evaluate() {
+	if (sleeping) return current;
+	progress();
+	if (t >= 1.f) { current = target; sleeping = 1; return current; }
+	float k = eval(ez, t);
+	current = chan_traits<T>::lerp(start, target, k);
+	return current;
+}
 
-template<> struct chan_traits<int> {
-	static int default_value() { return 0; }
-	static int lerp(int a, int b, float k) {
-		float v = (float)a + ((float)b - (float)a) * k;
-		return (int)ImFloor(v + 0.5f);
-	}
-};
+color_chan::color_chan() {
+	current = ImVec4(1, 1, 1, 1);
+	start = current;
+	target = current;
+	dur = MIN_DURATION;
+	t = 1.0f;
+	start_time = 0;
+	ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
+	policy = iam_policy_crossfade;
+	space = iam_col_srgb_linear;
+	last_seen_frame = 0;
+	sleeping = 1;
+}
 
-// ----------------------------------------------------
-// Base channel template - shared logic for all channel types
-// ----------------------------------------------------
-template<typename T>
-struct base_chan {
-	T		current, start, target;
-	float	dur, t;  // t is cached progress for backward compatibility
-	double	start_time;
-	iam_ease_desc ez;
-	int		policy;
-	unsigned last_seen_frame;
-	unsigned has_pending;
-	unsigned sleeping;
-	T		pending_target;
+void color_chan::set(ImVec4 trg, float d, iam_ease_desc const& e, int pol, int sp) {
+	start = current;
+	target = trg;
+	dur = (d <= MIN_DURATION ? MIN_DURATION : d);
+	start_time = g_global_time;
+	t = 0;
+	ez = e;
+	policy = pol;
+	space = sp;
+	sleeping = 0;
+}
 
-	base_chan() {
-		current = chan_traits<T>::default_value();
-		start = current;
-		target = current;
-		pending_target = chan_traits<T>::default_value();
-		dur = MIN_DURATION;
-		t = 1.0f;
-		start_time = 0;
-		ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
-		policy = iam_policy_crossfade;
-		last_seen_frame = 0;
-		has_pending = 0;
-		sleeping = 1;
-	}
+float color_chan::progress() {
+	if (sleeping) { t = 1.0f; return 1.0f; }
+	t = (float)((g_global_time - start_time) / dur);
+	if (t < 0.f) t = 0.f;
+	else if (t > 1.f) t = 1.f;
+	return t;
+}
 
-	void set(T trg, float d, iam_ease_desc const& e, int pol) {
-		start = current;
-		target = trg;
-		dur = (d <= MIN_DURATION ? MIN_DURATION : d);
-		start_time = g_global_time;
-		t = 0;
-		ez = e;
-		policy = pol;
-		sleeping = 0;
-	}
-
-	float progress() {
-		if (sleeping) { t = 1.0f; return 1.0f; }
-		t = (float)((g_global_time - start_time) / dur);
-		if (t < 0.f) t = 0.f;
-		else if (t > 1.f) t = 1.f;
-		return t;
-	}
-
-	T evaluate() {
-		if (sleeping) return current;
-		progress();
-		if (t >= 1.f) { current = target; sleeping = 1; return current; }
-		float k = eval(ez, t);
-		current = chan_traits<T>::lerp(start, target, k);
-		return current;
-	}
-
-	void tick(float) { evaluate(); }
-};
-
-// Concrete channel types using the base template
-using float_chan = base_chan<float>;
-using vec2_chan = base_chan<ImVec2>;
-using vec4_chan = base_chan<ImVec4>;
-using int_chan = base_chan<int>;
-
-// Color channel needs special handling for color space blending
-struct color_chan {
-	ImVec4	current, start, target;
-	float	dur, t;
-	double	start_time;
-	iam_ease_desc ez;
-	int		policy;
-	int		space;
-	unsigned last_seen_frame;
-	unsigned sleeping;
-
-	color_chan() {
-		current = ImVec4(1, 1, 1, 1);
-		start = current;
-		target = current;
-		dur = MIN_DURATION;
-		t = 1.0f;
-		start_time = 0;
-		ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
-		policy = iam_policy_crossfade;
-		space = iam_col_srgb_linear;
-		last_seen_frame = 0;
-		sleeping = 1;
-	}
-
-	void set(ImVec4 trg, float d, iam_ease_desc const& e, int pol, int sp) {
-		start = current;
-		target = trg;
-		dur = (d <= MIN_DURATION ? MIN_DURATION : d);
-		start_time = g_global_time;
-		t = 0;
-		ez = e;
-		policy = pol;
-		space = sp;
-		sleeping = 0;
-	}
-
-	float progress() {
-		if (sleeping) { t = 1.0f; return 1.0f; }
-		t = (float)((g_global_time - start_time) / dur);
-		if (t < 0.f) t = 0.f;
-		else if (t > 1.f) t = 1.f;
-		return t;
-	}
-
-	ImVec4 evaluate() {
-		if (sleeping) return current;
-		progress();
-		if (t >= 1.f) { current = target; sleeping = 1; return current; }
-		float k = eval(ez, t);
-		current = color::lerp_color(start, target, k, space);
-		return current;
-	}
-
-	void tick(float) { evaluate(); }
-};
-
-// Per-type pools
-template<typename T>
-struct pool_t {
-	ImPool<T> pool;
-	unsigned frame = 0;
-	void begin() { ++frame; }
-	T* get(ImGuiID key) { T* c = pool.GetOrAddByKey(key); c->last_seen_frame = frame; return c; }
-	T* try_get(ImGuiID key) { return pool.GetByKey(key); }  // Returns nullptr if not found
-	bool exists(ImGuiID key) { return pool.GetByKey(key) != nullptr; }
-	void gc(unsigned max_age) {
-		for (int i = 0; i < pool.GetMapSize(); ++i) {
-			if (T* c = pool.TryGetMapData(i)) {
-				if (frame - c->last_seen_frame > max_age) {
-					ImGuiID k = pool.Map.Data[i].key;
-					pool.Remove(k, pool.GetIndex(c));
-				}
-			}
-		}
-	}
-};
-
-static pool_t<float_chan> g_float;
-static pool_t<vec2_chan>  g_vec2;
-static pool_t<vec4_chan>  g_vec4;
-static pool_t<int_chan>   g_int;
-static pool_t<color_chan> g_color;
+ImVec4 color_chan::evaluate() {
+	if (sleeping) return current;
+	progress();
+	if (t >= 1.f) { current = target; sleeping = 1; return current; }
+	float k = eval(ez, t);
+	current = color::lerp_color(start, target, k, space);
+	return current;
+}
 
 // Global time scale for slow-motion / fast-forward
 static float g_time_scale = 1.0f;
@@ -829,11 +680,13 @@ static void iam_scroll_update_internal(float dt);
 // ----------------------------------------------------
 
 void iam_update_begin_frame() {
-	iam_detail::g_float.begin();
-	iam_detail::g_vec2.begin();
-	iam_detail::g_vec4.begin();
-	iam_detail::g_int.begin();
-	iam_detail::g_color.begin();
+	for (iam_context* context : g_contexts) {
+		context->g_float.begin();
+		context->g_vec2.begin();
+		context->g_vec4.begin();
+		context->g_int.begin();
+		context->g_color.begin();
+	}
 	iam_detail::g_frame++;
 	// Accumulate global time (scaled)
 	iam_detail::g_global_time += ImGui::GetIO().DeltaTime * iam_detail::g_time_scale;
@@ -841,28 +694,34 @@ void iam_update_begin_frame() {
 }
 
 void iam_gc(unsigned int max_age_frames) {
-	iam_detail::g_float.gc(max_age_frames);
-	iam_detail::g_vec2.gc(max_age_frames);
-	iam_detail::g_vec4.gc(max_age_frames);
-	iam_detail::g_int.gc(max_age_frames);
-	iam_detail::g_color.gc(max_age_frames);
+	for (iam_context* context : g_contexts) {
+		context->g_float.gc(max_age_frames);
+		context->g_vec2.gc(max_age_frames);
+		context->g_vec4.gc(max_age_frames);
+		context->g_int.gc(max_age_frames);
+		context->g_color.gc(max_age_frames);
+	}
 }
 
 void iam_pool_clear() {
 	// Clean up all pools
-	iam_detail::g_float.pool.Clear();
-	iam_detail::g_vec2.pool.Clear();
-	iam_detail::g_vec4.pool.Clear();
-	iam_detail::g_int.pool.Clear();
-	iam_detail::g_color.pool.Clear();
+	for (iam_context* context : g_contexts) {
+		context->g_float.pool.Clear();
+		context->g_vec2.pool.Clear();
+		context->g_vec4.pool.Clear();
+		context->g_int.pool.Clear();
+		context->g_color.pool.Clear();
+	}
 }
 
 void iam_reserve(int cap_float, int cap_vec2, int cap_vec4, int cap_int, int cap_color) {
-	if (cap_float  > 0) iam_detail::g_float.pool.Reserve(cap_float);
-	if (cap_vec2   > 0) iam_detail::g_vec2.pool.Reserve(cap_vec2);
-	if (cap_vec4   > 0) iam_detail::g_vec4.pool.Reserve(cap_vec4);
-	if (cap_int    > 0) iam_detail::g_int.pool.Reserve(cap_int);
-	if (cap_color  > 0) iam_detail::g_color.pool.Reserve(cap_color);
+	for (iam_context* context : g_contexts) {
+		if (cap_float > 0) context->g_float.pool.Reserve(cap_float);
+		if (cap_vec2 > 0) context->g_vec2.pool.Reserve(cap_vec2);
+		if (cap_vec4 > 0) context->g_vec4.pool.Reserve(cap_vec4);
+		if (cap_int > 0) context->g_int.pool.Reserve(cap_int);
+		if (cap_color > 0) context->g_color.pool.Reserve(cap_color);
+	}
 }
 
 void iam_set_ease_lut_samples(int count) {
@@ -1014,17 +873,18 @@ float iam_eval_preset(int type, float t) {
 
 float iam_tween_float(ImGuiID id, ImGuiID channel_id, float target, float dur, iam_ease_desc const& ez, int policy, float /*dt*/, float init_value) {
 	using namespace iam_detail;
+	iam_context* context = g_current_context;
 	ImGuiID key = make_key(id, channel_id);
 
 	// Lazy init: if channel doesn't exist and target equals init_value, skip channel creation
-	float_chan* c = g_float.try_get(key);
+	float_chan* c = context->g_float.try_get(key);
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
 		if (g_lazy_init_enabled && fabsf(target - init_value) <= 1e-6f) {
 			return target;
 		}
-		c = g_float.get(key);
+		c = context->g_float.get(key);
 		c->current = c->start = c->target = init_value;
 	}
 
@@ -1058,17 +918,18 @@ float iam_tween_float(ImGuiID id, ImGuiID channel_id, float target, float dur, i
 
 ImVec2 iam_tween_vec2(ImGuiID id, ImGuiID channel_id, ImVec2 target, float dur, iam_ease_desc const& ez, int policy, float /*dt*/, ImVec2 init_value) {
 	using namespace iam_detail;
+	iam_context* context = g_current_context;
 	ImGuiID key = make_key(id, channel_id);
 
 	// Lazy init: if channel doesn't exist and target equals init_value, skip channel creation
-	vec2_chan* c = g_vec2.try_get(key);
+	vec2_chan* c = context->g_vec2.try_get(key);
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
 		if (g_lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) <= 1e-6f) {
 			return target;
 		}
-		c = g_vec2.get(key);
+		c = context->g_vec2.get(key);
 		c->current = c->start = c->target = init_value;
 	}
 
@@ -1093,17 +954,18 @@ ImVec2 iam_tween_vec2(ImGuiID id, ImGuiID channel_id, ImVec2 target, float dur, 
 
 ImVec4 iam_tween_vec4(ImGuiID id, ImGuiID channel_id, ImVec4 target, float dur, iam_ease_desc const& ez, int policy, float /*dt*/, ImVec4 init_value) {
 	using namespace iam_detail;
+	iam_context* context = g_current_context;
 	ImGuiID key = make_key(id, channel_id);
 
 	// Lazy init: if channel doesn't exist and target equals init_value, skip channel creation
-	vec4_chan* c = g_vec4.try_get(key);
+	vec4_chan* c = context->g_vec4.try_get(key);
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
 		if (g_lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) + fabsf(target.z - init_value.z) + fabsf(target.w - init_value.w) <= 1e-6f) {
 			return target;
 		}
-		c = g_vec4.get(key);
+		c = context->g_vec4.get(key);
 		c->current = c->start = c->target = init_value;
 	}
 
@@ -1128,17 +990,18 @@ ImVec4 iam_tween_vec4(ImGuiID id, ImGuiID channel_id, ImVec4 target, float dur, 
 
 int iam_tween_int(ImGuiID id, ImGuiID channel_id, int target, float dur, iam_ease_desc const& ez, int policy, float /*dt*/, int init_value) {
 	using namespace iam_detail;
+	iam_context* context = g_current_context;
 	ImGuiID key = make_key(id, channel_id);
 
 	// Lazy init: if channel doesn't exist and target equals init_value, skip channel creation
-	int_chan* c = g_int.try_get(key);
+	int_chan* c = context->g_int.try_get(key);
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
 		if (g_lazy_init_enabled && target == init_value) {
 			return target;
 		}
-		c = g_int.get(key);
+		c = context->g_int.get(key);
 		c->current = c->start = c->target = init_value;
 	}
 
@@ -1161,17 +1024,18 @@ int iam_tween_int(ImGuiID id, ImGuiID channel_id, int target, float dur, iam_eas
 
 ImVec4 iam_tween_color(ImGuiID id, ImGuiID channel_id, ImVec4 target_srgb, float dur, iam_ease_desc const& ez, int policy, int color_space, float /*dt*/, ImVec4 init_value) {
 	using namespace iam_detail;
+	iam_context* context = g_current_context;
 	ImGuiID key = make_key(id, channel_id);
 
 	// Lazy init: if channel doesn't exist and target equals init_value, skip channel creation
-	color_chan* c = g_color.try_get(key);
+	color_chan* c = context->g_color.try_get(key);
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
 		if (g_lazy_init_enabled && fabsf(target_srgb.x - init_value.x) + fabsf(target_srgb.y - init_value.y) + fabsf(target_srgb.z - init_value.z) + fabsf(target_srgb.w - init_value.w) <= 1e-6f) {
 			return target_srgb;
 		}
-		c = g_color.get(key);
+		c = context->g_color.get(key);
 		c->current = c->start = c->target = init_value;
 	}
 
@@ -1223,6 +1087,7 @@ ImVec4 iam_tween_vec4_per_axis(ImGuiID id, ImGuiID channel_id, ImVec4 target, fl
 ImVec4 iam_tween_color_per_axis(ImGuiID id, ImGuiID channel_id, ImVec4 target_srgb, float dur, iam_ease_per_axis const& ez, int policy, int color_space, float dt) {
 	// For colors, we apply per-axis easing in the target color space
 	// Convert target to working space
+	iam_context* context = iam_detail::g_current_context;
 	ImVec4 target_work = iam_detail::color::to_space(target_srgb, color_space);
 
 	// Use separate float tweens for each channel with their own easing
@@ -1238,10 +1103,10 @@ ImVec4 iam_tween_color_per_axis(ImGuiID id, ImGuiID channel_id, ImVec4 target_sr
 	ImGuiID key_b = iam_detail::make_key(id, ch_b);
 	ImGuiID key_a = iam_detail::make_key(id, ch_a);
 
-	iam_detail::float_chan* cr = iam_detail::g_float.get(key_r);
-	iam_detail::float_chan* cg = iam_detail::g_float.get(key_g);
-	iam_detail::float_chan* cb = iam_detail::g_float.get(key_b);
-	iam_detail::float_chan* ca = iam_detail::g_float.get(key_a);
+	iam_detail::float_chan* cr = context->g_float.get(key_r);
+	iam_detail::float_chan* cg = context->g_float.get(key_g);
+	iam_detail::float_chan* cb = context->g_float.get(key_b);
+	iam_detail::float_chan* ca = context->g_float.get(key_a);
 
 	// Check if this is a new animation (target changed)
 	bool change_r = fabsf(cr->target - target_work.x) > 1e-6f || cr->t >= 1.0f;
@@ -1305,10 +1170,11 @@ ImVec2 iam_tween_vec2_resolved(ImGuiID id, ImGuiID channel_id, iam_vec2_resolver
 }
 
 void iam_rebase_vec2(ImGuiID id, ImGuiID channel_id, ImVec2 new_target, float dt) {
+	iam_context* context = iam_detail::g_current_context;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	int idx = iam_detail::g_vec2.pool.Map.GetInt(key, -1);
+	int idx = context->g_vec2.pool.Map.GetInt(key, -1);
 	if (idx == -1) return;
-	iam_detail::vec2_chan* c = iam_detail::g_vec2.pool.GetByIndex(idx);
+	iam_detail::vec2_chan* c = context->g_vec2.pool.GetByIndex(idx);
 	if (c->progress() < 1.0f && dt > 0) c->tick(dt);
 	float remain = (1.0f - (c->progress() < 1.0f ? c->t : 1.0f)) * c->dur;
 	c->start = c->current;
@@ -1359,10 +1225,11 @@ int iam_tween_int_resolved(ImGuiID id, ImGuiID channel_id, iam_int_resolver fn, 
 }
 
 void iam_rebase_float(ImGuiID id, ImGuiID channel_id, float new_target, float dt) {
+	iam_context* context = iam_detail::g_current_context;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	int idx = iam_detail::g_float.pool.Map.GetInt(key, -1);
+	int idx = context->g_float.pool.Map.GetInt(key, -1);
 	if (idx == -1) return;
-	iam_detail::float_chan* c = iam_detail::g_float.pool.GetByIndex(idx);
+	iam_detail::float_chan* c = context->g_float.pool.GetByIndex(idx);
 	if (c->progress() < 1.0f && dt > 0) c->tick(dt);
 	float remain = (1.0f - (c->progress() < 1.0f ? c->t : 1.0f)) * c->dur;
 	c->start = c->current;
@@ -1372,10 +1239,11 @@ void iam_rebase_float(ImGuiID id, ImGuiID channel_id, float new_target, float dt
 }
 
 void iam_rebase_vec4(ImGuiID id, ImGuiID channel_id, ImVec4 new_target, float dt) {
+	iam_context* context = iam_detail::g_current_context;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	int idx = iam_detail::g_vec4.pool.Map.GetInt(key, -1);
+	int idx = context->g_vec4.pool.Map.GetInt(key, -1);
 	if (idx == -1) return;
-	iam_detail::vec4_chan* c = iam_detail::g_vec4.pool.GetByIndex(idx);
+	iam_detail::vec4_chan* c = context->g_vec4.pool.GetByIndex(idx);
 	if (c->progress() < 1.0f && dt > 0) c->tick(dt);
 	float remain = (1.0f - (c->progress() < 1.0f ? c->t : 1.0f)) * c->dur;
 	c->start = c->current;
@@ -1385,10 +1253,11 @@ void iam_rebase_vec4(ImGuiID id, ImGuiID channel_id, ImVec4 new_target, float dt
 }
 
 void iam_rebase_color(ImGuiID id, ImGuiID channel_id, ImVec4 new_target, float dt) {
+	iam_context* context = iam_detail::g_current_context;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	int idx = iam_detail::g_color.pool.Map.GetInt(key, -1);
+	int idx = context->g_color.pool.Map.GetInt(key, -1);
 	if (idx == -1) return;
-	iam_detail::color_chan* c = iam_detail::g_color.pool.GetByIndex(idx);
+	iam_detail::color_chan* c = context->g_color.pool.GetByIndex(idx);
 	if (c->progress() < 1.0f && dt > 0) c->tick(dt);
 	float remain = (1.0f - (c->progress() < 1.0f ? c->t : 1.0f)) * c->dur;
 	c->start = c->current;
@@ -1398,10 +1267,11 @@ void iam_rebase_color(ImGuiID id, ImGuiID channel_id, ImVec4 new_target, float d
 }
 
 void iam_rebase_int(ImGuiID id, ImGuiID channel_id, int new_target, float dt) {
+	iam_context* context = iam_detail::g_current_context;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	int idx = iam_detail::g_int.pool.Map.GetInt(key, -1);
+	int idx = context->g_int.pool.Map.GetInt(key, -1);
 	if (idx == -1) return;
-	iam_detail::int_chan* c = iam_detail::g_int.pool.GetByIndex(idx);
+	iam_detail::int_chan* c = context->g_int.pool.GetByIndex(idx);
 	if (c->progress() < 1.0f && dt > 0) c->tick(dt);
 	float remain = (1.0f - (c->progress() < 1.0f ? c->t : 1.0f)) * c->dur;
 	c->start = c->current;
@@ -1572,64 +1442,6 @@ struct iam_clip_data {
 		memset(&delay_var, 0, sizeof(delay_var));
 		memset(&timescale_var, 0, sizeof(timescale_var));
 	}
-};
-
-// iam_instance_data definition
-struct iam_instance_data {
-	ImGuiID		inst_id;
-	ImGuiID		clip_id;		// Store clip ID instead of pointer to avoid invalidation
-	float		time;
-	float		time_scale;
-	float		weight;
-	float		delay_left;
-	bool		playing;
-	bool		paused;
-	bool		begin_called;	// iam_track whether on_begin has been called
-	int			dir_sign;
-	int			loops_left;
-	unsigned	last_seen_frame;
-
-	// Per-channel current values (cached after evaluation)
-	ImGuiStorage	values_float;
-	ImGuiStorage	values_int;
-	// vec2/vec4/color stored as float pairs/quads in separate arrays
-	struct vec2_entry { ImGuiID ch; ImVec2 v; };
-	struct vec4_entry { ImGuiID ch; ImVec4 v; };
-	struct color_entry { ImGuiID ch; ImVec4 v; int color_space; };
-	// Relative types need 8 floats: percent(4) + px_bias(4)
-	struct vec4_rel_entry { ImGuiID ch; ImVec4 percent; ImVec4 px_bias; };
-	struct color_rel_entry { ImGuiID ch; ImVec4 percent; ImVec4 px_bias; int color_space; };
-	ImVector<vec2_entry> values_vec2;
-	ImVector<vec4_entry> values_vec4;
-	ImVector<color_entry> values_color;
-	ImVector<vec4_rel_entry> values_vec4_rel;
-	ImVector<color_rel_entry> values_color_rel;
-
-	// Layered blending output (written by iam_layer_end)
-	ImGuiStorage	blended_float;
-	ImGuiStorage	blended_int;
-	ImVector<vec2_entry> blended_vec2;
-	ImVector<vec4_entry> blended_vec4;
-	ImVector<color_entry> blended_color;
-	bool			has_blended;	// true if blended values are valid
-
-	// Marker tracking - bitset for triggered markers (reset on loop)
-	ImVector<bool>	markers_triggered;
-	float			prev_time;		// Previous time for marker crossing detection
-
-	// Animation chaining - next clip to play when this one completes
-	ImGuiID		chain_next_clip_id;		// Clip to play next (0 = none)
-	ImGuiID		chain_next_inst_id;		// Instance ID for next clip (0 = auto-generate)
-	float		chain_delay;			// Delay before starting chained clip
-
-	// Loop variation tracking
-	int			current_loop;			// Current loop iteration (0-based), used for variation calculations
-	unsigned int var_rng_state;			// RNG state for deterministic variation random
-
-	iam_instance_data() : inst_id(0), clip_id(0), time(0), time_scale(1.0f), weight(1.0f),
-		delay_left(0), playing(false), paused(false), begin_called(false), dir_sign(1), loops_left(0), last_seen_frame(0),
-		has_blended(false), prev_time(0), chain_next_clip_id(0), chain_next_inst_id(0), chain_delay(0),
-		current_loop(0), var_rng_state(12345) {}
 };
 
 namespace iam_clip_detail {
@@ -3577,33 +3389,18 @@ iam_instance iam_play_stagger(ImGuiID clip_id, ImGuiID instance_id, int index) {
 	return inst;
 }
 
-// Layering support - blends multiple instance outputs into one
-static struct {
-	ImGuiID target_id;
-	float total_weight;
-	// Accumulated weighted values
-	ImGuiStorage acc_float;
-	ImGuiStorage acc_int;
-	ImVector<iam_instance_data::vec2_entry> acc_vec2;
-	ImVector<iam_instance_data::vec4_entry> acc_vec4;
-	// Weight sums per channel (for normalization)
-	ImGuiStorage weight_float;
-	ImGuiStorage weight_int;
-	ImVector<iam_instance_data::vec2_entry> weight_vec2;  // stores weight in v.x
-	ImVector<iam_instance_data::vec4_entry> weight_vec4;  // stores weight in v.x
-} g_layer_state = { 0, 0 };
-
 void iam_layer_begin(ImGuiID instance_id) {
-	g_layer_state.target_id = instance_id;
-	g_layer_state.total_weight = 0.0f;
-	g_layer_state.acc_float.Clear();
-	g_layer_state.acc_int.Clear();
-	g_layer_state.acc_vec2.clear();
-	g_layer_state.acc_vec4.clear();
-	g_layer_state.weight_float.Clear();
-	g_layer_state.weight_int.Clear();
-	g_layer_state.weight_vec2.clear();
-	g_layer_state.weight_vec4.clear();
+	iam_context* context = iam_detail::g_current_context;
+	context->layer_state.target_id = instance_id;
+	context->layer_state.total_weight = 0.0f;
+	context->layer_state.acc_float.Clear();
+	context->layer_state.acc_int.Clear();
+	context->layer_state.acc_vec2.clear();
+	context->layer_state.acc_vec4.clear();
+	context->layer_state.weight_float.Clear();
+	context->layer_state.weight_int.Clear();
+	context->layer_state.weight_vec2.clear();
+	context->layer_state.weight_vec4.clear();
 }
 
 void iam_layer_add(iam_instance inst, float weight) {
@@ -3613,17 +3410,18 @@ void iam_layer_add(iam_instance inst, float weight) {
 	iam_instance_data* src = find_instance(inst.id());
 	if (!src) return;
 
-	g_layer_state.total_weight += weight;
+	iam_context* context = iam_detail::g_current_context;
+	context->layer_state.total_weight += weight;
 
 	// Accumulate float values
 	for (int i = 0; i < src->values_float.Data.Size; ++i) {
 		IMGUI_STORAGE_PAIR& p = src->values_float.Data[i];
 		ImGuiID ch = p.key;
 		float val = *(float*)&p.val_i;
-		float acc = g_layer_state.acc_float.GetFloat(ch, 0.0f);
-		float w = g_layer_state.weight_float.GetFloat(ch, 0.0f);
-		g_layer_state.acc_float.SetFloat(ch, acc + val * weight);
-		g_layer_state.weight_float.SetFloat(ch, w + weight);
+		float acc = context->layer_state.acc_float.GetFloat(ch, 0.0f);
+		float w = context->layer_state.weight_float.GetFloat(ch, 0.0f);
+		context->layer_state.acc_float.SetFloat(ch, acc + val * weight);
+		context->layer_state.weight_float.SetFloat(ch, w + weight);
 	}
 
 	// Accumulate int values
@@ -3631,10 +3429,10 @@ void iam_layer_add(iam_instance inst, float weight) {
 		IMGUI_STORAGE_PAIR& p = src->values_int.Data[i];
 		ImGuiID ch = p.key;
 		int val = p.val_i;
-		float acc = (float)g_layer_state.acc_int.GetInt(ch, 0);
-		float w = g_layer_state.weight_int.GetFloat(ch, 0.0f);
-		g_layer_state.acc_int.SetInt(ch, (int)(acc + (float)val * weight));
-		g_layer_state.weight_int.SetFloat(ch, w + weight);
+		float acc = (float)context->layer_state.acc_int.GetInt(ch, 0);
+		float w = context->layer_state.weight_int.GetFloat(ch, 0.0f);
+		context->layer_state.acc_int.SetInt(ch, (int)(acc + (float)val * weight));
+		context->layer_state.weight_int.SetFloat(ch, w + weight);
 	}
 
 	// Accumulate vec2 values
@@ -3642,47 +3440,48 @@ void iam_layer_add(iam_instance inst, float weight) {
 		iam_instance_data::vec2_entry& e = src->values_vec2[i];
 		// Find or create accumulator entry
 		int found = -1;
-		for (int j = 0; j < g_layer_state.acc_vec2.Size; ++j) {
-			if (g_layer_state.acc_vec2[j].ch == e.ch) { found = j; break; }
+		for (int j = 0; j < context->layer_state.acc_vec2.Size; ++j) {
+			if (context->layer_state.acc_vec2[j].ch == e.ch) { found = j; break; }
 		}
 		if (found < 0) {
 			iam_instance_data::vec2_entry acc_e = { e.ch, ImVec2(0, 0) };
 			iam_instance_data::vec2_entry w_e = { e.ch, ImVec2(0, 0) };
-			g_layer_state.acc_vec2.push_back(acc_e);
-			g_layer_state.weight_vec2.push_back(w_e);
-			found = g_layer_state.acc_vec2.Size - 1;
+			context->layer_state.acc_vec2.push_back(acc_e);
+			context->layer_state.weight_vec2.push_back(w_e);
+			found = context->layer_state.acc_vec2.Size - 1;
 		}
-		g_layer_state.acc_vec2[found].v.x += e.v.x * weight;
-		g_layer_state.acc_vec2[found].v.y += e.v.y * weight;
-		g_layer_state.weight_vec2[found].v.x += weight;
+		context->layer_state.acc_vec2[found].v.x += e.v.x * weight;
+		context->layer_state.acc_vec2[found].v.y += e.v.y * weight;
+		context->layer_state.weight_vec2[found].v.x += weight;
 	}
 
 	// Accumulate vec4 values
 	for (int i = 0; i < src->values_vec4.Size; ++i) {
 		iam_instance_data::vec4_entry& e = src->values_vec4[i];
 		int found = -1;
-		for (int j = 0; j < g_layer_state.acc_vec4.Size; ++j) {
-			if (g_layer_state.acc_vec4[j].ch == e.ch) { found = j; break; }
+		for (int j = 0; j < context->layer_state.acc_vec4.Size; ++j) {
+			if (context->layer_state.acc_vec4[j].ch == e.ch) { found = j; break; }
 		}
 		if (found < 0) {
 			iam_instance_data::vec4_entry acc_e = { e.ch, ImVec4(0, 0, 0, 0) };
 			iam_instance_data::vec4_entry w_e = { e.ch, ImVec4(0, 0, 0, 0) };
-			g_layer_state.acc_vec4.push_back(acc_e);
-			g_layer_state.weight_vec4.push_back(w_e);
-			found = g_layer_state.acc_vec4.Size - 1;
+			context->layer_state.acc_vec4.push_back(acc_e);
+			context->layer_state.weight_vec4.push_back(w_e);
+			found = context->layer_state.acc_vec4.Size - 1;
 		}
-		g_layer_state.acc_vec4[found].v.x += e.v.x * weight;
-		g_layer_state.acc_vec4[found].v.y += e.v.y * weight;
-		g_layer_state.acc_vec4[found].v.z += e.v.z * weight;
-		g_layer_state.acc_vec4[found].v.w += e.v.w * weight;
-		g_layer_state.weight_vec4[found].v.x += weight;
+		context->layer_state.acc_vec4[found].v.x += e.v.x * weight;
+		context->layer_state.acc_vec4[found].v.y += e.v.y * weight;
+		context->layer_state.acc_vec4[found].v.z += e.v.z * weight;
+		context->layer_state.acc_vec4[found].v.w += e.v.w * weight;
+		context->layer_state.weight_vec4[found].v.x += weight;
 	}
 }
 
 void iam_layer_end(ImGuiID instance_id) {
 	using namespace iam_clip_detail;
-	if (g_layer_state.target_id != instance_id) return;
-	if (g_layer_state.total_weight <= 0.0f) return;
+	iam_context* context = iam_detail::g_current_context;
+	if (context->layer_state.target_id != instance_id) return;
+	if (context->layer_state.total_weight <= 0.0f) return;
 
 	iam_instance_data* target = find_instance(instance_id);
 	if (!target) return;
@@ -3694,41 +3493,41 @@ void iam_layer_end(ImGuiID instance_id) {
 	target->blended_vec4.clear();
 
 	// Floats
-	for (int i = 0; i < g_layer_state.acc_float.Data.Size; ++i) {
-		IMGUI_STORAGE_PAIR& p = g_layer_state.acc_float.Data[i];
-		float w = g_layer_state.weight_float.GetFloat(p.key, 1.0f);
+	for (int i = 0; i < context->layer_state.acc_float.Data.Size; ++i) {
+		IMGUI_STORAGE_PAIR& p = context->layer_state.acc_float.Data[i];
+		float w = context->layer_state.weight_float.GetFloat(p.key, 1.0f);
 		float val = *(float*)&p.val_i / (w > 0.0f ? w : 1.0f);
 		target->blended_float.SetFloat(p.key, val);
 	}
 
 	// Ints
-	for (int i = 0; i < g_layer_state.acc_int.Data.Size; ++i) {
-		IMGUI_STORAGE_PAIR& p = g_layer_state.acc_int.Data[i];
-		float w = g_layer_state.weight_int.GetFloat(p.key, 1.0f);
+	for (int i = 0; i < context->layer_state.acc_int.Data.Size; ++i) {
+		IMGUI_STORAGE_PAIR& p = context->layer_state.acc_int.Data[i];
+		float w = context->layer_state.weight_int.GetFloat(p.key, 1.0f);
 		int val = (int)((float)p.val_i / (w > 0.0f ? w : 1.0f));
 		target->blended_int.SetInt(p.key, val);
 	}
 
 	// Vec2s
-	for (int i = 0; i < g_layer_state.acc_vec2.Size; ++i) {
-		iam_instance_data::vec2_entry& e = g_layer_state.acc_vec2[i];
-		float w = g_layer_state.weight_vec2[i].v.x;
+	for (int i = 0; i < context->layer_state.acc_vec2.Size; ++i) {
+		iam_instance_data::vec2_entry& e = context->layer_state.acc_vec2[i];
+		float w = context->layer_state.weight_vec2[i].v.x;
 		if (w <= 0.0f) w = 1.0f;
 		iam_instance_data::vec2_entry out = { e.ch, ImVec2(e.v.x / w, e.v.y / w) };
 		target->blended_vec2.push_back(out);
 	}
 
 	// Vec4s
-	for (int i = 0; i < g_layer_state.acc_vec4.Size; ++i) {
-		iam_instance_data::vec4_entry& e = g_layer_state.acc_vec4[i];
-		float w = g_layer_state.weight_vec4[i].v.x;
+	for (int i = 0; i < context->layer_state.acc_vec4.Size; ++i) {
+		iam_instance_data::vec4_entry& e = context->layer_state.acc_vec4[i];
+		float w = context->layer_state.weight_vec4[i].v.x;
 		if (w <= 0.0f) w = 1.0f;
 		iam_instance_data::vec4_entry out = { e.ch, ImVec4(e.v.x / w, e.v.y / w, e.v.z / w, e.v.w / w) };
 		target->blended_vec4.push_back(out);
 	}
 
 	target->has_blended = true;
-	g_layer_state.target_id = 0;
+	context->layer_state.target_id = 0;
 }
 
 bool iam_get_blended_float(ImGuiID instance_id, ImGuiID channel, float* out) {
@@ -3958,19 +3757,12 @@ iam_result iam_clip_load(char const* path, ImGuiID* out_clip_id) {
 // ----------------------------------------------------
 namespace iam_osc_detail {
 
-struct osc_state {
-	float time;
-	unsigned last_frame;
-	osc_state() : time(0), last_frame(0) {}
-};
-
-static ImGuiStorage g_osc_map;
-
 static osc_state* get_osc(ImGuiID id) {
-	osc_state* s = (osc_state*)g_osc_map.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+	osc_state* s = (osc_state*)context->osc_map.GetVoidPtr(id);
 	if (!s) {
 		s = IM_NEW(osc_state)();
-		g_osc_map.SetVoidPtr(id, s);
+		context->osc_map.SetVoidPtr(id, s);
 	}
 	return s;
 }
@@ -4004,7 +3796,11 @@ float iam_oscillate(ImGuiID id, float amplitude, float frequency, int wave_type,
 	}
 	float t = s->time * frequency + phase;
 	return amplitude * eval_wave(wave_type, t);
-}int iam_oscillate_int(ImGuiID id, int amplitude, float frequency, int wave_type, float phase, float dt) {	float result = iam_oscillate(id, (float)amplitude, frequency, wave_type, phase, dt);	return (int)(result + 0.5f * (result > 0 ? 1 : -1));  // Round to nearest int
+}
+
+int iam_oscillate_int(ImGuiID id, int amplitude, float frequency, int wave_type, float phase, float dt) {
+	float result = iam_oscillate(id, (float)amplitude, frequency, wave_type, phase, dt);
+	return (int)(result + 0.5f * (result > 0 ? 1 : -1));  // Round to nearest int
 }
 
 ImVec2 iam_oscillate_vec2(ImGuiID id, ImVec2 amplitude, ImVec2 frequency, int wave_type, ImVec2 phase, float dt) {
@@ -4097,26 +3893,12 @@ ImVec4 iam_oscillate_color(ImGuiID id, ImVec4 base_color, ImVec4 amplitude, floa
 // ----------------------------------------------------
 namespace iam_shake_detail {
 
-struct shake_state {
-	float time_since_trigger;
-	float noise_time;
-	unsigned last_frame;
-	bool triggered;
-	// Simple noise state
-	float noise_val[4];
-	int noise_idx;
-	shake_state() : time_since_trigger(0), noise_time(0), last_frame(0), triggered(false), noise_idx(0) {
-		for (int i = 0; i < 4; i++) noise_val[i] = 0;
-	}
-};
-
-static ImGuiStorage g_shake_map;
-
 static shake_state* get_shake(ImGuiID id) {
-	shake_state* s = (shake_state*)g_shake_map.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+	shake_state* s = (shake_state*)context->shake_map.GetVoidPtr(id);
 	if (!s) {
 		s = IM_NEW(shake_state)();
-		g_shake_map.SetVoidPtr(id, s);
+		context->shake_map.SetVoidPtr(id, s);
 	}
 	return s;
 }
@@ -4173,7 +3955,11 @@ float iam_shake(ImGuiID id, float intensity, float frequency, float decay_time, 
 	float noise = n0 + (n1 - n0) * frac; // linear interpolation
 
 	return noise * intensity * decay;
-}int iam_shake_int(ImGuiID id, int intensity, float frequency, float decay_time, float dt) {	float result = iam_shake(id, (float)intensity, frequency, decay_time, dt);	return (int)(result + 0.5f * (result > 0 ? 1 : -1));
+}
+
+int iam_shake_int(ImGuiID id, int intensity, float frequency, float decay_time, float dt) {
+	float result = iam_shake(id, (float)intensity, frequency, decay_time, dt);
+	return (int)(result + 0.5f * (result > 0 ? 1 : -1));
 }
 
 ImVec2 iam_shake_vec2(ImGuiID id, ImVec2 intensity, float frequency, float decay_time, float dt) {
@@ -4264,7 +4050,11 @@ float iam_wiggle(ImGuiID id, float amplitude, float frequency, float dt) {
 	float n1 = hash_noise((unsigned int)id + sample + 1);
 
 	return amplitude * (n0 + (n1 - n0) * t);
-}int iam_wiggle_int(ImGuiID id, int amplitude, float frequency, float dt) {	float result = iam_wiggle(id, (float)amplitude, frequency, dt);	return (int)(result + 0.5f * (result > 0 ? 1 : -1));
+}
+
+int iam_wiggle_int(ImGuiID id, int amplitude, float frequency, float dt) {
+	float result = iam_wiggle(id, (float)amplitude, frequency, dt);
+	return (int)(result + 0.5f * (result > 0 ? 1 : -1));
 }
 
 ImVec2 iam_wiggle_vec2(ImGuiID id, ImVec2 amplitude, float frequency, float dt) {
@@ -4522,43 +4312,35 @@ static ImVec2 eval_catmull_rom_deriv(ImVec2 p0, ImVec2 p1, ImVec2 p2, ImVec2 p3,
 	);
 }
 
-// Path segment storage
-struct path_segment {
-	int type;           // iam_path_segment_type
-	ImVec2 p0, p1, p2, p3;  // Control points (usage depends on type)
-	float tension;      // For catmull-rom
-	float length;       // Approximate segment length
-
-	ImVec2 evaluate(float t) const {
-		switch (type) {
-			case iam_seg_line:
-				return ImVec2(p0.x + (p1.x - p0.x) * t, p0.y + (p1.y - p0.y) * t);
-			case iam_seg_quadratic_bezier:
-				return eval_quadratic(p0, p1, p2, t);
-			case iam_seg_cubic_bezier:
-				return eval_cubic(p0, p1, p2, p3, t);
-			case iam_seg_catmull_rom:
-				return eval_catmull_rom(p0, p1, p2, p3, t, tension);
-			default:
-				return p0;
-		}
+ImVec2 path_segment::evaluate(float t) const {
+	switch (type) {
+		case iam_seg_line:
+			return ImVec2(p0.x + (p1.x - p0.x) * t, p0.y + (p1.y - p0.y) * t);
+		case iam_seg_quadratic_bezier:
+			return eval_quadratic(p0, p1, p2, t);
+		case iam_seg_cubic_bezier:
+			return eval_cubic(p0, p1, p2, p3, t);
+		case iam_seg_catmull_rom:
+			return eval_catmull_rom(p0, p1, p2, p3, t, tension);
+		default:
+			return p0;
 	}
+}
 
-	ImVec2 derivative(float t) const {
-		switch (type) {
-			case iam_seg_line:
-				return ImVec2(p1.x - p0.x, p1.y - p0.y);
-			case iam_seg_quadratic_bezier:
-				return eval_quadratic_deriv(p0, p1, p2, t);
-			case iam_seg_cubic_bezier:
-				return eval_cubic_deriv(p0, p1, p2, p3, t);
-			case iam_seg_catmull_rom:
-				return eval_catmull_rom_deriv(p0, p1, p2, p3, t, tension);
-			default:
-				return ImVec2(1, 0);
-		}
+ImVec2 path_segment::derivative(float t) const {
+	switch (type) {
+		case iam_seg_line:
+			return ImVec2(p1.x - p0.x, p1.y - p0.y);
+		case iam_seg_quadratic_bezier:
+			return eval_quadratic_deriv(p0, p1, p2, t);
+		case iam_seg_cubic_bezier:
+			return eval_cubic_deriv(p0, p1, p2, p3, t);
+		case iam_seg_catmull_rom:
+			return eval_catmull_rom_deriv(p0, p1, p2, p3, t, tension);
+		default:
+			return ImVec2(1, 0);
 	}
-};
+}
 
 // Approximate segment length using subdivision
 static float approx_segment_length(path_segment const& seg, int subdivisions = 16) {
@@ -4575,198 +4357,169 @@ static float approx_segment_length(path_segment const& seg, int subdivisions = 1
 	return len;
 }
 
-// Arc-length LUT entry
-struct arc_lut_entry {
-	float distance;   // Cumulative arc-length distance
-	float t;          // Global t parameter [0,1]
-};
-
-// Path data storage
-struct path_data {
-	ImVector<path_segment> segments;
-	ImVec2 start_point;
-	float total_length;
-	bool closed;
-
-	// Arc-length LUT for constant-speed evaluation
-	ImVector<arc_lut_entry> arc_lut;
-	bool has_arc_lut;
-
-	path_data() : start_point(0, 0), total_length(0), closed(false), has_arc_lut(false) {}
-
-	void compute_lengths() {
-		total_length = 0;
-		for (int i = 0; i < segments.Size; i++) {
-			segments[i].length = approx_segment_length(segments[i]);
-			total_length += segments[i].length;
-		}
+void path_data::compute_lengths() {
+	total_length = 0;
+	for (int i = 0; i < segments.Size; i++) {
+		segments[i].length = approx_segment_length(segments[i]);
+		total_length += segments[i].length;
 	}
+}
 
-	// Find segment and local t for global t in [0,1]
-	void find_segment(float global_t, int* out_seg_idx, float* out_local_t) const {
-		if (segments.Size == 0) {
-			*out_seg_idx = -1;
-			*out_local_t = 0;
-			return;
-		}
-		if (global_t <= 0.0f) {
-			*out_seg_idx = 0;
-			*out_local_t = 0;
-			return;
-		}
-		if (global_t >= 1.0f) {
-			*out_seg_idx = segments.Size - 1;
-			*out_local_t = 1.0f;
-			return;
-		}
-
-		float target_dist = global_t * total_length;
-		float accum = 0;
-		for (int i = 0; i < segments.Size; i++) {
-			if (accum + segments[i].length >= target_dist) {
-				*out_seg_idx = i;
-				float local_dist = target_dist - accum;
-				*out_local_t = (segments[i].length > 0) ? (local_dist / segments[i].length) : 0;
-				return;
-			}
-			accum += segments[i].length;
-		}
-		// Fallback
+// Find segment and local t for global t in [0,1]
+void path_data::find_segment(float global_t, int* out_seg_idx, float* out_local_t) const {
+	if (segments.Size == 0) {
+		*out_seg_idx = -1;
+		*out_local_t = 0;
+		return;
+	}
+	if (global_t <= 0.0f) {
+		*out_seg_idx = 0;
+		*out_local_t = 0;
+		return;
+	}
+	if (global_t >= 1.0f) {
 		*out_seg_idx = segments.Size - 1;
 		*out_local_t = 1.0f;
+		return;
 	}
 
-	ImVec2 evaluate(float t) const {
-		int seg_idx;
-		float local_t;
-		find_segment(t, &seg_idx, &local_t);
-		if (seg_idx < 0) return start_point;
-		return segments[seg_idx].evaluate(local_t);
-	}
-
-	ImVec2 derivative(float t) const {
-		int seg_idx;
-		float local_t;
-		find_segment(t, &seg_idx, &local_t);
-		if (seg_idx < 0) return ImVec2(1, 0);
-		return segments[seg_idx].derivative(local_t);
-	}
-
-	// Build arc-length lookup table for constant-speed evaluation
-	void build_arc_lut(int subdivisions) {
-		arc_lut.clear();
-		if (segments.Size == 0 || total_length <= 0) {
-			has_arc_lut = false;
+	float target_dist = global_t * total_length;
+	float accum = 0;
+	for (int i = 0; i < segments.Size; i++) {
+		if (accum + segments[i].length >= target_dist) {
+			*out_seg_idx = i;
+			float local_dist = target_dist - accum;
+			*out_local_t = (segments[i].length > 0) ? (local_dist / segments[i].length) : 0;
 			return;
 		}
+		accum += segments[i].length;
+	}
+	// Fallback
+	*out_seg_idx = segments.Size - 1;
+	*out_local_t = 1.0f;
+}
 
-		// Sample path at regular t intervals and record cumulative distance
-		arc_lut_entry first;
-		first.distance = 0;
-		first.t = 0;
-		arc_lut.push_back(first);
+ImVec2 path_data::evaluate(float t) const {
+	int seg_idx;
+	float local_t;
+	find_segment(t, &seg_idx, &local_t);
+	if (seg_idx < 0) return start_point;
+	return segments[seg_idx].evaluate(local_t);
+}
 
-		ImVec2 prev = evaluate(0.0f);
-		float cumulative = 0;
+ImVec2 path_data::derivative(float t) const {
+	int seg_idx;
+	float local_t;
+	find_segment(t, &seg_idx, &local_t);
+	if (seg_idx < 0) return ImVec2(1, 0);
+	return segments[seg_idx].derivative(local_t);
+}
 
-		for (int i = 1; i <= subdivisions; i++) {
-			float t = (float)i / (float)subdivisions;
-			ImVec2 cur = evaluate(t);
-			float dx = cur.x - prev.x;
-			float dy = cur.y - prev.y;
-			cumulative += ImSqrt(dx * dx + dy * dy);
-
-			arc_lut_entry entry;
-			entry.distance = cumulative;
-			entry.t = t;
-			arc_lut.push_back(entry);
-
-			prev = cur;
-		}
-
-		// Update total_length from LUT (more accurate)
-		if (arc_lut.Size > 0) {
-			total_length = arc_lut[arc_lut.Size - 1].distance;
-		}
-		has_arc_lut = true;
+// Build arc-length lookup table for constant-speed evaluation
+void path_data::build_arc_lut(int subdivisions) {
+	arc_lut.clear();
+	if (segments.Size == 0 || total_length <= 0) {
+		has_arc_lut = false;
+		return;
 	}
 
-	// Convert arc-length distance to t parameter using LUT (binary search)
-	float distance_to_t(float distance) const {
-		if (!has_arc_lut || arc_lut.Size < 2) {
-			// Fallback: linear approximation
-			return (total_length > 0) ? ImClamp(distance / total_length, 0.0f, 1.0f) : 0.0f;
+	// Sample path at regular t intervals and record cumulative distance
+	arc_lut_entry first;
+	first.distance = 0;
+	first.t = 0;
+	arc_lut.push_back(first);
+
+	ImVec2 prev = evaluate(0.0f);
+	float cumulative = 0;
+
+	for (int i = 1; i <= subdivisions; i++) {
+		float t = (float)i / (float)subdivisions;
+		ImVec2 cur = evaluate(t);
+		float dx = cur.x - prev.x;
+		float dy = cur.y - prev.y;
+		cumulative += ImSqrt(dx * dx + dy * dy);
+
+		arc_lut_entry entry;
+		entry.distance = cumulative;
+		entry.t = t;
+		arc_lut.push_back(entry);
+
+		prev = cur;
+	}
+
+	// Update total_length from LUT (more accurate)
+	if (arc_lut.Size > 0) {
+		total_length = arc_lut[arc_lut.Size - 1].distance;
+	}
+	has_arc_lut = true;
+}
+
+// Convert arc-length distance to t parameter using LUT (binary search)
+float path_data::distance_to_t(float distance) const {
+	if (!has_arc_lut || arc_lut.Size < 2) {
+		// Fallback: linear approximation
+		return (total_length > 0) ? ImClamp(distance / total_length, 0.0f, 1.0f) : 0.0f;
+	}
+
+	if (distance <= 0) return 0.0f;
+	if (distance >= total_length) return 1.0f;
+
+	// TODO: Add a define to choose between binary and
+	// an tabulated inverse CDF read, that's an approximation
+	// but faster for real-time.
+
+	// Binary search for the interval containing this distance
+	int lo = 0, hi = arc_lut.Size - 1;
+	while (lo < hi - 1) {
+		int mid = (lo + hi) / 2;
+		if (arc_lut[mid].distance < distance) {
+			lo = mid;
+		} else {
+			hi = mid;
 		}
-
-		if (distance <= 0) return 0.0f;
-		if (distance >= total_length) return 1.0f;
-
-		// TODO: Add a define to choose between binary and
-		// an tabulated inverse CDF read, that's an approximation
-		// but faster for real-time.
-
-		// Binary search for the interval containing this distance
-		int lo = 0, hi = arc_lut.Size - 1;
-		while (lo < hi - 1) {
-			int mid = (lo + hi) / 2;
-			if (arc_lut[mid].distance < distance) {
-				lo = mid;
-			} else {
-				hi = mid;
-			}
-		}
-
-		// Linear interpolation within the interval
-		float d0 = arc_lut[lo].distance;
-		float d1 = arc_lut[hi].distance;
-		float t0 = arc_lut[lo].t;
-		float t1 = arc_lut[hi].t;
-
-		if (d1 - d0 <= 0) return t0;
-		float u = (distance - d0) / (d1 - d0);
-		return t0 + (t1 - t0) * u;
 	}
 
-	// Evaluate at arc-length distance
-	ImVec2 evaluate_at_distance(float distance) const {
-		float t = distance_to_t(distance);
-		return evaluate(t);
+	// Linear interpolation within the interval
+	float d0 = arc_lut[lo].distance;
+	float d1 = arc_lut[hi].distance;
+	float t0 = arc_lut[lo].t;
+	float t1 = arc_lut[hi].t;
+
+	if (d1 - d0 <= 0) return t0;
+	float u = (distance - d0) / (d1 - d0);
+	return t0 + (t1 - t0) * u;
+}
+
+// Evaluate at arc-length distance
+ImVec2 path_data::evaluate_at_distance(float distance) const {
+	float t = distance_to_t(distance);
+	return evaluate(t);
+}
+
+// Get angle at arc-length distance
+float path_data::angle_at_distance(float distance) const {
+	float t = distance_to_t(distance);
+	ImVec2 d = derivative(t);
+	return ImAtan2(d.y, d.x);
+}
+
+// Get tangent at arc-length distance
+ImVec2 path_data::tangent_at_distance(float distance) const {
+	float t = distance_to_t(distance);
+	ImVec2 d = derivative(t);
+	float len = ImSqrt(d.x * d.x + d.y * d.y);
+	if (len > 0.0001f) {
+		d.x /= len;
+		d.y /= len;
 	}
-
-	// Get angle at arc-length distance
-	float angle_at_distance(float distance) const {
-		float t = distance_to_t(distance);
-		ImVec2 d = derivative(t);
-		return ImAtan2(d.y, d.x);
-	}
-
-	// Get tangent at arc-length distance
-	ImVec2 tangent_at_distance(float distance) const {
-		float t = distance_to_t(distance);
-		ImVec2 d = derivative(t);
-		float len = ImSqrt(d.x * d.x + d.y * d.y);
-		if (len > 0.0001f) {
-			d.x /= len;
-			d.y /= len;
-		}
-		return d;
-	}
-};
-
-// Global path storage
-static ImPool<path_data> g_paths;
-static ImGuiStorage g_path_map;
-
-// Currently building path
-static path_data* g_building_path = nullptr;
-static ImGuiID g_building_path_id = 0;
-static ImVec2 g_current_point;
-static ImVector<ImVec2> g_catmull_points;  // For collecting catmull-rom points
+	return d;
+}
 
 static path_data* get_path(ImGuiID path_id) {
-	int idx = g_path_map.GetInt(path_id, -1);
+	iam_context* context = iam_detail::g_current_context;
+	int idx = context->path_map.GetInt(path_id, -1);
 	if (idx < 0) return nullptr;
-	return g_paths.GetByIndex(idx);
+	return context->paths.GetByIndex(idx);
 }
 
 } // namespace iam_path_detail
@@ -4799,86 +4552,91 @@ ImVec2 iam_catmull_rom_deriv(ImVec2 p0, ImVec2 p1, ImVec2 p2, ImVec2 p3, float t
 // iam_path fluent builder
 iam_path iam_path::begin(ImGuiID path_id, ImVec2 start) {
 	using namespace iam_path_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	// Clean up existing path if re-defining
-	int existing_idx = g_path_map.GetInt(path_id, -1);
+	int existing_idx = context->path_map.GetInt(path_id, -1);
 	if (existing_idx >= 0) {
-		g_paths.Remove(path_id, g_paths.GetByIndex(existing_idx));
+		context->paths.Remove(path_id, context->paths.GetByIndex(existing_idx));
 	}
 
 	// Create new path
-	g_building_path = g_paths.GetOrAddByKey(path_id);
-	g_building_path_id = path_id;
-	g_building_path->segments.clear();
-	g_building_path->start_point = start;
-	g_building_path->total_length = 0;
-	g_building_path->closed = false;
-	g_current_point = start;
-	g_catmull_points.clear();
-	g_catmull_points.push_back(start);
+	context->building_path = context->paths.GetOrAddByKey(path_id);
+	context->building_path_id = path_id;
+	context->building_path->segments.clear();
+	context->building_path->start_point = start;
+	context->building_path->total_length = 0;
+	context->building_path->closed = false;
+	context->current_point = start;
+	context->catmull_points.clear();
+	context->catmull_points.push_back(start);
 
 	return iam_path(path_id);
 }
 
 iam_path& iam_path::line_to(ImVec2 end) {
 	using namespace iam_path_detail;
-	if (!g_building_path) return *this;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return *this;
 
 	path_segment seg;
 	seg.type = iam_seg_line;
-	seg.p0 = g_current_point;
+	seg.p0 = context->current_point;
 	seg.p1 = end;
 	seg.tension = 0;
-	g_building_path->segments.push_back(seg);
-	g_current_point = end;
-	g_catmull_points.push_back(end);
+	context->building_path->segments.push_back(seg);
+	context->current_point = end;
+	context->catmull_points.push_back(end);
 
 	return *this;
 }
 
 iam_path& iam_path::quadratic_to(ImVec2 ctrl, ImVec2 end) {
 	using namespace iam_path_detail;
-	if (!g_building_path) return *this;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return *this;
 
 	path_segment seg;
 	seg.type = iam_seg_quadratic_bezier;
-	seg.p0 = g_current_point;
+	seg.p0 = context->current_point;
 	seg.p1 = ctrl;
 	seg.p2 = end;
 	seg.tension = 0;
-	g_building_path->segments.push_back(seg);
-	g_current_point = end;
-	g_catmull_points.push_back(end);
+	context->building_path->segments.push_back(seg);
+	context->current_point = end;
+	context->catmull_points.push_back(end);
 
 	return *this;
 }
 
 iam_path& iam_path::cubic_to(ImVec2 ctrl1, ImVec2 ctrl2, ImVec2 end) {
 	using namespace iam_path_detail;
-	if (!g_building_path) return *this;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return *this;
 
 	path_segment seg;
 	seg.type = iam_seg_cubic_bezier;
-	seg.p0 = g_current_point;
+	seg.p0 = context->current_point;
 	seg.p1 = ctrl1;
 	seg.p2 = ctrl2;
 	seg.p3 = end;
 	seg.tension = 0;
-	g_building_path->segments.push_back(seg);
-	g_current_point = end;
-	g_catmull_points.push_back(end);
+	context->building_path->segments.push_back(seg);
+	context->current_point = end;
+	context->catmull_points.push_back(end);
 
 	return *this;
 }
 
 iam_path& iam_path::catmull_to(ImVec2 end, float tension) {
 	using namespace iam_path_detail;
-	if (!g_building_path) return *this;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return *this;
 
 	// For catmull-rom, we need 4 points. Use previous points as context
-	int n = g_catmull_points.Size;
-	ImVec2 p0 = (n >= 2) ? g_catmull_points[n - 2] : g_current_point;
-	ImVec2 p1 = g_current_point;
+	int n = context->catmull_points.Size;
+	ImVec2 p0 = (n >= 2) ? context->catmull_points[n - 2] : context->current_point;
+	ImVec2 p1 = context->current_point;
 	ImVec2 p2 = end;
 	ImVec2 p3 = end;  // Will be updated by next point or mirror
 
@@ -4889,14 +4647,14 @@ iam_path& iam_path::catmull_to(ImVec2 end, float tension) {
 	seg.p2 = p2;
 	seg.p3 = p3;
 	seg.tension = tension;
-	g_building_path->segments.push_back(seg);
-	g_current_point = end;
-	g_catmull_points.push_back(end);
+	context->building_path->segments.push_back(seg);
+	context->current_point = end;
+	context->catmull_points.push_back(end);
 
 	// Update previous catmull-rom segment's p3 if any
-	int seg_count = g_building_path->segments.Size;
+	int seg_count = context->building_path->segments.Size;
 	if (seg_count >= 2) {
-		path_segment& prev = g_building_path->segments[seg_count - 2];
+		path_segment& prev = context->building_path->segments[seg_count - 2];
 		if (prev.type == iam_seg_catmull_rom) {
 			prev.p3 = end;
 		}
@@ -4907,31 +4665,33 @@ iam_path& iam_path::catmull_to(ImVec2 end, float tension) {
 
 iam_path& iam_path::close() {
 	using namespace iam_path_detail;
-	if (!g_building_path) return *this;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return *this;
 
 	// Add line back to start if not already there
-	if (g_current_point.x != g_building_path->start_point.x ||
-		g_current_point.y != g_building_path->start_point.y) {
-		line_to(g_building_path->start_point);
+	if (context->current_point.x != context->building_path->start_point.x ||
+		context->current_point.y != context->building_path->start_point.y) {
+		line_to(context->building_path->start_point);
 	}
-	g_building_path->closed = true;
+	context->building_path->closed = true;
 
 	return *this;
 }
 
 void iam_path::end() {
 	using namespace iam_path_detail;
-	if (!g_building_path) return;
+	iam_context* context = iam_detail::g_current_context;
+	if (!context->building_path) return;
 
 	// Compute segment lengths
-	g_building_path->compute_lengths();
+	context->building_path->compute_lengths();
 
 	// Register in map
-	g_path_map.SetInt(g_building_path_id, g_paths.GetIndex(g_building_path));
+	context->path_map.SetInt(context->building_path_id, context->paths.GetIndex(context->building_path));
 
-	g_building_path = nullptr;
-	g_building_path_id = 0;
-	g_catmull_points.clear();
+	context->building_path = nullptr;
+	context->building_path_id = 0;
+	context->catmull_points.clear();
 }
 
 // Path query functions
@@ -4970,6 +4730,7 @@ float iam_path_angle(ImGuiID path_id, float t) {
 // Tween along path
 ImVec2 iam_tween_path(ImGuiID id, ImGuiID channel_id, ImGuiID path_id, float dur, iam_ease_desc const& ez, int policy, float dt) {
 	using namespace iam_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	// Apply global time scale
 	dt *= g_time_scale;
@@ -4982,7 +4743,7 @@ ImVec2 iam_tween_path(ImGuiID id, ImGuiID channel_id, ImGuiID path_id, float dur
 
 	// Use float channel to track progress (0 to 1)
 	ImGuiID key = make_key(id, channel_id);
-	float_chan* c = g_float.get(key);
+	float_chan* c = context->g_float.get(key);
 
 	// Check if target changed (always 1.0 for path progress)
 	float target = 1.0f;
@@ -5030,6 +4791,7 @@ ImVec2 iam_tween_path(ImGuiID id, ImGuiID channel_id, ImGuiID path_id, float dur
 
 float iam_tween_path_angle(ImGuiID id, ImGuiID channel_id, ImGuiID path_id, float dur, iam_ease_desc const& ez, int policy, float dt) {
 	using namespace iam_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	// Apply global time scale
 	dt *= g_time_scale;
@@ -5044,7 +4806,7 @@ float iam_tween_path_angle(ImGuiID id, ImGuiID channel_id, ImGuiID path_id, floa
 	// Use different channel for angle to allow independent queries
 	ImGuiID angle_channel = ImHashStr("_angle", 0, channel_id);
 	ImGuiID key = make_key(id, angle_channel);
-	float_chan* c = g_float.get(key);
+	float_chan* c = context->g_float.get(key);
 
 	float target = 1.0f;
 	bool changed = (c->target != target);
@@ -5132,20 +4894,12 @@ ImVec2 iam_path_tangent_at_distance(ImGuiID path_id, float distance) {
 
 namespace iam_morph_detail {
 
-// State for morph tweens
-struct morph_state {
-	float blend;         // Current blend value (0 = path_a, 1 = path_b)
-	float path_t;        // Current position along morphed path
-	ImGuiID last_frame;
-};
-
-static ImPool<morph_state> g_morph_states;
-
 morph_state* get_morph_state(ImGuiID id, ImGuiID channel_id) {
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	morph_state* s = g_morph_states.GetByKey(key);
+	iam_context* context = iam_detail::g_current_context;
+	morph_state* s = context->morph_states.GetByKey(key);
 	if (!s) {
-		s = g_morph_states.GetOrAddByKey(key);
+		s = context->morph_states.GetOrAddByKey(key);
 		s->blend = 0.0f;
 		s->path_t = 0.0f;
 		s->last_frame = 0;
@@ -5318,6 +5072,7 @@ ImVec2 iam_tween_path_morph(ImGuiID id, ImGuiID channel_id, ImGuiID path_a, ImGu
                             iam_morph_opts const& opts) {
 	using namespace iam_detail;
 	using namespace iam_morph_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	// Apply global time scale
 	dt *= g_time_scale;
@@ -5331,7 +5086,7 @@ ImVec2 iam_tween_path_morph(ImGuiID id, ImGuiID channel_id, ImGuiID path_a, ImGu
 
 	// Animate path progress (0 to 1)
 	ImGuiID path_key = make_key(id, path_ch);
-	float_chan* path_c = g_float.get(path_key);
+	float_chan* path_c = context->g_float.get(path_key);
 
 	// Check if path tween needs update
 	float path_target = 1.0f;
@@ -5347,7 +5102,7 @@ ImVec2 iam_tween_path_morph(ImGuiID id, ImGuiID channel_id, ImGuiID path_a, ImGu
 
 	// Animate morph blend
 	ImGuiID blend_key = make_key(id, blend_ch);
-	float_chan* blend_c = g_float.get(blend_key);
+	float_chan* blend_c = context->g_float.get(blend_key);
 
 	// Check if blend tween needs update
 	if (fabsf(blend_c->target - target_blend) > 1e-6f || blend_c->progress() >= 1.0f) {
@@ -5369,7 +5124,8 @@ ImVec2 iam_tween_path_morph(ImGuiID id, ImGuiID channel_id, ImGuiID path_a, ImGu
 }
 
 float iam_get_morph_blend(ImGuiID id, ImGuiID channel_id) {
-	iam_morph_detail::morph_state* ms = iam_morph_detail::g_morph_states.GetByKey(
+	iam_context* context = iam_detail::g_current_context;
+	iam_morph_detail::morph_state* ms = context->morph_states.GetByKey(
 		iam_detail::make_key(id, channel_id)
 	);
 	return ms ? ms->blend : 0.0f;
@@ -6205,18 +5961,11 @@ float value_noise_2d(float x, float y, int seed) {
 	);
 }
 
-// Noise channel state
-struct noise_state {
-	float time;
-	ImGuiID last_frame;
-};
-
-static ImPool<noise_state> g_noise_states;
-
 noise_state* get_noise_state(ImGuiID id) {
-	noise_state* s = g_noise_states.GetByKey(id);
+	iam_context* context = iam_detail::g_current_context;
+	noise_state* s = context->noise_states.GetByKey(id);
 	if (!s) {
-		s = g_noise_states.GetOrAddByKey(id);
+		s = context->noise_states.GetOrAddByKey(id);
 		s->time = 0.0f;
 		s->last_frame = 0;
 	}
@@ -6335,26 +6084,6 @@ ImVec4 iam_smooth_noise_vec4(ImGuiID id, ImVec4 amplitude, float speed, float dt
 
 namespace iam_style_detail {
 
-struct registered_style {
-	ImGuiStyle style;
-	bool valid;
-};
-
-static ImPool<registered_style> g_styles;
-
-// Style tween state
-struct style_tween_state {
-	ImGuiID target_style;
-	ImGuiID source_style;
-	float t;
-	float duration;
-	iam_ease_desc ease;
-	int color_space;
-	bool active;
-};
-
-static ImPool<style_tween_state> g_style_tweens;
-
 inline float lerp_float(float a, float b, float t) {
 	return a + (b - a) * t;
 }
@@ -6409,7 +6138,7 @@ void blend_styles(ImGuiStyle const& a, ImGuiStyle const& b, float t, ImGuiStyle*
 
 void iam_style_register(ImGuiID style_id, ImGuiStyle const& style) {
 	using namespace iam_style_detail;
-	registered_style* s = g_styles.GetOrAddByKey(style_id);
+	registered_style* s = iam_detail::g_current_context->styles.GetOrAddByKey(style_id);
 	s->style = style;
 	s->valid = true;
 }
@@ -6420,13 +6149,13 @@ void iam_style_register_current(ImGuiID style_id) {
 
 bool iam_style_exists(ImGuiID style_id) {
 	using namespace iam_style_detail;
-	registered_style* s = g_styles.GetByKey(style_id);
+	registered_style* s = iam_detail::g_current_context->styles.GetByKey(style_id);
 	return s && s->valid;
 }
 
 void iam_style_unregister(ImGuiID style_id) {
 	using namespace iam_style_detail;
-	registered_style* s = g_styles.GetByKey(style_id);
+	registered_style* s = iam_detail::g_current_context->styles.GetByKey(style_id);
 	if (s) {
 		s->valid = false;
 	}
@@ -6435,8 +6164,8 @@ void iam_style_unregister(ImGuiID style_id) {
 void iam_style_blend_to(ImGuiID style_a, ImGuiID style_b, float t, ImGuiStyle* out_style, int color_space) {
 	using namespace iam_style_detail;
 
-	registered_style* sa = g_styles.GetByKey(style_a);
-	registered_style* sb = g_styles.GetByKey(style_b);
+	registered_style* sa = iam_detail::g_current_context->styles.GetByKey(style_a);
+	registered_style* sb = iam_detail::g_current_context->styles.GetByKey(style_b);
 
 	if (!sa || !sa->valid || !sb || !sb->valid) {
 		return;
@@ -6453,7 +6182,7 @@ void iam_style_blend(ImGuiID style_a, ImGuiID style_b, float t, int color_space)
 void iam_style_tween(ImGuiID id, ImGuiID target_style, float duration, iam_ease_desc const& ease, int color_space, float dt) {
 	using namespace iam_style_detail;
 
-	style_tween_state* state = g_style_tweens.GetOrAddByKey(id);
+	style_tween_state* state = iam_detail::g_current_context->style_tweens.GetOrAddByKey(id);
 
 	// Check if target changed
 	if (state->target_style != target_style || !state->active) {
@@ -6586,68 +6315,44 @@ iam_gradient iam_gradient_lerp(iam_gradient const& a, iam_gradient const& b, flo
 // Gradient channel for tweening
 namespace iam_gradient_detail {
 
-struct gradient_chan {
-	iam_gradient current, start, target;
-	float dur, t;  // t is cached progress for backward compatibility
-	double start_time;
-	iam_ease_desc ez;
-	int policy;
-	int color_space;
-	unsigned last_seen_frame;
-	unsigned sleeping;
+void gradient_chan::set(iam_gradient const& trg, float d, iam_ease_desc const& e, int pol, int cs) {
+	start = current;
+	target = trg;
+	dur = (d <= 1e-6f ? 1e-6f : d);
+	start_time = iam_detail::g_global_time;
+	t = 0;
+	ez = e;
+	policy = pol;
+	color_space = cs;
+	sleeping = 0;
+}
 
-	gradient_chan() {
-		dur = 1e-6f; t = 1.0f; start_time = 0;
-		ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
-		policy = iam_policy_crossfade;
-		color_space = iam_col_oklab;
-		last_seen_frame = 0;
-		sleeping = 1;
-	}
+float gradient_chan::progress() {
+	if (sleeping) { t = 1.0f; return 1.0f; }
+	t = (float)((iam_detail::g_global_time - start_time) / dur);
+	if (t < 0.f) t = 0.f; else if (t > 1.f) t = 1.f;
+	return t;
+}
 
-	void set(iam_gradient const& trg, float d, iam_ease_desc const& e, int pol, int cs) {
-		start = current;
-		target = trg;
-		dur = (d <= 1e-6f ? 1e-6f : d);
-		start_time = iam_detail::g_global_time;
-		t = 0;
-		ez = e;
-		policy = pol;
-		color_space = cs;
-		sleeping = 0;
-	}
-
-	float progress() {
-		if (sleeping) { t = 1.0f; return 1.0f; }
-		t = (float)((iam_detail::g_global_time - start_time) / dur);
-		if (t < 0.f) t = 0.f; else if (t > 1.f) t = 1.f;
-		return t;
-	}
-
-	iam_gradient evaluate() {
-		if (sleeping) return current;
-		progress();
-		if (t >= 1.0f) { current = target; sleeping = 1; return current; }
-		float k = iam_detail::eval(ez, t);
-		current = iam_gradient_lerp(start, target, k, color_space);
-		return current;
-	}
-
-	void tick(float) { evaluate(); }
-};
-
-static ImPool<gradient_chan> g_gradient_pool;
-static unsigned g_gradient_frame = 0;
+iam_gradient gradient_chan::evaluate() {
+	if (sleeping) return current;
+	progress();
+	if (t >= 1.0f) { current = target; sleeping = 1; return current; }
+	float k = iam_detail::eval(ez, t);
+	current = iam_gradient_lerp(start, target, k, color_space);
+	return current;
+}
 
 } // namespace iam_gradient_detail
 
 iam_gradient iam_tween_gradient(ImGuiID id, ImGuiID channel_id, iam_gradient const& target, float dur, iam_ease_desc const& ez, int policy, int color_space, float dt) {
 	using namespace iam_gradient_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	dt *= iam_detail::g_time_scale;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
-	gradient_chan* c = g_gradient_pool.GetOrAddByKey(key);
-	c->last_seen_frame = g_gradient_frame;
+	gradient_chan* c = context->gradient_pool.GetOrAddByKey(key);
+	c->last_seen_frame = context->gradient_frame;
 
 	// Fast path: sleeping and target unchanged
 	if (c->sleeping && c->target.stop_count() == target.stop_count()) {
@@ -6853,72 +6558,48 @@ void iam_transform_to_matrix(iam_transform const& t, float* out_matrix) {
 // Transform channel for tweening
 namespace iam_transform_detail {
 
-struct transform_chan {
-	iam_transform current, start, target;
-	float dur, t;  // t is cached progress for backward compatibility
-	double start_time;
-	iam_ease_desc ez;
-	int policy;
-	int rotation_mode;
-	unsigned last_seen_frame;
-	unsigned sleeping;
+void transform_chan::set(iam_transform const& trg, float d, iam_ease_desc const& e, int pol, int rot_mode) {
+	start = current;
+	target = trg;
+	dur = (d <= 1e-6f ? 1e-6f : d);
+	start_time = iam_detail::g_global_time;
+	t = 0;
+	ez = e;
+	policy = pol;
+	rotation_mode = rot_mode;
+	sleeping = 0;
+}
 
-	transform_chan() : current(), start(), target() {
-		dur = 1e-6f; t = 1.0f; start_time = 0;
-		ez = { iam_ease_out_cubic, 0, 0, 0, 0 };
-		policy = iam_policy_crossfade;
-		rotation_mode = iam_rotation_shortest;
-		last_seen_frame = 0;
-		sleeping = 1;
-	}
+float transform_chan::progress() {
+	if (sleeping) { t = 1.0f; return 1.0f; }
+	t = (float)((iam_detail::g_global_time - start_time) / dur);
+	if (t < 0.f) t = 0.f; else if (t > 1.f) t = 1.f;
+	return t;
+}
 
-	void set(iam_transform const& trg, float d, iam_ease_desc const& e, int pol, int rot_mode) {
-		start = current;
-		target = trg;
-		dur = (d <= 1e-6f ? 1e-6f : d);
-		start_time = iam_detail::g_global_time;
-		t = 0;
-		ez = e;
-		policy = pol;
-		rotation_mode = rot_mode;
-		sleeping = 0;
-	}
-
-	float progress() {
-		if (sleeping) { t = 1.0f; return 1.0f; }
-		t = (float)((iam_detail::g_global_time - start_time) / dur);
-		if (t < 0.f) t = 0.f; else if (t > 1.f) t = 1.f;
-		return t;
-	}
-
-	iam_transform evaluate() {
-		if (sleeping) return current;
-		progress();
-		if (t >= 1.0f) { current = target; sleeping = 1; return current; }
-		float k = iam_detail::eval(ez, t);
-		current = iam_transform_lerp(start, target, k, rotation_mode);
-		return current;
-	}
-
-	void tick(float) { evaluate(); }
-};
-
-static ImPool<transform_chan> g_transform_pool;
-static unsigned g_transform_frame = 0;
+iam_transform transform_chan::evaluate() {
+	if (sleeping) return current;
+	progress();
+	if (t >= 1.0f) { current = target; sleeping = 1; return current; }
+	float k = iam_detail::eval(ez, t);
+	current = iam_transform_lerp(start, target, k, rotation_mode);
+	return current;
+}
 
 } // namespace iam_transform_detail
 
 iam_transform iam_tween_transform(ImGuiID id, ImGuiID channel_id, iam_transform const& target, float dur, iam_ease_desc const& ez, int policy, int rotation_mode, float dt) {
 	using namespace iam_transform_detail;
+	iam_context* context = iam_detail::g_current_context;
 
 	dt *= iam_detail::g_time_scale;
 	ImGuiID key = iam_detail::make_key(id, channel_id);
 
 	// Check if channel exists first
-	transform_chan* c = g_transform_pool.GetByKey(key);
+	transform_chan* c = context->transform_pool.GetByKey(key);
 	bool is_new = (c == nullptr);
 	if (is_new) {
-		c = g_transform_pool.GetOrAddByKey(key);
+		c = context->transform_pool.GetOrAddByKey(key);
 		// Explicitly initialize new channel
 		c->current = target;  // Start at target position (no animation on first frame)
 		c->start = target;
@@ -6931,7 +6612,7 @@ iam_transform iam_tween_transform(ImGuiID id, ImGuiID channel_id, iam_transform 
 		c->rotation_mode = rotation_mode;
 		c->sleeping = 1;
 	}
-	c->last_seen_frame = g_transform_frame;
+	c->last_seen_frame = context->transform_frame;
 
 	// Fast path: sleeping and target unchanged
 	if (c->sleeping) {
@@ -7012,16 +6693,29 @@ void iam_show_unified_inspector(bool* p_open) {
 			if (ImGui::CollapsingHeader("Tween Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Text("Active Tweens:");
 				ImGui::Indent();
-				ImGui::Text("Float:  %d", iam_detail::g_float.pool.GetAliveCount());
-				ImGui::Text("Vec2:   %d", iam_detail::g_vec2.pool.GetAliveCount());
-				ImGui::Text("Vec4:   %d", iam_detail::g_vec4.pool.GetAliveCount());
-				ImGui::Text("Int:    %d", iam_detail::g_int.pool.GetAliveCount());
-				ImGui::Text("Color:  %d", iam_detail::g_color.pool.GetAliveCount());
-				int total = iam_detail::g_float.pool.GetAliveCount() +
-				            iam_detail::g_vec2.pool.GetAliveCount() +
-				            iam_detail::g_vec4.pool.GetAliveCount() +
-				            iam_detail::g_int.pool.GetAliveCount() +
-				            iam_detail::g_color.pool.GetAliveCount();
+				int float_count = 0;
+				int vec2_count = 0;
+				int vec4_count = 0;
+				int int_count = 0;
+				int color_count = 0;
+				for (iam_context* ctx : g_contexts) {
+					float_count += ctx->g_float.pool.GetAliveCount();
+					vec2_count += ctx->g_vec2.pool.GetAliveCount();
+					vec4_count += ctx->g_vec4.pool.GetAliveCount();
+					int_count += ctx->g_int.pool.GetAliveCount();
+					color_count += ctx->g_color.pool.GetAliveCount();
+				}
+
+				ImGui::Text("Float:  %d", float_count);
+				ImGui::Text("Vec2:   %d", vec2_count);
+				ImGui::Text("Vec4:   %d", vec4_count);
+				ImGui::Text("Int:    %d", int_count);
+				ImGui::Text("Color:  %d", color_count);
+				int total = float_count +
+				            vec2_count +
+				            vec4_count +
+				            int_count +
+				            color_count;
 				ImGui::Unindent();
 				ImGui::Text("Total:  %d", total);
 			}
@@ -7030,8 +6724,7 @@ void iam_show_unified_inspector(bool* p_open) {
 			if (ImGui::CollapsingHeader("Clip Stats")) {
 				int clips_size = 0;
 				int instances_size = 0;
-				for (int i = 0; i < g_contexts.Size; i++) {
-					iam_context* ctx = g_contexts[i];
+				for (iam_context* ctx : g_contexts) {
 					clips_size += ctx->clip_sys.clips.Size;
 					instances_size += ctx->clip_sys.instances.Size;
 				}
@@ -7048,20 +6741,25 @@ void iam_show_unified_inspector(bool* p_open) {
 			bool has_instances = false;
 			for (int ctx_i = 0; ctx_i < g_contexts.Size; ctx_i++) {
 				iam_context* ctx = g_contexts[ctx_i];
-				auto& instances = ctx->clip_sys.instances;
-				for (int i = 0; i < instances.Size; i++) {
-					auto& inst = instances[i];
-					has_instances = true;
-					ImGui::PushID(i);
-					if (ImGui::TreeNode("Instance", "Instance %d (clip 0x%08X)", i, inst.clip_id)) {
-						ImGui::Text("Clip ID: 0x%08X", inst.clip_id);
-						ImGui::Text("Time: %.2f", inst.time);
-						ImGui::Text("Playing: %s", inst.playing ? "Yes" : "No");
-						ImGui::Text("Loops Left: %d", inst.loops_left);
-						ImGui::TreePop();
+				ImGui::PushID(ctx);
+				if (ImGui::TreeNode("Context", "Context (%p)%s", (void*)ctx, ctx == &iam_detail::g_default_context ? " (default)" : "")) {
+					auto& instances = ctx->clip_sys.instances;
+					for (int i = 0; i < instances.Size; i++) {
+						auto& inst = instances[i];
+						has_instances = true;
+						ImGui::PushID(i);
+						if (ImGui::TreeNode("Instance", "Instance %d (clip 0x%08X)", i, inst.clip_id)) {
+							ImGui::Text("Clip ID: 0x%08X", inst.clip_id);
+							ImGui::Text("Time: %.2f", inst.time);
+							ImGui::Text("Playing: %s", inst.playing ? "Yes" : "No");
+							ImGui::Text("Loops Left: %d", inst.loops_left);
+							ImGui::TreePop();
+						}
+						ImGui::PopID();
 					}
-					ImGui::PopID();
+					ImGui::TreePop();
 				}
+				ImGui::PopID();
 			}
 			if (!has_instances) {
 				ImGui::TextDisabled("No active animation instances");
@@ -7171,28 +6869,13 @@ void iam_show_unified_inspector(bool* p_open) {
 // Drag Feedback - animated feedback for drag operations
 // ----------------------------------------------------
 
-namespace iam_detail {
-	struct drag_state {
-		ImVec2 start_pos;
-		ImVec2 current_pos;
-		ImVec2 prev_pos;
-		ImVec2 velocity;
-		bool is_dragging;
-		bool is_snapping;
-		float snap_progress;
-		ImVec2 snap_start;
-		ImVec2 snap_target;
-		float snap_duration;
-		int snap_ease;
-	};
-	static ImGuiStorage g_drag_states;
-}
-
 iam_drag_feedback iam_drag_begin(ImGuiID id, ImVec2 pos) {
-	iam_detail::drag_state* state = (iam_detail::drag_state*)iam_detail::g_drag_states.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+
+	iam_detail::drag_state* state = (iam_detail::drag_state*)context->drag_states.GetVoidPtr(id);
 	if (!state) {
 		state = IM_NEW(iam_detail::drag_state)();
-		iam_detail::g_drag_states.SetVoidPtr(id, state);
+		context->drag_states.SetVoidPtr(id, state);
 	}
 
 	state->start_pos = pos;
@@ -7214,7 +6897,8 @@ iam_drag_feedback iam_drag_begin(ImGuiID id, ImVec2 pos) {
 }
 
 iam_drag_feedback iam_drag_update(ImGuiID id, ImVec2 pos, float dt) {
-	iam_detail::drag_state* state = (iam_detail::drag_state*)iam_detail::g_drag_states.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+	iam_detail::drag_state* state = (iam_detail::drag_state*)context->drag_states.GetVoidPtr(id);
 
 	iam_drag_feedback fb;
 	fb.position = pos;
@@ -7244,7 +6928,8 @@ iam_drag_feedback iam_drag_update(ImGuiID id, ImVec2 pos, float dt) {
 }
 
 iam_drag_feedback iam_drag_release(ImGuiID id, ImVec2 pos, iam_drag_opts const& opts, float dt) {
-	iam_detail::drag_state* state = (iam_detail::drag_state*)iam_detail::g_drag_states.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+	iam_detail::drag_state* state = (iam_detail::drag_state*)context->drag_states.GetVoidPtr(id);
 
 	iam_drag_feedback fb;
 	fb.position = pos;
@@ -7316,7 +7001,8 @@ iam_drag_feedback iam_drag_release(ImGuiID id, ImVec2 pos, iam_drag_opts const& 
 }
 
 void iam_drag_cancel(ImGuiID id) {
-	iam_detail::drag_state* state = (iam_detail::drag_state*)iam_detail::g_drag_states.GetVoidPtr(id);
+	iam_context* context = iam_detail::g_current_context;
+	iam_detail::drag_state* state = (iam_detail::drag_state*)context->drag_states.GetVoidPtr(id);
 	if (state) {
 		state->is_dragging = false;
 		state->is_snapping = false;

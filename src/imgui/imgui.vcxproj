@@ -285,6 +285,7 @@
     <ClInclude Include="fonts\IconsFontAwesome.h" />
     <ClInclude Include="fonts\IconsMaterialDesign.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="imanim\im_anim_internal.h" />
     <ClInclude Include="imanim\im_anim.h" />
     <ClInclude Include="ImGuiFileDialog.h" />
     <ClInclude Include="ImGuiFileDialogConfig.h" />
