@@ -2204,6 +2204,167 @@ local function ShowPoliciesDemo()
 end
 
 -- ============================================================
+-- SECTION: Interactive Widgets
+-- ============================================================
+local widgets_demo_state = {
+    toggle         = false,
+    -- Animated Buttons channel IDs
+    alpha_id       = ImHashStr('alpha'),
+    scale_id       = ImHashStr('scale'),
+    offset_id      = ImHashStr('offset'),
+    color_id       = ImHashStr('color'),
+    -- Animated Toggle IDs
+    toggle_id      = ImHashStr('toggle_demo'),
+    bg_id          = ImHashStr('bg'),
+    knob_id        = ImHashStr('knob'),
+    -- Hover Card IDs
+    card_id        = ImHashStr('card_demo'),
+    elevation_id   = ImHashStr('elevation'),
+    lift_id        = ImHashStr('lift'),
+}
+
+local function ShowWidgetsDemo()
+    local state = widgets_demo_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        'Combining tweens with ImGui widgets creates polished UI interactions.')
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Animated buttons - using fixed layout to prevent movement
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Animated Buttons') then
+        imgui.TextDisabled('Hover over buttons to see animation effects')
+        imgui.Spacing()
+
+        -- Use a child window with fixed size to prevent layout shifts
+        local buttons_area = ImVec2(400, 60)
+        imgui.BeginChild('##buttons_area', buttons_area, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)
+
+        for i = 1, 3 do
+            local label = string.format('Button %d', i)
+
+            local id = imgui.GetID(label)
+            local size = ImVec2(110, 35)
+
+            -- Fixed position for each button
+            local btn_x = (i - 1) * 125.0
+            imgui.SetCursorPos(ImVec2(btn_x, 10))
+
+            -- Invisible button for interaction at fixed position
+            local clicked = imgui.InvisibleButton(label, size)
+            local hovered = imgui.IsItemHovered()
+            local active = imgui.IsItemActive()
+
+            -- Animate properties
+            local ez = iam.EasePreset(IamEaseType.OutCubic)
+            local alpha = iam.TweenFloat(id, state.alpha_id, hovered and 1.0 or 0.6, 0.4, ez, IamPolicy.Crossfade, dt)
+            local scale = iam.TweenFloat(id, state.scale_id, hovered and 1.08 or 1.0, 0.3,
+                iam.EaseSpringDesc(1.0, 200.0, 15.0, 0.0), IamPolicy.Crossfade, dt)
+            local offset = iam.TweenVec2(id, state.offset_id, active and ImVec2(0, 2) or ImVec2(0, 0), 0.15, ez, IamPolicy.Crossfade, dt)
+            local color = iam.TweenColor(id, state.color_id,
+                hovered and ImVec4(0.3, 0.6, 1.0, 1.0) or ImVec4(0.2, 0.2, 0.25, 1.0),
+                0.4, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+            -- Calculate scaled button size (scale from center)
+            local scaled_size = ImVec2(size.x * scale, size.y * scale)
+            local size_diff = ImVec2((size.x - scaled_size.x) * 0.5, (size.y - scaled_size.y) * 0.5)
+
+            -- Draw at fixed position with offset
+            imgui.SetCursorPos(ImVec2(btn_x + offset.x + size_diff.x, 10 + offset.y + size_diff.y))
+            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
+            imgui.PushStyleColor(ImGuiCol.Button, color)
+            imgui.PushStyleColor(ImGuiCol.ButtonHovered, color)
+            imgui.PushStyleColor(ImGuiCol.ButtonActive, color)
+            imgui.PushID(i + 1000)
+            imgui.Button(label, scaled_size)
+            imgui.PopID()
+            imgui.PopStyleColor(3)
+            imgui.PopStyleVar()
+        end
+
+        imgui.EndChild()
+        imgui.TreePop()
+    end
+
+    -- Animated toggle
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Toggle') then
+        local id = state.toggle_id
+        local toggle_size = ImVec2(60, 30)
+
+        -- Draw toggle background
+        local pos = imgui.GetCursorScreenPosVec()
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Animate background color
+        local bg_color = iam.TweenColor(id, state.bg_id,
+            state.toggle and ImVec4(0.2, 0.7, 0.3, 1.0) or ImVec4(0.3, 0.3, 0.35, 1.0),
+            0.4, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+
+        -- Animate knob position
+        local knob_x = iam.TweenFloat(id, state.knob_id,
+            state.toggle and (toggle_size.x - 15.0 - 4.0) or 4.0,
+            0.5, iam.EaseSpringDesc(1.0, 180.0, 18.0, 0.0), IamPolicy.Crossfade, dt)
+
+        draw_list:AddRectFilled(pos, ImVec2(pos.x + toggle_size.x, pos.y + toggle_size.y),
+            imgui.ColorConvertFloat4ToU32(bg_color), toggle_size.y * 0.5)
+        draw_list:AddCircleFilled(ImVec2(pos.x + knob_x + 11, pos.y + toggle_size.y * 0.5), 11.0,
+            IM_COL32(255, 255, 255, 255))
+
+        -- Invisible button for interaction
+        if imgui.InvisibleButton('##toggle', toggle_size) then
+            state.toggle = not state.toggle
+        end
+
+        imgui.SameLine()
+        imgui.Text(state.toggle and 'ON' or 'OFF')
+        imgui.TreePop()
+    end
+
+    -- Hover card - larger
+    ApplyOpenAll()
+    if imgui.TreeNode('Hover Card') then
+        local id = state.card_id
+
+        local card_size = ImVec2(480, 140)
+        local pos = imgui.GetCursorScreenPosVec()
+
+        imgui.InvisibleButton('##card', card_size)
+        local hovered = imgui.IsItemHovered()
+
+        -- Animate elevation/shadow
+        local elevation = iam.TweenFloat(id, state.elevation_id, hovered and 16.0 or 4.0, 0.4,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+        local y_offset = iam.TweenFloat(id, state.lift_id, hovered and -6.0 or 0.0, 0.4,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Shadow
+        local shadow_pos = ImVec2(pos.x + elevation, pos.y + y_offset + elevation)
+        draw_list:AddRectFilled(shadow_pos, ImVec2(shadow_pos.x + card_size.x, shadow_pos.y + card_size.y),
+            IM_COL32(255, 255, 255, math.floor(40 + elevation * 3)), 12.0)
+
+        -- Card
+        local card_pos = ImVec2(pos.x, pos.y + y_offset)
+        draw_list:AddRectFilled(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
+            IM_COL32(60, 60, 70, 255), 12.0)
+        draw_list:AddRect(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
+            IM_COL32(80, 80, 90, 255), 12.0)
+
+        -- Text
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 20), IM_COL32(255, 255, 255, 255), 'Hover Card')
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 50), IM_COL32(180, 180, 180, 255), 'Hover to see lift effect')
+        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 80), IM_COL32(140, 140, 140, 255), 'Shadow grows on hover')
+
+        imgui.TreePop()
+    end
+end
+
+-- ============================================================
 -- SECTION: Clip System
 -- ============================================================
 
@@ -2558,6 +2719,9 @@ local clip_state = {
         for i = 1, 5 do t[i] = ImHashStr('var_racer_' .. i) end
         return t
     end)(),
+
+    color_oklch_inst = ImHashStr('color_oklch_inst'),
+    color_oklch_started = false,
 }
 
 local function ShowClipSystemDemo()
@@ -3729,166 +3893,1002 @@ local function ShowClipSystemDemo()
 end
 
 -- ============================================================
--- SECTION: Interactive Widgets
+-- SECTION: Color Keyframe Demo
 -- ============================================================
-local widgets_demo_state = {
-    toggle         = false,
-    -- Animated Buttons channel IDs
-    alpha_id       = ImHashStr('alpha'),
-    scale_id       = ImHashStr('scale'),
-    offset_id      = ImHashStr('offset'),
-    color_id       = ImHashStr('color'),
-    -- Animated Toggle IDs
-    toggle_id      = ImHashStr('toggle_demo'),
-    bg_id          = ImHashStr('bg'),
-    knob_id        = ImHashStr('knob'),
-    -- Hover Card IDs
-    card_id        = ImHashStr('card_demo'),
-    elevation_id   = ImHashStr('elevation'),
-    lift_id        = ImHashStr('lift'),
-}
+local function ShowColorKeyframeDemo()
+    local state = clip_state
 
-local function ShowWidgetsDemo()
-    local state = widgets_demo_state
-    local dt = GetSafeDeltaTime()
+    InitDemoClips()
 
     imgui.TextWrapped(
-        'Combining tweens with ImGui widgets creates polished UI interactions.')
+        'key_color() animates colors with 5 keyframes in OKLCH color space, ' ..
+        'providing perceptually uniform transitions with smooth hue interpolation.')
 
     imgui.Spacing()
     imgui.Separator()
+    imgui.Spacing()
 
-    -- Animated buttons - using fixed layout to prevent movement
+    -- Start animation on first run
+    local inst_oklch = state.color_oklch_inst
+    if not state.color_oklch_started then
+        iam.Play(CLIP_COLOR_OKLCH, inst_oklch)
+        state.color_oklch_started = true
+    end
+
+    if imgui.Button('Restart') then
+        iam.Play(CLIP_COLOR_OKLCH, inst_oklch)
+    end
+
+    imgui.Spacing()
+    imgui.Text('5-color cycle: Red -> Orange -> Green -> Blue -> Purple')
+    imgui.Spacing()
+
+    -- Get current color from animation
+    local color = ImVec4(1, 1, 1, 1)
+    local inst = iam.GetInstance(inst_oklch)
+    if inst:Valid() then
+        color = inst:GetColor(CLIP_CH_COLOR)
+    end
+
+    -- Draw color bar
+    local bar_width = imgui.GetContentRegionAvailVec().x
+    local bar_height = 50.0
+    local pos = imgui.GetCursorScreenPosVec()
+    local dl = imgui.GetWindowDrawList()
+
+    local col32 = IM_COL32(
+        math.floor(color.x * 255),
+        math.floor(color.y * 255),
+        math.floor(color.z * 255),
+        255)
+    dl:AddRectFilled(pos, ImVec2(pos.x + bar_width, pos.y + bar_height), col32, 4.0)
+    dl:AddRect(pos, ImVec2(pos.x + bar_width, pos.y + bar_height), IM_COL32(100, 100, 100, 255), 4.0)
+
+    imgui.Dummy(ImVec2(bar_width, bar_height + 8.0))
+end
+
+-- ============================================================
+-- SECTION: Resize-Aware Helpers
+-- ============================================================
+local resize_state = {
+    percent = {0.5, 0.5},
+    px_bias = {0.0, 0.0},
+    resolver_angle = 0.0,
+    rebase_target_x = 150.0,
+    rebase_target_y = 75.0,
+    dragging = false,
+}
+
+local function ShowResizeHelpersDemo()
+    local state = resize_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        'When windows resize or dock, absolute positions become invalid. ' ..
+        'The resize-aware helpers use relative coordinates that adapt to container size changes.')
+
+    imgui.Spacing()
+
     ApplyOpenAll()
-    if imgui.TreeNodeEx('Animated Buttons') then
-        imgui.TextDisabled('Hover over buttons to see animation effects')
+    if imgui.TreeNode('Relative Positioning') then
+        imgui.TextWrapped('Position as percentage of container + pixel offset:')
+
+        state.percent, _ = imgui.SliderFloat2('Percent', state.percent, 0.0, 1.0)
+        state.px_bias, _ = imgui.SliderFloat2('Pixel Bias', state.px_bias, -50.0, 50.0)
+
+        -- Draw indicator in a fixed-size canvas
+        local origin = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 200)
+
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(origin, ImVec2(origin.x + canvas_size.x, origin.y + canvas_size.y), IM_COL32(40, 40, 45, 255))
+        draw_list:AddRect(origin, ImVec2(origin.x + canvas_size.x, origin.y + canvas_size.y), IM_COL32(80, 80, 85, 255))
+
+        -- Calculate target position based on percentage of canvas
+        local target_pos = ImVec2(canvas_size.x * state.percent[1] + state.px_bias[1],
+            canvas_size.y * state.percent[2] + state.px_bias[2])
+
+        local id = ImHashStr('rel_pos_demo')
+        local pos = iam.TweenVec2(id, 0, target_pos, 0.5,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        -- Clamp position to stay within canvas
+        local radius = 12.0
+        local draw_x = math.max(radius, math.min(pos.x, canvas_size.x - radius))
+        local draw_y = math.max(radius, math.min(pos.y, canvas_size.y - radius))
+
+        draw_list:AddCircleFilled(ImVec2(origin.x + draw_x, origin.y + draw_y), radius, IM_COL32(100, 200, 255, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.Text('Position: (%.1f, %.1f)', pos.x, pos.y)
+
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Anchor Spaces Showcase') then
+        imgui.TextWrapped('Each anchor space measures from a different reference:')
+
         imgui.Spacing()
 
-        -- Use a child window with fixed size to prevent layout shifts
-        local buttons_area = ImVec2(400, 60)
-        imgui.BeginChild('##buttons_area', buttons_area, ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)
+        -- Window Content anchor
+        do
+            imgui.Text('window_content: GetContentRegionAvail()')
+            local content_avail = imgui.GetContentRegionAvailVec()
+            local content_size = ImVec2(content_avail.x, 60)
+            local origin = imgui.GetCursorScreenPosVec()
 
-        for i = 1, 3 do
-            local label = string.format('Button %d', i)
+            local draw_list = imgui.GetWindowDrawList()
+            draw_list:AddRectFilled(origin, ImVec2(origin.x + content_size.x, origin.y + content_size.y), IM_COL32(40, 50, 40, 255))
+            draw_list:AddRect(origin, ImVec2(origin.x + content_size.x, origin.y + content_size.y), IM_COL32(80, 120, 80, 255))
 
-            local id = imgui.GetID(label)
-            local size = ImVec2(110, 35)
+            local id = ImHashStr('anchor_content')
+            local pos = iam.TweenVec2Rel(id, 0, ImVec2(0.5, 0.5), ImVec2(0, 0), 0.5,
+                iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamAnchorSpace.WindowContent, dt)
 
-            -- Fixed position for each button
-            local btn_x = (i - 1) * 125.0
-            imgui.SetCursorPos(ImVec2(btn_x, 10))
+            -- Draw dot clamped to this region
+            local draw_x = math.max(10.0, math.min(pos.x, content_size.x - 10.0))
+            local draw_y = math.max(10.0, math.min(pos.y, content_size.y - 10.0))
+            draw_list:AddCircleFilled(ImVec2(origin.x + draw_x, origin.y + draw_y), 8.0, IM_COL32(100, 255, 100, 255))
+            draw_list:AddText(ImVec2(origin.x + 5, origin.y + 5), IM_COL32(180, 255, 180, 255), 'Content Region')
 
-            -- Invisible button for interaction at fixed position
-            local clicked = imgui.InvisibleButton(label, size)
-            local hovered = imgui.IsItemHovered()
-            local active = imgui.IsItemActive()
-
-            -- Animate properties
-            local ez = iam.EasePreset(IamEaseType.OutCubic)
-            local alpha = iam.TweenFloat(id, state.alpha_id, hovered and 1.0 or 0.6, 0.4, ez, IamPolicy.Crossfade, dt)
-            local scale = iam.TweenFloat(id, state.scale_id, hovered and 1.08 or 1.0, 0.3,
-                iam.EaseSpringDesc(1.0, 200.0, 15.0, 0.0), IamPolicy.Crossfade, dt)
-            local offset = iam.TweenVec2(id, state.offset_id, active and ImVec2(0, 2) or ImVec2(0, 0), 0.15, ez, IamPolicy.Crossfade, dt)
-            local color = iam.TweenColor(id, state.color_id,
-                hovered and ImVec4(0.3, 0.6, 1.0, 1.0) or ImVec4(0.2, 0.2, 0.25, 1.0),
-                0.4, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
-
-            -- Calculate scaled button size (scale from center)
-            local scaled_size = ImVec2(size.x * scale, size.y * scale)
-            local size_diff = ImVec2((size.x - scaled_size.x) * 0.5, (size.y - scaled_size.y) * 0.5)
-
-            -- Draw at fixed position with offset
-            imgui.SetCursorPos(ImVec2(btn_x + offset.x + size_diff.x, 10 + offset.y + size_diff.y))
-            imgui.PushStyleVar(ImGuiStyleVar.Alpha, alpha)
-            imgui.PushStyleColor(ImGuiCol.Button, color)
-            imgui.PushStyleColor(ImGuiCol.ButtonHovered, color)
-            imgui.PushStyleColor(ImGuiCol.ButtonActive, color)
-            imgui.PushID(i + 1000)
-            imgui.Button(label, scaled_size)
-            imgui.PopID()
-            imgui.PopStyleColor(3)
-            imgui.PopStyleVar()
+            imgui.Dummy(content_size)
         end
 
-        imgui.EndChild()
+        imgui.Spacing()
+
+        -- Window anchor
+        do
+            imgui.Text('window: GetWindowSize()')
+            local win_size = imgui.GetWindowSizeVec()
+            local display_size = ImVec2(math.min(win_size.x - 20, 400.0), 60)
+            local origin = imgui.GetCursorScreenPosVec()
+
+            local draw_list = imgui.GetWindowDrawList()
+            draw_list:AddRectFilled(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(40, 40, 50, 255))
+            draw_list:AddRect(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(80, 80, 120, 255))
+
+            local id = ImHashStr('anchor_window')
+            local pos = iam.TweenVec2Rel(id, 0, ImVec2(0.5, 0.5), ImVec2(0, 0), 0.5,
+                iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamAnchorSpace.Window, dt)
+
+            -- Scale position to display size
+            local scale_x = display_size.x / win_size.x
+            local scale_y = display_size.y / win_size.y
+            local draw_x = math.max(10.0, math.min(pos.x * scale_x, display_size.x - 10.0))
+            local draw_y = math.max(10.0, math.min(pos.y * scale_y, display_size.y - 10.0))
+            draw_list:AddCircleFilled(ImVec2(origin.x + draw_x, origin.y + draw_y), 8.0, IM_COL32(100, 100, 255, 255))
+            draw_list:AddText(ImVec2(origin.x + 5, origin.y + 5), IM_COL32(180, 180, 255, 255), 'Window Size (scaled preview)')
+
+            imgui.Dummy(display_size)
+            imgui.Text('Actual window size: (%.0f, %.0f), Center pos: (%.1f, %.1f)', win_size.x, win_size.y, pos.x, pos.y)
+        end
+
+        imgui.Spacing()
+
+        -- Viewport anchor
+        do
+            imgui.Text('viewport: GetWindowViewport()->Size')
+            local vp_size = imgui.GetWindowViewport().Size
+            local display_size = ImVec2(math.min(vp_size.x * 0.3, 400.0), 60)
+            local origin = imgui.GetCursorScreenPosVec()
+
+            local draw_list = imgui.GetWindowDrawList()
+            draw_list:AddRectFilled(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(50, 40, 40, 255))
+            draw_list:AddRect(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(120, 80, 80, 255))
+
+            local id = ImHashStr('anchor_viewport')
+            local pos = iam.TweenVec2Rel(id, 0, ImVec2(0.5, 0.5), ImVec2(0, 0), 0.5,
+                iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamAnchorSpace.Viewport, dt)
+
+            -- Scale position to display size
+            local scale_x = display_size.x / vp_size.x
+            local scale_y = display_size.y / vp_size.y
+            local draw_x = math.max(10.0, math.min(pos.x * scale_x, display_size.x - 10.0))
+            local draw_y = math.max(10.0, math.min(pos.y * scale_y, display_size.y - 10.0))
+            draw_list:AddCircleFilled(ImVec2(origin.x + draw_x, origin.y + draw_y), 8.0, IM_COL32(255, 100, 100, 255))
+            draw_list:AddText(ImVec2(origin.x + 5, origin.y + 5), IM_COL32(255, 180, 180, 255), 'Viewport Size (scaled preview)')
+
+            imgui.Dummy(display_size)
+            imgui.Text('Actual viewport size: (%.0f, %.0f), Center pos: (%.1f, %.1f)', vp_size.x, vp_size.y, pos.x, pos.y)
+        end
+
+        imgui.Spacing()
+
+        -- Last item anchor
+        do
+            imgui.Text('last_item: GetItemRectSize()')
+            imgui.Button('Reference Button', ImVec2(200, 40))
+            local item_size = imgui.GetItemRectSizeVec()
+
+            local origin = imgui.GetCursorScreenPosVec()
+            local display_size = ImVec2(200, 40)
+
+            local draw_list = imgui.GetWindowDrawList()
+            draw_list:AddRectFilled(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(50, 50, 40, 255))
+            draw_list:AddRect(origin, ImVec2(origin.x + display_size.x, origin.y + display_size.y), IM_COL32(120, 120, 80, 255))
+
+            local id = ImHashStr('anchor_item')
+            local pos = iam.TweenVec2Rel(id, 0, ImVec2(0.5, 0.5), ImVec2(0, 0), 0.5,
+                iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamAnchorSpace.LastItem, dt)
+
+            -- Scale position to display size
+            local scale_x = display_size.x / item_size.x
+            local scale_y = display_size.y / item_size.y
+            local draw_x = math.max(10.0, math.min(pos.x * scale_x, display_size.x - 10.0))
+            local draw_y = math.max(10.0, math.min(pos.y * scale_y, display_size.y - 10.0))
+            draw_list:AddCircleFilled(ImVec2(origin.x + draw_x, origin.y + draw_y), 8.0, IM_COL32(255, 255, 100, 255))
+            draw_list:AddText(ImVec2(origin.x + 5, origin.y + 5), IM_COL32(255, 255, 180, 255), 'Last Item Size')
+
+            imgui.Dummy(display_size)
+            imgui.Text('Button size: (%.0f, %.0f), Center pos: (%.1f, %.1f)', item_size.x, item_size.y, pos.x, pos.y)
+        end
+
         imgui.TreePop()
     end
 
-    -- Animated toggle
     ApplyOpenAll()
-    if imgui.TreeNode('Animated Toggle') then
-        local id = state.toggle_id
-        local toggle_size = ImVec2(60, 30)
+    if imgui.TreeNode('Resolver Callback') then
+        imgui.TextWrapped(
+            'iam.TweenVec2Resolved() uses a callback to compute the target position dynamically. ' ..
+            'Useful when the target depends on runtime state.')
 
-        -- Draw toggle background
-        local pos = imgui.GetCursorScreenPosVec()
+        -- Resolver function that calculates position based on time
+        state.resolver_angle = state.resolver_angle + dt * 1.5
+
+        -- Store resolver data for the callback
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300, 150)
+        local center = ImVec2(canvas_size.x * 0.5, canvas_size.y * 0.5)
+        local radius = 50.0
+        local angle = state.resolver_angle
+
         local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        draw_list:AddRect(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
 
-        -- Animate background color
-        local bg_color = iam.TweenColor(id, state.bg_id,
-            state.toggle and ImVec4(0.2, 0.7, 0.3, 1.0) or ImVec4(0.3, 0.3, 0.35, 1.0),
-            0.4, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+        -- Draw orbit path
+        draw_list:AddCircle(
+            ImVec2(canvas_pos.x + center.x, canvas_pos.y + center.y),
+            radius, IM_COL32(60, 60, 80, 255), 32, 1.0)
 
-        -- Animate knob position
-        local knob_x = iam.TweenFloat(id, state.knob_id,
-            state.toggle and (toggle_size.x - 15.0 - 4.0) or 4.0,
-            0.5, iam.EaseSpringDesc(1.0, 180.0, 18.0, 0.0), IamPolicy.Crossfade, dt)
-
-        draw_list:AddRectFilled(pos, ImVec2(pos.x + toggle_size.x, pos.y + toggle_size.y),
-            imgui.ColorConvertFloat4ToU32(bg_color), toggle_size.y * 0.5)
-        draw_list:AddCircleFilled(ImVec2(pos.x + knob_x + 11, pos.y + toggle_size.y * 0.5), 11.0,
-            IM_COL32(255, 255, 255, 255))
-
-        -- Invisible button for interaction
-        if imgui.InvisibleButton('##toggle', toggle_size) then
-            state.toggle = not state.toggle
+        -- Resolver callback
+        local resolver = function()
+            return ImVec2(
+                center.x + math.cos(angle) * radius,
+                center.y + math.sin(angle) * radius
+            )
         end
 
-        imgui.SameLine()
-        imgui.Text(state.toggle and 'ON' or 'OFF')
+        local id = ImHashStr('resolver_demo')
+        local pos = iam.TweenVec2Resolved(id, 0, resolver, 0.3,
+            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
+
+        -- Draw the animated dot (smoothly following the orbit)
+        draw_list:AddCircleFilled(
+            ImVec2(canvas_pos.x + pos.x, canvas_pos.y + pos.y),
+            10.0, IM_COL32(100, 200, 255, 255))
+
+        -- Draw the instant target position (without smoothing)
+        local instant = resolver()
+        draw_list:AddCircle(
+            ImVec2(canvas_pos.x + instant.x, canvas_pos.y + instant.y),
+            12.0, IM_COL32(255, 100, 100, 150), 12, 2.0)
+
+        imgui.Dummy(canvas_size)
+        imgui.TextDisabled('Blue: smoothed position, Red circle: instant target')
         imgui.TreePop()
     end
 
-    -- Hover card - larger
     ApplyOpenAll()
-    if imgui.TreeNode('Hover Card') then
-        local id = state.card_id
+    if imgui.TreeNode('Rebase Animation') then
+        imgui.TextWrapped(
+            'iam.RebaseVec2() allows changing the target of an in-progress animation ' ..
+            'without snapping or restarting. Useful for drag operations.')
 
-        local card_size = ImVec2(480, 140)
-        local pos = imgui.GetCursorScreenPosVec()
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300, 150)
 
-        imgui.InvisibleButton('##card', card_size)
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 45, 40, 255))
+        draw_list:AddRect(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(80, 100, 80, 255))
+
+        imgui.InvisibleButton('rebase_canvas', canvas_size)
         local hovered = imgui.IsItemHovered()
+        local clicked = imgui.IsItemClicked(0)
 
-        -- Animate elevation/shadow
-        local elevation = iam.TweenFloat(id, state.elevation_id, hovered and 16.0 or 4.0, 0.4,
+        if clicked then
+            local mouse = imgui.GetMousePosVec()
+            state.rebase_target_x = mouse.x - canvas_pos.x
+            state.rebase_target_y = mouse.y - canvas_pos.y
+
+            -- Rebase the animation to the new target
+            local id = ImHashStr('rebase_demo')
+            iam.RebaseVec2(id, 0, ImVec2(state.rebase_target_x, state.rebase_target_y), dt)
+            state.dragging = true
+        end
+        if state.dragging and imgui.IsMouseDown(0) and hovered then
+            local mouse = imgui.GetMousePosVec()
+            state.rebase_target_x = mouse.x - canvas_pos.x
+            state.rebase_target_y = mouse.y - canvas_pos.y
+            local id = ImHashStr('rebase_demo')
+            iam.RebaseVec2(id, 0, ImVec2(state.rebase_target_x, state.rebase_target_y), dt)
+        end
+        if imgui.IsMouseReleased(0) then
+            state.dragging = false
+        end
+
+        local id = ImHashStr('rebase_demo')
+        local target = ImVec2(state.rebase_target_x, state.rebase_target_y)
+        local pos = iam.TweenVec2(id, 0, target, 0.4,
             iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
-        local y_offset = iam.TweenFloat(id, state.lift_id, hovered and -6.0 or 0.0, 0.4,
-            iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
-        local draw_list = imgui.GetWindowDrawList()
+        -- Draw target crosshair
+        draw_list:AddLine(
+            ImVec2(canvas_pos.x + target.x - 10, canvas_pos.y + target.y),
+            ImVec2(canvas_pos.x + target.x + 10, canvas_pos.y + target.y),
+            IM_COL32(255, 100, 100, 200), 1.0)
+        draw_list:AddLine(
+            ImVec2(canvas_pos.x + target.x, canvas_pos.y + target.y - 10),
+            ImVec2(canvas_pos.x + target.x, canvas_pos.y + target.y + 10),
+            IM_COL32(255, 100, 100, 200), 1.0)
 
-        -- Shadow
-        local shadow_pos = ImVec2(pos.x + elevation, pos.y + y_offset + elevation)
-        draw_list:AddRectFilled(shadow_pos, ImVec2(shadow_pos.x + card_size.x, shadow_pos.y + card_size.y),
-            IM_COL32(255, 255, 255, math.floor(40 + elevation * 3)), 12.0)
+        -- Draw animated circle
+        draw_list:AddCircleFilled(
+            ImVec2(canvas_pos.x + pos.x, canvas_pos.y + pos.y),
+            15.0, IM_COL32(100, 255, 150, 255))
 
-        -- Card
-        local card_pos = ImVec2(pos.x, pos.y + y_offset)
-        draw_list:AddRectFilled(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
-            IM_COL32(60, 60, 70, 255), 12.0)
-        draw_list:AddRect(card_pos, ImVec2(card_pos.x + card_size.x, card_pos.y + card_size.y),
-            IM_COL32(80, 80, 90, 255), 12.0)
+        imgui.TextDisabled('Click anywhere to rebase the target')
+        imgui.TreePop()
+    end
 
-        -- Text
-        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 20), IM_COL32(255, 255, 255, 255), 'Hover Card')
-        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 50), IM_COL32(180, 180, 180, 255), 'Hover to see lift effect')
-        draw_list:AddText(ImVec2(card_pos.x + 20, card_pos.y + 80), IM_COL32(140, 140, 140, 255), 'Shadow grows on hover')
+    ApplyOpenAll()
+    if imgui.TreeNode('Anchor Size Query') then
+        imgui.TextWrapped(
+            'AnchorSize() returns the dimensions of each anchor space. ' ..
+            'Useful for manual calculations.')
+
+        local content = iam.AnchorSize(IamAnchorSpace.WindowContent)
+        local window = iam.AnchorSize(IamAnchorSpace.Window)
+        local viewport = iam.AnchorSize(IamAnchorSpace.Viewport)
+        local last_item = iam.AnchorSize(IamAnchorSpace.LastItem)
+
+        imgui.Text('Content Region: %.0f x %.0f', content.x, content.y)
+        imgui.Text('Window Size:    %.0f x %.0f', window.x, window.y)
+        imgui.Text('Viewport Size:  %.0f x %.0f', viewport.x, viewport.y)
+        imgui.Text('Last Item Size: %.0f x %.0f', last_item.x, last_item.y)
 
         imgui.TreePop()
     end
 end
 
+-- ============================================================
+-- SECTION: Layering System
+-- ============================================================
+
+-- Layering clip IDs and channels
+local LAYER_CLIP_A = 0x3001
+local LAYER_CLIP_B = 0x3002
+local LAYER_CLIP_C = 0x3003
+local LAYER_CH_X   = 0x3101
+
+local s_layer_clips_initialized = false
+
+local function InitLayerClips()
+    if s_layer_clips_initialized then return end
+    s_layer_clips_initialized = true
+
+    -- Animation A: moves right slowly
+    IamClip.Begin(LAYER_CLIP_A)
+        :KeyFloat(LAYER_CH_X, 0.0, 0.0, IamEaseType.InOutSine)
+        :KeyFloat(LAYER_CH_X, 2.0, 200.0, IamEaseType.InOutSine)
+        :SetLoop(true, IamDirection.Alternate)
+        :End()
+
+    -- Animation B: moves left faster
+    IamClip.Begin(LAYER_CLIP_B)
+        :KeyFloat(LAYER_CH_X, 0.0, 200.0, IamEaseType.InOutCubic)
+        :KeyFloat(LAYER_CH_X, 1.5, 0.0, IamEaseType.InOutCubic)
+        :SetLoop(true, IamDirection.Alternate)
+        :End()
+
+    -- Animation C: bouncy center pulse
+    IamClip.Begin(LAYER_CLIP_C)
+        :KeyFloat(LAYER_CH_X, 0.0, 100.0, IamEaseType.OutElastic)
+        :KeyFloat(LAYER_CH_X, 0.8, 50.0, IamEaseType.InOutQuad)
+        :KeyFloat(LAYER_CH_X, 1.6, 150.0, IamEaseType.InOutQuad)
+        :KeyFloat(LAYER_CH_X, 2.4, 100.0, IamEaseType.OutBounce)
+        :SetLoop(true, IamDirection.Normal)
+        :End()
+end
+
+local layer_state = {
+    basic_inst_a = ImHashStr('layer_inst_a'),
+    basic_inst_b = ImHashStr('layer_inst_b'),
+    basic_inst_c = ImHashStr('layer_inst_c'),
+    basic_weight_a = 0.33,
+    basic_weight_b = 0.33,
+    basic_weight_c = 0.34,
+    basic_playing = false,
+    basic_composite = ImHashStr('layer_composite'),
+    weight_inst_id = ImHashStr('weight_inst'),
+    weight_value = 1.0,
+}
+
+local function ShowLayeringDemo()
+    local state = layer_state
+    InitLayerClips()
+
+    imgui.TextWrapped(
+        'The layering system allows blending multiple animation instances together. ' ..
+        'Use LayerBegin/LayerAdd/LayerEnd to combine animations with weights.')
+
+    imgui.Spacing()
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Basic Layer Blending (3 Layers)') then
+        imgui.TextWrapped(
+            'Three animations move dots with different patterns. ' ..
+            'Adjust the weight sliders to blend between them.')
+
+        local inst_a = state.basic_inst_a
+        local inst_b = state.basic_inst_b
+        local inst_c = state.basic_inst_c
+
+        if not state.basic_playing then
+            if imgui.Button('Start Animations') then
+                iam.Play(LAYER_CLIP_A, inst_a)
+                iam.Play(LAYER_CLIP_B, inst_b)
+                iam.Play(LAYER_CLIP_C, inst_c)
+                state.basic_playing = true
+            end
+        else
+            if imgui.Button('Stop') then
+                local a = iam.GetInstance(inst_a)
+                local b = iam.GetInstance(inst_b)
+                local c = iam.GetInstance(inst_c)
+                if a:Valid() then a:Stop() end
+                if b:Valid() then b:Stop() end
+                if c:Valid() then c:Stop() end
+                state.basic_playing = false
+            end
+        end
+
+        state.basic_weight_a = imgui.SliderFloat('Weight A', state.basic_weight_a, 0.0, 1.0)
+        state.basic_weight_b = imgui.SliderFloat('Weight B', state.basic_weight_b, 0.0, 1.0)
+        state.basic_weight_c = imgui.SliderFloat('Weight C', state.basic_weight_c, 0.0, 1.0)
+
+        local a = iam.GetInstance(inst_a)
+        local b = iam.GetInstance(inst_b)
+        local c = iam.GetInstance(inst_c)
+
+        -- Get individual values for visualization
+        local x_a = 100.0
+        local x_b = 100.0
+        local x_c = 100.0
+        if a:Valid() then x_a = a:GetFloat(LAYER_CH_X) end
+        if b:Valid() then x_b = b:GetFloat(LAYER_CH_X) end
+        if c:Valid() then x_c = c:GetFloat(LAYER_CH_X) end
+
+        -- Use the layering API to blend animations
+        local composite_id = state.basic_composite
+        iam.LayerBegin(composite_id)
+        if a:Valid() then iam.LayerAdd(a, state.basic_weight_a) end
+        if b:Valid() then iam.LayerAdd(b, state.basic_weight_b) end
+        if c:Valid() then iam.LayerAdd(c, state.basic_weight_c) end
+        iam.LayerEnd(composite_id)
+
+        local blended_x = iam.GetBlendedFloat(composite_id, LAYER_CH_X)
+
+        -- Draw visualization
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local vis_width = 250.0
+        local text_width = 120.0
+        local row_height = 35.0
+        local canvas_size = ImVec2(vis_width, row_height * 4 + 20.0)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + vis_width, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+        draw_list:AddRect(canvas_pos,
+            ImVec2(canvas_pos.x + vis_width, canvas_pos.y + canvas_size.y),
+            IM_COL32(80, 80, 85, 255))
+
+        -- Draw individual positions (faded) with labels on right
+        local y_row = canvas_pos.y + row_height * 0.5 + 10.0
+        draw_list:AddCircleFilled(ImVec2(canvas_pos.x + 25 + x_a * 0.5, y_row), 8.0, IM_COL32(255, 100, 100, 100))
+        draw_list:AddText(ImVec2(canvas_pos.x + vis_width + 10, y_row - 6), IM_COL32(255, 100, 100, 200), 'A (right)')
+
+        y_row = canvas_pos.y + row_height * 1.5 + 10.0
+        draw_list:AddCircleFilled(ImVec2(canvas_pos.x + 25 + x_b * 0.5, y_row), 8.0, IM_COL32(100, 100, 255, 100))
+        draw_list:AddText(ImVec2(canvas_pos.x + vis_width + 10, y_row - 6), IM_COL32(100, 100, 255, 200), 'B (left)')
+
+        y_row = canvas_pos.y + row_height * 2.5 + 10.0
+        draw_list:AddCircleFilled(ImVec2(canvas_pos.x + 25 + x_c * 0.5, y_row), 8.0, IM_COL32(255, 200, 100, 100))
+        draw_list:AddText(ImVec2(canvas_pos.x + vis_width + 10, y_row - 6), IM_COL32(255, 200, 100, 200), 'C (bouncy)')
+
+        -- Draw blended position (solid)
+        y_row = canvas_pos.y + row_height * 3.5 + 10.0
+        draw_list:AddCircleFilled(ImVec2(canvas_pos.x + 25 + blended_x * 0.5, y_row), 10.0, IM_COL32(100, 255, 100, 255))
+        draw_list:AddText(ImVec2(canvas_pos.x + vis_width + 10, y_row - 6), IM_COL32(100, 255, 100, 255), 'Blended')
+
+        imgui.Dummy(ImVec2(vis_width + text_width, canvas_size.y))
+        -- Calculate normalized weights for display
+        local total = state.basic_weight_a + state.basic_weight_b + state.basic_weight_c
+        if total < 0.001 then total = 1.0 end
+        imgui.Text('Weights: A=%.0f%% B=%.0f%% C=%.0f%%',
+            (state.basic_weight_a / total) * 100,
+            (state.basic_weight_b / total) * 100,
+            (state.basic_weight_c / total) * 100)
+
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('Instance Weights') then
+        imgui.TextWrapped(
+            'SetWeight() on an instance controls its contribution when used with the layering API.')
+
+        local inst_id = state.weight_inst_id
+
+        if imgui.Button('Play##weight') then
+            iam.Play(LAYER_CLIP_A, inst_id)
+        end
+
+        imgui.SameLine()
+        imgui.SetNextItemWidth(150)
+        state.weight_value = imgui.SliderFloat('Weight', state.weight_value, 0.0, 2.0)
+
+        local inst = iam.GetInstance(inst_id)
+        if inst:Valid() then
+            inst:SetWeight(state.weight_value)
+        end
+
+        local x = 0.0
+        if inst:Valid() then x = inst:GetFloat(LAYER_CH_X) end
+
+        -- Apply weight to the position for visualization
+        local weighted_x = x * state.weight_value
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300, 50)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos,
+            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(40, 40, 45, 255))
+
+        -- Original position
+        draw_list:AddCircle(
+            ImVec2(canvas_pos.x + 50 + x * 0.5, canvas_pos.y + 25),
+            10.0, IM_COL32(255, 255, 255, 100), 12, 1.0)
+
+        -- Weighted position
+        draw_list:AddCircleFilled(
+            ImVec2(canvas_pos.x + 50 + weighted_x * 0.5, canvas_pos.y + 25),
+            8.0, IM_COL32(255, 200, 100, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.Text('Original: %.1f, Weighted (x%.1f): %.1f', x, state.weight_value, weighted_x)
+
+        imgui.TreePop()
+    end
+end
+
+-- ============================================================
+-- SECTION: ImDrawList Animations with ImAnim
+-- ============================================================
+
+local s_drawlist_clips_initialized = false
+
+local function InitDrawListClips()
+    if s_drawlist_clips_initialized then return end
+    s_drawlist_clips_initialized = true
+
+    -- TODO: Implement drawlist clips
+end
+
+local function ShowDrawListDemo()
+    -- TOOD: Implement DrawList Demo
+end
+
+-- ============================================================
+-- OSCILLATORS DEMO
+-- ============================================================
+
+local function ShowOscillatorsDemo()
+    -- TOOD: Implement oscillators demo
+end
+
+-- ============================================================
+-- SHAKE/WIGGLE DEMO
+-- ============================================================
+
+local function ShowShakeWiggleDemo()
+    -- TODO: Implement shake/wiggle demo
+end
+
+-- ============================================================
+-- SECTION: Scroll Animation
+-- ============================================================
+local scroll_state = {
+    duration = 0.5,
+}
+
+local function ShowScrollDemo()
+    local state = scroll_state
+
+    imgui.TextWrapped('Smooth animated scrolling within ImGui windows. ' ..
+        'Use iam.ScrollToY() for custom positions or convenience functions for common cases.')
+
+    -- Create a child window to demonstrate scrolling
+    imgui.Text('Scroll Controls:')
+
+    state.duration, _ = imgui.SliderFloat('Duration##Scroll', state.duration, 0.1, 2.0, '%.1f s')
+
+    local scroll_top = imgui.Button('Scroll to Top')
+    imgui.SameLine()
+    local scroll_middle = imgui.Button('Scroll to Middle')
+    imgui.SameLine()
+    local scroll_bottom = imgui.Button('Scroll to Bottom')
+
+    imgui.Separator()
+
+    -- Scrollable child window
+    imgui.BeginChild('ScrollDemoChild', ImVec2(0, 300), ImGuiChildFlags.Borders)
+
+    -- Apply scroll commands inside the child window
+    if scroll_top then
+        iam.ScrollToTop(state.duration)
+    end
+    if scroll_middle then
+        iam.ScrollToY(500.0, state.duration)  -- Roughly middle
+    end
+    if scroll_bottom then
+        iam.ScrollToBottom(state.duration)
+    end
+
+    -- Content - many items to scroll through
+    for i = 0, 49 do
+        local is_special = (i == 0 or i == 24 or i == 49)
+        if is_special then
+            imgui.PushStyleColor(ImGuiCol.Text, ImVec4(1.0, 0.8, 0.2, 1.0))
+        end
+
+        if i == 0 then imgui.Text('>>> TOP - Item %d <<<', i)
+        elseif i == 24 then imgui.Text('>>> MIDDLE - Item %d <<<', i)
+        elseif i == 49 then imgui.Text('>>> BOTTOM - Item %d <<<', i)
+        else imgui.Text('Item %d - Some content here', i)
+        end
+
+        if is_special then
+            imgui.PopStyleColor()
+        end
+
+        -- Add scroll-to buttons for specific items
+        if i == 10 or i == 30 then
+            imgui.SameLine()
+            local btn_label = string.format('Scroll Here##%d', i)
+            if imgui.SmallButton(btn_label) then
+                iam.ScrollToY(imgui.GetCursorPosY() - 50.0, state.duration)
+            end
+        end
+    end
+
+    imgui.EndChild()
+
+    imgui.TextDisabled('Current scroll Y: %.0f', imgui.GetScrollY())
+end
+
+-- ============================================================
+-- MOTION PATHS DEMO
+-- ============================================================
+
+local function ShowMotionPathsDemo()
+    -- TODO: Implement motion paths demo
+end
+
+-- ============================================================
+-- PATH MORPHING DEMO
+-- ============================================================
+
+local function ShowPathMorphingDemo()
+    -- TODO: Implement path morphing demo
+end
+
+-- ============================================================
+-- TEXT ALONG MOTION PATHS DEMO
+-- ============================================================
+
+local function ShowTextAlongPathDemo()
+    -- TODO: Implement text along motion paths demo
+end
+
+-- ============================================================
+-- SECTION: Timeline Markers
+-- ============================================================
+local timeline_marker_state = {
+    clip_initialized = false,
+    marker_clip_id = ImHashStr('marker_demo_clip'),
+    marker_inst = nil,
+    marker_log = {},
+    marker_log_time = 0.0,
+
+    progress_id = ImHashStr('progress'),
+    marker_inst_id = ImHashStr('marker_inst'),
+}
+
+local function ShowTimelineMarkersDemo()
+    local state = timeline_marker_state
+    imgui.TextWrapped('Timeline markers trigger callbacks at specific times during clip playback.')
+
+    -- Initialize clip with markers
+    if not state.clip_initialized then
+        -- Marker callback
+        local marker_callback = function(inst_id, marker_id, marker_time)
+            table.insert(state.marker_log, string.format('Marker at %.2fs', marker_time))
+            state.marker_log_time = 3.0 -- Show for 3 seconds
+        end
+        IamClip.Begin(state.marker_clip_id)
+            :KeyFloat(state.progress_id, 0.0, 0.0, IamEaseType.Linear)
+            :KeyFloat(state.progress_id, 3.0, 1.0, IamEaseType.Linear)
+            :Marker(0.5, marker_callback)
+            :Marker(1.0, marker_callback)
+            :Marker(1.5, marker_callback)
+            :Marker(2.0, marker_callback)
+            :Marker(2.5, marker_callback)
+            :End()
+        state.clip_initialized = true
+    end
+
+    if imgui.Button('Play Clip with Markers') then
+        -- Clear log
+        state.marker_log = {}
+        state.marker_inst = iam.Play(state.marker_clip_id, state.marker_inst_id)
+    end
+
+    -- Progress bar
+    local progress = 0.0
+    if state.marker_inst and state.marker_inst:Valid() then
+        progress = state.marker_inst:GetFloat(state.progress_id)
+    end
+    imgui.ProgressBar(progress, ImVec2(-1, 0), '')
+
+    -- Show markers on timeline
+    local bar_pos = imgui.GetItemRectMinVec()
+    local bar_size = imgui.GetItemRectSizeVec()
+    local draw = imgui.GetWindowDrawList()
+    local marker_times = { 0.5, 1.0, 1.5, 2.0, 2.5 }
+    for i = 1, 5 do
+        local t = marker_times[i] / 3.0
+        local x = bar_pos.x + bar_size.x * t
+        draw:AddLine(ImVec2(x, bar_pos.y), ImVec2(x, bar_pos.y + bar_size.y), IM_COL32(255, 200, 100, 255), 2.0)
+    end
+
+    -- Marker log
+    imgui.Text('Marker Events:')
+    state.marker_log_time = state.marker_log_time - GetSafeDeltaTime()
+    if state.marker_log_time > 0 then
+        for i = 1, #state.marker_log do
+            imgui.BulletText('%s', state.marker_log[i])
+        end
+    end
+
+    imgui.TextDisabled('Orange lines show marker positions on the timeline.')
+end
+
+-- ============================================================
+-- ANIMATION CHAINING DEMO
+-- ============================================================
+local anim_chain_state = {
+    clips_initialized = false,
+    clip_a = ImHashStr('chain_clip_a'),
+    clip_b = ImHashStr('chain_clip_b'),
+    clip_c = ImHashStr('chain_clip_c'),
+    chain_delay = 0.1,
+    b_chain_set = false,
+
+    x_id = ImHashStr('x'),
+    y_id = ImHashStr('y'),
+    color_id = ImHashStr('color'),
+
+    inst_a_id = ImHashStr('chain_inst_a'),
+    inst_b_id = ImHashStr('chain_inst_b'),
+    inst_c_id = ImHashStr('chain_inst_c'),
+}
+
+local function ShowAnimationChainingDemo()
+    local state = anim_chain_state
+    imgui.TextWrapped('Animation chaining allows clips to automatically trigger another clip when they complete.')
+
+    -- Initialize clips
+    if not state.clips_initialized then
+        -- Clip A: Move right
+        IamClip.Begin(state.clip_a)
+            :KeyFloat(state.x_id, 0.0, 50.0, IamEaseType.OutCubic)
+            :KeyFloat(state.x_id, 0.5, 200.0, IamEaseType.OutCubic)
+            :KeyVec4(state.color_id, 0.0, ImVec4(1, 0.3, 0.3, 1), IamEaseType.Linear)
+            :KeyVec4(state.color_id, 0.5, ImVec4(1, 0.3, 0.3, 1), IamEaseType.Linear)
+            :End()
+
+        -- Clip B: Move down
+        IamClip.Begin(state.clip_b)
+            :KeyFloat(state.y_id, 0.0, 30.0, IamEaseType.OutCubic)
+            :KeyFloat(state.y_id, 0.5, 100.0, IamEaseType.OutCubic)
+            :KeyVec4(state.color_id, 0.0, ImVec4(0.3, 1, 0.3, 1), IamEaseType.Linear)
+            :KeyVec4(state.color_id, 0.5, ImVec4(0.3, 1, 0.3, 1), IamEaseType.Linear)
+            :End()
+
+        -- Clip C: Move diagonally back
+        IamClip.Begin(state.clip_c)
+            :KeyFloat(state.x_id, 0.0, 200.0, IamEaseType.OutCubic)
+            :KeyFloat(state.x_id, 0.5, 50.0, IamEaseType.OutCubic)
+            :KeyFloat(state.y_id, 0.0, 100.0, IamEaseType.OutCubic)
+            :KeyFloat(state.y_id, 0.5, 30.0, IamEaseType.OutCubic)
+            :KeyVec4(state.color_id, 0.0, ImVec4(0.3, 0.3, 1, 1), IamEaseType.Linear)
+            :KeyVec4(state.color_id, 0.5, ImVec4(0.3, 0.3, 1, 1), IamEaseType.Linear)
+            :End()
+
+        state.clips_initialized = true
+    end
+
+    state.chain_delay = imgui.SliderFloat('Delay Between Clips', state.chain_delay, 0.0, 0.5)
+
+    if imgui.Button('Play A -> B -> C (Chained)') then
+        -- Destroy any existing instances to start fresh
+        local old_a = iam.GetInstance(state.inst_a_id)
+        local old_b = iam.GetInstance(state.inst_b_id)
+        local old_c = iam.GetInstance(state.inst_c_id)
+        if old_a:Valid() then old_a:Destroy() end
+        if old_b:Valid() then old_b:Destroy() end
+        if old_c:Valid() then old_c:Destroy() end
+        state.b_chain_set = false
+
+        -- Start clip A with chain to B
+        local inst_a = iam.Play(state.clip_a, state.inst_a_id)
+        inst_a:Then(state.clip_b, state.inst_b_id):ThenDelay(state.chain_delay)
+    end
+    imgui.SameLine()
+    imgui.TextDisabled('(with .Then())')
+
+    -- Get instances
+    local inst_a = iam.GetInstance(state.inst_a_id)
+    local inst_b = iam.GetInstance(state.inst_b_id)
+    local inst_c = iam.GetInstance(state.inst_c_id)
+
+    -- Set up B -> C chain when B starts (can't do this upfront since B doesn't exist yet)
+    if inst_b:Valid() and inst_b:IsPlaying() and not state.b_chain_set then
+        inst_b:Then(state.clip_c, state.inst_c_id):ThenDelay(state.chain_delay)
+        state.b_chain_set = true
+    end
+
+    -- Draw animated object
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(300, 150)
+    local draw = imgui.GetWindowDrawList()
+    draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+
+    -- Determine which instance is active and get values from it
+    local x = 50.0
+    local y = 30.0
+    local color = ImVec4(0.5, 0.5, 0.5, 1.0)
+
+    -- Only read from the currently active (or most recently finished) instance
+    if inst_c:Valid() then
+        x = inst_c:GetFloat(state.x_id)
+        y = inst_c:GetFloat(state.y_id)
+        color = inst_c:GetVec4(state.color_id)
+    elseif inst_b:Valid() then
+        -- Get x from A's final value
+        if inst_a:Valid() then x = inst_a:GetFloat(state.x_id) end
+        y = inst_b:GetFloat(state.y_id)
+        color = inst_b:GetVec4(state.color_id)
+    elseif inst_a:Valid() then
+        x = inst_a:GetFloat(state.x_id)
+        color = inst_a:GetVec4(state.color_id)
+    end
+
+    local obj_color = imgui.ColorConvertFloat4ToU32(color)
+    draw:AddCircleFilled(ImVec2(canvas_pos.x + x, canvas_pos.y + y), 15.0, obj_color)
+
+    imgui.Dummy(canvas_size)
+
+    -- Status
+    imgui.Text('Instance Status:')
+    imgui.BulletText('A: %s', inst_a:Valid() and (inst_a:IsPlaying() and 'Playing' or 'Done') or 'Not started')
+    imgui.BulletText('B: %s', inst_b:Valid() and (inst_b:IsPlaying() and 'Playing' or 'Done') or 'Not started')
+    imgui.BulletText('C: %s', inst_c:Valid() and (inst_c:IsPlaying() and 'Playing' or 'Done') or 'Not started')
+end
+
+-- ============================================================
+-- TEXT STAGGER DEMO
+-- ============================================================
+
+local function ShowTextStaggerDemo()
+    -- TODO: Implement text stagger demo
+end
+
+-- ============================================================
+-- NOISE CHANNELS DEMO
+-- ============================================================
+
+local function ShowNoiseChannelsDemo()
+    -- TODO: Implement noise channels demo
+end
+
+-- ============================================================
+-- STYLE INTERPOLATION DEMO
+-- ============================================================
+
+local function ShowStyleInterpolationDemo()
+    -- TODO: Implement style interpolation demo
+end
+
+-- ============================================================
+-- DRAG FEEDBACK DEMO
+-- ============================================================
+
+local function ShowDragFeedbackDemo()
+    -- TODO: Implement drag feedback demo
+end
+
+-- ============================================================
+-- GRADIENT KEYFRAMES DEMO
+-- ============================================================
+
+local function ShowGradientKeyframesDemo()
+    -- TODO: Implement gradient keyframes demo
+end
+
+-- ============================================================
+-- TRANSFORM INTERPOLATION DEMO
+-- ============================================================
+
+local function ShowTransformInterpolationDemo()
+    -- TODO: Implement transform interpolation demo
+end
+
+-- ============================================================
+-- ANIMATION INSPECTOR DEMO
+-- ============================================================
+
+local function ShowAnimationInspectorDemo()
+	imgui.TextWrapped("The Unified Inspector provides a complete debug view of all active animations. " ..
+		"Use the 'Show Debug Window' checkbox at the top of this demo to open it.")
+
+	imgui.Separator()
+	imgui.Text("Inspector Tabs:")
+	imgui.BulletText("Stats - Time scale, tween counts, clip stats, custom easing slots")
+	imgui.BulletText("Clips - Active instances with playback controls and scrubbing")
+	imgui.BulletText("Paths - Registered motion paths with segment info")
+	imgui.BulletText("Noise - Active noise channels with interactive preview")
+	imgui.BulletText("Styles - Registered styles and active style tweens")
+	imgui.BulletText("Performance - Profiler with per-section timing breakdown")
+
+	imgui.Separator()
+	imgui.TextDisabled("Tip: Use iam.ProfilerBegin/End() to instrument your code.")
+end
+
+-- ============================================================
+-- SECTION: Stress Test
+-- ============================================================
+
+local function ShowStressTestDemo()
+    -- TODO: Implement stress test
+end
+
+-- ============================================================
+-- MAIN DEMO WINDOW
+-- ============================================================
 local function ImAnimDemoWindow()
     if not openGUI then
         return
@@ -4002,6 +5002,176 @@ local function ImAnimDemoWindow()
             ShowClipSystemDemo()
             imgui.TreePop()
         end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Color Keyframes') then
+            ShowColorKeyframeDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Timeline Markers') then
+            ShowTimelineMarkersDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Animation Chaining') then
+            ShowAnimationChainingDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Layering System') then
+            ShowLayeringDemo()
+            imgui.TreePop()
+        end
+
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 4. PROCEDURAL ANIMATIONS
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Procedural Animations') then
+        iam.ProfilerBegin('Procedural Animations (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Oscillators') then
+            ShowOscillatorsDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Shake & Wiggle') then
+            ShowShakeWiggleDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Noise Channels') then
+            ShowNoiseChannelsDemo()
+            imgui.TreePop()
+        end
+
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 5. MOTION PATHS
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Motion Paths') then
+        iam.ProfilerBegin('Motion Paths (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Path Basics') then
+            ShowMotionPathsDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Path Morphing') then
+            ShowPathMorphingDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Text Along Paths') then
+            ShowTextAlongPathDemo()
+            imgui.TreePop()
+        end
+
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 6. ADVANCED INTERPOLATION
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Advanced Interpolation') then
+        iam.ProfilerBegin('Advanced Interpolation (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Gradient KEyframes') then
+            ShowGradientKeyframesDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Transform Interpolation') then
+            ShowTransformInterpolationDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Style Interpolation') then
+            ShowStyleInterpolationDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Text Stagger') then
+            ShowTextStaggerDemo()
+            imgui.TreePop()
+        end
+
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 7. UTILITIES
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Utilities') then
+        iam.ProfilerBegin('Utilities (lua)')
+
+        ApplyOpenAll()
+        if imgui.TreeNode('ImDrawList Animations') then
+            ShowDrawListDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Resize-Aware Helpers') then
+            ShowResizeHelpersDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Scroll Animation') then
+            ShowScrollDemo()
+            imgui.TreePop()
+        end
+
+        ApplyOpenAll()
+        if imgui.TreeNode('Drag Feedback') then
+            ShowDragFeedbackDemo()
+            imgui.TreePop()
+        end
+
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 8. DEBUG TOOLS
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Debug Tools') then
+        iam.ProfilerBegin('Debug Tools (lua)')
+        ShowAnimationInspectorDemo()
+        iam.ProfilerEnd()
+    end
+
+    -- ========================================
+    -- 9. STRESS TEST
+    -- ========================================
+    ApplyOpenAll()
+    if imgui.CollapsingHeader('Stress Test') then
+        iam.ProfilerBegin('Stress Test (lua)')
+        ShowStressTestDemo()
+        iam.ProfilerEnd()
     end
 
     -- Reset open/class all state after processing all headers
