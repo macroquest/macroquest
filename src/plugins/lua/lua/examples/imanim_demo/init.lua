@@ -4829,8 +4829,290 @@ end
 -- STYLE INTERPOLATION DEMO
 -- ============================================================
 
+local style_interpolation_state = {
+    styles_registered = false,
+    style_compact = ImHashStr('style_compact'),
+    style_spacious = ImHashStr('style_spacious'),
+    style_rounded = ImHashStr('style_rounded'),
+
+    from_style = 1,
+    to_style = 3,
+    style_names = { 'Compact Dark', 'Spacious Light', 'Rounded Colorful' },
+
+    color_space_idx = 4,
+    color_space_names = { 'sRGB', 'sRGB Linear', 'HSV', 'OKLAB', 'OKLCH' },
+    color_space_values = { IamColorSpace.SRGB, IamColorSpace.SRGBLinear, IamColorSpace.HSV, IamColorSpace.OKLAB, IamColorSpace.OKLCH },
+
+    blend_t = 0.0,
+    animating = false,
+    anim_dir = 1.0,
+
+    check1 = true, check2 = false, check3 = true,
+    radio_val = 0,
+    slider_val = 0.5,
+    int_val = 50,
+    drag_val = 25.0,
+    text_buf = 'Sample text',
+    combo_val = 2,
+}
+
 local function ShowStyleInterpolationDemo()
-    -- TODO: Implement style interpolation demo
+    local state = style_interpolation_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Style interpolation smoothly transitions between different ImGui themes. ' ..
+        'Colors, padding, spacing, and rounding are all blended. Colors use perceptually uniform color spaces.')
+
+    if not state.styles_registered then
+        -- Compact dark style - tight spacing, sharp corners, small padding
+        local compact = imgui.StyleColorsDark():Copy()
+        compact.WindowPadding = ImVec2(4, 4)
+        compact.FramePadding = ImVec2(4, 2)
+        compact.CellPadding = ImVec2(2, 2)
+        compact.ItemSpacing = ImVec2(4, 2)
+        compact.ItemInnerSpacing = ImVec2(2, 2)
+        compact.IndentSpacing = 12.0
+        compact.ScrollbarSize = 10.0
+        compact.GrabMinSize = 8.0
+        compact.WindowRounding = 0.0
+        compact.ChildRounding = 0.0
+        compact.FrameRounding = 0.0
+        compact.PopupRounding = 0.0
+        compact.ScrollbarRounding = 0.0
+        compact.GrabRounding = 0.0
+        compact.TabRounding = 0.0
+        compact.WindowBorderSize = 1.0
+        compact.ChildBorderSize = 1.0
+        compact.FrameBorderSize = 0.0
+        compact.Colors[ImGuiCol.WindowBg] = ImVec4(0.08, 0.08, 0.10, 1.0)
+        compact.Colors[ImGuiCol.ChildBg] = ImVec4(0.06, 0.06, 0.08, 1.0)
+        compact.Colors[ImGuiCol.Button] = ImVec4(0.25, 0.25, 0.28, 1.0)
+        compact.Colors[ImGuiCol.ButtonHovered] = ImVec4(0.35, 0.35, 0.40, 1.0)
+        compact.Colors[ImGuiCol.ButtonActive] = ImVec4(0.45, 0.45, 0.50, 1.0)
+        compact.Colors[ImGuiCol.Header] = ImVec4(0.20, 0.20, 0.25, 1.0)
+        compact.Colors[ImGuiCol.HeaderHovered] = ImVec4(0.30, 0.30, 0.35, 1.0)
+        compact.Colors[ImGuiCol.HeaderActive] = ImVec4(0.40, 0.40, 0.45, 1.0)
+        compact.Colors[ImGuiCol.FrameBg] = ImVec4(0.15, 0.15, 0.18, 1.0)
+        compact.Colors[ImGuiCol.FrameBgHovered] = ImVec4(0.22, 0.22, 0.25, 1.0)
+        compact.Colors[ImGuiCol.FrameBgActive] = ImVec4(0.28, 0.28, 0.32, 1.0)
+        compact.Colors[ImGuiCol.SliderGrab] = ImVec4(0.50, 0.50, 0.55, 1.0)
+        compact.Colors[ImGuiCol.SliderGrabActive] = ImVec4(0.65, 0.65, 0.70, 1.0)
+        compact.Colors[ImGuiCol.CheckMark] = ImVec4(0.70, 0.70, 0.75, 1.0)
+        compact.Colors[ImGuiCol.Separator] = ImVec4(0.30, 0.30, 0.35, 1.0)
+        compact.Colors[ImGuiCol.Border] = ImVec4(0.25, 0.25, 0.30, 1.0)
+        iam.StyleRegister(state.style_compact, compact)
+
+        -- Spacious light style - generous spacing, subtle borders
+        local spacious = imgui.StyleColorsLight():Copy()
+        spacious.WindowPadding = ImVec2(16, 16)
+        spacious.FramePadding = ImVec2(12, 6)
+        spacious.CellPadding = ImVec2(8, 6)
+        spacious.ItemSpacing = ImVec2(12, 8)
+        spacious.ItemInnerSpacing = ImVec2(8, 6)
+        spacious.IndentSpacing = 24.0
+        spacious.ScrollbarSize = 16.0
+        spacious.GrabMinSize = 14.0
+        spacious.WindowRounding = 4.0
+        spacious.ChildRounding = 4.0
+        spacious.FrameRounding = 4.0
+        spacious.PopupRounding = 4.0
+        spacious.ScrollbarRounding = 4.0
+        spacious.GrabRounding = 4.0
+        spacious.TabRounding = 4.0
+        spacious.WindowBorderSize = 0.0
+        spacious.ChildBorderSize = 0.0
+        spacious.FrameBorderSize = 1.0
+        spacious.Colors[ImGuiCol.WindowBg] = ImVec4(0.96, 0.96, 0.98, 1.0)
+        spacious.Colors[ImGuiCol.ChildBg] = ImVec4(1.00, 1.00, 1.00, 1.0)
+        spacious.Colors[ImGuiCol.Button] = ImVec4(0.85, 0.85, 0.88, 1.0)
+        spacious.Colors[ImGuiCol.ButtonHovered] = ImVec4(0.78, 0.78, 0.82, 1.0)
+        spacious.Colors[ImGuiCol.ButtonActive] = ImVec4(0.70, 0.70, 0.75, 1.0)
+        spacious.Colors[ImGuiCol.Header] = ImVec4(0.88, 0.88, 0.92, 1.0)
+        spacious.Colors[ImGuiCol.HeaderHovered] = ImVec4(0.80, 0.80, 0.85, 1.0)
+        spacious.Colors[ImGuiCol.HeaderActive] = ImVec4(0.72, 0.72, 0.78, 1.0)
+        spacious.Colors[ImGuiCol.FrameBg] = ImVec4(1.00, 1.00, 1.00, 1.0)
+        spacious.Colors[ImGuiCol.FrameBgHovered] = ImVec4(0.95, 0.95, 0.98, 1.0)
+        spacious.Colors[ImGuiCol.FrameBgActive] = ImVec4(0.90, 0.90, 0.95, 1.0)
+        spacious.Colors[ImGuiCol.SliderGrab] = ImVec4(0.55, 0.55, 0.60, 1.0)
+        spacious.Colors[ImGuiCol.SliderGrabActive] = ImVec4(0.40, 0.40, 0.45, 1.0)
+        spacious.Colors[ImGuiCol.CheckMark] = ImVec4(0.25, 0.25, 0.30, 1.0)
+        spacious.Colors[ImGuiCol.Text] = ImVec4(0.15, 0.15, 0.20, 1.0)
+        spacious.Colors[ImGuiCol.Separator] = ImVec4(0.80, 0.80, 0.85, 1.0)
+        spacious.Colors[ImGuiCol.Border] = ImVec4(0.75, 0.75, 0.80, 1.0)
+        iam.StyleRegister(state.style_spacious, spacious)
+
+        -- Rounded colorful style - pill shapes, vibrant colors
+        local rounded = imgui.StyleColorsDark():Copy()
+        rounded.WindowPadding = ImVec2(12, 12)
+        rounded.FramePadding = ImVec2(10, 5)
+        rounded.CellPadding = ImVec2(6, 4)
+        rounded.ItemSpacing = ImVec2(10, 6)
+        rounded.ItemInnerSpacing = ImVec2(6, 4)
+        rounded.IndentSpacing = 20.0
+        rounded.ScrollbarSize = 14.0
+        rounded.GrabMinSize = 12.0
+        rounded.WindowRounding = 12.0
+        rounded.ChildRounding = 12.0
+        rounded.FrameRounding = 12.0
+        rounded.PopupRounding = 12.0
+        rounded.ScrollbarRounding = 12.0
+        rounded.GrabRounding = 12.0
+        rounded.TabRounding = 12.0
+        rounded.WindowBorderSize = 0.0
+        rounded.ChildBorderSize = 0.0
+        rounded.FrameBorderSize = 0.0
+        rounded.Colors[ImGuiCol.WindowBg] = ImVec4(0.12, 0.08, 0.18, 1.0)
+        rounded.Colors[ImGuiCol.ChildBg] = ImVec4(0.15, 0.10, 0.22, 1.0)
+        rounded.Colors[ImGuiCol.Button] = ImVec4(0.45, 0.25, 0.70, 1.0)
+        rounded.Colors[ImGuiCol.ButtonHovered] = ImVec4(0.55, 0.35, 0.80, 1.0)
+        rounded.Colors[ImGuiCol.ButtonActive] = ImVec4(0.65, 0.45, 0.90, 1.0)
+        rounded.Colors[ImGuiCol.Header] = ImVec4(0.40, 0.22, 0.60, 1.0)
+        rounded.Colors[ImGuiCol.HeaderHovered] = ImVec4(0.50, 0.30, 0.70, 1.0)
+        rounded.Colors[ImGuiCol.HeaderActive] = ImVec4(0.60, 0.40, 0.80, 1.0)
+        rounded.Colors[ImGuiCol.FrameBg] = ImVec4(0.20, 0.14, 0.30, 1.0)
+        rounded.Colors[ImGuiCol.FrameBgHovered] = ImVec4(0.28, 0.20, 0.40, 1.0)
+        rounded.Colors[ImGuiCol.FrameBgActive] = ImVec4(0.35, 0.25, 0.50, 1.0)
+        rounded.Colors[ImGuiCol.SliderGrab] = ImVec4(0.70, 0.45, 0.95, 1.0)
+        rounded.Colors[ImGuiCol.SliderGrabActive] = ImVec4(0.85, 0.60, 1.00, 1.0)
+        rounded.Colors[ImGuiCol.CheckMark] = ImVec4(0.85, 0.55, 1.00, 1.0)
+        rounded.Colors[ImGuiCol.Text] = ImVec4(0.95, 0.92, 1.00, 1.0)
+        rounded.Colors[ImGuiCol.Separator] = ImVec4(0.50, 0.35, 0.70, 1.0)
+        rounded.Colors[ImGuiCol.Border] = ImVec4(0.45, 0.30, 0.65, 1.0)
+        iam.StyleRegister(state.style_rounded, rounded)
+
+        state.styles_registered = true
+    end
+
+    -- Style selector
+    local style_ids = { state.style_compact, state.style_spacious, state.style_rounded }
+    state.from_style = imgui.Combo('From Style', state.from_style, state.style_names, #state.style_names)
+    state.to_style = imgui.Combo('To Style', state.to_style, state.style_names, #state.style_names)
+
+    -- Color space selector (matches iam_color_space enum order)
+    state.color_space_idx = imgui.Combo('Color Space', state.color_space_idx, state.color_space_names, #state.color_space_names)
+    local color_space = state.color_space_values[state.color_space_idx]
+
+    -- Blend control
+    if imgui.Button('Animate') then
+        state.animating = true
+    end
+    imgui.SameLine()
+    state.blend_t = imgui.SliderFloat('Blend', state.blend_t, 0.0, 1.0)
+
+    if state.animating then
+        state.blend_t = state.blend_t + dt * 0.5 * state.anim_dir
+        if state.blend_t >= 1.0 then state.blend_t = 1.0; state.anim_dir = -1.0 end
+        if state.blend_t <= 0.0 then state.blend_t = 0.0; state.anim_dir = 1.0; state.animating = false end
+    end
+
+    -- Apply blended style to a child region
+    imgui.Separator()
+    imgui.Text('Preview (blended style applied to child window):')
+
+    -- Get blended style
+    local blended = iam.StyleBlendTo(style_ids[state.from_style], style_ids[state.to_style], state.blend_t, color_space)
+
+    -- Apply all style vars
+    imgui.PushStyleVar(ImGuiStyleVar.WindowPadding, blended.WindowPadding)
+    imgui.PushStyleVar(ImGuiStyleVar.FramePadding, blended.FramePadding)
+    imgui.PushStyleVar(ImGuiStyleVar.CellPadding, blended.CellPadding)
+    imgui.PushStyleVar(ImGuiStyleVar.ItemSpacing, blended.ItemSpacing)
+    imgui.PushStyleVar(ImGuiStyleVar.ItemInnerSpacing, blended.ItemInnerSpacing)
+    imgui.PushStyleVar(ImGuiStyleVar.IndentSpacing, blended.IndentSpacing)
+    imgui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, blended.ScrollbarSize)
+    imgui.PushStyleVar(ImGuiStyleVar.GrabMinSize, blended.GrabMinSize)
+    imgui.PushStyleVar(ImGuiStyleVar.ChildRounding, blended.ChildRounding)
+    imgui.PushStyleVar(ImGuiStyleVar.FrameRounding, blended.FrameRounding)
+    imgui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, blended.ScrollbarRounding)
+    imgui.PushStyleVar(ImGuiStyleVar.GrabRounding, blended.GrabRounding)
+    imgui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, blended.ChildBorderSize)
+    imgui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, blended.FrameBorderSize)
+
+    -- Apply all colors
+    imgui.PushStyleColor(ImGuiCol.ChildBg, blended.Colors[ImGuiCol.ChildBg])
+    imgui.PushStyleColor(ImGuiCol.Button, blended.Colors[ImGuiCol.Button])
+    imgui.PushStyleColor(ImGuiCol.ButtonHovered, blended.Colors[ImGuiCol.ButtonHovered])
+    imgui.PushStyleColor(ImGuiCol.ButtonActive, blended.Colors[ImGuiCol.ButtonActive])
+    imgui.PushStyleColor(ImGuiCol.FrameBg, blended.Colors[ImGuiCol.FrameBg])
+    imgui.PushStyleColor(ImGuiCol.FrameBgHovered, blended.Colors[ImGuiCol.FrameBgHovered])
+    imgui.PushStyleColor(ImGuiCol.FrameBgActive, blended.Colors[ImGuiCol.FrameBgActive])
+    imgui.PushStyleColor(ImGuiCol.Text, blended.Colors[ImGuiCol.Text])
+    imgui.PushStyleColor(ImGuiCol.Header, blended.Colors[ImGuiCol.Header])
+    imgui.PushStyleColor(ImGuiCol.HeaderHovered, blended.Colors[ImGuiCol.HeaderHovered])
+    imgui.PushStyleColor(ImGuiCol.HeaderActive, blended.Colors[ImGuiCol.HeaderActive])
+    imgui.PushStyleColor(ImGuiCol.SliderGrab, blended.Colors[ImGuiCol.SliderGrab])
+    imgui.PushStyleColor(ImGuiCol.SliderGrabActive, blended.Colors[ImGuiCol.SliderGrabActive])
+    imgui.PushStyleColor(ImGuiCol.CheckMark, blended.Colors[ImGuiCol.CheckMark])
+    imgui.PushStyleColor(ImGuiCol.Separator, blended.Colors[ImGuiCol.Separator])
+    imgui.PushStyleColor(ImGuiCol.Border, blended.Colors[ImGuiCol.Border])
+
+    imgui.BeginChild('StylePreview', ImVec2(0, 280), ImGuiChildFlags.Borders)
+
+    -- Row 1: Buttons
+    imgui.Text('Buttons')
+    imgui.Button('Primary')
+    imgui.SameLine()
+    imgui.Button('Secondary')
+    imgui.SameLine()
+    imgui.SmallButton('Small')
+
+    imgui.Separator()
+
+    -- Row 2: Checkboxes and Radio
+    imgui.Text('Toggles')
+    state.check1 = imgui.Checkbox('Option A', state.check1)
+    imgui.SameLine()
+    state.check2 = imgui.Checkbox('Option B', state.check2)
+    imgui.SameLine()
+    state.check3 = imgui.Checkbox('Option C', state.check3)
+
+    state.radio_val = imgui.RadioButton('Choice 1', state.radio_val, 0)
+    imgui.SameLine()
+    state.radio_val = imgui.RadioButton('Choice 2', state.radio_val, 1)
+    imgui.SameLine()
+    state.radio_val = imgui.RadioButton('Choice 3', state.radio_val, 2)
+
+    imgui.Separator()
+
+    -- Row 3: Sliders and Drags
+    imgui.Text('Sliders & Inputs')
+    state.slider_val = imgui.SliderFloat('Float Slider', state.slider_val, 0.0, 1.0)
+    state.int_val = imgui.SliderInt('Int Slider', state.int_val, 0, 100)
+    state.drag_val = imgui.DragFloat('Drag Float', state.drag_val, 0.5, 0.0, 100.0)
+
+    imgui.Separator()
+
+    -- Row 4: Text input and Combo
+    imgui.Text('Text & Selection')
+    state.text_buf = imgui.InputText('Text Input', state.text_buf)
+    state.combo_val = imgui.Combo('Combo Box', state.combo_val, { 'Item A', 'Item B', 'Item C', 'Item D' }, 4)
+
+    imgui.Separator()
+
+    -- Row 5: Collapsing header
+    if imgui.CollapsingHeader('Collapsible Section') then
+        imgui.Text('Content inside collapsing header')
+        imgui.BulletText('Bullet point 1')
+        imgui.BulletText('Bullet point 2')
+    end
+
+    imgui.EndChild()
+
+    imgui.PopStyleColor(16)
+    imgui.PopStyleVar(14)
+
+    -- Show current interpolated values
+    ApplyOpenAll()
+    if imgui.TreeNode('Interpolated Values') then
+        imgui.Text('Rounding: Frame=%.1f, Child=%.1f, Grab=%.1f',
+            blended.FrameRounding, blended.ChildRounding, blended.GrabRounding)
+        imgui.Text('Padding: Frame=(%.0f,%.0f), Item=(%.0f,%.0f)',
+            blended.FramePadding.x, blended.FramePadding.y,
+            blended.ItemSpacing.x, blended.ItemSpacing.y)
+        imgui.Text('Borders: Frame=%.0f, Child=%.0f',
+            blended.FrameBorderSize, blended.ChildBorderSize)
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================

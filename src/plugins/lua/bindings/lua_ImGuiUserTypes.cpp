@@ -25,6 +25,20 @@
 #include <optional>
 #include <string>
 
+namespace sol
+{
+	template <>
+	struct usertype_container<decltype(ImGuiStyle::Colors)> : sol::container_detail::usertype_container_default<decltype(ImGuiStyle::Colors)>
+	{
+		using T = std::remove_pointer_t<sol::meta::unwrap_unqualified_t<decltype(ImGuiStyle::Colors)>>;
+
+		static std::ptrdiff_t index_adjustment(lua_State*, T&) {
+			return 0;
+		}
+	};
+}
+
+
 namespace mq::lua::bindings {
 
 //============================================================================
@@ -127,7 +141,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(
-		"ImGuiStyle"                                    , sol::no_constructor,
+		"ImGuiStyle"                                    , sol::call_constructor
+		                                                , sol::constructors<ImGuiStyle()>(),
+		"Copy"                                          , [](ImGuiStyle* pThis) -> ImGuiStyle { return *pThis; },
 
 		"FontSizeBase"                                  , &ImGuiStyle::FontSizeBase,
 		"FontScaleMain"                                 , &ImGuiStyle::FontScaleMain,
@@ -195,7 +211,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"AntiAliasedFill"                               , &ImGuiStyle::AntiAliasedFill,
 		"CurveTessellationTol"                          , &ImGuiStyle::CurveTessellationTol,
 		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
-		"Colors"                                        , &ImGuiStyle::Colors,
+		"Colors"                                        , sol::property([](ImGuiStyle* pThis) { return std::ref(pThis->Colors); }),
 
 		// Behaviors
 		"HoverStationaryDelay"                          , &ImGuiStyle::HoverStationaryDelay,
