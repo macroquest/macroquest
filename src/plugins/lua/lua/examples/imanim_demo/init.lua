@@ -4881,9 +4881,343 @@ end
 -- ============================================================
 -- SECTION: Stress Test
 -- ============================================================
+local stress_test_state = {
+    anim_count = 1000,
+    running = false,
+    test_time = 0.0,
+    ms_history = (function() local t = {} for i = 1, 120 do t[i] = 0.0 end return t end)(),
+    ms_idx = 1,
+    min_ms = 0.0,
+    max_ms = 0.0,
+    avg_ms = 0.0,
+    stagger_amount = 0.02,
+    anim_duration = 0.8,
+    item_size = 24.0,
+    items_per_row = 40,
+    float_values = {},
+    vec2_values = {},
+    vec4_values = {},
+
+    test_mode = 1,
+    mode_names = { 'Float Tweens', 'Vec2 Tweens', 'Vec4 Tweens', 'Color Tweens', 'Mixed' },
+
+    -- Stagger and animation parameters (outside running block so they persist)
+    ease_idx = 1,
+    ease_names  = { 'Out Cubic', 'Out Elastic', 'Out Bounce', 'Out Back', 'In Out Quad' },
+    ease_values = { IamEaseType.OutCubic, IamEaseType.OutElastic, IamEaseType.OutBounce, IamEaseType.OutBack, IamEaseType.InOutQuad },
+}
 
 local function ShowStressTestDemo()
-    -- TODO: Implement stress test
+    local state = stress_test_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Stress test the animation system with thousands of concurrent animations. ' ..
+        'Monitor ms/frame to measure performance impact.')
+
+    imgui.Separator()
+
+    -- Configuration
+    imgui.Text('Configuration:')
+    state.anim_count = imgui.SliderInt('Animation Count', state.anim_count, 100, 100000, '%d', ImGuiSliderFlags.Logarithmic)
+    state.test_mode  = imgui.Combo('Test Mode', state.test_mode, state.mode_names, #state.mode_names)
+
+    imgui.Separator()
+
+    -- Controls
+    if not state.running then
+        if imgui.Button('Start Test', 120, 0) then
+            state.running  = true
+            state.test_time = 0.0
+            state.min_ms   = 999.0
+            state.max_ms   = 0.0
+            state.avg_ms   = 0.0
+            for i = 1, 120 do state.ms_history[i] = 0.0 end
+            state.ms_idx   = 0
+        end
+    else
+        if imgui.Button('Stop Test', 120, 0) then
+            state.running = false
+        end
+    end
+    imgui.SameLine()
+    if imgui.Button('Reset Stats', 120, 0) then
+        state.min_ms = 999.0
+        state.max_ms = 0.0
+        state.avg_ms = 0.0
+        for i = 1, 120 do state.ms_history[i] = 0.0 end
+        state.ms_idx = 0
+    end
+
+    imgui.Separator()
+
+    -- Performance display
+    local frame_ms = dt * 1000.0
+
+    if state.running then
+        state.test_time = state.test_time + dt
+        state.ms_history[state.ms_idx + 1] = frame_ms
+        state.ms_idx = (state.ms_idx + 1) % 120
+
+        if frame_ms < state.min_ms and frame_ms > 0.0 then state.min_ms = frame_ms end
+        if frame_ms > state.max_ms then state.max_ms = frame_ms end
+
+        -- Calculate average
+        local sum = 0.0
+        local count = 0
+        for i = 1, 120 do
+            if state.ms_history[i] > 0.0 then
+                sum = sum + state.ms_history[i]
+                count = count + 1
+            end
+        end
+        if count > 0 then state.avg_ms = sum / count end
+    end
+
+    -- Stats display
+    imgui.Text('Performance (ms/frame - lower is better):')
+    imgui.Columns(4, 'perf_cols', false)
+    imgui.Text('Current') imgui.NextColumn()
+    imgui.Text('Min') imgui.NextColumn()
+    imgui.Text('Max') imgui.NextColumn()
+    imgui.Text('Avg') imgui.NextColumn()
+
+    -- Color code based on ms (lower is better: <16.67ms = 60fps, <33.33ms = 30fps)
+    local ms_color
+    if frame_ms <= 16.67 then
+        ms_color = ImVec4(0.2, 1.0, 0.2, 1.0)
+    elseif frame_ms <= 33.33 then
+        ms_color = ImVec4(1.0, 1.0, 0.2, 1.0)
+    else
+        ms_color = ImVec4(1.0, 0.2, 0.2, 1.0)
+    end
+
+    imgui.TextColored(ms_color, '%.2f ms', frame_ms) imgui.NextColumn()
+    imgui.Text('%.2f ms', state.min_ms < 999.0 and state.min_ms or 0.0) imgui.NextColumn()
+    imgui.Text('%.2f ms', state.max_ms) imgui.NextColumn()
+    imgui.Text('%.2f ms', state.avg_ms) imgui.NextColumn()
+    imgui.Columns(1)
+
+    imgui.Text('Test time: %.1f s', state.test_time)
+    if state.running then
+        imgui.Text('Animations: %d | us/anim: %.2f', state.anim_count, (frame_ms * 1000.0) / state.anim_count)
+    end
+
+    -- ms/frame Graph
+    imgui.PlotLines('##ms_graph', state.ms_history, 120, state.ms_idx, 'ms/frame History',
+        0.0, 50.0, ImVec2(imgui.GetContentRegionAvailVec().x, 60))
+
+    imgui.Separator()
+
+    -- Run the stress test
+    if state.running then
+        imgui.Text('Running %d %s...', state.anim_count, state.mode_names[state.test_mode])
+
+        state.stagger_amount = imgui.SliderFloat('Stagger Delay', state.stagger_amount, 0.001, 0.1, '%.3f s')
+        state.anim_duration  = imgui.SliderFloat('Anim Duration', state.anim_duration, 0.1, 2.0, '%.2f s')
+        state.ease_idx = imgui.Combo('Easing', state.ease_idx, state.ease_names, #state.ease_names)
+        local ease_type = state.ease_values[state.ease_idx]
+
+        -- Resize value storage if needed
+        for i = #state.float_values + 1, state.anim_count do state.float_values[i] = 0.0 end
+        for i = #state.vec2_values + 1, state.anim_count do state.vec2_values[i] = ImVec2(0, 0) end
+        for i = #state.vec4_values + 1, state.anim_count do state.vec4_values[i] = ImVec4(0, 0, 0, 0) end
+
+        -- Base ID for stress test animations
+        local base_id = ImHashStr('stress_test')
+
+        -- Profile the tween updates
+        iam.ProfilerBegin('Stress: Tweens')
+
+        -- Each animation has its own phase based on stagger
+        -- They ping-pong between two states independently
+        for i = 0, state.anim_count - 1 do
+            local id = base_id + i
+
+            -- Staggered phase - each animation starts at a different time
+            local stagger_offset = i * state.stagger_amount
+            local local_time = state.test_time - stagger_offset
+            if local_time < 0.0 then local_time = 0.0 end
+
+            -- Ping-pong cycle for this animation
+            local cycle_duration = state.anim_duration * 2.0
+            local cycle_pos = math.fmod(local_time, cycle_duration)
+            local going_up = cycle_pos < state.anim_duration
+
+            -- Determine target based on cycle phase and CAPTURE the animated value
+            if state.test_mode == 1 then -- Float tweens - bounce between 0 and 1
+                local target = going_up and 1.0 or 0.0
+                state.float_values[i + 1] = iam.TweenFloat(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+            elseif state.test_mode == 2 then -- Vec2 tweens - move in unique circular patterns
+                local angle_offset = i * 0.1
+                local radius = going_up and 1.0 or 0.0
+                local angle = angle_offset + (going_up and 0.0 or math.pi)
+                local target = ImVec2(math.cos(angle) * radius, math.sin(angle) * radius)
+                state.vec2_values[i + 1] = iam.TweenVec2(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+            elseif state.test_mode == 3 then -- Vec4 tweens - animate all components
+                local base_hue = (i % 360) / 360.0
+                local target
+                if going_up then
+                    target = ImVec4(base_hue, 0.9, 1.0, 1.0)
+                else
+                    target = ImVec4(math.fmod(base_hue + 0.5, 1.0), 0.3, 0.4, 1.0)
+                end
+                state.vec4_values[i + 1] = iam.TweenVec4(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+            elseif state.test_mode == 4 then -- Color tweens - cycle through hues
+                local base_hue = (i % state.anim_count) / state.anim_count
+                local target_hue = going_up and base_hue or math.fmod(base_hue + 0.33, 1.0)
+                -- Convert hue to RGB
+                local h = target_hue * 6.0
+                local hi = math.floor(h) % 6
+                local f = h - math.floor(h)
+                local r, g, b
+                if     hi == 0 then r = 1.0;     g = f;       b = 0.0
+                elseif hi == 1 then r = 1.0 - f; g = 1.0;     b = 0.0
+                elseif hi == 2 then r = 0.0;     g = 1.0;     b = f
+                elseif hi == 3 then r = 0.0;     g = 1.0 - f; b = 1.0
+                elseif hi == 4 then r = f;       g = 0.0;     b = 1.0
+                else                r = 1.0;     g = 0.0;     b = 1.0 - f
+                end
+                local brightness = going_up and 1.0 or 0.5
+                local target = ImVec4(r * brightness, g * brightness, b * brightness, 1.0)
+                state.vec4_values[i + 1] = iam.TweenColor(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+            elseif state.test_mode == 5 then -- Mixed - different animation per cell (store appropriately)
+                local type_ = i % 4
+                if type_ == 0 then
+                    local target = going_up and 1.0 or 0.0
+                    state.float_values[i + 1] = iam.TweenFloat(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+                elseif type_ == 1 then
+                    local angle_offset = i * 0.15
+                    local target = ImVec2(
+                        going_up and math.cos(angle_offset) or -math.cos(angle_offset),
+                        going_up and math.sin(angle_offset) or -math.sin(angle_offset))
+                    state.vec2_values[i + 1] = iam.TweenVec2(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+                elseif type_ == 2 then
+                    local hue = (i % 100) / 100.0
+                    local target = going_up and ImVec4(hue, 1.0, 0.8, 1.0) or ImVec4(1.0 - hue, 0.3, 0.2, 1.0)
+                    state.vec4_values[i + 1] = iam.TweenVec4(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, dt)
+                elseif type_ == 3 then
+                    local target = going_up and ImVec4(0.2, 0.8, 1.0, 1.0) or ImVec4(1.0, 0.3, 0.2, 1.0)
+                    state.vec4_values[i + 1] = iam.TweenColor(id, 0, target, state.anim_duration, iam.EasePreset(ease_type), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
+                end
+            end
+        end
+
+        iam.ProfilerEnd() -- End "Stress: Tweens"
+
+        -- Visualization - render ALL animations
+        imgui.Separator()
+        imgui.Text('Visualization (%d animations):', state.anim_count)
+
+        -- Configuration for visualization
+        state.item_size     = imgui.SliderFloat('Item Size', state.item_size, 8.0, 60.0)
+        state.items_per_row = imgui.SliderInt('Items Per Row', state.items_per_row, 5, 100)
+
+        -- Profile the rendering
+        iam.ProfilerBegin('Stress: Render')
+
+        -- Calculate grid dimensions
+        local rows = math.floor((state.anim_count + state.items_per_row - 1) / state.items_per_row)
+        local content_width  = state.items_per_row * state.item_size
+        local content_height = rows * state.item_size
+
+        -- Scrollable child region
+        local child_height = 300.0
+        imgui.BeginChild('stress_viz', 0, child_height, ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar)
+
+        local dl = imgui.GetWindowDrawList()
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+
+        -- Reserve space for the content
+        imgui.Dummy(ImVec2(content_width, content_height))
+
+        -- Background
+        dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + content_width, canvas_pos.y + content_height),
+            IM_COL32(20, 20, 30, 255))
+
+        -- Draw grid lines (subtle)
+        for r = 0, rows do
+            local y = canvas_pos.y + r * state.item_size
+            dl:AddLine(ImVec2(canvas_pos.x, y), ImVec2(canvas_pos.x + content_width, y), IM_COL32(40, 40, 50, 255))
+        end
+        for c = 0, state.items_per_row do
+            local x = canvas_pos.x + c * state.item_size
+            dl:AddLine(ImVec2(x, canvas_pos.y), ImVec2(x, canvas_pos.y + content_height), IM_COL32(40, 40, 50, 255))
+        end
+
+        -- Draw each animation as a cell using STORED values (not re-querying the tween)
+        local padding = 2.0
+        for i = 0, state.anim_count - 1 do
+            local grid_col    = i % state.items_per_row
+            local grid_row    = math.floor(i / state.items_per_row)
+            local cx          = canvas_pos.x + grid_col * state.item_size + state.item_size * 0.5
+            local cy          = canvas_pos.y + grid_row * state.item_size + state.item_size * 0.5
+            local cell_left   = canvas_pos.x + grid_col * state.item_size + padding
+            local cell_top    = canvas_pos.y + grid_row * state.item_size + padding
+            local cell_right  = cell_left + state.item_size - padding * 2.0
+            local cell_bottom = cell_top  + state.item_size - padding * 2.0
+
+            if state.test_mode == 1 then -- Float - filled squares based on value
+                local val  = state.float_values[i + 1]
+                local norm = math.max(0.0, math.min(1.0, val))
+                local fill_height = (state.item_size - padding * 2.0) * norm
+                local fill_top    = cell_bottom - fill_height
+                local col_fill    = IM_COL32(80 + math.floor(norm * 175), 120 + math.floor(norm * 80), 255, 255)
+                dl:AddRectFilled(ImVec2(cell_left, fill_top), ImVec2(cell_right, cell_bottom), col_fill)
+            elseif state.test_mode == 2 then -- Vec2 - moving dot within cell
+                local val    = state.vec2_values[i + 1]
+                local nx     = math.max(-1.0, math.min(1.0, val.x))
+                local ny     = math.max(-1.0, math.min(1.0, val.y))
+                local px     = cx + nx * (state.item_size * 0.35)
+                local py     = cy + ny * (state.item_size * 0.35)
+                local radius = state.item_size * 0.25
+                dl:AddCircleFilled(ImVec2(px, py), radius, IM_COL32(100, 255, 150, 255))
+                dl:AddCircle(ImVec2(px, py), radius, IM_COL32(150, 255, 200, 255), 0, 1.5)
+            elseif state.test_mode == 3 then -- Vec4 - colored square
+                local val = state.vec4_values[i + 1]
+                local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                local a   = math.floor(math.max(0.0, math.min(1.0, val.w)) * 255)
+                dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, a > 50 and a or 255))
+            elseif state.test_mode == 4 then -- Color - colored square with border
+                local val = state.vec4_values[i + 1]
+                local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, 255))
+                dl:AddRect(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(255, 255, 255, 100), 0.0, 0, 1.0)
+            elseif state.test_mode == 5 then -- Mixed - different visualization per cell type
+                local type_ = i % 4
+                if type_ == 0 then
+                    local val  = state.float_values[i + 1]
+                    local norm = math.max(0.0, math.min(1.0, val))
+                    local fill_height = (state.item_size - padding * 2.0) * norm
+                    local fill_top    = cell_bottom - fill_height
+                    dl:AddRectFilled(ImVec2(cell_left, fill_top), ImVec2(cell_right, cell_bottom), IM_COL32(80 + math.floor(norm * 175), 120, 255, 255))
+                elseif type_ == 1 then
+                    local val = state.vec2_values[i + 1]
+                    local px  = cx + math.max(-1.0, math.min(1.0, val.x)) * (state.item_size * 0.35)
+                    local py  = cy + math.max(-1.0, math.min(1.0, val.y)) * (state.item_size * 0.35)
+                    dl:AddCircleFilled(ImVec2(px, py), state.item_size * 0.25, IM_COL32(100, 255, 150, 255))
+                else -- case 2 and 3
+                    local val = state.vec4_values[i + 1]
+                    local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                    local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                    local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                    dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, 255))
+                end
+            end
+        end
+
+        imgui.EndChild()
+
+        iam.ProfilerEnd() -- End "Stress: Render"
+    else
+        imgui.TextDisabled("Press 'Start Test' to begin the stress test.")
+    end
+
+    imgui.Separator()
+    imgui.TextDisabled('Note: High animation counts will impact both computation and rendering performance.')
 end
 
 -- ============================================================
