@@ -999,10 +999,10 @@ local function ShowEasingDemo()
 
     -- Background
     draw_list:AddRectFilled(canvas_pos,
-        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        canvas_pos + canvas_size,
         IM_COL32(40, 40, 45, 255))
     draw_list:AddRect(canvas_pos,
-        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        canvas_pos + canvas_size,
         IM_COL32(80, 80, 85, 255))
 
     -- Grid lines
@@ -1622,9 +1622,9 @@ local function ShowBasicTweensDemo()
         local canvas_pos = imgui.GetCursorScreenPosVec()
         local canvas_size = ImVec2(300, 300)
         local draw_list = imgui.GetWindowDrawList()
-        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
             IM_COL32(40, 40, 45, 255))
-        draw_list:AddRect(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        draw_list:AddRect(canvas_pos, canvas_pos + canvas_size,
             IM_COL32(80, 80, 85, 255))
 
         -- Clamp position to canvas
@@ -1939,7 +1939,7 @@ local function ShowPerAxisEasingDemo()
         local canvas_pos = imgui.GetCursorScreenPosVec()
         local canvas_size = ImVec2(500, 200)
         local draw = imgui.GetWindowDrawList()
-        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
         imgui.Dummy(canvas_size)
 
         -- Animate with per-axis easing
@@ -2019,7 +2019,7 @@ local function ShowPerAxisEasingDemo()
         local canvas_pos = imgui.GetCursorScreenPosVec()
         local canvas_size = ImVec2(400, 200)
         local draw = imgui.GetWindowDrawList()
-        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
 
         -- Ground line
         local ground_y = canvas_pos.y + canvas_size.y - 30
@@ -3070,7 +3070,7 @@ local function ShowClipSystemDemo()
         local canvas_size = ImVec2(200, 100)
         local draw_list = imgui.GetWindowDrawList()
 
-        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
             IM_COL32(40, 40, 45, 255))
 
         -- Draw animated square
@@ -3116,7 +3116,7 @@ local function ShowClipSystemDemo()
         local canvas_size = ImVec2(200, 100)
         local draw_list = imgui.GetWindowDrawList()
 
-        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
             IM_COL32(40, 40, 45, 255))
 
         -- Draw animated circle
@@ -4145,10 +4145,10 @@ local function ShowResizeHelpersDemo()
 
         local draw_list = imgui.GetWindowDrawList()
         draw_list:AddRectFilled(canvas_pos,
-            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            canvas_pos + canvas_size,
             IM_COL32(40, 40, 45, 255))
         draw_list:AddRect(canvas_pos,
-            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            canvas_pos + canvas_size,
             IM_COL32(80, 80, 85, 255))
 
         -- Draw orbit path
@@ -4195,10 +4195,10 @@ local function ShowResizeHelpersDemo()
 
         local draw_list = imgui.GetWindowDrawList()
         draw_list:AddRectFilled(canvas_pos,
-            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            canvas_pos + canvas_size,
             IM_COL32(40, 45, 40, 255))
         draw_list:AddRect(canvas_pos,
-            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            canvas_pos + canvas_size,
             IM_COL32(80, 100, 80, 255))
 
         imgui.InvisibleButton('rebase_canvas', canvas_size)
@@ -4464,7 +4464,7 @@ local function ShowLayeringDemo()
         local draw_list = imgui.GetWindowDrawList()
 
         draw_list:AddRectFilled(canvas_pos,
-            ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            canvas_pos + canvas_size,
             IM_COL32(40, 40, 45, 255))
 
         -- Original position
@@ -4775,7 +4775,7 @@ local function ShowAnimationChainingDemo()
     local canvas_pos = imgui.GetCursorScreenPosVec()
     local canvas_size = ImVec2(300, 150)
     local draw = imgui.GetWindowDrawList()
-    draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+    draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
 
     -- Determine which instance is active and get values from it
     local x = 50.0
@@ -4813,16 +4813,237 @@ end
 -- TEXT STAGGER DEMO
 -- ============================================================
 
+local text_stagger_state = {
+    effect_idx = 2,
+    effect_names = { 'None', 'Fade', 'Scale', 'Slide Up', 'Slide Down', 'Slide Left', 'Slide Right',
+        'Rotate', 'Bounce', 'Wave', 'Typewriter'
+    },
+    effect_values = {
+        IamTextStaggerEffect.None, IamTextStaggerEffect.Fade, IamTextStaggerEffect.Scale,
+        IamTextStaggerEffect.SlideUp, IamTextStaggerEffect.SlideDown, IamTextStaggerEffect.SlideLeft,
+        IamTextStaggerEffect.SlideRight, IamTextStaggerEffect.Rotate, IamTextStaggerEffect.Bounce,
+        IamTextStaggerEffect.Wave, IamTextStaggerEffect.Typewriter
+    },
+    char_delay = 0.05,
+    char_duration = 0.3,
+    intensity = 20.0,
+    progress = 0.0,
+    playing = false,
+
+    texts = { 'Fade In', 'Scale Up', 'Slide Up', 'Bounce!', 'Wave~' },
+    effects = { IamTextStaggerEffect.Fade, IamTextStaggerEffect.Scale, IamTextStaggerEffect.SlideUp, IamTextStaggerEffect.Bounce, IamTextStaggerEffect.Wave },
+}
+
 local function ShowTextStaggerDemo()
-    -- TODO: Implement text stagger demo
+    local state = text_stagger_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Text stagger animates text character-by-character with various effects. ' ..
+        'Each character is animated individually with configurable delay and duration.')
+
+    -- Effect selector
+    state.effect_idx = imgui.Combo('Effect', state.effect_idx, state.effect_names, #state.effect_names)
+
+    -- Parameters
+    state.char_delay = imgui.SliderFloat('Char Delay', state.char_delay, 0.01, 0.2, '%.2f s')
+    state.char_duration = imgui.SliderFloat('Char Duration', state.char_duration, 0.1, 1.0, '%.2f s')
+    state.intensity = imgui.SliderFloat('Intensity', state.intensity, 5.0, 50.0, '%.0f')
+
+    -- Animation control
+    if imgui.Button(state.playing and 'Reset##TextStagger' or 'Play##TextStagger') then
+        state.playing = not state.playing
+        state.progress = 0.0
+    end
+    imgui.SameLine()
+    state.progress = imgui.SliderFloat('Progress', state.progress, 0.0, 1.0)
+
+    if state.playing then
+        state.progress = state.progress + dt * 0.5 -- 2 seconds for full animation
+        if state.progress > 1.0 then
+            state.progress = 1.0
+            state.playing = false
+        end
+    end
+
+    -- Demo text
+    local demo_text = 'Hello, ImAnim!'
+
+    imgui.Separator()
+
+    -- Visual demo
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 80.0)
+    local draw_list = imgui.GetWindowDrawList()
+
+    draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+        IM_COL32(30, 30, 40, 255), 4.0)
+
+    local opts = IamTextStaggerOpts()
+    opts.pos = ImVec2(canvas_pos.x + 20.0, canvas_pos.y + canvas_size.y * 0.5 - 10.0)
+    opts.effect = state.effect_values[state.effect_idx]
+    opts.char_delay = state.char_delay
+    opts.char_duration = state.char_duration
+    opts.effect_intensity = state.intensity
+    opts.color = IM_COL32(100, 200, 255, 255)
+
+    iam.TextStagger(imgui.GetID('stagger_demo'), demo_text, state.progress, opts)
+
+    imgui.Dummy(canvas_size)
+
+    -- Duration info
+    local total_duration = iam.TextStaggerDuration(demo_text, opts)
+    imgui.Text('Total Duration: %.2f s', total_duration)
+
+    -- Multiple effect comparison
+    ApplyOpenAll()
+    if imgui.TreeNode('Effect Comparison') then
+        local pos = imgui.GetCursorScreenPosVec()
+        local size = ImVec2(imgui.GetContentRegionAvailVec().x, 300.0)
+        draw_list:AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), IM_COL32(25, 25, 35, 255), 4.0)
+
+        for i = 1, 5 do
+            local o = IamTextStaggerOpts()
+            o.pos = ImVec2(pos.x + 20.0, pos.y + 30.0 + (i - 1) * 55.0)
+            o.effect = state.effects[i]
+            o.char_delay = 0.04
+            o.char_duration = 0.25
+            o.color = IM_COL32(255 - (i - 1) * 30, 150 + (i - 1) * 20, 100 + (i - 1) * 30, 255)
+            iam.TextStagger(imgui.GetID('stagger_cmp_' .. i), state.texts[i], state.progress, o)
+        end
+
+        imgui.Dummy(size)
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
 -- NOISE CHANNELS DEMO
 -- ============================================================
 
+local noise_state = {
+    noise_type_idx = 1,
+    noise_type_names = { 'Perlin', 'Simplex', 'Value', 'Worley' },
+    noise_type_values = { IamNoiseType.Perlin, IamNoiseType.Simplex, IamNoiseType.Value, IamNoiseType.Worley },
+
+    octaves = 4,
+    persistence = 0.5,
+    lacunarity = 2.0,
+    frequency = 1.0,
+    amplitude = 40.0,
+
+    time_offset = 0.0,
+}
+
 local function ShowNoiseChannelsDemo()
-    -- TODO: Implement noise channels demo
+    local state = noise_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Noise channels provide organic, natural-looking movement using Perlin, Simplex, ' ..
+        'or other noise algorithms. Great for idle animations and procedural effects.')
+
+    state.noise_type_idx = imgui.Combo('Noise Type', state.noise_type_idx, state.noise_type_names, #state.noise_type_names)
+    local noise_type = state.noise_type_values[state.noise_type_idx]
+
+    state.octaves = imgui.SliderInt('Octaves', state.octaves, 1, 8)
+    state.persistence = imgui.SliderFloat('Persistence', state.persistence, 0.1, 1.0)
+    state.lacunarity = imgui.SliderFloat('Lacunarity', state.lacunarity, 1.0, 4.0)
+
+    state.frequency = imgui.SliderFloat('Frequency', state.frequency, 0.1, 5.0, '%.1f Hz')
+    state.amplitude = imgui.SliderFloat('Amplitude', state.amplitude, 10.0, 100.0, '%.0f px')
+
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('2D Noise Visualization') then
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(200, 200)
+        local draw_list = imgui.GetWindowDrawList()
+
+        local opts = IamNoiseOpts()
+        opts.type = noise_type
+        opts.octaves = state.octaves
+        opts.persistence = state.persistence
+        opts.lacunarity = state.lacunarity
+
+        state.time_offset = state.time_offset + dt * 0.5
+
+        local res = 50
+        local cell_w = canvas_size.x / res
+        local cell_h = canvas_size.y / res
+
+        for y = 0, res - 1 do
+            for x = 0, res - 1 do
+                local nx = x * 0.1 + state.time_offset
+                local ny = y * 0.1
+                local n = iam.Noise2D(nx, ny, opts)
+                n = (n + 1.0) * 0.5
+                local c = math.floor(n * 255)
+                local p0 = ImVec2(canvas_pos.x + x * cell_w, canvas_pos.y + y * cell_h)
+                local p1 = ImVec2(p0.x + cell_w, p0.y + cell_h)
+                draw_list:AddRectFilled(p0, p1, IM_COL32(c, c, c, 255))
+            end
+        end
+
+        draw_list:AddRect(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(100, 100, 100, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Animated Noise Channel') then
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 120.0)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(30, 30, 40, 255), 4.0)
+
+        local center_y = canvas_pos.y + canvas_size.y * 0.5
+        draw_list:AddLine(ImVec2(canvas_pos.x, center_y), ImVec2(canvas_pos.x + canvas_size.x, center_y),
+            IM_COL32(80, 80, 80, 100))
+
+        local colors = {
+            IM_COL32(255, 100, 100, 255),
+            IM_COL32(100, 255, 100, 255),
+            IM_COL32(100, 100, 255, 255),
+            IM_COL32(255, 255, 100, 255)
+        }
+
+        for i = 0, 3 do
+            local x = canvas_pos.x + 50.0 + i * (canvas_size.x - 100.0) / 3.0
+            local opts = IamNoiseOpts()
+            opts.type = noise_type
+            opts.octaves = state.octaves
+            opts.persistence = state.persistence
+            opts.lacunarity = state.lacunarity
+            opts.seed = i * 12345
+            local offset = iam.NoiseChannelFloat(imgui.GetID('noise_demo_' .. i), state.frequency, state.amplitude, opts, dt)
+            draw_list:AddCircleFilled(ImVec2(x, center_y + offset), 12.0, colors[i + 1])
+            draw_list:AddCircle(ImVec2(x, center_y + offset), 12.0, IM_COL32(255, 255, 255, 100), 0, 2.0)
+        end
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    ApplyOpenAll()
+    if imgui.TreeNode('2D Noise Movement') then
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(200.0, 200.0)
+        local center = ImVec2(canvas_pos.x + canvas_size.x * 0.5, canvas_pos.y + canvas_size.y * 0.5)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(30, 30, 40, 255), 4.0)
+
+        local offset = iam.SmoothNoiseVec2(imgui.GetID('smooth_2d'), ImVec2(state.amplitude, state.amplitude), state.frequency, dt)
+        draw_list:AddCircleFilled(ImVec2(center.x + offset.x, center.y + offset.y), 15.0, IM_COL32(100, 200, 255, 255))
+
+        draw_list:AddCircle(center, 3.0, IM_COL32(100, 100, 100, 150))
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
@@ -4847,7 +5068,9 @@ local style_interpolation_state = {
     animating = false,
     anim_dir = 1.0,
 
-    check1 = true, check2 = false, check3 = true,
+    check1 = true,
+    check2 = false,
+    check3 = true,
     radio_val = 0,
     slider_val = 0.5,
     int_val = 50,
@@ -5191,7 +5414,7 @@ local function ShowDragFeedbackDemo()
             state.drag_pos = feedback.position
         elseif state.dragging then
             local opts = IamDragOpts()
-            opts.snap_grid = ImVec2(gs, gs)
+            opts.snap_grid = ImVec2(state.grid_size, state.grid_size)
             opts.snap_duration = state.snap_duration
             opts.overshoot = state.overshoot
             opts.ease_type = ease_type
@@ -5205,7 +5428,7 @@ local function ShowDragFeedbackDemo()
         else
             -- Continue snapping animation if active
             local opts = IamDragOpts()
-            opts.snap_grid = ImVec2(gs, gs)
+            opts.snap_grid = ImVec2(state.grid_size, state.grid_size)
             opts.snap_duration = state.snap_duration
             opts.overshoot = state.overshoot
             opts.ease_type = ease_type
@@ -5225,7 +5448,7 @@ local function ShowDragFeedbackDemo()
         imgui.TreePop()
     end
 
-    -- SSnap points demo
+    -- Snap points demo
     ApplyOpenAll()
     if imgui.TreeNode('Snap Points') then
         local canvas_pos = imgui.GetCursorScreenPosVec()
