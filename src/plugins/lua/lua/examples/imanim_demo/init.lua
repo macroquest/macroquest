@@ -2207,20 +2207,20 @@ end
 -- SECTION: Interactive Widgets
 -- ============================================================
 local widgets_demo_state = {
-    toggle         = false,
+    toggle = false,
     -- Animated Buttons channel IDs
-    alpha_id       = ImHashStr('alpha'),
-    scale_id       = ImHashStr('scale'),
-    offset_id      = ImHashStr('offset'),
-    color_id       = ImHashStr('color'),
+    alpha_id = ImHashStr('alpha'),
+    scale_id = ImHashStr('scale'),
+    offset_id = ImHashStr('offset'),
+    color_id = ImHashStr('color'),
     -- Animated Toggle IDs
-    toggle_id      = ImHashStr('toggle_demo'),
-    bg_id          = ImHashStr('bg'),
-    knob_id        = ImHashStr('knob'),
+    toggle_id = ImHashStr('toggle_demo'),
+    bg_id = ImHashStr('bg'),
+    knob_id = ImHashStr('knob'),
     -- Hover Card IDs
-    card_id        = ImHashStr('card_demo'),
-    elevation_id   = ImHashStr('elevation'),
-    lift_id        = ImHashStr('lift'),
+    card_id = ImHashStr('card_demo'),
+    elevation_id = ImHashStr('elevation'),
+    lift_id = ImHashStr('lift'),
 }
 
 local function ShowWidgetsDemo()
@@ -4278,7 +4278,7 @@ end
 local LAYER_CLIP_A = 0x3001
 local LAYER_CLIP_B = 0x3002
 local LAYER_CLIP_C = 0x3003
-local LAYER_CH_X   = 0x3101
+local LAYER_CH_X = 0x3101
 
 local s_layer_clips_initialized = false
 
@@ -4836,25 +4836,650 @@ end
 -- ============================================================
 -- DRAG FEEDBACK DEMO
 -- ============================================================
+local drag_state = {
+    drag_pos = ImVec2(100, 60),
+    dragging = false,
+    grid_size = 50.0,
+    snap_duration = 0.3,
+    overshoot = 0.5,
+    drag_pos2 = ImVec2(150, 100),
+    dragging2 = false,
+
+    ease_idx = 1,
+    ease_names = { 'Out Cubic', 'Out Back', 'Out Elastic', 'Out Bounce' },
+    ease_values = { IamEaseType.OutCubic, IamEaseType.OutBack, IamEaseType.OutElastic, IamEaseType.OutBounce },
+
+    snap_points = {
+        ImVec2(50, 50),  ImVec2(150, 50),  ImVec2(250, 50),
+        ImVec2(50, 150), ImVec2(150, 150), ImVec2(250, 150),
+        ImVec2(50, 250), ImVec2(150, 250), ImVec2(250, 250),
+    },
+}
 
 local function ShowDragFeedbackDemo()
-    -- TODO: Implement drag feedback demo
+    local state = drag_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Drag feedback provides animated visual response during drag operations. ' ..
+        'Features include grid snapping, snap points, overshoot, and velocity tracking.')
+
+    imgui.Spacing()
+
+    -- Snap grid demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Grid Snapping') then
+        state.grid_size = imgui.SliderFloat('Grid Size', state.grid_size, 20.0, 100.0)
+        state.snap_duration = imgui.SliderFloat('Snap Duration', state.snap_duration, 0.1, 0.8)
+        state.overshoot = imgui.SliderFloat('Overshoot', state.overshoot, 0.0, 2.0)
+        state.ease_idx = imgui.Combo('Easing', state.ease_idx, state.ease_names, #state.ease_names)
+        local ease_type = state.ease_values[state.ease_idx]
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 200.0)
+        local draw_list = imgui.GetWindowDrawList()
+
+        -- Background
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255), 4.0)
+
+        -- Draw grid
+        for x = 0, canvas_size.x, state.grid_size do
+            draw_list:AddLine(ImVec2(canvas_pos.x + x, canvas_pos.y),
+                ImVec2(canvas_pos.x + x, canvas_pos.y + canvas_size.y),
+                IM_COL32(60, 60, 70, 150))
+        end
+        for y = 0, canvas_size.y, state.grid_size do
+            draw_list:AddLine(ImVec2(canvas_pos.x, canvas_pos.y + y),
+                ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + y),
+                IM_COL32(60, 60, 70, 150))
+        end
+
+        -- Handle dragging
+        imgui.InvisibleButton('drag_canvas', canvas_size)
+        local drag_id = imgui.GetID('grid_drag')
+
+        if imgui.IsItemActive() and imgui.IsMouseDragging(0) then
+            local mouse_pos = imgui.GetMousePosVec()
+            local relative_pos = mouse_pos - canvas_pos
+
+            if not state.dragging then
+                iam.DragBegin(drag_id, relative_pos)
+                state.dragging = true
+            end
+            local feedback = iam.DragUpdate(drag_id, relative_pos, dt)
+            state.drag_pos = feedback.position
+        elseif state.dragging then
+            local opts = IamDragOpts()
+            opts.snap_grid = ImVec2(gs, gs)
+            opts.snap_duration = state.snap_duration
+            opts.overshoot = state.overshoot
+            opts.ease_type = ease_type
+
+            local feedback = iam.DragRelease(drag_id, state.drag_pos, opts, dt)
+            state.drag_pos = feedback.position
+
+            if not feedback.is_snapping then
+                state.dragging = false
+            end
+        else
+            -- Continue snapping animation if active
+            local opts = IamDragOpts()
+            opts.snap_grid = ImVec2(gs, gs)
+            opts.snap_duration = state.snap_duration
+            opts.overshoot = state.overshoot
+            opts.ease_type = ease_type
+
+            local feedback = iam.DragRelease(drag_id, state.drag_pos, opts, dt)
+            state.drag_pos = feedback.position
+        end
+
+        -- Draw draggable object
+        local obj_pos = canvas_pos + state.drag_pos
+        local obj_color = state.dragging and IM_COL32(255, 200, 100, 255) or IM_COL32(100, 200, 255, 255)
+        draw_list:AddCircleFilled(obj_pos, 15.0, obj_color)
+        draw_list:AddCircle(obj_pos, 15.0, IM_COL32(255, 255, 255, 150), 0, 2.0)
+
+        imgui.TextDisabled('Drag the circle and release to see it snap to grid')
+
+        imgui.TreePop()
+    end
+
+    -- SSnap points demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Snap Points') then
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 300.0)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255), 4.0)
+
+        -- Draw snap points
+        for _, snap_point in ipairs(state.snap_points) do
+            local pt = canvas_pos + snap_point
+            draw_list:AddCircleFilled(pt, 6.0, IM_COL32(80, 80, 100, 255))
+            draw_list:AddCircle(pt, 6.0, IM_COL32(120, 120, 140, 255))
+        end
+
+        -- Handle dragging
+        imgui.InvisibleButton('snap_canvas', canvas_size)
+        local drag_id = imgui.GetID('points_drag')
+
+        if imgui.IsItemActive() and imgui.IsMouseDragging(0) then
+            local relative_pos = imgui.GetMousePosVec() - canvas_pos
+
+            if not state.dragging2 then
+                iam.DragBegin(drag_id, relative_pos)
+                state.dragging2 = true
+            end
+            local feedback = iam.DragUpdate(drag_id, relative_pos, dt)
+            state.drag_pos2 = feedback.position
+        elseif state.dragging2 then
+            local opts = IamDragOpts()
+            opts.snap_points = state.snap_points
+            opts.snap_duration = 0.25
+            opts.overshoot = 0.3
+            opts.ease_type = IamEaseType.OutBack
+
+            local feedback = iam.DragRelease(drag_id, state.drag_pos2, opts, dt)
+            state.drag_pos2 = feedback.position
+
+            if not feedback.is_snapping then
+                state.dragging2 = false
+            end
+        else
+            local opts = IamDragOpts()
+            opts.snap_points = state.snap_points
+            opts.snap_duration = 0.25
+            opts.overshoot = 0.3
+            opts.ease_type = IamEaseType.OutBack
+
+            local feedback = iam.DragRelease(drag_id, state.drag_pos2, opts, dt)
+            state.drag_pos2 = feedback.position
+        end
+
+        -- Draw draggable object
+        local obj_pos = canvas_pos + state.drag_pos2
+        local obj_color = state.dragging2 and IM_COL32(255, 200, 100, 255) or IM_COL32(200, 100, 255, 255)
+        draw_list:AddCircleFilled(obj_pos, 12.0, obj_color)
+
+        imgui.TextDisabled('Drag to snap to nearest point')
+
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
 -- GRADIENT KEYFRAMES DEMO
 -- ============================================================
+local gradient_state = {
+    blend = 0.5,
+    -- Create two gradients
+    grad_a = IamGradient()
+        :Add(0.0, ImVec4(1.0, 0.0, 0.0, 1.0))   -- Red
+        :Add(0.5, ImVec4(1.0, 1.0, 0.0, 1.0))   -- Yellow
+        :Add(1.0, ImVec4(0.0, 1.0, 0.0, 1.0)),  -- Green
+
+    grad_b = IamGradient()
+        :Add(0.0, ImVec4(0.0, 0.5, 1.0, 1.0))   -- Blue
+        :Add(0.5, ImVec4(0.5, 0.0, 1.0, 1.0))   -- Purple
+        :Add(1.0, ImVec4(1.0, 0.0, 0.5, 1.0)),  -- Pink
+
+    gradient_names = { 'Sunset', 'Ocean', 'Forest', 'Neon' },
+    target_idx = 1,
+    -- Define gradient presets
+    presets = {
+        -- Sunset
+        IamGradient()
+            :Add(0.0, ImVec4(1.0, 0.3, 0.0, 1.0))
+            :Add(0.5, ImVec4(1.0, 0.6, 0.2, 1.0))
+            :Add(1.0, ImVec4(0.4, 0.1, 0.3, 1.0)),
+        -- Ocean
+        IamGradient()
+            :Add(0.0, ImVec4(0.0, 0.3, 0.6, 1.0))
+            :Add(0.5, ImVec4(0.0, 0.6, 0.8, 1.0))
+            :Add(1.0, ImVec4(0.0, 0.9, 0.9, 1.0)),
+        -- Forest
+        IamGradient()
+            :Add(0.0, ImVec4(0.1, 0.3, 0.1, 1.0))
+            :Add(0.5, ImVec4(0.2, 0.6, 0.2, 1.0))
+            :Add(1.0, ImVec4(0.5, 0.8, 0.3, 1.0)),
+        -- Neon
+        IamGradient()
+            :Add(0.0, ImVec4(1.0, 0.0, 1.0, 1.0))
+            :Add(0.33, ImVec4(0.0, 1.0, 1.0, 1.0))
+            :Add(0.66, ImVec4(1.0, 1.0, 0.0, 1.0))
+            :Add(1.0, ImVec4(1.0, 0.0, 1.0, 1.0))
+    },
+
+    health = 0.75,
+    -- Gradient from red (low) to yellow (mid) to green (high)
+    health_gradient = IamGradient()
+        :Add(0.0,  ImVec4(0.8, 0.1, 0.1, 1.0))  -- Red (critical)
+        :Add(0.25, ImVec4(0.9, 0.4, 0.1, 1.0))  -- Orange (low)
+        :Add(0.5,  ImVec4(0.9, 0.9, 0.2, 1.0))  -- Yellow (medium)
+        :Add(0.75, ImVec4(0.4, 0.8, 0.3, 1.0))  -- Light green
+        :Add(1.0,  ImVec4(0.2, 0.7, 0.2, 1.0)), -- Green (full)
+}
 
 local function ShowGradientKeyframesDemo()
-    -- TODO: Implement gradient keyframes demo
+    local state = gradient_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Gradient keyframes allow you to interpolate between multi-stop color gradients, ' ..
+        'not just single colors. Great for animated backgrounds, health bars, and color themes.')
+
+    -- Demo 1: Basic gradient interpolation
+    ApplyOpenAll()
+    if imgui.TreeNode('Basic Gradient Interpolation') then
+        state.blend = imgui.SliderFloat('Blend##GradientBasic', state.blend, 0.0, 1.0)
+
+        local result = iam.GradientLerp(state.grad_a, state.grad_b, state.blend)
+
+        -- Draw gradient bar
+        local bar_pos = imgui.GetCursorScreenPosVec()
+        local bar_size = ImVec2(300.0, 30.0)
+        local draw = imgui.GetWindowDrawList()
+
+        local segs = 50
+        for i = 1, segs do
+            local t0 = (i - 1) / segs
+            local t1 = i / segs
+            local c0 = result:Sample(t0)
+            local c1 = result:Sample(t1)
+            local col0 = imgui.ColorConvertFloat4ToU32(c0)
+            local col1 = imgui.ColorConvertFloat4ToU32(c1)
+            draw:AddRectFilledMultiColor(
+                ImVec2(bar_pos.x + t0 * bar_size.x, bar_pos.y),
+                ImVec2(bar_pos.x + t1 * bar_size.x, bar_pos.y + bar_size.y),
+                col0, col1, col1, col0)
+        end
+        imgui.Dummy(bar_size)
+
+        imgui.TextDisabled('Top gradient: Red -> Yellow -> Green')
+        imgui.TextDisabled('Bottom gradient: Blue -> Purple -> Pink')
+        imgui.TreePop()
+    end
+
+    -- Demo 2: Animated gradient tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Gradient Tween') then
+
+        for i = 1, 4 do
+            if imgui.RadioButton(state.gradient_names[i], state.target_idx == i) then
+                state.target_idx = i
+            end
+            if i < 4 then imgui.SameLine() end
+        end
+
+        local current = iam.TweenGradient(
+            imgui.GetID('gradient_tween'),
+            imgui.GetID('ch_gradient'),
+            state.presets[state.target_idx],
+            0.8,
+            iam.EasePreset(IamEaseType.OutCubic),
+            IamPolicy.Crossfade,
+            IamColorSpace.OKLAB,
+            dt
+        )
+
+        -- Draw animated gradient bar
+        local bar_pos = imgui.GetCursorScreenPosVec()
+        local bar_size = ImVec2(300.0, 40.0)
+        local draw = imgui.GetWindowDrawList()
+
+        local segs = 60
+        for i = 1, segs do
+            local t0 = (i - 1) / segs
+            local t1 = i / segs
+            local c0 = current:Sample(t0)
+            local c1 = current:Sample(t1)
+            local col0 = imgui.ColorConvertFloat4ToU32(c0)
+            local col1 = imgui.ColorConvertFloat4ToU32(c1)
+            draw:AddRectFilledMultiColor(
+                ImVec2(bar_pos.x + t0 * bar_size.x, bar_pos.y),
+                ImVec2(bar_pos.x + t1 * bar_size.x, bar_pos.y + bar_size.y),
+                col0, col1, col1, col0)
+        end
+        imgui.Dummy(bar_size)
+
+        imgui.TextDisabled('Click presets to see smooth gradient transitions.')
+        imgui.TreePop()
+    end
+
+    -- Demo 3: Health bar with gradient
+    ApplyOpenAll()
+    if imgui.TreeNode('Health Bar with Gradient') then
+        state.health = imgui.SliderFloat('Health', state.health, 0.0, 1.0)
+
+        -- Draw health bar
+        local bar_pos = imgui.GetCursorScreenPosVec()
+        local bar_size = ImVec2(250.0, 25.0)
+        local draw = imgui.GetWindowDrawList()
+
+        draw:AddRectFilled(bar_pos, bar_pos + bar_size, IM_COL32(40, 40, 40, 255), 4.0)
+
+        -- Filled portion with gradient
+        local segs = 30
+        local fill_width = bar_size.x * state.health
+        for i = 1, segs do
+            local t0 = (i - 1) / segs
+            local t1 = i / segs
+            if t1 * bar_size.x > fill_width then break end
+
+            local sample_t = t0 * state.health  -- Sample gradient based on fill position
+            local col = state.health_gradient:Sample(sample_t + (1.0 - state.health) * 0.5)
+            local c = imgui.ColorConvertFloat4ToU32(col)
+            draw:AddRectFilled(
+                ImVec2(bar_pos.x + t0 * bar_size.x, bar_pos.y),
+                ImVec2(bar_pos.x + math.min(t1 * bar_size.x, fill_width), bar_pos.y + bar_size.y),
+                c, 4.0)
+        end
+
+        -- Border
+        draw:AddRect(bar_pos, bar_pos + bar_size,
+            IM_COL32(100, 100, 100, 255), 4.0)
+
+        imgui.Dummy(bar_size)
+        imgui.TextDisabled('Health bar color changes based on value.')
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
 -- TRANSFORM INTERPOLATION DEMO
 -- ============================================================
+local transform_state = {
+    blend = 0.5,
+    t_a = IamTransform(ImVec2(50.0, 50.0), 0.0, ImVec2(1.0, 1.0)),
+    t_b = IamTransform(ImVec2(200.0, 80.0), 1.57, ImVec2(1.5, 0.5)),
+
+    pose_names = { 'Center', 'Top-Left', 'Bottom-Right', 'Spinning' },
+    pose_idx = 1,
+    poses = {
+        -- Center (default)
+        IamTransform(ImVec2(150.0, 75.0), 0.0, ImVec2(1.0, 1.0)),
+        -- Top-left
+        IamTransform(ImVec2(50.0, 30.0), -0.3, ImVec2(0.7, 0.7)),
+        -- Bottom-right
+        IamTransform(ImVec2(250.0, 120.0), 0.5, ImVec2(1.3, 1.3)),
+        -- Spinning (rotated 180 degrees)
+        IamTransform(ImVec2(150.0, 75.0), 3.14159, ImVec2(1.0, 1.0)),
+    },
+
+    rotation_mode = 0,
+    target_angle = 0.0,
+    time = 0.0,
+}
 
 local function ShowTransformInterpolationDemo()
-    -- TODO: Implement transform interpolation demo
+    local state = transform_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Transform interpolation allows you to blend 2D transforms (position, rotation, scale) ' ..
+        'with proper shortest-path rotation. Great for UI elements, sprites, and complex animations.')
+
+    -- Demo 1: Basic transform interpolation
+    ApplyOpenAll()
+    if imgui.TreeNode('Basic Transform Blend') then
+        state.blend = imgui.SliderFloat('Blend##TransformBasic', state.blend, 0.0, 1.0)
+
+        local result = iam.TransformLerp(state.t_a, state.t_b, state.blend)
+
+        -- Draw canvas
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 150.0)
+        local draw = imgui.GetWindowDrawList()
+
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+
+        -- Draw transformed rectangle
+        local hw = 30.0 * result.scale.x
+        local hh = 20.0 * result.scale.y
+        local cos_r = math.cos(result.rotation)
+        local sin_r = math.sin(result.rotation)
+
+        local center = canvas_pos + result.position
+        local corners = {
+            ImVec2(-hw, -hh), ImVec2(hw, -hh), ImVec2(hw, hh), ImVec2(-hw, hh)
+        }
+
+        local transformed = {
+            ImVec2(center.x + corners[1].x * cos_r - corners[1].y * sin_r, center.y + corners[1].x * sin_r + corners[1].y * cos_r),
+            ImVec2(center.x + corners[2].x * cos_r - corners[2].y * sin_r, center.y + corners[2].x * sin_r + corners[2].y * cos_r),
+            ImVec2(center.x + corners[3].x * cos_r - corners[3].y * sin_r, center.y + corners[3].x * sin_r + corners[3].y * cos_r),
+            ImVec2(center.x + corners[4].x * cos_r - corners[4].y * sin_r, center.y + corners[4].x * sin_r + corners[4].y * cos_r),
+        }
+
+        draw:AddQuadFilled(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(100, 150, 255, 200))
+        draw:AddQuad(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(150, 200, 255, 255), 2.0)
+
+        imgui.Dummy(canvas_size)
+        imgui.TextDisabled('Blending position, rotation (90 deg), and non-uniform scale.')
+        imgui.TreePop()
+    end
+
+    -- Demo 2: Animated transform tween
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Transform Tween') then
+        for i = 1, 4 do
+            if imgui.RadioButton(state.pose_names[i], state.pose_idx == i) then
+                state.pose_idx = i
+            end
+            if i < 4 then imgui.SameLine() end
+        end
+
+        local current = iam.TweenTransform(
+            imgui.GetID('transform_tween'),
+            imgui.GetID('ch_transform'),
+            state.poses[state.pose_idx],
+            0.6,
+            iam.EasePreset(IamEaseType.OutBack),
+            IamPolicy.Crossfade,
+            IamRotationMode.Shortest,
+            dt
+        )
+
+        -- Draw canvas
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 150.0)
+        local draw = imgui.GetWindowDrawList()
+
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+
+        -- Draw animated rectangle
+        local hw = 25.0 * current.scale.x
+        local hh = 25.0 * current.scale.y
+        local cos_r = math.cos(current.rotation)
+        local sin_r = math.sin(current.rotation)
+
+        local center = canvas_pos + current.position
+        local corners = {
+            ImVec2(-hw, -hh), ImVec2(hw, -hh), ImVec2(hw, hh), ImVec2(-hw, hh)
+        }
+        local transformed = {
+            ImVec2(center.x + corners[1].x * cos_r - corners[1].y * sin_r, center.y + corners[1].x * sin_r + corners[1].y * cos_r),
+            ImVec2(center.x + corners[2].x * cos_r - corners[2].y * sin_r, center.y + corners[2].x * sin_r + corners[2].y * cos_r),
+            ImVec2(center.x + corners[3].x * cos_r - corners[3].y * sin_r, center.y + corners[3].x * sin_r + corners[3].y * cos_r),
+            ImVec2(center.x + corners[4].x * cos_r - corners[4].y * sin_r, center.y + corners[4].x * sin_r + corners[4].y * cos_r),
+        }
+
+        draw:AddQuadFilled(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(255, 150, 100, 200))
+        draw:AddQuad(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(255, 200, 150, 255), 2.0)
+
+        -- Draw direction indicator
+        local arrow_end = ImVec2(center.x + 20.0 * cos_r, center.y + 20.0 * sin_r)
+        draw:AddLine(center, arrow_end, IM_COL32(255, 255, 255, 255), 2.0)
+
+        imgui.Dummy(canvas_size)
+        imgui.TextDisabled('Uses IamRotationMode.Shortest (default).')
+        imgui.TreePop()
+    end
+
+    -- Demo 3: Rotation Modes
+    ApplyOpenAll()
+    if imgui.TreeNode('Rotation Modes') then
+        imgui.Text('Rotation Mode:')
+        state.rotation_mode = imgui.RadioButton('Shortest##RotMode', state.rotation_mode, IamRotationMode.Shortest)
+        imgui.SameLine()
+        state.rotation_mode = imgui.RadioButton('Longest##RotMode', state.rotation_mode, IamRotationMode.Longest)
+        imgui.SameLine()
+        state.rotation_mode = imgui.RadioButton('Clockwise##RotMode', state.rotation_mode, IamRotationMode.CW)
+        state.rotation_mode = imgui.RadioButton('Counter-CW##RotMode', state.rotation_mode, IamRotationMode.CCW)
+        imgui.SameLine()
+        state.rotation_mode = imgui.RadioButton('Direct##RotMode', state.rotation_mode, IamRotationMode.Direct)
+
+        imgui.Separator()
+        imgui.Text('Target Angle:')
+        if imgui.Button('0 deg') then state.target_angle = 0.0 end
+        imgui.SameLine()
+        if imgui.Button('90 deg') then state.target_angle = 1.5708 end
+        imgui.SameLine()
+        if imgui.Button('180 deg') then state.target_angle = 3.14159 end
+        imgui.SameLine()
+        if imgui.Button('270 deg') then state.target_angle = 4.7124 end
+        imgui.SameLine()
+        if imgui.Button('360 deg') then state.target_angle = 6.28318 end
+
+        local target = IamTransform(ImVec2(150.0, 75.0), state.target_angle, ImVec2(1.0, 1.0))
+        local current = iam.TweenTransform(
+            imgui.GetID('rotation_mode_demo'),
+            imgui.GetID('ch_rot_mode'),
+            target,
+            1.0,
+            iam.EasePreset(IamEaseType.OutCubic),
+            IamPolicy.Crossfade,
+            state.rotation_mode,
+            dt
+        )
+
+        -- Draw canvas
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 150.0)
+        local draw = imgui.GetWindowDrawList()
+
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+
+        -- Draw animated rectangle
+        local hw = 40.0
+        local hh = 25.0
+        local cos_r = math.cos(current.rotation)
+        local sin_r = math.sin(current.rotation)
+
+        local center = canvas_pos + current.position
+        local corners = {
+            ImVec2(-hw, -hh), ImVec2(hw, -hh), ImVec2(hw, hh), ImVec2(-hw, hh)
+        }
+        local transformed = {
+            ImVec2(center.x + corners[1].x * cos_r - corners[1].y * sin_r, center.y + corners[1].x * sin_r + corners[1].y * cos_r),
+            ImVec2(center.x + corners[2].x * cos_r - corners[2].y * sin_r, center.y + corners[2].x * sin_r + corners[2].y * cos_r),
+            ImVec2(center.x + corners[3].x * cos_r - corners[3].y * sin_r, center.y + corners[3].x * sin_r + corners[3].y * cos_r),
+            ImVec2(center.x + corners[4].x * cos_r - corners[4].y * sin_r, center.y + corners[4].x * sin_r + corners[4].y * cos_r),
+        }
+
+        draw:AddQuadFilled(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(100, 200, 150, 200))
+        draw:AddQuad(transformed[1], transformed[2], transformed[3], transformed[4],
+            IM_COL32(150, 255, 200, 255), 2.0)
+
+        -- Draw direction indicator
+        local arrow_end = ImVec2(center.x + 30.0 * cos_r, center.y + 30.0 * sin_r)
+        draw:AddLine(center, arrow_end, IM_COL32(255, 255, 255, 255), 2.0)
+        draw:AddCircleFilled(arrow_end, 4.0, IM_COL32(255, 255, 255, 255))
+
+        imgui.Dummy(canvas_size)
+
+        -- Display current angle
+        local deg = current.rotation * 57.2958
+        imgui.Text('Current: %.1f deg (%.2f rad)', deg, current.rotation)
+
+        imgui.TextDisabled('Shortest: takes the short way (<180 deg)')
+        imgui.TextDisabled('Longest: takes the long way (>180 deg)')
+        imgui.TextDisabled('CW/CCW: always rotates in one direction')
+        imgui.TextDisabled('Direct: raw lerp (can spin multiple times)')
+        imgui.TreePop()
+    end
+
+    -- Demo 3: Transform composition
+    ApplyOpenAll()
+    if imgui.TreeNode('Transform Composition') then
+        state.time = state.time + dt
+
+        -- Parent transform (orbiting)
+        local parent = IamTransform(
+            ImVec2(150.0, 75.0),
+            state.time * 0.5,
+            ImVec2(1.0, 1.0))
+
+        -- Child transform (relative to parent)
+        local child = IamTransform(
+            ImVec2(50.0, 0.0),  -- Offset from parent
+            state.time * 2.0,   -- Spinning faster
+            ImVec2(0.5, 0.5))
+
+        -- Compose transforms
+        local composed = parent * child
+
+        -- Draw canvas
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(300.0, 150.0)
+        local draw = imgui.GetWindowDrawList()
+
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+
+        -- Draw parent (larger square)
+        do
+            local hw = 20.0
+            local hh = 20.0
+            local cos_r = math.cos(parent.rotation)
+            local sin_r = math.sin(parent.rotation)
+            local center = canvas_pos + parent.position
+            local corners = {
+                ImVec2(-hw, -hh), ImVec2(hw, -hh), ImVec2(hw, hh), ImVec2(-hw, hh)
+            }
+
+            local transformed = {
+                ImVec2(center.x + corners[1].x * cos_r - corners[1].y * sin_r, center.y + corners[1].x * sin_r + corners[1].y * cos_r),
+                ImVec2(center.x + corners[2].x * cos_r - corners[2].y * sin_r, center.y + corners[2].x * sin_r + corners[2].y * cos_r),
+                ImVec2(center.x + corners[3].x * cos_r - corners[3].y * sin_r, center.y + corners[3].x * sin_r + corners[3].y * cos_r),
+                ImVec2(center.x + corners[4].x * cos_r - corners[4].y * sin_r, center.y + corners[4].x * sin_r + corners[4].y * cos_r),
+            }
+            draw:AddQuadFilled(transformed[1], transformed[2], transformed[3], transformed[4], 
+                IM_COL32(100, 100, 200, 150))
+        end
+
+        -- Draw child (smaller square, orbiting)
+        do
+            local hw = 10.0 * composed.scale.x
+            local hh = 10.0 * composed.scale.y
+            local cos_r = math.cos(composed.rotation)
+            local sin_r = math.sin(composed.rotation)
+            local center = canvas_pos + composed.position
+            local corners = {
+                ImVec2(-hw, -hh), ImVec2(hw, -hh), ImVec2(hw, hh), ImVec2(-hw, hh)
+            }
+
+            local transformed = {
+                ImVec2(center.x + corners[1].x * cos_r - corners[1].y * sin_r, center.y + corners[1].x * sin_r + corners[1].y * cos_r),
+                ImVec2(center.x + corners[2].x * cos_r - corners[2].y * sin_r, center.y + corners[2].x * sin_r + corners[2].y * cos_r),
+                ImVec2(center.x + corners[3].x * cos_r - corners[3].y * sin_r, center.y + corners[3].x * sin_r + corners[3].y * cos_r),
+                ImVec2(center.x + corners[4].x * cos_r - corners[4].y * sin_r, center.y + corners[4].x * sin_r + corners[4].y * cos_r),
+            }
+            draw:AddQuadFilled(transformed[1], transformed[2], transformed[3], transformed[4],
+                IM_COL32(255, 200, 100, 200))
+        end
+
+        -- Draw connection line
+        local parent_center = canvas_pos + parent.position
+        local child_center = canvas_pos + composed.position        
+        draw:AddLine(parent_center, child_center, IM_COL32(150, 150, 150, 150), 1.0)
+
+        imgui.Dummy(canvas_size)
+        imgui.TextDisabled('Blue = parent, Orange = child (orbiting with own spin).')
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
@@ -4903,7 +5528,7 @@ local stress_test_state = {
 
     -- Stagger and animation parameters (outside running block so they persist)
     ease_idx = 1,
-    ease_names  = { 'Out Cubic', 'Out Elastic', 'Out Bounce', 'Out Back', 'In Out Quad' },
+    ease_names = { 'Out Cubic', 'Out Elastic', 'Out Bounce', 'Out Back', 'In Out Quad' },
     ease_values = { IamEaseType.OutCubic, IamEaseType.OutElastic, IamEaseType.OutBounce, IamEaseType.OutBack, IamEaseType.InOutQuad },
 }
 
@@ -4919,20 +5544,20 @@ local function ShowStressTestDemo()
     -- Configuration
     imgui.Text('Configuration:')
     state.anim_count = imgui.SliderInt('Animation Count', state.anim_count, 100, 100000, '%d', ImGuiSliderFlags.Logarithmic)
-    state.test_mode  = imgui.Combo('Test Mode', state.test_mode, state.mode_names, #state.mode_names)
+    state.test_mode = imgui.Combo('Test Mode', state.test_mode, state.mode_names, #state.mode_names)
 
     imgui.Separator()
 
     -- Controls
     if not state.running then
         if imgui.Button('Start Test', 120, 0) then
-            state.running  = true
+            state.running = true
             state.test_time = 0.0
-            state.min_ms   = 999.0
-            state.max_ms   = 0.0
-            state.avg_ms   = 0.0
+            state.min_ms = 999.0
+            state.max_ms = 0.0
+            state.avg_ms = 0.0
             for i = 1, 120 do state.ms_history[i] = 0.0 end
-            state.ms_idx   = 0
+            state.ms_idx = 0
         end
     else
         if imgui.Button('Stop Test', 120, 0) then
@@ -5013,7 +5638,7 @@ local function ShowStressTestDemo()
         imgui.Text('Running %d %s...', state.anim_count, state.mode_names[state.test_mode])
 
         state.stagger_amount = imgui.SliderFloat('Stagger Delay', state.stagger_amount, 0.001, 0.1, '%.3f s')
-        state.anim_duration  = imgui.SliderFloat('Anim Duration', state.anim_duration, 0.1, 2.0, '%.2f s')
+        state.anim_duration = imgui.SliderFloat('Anim Duration', state.anim_duration, 0.1, 2.0, '%.2f s')
         state.ease_idx = imgui.Combo('Easing', state.ease_idx, state.ease_names, #state.ease_names)
         local ease_type = state.ease_values[state.ease_idx]
 
@@ -5109,7 +5734,7 @@ local function ShowStressTestDemo()
         imgui.Text('Visualization (%d animations):', state.anim_count)
 
         -- Configuration for visualization
-        state.item_size     = imgui.SliderFloat('Item Size', state.item_size, 8.0, 60.0)
+        state.item_size = imgui.SliderFloat('Item Size', state.item_size, 8.0, 60.0)
         state.items_per_row = imgui.SliderInt('Items Per Row', state.items_per_row, 5, 100)
 
         -- Profile the rendering
@@ -5117,7 +5742,7 @@ local function ShowStressTestDemo()
 
         -- Calculate grid dimensions
         local rows = math.floor((state.anim_count + state.items_per_row - 1) / state.items_per_row)
-        local content_width  = state.items_per_row * state.item_size
+        local content_width = state.items_per_row * state.item_size
         local content_height = rows * state.item_size
 
         -- Scrollable child region
@@ -5147,63 +5772,63 @@ local function ShowStressTestDemo()
         -- Draw each animation as a cell using STORED values (not re-querying the tween)
         local padding = 2.0
         for i = 0, state.anim_count - 1 do
-            local grid_col    = i % state.items_per_row
-            local grid_row    = math.floor(i / state.items_per_row)
-            local cx          = canvas_pos.x + grid_col * state.item_size + state.item_size * 0.5
-            local cy          = canvas_pos.y + grid_row * state.item_size + state.item_size * 0.5
-            local cell_left   = canvas_pos.x + grid_col * state.item_size + padding
-            local cell_top    = canvas_pos.y + grid_row * state.item_size + padding
-            local cell_right  = cell_left + state.item_size - padding * 2.0
+            local grid_col = i % state.items_per_row
+            local grid_row = math.floor(i / state.items_per_row)
+            local cx = canvas_pos.x + grid_col * state.item_size + state.item_size * 0.5
+            local cy = canvas_pos.y + grid_row * state.item_size + state.item_size * 0.5
+            local cell_left = canvas_pos.x + grid_col * state.item_size + padding
+            local cell_top = canvas_pos.y + grid_row * state.item_size + padding
+            local cell_right = cell_left + state.item_size - padding * 2.0
             local cell_bottom = cell_top  + state.item_size - padding * 2.0
 
             if state.test_mode == 1 then -- Float - filled squares based on value
-                local val  = state.float_values[i + 1]
+                local val = state.float_values[i + 1]
                 local norm = math.max(0.0, math.min(1.0, val))
                 local fill_height = (state.item_size - padding * 2.0) * norm
-                local fill_top    = cell_bottom - fill_height
-                local col_fill    = IM_COL32(80 + math.floor(norm * 175), 120 + math.floor(norm * 80), 255, 255)
+                local fill_top = cell_bottom - fill_height
+                local col_fill = IM_COL32(80 + math.floor(norm * 175), 120 + math.floor(norm * 80), 255, 255)
                 dl:AddRectFilled(ImVec2(cell_left, fill_top), ImVec2(cell_right, cell_bottom), col_fill)
             elseif state.test_mode == 2 then -- Vec2 - moving dot within cell
-                local val    = state.vec2_values[i + 1]
-                local nx     = math.max(-1.0, math.min(1.0, val.x))
-                local ny     = math.max(-1.0, math.min(1.0, val.y))
-                local px     = cx + nx * (state.item_size * 0.35)
-                local py     = cy + ny * (state.item_size * 0.35)
+                local val = state.vec2_values[i + 1]
+                local nx = math.max(-1.0, math.min(1.0, val.x))
+                local ny = math.max(-1.0, math.min(1.0, val.y))
+                local px = cx + nx * (state.item_size * 0.35)
+                local py = cy + ny * (state.item_size * 0.35)
                 local radius = state.item_size * 0.25
                 dl:AddCircleFilled(ImVec2(px, py), radius, IM_COL32(100, 255, 150, 255))
                 dl:AddCircle(ImVec2(px, py), radius, IM_COL32(150, 255, 200, 255), 0, 1.5)
             elseif state.test_mode == 3 then -- Vec4 - colored square
                 local val = state.vec4_values[i + 1]
-                local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
-                local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
-                local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
-                local a   = math.floor(math.max(0.0, math.min(1.0, val.w)) * 255)
+                local r = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                local g = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                local b = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                local a = math.floor(math.max(0.0, math.min(1.0, val.w)) * 255)
                 dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, a > 50 and a or 255))
             elseif state.test_mode == 4 then -- Color - colored square with border
                 local val = state.vec4_values[i + 1]
-                local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
-                local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
-                local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                local r = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                local g = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                local b = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
                 dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, 255))
                 dl:AddRect(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(255, 255, 255, 100), 0.0, 0, 1.0)
             elseif state.test_mode == 5 then -- Mixed - different visualization per cell type
                 local type_ = i % 4
                 if type_ == 0 then
-                    local val  = state.float_values[i + 1]
+                    local val = state.float_values[i + 1]
                     local norm = math.max(0.0, math.min(1.0, val))
                     local fill_height = (state.item_size - padding * 2.0) * norm
-                    local fill_top    = cell_bottom - fill_height
+                    local fill_top = cell_bottom - fill_height
                     dl:AddRectFilled(ImVec2(cell_left, fill_top), ImVec2(cell_right, cell_bottom), IM_COL32(80 + math.floor(norm * 175), 120, 255, 255))
                 elseif type_ == 1 then
                     local val = state.vec2_values[i + 1]
-                    local px  = cx + math.max(-1.0, math.min(1.0, val.x)) * (state.item_size * 0.35)
-                    local py  = cy + math.max(-1.0, math.min(1.0, val.y)) * (state.item_size * 0.35)
+                    local px = cx + math.max(-1.0, math.min(1.0, val.x)) * (state.item_size * 0.35)
+                    local py = cy + math.max(-1.0, math.min(1.0, val.y)) * (state.item_size * 0.35)
                     dl:AddCircleFilled(ImVec2(px, py), state.item_size * 0.25, IM_COL32(100, 255, 150, 255))
                 else -- case 2 and 3
                     local val = state.vec4_values[i + 1]
-                    local r   = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
-                    local g   = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
-                    local b   = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
+                    local r = math.floor(math.max(0.0, math.min(1.0, val.x)) * 255)
+                    local g = math.floor(math.max(0.0, math.min(1.0, val.y)) * 255)
+                    local b = math.floor(math.max(0.0, math.min(1.0, val.z)) * 255)
                     dl:AddRectFilled(ImVec2(cell_left, cell_top), ImVec2(cell_right, cell_bottom), IM_COL32(r, g, b, 255))
                 end
             end
@@ -5428,7 +6053,7 @@ local function ImAnimDemoWindow()
         iam.ProfilerBegin('Advanced Interpolation (lua)')
 
         ApplyOpenAll()
-        if imgui.TreeNode('Gradient KEyframes') then
+        if imgui.TreeNode('Gradient Keyframes') then
             ShowGradientKeyframesDemo()
             imgui.TreePop()
         end

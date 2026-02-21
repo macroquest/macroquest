@@ -3243,20 +3243,22 @@ void iam_clip_update(float dt) {
 void iam_clip_gc(unsigned int max_age_frames) {
 	using namespace iam_clip_detail;
 	using namespace iam_detail;
-	iam_clip_system& clip_sys = g_current_context->clip_sys;
+	for (iam_context* context : g_contexts) {
+		iam_clip_system& clip_sys = context->clip_sys;
 
-	for (int i = 0; i < clip_sys.instances.Size; ++i) {
-		iam_instance_data* inst = &clip_sys.instances[i];
-		if (clip_sys.frame_counter - inst->last_seen_frame > max_age_frames) {
-			clip_sys.inst_map.SetInt(inst->inst_id, 0);
-			// Swap with last and remove
-			clip_sys.instances[i] = clip_sys.instances[clip_sys.instances.Size - 1];
-			clip_sys.instances.pop_back();
-			// Update swapped instance's map entry
-			if (i < clip_sys.instances.Size) {
-				clip_sys.inst_map.SetInt(clip_sys.instances[i].inst_id, i + 1);
+		for (int i = 0; i < clip_sys.instances.Size; ++i) {
+			iam_instance_data* inst = &clip_sys.instances[i];
+			if (clip_sys.frame_counter - inst->last_seen_frame > max_age_frames) {
+				clip_sys.inst_map.SetInt(inst->inst_id, 0);
+				// Swap with last and remove
+				clip_sys.instances[i] = clip_sys.instances[clip_sys.instances.Size - 1];
+				clip_sys.instances.pop_back();
+				// Update swapped instance's map entry
+				if (i < clip_sys.instances.Size) {
+					clip_sys.inst_map.SetInt(clip_sys.instances[i].inst_id, i + 1);
+				}
+				i--;
 			}
-			i--;
 		}
 	}
 }
@@ -3482,8 +3484,18 @@ void iam_layer_end(ImGuiID instance_id) {
 	if (context->layer_state.target_id != instance_id) return;
 	if (context->layer_state.total_weight <= 0.0f) return;
 
-	iam_instance_data* target = find_instance(instance_id);
-	if (!target) return;
+	iam_clip_system& clip_sys = context->clip_sys;
+	int idx = clip_sys.inst_map.GetInt(instance_id, 0);
+	iam_instance_data* target;
+	if (idx == 0) {
+		clip_sys.instances.push_back(iam_instance_data());
+		target = &clip_sys.instances.back();
+		target->inst_id = instance_id;
+		clip_sys.inst_map.SetInt(instance_id, clip_sys.instances.Size);
+	}
+	else {
+		target = &clip_sys.instances[idx - 1];
+	}
 
 	// Normalize and write blended values
 	target->blended_float.Clear();

@@ -878,7 +878,8 @@ void ImGuiManager_NewFrame()
 
 	if (s_lastImAnimGc + std::chrono::seconds(10) < std::chrono::steady_clock::now())
 	{
-		iam_gc(300);
+		iam_gc(1000);
+		iam_clip_gc(1000);
 		s_lastImAnimGc = std::chrono::steady_clock::now();
 	}
 	

@@ -99,6 +99,73 @@ static void LuaMarkerCallbackTrampoline(ImGuiID inst_id, ImGuiID marker_id, floa
 	}
 }
 
+// Helper for iam_gradient::add
+static auto iam_gradient_add(sol::this_state L, iam_gradient& self, float stop, sol::object value) -> iam_gradient&
+{
+	if (auto color = value.as<std::optional<ImVec4>>())
+		return self.add(stop, color.value());
+	if (auto color = value.as<std::optional<ImU32>>())
+		return self.add(stop, color.value());
+
+	luaL_error(L, "expected ImVec4 or number, received %s", sol::type_name(L, value.get_type()).c_str());
+	return self;
+}
+
+static ImVec4 iam_gradient_sample(iam_gradient& self, float t, std::optional<int> color_space)
+{
+	return self.sample(t, color_space.value_or(iam_col_oklab));
+}
+
+// helper for iam_instance::then
+static auto iam_instance_then(iam_instance& self, ImGuiID next_clip_id, std::optional<ImGuiID> next_instance_id) -> iam_instance&
+{
+	if (next_instance_id.has_value())
+	{
+		return self.then(next_clip_id, next_instance_id.value());
+	}
+	
+	return self.then(next_clip_id);
+}
+
+static auto iam_instance_get_float(iam_instance& self, ImGuiID channel) -> std::tuple<float, bool>
+{
+	float v = 0;
+	bool ok = self.get_float(channel, &v);
+
+	return { v, ok };
+}
+
+static auto iam_instance_get_vec2(iam_instance& self, ImGuiID channel) -> std::tuple<ImVec2, bool>
+{
+	ImVec2 v(0, 0);
+	bool ok = self.get_vec2(channel, &v);
+
+	return { v, ok };
+}
+
+static auto iam_instance_get_vec4(iam_instance& self, ImGuiID channel) -> std::tuple<ImVec4, bool>
+{
+	ImVec4 v(0, 0, 0, 0);
+	bool ok = self.get_vec4(channel, &v);
+
+	return { v, ok };
+}
+
+static auto iam_instance_get_int(iam_instance& self, ImGuiID channel) -> std::tuple<int, bool>
+{
+	int v = 0;
+	bool ok = self.get_int(channel, &v);
+
+	return { v, ok };
+}
+
+static auto iam_instance_get_color(iam_instance& self, ImGuiID channel, std::optional<int> color_space) -> std::tuple<ImVec4, bool> {
+	ImVec4 v(1, 1, 1, 1);
+	bool ok = self.get_color(channel, &v, color_space.value_or(iam_col_oklab));
+
+	return { v, ok };
+}
+
 // Helper to extract optional bezier4 from Lua (table of 4 floats or nil)
 static bool ExtractBezier4(const std::optional<sol::table>& tbl, float out[4])
 {
@@ -122,6 +189,208 @@ static iam_spring_params IamSpringParamsFromTable(sol::table table)
 		.damping = table["damping"].get<float>(),
 		.initial_velocity = table["initial_velocity"].get<float>()
 	};
+}
+
+// This extends iam_drag_opts to hold storage for the points data that would be passed to iam_drag_release.
+struct LuaIamDragOpts : iam_drag_opts
+{
+	std::vector<ImVec2> snap_points_vector;
+
+	static LuaIamDragOpts DragOptsFromTable(sol::table table)
+	{
+		LuaIamDragOpts opts;
+		if (auto value = table.get<std::optional<ImVec2>>("snap_grid"))
+			opts.snap_grid = value.value();
+		if (auto value = table.get<std::optional<std::vector<ImVec2>>>("snap_points"))
+		{
+			opts.snap_points_vector = std::move(value).value();
+			opts.snap_points = opts.snap_points_vector.data();
+			opts.snap_points_count = static_cast<int>(opts.snap_points_vector.size());
+		}
+
+		if (auto value = table.get<std::optional<float>>("snap_duration"))
+			opts.snap_duration = value.value();
+		if (auto value = table.get<std::optional<float>>("overshoot"))
+			opts.overshoot = value.value();
+		if (auto value = table.get<std::optional<int>>("ease_type"))
+			opts.ease_type = value.value();
+
+		return opts;
+	}
+};
+
+// Helpers for binding iam_clip
+static auto iam_clip_key_float(iam_clip& self, ImGuiID channel, float time, float value,
+	std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+
+	return self.key_float(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec2(iam_clip& self, ImGuiID channel, float time, ImVec2 value,
+	std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec2(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec4(iam_clip& self, ImGuiID channel, float time, ImVec4 value,
+	std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec4(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_int(iam_clip& self, ImGuiID channel, float time, int value,
+	std::optional<int> ease_type) -> iam_clip&
+{
+	return self.key_int(channel, time, value, ease_type.value_or(iam_ease_linear));
+}
+
+static auto iam_clip_key_color(iam_clip& self, ImGuiID channel, float time, ImVec4 value,
+	std::optional<int> color_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_color(channel, time, value, color_space.value_or(iam_col_oklab), ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_float_var(iam_clip& self, ImGuiID channel, float time, float value,
+	iam_variation_float const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_float_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec2_var(iam_clip& self, ImGuiID channel, float time, ImVec2 value,
+	iam_variation_vec2 const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec2_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec4_var(iam_clip& self, ImGuiID channel, float time, ImVec4 value,
+	iam_variation_vec4 const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec4_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_int_var(iam_clip& self, ImGuiID channel, float time, int value,
+	iam_variation_int const& var, std::optional<int> ease_type) -> iam_clip&
+{
+	return self.key_int_var(channel, time, value, var, ease_type.value_or(iam_ease_linear));
+}
+
+static auto iam_clip_key_color_var(iam_clip& self, ImGuiID channel, float time, ImVec4 value,
+	iam_variation_color const& var, std::optional<int> color_space, std::optional<int> ease_type,
+	std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_color_var(channel, time, value, var, color_space.value_or(iam_col_oklab),
+		ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_float_rel(iam_clip& self, ImGuiID channel, float time, float percent, float px_bias,
+	int anchor_space, int axis, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_float_rel(channel, time, percent, px_bias, anchor_space, axis, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec2_rel(iam_clip& self, ImGuiID channel, float time, ImVec2 percent, ImVec2 px_bias,
+	int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec2_rel(channel, time, percent, px_bias, anchor_space, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_vec4_rel(iam_clip& self, ImGuiID channel, float time, ImVec4 percent, ImVec4 px_bias,
+	int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_vec4_rel(channel, time, percent, px_bias, anchor_space, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_key_color_rel(iam_clip& self, ImGuiID channel, float time, ImVec4 percent, ImVec4 px_bias,
+	int color_space, int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip&
+{
+	float b[4];
+	float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
+	return self.key_color_rel(channel, time, percent, px_bias, color_space, anchor_space, ease_type.value_or(iam_ease_linear), bp);
+}
+
+static auto iam_clip_marker(sol::this_state L, iam_clip& self, float time, sol::variadic_args va, sol::this_state s) -> iam_clip&
+{
+	// signatures: float, ImGuiID, sol::function
+	//             float, sol::function
+
+	ImGuiID marker_id;
+	sol::function cb;
+	LuaImAnimState* state = GetLuaImAnimState();
+
+	if (va.size() == 1)
+	{
+		marker_id = ImHashData(&(++state->marker_counter), sizeof(state->marker_counter), self.id());
+		cb = va.get<sol::function>(0);
+	}
+	else if (va.size() == 2)
+	{
+		marker_id = va.get<ImGuiID>(0);
+		cb = va.get<sol::function>(1);
+	}
+	else
+	{
+		luaL_error(L, "Expected (float, function) or (float, ImGuiID, function), got %d args", va.size() + 1);
+		return self;
+	}
+
+	auto [iter, _] = state->marker_callbacks.insert_or_assign({ self.id(), marker_id }, cb);
+	return self.marker(time, LuaMarkerCallbackTrampoline, &iter->second);
+}
+
+static auto iam_clip_set_loop(iam_clip& self, bool loop, std::optional<int> direction,
+	std::optional<int> loop_count) -> iam_clip&
+{
+	return self.set_loop(loop, direction.value_or(iam_dir_normal), loop_count.value_or(-1));
+}
+
+static auto iam_clip_set_stagger(iam_clip& self, int count, float each_delay, std::optional<float> from_center_bias) -> iam_clip&
+{
+	return self.set_stagger(count, each_delay, from_center_bias.value_or(0.0f));
+}
+
+static auto iam_clip_on_begin(iam_clip& self, sol::function cb) -> iam_clip&
+{
+	LuaImAnimState* state = GetLuaImAnimState();
+
+	auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Begin }, cb);
+	return self.on_begin(LuaClipCallbackTrampoline, &iter->second);
+}
+
+static auto iam_clip_on_update(iam_clip& self, sol::function cb) -> iam_clip& {
+	LuaImAnimState* state = GetLuaImAnimState();
+
+	auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Update }, cb);
+	return self.on_update(LuaClipCallbackTrampoline, &iter->second);
+}
+
+static auto iam_clip_on_complete(iam_clip& self, sol::function cb) -> iam_clip& {
+	LuaImAnimState* state = GetLuaImAnimState();
+
+	auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Complete }, cb);
+	return self.on_complete(LuaClipCallbackTrampoline, &iter->second);
 }
 
 sol::table RegisterBindings_ImAnim(sol::this_state L)
@@ -245,13 +514,25 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	ImAnim.set_function("ProfilerEnd", &iam_profiler_end);
 
 	// Drag Feedback - animated feedback for drag operations
-	state.new_usertype<iam_drag_opts>(
+	state.new_usertype<LuaIamDragOpts>(
 		"IamDragOpts"                    , sol::call_constructor,
-		                                   sol::constructors<iam_drag_opts()>(),
-		"snap_grid"                      , &iam_drag_opts::snap_grid,
-		"snap_duration"                  , &iam_drag_opts::snap_duration,
-		"overshoot"                      , &iam_drag_opts::overshoot,
-		"ease_type"                      , &iam_drag_opts::ease_type
+		sol::factories(
+			&LuaIamDragOpts::DragOptsFromTable,
+			[] { return LuaIamDragOpts(); }
+		),
+		"snap_grid"                      , &LuaIamDragOpts::snap_grid,
+		"snap_duration"                  , &LuaIamDragOpts::snap_duration,
+		"overshoot"                      , &LuaIamDragOpts::overshoot,
+		"ease_type"                      , &LuaIamDragOpts::ease_type,
+		"snap_points"                    , sol::property(
+			[](LuaIamDragOpts& opts) { return opts.snap_points_vector; },
+			[](LuaIamDragOpts& opts, std::vector<ImVec2> points)
+			{
+				opts.snap_points_vector = std::move(points);
+				opts.snap_points = opts.snap_points_vector.data();
+				opts.snap_points_count = static_cast<int>(opts.snap_points_vector.size());
+			}
+		)
 	);
 
 	state.new_usertype<iam_drag_feedback>(
@@ -266,7 +547,7 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 
 	ImAnim.set_function("DragBegin", &iam_drag_begin);
 	ImAnim.set_function("DragUpdate", &iam_drag_update);
-	ImAnim.set_function("DragRelease", &iam_drag_release);
+	ImAnim.set_function("DragRelease", [](ImGuiID id, const ImVec2& pos, const LuaIamDragOpts& opts, float dt) { return iam_drag_release(id, pos, opts, dt); });
 	ImAnim.set_function("DragCancel", &iam_drag_cancel);
 
 	// Oscillators - continuous periodic animations
@@ -428,12 +709,12 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	// iam_path - fluent API for building multi-segment motion paths
 	state.new_usertype<iam_path>(
 		"IamPath"                        , sol::no_constructor,
-		"Begin"                          , &iam_path::begin,
-		"LineTo"                         , &iam_path::line_to,
-		"QuadraticTo"                    , &iam_path::quadratic_to,
-		"CubicTo"                        , &iam_path::cubic_to,
-		"CatmullTo"                      , [](iam_path& self, ImVec2 end, std::optional<float> tension) -> iam_path& { return self.catmull_to(end, tension.value_or(0.5f)); },
-		"Close"                          , &iam_path::close,
+		"Begin"                          , sol::policies(&iam_path::begin, sol::returns_self()),
+		"LineTo"                         , sol::policies(&iam_path::line_to, sol::returns_self()),
+		"QuadraticTo"                    , sol::policies(&iam_path::quadratic_to, sol::returns_self()),
+		"CubicTo"                        , sol::policies(&iam_path::cubic_to, sol::returns_self()),
+		"CatmullTo"                      , sol::policies([](iam_path& self, ImVec2 end, std::optional<float> tension) -> iam_path& { return self.catmull_to(end, tension.value_or(0.5f)); }, sol::returns_self()),
+		"Close"                          , sol::policies(&iam_path::close, sol::returns_self()),
 		"End"                            , &iam_path::end,
 		"Id"                             , &iam_path::id
 	);
@@ -671,12 +952,9 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	state.new_usertype<iam_gradient>(
 		"IamGradient"                    , sol::call_constructor,
 		                                   sol::constructors<iam_gradient()>(),
-		"Add"                            , sol::overload(
-			[](iam_gradient& self, float position, ImVec4 color) -> iam_gradient& { return self.add(position, color); },
-			[](iam_gradient& self, float position, ImU32 color) -> iam_gradient& { return self.add(position, color); }
-		),
+		"Add"                            , sol::policies(iam_gradient_add, sol::returns_self()),
 		"StopCount"                      , &iam_gradient::stop_count,
-		"Sample"                         , [](iam_gradient& self, float t, std::optional<int> color_space) { return self.sample(t, color_space.value_or(iam_col_oklab)); },
+		"Sample"                         , iam_gradient_sample,
 		"Solid"                          , &iam_gradient::solid,
 		"TwoColor"                       , &iam_gradient::two_color,
 		"ThreeColor"                     , &iam_gradient::three_color
@@ -930,144 +1208,46 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	// ----------------------------------------------------
 
 	state.new_usertype<iam_clip>(
-		"IamClip", sol::no_constructor,
+		"IamClip"                        , sol::no_constructor,
 
-		// Start building a new clip with the given ID
-		"Begin", [](ImGuiID clip_id) -> iam_clip { return iam_clip::begin(clip_id); },
-
-		// Keyframes
-		"KeyFloat", [](iam_clip& self, ImGuiID channel, float time, float value, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_float(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec2", [](iam_clip& self, ImGuiID channel, float time, ImVec2 value, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec2(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec4", [](iam_clip& self, ImGuiID channel, float time, ImVec4 value, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec4(channel, time, value, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyInt", [](iam_clip& self, ImGuiID channel, float time, int value, std::optional<int> ease_type) -> iam_clip& {
-			return self.key_int(channel, time, value, ease_type.value_or(iam_ease_linear));
-		},
-		"KeyColor", [](iam_clip& self, ImGuiID channel, float time, ImVec4 value, std::optional<int> color_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_color(channel, time, value, color_space.value_or(iam_col_oklab), ease_type.value_or(iam_ease_linear), bp);
-		},
-
-		// Keyframes with repeat variation (value changes per loop iteration)
-		"KeyFloatVar", [](iam_clip& self, ImGuiID channel, float time, float value, iam_variation_float const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_float_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec2Var", [](iam_clip& self, ImGuiID channel, float time, ImVec2 value, iam_variation_vec2 const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec2_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec4Var", [](iam_clip& self, ImGuiID channel, float time, ImVec4 value, iam_variation_vec4 const& var, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec4_var(channel, time, value, var, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyIntVar", [](iam_clip& self, ImGuiID channel, float time, int value, iam_variation_int const& var, std::optional<int> ease_type) -> iam_clip& {
-			return self.key_int_var(channel, time, value, var, ease_type.value_or(iam_ease_linear));
-		},
-		"KeyColorVar", [](iam_clip& self, ImGuiID channel, float time, ImVec4 value, iam_variation_color const& var, std::optional<int> color_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_color_var(channel, time, value, var, color_space.value_or(iam_col_oklab), ease_type.value_or(iam_ease_linear), bp);
-		},
-
-		// Spring-based keyframe (float only)
-		"KeyFloatSpring", &iam_clip::key_float_spring,
-
-		// Anchor-relative keyframes (values resolved relative to window/viewport at get time)
-		"KeyFloatRel", [](iam_clip& self, ImGuiID channel, float time, float percent, float px_bias, int anchor_space, int axis, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_float_rel(channel, time, percent, px_bias, anchor_space, axis, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec2Rel", [](iam_clip& self, ImGuiID channel, float time, ImVec2 percent, ImVec2 px_bias, int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec2_rel(channel, time, percent, px_bias, anchor_space, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyVec4Rel", [](iam_clip& self, ImGuiID channel, float time, ImVec4 percent, ImVec4 px_bias, int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_vec4_rel(channel, time, percent, px_bias, anchor_space, ease_type.value_or(iam_ease_linear), bp);
-		},
-		"KeyColorRel", [](iam_clip& self, ImGuiID channel, float time, ImVec4 percent, ImVec4 px_bias, int color_space, int anchor_space, std::optional<int> ease_type, std::optional<sol::table> bezier4) -> iam_clip& {
-			float b[4]; float* bp = ExtractBezier4(bezier4, b) ? b : nullptr;
-			return self.key_color_rel(channel, time, percent, px_bias, color_space, anchor_space, ease_type.value_or(iam_ease_linear), bp);
-		},
-
-		// Timeline grouping - sequential and parallel keyframe blocks
-		"SeqBegin", &iam_clip::seq_begin,
-		"SeqEnd", &iam_clip::seq_end,
-		"ParBegin", &iam_clip::par_begin,
-		"ParEnd", &iam_clip::par_end,
-
-		// Timeline markers - callbacks at specific times during playback
-		"Marker", sol::overload(
-			[](iam_clip& self, float time, ImGuiID marker_id, sol::function cb) -> iam_clip&
-			{
-				LuaImAnimState* state = GetLuaImAnimState();
-
-				auto [iter, _] = state->marker_callbacks.insert_or_assign(LuaImAnimState::MarkerCallbackKey{ self.id(), marker_id }, cb);
-				return self.marker(time, marker_id, LuaMarkerCallbackTrampoline, &iter->second);
-			},
-			[](iam_clip& self, float time, sol::function cb) -> iam_clip&
-			{
-				LuaImAnimState* state = GetLuaImAnimState();
-
-				ImGuiID marker_id = ImHashData(&(++state->marker_counter), sizeof(state->marker_counter), self.id());
-				auto [iter, _] = state->marker_callbacks.insert_or_assign({ self.id(), marker_id }, cb);
-				return self.marker(time, LuaMarkerCallbackTrampoline, &iter->second);
-			}
-		),
-
-		// Clip options
-		"SetLoop", [](iam_clip& self, bool loop, std::optional<int> direction, std::optional<int> loop_count) -> iam_clip& {
-			return self.set_loop(loop, direction.value_or(iam_dir_normal), loop_count.value_or(-1));
-		},
-		"SetDelay", & iam_clip::set_delay,
-		"SetStagger", [](iam_clip& self, int count, float each_delay, std::optional<float> from_center_bias) -> iam_clip& {
-			return self.set_stagger(count, each_delay, from_center_bias.value_or(0.0f));
-		},
-
-		// Timing variation per loop iteration
-		"SetDurationVar", &iam_clip::set_duration_var,
-		"SetDelayVar", &iam_clip::set_delay_var,
-		"SetTimescaleVar", &iam_clip::set_timescale_var,
-
-		// Callbacks
-		"OnBegin", [](iam_clip& self, sol::function cb) -> iam_clip&
-		{
-			LuaImAnimState* state = GetLuaImAnimState();
-
-			auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Begin }, cb);
-			return self.on_begin(LuaClipCallbackTrampoline, &iter->second);
-		},
-		"OnUpdate", [](iam_clip& self, sol::function cb) -> iam_clip& {
-			LuaImAnimState* state = GetLuaImAnimState();
-
-			auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Update }, cb);
-			return self.on_update(LuaClipCallbackTrampoline, &iter->second);
-		},
-		"OnComplete", [](iam_clip& self, sol::function cb) -> iam_clip& {
-			LuaImAnimState* state = GetLuaImAnimState();
-
-			auto [iter, _] = state->clip_callbacks.insert_or_assign(LuaImAnimState::ClipCallbackKey{ self.id(), LuaImAnimState::CB_Complete }, cb);
-			return self.on_complete(LuaClipCallbackTrampoline, &iter->second);
-		},
-
-		// Finalize the clip
-		"End", &iam_clip::end,
-
-		// Get the clip ID
-		"Id", &iam_clip::id
+		"Begin"                          , &iam_clip::begin,
+		"KeyFloat"                       , sol::policies(iam_clip_key_float, sol::returns_self()),
+		"KeyVec2"                        , sol::policies(iam_clip_key_vec2, sol::returns_self()),
+		"KeyVec4"                        , sol::policies(iam_clip_key_vec4, sol::returns_self()),
+		"KeyInt"                         , sol::policies(iam_clip_key_int, sol::returns_self()),
+		"KeyColor"                       , sol::policies(iam_clip_key_color, sol::returns_self()),
+		"KeyFloatVar"                    , sol::policies(iam_clip_key_float_var, sol::returns_self()),
+		"KeyVec2Var"                     , sol::policies(iam_clip_key_vec2_var, sol::returns_self()),
+		"KeyVec4Var"                     , sol::policies(iam_clip_key_vec4_var, sol::returns_self()),
+		"KeyIntVar"                      , sol::policies(iam_clip_key_int_var, sol::returns_self()),
+		"KeyColorVar"                    , sol::policies(iam_clip_key_color_var, sol::returns_self()),
+		"KeyFloatSpring"                 , sol::policies(&iam_clip::key_float_spring, sol::returns_self()),
+		"KeyFloatRel"                    , sol::policies(iam_clip_key_float_rel, sol::returns_self()),
+		"KeyVec2Rel"                     , sol::policies(iam_clip_key_vec2_rel, sol::returns_self()),
+		"KeyVec4Rel"                     , sol::policies(iam_clip_key_vec4_rel, sol::returns_self()),
+		"KeyColorRel"                    , sol::policies(iam_clip_key_color_rel, sol::returns_self()),
+		"SeqBegin"                       , sol::policies(&iam_clip::seq_begin, sol::returns_self()),
+		"SeqEnd"                         , sol::policies(&iam_clip::seq_end, sol::returns_self()),
+		"ParBegin"                       , sol::policies(&iam_clip::par_begin, sol::returns_self()),
+		"ParEnd"                         , sol::policies(&iam_clip::par_end, sol::returns_self()),
+		"Marker"                         , sol::policies(iam_clip_marker, sol::returns_self()),
+		"SetLoop"                        , sol::policies(iam_clip_set_loop, sol::returns_self()),
+		"SetDelay"                       , sol::policies(&iam_clip::set_delay, sol::returns_self()),
+		"SetStagger"                     , sol::policies(iam_clip_set_stagger, sol::returns_self()),
+		"SetDurationVar"                 , sol::policies(&iam_clip::set_duration_var, sol::returns_self()),
+		"SetDelayVar"                    , sol::policies(&iam_clip::set_delay_var, sol::returns_self()),
+		"SetTimescaleVar"                , sol::policies(&iam_clip::set_timescale_var, sol::returns_self()),
+		"OnBegin"                        , sol::policies(iam_clip_on_begin, sol::returns_self()),
+		"OnUpdate"                       , sol::policies(iam_clip_on_update, sol::returns_self()),
+		"OnComplete"                     , sol::policies(iam_clip_on_complete, sol::returns_self()),
+		"End"                            , sol::policies(&iam_clip::end, sol::returns_self()),
+		"Id"                             , sol::policies(&iam_clip::id, sol::returns_self())
 	);
 
 	// iam_instance
 	state.new_usertype<iam_instance>(
 		"IamInstance"                    , sol::constructors<iam_instance(), iam_instance(ImGuiID)>(),
+
 		"Pause"                          , &iam_instance::pause,
 		"Resume"                         , &iam_instance::resume,
 		"Stop"                           , &iam_instance::stop,
@@ -1075,30 +1255,17 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 		"Seek"                           , &iam_instance::seek,
 		"SetTimeScale"                   , &iam_instance::set_time_scale,
 		"SetWeight"                      , &iam_instance::set_weight,
-		"Then"                           , sol::overload(
-		                                   sol::resolve<iam_instance&(ImGuiID)>(&iam_instance::then),
-		                                   sol::resolve<iam_instance&(ImGuiID, ImGuiID)>(&iam_instance::then)
-		                                 ),
-		"ThenDelay"                      , &iam_instance::then_delay,
+		"Then"                           , sol::policies(iam_instance_then, sol::returns_self()),
+		"ThenDelay"                      , sol::policies(&iam_instance::then_delay, sol::returns_self()),
 		"Time"                           , &iam_instance::time,
 		"Duration"                       , &iam_instance::duration,
 		"IsPlaying"                      , &iam_instance::is_playing,
 		"IsPaused"                       , &iam_instance::is_paused,
-		"GetFloat", [](iam_instance& self, ImGuiID channel) -> std::tuple<float, bool> {
-			float v = 0; bool ok = self.get_float(channel, &v); return { v, ok };
-		},
-		"GetVec2", [](iam_instance& self, ImGuiID channel) -> std::tuple<ImVec2, bool> {
-			ImVec2 v(0, 0); bool ok = self.get_vec2(channel, &v); return { v, ok };
-		},
-		"GetVec4", [](iam_instance& self, ImGuiID channel) -> std::tuple<ImVec4, bool> {
-			ImVec4 v(0, 0, 0, 0); bool ok = self.get_vec4(channel, &v); return { v, ok };
-		},
-		"GetInt", [](iam_instance& self, ImGuiID channel) -> std::tuple<int, bool> {
-			int v = 0; bool ok = self.get_int(channel, &v); return { v, ok };
-		},
-		"GetColor", [](iam_instance& self, ImGuiID channel, std::optional<int> color_space) -> std::tuple<ImVec4, bool> {
-			ImVec4 v(1, 1, 1, 1); bool ok = self.get_color(channel, &v, color_space.value_or(iam_col_oklab)); return { v, ok };
-		},
+		"GetFloat"                       , iam_instance_get_float,
+		"GetVec2"                        , iam_instance_get_vec2,
+		"GetVec4"                        , iam_instance_get_vec4,
+		"GetInt"                         , iam_instance_get_int,
+		"GetColor"                       , iam_instance_get_color,
 		"Valid"                          , &iam_instance::valid,
 		"Id"                             , &iam_instance::id
 	);
@@ -1112,11 +1279,6 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 		iam_clip_init(initial_clip_cap.value_or(256), initial_inst_cap.value_or(4096));
 	});
 	ImAnim.set_function("ClipShutdown", &iam_clip_shutdown);
-
-	// Garbage collection for instances
-	ImAnim.set_function("ClipGC", [](std::optional<int> max_age_frames) {
-		iam_clip_gc(max_age_frames.value_or(600));
-	});
 
 	// Play a clip on an instance (creates or reuses instance)
 	ImAnim.set_function("Play", &iam_play);
@@ -1136,17 +1298,17 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	ImAnim.set_function("LayerBegin", &iam_layer_begin);
 	ImAnim.set_function("LayerAdd", &iam_layer_add);
 	ImAnim.set_function("LayerEnd", &iam_layer_end);
-	ImAnim.set_function("GetBlendedFloat", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<bool, float> {
-		float v = 0; bool ok = iam_get_blended_float(instance_id, channel, &v); return { ok, v };
+	ImAnim.set_function("GetBlendedFloat", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<float, bool> {
+		float v = 0; bool ok = iam_get_blended_float(instance_id, channel, &v); return { v, ok };
 	});
-	ImAnim.set_function("GetBlendedVec2", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<bool, ImVec2> {
-		ImVec2 v(0, 0); bool ok = iam_get_blended_vec2(instance_id, channel, &v); return { ok, v };
+	ImAnim.set_function("GetBlendedVec2", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<ImVec2, bool> {
+		ImVec2 v(0, 0); bool ok = iam_get_blended_vec2(instance_id, channel, &v); return { v, ok };
 	});
-	ImAnim.set_function("GetBlendedVec4", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<bool, ImVec4> {
-		ImVec4 v(0, 0, 0, 0); bool ok = iam_get_blended_vec4(instance_id, channel, &v); return { ok, v };
+	ImAnim.set_function("GetBlendedVec4", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<ImVec4, bool> {
+		ImVec4 v(0, 0, 0, 0); bool ok = iam_get_blended_vec4(instance_id, channel, &v); return { v, ok };
 	});
-	ImAnim.set_function("GetBlendedInt", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<bool, int> {
-		int v = 0; bool ok = iam_get_blended_int(instance_id, channel, &v); return { ok, v };
+	ImAnim.set_function("GetBlendedInt", [](ImGuiID instance_id, ImGuiID channel) -> std::tuple<int, bool> {
+		int v = 0; bool ok = iam_get_blended_int(instance_id, channel, &v); return { v, ok};
 	});
 
 	// ========================================================================
