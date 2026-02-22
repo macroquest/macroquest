@@ -136,6 +136,11 @@ static void RegisterBuiltInModules()
 	{
 		return sol::make_object(s, bindings::RegisterBindings_Zep(s));
 	});
+
+	register_builtin("ImAnim", [](const sol::this_state s)
+	{
+		return sol::make_object(s, bindings::RegisterBindings_ImAnim(s));
+	});
 }
 
 #pragma region Shared Function Definitions

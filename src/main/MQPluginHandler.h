@@ -49,7 +49,6 @@ void PluginsAddGroundItem(EQGroundItem* pNewGroundItem);
 void PluginsRemoveGroundItem(EQGroundItem* pGroundItem);
 void PluginsBeginZone();
 void PluginsEndZone();
-void PluginsUpdateImGui();
 void ModulesUpdateImGui();
 void PluginsMacroStart(const char* Name);
 void PluginsMacroStop(const char* Name);

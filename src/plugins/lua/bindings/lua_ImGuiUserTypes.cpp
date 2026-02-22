@@ -25,6 +25,20 @@
 #include <optional>
 #include <string>
 
+namespace sol
+{
+	template <>
+	struct usertype_container<decltype(ImGuiStyle::Colors)> : sol::container_detail::usertype_container_default<decltype(ImGuiStyle::Colors)>
+	{
+		using T = std::remove_pointer_t<sol::meta::unwrap_unqualified_t<decltype(ImGuiStyle::Colors)>>;
+
+		static std::ptrdiff_t index_adjustment(lua_State*, T&) {
+			return 0;
+		}
+	};
+}
+
+
 namespace mq::lua::bindings {
 
 //============================================================================
@@ -127,7 +141,9 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(
-		"ImGuiStyle"                                    , sol::no_constructor,
+		"ImGuiStyle"                                    , sol::call_constructor
+		                                                , sol::constructors<ImGuiStyle()>(),
+		"Copy"                                          , [](ImGuiStyle* pThis) -> ImGuiStyle { return *pThis; },
 
 		"FontSizeBase"                                  , &ImGuiStyle::FontSizeBase,
 		"FontScaleMain"                                 , &ImGuiStyle::FontScaleMain,
@@ -195,7 +211,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"AntiAliasedFill"                               , &ImGuiStyle::AntiAliasedFill,
 		"CurveTessellationTol"                          , &ImGuiStyle::CurveTessellationTol,
 		"CircleSegmentMaxError"                         , &ImGuiStyle::CircleTessellationMaxError,
-		"Colors"                                        , &ImGuiStyle::Colors,
+		"Colors"                                        , sol::property([](ImGuiStyle* pThis) { return std::ref(pThis->Colors); }),
 
 		// Behaviors
 		"HoverStationaryDelay"                          , &ImGuiStyle::HoverStationaryDelay,
@@ -381,7 +397,7 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddCircle(center, radius, ImU32(col), num_segments); },
 		&ImDrawList::AddCircle));
 	imDrawList.set_function("AddCircleFilled", sol::overload(
-		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddCircleFilled(center, radius, ImU32(col), num_segments); },
+		[](ImDrawList& mThis, const ImVec2& center, float radius, int col) { mThis.AddCircleFilled(center, radius, ImU32(col)); },
 		&ImDrawList::AddCircleFilled));
 	imDrawList.set_function("AddNgon", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& center, float radius, int col, int num_segments) { mThis.AddNgon(center, radius, col, num_segments); },
@@ -502,6 +518,12 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		//"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
 	);
 
+	// ImFont
+	lua.new_usertype<ImFont>(
+		"ImFont"                       , sol::no_constructor,
+		"Flags"                        , sol::readonly(&ImFont::Flags),
+		"LegacySize"                   , sol::readonly(&ImFont::LegacySize)
+	);
 
 	// ImGuiViewport
 	lua.new_usertype<ImGuiViewport>(
