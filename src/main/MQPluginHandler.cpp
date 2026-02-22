@@ -23,6 +23,7 @@
 #include <random>
 
 #include "MQCommandAPI.h"
+#include "imgui/imanim/im_anim.h"
 
 //#define DEBUG_PLUGINS
 
@@ -802,6 +803,11 @@ void ForEachPlugin(Callback&& callback)
 	}
 }
 
+bool IsPluginSystemInitialized()
+{
+	return s_pluginsInitialized;
+}
+
 void PluginsWriteChatColor(const char* Line, int Color, int Filter)
 {
 	if (!s_pluginsInitialized)
@@ -1195,18 +1201,6 @@ void ModulesUpdateImGui()
 		{
 			if (module->UpdateImGui)
 				module->UpdateImGui();
-		});
-}
-
-void PluginsUpdateImGui()
-{
-	if (!s_pluginsInitialized)
-		return;
-
-	ForEachPlugin([](const MQPlugin* plugin)
-		{
-			if (plugin->UpdateImGui)
-				plugin->UpdateImGui();
 		});
 }
 

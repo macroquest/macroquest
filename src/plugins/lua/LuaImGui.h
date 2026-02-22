@@ -15,8 +15,10 @@
 #pragma once
 
 #include "LuaCommon.h"
+#include "imgui/imgui.h"
 
 struct ImPlotContext;
+struct iam_context;
 
 namespace mq::lua {
 
@@ -39,6 +41,71 @@ private:
 	sol::thread m_parentThread;
 };
 
+struct LuaImAnimState
+{
+	LuaImAnimState();
+	~LuaImAnimState();
+
+	LuaImAnimState(const LuaImAnimState&) = delete;
+	LuaImAnimState& operator=(const LuaImAnimState&) = delete;
+
+	enum ClipCallbackType
+	{
+		CB_Begin = 0,
+		CB_Update,
+		CB_Complete,
+		CB_Marker
+	};
+
+	struct ClipCallbackKey
+	{
+		ImGuiID clip_id;
+		int type;
+
+		bool operator==(const ClipCallbackKey& other) const
+		{
+			return clip_id == other.clip_id && type == other.type;
+		}
+	};
+
+	struct ClipCallbackKeyHash
+	{
+		size_t operator()(const ClipCallbackKey& k) const
+		{
+			return std::hash<uint64_t>()(((uint64_t)k.clip_id << 32) | k.type);
+		}
+	};
+
+	// Marker callback key
+	struct MarkerCallbackKey
+	{
+		ImGuiID clip_id;
+		ImGuiID marker_id;
+
+		bool operator==(const MarkerCallbackKey& other) const
+		{
+			return clip_id == other.clip_id && marker_id == other.marker_id;
+		}
+	};
+
+	struct MarkerCallbackKeyHash
+	{
+		size_t operator()(const MarkerCallbackKey& k) const
+		{
+			return std::hash<uint64_t>()(((uint64_t)k.clip_id << 32) | k.marker_id);
+		}
+	};
+
+	iam_context* ctx = nullptr;
+	std::array<sol::function, 16> ease_functions = {};
+
+	uint32_t marker_counter = 0;
+
+	// Clip and marker callback storage
+	std::unordered_map<ClipCallbackKey, sol::function, ClipCallbackKeyHash> clip_callbacks;
+	std::unordered_map<MarkerCallbackKey, sol::function, MarkerCallbackKeyHash> marker_callbacks;
+};
+
 class LuaImGuiProcessor
 {
 public:
@@ -50,11 +117,14 @@ public:
 	bool HasCallback(std::string_view name);
 	void Pulse();
 
+	void InitImAnimContext();
+
 private:
 	const LuaThread* m_thread;
 	std::vector<std::unique_ptr<LuaImGui>> m_imguis;
 
 	std::shared_ptr<ImPlotContext> m_imPlotContext;
+	std::unique_ptr<LuaImAnimState> m_imAnimState;
 };
 
 } // namespace mq::lua

@@ -20,6 +20,7 @@
 #include "imgui/implot/implot.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/imanim/im_anim.h"
 #include "mq/imgui/Widgets.h"
 
 #include "fmt/format.h"
@@ -180,6 +181,58 @@ public:
 	}
 };
 static ImPlotDemoWindow s_imPlotDemoWindow;
+
+#pragma endregion
+
+#pragma region ImAnim Demo Containers
+
+class ImAnimDemoWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimDemoWindow() : ImGuiWindowBase("ImAnimDemoWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimDemoWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimDemoWindow s_imAnimDemoWindow;
+
+class ImAnimDocWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimDocWindow() : ImGuiWindowBase("ImAnimDocWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimDocWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimDocWindow s_imAnimDocWindow;
+
+class ImAnimUsecaseWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimUsecaseWindow() : ImGuiWindowBase("ImAnimUsecaseWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimUsecaseWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimUsecaseWindow s_imAnimUsecaseWindow;
 
 #pragma endregion
 
@@ -5907,18 +5960,6 @@ static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
 {
-	if (ImGui::BeginMenu("Windows"))
-	{
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
-			s_demoWindow.Toggle();
-		if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
-			s_imPlotDemoWindow.Toggle();
-
-		ImGui::EndMenu();
-	}
-
 	if (s_inspectorMenusDirty)
 	{
 		std::sort(s_inspectorMenus.begin(), s_inspectorMenus.end(),
@@ -5931,12 +5972,43 @@ void DeveloperTools_DrawMenu()
 	bool isMenuOpen = false;
 	const std::string* lastMenu = nullptr;
 
+	auto endMenu = [&lastMenu, &isMenuOpen]()
+	{
+		if (lastMenu && isMenuOpen)
+		{
+			if (*lastMenu == "Tools")
+			{
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
+					s_demoWindow.Toggle();
+				if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
+					s_imPlotDemoWindow.Toggle();
+
+				if (ImGui::BeginMenu("ImAnim"))
+				{
+					if (ImGui::MenuItem("ImAnim Demo", nullptr, s_imAnimDemoWindow.IsOpen()))
+						s_imAnimDemoWindow.Toggle();
+
+					if (ImGui::MenuItem("ImAnim Documentation", nullptr, s_imAnimDocWindow.IsOpen()))
+						s_imAnimDocWindow.Toggle();
+
+					if (ImGui::MenuItem("ImAnim UI Usecases", nullptr, s_imAnimUsecaseWindow.IsOpen()))
+						s_imAnimUsecaseWindow.Toggle();
+
+					ImGui::EndMenu();
+				}
+			}
+
+			ImGui::EndMenu();
+		}
+	};
+
 	for (const auto& entry : s_inspectorMenus)
 	{
 		if (!lastMenu || *lastMenu != entry.menuName)
 		{
-			if (lastMenu && isMenuOpen)
-				ImGui::EndMenu();
+			endMenu();
 
 			isMenuOpen = ImGui::BeginMenu(entry.menuName.c_str());
 			lastMenu = &entry.menuName;
@@ -5957,10 +6029,7 @@ void DeveloperTools_DrawMenu()
 		}
 	}
 
-	if (lastMenu && isMenuOpen)
-	{
-		ImGui::EndMenu();
-	}
+	endMenu();
 }
 
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)

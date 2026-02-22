@@ -24,6 +24,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq);
 sol::table RegisterBindings_ImGui(sol::state_view sv);
 void RegisterBindings_Bit32(sol::state_view sv);
 
+sol::table RegisterBindings_ImAnim(sol::this_state L);
 sol::table RegisterBindings_ImPlot(sol::this_state L);
 sol::table RegisterBindings_Zep(sol::this_state L);
 
