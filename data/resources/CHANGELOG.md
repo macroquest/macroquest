@@ -1,3 +1,14 @@
+## 2/22/2026
+
+### ImAnim Integration
+
+ImAnim is now available to lua and plugins! [See PR For more info](https://github.com/macroquest/macroquest/pull/968).
+
+- See the lua demo for examples of how to do things with ImAnim in lua: `/lua run examples/imanim_demo`
+- Lua definitions have been updated with ImAnim support.
+- Console menus have been re-arranged a little bit.
+
+
 ## 2/18/2026
 
 Added network discovery for actors on the local network. In general, no configuration is
