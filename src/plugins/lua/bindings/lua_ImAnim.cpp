@@ -709,7 +709,7 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	// iam_path - fluent API for building multi-segment motion paths
 	state.new_usertype<iam_path>(
 		"IamPath"                        , sol::no_constructor,
-		"Begin"                          , sol::policies(&iam_path::begin, sol::returns_self()),
+		"Begin"                          , &iam_path::begin,
 		"LineTo"                         , sol::policies(&iam_path::line_to, sol::returns_self()),
 		"QuadraticTo"                    , sol::policies(&iam_path::quadratic_to, sol::returns_self()),
 		"CubicTo"                        , sol::policies(&iam_path::cubic_to, sol::returns_self()),

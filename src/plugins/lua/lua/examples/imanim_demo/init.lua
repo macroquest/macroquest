@@ -1822,8 +1822,7 @@ local function ShowBasicTweensDemo()
         local animated_value = iam.TweenInt(state.counter_id, 0, state.counter_target, 0.8,
             iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
-        local style = imgui.GetStyle()
-        imgui.PushFont(nil, style.FontSizeBase * 2.0)
+        imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * 2.0)
         imgui.Text('%d', animated_value)
         imgui.PopFont()
 
@@ -3973,8 +3972,8 @@ local function ShowResizeHelpersDemo()
     if imgui.TreeNode('Relative Positioning') then
         imgui.TextWrapped('Position as percentage of container + pixel offset:')
 
-        state.percent, _ = imgui.SliderFloat2('Percent', state.percent, 0.0, 1.0)
-        state.px_bias, _ = imgui.SliderFloat2('Pixel Bias', state.px_bias, -50.0, 50.0)
+        state.percent = imgui.SliderFloat2('Percent', state.percent, 0.0, 1.0)
+        state.px_bias = imgui.SliderFloat2('Pixel Bias', state.px_bias, -50.0, 50.0)
 
         -- Draw indicator in a fixed-size canvas
         local origin = imgui.GetCursorScreenPosVec()
@@ -4505,16 +4504,220 @@ end
 -- OSCILLATORS DEMO
 -- ============================================================
 
+local oscillators_state = {
+    wave_type_idx = 1,
+    frequency = 1.0,
+    amplitude = 50.0,
+    freq_2d = ImVec2(1.0, 2.0),
+    amp_2d = ImVec2(40.0, 40.0),
+
+    wave_types = { IamWaveType.Sine, IamWaveType.Triangle, IamWaveType.Sawtooth, IamWaveType.Square },
+    colors = {
+        IM_COL32(255, 100, 100, 255),
+        IM_COL32(100, 255, 100, 255),
+        IM_COL32(100, 100, 255, 255),
+        IM_COL32(255, 255, 100, 255)
+    },
+}
+
 local function ShowOscillatorsDemo()
-    -- TOOD: Implement oscillators demo
+    local state = oscillators_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Oscillators provide continuous periodic animations without managing state. ' ..
+        'Four wave types available: sine, triangle, sawtooth, and square.')
+
+    -- Wave type selector
+    state.wave_type_idx = imgui.Combo('Wave Type', state.wave_type_idx, 'Sine\0Triangle\0Sawtooth\0Square\0')
+    local wave_type = state.wave_types[state.wave_type_idx]
+
+    state.frequency = imgui.SliderFloat('Frequency', state.frequency, 0.1, 5.0, '%.1f Hz')
+    state.amplitude = imgui.SliderFloat('Amplitude', state.amplitude, 10.0, 100.0, '%.0f px')
+
+    -- Visual demo - oscillating circles
+    imgui.Separator()
+    imgui.Text('Visual Demo (4 circles with different phases):')
+
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 120.0)
+    local draw_list = imgui.GetWindowDrawList()
+
+    -- Background
+    draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+        IM_COL32(30, 30, 40, 255), 4.0)
+
+    -- Center line
+    local center_y = canvas_pos.y + canvas_size.y * 0.5
+    draw_list:AddLine(ImVec2(canvas_pos.x, center_y), ImVec2(canvas_pos.x + canvas_size.x, center_y),
+        IM_COL32(100, 100, 100, 100), 1.0)
+
+    -- Draw 4 circles with different phases
+    for i = 1, 4 do
+        local phase = (i - 1) * 0.25
+        local x = canvas_pos.x + 50.0 + (i - 1) * (canvas_size.x - 100.0) / 3.0
+        local offset_y = iam.Oscillate(imgui.GetID('osc_demo_' .. i), state.amplitude, state.frequency, wave_type, phase, dt)
+        draw_list:AddCircleFilled(ImVec2(x, center_y + offset_y), 12.0, state.colors[i])
+        draw_list:AddCircle(ImVec2(x, center_y + offset_y), 12.0, IM_COL32(255, 255, 255, 100), 0, 2.0)
+    end
+
+    imgui.Dummy(canvas_size)
+
+    -- Vec2 oscillation demo
+    ApplyOpenAll()
+    if imgui.TreeNode('2D Oscillation (Lissajous)') then
+        state.freq_2d = imgui.SliderFloatVec2('Frequency X/Y', state.freq_2d, 0.5, 4.0, '%.1f')
+        state.amp_2d = imgui.SliderFloatVec2('Amplitude X/Y', state.amp_2d, 10.0, 60.0, '%.0f')
+
+        local canvas_pos2 = imgui.GetCursorScreenPosVec()
+        local canvas_size2 = ImVec2(200.0, 200.0)
+        local center = canvas_pos2 + canvas_size2 * 0.5
+
+        draw_list:AddRectFilled(canvas_pos2, canvas_pos2 + canvas_size2,
+            IM_COL32(30, 30, 40, 255), 4.0)
+
+        local offset = iam.OscillateVec2(imgui.GetID('lissajous'), state.amp_2d, state.freq_2d, IamWaveType.Sine, ImVec2(0, 0), dt)
+        draw_list:AddCircleFilled(ImVec2(center.x + offset.x, center.y + offset.y), 10.0, IM_COL32(100, 200, 255, 255))
+
+        imgui.Dummy(canvas_size2)
+        imgui.TreePop()
+    end
+
+    -- Practical UI example
+    ApplyOpenAll()
+    if imgui.TreeNode('Practical: Pulsing Button') then
+        local pulse = iam.Oscillate(imgui.GetID('pulse_btn'), 0.1, 2.0, IamWaveType.Sine, 0.0, dt)
+        local scale = 1.0 + pulse
+
+        -- Fixed height container to prevent layout shifts
+        local max_scale = 1.1 -- 1.0 + max amplitude
+        local fixed_height = 40 * max_scale + imgui.GetStyle().ItemSpacing.y
+        imgui.BeginChild('##PulsingButtonContainer', ImVec2(0, fixed_height), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar)
+
+        imgui.PushFont(nil, imgui.GetStyle().FontSizeBase * scale)
+        imgui.PushStyleColor(ImGuiCol.Button, ImVec4(0.2 + pulse * 0.5, 0.5, 0.8, 1.0))
+        imgui.Button('Click Me!', ImVec2(120 * scale, 40 * scale))
+        imgui.PopStyleColor()
+        imgui.PopFont()
+
+        imgui.SameLine()
+        imgui.TextDisabled('Button pulses continuously')
+
+        imgui.EndChild()
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
 -- SHAKE/WIGGLE DEMO
 -- ============================================================
 
+local shake_wiggle_state = {
+    shake_intensity = 10.0,
+    shake_frequency = 20.0,
+    shake_decay = 0.5,
+    wiggle_amplitude = 5.0,
+    wiggle_frequency = 3.0,
+    input_buf = '',
+    show_error = false,
+}
+
 local function ShowShakeWiggleDemo()
-    -- TODO: Implement shake/wiggle demo
+    local state = shake_wiggle_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped('Shake provides decaying random motion (for error feedback, impacts). ' ..
+        'Wiggle provides continuous smooth random movement (for idle animations, organic feel).')
+
+    -- Shake demo
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('Shake (Decaying)') then
+        state.shake_intensity = imgui.SliderFloat('Intensity', state.shake_intensity, 1.0, 30.0, '%.0f px')
+        state.shake_frequency = imgui.SliderFloat('Frequency', state.shake_frequency, 5.0, 50.0, '%.0f Hz')
+        state.shake_decay = imgui.SliderFloat('Decay Time', state.shake_decay, 0.1, 2.0, '%.1f s')
+
+        local shake_id = imgui.GetID('shake_demo')
+        if imgui.Button('Trigger Shake!') then
+            iam.TriggerShake(shake_id)
+        end
+
+        local offset = iam.ShakeVec2(shake_id, ImVec2(state.shake_intensity, state.shake_intensity),
+            state.shake_frequency, state.shake_decay, dt)
+
+        -- Visual
+        local box_pos = imgui.GetCursorScreenPosVec()
+        local box_size = ImVec2(180.0, 60.0)
+        local center = ImVec2(box_pos.x + 150.0 + offset.x, box_pos.y + 40.0 + offset.y)
+
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddRectFilled(
+            ImVec2(center.x - box_size.x * 0.5, center.y - box_size.y * 0.5),
+            ImVec2(center.x + box_size.x * 0.5, center.y + box_size.y * 0.5),
+            IM_COL32(255, 100, 100, 255), 8.0)
+        draw_list:AddText(ImVec2(center.x - 25, center.y - 8), IM_COL32(255, 255, 255, 255), 'SHAKE')
+
+        imgui.Dummy(ImVec2(300, 100))
+        imgui.TreePop()
+    end
+
+    -- Wiggle demo
+    ApplyOpenAll()
+    if imgui.TreeNode('Wiggle (Continuous)') then
+        state.wiggle_amplitude = imgui.SliderFloat('Amplitude##wiggle', state.wiggle_amplitude, 1.0, 20.0, '%.0f px')
+        state.wiggle_frequency = imgui.SliderFloat('Frequency##wiggle', state.wiggle_frequency, 0.5, 10.0, '%.1f Hz')
+
+        local offset = iam.WiggleVec2(imgui.GetID('wiggle_demo'),
+            ImVec2(state.wiggle_amplitude, state.wiggle_amplitude), state.wiggle_frequency, dt)
+
+        -- Visual - floating icon
+        local icon_pos = imgui.GetCursorScreenPosVec()
+        local center = ImVec2(icon_pos.x + 150.0 + offset.x, icon_pos.y + 40.0 + offset.y)
+
+        local draw_list = imgui.GetWindowDrawList()
+        draw_list:AddCircleFilled(center, 30.0, IM_COL32(100, 200, 100, 255))
+        draw_list:AddCircle(center, 30.0, IM_COL32(255, 255, 255, 150), 0, 2.0)
+        draw_list:AddText(ImVec2(center.x - 10, center.y - 8), IM_COL32(255, 255, 255, 255), ':)')
+
+        imgui.Dummy(ImVec2(300, 100))
+        imgui.SameLine()
+        imgui.TextDisabled('Continuous organic movement')
+        imgui.TreePop()
+    end
+
+    -- Practical example
+    ApplyOpenAll()
+    if imgui.TreeNode('Practical: Error Feedback') then
+        local error_shake_id = imgui.GetID('error_shake')
+
+        local shake_offset = iam.Shake(error_shake_id, 8.0, 30.0, 0.3, dt)
+
+        imgui.SetCursorPosX(imgui.GetCursorPosX() + shake_offset)
+        imgui.PushItemWidth(200)
+
+        if state.show_error then
+            imgui.PushStyleColor(ImGuiCol.FrameBg, ImVec4(0.5, 0.1, 0.1, 1.0))
+            imgui.PushStyleColor(ImGuiCol.Border, ImVec4(1.0, 0.3, 0.3, 1.0))
+        end
+
+        state.input_buf = imgui.InputText('##email', state.input_buf)
+
+        if state.show_error then
+            imgui.PopStyleColor(2)
+        end
+        imgui.PopItemWidth()
+
+        imgui.SameLine()
+        if imgui.Button('Validate') then
+            state.show_error = (#state.input_buf == 0 or not state.input_buf:find('@', 1, true))
+            if state.show_error then
+                iam.TriggerShake(error_shake_id)
+            end
+        end
+
+        if state.show_error then
+            imgui.TextColored(ImVec4(1, 0.3, 0.3, 1), 'Invalid email format!')
+        end
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
@@ -4533,7 +4736,7 @@ local function ShowScrollDemo()
     -- Create a child window to demonstrate scrolling
     imgui.Text('Scroll Controls:')
 
-    state.duration, _ = imgui.SliderFloat('Duration##Scroll', state.duration, 0.1, 2.0, '%.1f s')
+    state.duration = imgui.SliderFloat('Duration##Scroll', state.duration, 0.1, 2.0, '%.1f s')
 
     local scroll_top = imgui.Button('Scroll to Top')
     imgui.SameLine()
@@ -4593,24 +4796,532 @@ end
 -- MOTION PATHS DEMO
 -- ============================================================
 
+local motion_path_state = {
+    paths_initialized = false,
+    bezier_path_id = ImHashStr('bezier_demo_path'),
+    catmull_path_id = ImHashStr('catmull_demo_path'),
+    complex_path_id = ImHashStr('complex_demo_path'),
+    path_duration = 2.0,
+    selected_ease = IamEaseType.InOutCubic,
+    -- Animation state: elapsed time for each path (-1 = not playing)
+    path_elapsed = { -1.0, -1.0, -1.0 },
+
+    ease_names = { 'Linear', 'In Quad', 'Out Quad', 'InOut Quad',
+        'In Cubic', 'Out Cubic', 'InOut Cubic', 'In Quart', 'Out Quart', 'InOut Quart' },
+}
+
 local function ShowMotionPathsDemo()
-    -- TODO: Implement motion paths demo
+    local state = motion_path_state
+
+    imgui.TextWrapped('Motion paths allow animating positions along bezier curves and Catmull-Rom splines.')
+
+    -- Initialize paths once
+    if not state.paths_initialized then
+        -- Quadratic bezier path
+        print(state.bezier_path_id)
+        IamPath.Begin(state.bezier_path_id, ImVec2(50, 100))
+            :QuadraticTo(ImVec2(150, 20), ImVec2(250, 100))
+            :QuadraticTo(ImVec2(350, 180), ImVec2(450, 100))
+            :End()
+
+        -- Catmull-Rom spline path
+        IamPath.Begin(state.catmull_path_id, ImVec2(50, 50))
+            :CatmullTo(ImVec2(150, 120))
+            :CatmullTo(ImVec2(250, 30))
+            :CatmullTo(ImVec2(350, 100))
+            :CatmullTo(ImVec2(450, 50))
+            :End()
+
+        -- Complex cubic bezier path
+        IamPath.Begin(state.complex_path_id, ImVec2(50, 80))
+            :CubicTo(ImVec2(100, 10), ImVec2(150, 150), ImVec2(200, 80))
+            :CubicTo(ImVec2(250, 10), ImVec2(300, 150), ImVec2(350, 80))
+            :LineTo(ImVec2(450, 80))
+            :End()
+
+        state.paths_initialized = true
+    end
+
+    state.path_duration = imgui.SliderFloat('Duration##MotionPath', state.path_duration, 0.5, 5.0)
+    state.selected_ease = imgui.Combo('Easing', state.selected_ease, state.ease_names, #state.ease_names)
+
+    if imgui.Button('Play Bezier') then state.path_elapsed[1] = 0.0 end
+    imgui.SameLine()
+    if imgui.Button('Play Catmull-Rom') then state.path_elapsed[2] = 0.0 end
+    imgui.SameLine()
+    if imgui.Button('Play Complex') then state.path_elapsed[3] = 0.0 end
+
+    -- Draw area
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(500, 180)
+    local draw = imgui.GetWindowDrawList()
+    draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+    imgui.Dummy(canvas_size)
+
+    local dt = GetSafeDeltaTime()
+
+    -- Draw paths and animate
+    local function draw_path(path_id, path_color, elapsed_idx, idx)
+        -- Draw the path
+        for t = 0, 1, 0.01 do
+            local p1 = iam.PathEvaluate(path_id, t)
+            local p2 = iam.PathEvaluate(path_id, t + 0.01)
+            draw:AddLine(
+                ImVec2(canvas_pos.x + p1.x, canvas_pos.y + p1.y + idx * 60),
+                ImVec2(canvas_pos.x + p2.x, canvas_pos.y + p2.y + idx * 60),
+                path_color, 2.0)
+        end
+
+        -- Animate object along path using timer + easing
+        if state.path_elapsed[elapsed_idx] >= 0.0 then
+            state.path_elapsed[elapsed_idx] = state.path_elapsed[elapsed_idx] + dt
+            local t = state.path_elapsed[elapsed_idx] / state.path_duration
+            if t > 1.0 then
+                t = 1.0
+                state.path_elapsed[elapsed_idx] = -1.0  -- Stop animation
+            end
+            -- Apply easing
+            local eased_t = iam.EvalPreset(state.selected_ease, t)
+            local pos = iam.PathEvaluate(path_id, eased_t)
+            draw:AddCircleFilled(
+                ImVec2(canvas_pos.x + pos.x, canvas_pos.y + pos.y + idx * 60),
+                8.0, IM_COL32(255, 255, 255, 255))
+        end
+    end
+
+    draw_path(state.bezier_path_id, IM_COL32(100, 200, 255, 255), 1, 0)
+    draw_path(state.catmull_path_id, IM_COL32(100, 255, 100, 255), 2, 1)
+    draw_path(state.complex_path_id, IM_COL32(255, 150, 100, 255), 3, 2)
+
+    -- Labels
+    draw:AddText(ImVec2(canvas_pos.x + 5, canvas_pos.y + 5), IM_COL32(100, 200, 255, 255), 'Quadratic Bezier')
+    draw:AddText(ImVec2(canvas_pos.x + 5, canvas_pos.y + 65), IM_COL32(100, 255, 100, 255), 'Catmull-Rom')
+    draw:AddText(ImVec2(canvas_pos.x + 5, canvas_pos.y + 125), IM_COL32(255, 150, 100, 255), 'Cubic Bezier + Line')
+
+    imgui.TextDisabled('Paths can mix bezier curves, Catmull-Rom splines, and lines.')
 end
 
 -- ============================================================
 -- PATH MORPHING DEMO
 -- ============================================================
 
+local path_morph_state = {
+    paths_initialized = false,
+    path_circle_id = ImHashStr('morph_circle_path'),
+    path_star_id = ImHashStr('morph_star_path'),
+    path_wave_id = ImHashStr('morph_wave_path'),
+    path_heart_id = ImHashStr('morph_heart_path'),
+
+    -- Manual Morph Control
+    blend = 0.0,
+    path_a_idx = 1,
+    path_b_idx = 2,
+
+    -- Animated Shape Morph
+    morph_timer = 0.0,
+    animating = false,
+    from_shape = 1,
+    to_shape = 2,
+    -- Object Along Morphing Path
+    path_t = 0.0,
+    path_blend = 0.0,
+    animating_path = false,
+
+    path_names_1 = { 'Circle', 'Star', 'Wave', 'Heart' },
+    path_ids_1 = {},
+
+    path_names_2 = { 'Circle', 'Star', 'Wave', 'Heart' },
+    path_ids_2 = {},
+}
+
 local function ShowPathMorphingDemo()
-    -- TODO: Implement path morphing demo
+    local state = path_morph_state
+    local dt = GetSafeDeltaTime()
+
+    imgui.TextWrapped(
+        'Path morphing allows smooth interpolation between two different paths, even if they have ' ..
+        'different numbers of control points. Useful for shape transitions and metamorphosis effects.')
+
+    imgui.Spacing()
+
+    -- Initialize paths
+    if not state.paths_initialized then
+        -- Circle-like path (using bezier approximation)
+        local cx, cy, r = 200, 100, 60
+        local k = 0.5522847498 -- bezier circle constant
+        IamPath.Begin(state.path_circle_id, ImVec2(cx + r, cy))
+            :CubicTo(ImVec2(cx + r, cy + r * k), ImVec2(cx + r * k, cy + r), ImVec2(cx, cy + r))
+            :CubicTo(ImVec2(cx - r * k, cy + r), ImVec2(cx - r, cy + r * k), ImVec2(cx - r, cy))
+            :CubicTo(ImVec2(cx - r, cy - r * k), ImVec2(cx - r * k, cy - r), ImVec2(cx, cy - r))
+            :CubicTo(ImVec2(cx + r * k, cy - r), ImVec2(cx + r, cy - r * k), ImVec2(cx + r, cy))
+            :End()
+
+        -- Star-like path
+        local sr, sir = 70, 30 -- outer and inner radius
+        local star_points = {}
+        for i = 0, 9 do
+            local angle = i * math.pi * 2.0 / 10.0 - math.pi / 2.0
+            local rad = (i % 2 == 0) and sr or sir
+            star_points[i + 1] = ImVec2(cx + rad * math.cos(angle), cy + rad * math.sin(angle))
+        end
+        IamPath.Begin(state.path_star_id, star_points[1])
+            :LineTo(star_points[2]):LineTo(star_points[3]):LineTo(star_points[4])
+            :LineTo(star_points[5]):LineTo(star_points[6]):LineTo(star_points[7])
+            :LineTo(star_points[8]):LineTo(star_points[9]):LineTo(star_points[10])
+            :LineTo(star_points[1])
+            :End()
+
+        -- Wave path
+        IamPath.Begin(state.path_wave_id, ImVec2(100, cy))
+            :CubicTo(ImVec2(130, cy - 50), ImVec2(170, cy - 50), ImVec2(200, cy))
+            :CubicTo(ImVec2(230, cy + 50), ImVec2(270, cy + 50), ImVec2(300, cy))
+            :End()
+
+        -- Heart-like path
+        IamPath.Begin(state.path_heart_id, ImVec2(cx, cy + 60))
+            :CubicTo(ImVec2(cx + 5, cy + 40), ImVec2(cx + 40, cy + 20), ImVec2(cx + 60, cy - 10))
+            :CubicTo(ImVec2(cx + 75, cy - 35), ImVec2(cx + 55, cy - 55), ImVec2(cx + 30, cy - 55))
+            :CubicTo(ImVec2(cx + 10, cy - 55), ImVec2(cx, cy - 40), ImVec2(cx, cy - 30))
+            :CubicTo(ImVec2(cx, cy - 40), ImVec2(cx - 10, cy - 55), ImVec2(cx - 30, cy - 55))
+            :CubicTo(ImVec2(cx - 55, cy - 55), ImVec2(cx - 75, cy - 35), ImVec2(cx - 60, cy - 10))
+            :CubicTo(ImVec2(cx - 40, cy + 20), ImVec2(cx - 5, cy + 40), ImVec2(cx, cy + 60))
+            :End()
+
+        state.path_ids_1 = { state.path_circle_id, state.path_star_id, state.path_wave_id, state.path_heart_id }
+        state.path_ids_2 = { state.path_circle_id, state.path_star_id, state.path_wave_id, state.path_heart_id }
+        state.paths_initialized = true
+    end
+
+    -- Demo 1: Manual blend slider
+    ApplyOpenAll()
+    if imgui.TreeNode('Manual Morph Control') then
+        imgui.SetNextItemWidth(100)
+        state.path_a_idx = imgui.Combo('Path A', state.path_a_idx, state.path_names_1, #state.path_names_1)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(100)
+        state.path_b_idx = imgui.Combo('Path B', state.path_b_idx, state.path_names_1, #state.path_names_1)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(200)
+        state.blend = imgui.SliderFloat('Blend', state.blend, 0.0, 1.0)
+
+        -- Draw area
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 200)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Draw morphed path
+        local pa = state.path_ids_2[state.path_a_idx]
+        local pb = state.path_ids_2[state.path_b_idx]
+
+        local opts = IamMorphOpts()
+        opts.samples = 100
+
+        local prev_pt
+        for i = 0, 100 do
+            local t = i / 100.0
+            local pt = iam.PathMorph(pa, pb, t, state.blend, opts)
+            pt = pt + canvas_pos
+            if i > 0 then
+                local col = IM_COL32(
+                    math.floor(100 + 155 * state.blend),
+                    math.floor(200 - 100 * state.blend),
+                    math.floor(255 - 155 * state.blend),
+                    255
+                )
+                draw:AddLine(prev_pt, pt, col, 3.0)
+            end
+            prev_pt = pt
+        end
+
+        imgui.TextDisabled('Drag the blend slider to morph between shapes.')
+        imgui.TreePop()
+    end
+
+    -- Demo 2: Animated morph
+    ApplyOpenAll()
+    if imgui.TreeNode('Animated Shape Morph') then
+        imgui.SetNextItemWidth(100)
+        state.from_shape = imgui.Combo('From##anim', state.from_shape, state.path_names_2, #state.path_names_2)
+        imgui.SameLine()
+        imgui.SetNextItemWidth(100)
+        state.to_shape = imgui.Combo('To##anim', state.to_shape, state.path_names_2, #state.path_names_2)
+        imgui.SameLine()
+
+        if imgui.Button(state.animating and 'Reset' or 'Morph!') then
+            if state.animating then
+                state.animating = false
+                state.morph_timer = 0.0
+            else
+                state.animating = true
+                state.morph_timer = 0.0
+            end
+        end
+
+        -- Animate blend
+        local duration = 2.0
+        local blend = 0.0
+        if state.animating then
+            state.morph_timer = state.morph_timer + dt
+            local t = math.max(0.0, math.min(1.0, state.morph_timer / duration))
+            blend = iam.EvalPreset(IamEaseType.InOutCubic, t)
+            if state.morph_timer > duration + 0.5 then
+                state.animating = false
+                state.morph_timer = 0.0
+            end
+        end
+
+        -- Draw area
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 200)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y), IM_COL32(30, 30, 40, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Draw morphed shape
+        local pa = state.path_ids_2[state.from_shape]
+        local pb = state.path_ids_2[state.to_shape]
+        local opts = IamMorphOpts()
+        opts.samples = 100
+
+        local prev_pt
+        for i = 0, 100 do
+            local t = i / 100.0
+            local pt = iam.PathMorph(pa, pb, t, blend, opts)
+            pt = pt + canvas_pos
+            if i > 0 then
+                draw:AddLine(prev_pt, pt, IM_COL32(100, 255, 150, 255), 3.0)
+            end
+            prev_pt = pt
+        end
+
+        imgui.Text('Blend: %.2f', blend)
+        imgui.TextDisabled("Click 'Morph!' to animate the shape transition.")
+        imgui.TreePop()
+    end
+
+    -- Demo 3: Object along morphing path
+    ApplyOpenAll()
+    if imgui.TreeNode('Object Along Morphing Path') then
+        state.path_t = imgui.SliderFloat('Path T', state.path_t, 0.0, 1.0)
+        state.path_blend = imgui.SliderFloat('Morph Blend', state.path_blend, 0.0, 1.0)
+
+        if imgui.Button(state.animating_path and 'Stop' or 'Animate Along Path') then
+            state.animating_path = not state.animating_path
+            if state.animating_path then state.path_t = 0.0 end
+        end
+
+        if state.animating_path then
+            state.path_t = state.path_t + dt * 0.5
+            if state.path_t > 1.0 then state.path_t = 0.0 end
+        end
+
+        -- Draw area
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 200)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(30, 30, 40, 255))
+        imgui.Dummy(canvas_size)
+
+        local opts = IamMorphOpts()
+        opts.samples = 100
+
+        -- Draw morphed path
+        local prev_pt
+        for i = 0, 100 do
+            local t = i / 100.0
+            local pt = iam.PathMorph(state.path_circle_id, state.path_star_id, t, state.path_blend, opts)
+            pt = pt + canvas_pos
+            if i > 0 then
+                draw:AddLine(prev_pt, pt, IM_COL32(80, 80, 100, 255), 2.0)
+            end
+            prev_pt = pt
+        end
+
+        -- Draw object at current position
+        local obj_pos = iam.PathMorph(state.path_circle_id, state.path_star_id, state.path_t, state.path_blend, opts)
+        obj_pos = obj_pos + canvas_pos
+
+        -- Get tangent for rotation
+        local angle = iam.PathMorphAngle(state.path_circle_id, state.path_star_id, state.path_t, state.path_blend, opts)
+
+        -- Draw rotated triangle
+        local size = 12.0
+        local p1 = ImVec2(obj_pos.x + size * math.cos(angle), obj_pos.y + size * math.sin(angle))
+        local p2 = ImVec2(obj_pos.x + size * math.cos(angle + 2.5), obj_pos.y + size * math.sin(angle + 2.5))
+        local p3 = ImVec2(obj_pos.x + size * math.cos(angle - 2.5), obj_pos.y + size * math.sin(angle - 2.5))
+        draw:AddTriangleFilled(p1, p2, p3, IM_COL32(255, 200, 100, 255))
+
+        imgui.TextDisabled('Object follows the morphed path with proper rotation.')
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
 -- TEXT ALONG MOTION PATHS DEMO
 -- ============================================================
 
+local text_path_state = {
+    paths_initialized = false,
+    wave_path_id = ImHashStr('text_wave_path'),
+    arc_path_id = ImHashStr('text_arc_path'),
+    spiral_path_id = ImHashStr('text_spiral_path'),
+    animation_progress = 0.0,
+    auto_animate = false,
+    animation_speed = 0.5,
+    selected_align = 1,
+    letter_spacing = 0.0,
+    font_scale = 1.0,
+}
+
 local function ShowTextAlongPathDemo()
-    -- TODO: Implement text along motion paths demo
+    local state = text_path_state
+
+    imgui.TextWrapped('Text can be animated along motion paths with proper character rotation and constant-speed placement.')
+
+    -- Initialize paths once
+    if not state.paths_initialized then
+        -- Wave path (sine wave using quadratic beziers)
+        IamPath.Begin(state.wave_path_id, ImVec2(20, 60))
+            :QuadraticTo(ImVec2(80, 20), ImVec2(140, 60))
+            :QuadraticTo(ImVec2(200, 100), ImVec2(260, 60))
+            :QuadraticTo(ImVec2(320, 20), ImVec2(380, 60))
+            :End()
+
+        -- Arc path (half circle using cubic bezier approximation)
+        local r = 120.0
+        local cx, cy = 200.0, 100.0
+        IamPath.Begin(state.arc_path_id, ImVec2(cx - r, cy))
+            :CubicTo(ImVec2(cx - r, cy - r * 0.55), ImVec2(cx - r * 0.55, cy - r), ImVec2(cx, cy - r))
+            :CubicTo(ImVec2(cx + r * 0.55, cy - r), ImVec2(cx + r, cy - r * 0.55), ImVec2(cx + r, cy))
+            :End()
+
+        -- Spiral path using catmull-rom
+        IamPath.Begin(state.spiral_path_id, ImVec2(200, 80))
+            :CatmullTo(ImVec2(280, 40))
+            :CatmullTo(ImVec2(340, 80))
+            :CatmullTo(ImVec2(280, 120))
+            :CatmullTo(ImVec2(200, 80))
+            :CatmullTo(ImVec2(140, 50))
+            :CatmullTo(ImVec2(60, 80))
+            :End()
+
+        -- Build arc-length LUTs for accurate text placement
+        iam.PathBuildArcLut(state.wave_path_id, 128)
+        iam.PathBuildArcLut(state.arc_path_id, 128)
+        iam.PathBuildArcLut(state.spiral_path_id, 128)
+
+        state.paths_initialized = true
+    end
+
+    -- Animation controls
+    state.auto_animate = imgui.Checkbox('Auto Animate', state.auto_animate)
+    imgui.SameLine()
+    state.animation_speed = imgui.SliderFloat('Speed', state.animation_speed, 0.1, 2.0)
+
+    if not state.auto_animate then
+        state.animation_progress = imgui.SliderFloat('Progress', state.animation_progress, 0.0, 1.0)
+    else
+        local dt = GetSafeDeltaTime()
+        state.animation_progress = state.animation_progress + dt * state.animation_speed
+        if state.animation_progress > 1.0 then state.animation_progress = 0.0 end
+    end
+
+    local align_names = { 'Start', 'Center', 'End' }
+    state.selected_align = imgui.Combo('Alignment', state.selected_align, align_names, #align_names)
+    state.letter_spacing = imgui.SliderFloat('Letter Spacing', state.letter_spacing, -2.0, 10.0)
+    state.font_scale = imgui.SliderFloat('Font Scale', state.font_scale, 0.5, 2.0)
+
+    -- Demo 1: Wave text
+    imgui.Separator()
+    imgui.Text('Wave Path:')
+    do
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 120)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(20, 25, 35, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Draw path
+        for t = 0, 0.99, 0.01 do
+            local p1 = iam.PathEvaluate(state.wave_path_id, t)
+            local p2 = iam.PathEvaluate(state.wave_path_id, t + 0.01)
+            draw:AddLine(
+                canvas_pos + p1,
+                canvas_pos + p2,
+                IM_COL32(60, 60, 80, 255), 1.0)
+        end
+
+        -- Draw text along path
+        local opts = IamTextPathOpts()
+        opts.origin = canvas_pos
+        opts.align = state.selected_align - 1
+        opts.letter_spacing = state.letter_spacing
+        opts.font_scale = state.font_scale
+        opts.color = IM_COL32(100, 200, 255, 255)
+        iam.TextPathAnimated(state.wave_path_id, 'Hello World!', state.animation_progress, opts)
+    end
+
+    -- Demo 2: Arc text
+    imgui.Text('Arc Path:')
+    do
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 120)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(20, 25, 35, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Draw path
+        for t = 0, 0.99, 0.01 do
+            local p1 = iam.PathEvaluate(state.arc_path_id, t)
+            local p2 = iam.PathEvaluate(state.arc_path_id, t + 0.01)
+            draw:AddLine(
+                canvas_pos + p1,
+                canvas_pos + p2,
+                IM_COL32(60, 60, 80, 255), 1.0)
+        end
+
+        -- Draw text along path
+        local opts = IamTextPathOpts()
+        opts.origin = canvas_pos
+        opts.align = IamTextPathAlign.Center
+        opts.letter_spacing = state.letter_spacing
+        opts.font_scale = state.font_scale
+        opts.color = IM_COL32(255, 200, 100, 255)
+        iam.TextPathAnimated(state.arc_path_id, 'CURVED TEXT', state.animation_progress, opts)
+    end
+
+    -- Demo 3: Spiral text (static, not animated)
+    imgui.Text('Spiral Path (Static):')
+    do
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(400, 140)
+        local draw = imgui.GetWindowDrawList()
+        draw:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(20, 25, 35, 255))
+        imgui.Dummy(canvas_size)
+
+        -- Draw path
+        for t = 0, 0.99, 0.01 do
+            local p1 = iam.PathEvaluate(state.spiral_path_id, t)
+            local p2 = iam.PathEvaluate(state.spiral_path_id, t + 0.01)
+            draw:AddLine(
+                canvas_pos + p1,
+                canvas_pos + p2,
+                IM_COL32(60, 60, 80, 255), 1.0)
+        end
+
+        -- Draw text along path (static)
+        local opts = IamTextPathOpts()
+        opts.origin = canvas_pos
+        opts.align = state.selected_align - 1
+        opts.letter_spacing = state.letter_spacing
+        opts.font_scale = state.font_scale
+        opts.color = IM_COL32(100, 255, 150, 255)
+        iam.TextPath(state.spiral_path_id, 'Following the winding path...', opts)
+    end
+
+    imgui.TextDisabled('Text uses arc-length parameterization for constant character spacing.')
 end
 
 -- ============================================================
