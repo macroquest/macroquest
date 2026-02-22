@@ -892,6 +892,8 @@ void ImGuiManager_NewFrame()
 	iam_profiler_begin_frame();
 }
 
+bool IsPluginSystemInitialized(); // MQPluginHandler.cpp
+
 void ImGuiManager_DrawFrame()
 {
 	MQScopedBenchmark bm1(bmUpdateImGui);
@@ -901,8 +903,25 @@ void ImGuiManager_DrawFrame()
 	// Plugins will get disabled if an error occurs.
 	if (!gbManualResetRequired)
 	{
-		MQScopedBenchmark bm2(bmPluginsUpdateImGui);
-		PluginsUpdateImGui();
+		if (IsPluginSystemInitialized())
+		{
+			MQScopedBenchmark bm2(bmPluginsUpdateImGui);
+
+			MQPlugin* pPlugin = pPlugins;
+			while (pPlugin)
+			{
+				// Prevent bleeding of contexts between plugins.
+				iam_context_set_current(nullptr);
+
+				if (pPlugin->UpdateImGui)
+					pPlugin->UpdateImGui();
+
+				pPlugin = pPlugin->pNext;
+			}
+
+			// Reset back to default context after calling into plugins
+			iam_context_set_current(iam_context_get_default_context());
+		}
 	}
 	else
 	{
