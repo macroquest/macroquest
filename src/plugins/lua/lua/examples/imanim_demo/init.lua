@@ -4487,17 +4487,458 @@ end
 -- SECTION: ImDrawList Animations with ImAnim
 -- ============================================================
 
+-- Clip IDs for DrawList demos
+local CLIP_DL_CUBE_X = 0x3001
+local CLIP_DL_CUBE_Y = 0x3002
+local CLIP_DL_CUBE_Z = 0x3003
+local CLIP_DL_RING = 0x3004
+
+-- Channel IDs for DrawList demos
+local CLIP_DL_CH_ANGLE = 0x3101
+local CLIP_DL_CH_RADIUS = 0x3102
+local CLIP_DL_CH_ALPHA = 0x3103
+
 local s_drawlist_clips_initialized = false
 
 local function InitDrawListClips()
     if s_drawlist_clips_initialized then return end
     s_drawlist_clips_initialized = true
 
-    -- TODO: Implement drawlist clips
+    -- Cube rotation clips - continuous looping with "whoosh" easing
+    -- Using in_out_cubic for smooth acceleration/deceleration per rotation
+    IamClip.Begin(CLIP_DL_CUBE_X)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 0.0, 0.0, IamEaseType.InOutCubic)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 3.0, 6.28318, IamEaseType.InOutCubic)  -- Full rotation in 3s
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    IamClip.Begin(CLIP_DL_CUBE_Y)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 0.0, 0.0, IamEaseType.InOutCubic)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 1.9, 6.28318, IamEaseType.InOutCubic)  -- Full rotation in 1.9s
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    IamClip.Begin(CLIP_DL_CUBE_Z)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 0.0, 0.0, IamEaseType.InOutCubic)
+        :KeyFloat(CLIP_DL_CH_ANGLE, 7.0, 6.28318, IamEaseType.InOutCubic)  -- Full rotation in 7s
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
+
+    -- Pulsing ring - expand and fade
+    IamClip.Begin(CLIP_DL_RING)
+        :KeyFloat(CLIP_DL_CH_RADIUS, 0.0, 10.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_DL_CH_RADIUS, 2.0, 70.0, IamEaseType.OutCubic)
+        :KeyFloat(CLIP_DL_CH_ALPHA, 0.0, 1.0, IamEaseType.Linear)
+        :KeyFloat(CLIP_DL_CH_ALPHA, 2.0, 0.0, IamEaseType.Linear)
+        :SetStagger(4, 0.5, 0.0)  -- 4 rings, 0.5s apart
+        :SetLoop(true, IamDirection.Normal, -1)
+        :End()
 end
 
+local drawlist_state = {
+    inst_x = ImHashStr('dl_cube_x'),
+    inst_y = ImHashStr('dl_cube_y'),
+    inst_z = ImHashStr('dl_cube_z'),
+    cube_started = false,
+    ring_inst_ids = {
+        ImHashStr('dl_ring_0'),
+        ImHashStr('dl_ring_1'),
+        ImHashStr('dl_ring_2'),
+        ImHashStr('dl_ring_3'),
+    },
+    rings_started = false,
+}
+
 local function ShowDrawListDemo()
-    -- TOOD: Implement DrawList Demo
+    local dt = GetSafeDeltaTime()
+    local state = drawlist_state
+    InitDrawListClips()
+
+    imgui.TextWrapped(
+        'Custom ImDrawList rendering animated with ImAnim clips and tweens. ' ..
+        'All animations use the clip system for clean, declarative control.')
+
+    imgui.Spacing()
+    imgui.Separator()
+
+    -- Rotating 3D Cube using clips
+    ApplyOpenAll()
+    if imgui.TreeNodeEx('3D Rotating Cube') then
+        imgui.TextDisabled('Wireframe cube animated with 3 looping rotation clips')
+
+        if not state.cube_started then
+            iam.Play(CLIP_DL_CUBE_X, state.inst_x)
+            iam.Play(CLIP_DL_CUBE_Y, state.inst_y)
+            iam.Play(CLIP_DL_CUBE_Z, state.inst_z)
+            state.cube_started = true
+        end
+
+        if imgui.Button('Restart##cube') then
+            iam.Play(CLIP_DL_CUBE_X, state.inst_x)
+            iam.Play(CLIP_DL_CUBE_Y, state.inst_y)
+            iam.Play(CLIP_DL_CUBE_Z, state.inst_z)
+        end
+
+        -- Get rotation angles from clips
+        local angle_x, angle_y, angle_z = 0.0, 0.0, 0.0
+        local ix = iam.GetInstance(state.inst_x)
+        local iy = iam.GetInstance(state.inst_y)
+        local iz = iam.GetInstance(state.inst_z)
+        if ix:Valid() then angle_x = ix:GetFloat(CLIP_DL_CH_ANGLE) end
+        if iy:Valid() then angle_y = iy:GetFloat(CLIP_DL_CH_ANGLE) end
+        if iz:Valid() then angle_z = iz:GetFloat(CLIP_DL_CH_ANGLE) end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(250, 200)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size, IM_COL32(20, 20, 30, 255))
+
+        local center = canvas_pos + canvas_size * 0.5
+        local cube_size = 60.0
+
+        local vertices = {
+            {-1, -1, -1}, {1, -1, -1}, {1, 1, -1}, {-1, 1, -1},
+            {-1, -1,  1}, {1, -1,  1}, {1, 1,  1}, {-1, 1,  1}
+        }
+
+        local projected = {}
+        local rotated_z = {}
+        for i = 1, 8 do
+            local x = vertices[i][1]
+            local y = vertices[i][2]
+            local z = vertices[i][3]
+
+            local y1 = y * math.cos(angle_x) - z * math.sin(angle_x)
+            local z1 = y * math.sin(angle_x) + z * math.cos(angle_x)
+            y = y1; z = z1
+
+            local x1 = x * math.cos(angle_y) + z * math.sin(angle_y)
+            z1 = -x * math.sin(angle_y) + z * math.cos(angle_y)
+            x = x1; z = z1
+
+            x1 = x * math.cos(angle_z) - y * math.sin(angle_z)
+            y1 = x * math.sin(angle_z) + y * math.cos(angle_z)
+            x = x1; y = y1
+
+            rotated_z[i] = z
+            local perspective = 3.0 / (3.0 + z)
+            projected[i] = center + ImVec2(x, y) * cube_size * perspective
+        end
+
+        local edges = {
+            {1, 2}, {2, 3}, {3, 4}, {4, 1},
+            {5, 6}, {6, 7}, {7, 8}, {8, 5},
+            {1, 5}, {2, 6}, {3, 7}, {4, 8},
+        }
+
+        for i = 1, 12 do
+            local v0 = edges[i][1]
+            local v1 = edges[i][2]
+            local avg_z = (rotated_z[v0] + rotated_z[v1]) * 0.5
+            local brightness = math.max(80, math.min(255, 180 + avg_z * 50))
+            draw_list:AddLine(projected[v0], projected[v1],
+                IM_COL32(math.floor(brightness), math.floor(brightness / 2), math.floor(brightness), 255), 2.0)
+        end
+
+        for i = 1, 8 do
+            local brightness = math.max(100, math.min(255, 200 + math.floor(rotated_z[i] * 40)))
+            draw_list:AddCircleFilled(projected[i], 4.0, IM_COL32(100, brightness, 255, 255))
+        end
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    imgui.Spacing()
+
+    -- Pulsing Rings using staggered clips
+    ApplyOpenAll()
+    if imgui.TreeNode('Pulsing Rings') then
+        imgui.TextDisabled('4 rings animated with staggered clip instances')
+
+        local NUM_RINGS = 4
+
+        if not state.rings_started then
+            for i = 1, NUM_RINGS do
+                iam.PlayStagger(CLIP_DL_RING, state.ring_inst_ids[i], i - 1)
+            end
+            state.rings_started = true
+        end
+
+        if imgui.Button('Restart##rings') then
+            for i = 1, NUM_RINGS do
+                iam.PlayStagger(CLIP_DL_RING, state.ring_inst_ids[i], i - 1)
+            end
+        end
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(250, 150)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(15, 15, 25, 255))
+
+        local center = canvas_pos + canvas_size * 0.5
+
+        for i = 1, NUM_RINGS do
+            local radius, alpha = 10.0, 0.0
+            local inst = iam.GetInstance(state.ring_inst_ids[i])
+            if inst:Valid() then
+                radius = inst:GetFloat(CLIP_DL_CH_RADIUS)
+                alpha = inst:GetFloat(CLIP_DL_CH_ALPHA)
+            end
+
+            if alpha > 0.01 then
+                local a = math.floor(alpha * 200)
+                draw_list:AddCircle(center, radius, IM_COL32(100, 150, 255, a), 0, 2.0)
+            end
+        end
+
+        draw_list:AddCircleFilled(center, 6.0, IM_COL32(100, 200, 255, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    imgui.Spacing()
+
+    -- Pendulum Wave - mesmerizing physics visualization
+    ApplyOpenAll()
+    if imgui.TreeNode('Pendulum Wave') then
+        imgui.TextDisabled('15 pendulums with slightly different frequencies using iam_oscillate')
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(320, 180)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(15, 15, 25, 255))
+
+        -- Draw the top bar
+        local bar_y = canvas_pos.y + 20.0
+        draw_list:AddLine(ImVec2(canvas_pos.x + 20.0, bar_y), ImVec2(canvas_pos.x + canvas_size.x - 20.0, bar_y),
+            IM_COL32(80, 80, 100, 255), 3.0)
+
+        local NUM_PENDULUMS = 15
+        local spacing = (canvas_size.x - 40.0) / (NUM_PENDULUMS - 1)
+        local base_length = 120.0
+
+        for i = 0, NUM_PENDULUMS - 1 do
+            local pivot_x = canvas_pos.x + 20.0 + i * spacing
+            local pivot_y = bar_y
+
+            -- Each pendulum has slightly different frequency
+            -- After 30 seconds, they realign (wave pattern)
+            local freq_mult = 1.0 + i * 0.02  -- 1.0, 1.02, 1.04, ..., 1.28
+
+            local pend_id = ImHashStr('pendulum') + i
+            local angle = iam.Oscillate(pend_id, 0.4, 0.4 * freq_mult, IamWaveType.Sine, 0.0, dt)
+
+            -- Pendulum length decreases slightly for visual appeal
+            local length = base_length - i * 2.0
+            local bob_x = pivot_x + math.sin(angle) * length
+            local bob_y = pivot_y + math.cos(angle) * length
+
+            -- Draw string
+            draw_list:AddLine(ImVec2(pivot_x, pivot_y), ImVec2(bob_x, bob_y),
+                IM_COL32(100, 100, 120, 200), 1.5)
+
+            -- Draw bob with gradient color based on position
+            local t = i / (NUM_PENDULUMS - 1)
+            local r = 100 + math.floor(155 * t)
+            local g = 200 - math.floor(100 * t)
+            local b = 255 - math.floor(155 * t)
+            draw_list:AddCircleFilled(ImVec2(bob_x, bob_y), 8.0, IM_COL32(r, g, b, 255))
+            draw_list:AddCircle(ImVec2(bob_x, bob_y), 8.0, IM_COL32(255, 255, 255, 100), 0, 1.5)
+        end
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    imgui.Spacing()
+
+    -- Lissajous Curve - beautiful mathematical pattern from two oscillators
+    ApplyOpenAll()
+    if imgui.TreeNode('Lissajous Curve') then
+        imgui.TextDisabled('Two oscillators at different frequencies create evolving patterns')
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(280, 180)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, canvas_pos + canvas_size,
+            IM_COL32(10, 10, 20, 255))
+
+        local center = canvas_pos + canvas_size * 0.5
+        local radius_x = canvas_size.x * 0.4
+        local radius_y = canvas_size.y * 0.4
+
+        -- Two oscillators with frequency ratio that slowly changes
+        -- This creates evolving Lissajous patterns
+        local phase_id = ImHashStr('lissajous_phase')
+        local phase_shift = iam.Oscillate(phase_id, math.pi, 0.02, IamWaveType.Sawtooth, 0.0, dt)
+
+        -- Draw the curve trail (history of points)
+        local TRAIL_POINTS = 200
+        local trail = {}
+
+        local freq_x = 3.0
+        local freq_y = 2.0
+
+        for i = 1, TRAIL_POINTS do
+            local t = (i - 1) / TRAIL_POINTS * 2.0 * math.pi
+            local x = math.sin(freq_x * t + phase_shift)
+            local y = math.sin(freq_y * t)
+            trail[i] = ImVec2(center.x + x * radius_x, center.y + y * radius_y)
+        end
+
+        -- Draw gradient trail
+        for i = 2, TRAIL_POINTS do
+            local t = i / TRAIL_POINTS
+            local r = 100 + math.floor(155 * t)
+            local g = 50 + math.floor(100 * (1.0 - t))
+            local b = 200 + math.floor(55 * t)
+            local a = 50 + math.floor(200 * t)
+            draw_list:AddLine(trail[i-1], trail[i], IM_COL32(r, g, b, a), 2.0)
+        end
+
+        -- Draw moving dot at current position
+        local dot_id = ImHashStr('lissajous_dot')
+        local dot_t = iam.Oscillate(dot_id, math.pi, 0.3, IamWaveType.Sawtooth, 0.0, dt)
+        dot_t = (dot_t + math.pi) / (2.0 * math.pi) * 2.0 * math.pi  -- Normalize to 0-2PI
+
+        local dot_x = center.x + math.sin(freq_x * dot_t + phase_shift) * radius_x
+        local dot_y = center.y + math.sin(freq_y * dot_t) * radius_y
+
+        -- Glow
+        draw_list:AddCircleFilled(ImVec2(dot_x, dot_y), 12.0, IM_COL32(150, 100, 255, 50))
+        draw_list:AddCircleFilled(ImVec2(dot_x, dot_y), 8.0, IM_COL32(200, 150, 255, 100))
+        draw_list:AddCircleFilled(ImVec2(dot_x, dot_y), 5.0, IM_COL32(255, 255, 255, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
+
+    imgui.Spacing()
+
+    -- Breathing Heartbeat - pulsing heart with ECG line
+    ApplyOpenAll()
+    if imgui.TreeNode('Breathing Heartbeat') then
+        imgui.TextDisabled('Heart pulse animation using iam_oscillate with custom timing')
+
+        local canvas_pos = imgui.GetCursorScreenPosVec()
+        local canvas_size = ImVec2(320, 180)
+        local draw_list = imgui.GetWindowDrawList()
+
+        draw_list:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+            IM_COL32(15, 10, 15, 255))
+
+        -- Heart position (left side)
+        local heart_center = ImVec2(canvas_pos.x + 80.0, canvas_pos.y + canvas_size.y * 0.45)
+
+        -- Heartbeat oscillation - double bump pattern
+        local heart_id = ImHashStr('heartbeat')
+        local beat_phase = iam.Oscillate(heart_id, 1.0, 1.2, IamWaveType.Sawtooth, 0.0, dt)
+        beat_phase = (beat_phase + 1.0) * 0.5  -- Normalize to 0-1
+
+        -- Create double-bump heartbeat curve
+        local pulse = 0.0
+        if beat_phase < 0.1 then
+            -- First bump (quick rise)
+            pulse = beat_phase / 0.1
+        elseif beat_phase < 0.2 then
+            -- First bump (quick fall)
+            pulse = 1.0 - (beat_phase - 0.1) / 0.1
+        elseif beat_phase < 0.25 then
+            -- Brief pause
+            pulse = 0.0
+        elseif beat_phase < 0.35 then
+            -- Second bump (smaller, slower rise)
+            pulse = 0.6 * (beat_phase - 0.25) / 0.1
+        elseif beat_phase < 0.5 then
+            -- Second bump (slower fall)
+            pulse = 0.6 * (1.0 - (beat_phase - 0.35) / 0.15)
+        end
+        -- Rest of cycle is 0
+
+        local heart_scale = 35.0 + pulse * 8.0
+        local heart_alpha = 180 + math.floor(pulse * 75.0)
+
+        -- Draw heart shape
+        local HEART_SEGMENTS = 32
+        local heart_points = {}
+        for i = 1, HEART_SEGMENTS do
+            local t = (i - 1) / HEART_SEGMENTS * 2.0 * math.pi
+            -- Heart parametric equation
+            local x = 16.0 * math.sin(t) ^ 3.0
+            local y = -(13.0 * math.cos(t) - 5.0 * math.cos(2*t) - 2.0 * math.cos(3*t) - math.cos(4*t))
+            heart_points[i] = ImVec2(
+                heart_center.x + x * heart_scale / 16.0,
+                heart_center.y + y * heart_scale / 16.0)
+        end
+
+        -- Glow effect
+        for g = 3, 1, -1 do
+            local glow_alpha = math.floor(pulse * 30.0 / g)
+            draw_list:AddPolyline(heart_points, IM_COL32(255, 50, 80, glow_alpha),
+                ImDrawFlags.Closed, 2.0 + g * 3.0)
+        end
+
+        draw_list:AddConvexPolyFilled(heart_points, IM_COL32(180, 30, 60, heart_alpha))
+        draw_list:AddPolyline(heart_points, IM_COL32(255, 80, 100, 255),
+            ImDrawFlags.Closed, 2.0)
+
+        -- ECG Line (right side)
+        local ecg_left = canvas_pos.x + 160.0
+        local ecg_right = canvas_pos.x + canvas_size.x - 20.0
+        local ecg_width = ecg_right - ecg_left
+        local ecg_center_y = canvas_pos.y + canvas_size.y * 0.5
+
+        -- Draw ECG background line
+        draw_list:AddLine(ImVec2(ecg_left, ecg_center_y), ImVec2(ecg_right, ecg_center_y),
+            IM_COL32(40, 60, 40, 255), 1.0)
+
+        -- Draw ECG waveform
+        local ECG_POINTS = 60
+        local ecg_pts = {}
+        for i = 1, ECG_POINTS do
+            local x_norm = (i - 1) / (ECG_POINTS - 1)
+            local phase = math.fmod(x_norm + beat_phase, 1.0)
+
+            -- ECG waveform shape
+            local y = 0.0
+            if phase < 0.05 then
+                -- P wave (small bump)
+                y = 10.0 * math.sin(phase / 0.05 * math.pi)
+            elseif phase >= 0.1 and phase < 0.12 then
+                -- Q dip
+                y = -15.0 * (phase - 0.1) / 0.02
+            elseif phase >= 0.12 and phase < 0.15 then
+                -- R spike (main peak)
+                local t = (phase - 0.12) / 0.03
+                y = -15.0 + 65.0 * (t < 0.5 and t * 2.0 or (1.0 - t) * 2.0)
+            elseif phase >= 0.15 and phase < 0.18 then
+                -- S dip
+                y = -20.0 * (1.0 - (phase - 0.15) / 0.03)
+            elseif phase >= 0.25 and phase < 0.4 then
+                -- T wave (recovery bump)
+                y = 15.0 * math.sin((phase - 0.25) / 0.15 * math.pi)
+            end
+
+            ecg_pts[i] = ImVec2(ecg_left + x_norm * ecg_width, ecg_center_y - y)
+        end
+
+        draw_list:AddPolyline(ecg_pts, IM_COL32(80, 255, 80, 255), 0, 2.0)
+
+        -- Scanning dot
+        local dot_x = ecg_left + beat_phase * ecg_width
+        draw_list:AddCircleFilled(ImVec2(dot_x, ecg_center_y), 4.0, IM_COL32(150, 255, 150, 255))
+
+        imgui.Dummy(canvas_size)
+        imgui.TreePop()
+    end
 end
 
 -- ============================================================
