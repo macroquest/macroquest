@@ -25,6 +25,7 @@ MQLIB_API void ToggleImGuiOverlay();
 
 //----------------------------------------------------------------------------
 
+extern bool gbShowSettingsWindow;
 void ImGuiTools_DrawWindowsMenu();
 
 void InitializeImGuiConsole();

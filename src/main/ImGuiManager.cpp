@@ -28,6 +28,7 @@
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/imanim/im_anim.h"
 #include "imgui/implot/implot.h"
 #include "imgui/implot/implot_internal.h"
 #include "misc/freetype/imgui_freetype.h"
@@ -379,6 +380,7 @@ bool gbManualResetRequired = false;
 static ImFontAtlas* s_fontAtlas = nullptr;
 static ImFontAtlas* s_eqFontAtlas = nullptr;
 static bool s_useFreeType = true;
+static std::chrono::steady_clock::time_point s_lastImAnimGc = {};
 
 static char ImGuiSettingsFile[MAX_PATH] = { 0 };
 static char ImGuiLogFile[MAX_PATH] = { 0 };
@@ -851,6 +853,14 @@ static bool ImGuiManager_DetectCursorAttachment()
 	return s_showForFrames > 0;
 }
 
+static float GetSafeDeltaTime()
+{
+	float dt = ImGui::GetIO().DeltaTime;
+	if (dt <= 0.0f) dt = 1.0f / 60.0f;
+	if (dt > 0.1f) dt = 0.1f;
+	return dt;
+}
+
 void ImGuiManager_NewFrame()
 {
 	ImGuiContext* g = ImGui::GetCurrentContext();
@@ -865,8 +875,21 @@ void ImGuiManager_NewFrame()
 	{
 		ImFontAtlasUpdateNewFrame(s_eqFontAtlas, g->FrameCount, has_textures);
 	}
+
+	if (s_lastImAnimGc + std::chrono::seconds(10) < std::chrono::steady_clock::now())
+	{
+		iam_gc(1000);
+		iam_clip_gc(1000);
+		s_lastImAnimGc = std::chrono::steady_clock::now();
+	}
 	
 	ImGui::NewFrame();
+
+	iam_update_begin_frame();
+	iam_clip_update(GetSafeDeltaTime());
+
+	// Start profiler frame
+	iam_profiler_begin_frame();
 }
 
 void ImGuiManager_DrawFrame()
@@ -932,6 +955,8 @@ void ImGuiManager_DrawFrame()
 	{
 		ImGuiManager_DrawCursorAttachment();
 	}
+
+	iam_profiler_end_frame();
 }
 
 void ImGuiManager_DrawCursorAttachment()
@@ -1293,6 +1318,8 @@ void ImGuiManager_DestroyContext()
 
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
+
+	iam_pool_clear();
 
 	CheckDestroyFontAtlas(s_fontAtlas);
 	if (CheckDestroyFontAtlas(s_eqFontAtlas))
