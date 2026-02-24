@@ -13,7 +13,7 @@ local primary_btn_id = ImHashStr('btn_primary')
 local ghost_btn_id = ImHashStr('btn_ghost')
 local rotate_btn_id = ImHashStr('btn_icon')
 
-local IM_COL32_WHITE = IM_COL32(255,255,255,255)
+local IM_COL32_WHITE = IM_COL32(255, 255, 255, 255)
 
 -- ============================================================
 -- USECASE 1: Animated Button with Hover/Press States
@@ -176,8 +176,8 @@ local function ShowUsecase_ProgressBar()
     local dl = imgui.GetWindowDrawList()
 
     -- small helper: slider returns nil in some bindings, preserve value
-    local ok, v = pcall(function() return imgui.SliderFloat("Progress", state.target_progress, 0.0, 1.0) end)
-    if ok and type(v) == 'number' then state.target_progress = v end
+    local v, changed = imgui.SliderFloat("Progress", state.target_progress, 0.0, 1.0)
+    if changed then state.target_progress = v end
 
     local progress = iam.TweenFloat(state.id, state.value_id, state.target_progress, 0.5,
         iam.EasePreset(IamEaseType.OutExpo), IamPolicy.Crossfade, dt)
@@ -209,14 +209,14 @@ local function ShowUsecase_ProgressBar()
         if shimmer_pos < filled_width then
             local shimmer_alpha = 0.15 * math.sin(shimmer_pos / filled_width * 3.14159)
             dl:AddRectFilledMultiColor(ImVec2(bar_pos.x + shimmer_pos, bar_pos.y), ImVec2(bar_pos.x + shimmer_pos + shimmer_width, bar_pos.y + bar_size.y),
-                IM_COL32(255,255,255,0), IM_COL32(255,255,255,math.floor(shimmer_alpha*255)), IM_COL32(255,255,255,math.floor(shimmer_alpha*255)), IM_COL32(255,255,255,0))
+                IM_COL32(255, 255, 255, 0), IM_COL32(255, 255, 255, math.floor(shimmer_alpha * 255)), IM_COL32(255, 255, 255, math.floor(shimmer_alpha * 255)), IM_COL32(255, 255, 255, 0))
         end
     end
 
     local percent_text = string.format("%.0f%%", progress * 100.0)
     local tx, ty = imgui.CalcTextSize(percent_text)
     local text_pos = ImVec2(bar_pos.x + (bar_size.x - tx) * 0.5, bar_pos.y + (bar_size.y - ty) * 0.5)
-    dl:AddText(text_pos, IM_COL32(255,255,255,200), percent_text)
+    dl:AddText(text_pos, IM_COL32(255, 255, 255, 200), percent_text)
 
     imgui.Dummy(bar_size.x, bar_size.y + 16.0)
 end
@@ -226,7 +226,11 @@ end
 -- ============================================================
 local pulse_badge_state = {
     pulse_time = 0.0,
-    badge_counts = {3, 99, 0}
+    items = {
+        { offset = ImVec2(0.2, 0.5), count = 3, pulse = true },
+        { offset = ImVec2(0.5, 0.5), count = 99, pulse = true },
+        { offset = ImVec2(0.8, 0.5), count = 0, pulse = false },
+    },
 }
 
 local function ShowUsecase_PulseBadge()
@@ -241,12 +245,12 @@ local function ShowUsecase_PulseBadge()
 
     if imgui.Button("Reset Badges") then
         state.pulse_time = 0
-        state.badge_counts[1] = 3; state.badge_counts[2] = 99; state.badge_counts[3] = 0
+        state.items[1].count = 3; state.items[2].count = 99; state.items[3].count = 0
     end
     imgui.SameLine()
     if imgui.Button("Add Notification") then
-        state.badge_counts[1] = state.badge_counts[1] + 1
-        state.badge_counts[2] = state.badge_counts[2] + 1
+        state.items[1].count = state.items[1].count + 1
+        state.items[2].count = state.items[2].count + 1
         state.pulse_time = 0
     end
 
@@ -254,43 +258,37 @@ local function ShowUsecase_PulseBadge()
     local avail = imgui.GetContentRegionAvailVec()
     local canvas_size = ImVec2(avail.x, 80)
 
-    dl:AddRectFilled(pos, ImVec2(pos.x + canvas_size.x, pos.y + canvas_size.y), IM_COL32(25,27,35,255), 4.0)
+    dl:AddRectFilled(pos, ImVec2(pos.x + canvas_size.x, pos.y + canvas_size.y), IM_COL32(25, 27, 35, 255), 4.0)
 
-    local items = {
-        { offset = ImVec2(0.2, 0.5), count = state.badge_counts[1], pulse = true },
-        { offset = ImVec2(0.5, 0.5), count = state.badge_counts[2], pulse = true },
-        { offset = ImVec2(0.8, 0.5), count = state.badge_counts[3], pulse = false }
-    }
-
-    for i, it in ipairs(items) do
+    for i, it in ipairs(state.items) do
         local icon_center = ImVec2(pos.x + canvas_size.x * it.offset.x, pos.y + canvas_size.y * it.offset.y)
         local icon_size = 24.0
-        dl:AddCircleFilled(icon_center, icon_size, IM_COL32(60,65,80,255))
-        dl:AddCircleFilled(ImVec2(icon_center.x, icon_center.y - 4), icon_size * 0.6, IM_COL32(80,85,100,255))
+        dl:AddCircleFilled(icon_center, icon_size, IM_COL32(60, 65, 80, 255))
+        dl:AddCircleFilled(ImVec2(icon_center.x, icon_center.y - 4), icon_size * 0.6, IM_COL32(80, 85, 100, 255))
 
         local badge_center = ImVec2(icon_center.x + icon_size * 0.7, icon_center.y - icon_size * 0.5)
 
         local pulse = 0.0; local pulse2 = 0.0; local badge_scale = 1.0
         if it.pulse and it.count > 0 then
-            local phase = state.pulse_time * 3.0 + (i-1) * 0.5
+            local phase = state.pulse_time * 3.0 + (i - 1) * 0.5
             pulse = phase % 1.0
             pulse2 = (phase + 0.5) % 1.0
-            local scale_phase = state.pulse_time * 4.0 + (i-1) * 0.3
+            local scale_phase = state.pulse_time * 4.0 + (i - 1) * 0.3
             badge_scale = 1.0 + math.sin(scale_phase) * 0.15
         end
 
         if pulse > 0.01 and it.count > 0 then
             local ring_radius = 10.0 + pulse * 20.0
             local ring_alpha = (1.0 - pulse) * 180
-            dl:AddCircle(badge_center, ring_radius, IM_COL32(231,76,60,math.floor(ring_alpha)), 0, 2.5)
+            dl:AddCircle(badge_center, ring_radius, IM_COL32(231, 76, 60, math.floor(ring_alpha)), 0, 2.5)
 
             local ring_radius2 = 10.0 + pulse2 * 20.0
             local ring_alpha2 = (1.0 - pulse2) * 180
-            dl:AddCircle(badge_center, ring_radius2, IM_COL32(231,76,60,math.floor(ring_alpha2)), 0, 2.5)
+            dl:AddCircle(badge_center, ring_radius2, IM_COL32(231, 76, 60, math.floor(ring_alpha2)), 0, 2.5)
         end
 
         local badge_radius = 10.0 * badge_scale
-        dl:AddCircleFilled(badge_center, badge_radius, IM_COL32(231,76,60,255))
+        dl:AddCircleFilled(badge_center, badge_radius, IM_COL32(231, 76, 60, 255))
 
         if it.count > 0 then
             local count_text = (it.count > 99) and "99+" or tostring(it.count)
@@ -310,6 +308,7 @@ local pending_button_state = {
     is_pending = {false, false, false},
     pending_time = {0, 0, 0},
     spinner_angle = {0, 0, 0},
+    labels = {"Save", "Submit", "Upload"},
 }
 
 local function ShowUsecase_PendingButton()
@@ -321,7 +320,6 @@ local function ShowUsecase_PendingButton()
     local dl = imgui.GetWindowDrawList()
     local scale = imgui.GetStyle().FontScaleMain
 
-    local labels = {"Save","Submit","Upload"}
     local pos = imgui.GetCursorScreenPosVec()
     local button_width = 100.0 * scale
     local button_height = 40.0 * scale
@@ -329,10 +327,10 @@ local function ShowUsecase_PendingButton()
 
     for i = 1, 3 do
         imgui.PushID(i)
-        local x = pos.x + (i-1) * (button_width + spacing)
+        local x = pos.x + (i - 1) * (button_width + spacing)
         local btn_min = ImVec2(x, pos.y)
         local btn_max = ImVec2(x + button_width, pos.y + button_height)
-        local btn_center = ImVec2((btn_min.x + btn_max.x)*0.5, (btn_min.y + btn_max.y)*0.5)
+        local btn_center = ImVec2((btn_min.x + btn_max.x) * 0.5, (btn_min.y + btn_max.y) * 0.5)
 
         if state.is_pending[i] then
             state.pending_time[i] = state.pending_time[i] + dt
@@ -343,7 +341,7 @@ local function ShowUsecase_PendingButton()
             end
         end
 
-        local btn_color = state.is_pending[i] and IM_COL32(60,65,80,255) or IM_COL32(76,175,80,255)
+        local btn_color = state.is_pending[i] and IM_COL32(60, 65, 80, 255) or IM_COL32(76, 175, 80, 255)
         dl:AddRectFilled(btn_min, btn_max, btn_color, 6.0 * scale)
 
         imgui.SetCursorScreenPos(btn_min)
@@ -352,11 +350,11 @@ local function ShowUsecase_PendingButton()
             state.pending_time[i] = 0
         end
 
-        local label = state.is_pending[i] and "..." or labels[i]
+        local label = state.is_pending[i] and "..." or state.labels[i]
         local tx, ty = imgui.CalcTextSize(label)
         local text_x = btn_center.x - tx * 0.5
         if state.is_pending[i] then text_x = text_x - 8 * scale end
-        dl:AddText(ImVec2(text_x, btn_center.y - ty * 0.5), IM_COL32(255,255,255,255), label)
+        dl:AddText(ImVec2(text_x, btn_center.y - ty * 0.5), IM_COL32(255, 255, 255, 255), label)
 
         if state.is_pending[i] then
             local spinner_radius = 8.0 * scale
@@ -370,7 +368,7 @@ local function ShowUsecase_PendingButton()
                 local a1 = start_angle + t1 * arc_length
                 local a2 = start_angle + t2 * arc_length
                 local alpha = math.floor(255 * t2)
-                dl:AddLine(ImVec2(spinner_center.x + math.cos(a1) * spinner_radius, spinner_center.y + math.sin(a1) * spinner_radius), ImVec2(spinner_center.x + math.cos(a2) * spinner_radius, spinner_center.y + math.sin(a2) * spinner_radius), IM_COL32(255,255,255,alpha), 2.0 * scale)
+                dl:AddLine(ImVec2(spinner_center.x + math.cos(a1) * spinner_radius, spinner_center.y + math.sin(a1) * spinner_radius), ImVec2(spinner_center.x + math.cos(a2) * spinner_radius, spinner_center.y + math.sin(a2) * spinner_radius), IM_COL32(255, 255, 255, alpha), 2.0 * scale)
             end
         end
 
@@ -388,7 +386,8 @@ end
 local animated_slider_state = {
     slider_values = {0.3, 0.7},
     slider_id = ImHashStr("slider"),
-    scale_id = ImHashStr("scale")
+    scale_id = ImHashStr("scale"),
+    labels = {"Volume", "Brightness"},
 }
 
 local function ShowUsecase_AnimatedSlider()
@@ -400,7 +399,6 @@ local function ShowUsecase_AnimatedSlider()
     local dl = imgui.GetWindowDrawList()
     local scale = imgui.GetStyle().FontScaleMain
 
-    local labels = {"Volume","Brightness"}
     local pos = imgui.GetCursorScreenPosVec()
     local slider_width = 250.0 * scale
     local slider_height = 8.0 * scale
@@ -409,16 +407,16 @@ local function ShowUsecase_AnimatedSlider()
 
     for i = 1, 2 do
         imgui.PushID(i)
-        local y = pos.y + (i-1) * line_height
-        dl:AddText(ImVec2(pos.x, y), IM_COL32(200,200,210,255), labels[i])
+        local y = pos.y + (i - 1) * line_height
+        dl:AddText(ImVec2(pos.x, y), IM_COL32(200, 200, 210, 255), state.labels[i])
 
         local track_x = pos.x + 100 * scale
         local track_y = y + imgui.GetFontSize() * 0.5 - slider_height * 0.5
 
-        dl:AddRectFilled(ImVec2(track_x, track_y), ImVec2(track_x + slider_width, track_y + slider_height), IM_COL32(50,55,65,255), slider_height * 0.5)
+        dl:AddRectFilled(ImVec2(track_x, track_y), ImVec2(track_x + slider_width, track_y + slider_height), IM_COL32(50, 55, 65, 255), slider_height * 0.5)
 
         local fill_width = state.slider_values[i] * slider_width
-        local fill_color = (i == 1) and IM_COL32(76,175,80,255) or IM_COL32(255,193,7,255)
+        local fill_color = (i == 1) and IM_COL32(76, 175, 80, 255) or IM_COL32(255, 193, 7, 255)
         dl:AddRectFilled(ImVec2(track_x, track_y), ImVec2(track_x + fill_width, track_y + slider_height), fill_color, slider_height * 0.5)
 
         local thumb_x = track_x + fill_width
@@ -438,14 +436,14 @@ local function ShowUsecase_AnimatedSlider()
         local thumb_scale = iam.TweenFloat(id, state.scale_id, target_scale, 0.15, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         if thumb_scale > 1.1 then
-            dl:AddCircleFilled(ImVec2(thumb_x, thumb_y), thumb_radius * thumb_scale * 1.5, IM_COL32(255,255,255,30))
+            dl:AddCircleFilled(ImVec2(thumb_x, thumb_y), thumb_radius * thumb_scale * 1.5, IM_COL32(255, 255, 255, 30))
         end
 
-        dl:AddCircleFilled(ImVec2(thumb_x, thumb_y), thumb_radius * thumb_scale, IM_COL32(255,255,255,255))
+        dl:AddCircleFilled(ImVec2(thumb_x, thumb_y), thumb_radius * thumb_scale, IM_COL32(255, 255, 255, 255))
         dl:AddCircle(ImVec2(thumb_x, thumb_y), thumb_radius * thumb_scale, fill_color, 0, 2.0 * scale)
 
         local value_text = string.format("%.0f%%", state.slider_values[i] * 100)
-        dl:AddText(ImVec2(track_x + slider_width + 10 * scale, y), IM_COL32(180,180,190,255), value_text)
+        dl:AddText(ImVec2(track_x + slider_width + 10 * scale, y), IM_COL32(180, 180, 190, 255), value_text)
 
         imgui.PopID()
     end
@@ -462,7 +460,8 @@ local icon_button_state = {
     rot_base = ImHashStr("icon_rot"),
     rot_name = ImHashStr("rot"),
     scl_base = ImHashStr("icon_scl"),
-    scl_name = ImHashStr("scl")
+    scl_name = ImHashStr("scl"),
+    labels = {"Settings", "Menu", "Add"},
 }
 
 local function ShowUsecase_IconButtonRotation()
@@ -473,8 +472,6 @@ local function ShowUsecase_IconButtonRotation()
     local dt = common.GetDeltaTime()
     local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
-
-    local labels = {"Settings","Menu","Add"}
 
     local pos = imgui.GetCursorScreenPosVec()
     local btn_size = 50 * scale
@@ -491,11 +488,11 @@ local function ShowUsecase_IconButtonRotation()
         imgui.PopID()
 
         local target_rot = state.hovered[i] and (math.pi * 0.5) or 0.0
-        local rotation = iam.TweenFloat(state.rot_base + (i-1), state.rot_name, target_rot, 0.3, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
+        local rotation = iam.TweenFloat(state.rot_base + (i - 1), state.rot_name, target_rot, 0.3, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
         local target_scl = state.hovered[i] and 1.15 or 1.0
-        local btn_scale = iam.TweenFloat(state.scl_base + (i-1), state.scl_name, target_scl, 0.2, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
+        local btn_scale = iam.TweenFloat(state.scl_base + (i - 1), state.scl_name, target_scl, 0.2, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
-        local bg_col = state.hovered[i] and IM_COL32(70,130,180,255) or IM_COL32(60,65,75,255)
+        local bg_col = state.hovered[i] and IM_COL32(70, 130, 180, 255) or IM_COL32(60, 65, 75, 255)
         dl:AddCircleFilled(btn_center, btn_size * 0.45 * btn_scale, bg_col)
 
         local icon_r = 12 * scale * btn_scale
@@ -506,23 +503,23 @@ local function ShowUsecase_IconButtonRotation()
             for j = 0, 3 do
                 local angle = rotation + j * (math.pi * 0.5)
                 local c = math.cos(angle); local s = math.sin(angle)
-                dl:AddLine(ImVec2(btn_center.x + c * 5 * scale, btn_center.y + s * 5 * scale), ImVec2(btn_center.x + c * icon_r, btn_center.y + s * icon_r), IM_COL32(255,255,255,255), 3 * scale)
+                dl:AddLine(ImVec2(btn_center.x + c * 5 * scale, btn_center.y + s * 5 * scale), ImVec2(btn_center.x + c * icon_r, btn_center.y + s * icon_r), IM_COL32(255, 255, 255, 255), 3 * scale)
             end
-            dl:AddCircle(btn_center, 6 * scale * btn_scale, IM_COL32(255,255,255,255), 0, 2 * scale)
+            dl:AddCircle(btn_center, 6 * scale * btn_scale, IM_COL32(255, 255, 255, 255), 0, 2 * scale)
         elseif i == 2 then
             for j = -1, 1 do
                 local offset = j * 5 * scale
                 local rx = -offset * sin_r
                 local ry = offset * cos_r
-                dl:AddLine(ImVec2(btn_center.x + rx - 8 * scale * cos_r, btn_center.y + ry - 8 * scale * sin_r), ImVec2(btn_center.x + rx + 8 * scale * cos_r, btn_center.y + ry + 8 * scale * sin_r), IM_COL32(255,255,255,255), 2.5 * scale)
+                dl:AddLine(ImVec2(btn_center.x + rx - 8 * scale * cos_r, btn_center.y + ry - 8 * scale * sin_r), ImVec2(btn_center.x + rx + 8 * scale * cos_r, btn_center.y + ry + 8 * scale * sin_r), IM_COL32(255, 255, 255, 255), 2.5 * scale)
             end
         else
-            dl:AddLine(ImVec2(btn_center.x - sin_r * icon_r, btn_center.y + cos_r * icon_r), ImVec2(btn_center.x + sin_r * icon_r, btn_center.y - cos_r * icon_r), IM_COL32(255,255,255,255), 3 * scale)
-            dl:AddLine(ImVec2(btn_center.x - cos_r * icon_r, btn_center.y - sin_r * icon_r), ImVec2(btn_center.x + cos_r * icon_r, btn_center.y + sin_r * icon_r), IM_COL32(255,255,255,255), 3 * scale)
+            dl:AddLine(ImVec2(btn_center.x - sin_r * icon_r, btn_center.y + cos_r * icon_r), ImVec2(btn_center.x + sin_r * icon_r, btn_center.y - cos_r * icon_r), IM_COL32(255, 255, 255, 255), 3 * scale)
+            dl:AddLine(ImVec2(btn_center.x - cos_r * icon_r, btn_center.y - sin_r * icon_r), ImVec2(btn_center.x + cos_r * icon_r, btn_center.y + sin_r * icon_r), IM_COL32(255, 255, 255, 255), 3 * scale)
         end
 
-        local label_size_x, label_size_y = imgui.CalcTextSize(labels[i])
-        dl:AddText(ImVec2(btn_center.x - label_size_x * 0.5, btn_pos.y + btn_size + 5 * scale), IM_COL32(150,150,160,255), labels[i])
+        local label_size_x, label_size_y = imgui.CalcTextSize(state.labels[i])
+        dl:AddText(ImVec2(btn_center.x - label_size_x * 0.5, btn_pos.y + btn_size + 5 * scale), IM_COL32(150, 150, 160, 255), state.labels[i])
     end
 
     imgui.SetCursorScreenPos(pos.x, pos.y + btn_size + 30 * scale)
@@ -598,7 +595,7 @@ local function ShowUsecase_LikeHeartButton()
 
     local text = state.liked and "Liked!" or (hovered and "Click me!" or "Hover & Click")
     local tx, ty = imgui.CalcTextSize(text)
-    dl:AddText(ImVec2(center.x - tx * 0.5, pos.y + heart_size * 2 + 10 * scale), IM_COL32(180,180,190,255), text)
+    dl:AddText(ImVec2(center.x - tx * 0.5, pos.y + heart_size * 2 + 10 * scale), IM_COL32(180, 180, 190, 255), text)
 
     imgui.SetCursorScreenPos(pos.x, pos.y + heart_size * 2 + 35 * scale)
 end
@@ -639,16 +636,16 @@ local function ShowUsecase_ButtonGlow()
         for i = 3, 0, -1 do
             local offset = (4 - i) * 4 * scale * glow
             local alpha = math.floor(30 * glow * (1.0 + pulse * 0.5) / (i + 1))
-            dl:AddRectFilled(ImVec2(pos.x - offset, pos.y - offset), ImVec2(pos.x + btn_size.x + offset, pos.y + btn_size.y + offset), IM_COL32(100,150,255,alpha), 12 * scale)
+            dl:AddRectFilled(ImVec2(pos.x - offset, pos.y - offset), ImVec2(pos.x + btn_size.x + offset, pos.y + btn_size.y + offset), IM_COL32(100, 150, 255, alpha), 12 * scale)
         end
     end
 
-    local bg_col = state.focused and IM_COL32(70,120,200,255) or IM_COL32(60,65,75,255)
+    local bg_col = state.focused and IM_COL32(70, 120, 200, 255) or IM_COL32(60, 65, 75, 255)
     dl:AddRectFilled(pos, ImVec2(pos.x + btn_size.x, pos.y + btn_size.y), bg_col, 8 * scale)
 
     local text = state.focused and "Focused (click)" or "Click to focus"
     local tx, ty = imgui.CalcTextSize(text)
-    dl:AddText(ImVec2(pos.x + (btn_size.x - tx) * 0.5, pos.y + (btn_size.y - ty) * 0.5), IM_COL32(255,255,255,255), text)
+    dl:AddText(ImVec2(pos.x + (btn_size.x - tx) * 0.5, pos.y + (btn_size.y - ty) * 0.5), IM_COL32(255, 255, 255, 255), text)
 
     imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 10 * scale)
 end
@@ -692,21 +689,21 @@ local function ShowUsecase_DownloadProgressButton()
     local half_w = current_width * 0.5
     local half_h = btn_size.y * 0.5
 
-    local bg_col = (state.state == 2) and IM_COL32(76,175,80,255) or IM_COL32(70,130,180,255)
+    local bg_col = (state.state == 2) and IM_COL32(76, 175, 80, 255) or IM_COL32(70, 130, 180, 255)
     dl:AddRectFilled(ImVec2(center.x - half_w, center.y - half_h), ImVec2(center.x + half_w, center.y + half_h), bg_col, half_h)
 
     if state.state == 1 then
         local start_angle = -math.pi * 0.5
         local end_angle = start_angle + state.progress * math.pi * 2.0
         dl:PathArcTo(center, 15 * scale, start_angle, end_angle, 32)
-        dl:PathStroke(IM_COL32(255,255,255,255), 0, 3 * scale)
+        dl:PathStroke(IM_COL32(255, 255, 255, 255), 0, 3 * scale)
         local pct = string.format("%.0f%%", state.progress * 100)
         local tsx, tsy = imgui.CalcTextSize(pct)
-        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255,255,255,255), pct)
+        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255, 255, 255, 255), pct)
     else
         local text = (state.state == 2) and "Complete!" or "Download"
         local tsx, tsy = imgui.CalcTextSize(text)
-        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255,255,255,255), text)
+        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255, 255, 255, 255), text)
     end
 
     imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 10 * scale)
@@ -748,7 +745,7 @@ local function ShowUsecase_SubmitButtonStates()
     imgui.InvisibleButton("submit_btn", btn_size)
     if imgui.IsItemClicked() and state.state == 0 then state.state = 1; state.state_time = 0 end
 
-    local colors = {IM_COL32(70,130,180,255), IM_COL32(100,100,110,255), IM_COL32(76,175,80,255), IM_COL32(244,67,54,255)}
+    local colors = {IM_COL32(70, 130, 180, 255), IM_COL32(100, 100, 110, 255), IM_COL32(76, 175, 80, 255), IM_COL32(244, 67, 54, 255)}
     local bg_col = colors[state.state+1]
     dl:AddRectFilled(pos, ImVec2(pos.x + btn_size.x, pos.y + btn_size.y), bg_col, 6 * scale)
 
@@ -756,12 +753,12 @@ local function ShowUsecase_SubmitButtonStates()
     if state.state == 1 then
         local r = 10 * scale
         dl:PathArcTo(center, r, state.spinner_angle, state.spinner_angle + 4.0, 16)
-        dl:PathStroke(IM_COL32(255,255,255,255), 0, 2 * scale)
+        dl:PathStroke(IM_COL32(255, 255, 255, 255), 0, 2 * scale)
     else
         local texts = {"Submit","","Success!","Error"}
         local text = texts[state.state+1]
         local tsx, tsy = imgui.CalcTextSize(text)
-        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255,255,255,255), text)
+        dl:AddText(ImVec2(center.x - tsx * 0.5, center.y - tsy * 0.5), IM_COL32(255, 255, 255, 255), text)
     end
 
     imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 10 * scale)
