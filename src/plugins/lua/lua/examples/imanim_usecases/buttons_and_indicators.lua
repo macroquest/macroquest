@@ -8,6 +8,10 @@ local border_id = ImHashStr('border')
 local fill_id = ImHashStr('fill')
 local rotation_id = ImHashStr('rotation')
 local bg_id = ImHashStr('bg')
+local scale_id = ImHashStr('scale')
+local primary_btn_id = ImHashStr('btn_primary')
+local ghost_btn_id = ImHashStr('btn_ghost')
+local rotate_btn_id = ImHashStr('btn_icon')
 
 -- ============================================================
 -- USECASE 1: Animated Button with Hover/Press States
@@ -30,7 +34,6 @@ local function ShowUsecase_AnimatedButton()
     local spacing = 20.0
 
     -- Primary Button (Scale + Color)
-    local id = imgui.GetID('btn_primary')
     local btn_size = ImVec2(140, 44)
     local btn_pos = cursor
 
@@ -48,7 +51,7 @@ local function ShowUsecase_AnimatedButton()
     end
 
     -- Animate scale
-    local scale = iam.TweenFloat(id, imgui.GetID('scale'), target_scale, 0.15,
+    local scale = iam.TweenFloat(primary_btn_id, scale_id, target_scale, 0.15,
         iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     -- Animate color
@@ -56,7 +59,7 @@ local function ShowUsecase_AnimatedButton()
     local hover_color = ImVec4(0.3, 0.6, 1.0, 1.0)
     local press_color = ImVec4(0.15, 0.4, 0.7, 1.0)
     local target_color = btn1_pressed and press_color or (btn1_hovered and hover_color or base_color)
-    local color = iam.TweenColor(id, color_id, target_color, 0.2,
+    local color = iam.TweenColor(primary_btn_id, color_id, target_color, 0.2,
         iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, IamColorSpace.OKLAB, dt)
 
     -- Draw scaled button
@@ -76,7 +79,6 @@ local function ShowUsecase_AnimatedButton()
     cursor.x = cursor.x + btn_size.x + spacing
 
     -- Ghost Button (Border animation)
-    id = imgui.GetID('btn_ghost')
     btn_size = ImVec2(140, 44)
     btn_pos = cursor
 
@@ -87,12 +89,12 @@ local function ShowUsecase_AnimatedButton()
 
     -- Animate border thickness
     local target_border = btn2_hovered and 2.5 or 1.5
-    local border = iam.TweenFloat(id, border_id, target_border, 0.2,
+    local border = iam.TweenFloat(ghost_btn_id, border_id, target_border, 0.2,
         iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     -- Animate fill alpha
     local target_fill = btn2_pressed and 0.15 or (btn2_hovered and 0.08 or 0.0)
-    local fill_alpha = iam.TweenFloat(id, fill_id, target_fill, 0.15,
+    local fill_alpha = iam.TweenFloat(ghost_btn_id, fill_id, target_fill, 0.15,
         iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     -- Draw
@@ -112,7 +114,6 @@ local function ShowUsecase_AnimatedButton()
     cursor.x = cursor.x + btn_size.x + spacing
 
     -- Icon Button with Rotation
-    id = imgui.GetID('btn_icon')
     btn_size = ImVec2(44, 44)
     btn_pos = cursor
 
@@ -123,12 +124,12 @@ local function ShowUsecase_AnimatedButton()
 
     -- Animate rotation on hover
     local target_rotation = btn3_hovered and 90.0 or 0.0
-    local rotation = iam.TweenFloat(id, rotation_id, target_rotation, 0.3,
+    local rotation = iam.TweenFloat(rotate_btn_id, rotation_id, target_rotation, 0.3,
         iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     -- Animate background
     local target_bg = btn3_hovered and 0.15 or 0.0
-    local bg_alpha = iam.TweenFloat(id, bg_id, target_bg, 0.2,
+    local bg_alpha = iam.TweenFloat(rotate_btn_id, bg_id, target_bg, 0.2,
         iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     -- Draw background
@@ -150,7 +151,7 @@ local function ShowUsecase_AnimatedButton()
     dl:AddLine(h1, h2, icon_color, 2.5)
     dl:AddLine(v1, v2, icon_color, 2.5)
 
-    imgui.SetCursorScreenPos(ImVec2(imgui.GetCursorScreenPosVec().x, cursor.y + 60))
+    imgui.SetCursorScreenPos(imgui.GetCursorScreenPosVec().x, cursor.y + 60)
 end
 
 

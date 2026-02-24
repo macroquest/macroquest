@@ -20,13 +20,15 @@ local sidebar_state = {
 }
 
 local function ShowUsecase_SidebarNavigation()
+    local state = sidebar_state
+
     imgui.TextWrapped("Collapsible sidebar with smooth slide animation. Menu items stagger their entrance for a polished feel.")
 
     local dt = common.GetDeltaTime()
     local dl = imgui.GetWindowDrawList()
 
-    if imgui.Button(sidebar_state.open and "Close Sidebar" or "Open Sidebar") then
-        sidebar_state.open = not sidebar_state.open
+    if imgui.Button(state.open and "Close Sidebar" or "Open Sidebar") then
+        state.open = not state.open
         sidebar_toggle_time = 0.0
     end
 
@@ -38,8 +40,8 @@ local function ShowUsecase_SidebarNavigation()
         IM_COL32(30, 32, 40, 255), 4.0)
 
     -- Animate sidebar width
-    local id = imgui.GetID('sidebar')
-    local target_width = sidebar_state.open and 180.0 or 0.0
+    local id = ImHashStr('sidebar')
+    local target_width = state.open and 180.0 or 0.0
     local sidebar_width = iam.TweenFloat(id, width_id, target_width, 0.35,
         iam.EasePreset(IamEaseType.OutExpo), IamPolicy.Crossfade, dt)
 
@@ -52,12 +54,12 @@ local function ShowUsecase_SidebarNavigation()
         local item_height = 36.0
         local stagger_delay = 0.05
 
-        for i = 1, #sidebar_state.menu_items do
+        for i = 1, #state.menu_items do
             -- Calculate stagger offset for each item
             local item_delay = (i - 1) * stagger_delay
             local item_progress = 0.0
 
-            if sidebar_state.open then
+            if state.open then
                 -- Items slide in with stagger
                 local t = math.max(0, math.min(1, (sidebar_width / 180.0 - item_delay * 2.0) * 3.0))
                 item_progress = iam.EvalPreset(IamEaseType.OutCubic, t)
@@ -70,7 +72,7 @@ local function ShowUsecase_SidebarNavigation()
             local alpha = item_progress * 255
 
             dl:AddText(ImVec2(item_x, item_y + (item_height - imgui.GetTextLineHeight()) * 0.5),
-                IM_COL32(200, 200, 210, alpha), sidebar_state.menu_items[i])
+                IM_COL32(200, 200, 210, alpha), state.menu_items[i])
         end
     end
 

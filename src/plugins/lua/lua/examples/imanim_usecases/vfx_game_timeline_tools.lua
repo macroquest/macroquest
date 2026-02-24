@@ -60,15 +60,17 @@ local health_bar_state = {
 }
 
 local function ShowUsecase_HealthBar()
+    local state = health_bar_state
+
     imgui.TextWrapped("Game-style health bar with damage animation.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
     -- Damage animation (red flash)
-    health_bar_state.displayed_health = iam.TweenFloat(health_bar_state.hp_val_id, health_bar_state.hv_id,
-        health_bar_state.health, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
+    state.displayed_health = iam.TweenFloat(state.hp_val_id, state.hv_id,
+        state.health, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
     local cp = imgui.GetCursorScreenPosVec()
     local bar_width = 200 * scale
@@ -79,34 +81,34 @@ local function ShowUsecase_HealthBar()
         IM_COL32(40, 20, 20, 255), 4 * scale)
 
     -- Damage ghost (shows previous health)
-    if health_bar_state.displayed_health < health_bar_state.health + 0.1 then
-        local ghost_width = bar_width * (health_bar_state.health / 100.0)
+    if state.displayed_health < state.health + 0.1 then
+        local ghost_width = bar_width * (state.health / 100.0)
         dl:AddRectFilled(cp, ImVec2(cp.x + ghost_width, cp.y + bar_height),
             IM_COL32(200, 50, 50, 150), 4 * scale)
     end
 
     -- Current health
-    local health_width = bar_width * (health_bar_state.displayed_health / 100.0)
-    local health_col = health_bar_state.displayed_health > 50 and IM_COL32(76, 175, 80, 255) or
-        (health_bar_state.displayed_health > 25 and IM_COL32(255, 200, 50, 255) or IM_COL32(220, 60, 60, 255))
+    local health_width = bar_width * (state.displayed_health / 100.0)
+    local health_col = state.displayed_health > 50 and IM_COL32(76, 175, 80, 255) or
+        (state.displayed_health > 25 and IM_COL32(255, 200, 50, 255) or IM_COL32(220, 60, 60, 255))
     dl:AddRectFilled(cp, ImVec2(cp.x + health_width, cp.y + bar_height),
         health_col, 4 * scale)
 
     -- Health text
-    local hp_text = string.format('%.0f / 100', health_bar_state.displayed_health)
+    local hp_text = string.format('%.0f / 100', state.displayed_health)
     local text_size = imgui.CalcTextSizeVec(hp_text)
     dl:AddText(ImVec2(cp.x + (bar_width - text_size.x) * 0.5, cp.y + (bar_height - text_size.y) * 0.5),
         IM_COL32(255, 255, 255, 255), hp_text)
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + bar_height + 10 * scale))
-    if imgui.Button("Take Damage") and health_bar_state.health > 0 then
-        health_bar_state.health = health_bar_state.health - 15.0
+    if imgui.Button("Take Damage") and state.health > 0 then
+        state.health = state.health - 15.0
     end
     imgui.SameLine()
-    if imgui.Button("Heal") and health_bar_state.health < 100 then
-        health_bar_state.health = health_bar_state.health + 20.0
+    if imgui.Button("Heal") and state.health < 100 then
+        state.health = state.health + 20.0
     end
-    health_bar_state.health = math.min(100.0, math.max(0.0, health_bar_state.health))
+    state.health = math.min(100.0, math.max(0.0, state.health))
 end
 
 -- ============================================================
@@ -117,14 +119,16 @@ local cooldown_timer_state = {
 }
 
 local function ShowUsecase_CooldownTimer()
+    local state = cooldown_timer_state
+
     imgui.TextWrapped("Ability cooldown with circular sweep animation.")
 
     local max_cooldown = 3.0
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
-    if cooldown_timer_state.cooldown > 0 then cooldown_timer_state.cooldown = cooldown_timer_state.cooldown - dt end
+    if state.cooldown > 0 then state.cooldown = state.cooldown - dt end
 
     local cp = imgui.GetCursorScreenPosVec()
     local btn_size = 50 * scale
@@ -132,11 +136,11 @@ local function ShowUsecase_CooldownTimer()
 
     -- Button background
     dl:AddRectFilled(cp, ImVec2(cp.x + btn_size, cp.y + btn_size),
-        cooldown_timer_state.cooldown > 0 and IM_COL32(40, 45, 55, 255) or IM_COL32(70, 130, 180, 255), 8 * scale)
+        state.cooldown > 0 and IM_COL32(40, 45, 55, 255) or IM_COL32(70, 130, 180, 255), 8 * scale)
 
     -- Cooldown overlay
-    if cooldown_timer_state.cooldown > 0 then
-        local progress = cooldown_timer_state.cooldown / max_cooldown
+    if state.cooldown > 0 then
+        local progress = state.cooldown / max_cooldown
         local angle = -1.5708 + progress * 6.28318
 
         dl:PathArcTo(center, btn_size * 0.4, -1.5708, angle, 32)
@@ -144,7 +148,7 @@ local function ShowUsecase_CooldownTimer()
         dl:PathFillConvex(IM_COL32(0, 0, 0, 150))
 
         -- Time remaining
-        local time_str = string.format('%.1f', cooldown_timer_state.cooldown)
+        local time_str = string.format('%.1f', state.cooldown)
         local time_size = imgui.CalcTextSizeVec(time_str)
         dl:AddText(ImVec2(center.x - time_size.x * 0.5, center.y - time_size.y * 0.5),
             IM_COL32(255, 255, 255, 255), time_str)
@@ -154,8 +158,8 @@ local function ShowUsecase_CooldownTimer()
     end
 
     imgui.SetCursorScreenPos(cp)
-    if imgui.InvisibleButton("ability", ImVec2(btn_size, btn_size)) and cooldown_timer_state.cooldown <= 0 then
-        cooldown_timer_state.cooldown = max_cooldown
+    if imgui.InvisibleButton("ability", ImVec2(btn_size, btn_size)) and state.cooldown <= 0 then
+        state.cooldown = max_cooldown
     end
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + btn_size + 10 * scale))
@@ -170,14 +174,16 @@ local damage_number_state = {
 }
 
 local function ShowUsecase_DamageNumber()
+    local state = damage_number_state
+
     imgui.TextWrapped("Floating damage number with pop and fade.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
-    if damage_number_state.dmg_time >= 0 then damage_number_state.dmg_time = damage_number_state.dmg_time + dt end
-    if damage_number_state.dmg_time >= 1.5 then damage_number_state.dmg_time = -1.0 end
+    if state.dmg_time >= 0 then state.dmg_time = state.dmg_time + dt end
+    if state.dmg_time >= 1.5 then state.dmg_time = -1.0 end
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(150 * scale, 80 * scale)
@@ -187,12 +193,12 @@ local function ShowUsecase_DamageNumber()
     local target_center = ImVec2(cp.x + cs.x * 0.5, cp.y + cs.y * 0.5)
     dl:AddCircleFilled(target_center, 20 * scale, IM_COL32(100, 60, 60, 255))
 
-    if damage_number_state.dmg_time >= 0 then
-        local pop_scale = damage_number_state.dmg_time < 0.2 and (1.0 + damage_number_state.dmg_time * 2.0) or 1.4 - (damage_number_state.dmg_time - 0.2) * 0.3
-        local float_y = damage_number_state.dmg_time * 40 * scale
-        local alpha = 1.0 - math.min(1.0, math.max(0.0, (damage_number_state.dmg_time - 0.8) / 0.7))
+    if state.dmg_time >= 0 then
+        local pop_scale = state.dmg_time < 0.2 and (1.0 + state.dmg_time * 2.0) or 1.4 - (state.dmg_time - 0.2) * 0.3
+        local float_y = state.dmg_time * 40 * scale
+        local alpha = 1.0 - math.min(1.0, math.max(0.0, (state.dmg_time - 0.8) / 0.7))
 
-        local dmg_str = tostring(damage_number_state.dmg_value)
+        local dmg_str = tostring(state.dmg_value)
 
         imgui.SetWindowFontScale(pop_scale * 1.5)
         local dmg_size = imgui.CalcTextSizeVec(dmg_str)
@@ -202,8 +208,8 @@ local function ShowUsecase_DamageNumber()
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + cs.y + 10 * scale))
     if imgui.Button('Hit!') then
-        damage_number_state.dmg_time = 0.0
-        damage_number_state.dmg_value = 50 + math.random(100) % 100
+        state.dmg_time = 0.0
+        state.dmg_value = 50 + math.random(100) % 100
     end
 end
 

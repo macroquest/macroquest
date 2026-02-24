@@ -54,20 +54,22 @@ local pulse_ring_state = {
 }
 
 local function ShowUsecase_PulseRing()
+    local state = pulse_ring_state
+
     imgui.TextWrapped("Pulsating ring effect for attention/notification.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
-    pulse_ring_state.pulse_time = pulse_ring_state.pulse_time + dt
+    state.pulse_time = state.pulse_time + dt
 
     local cp = imgui.GetCursorScreenPosVec()
     local center = ImVec2(cp.x + 50 * scale, cp.y + 50 * scale)
 
     -- Multiple expanding rings
-    for i=1,3 do
-        local ring_time = math.fmod(pulse_ring_state.pulse_time + i * 0.5, 1.5)
+    for i = 1, 3 do
+        local ring_time = math.fmod(state.pulse_time + i * 0.5, 1.5)
         local ring_radius = 15 * scale + ring_time * 30 * scale
         local ring_alpha = 1.0 - (ring_time / 1.5)
 
@@ -90,10 +92,12 @@ local morphing_state = {
 }
 
 local function ShowUsecase_MorphingShape()
+    local state = morphing_state
+
     imgui.TextWrapped("Shape morphing between circle and square.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
     local cp = imgui.GetCursorScreenPosVec()
@@ -101,8 +105,8 @@ local function ShowUsecase_MorphingShape()
     local size = 40 * scale
 
     -- Morph animation (corner radius)
-    local corner = iam.TweenFloat(morphing_state.morph_c_id, morphing_state.mc_id,
-        morphing_state.is_circle and size or 8 * scale, 0.4,
+    local corner = iam.TweenFloat(state.morph_c_id, state.mc_id,
+        state.is_circle and size or 8 * scale, 0.4,
         iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     dl:AddRectFilled(ImVec2(center.x - size, center.y - size),
@@ -110,8 +114,8 @@ local function ShowUsecase_MorphingShape()
         IM_COL32(70, 130, 180, 255), corner)
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + 130 * scale))
-    if imgui.Button(morphing_state.is_circle and "To Square" or "To Circle") then
-        morphing_state.is_circle = not morphing_state.is_circle
+    if imgui.Button(state.is_circle and "To Square" or "To Circle") then
+        state.is_circle = not state.is_circle
     end
 end
 
@@ -123,18 +127,20 @@ local bouncing_state = {
 }
 
 local function ShowUsecase_BouncingDots()
+    local state = bouncing_state
+
     imgui.TextWrapped("Bouncing dots loading animation.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
-    bouncing_state.bounce_time = bouncing_state.bounce_time + dt * 3.0
+    state.bounce_time = state.bounce_time + dt * 3.0
 
     local cp = imgui.GetCursorScreenPosVec()
 
-    for i=1,3 do
-        local phase = bouncing_state.bounce_time + i * 0.5
+    for i = 1, 3 do
+        local phase = state.bounce_time + i * 0.5
         local bounce = math.abs(math.sin(phase)) * 20 * scale
 
         local dot_pos = ImVec2(cp.x + 30 * scale + i * 25 * scale, cp.y + 40 * scale - bounce)
@@ -152,14 +158,16 @@ local confetti_state = {
 }
 
 local function ShowUsecase_ConfettiBurst()
+    local state = confetti_state
+
     imgui.TextWrapped("Celebration confetti burst animation.")
 
     local dt = common.GetDeltaTime()
-    local scale = 1.0
+    local scale = imgui.GetStyle().FontScaleMain
     local dl = imgui.GetWindowDrawList()
 
-    if confetti_state.burst_time >= 0 then confetti_state.burst_time = confetti_state.burst_time + dt end
-    if confetti_state.burst_time > 2.0 then confetti_state.burst_time = -1.0 end
+    if state.burst_time >= 0 then state.burst_time = state.burst_time + dt end
+    if state.burst_time > 2.0 then state.burst_time = -1.0 end
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(200 * scale, 100 * scale)
@@ -169,14 +177,14 @@ local function ShowUsecase_ConfettiBurst()
     dl:AddRectFilled(cp, ImVec2(cp.x + cs.x, cp.y + cs.y),
         IM_COL32(30, 35, 45, 255), 8 * scale)
 
-    if confetti_state.burst_time >= 0 and confetti_state.burst_time < 2.0 then
+    if state.burst_time >= 0 and state.burst_time < 2.0 then
         -- Draw confetti particles
-        for i=1,20 do
+        for i = 1, 20 do
             local angle = i / 20.0 * 6.28318
             local speed = 50 + (i % 5) * 30
-            local x = center.x + math.cos(angle) * speed * confetti_state.burst_time * scale
-            local y = center.y + math.sin(angle) * speed * confetti_state.burst_time * scale + confetti_state.burst_time * confetti_state.burst_time * 100 * scale
-            local alpha = 1.0 - confetti_state.burst_time * 0.5
+            local x = center.x + math.cos(angle) * speed * state.burst_time * scale
+            local y = center.y + math.sin(angle) * speed * state.burst_time * scale + state.burst_time * state.burst_time * 100 * scale
+            local alpha = 1.0 - state.burst_time * 0.5
 
             local colors = {
                 IM_COL32(255, 100, 100, alpha * 255),
@@ -191,7 +199,7 @@ local function ShowUsecase_ConfettiBurst()
     end
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + cs.y + 10 * scale))
-    if imgui.Button("Celebrate!") then confetti_state.burst_time = 0.0 end
+    if imgui.Button("Celebrate!") then state.burst_time = 0.0 end
 end
 
 local function RunVisualEffectsDemo()

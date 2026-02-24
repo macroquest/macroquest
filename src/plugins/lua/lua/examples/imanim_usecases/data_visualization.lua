@@ -26,31 +26,33 @@ local line_chart_state = {
 }
 
 local function ShowUsecase_AnimatedLineChart()
+    local state = line_chart_state
+
     imgui.TextWrapped("Line chart with animated real-time data:")
 
-    if not line_chart_state.initialized then
-        for i=1,20 do
-            line_chart_state.data_points[i] = 0.3 + (i % 5) * 0.1 + math.sin(i * 0.5) * 0.2
-            line_chart_state.target_points[i] = line_chart_state.data_points[i]
+    if not state.initialized then
+        for i = 1, 20 do
+            state.data_points[i] = 0.3 + ((i - 1) % 5) * 0.1 + math.sin((i - 1) * 0.5) * 0.2
+            state.target_points[i] = state.data_points[i]
         end
-        line_chart_state.initialized = true
+        state.initialized = true
     end
 
     local dt = common.GetDeltaTime()
 
     -- Auto-update data periodically
-    line_chart_state.update_timer = line_chart_state.update_timer + dt
-    if line_chart_state.update_timer > 1.5 then
-        line_chart_state.update_timer = 0.0
+    state.update_timer = state.update_timer + dt
+    if state.update_timer > 1.5 then
+        state.update_timer = 0.0
         -- Shift data left and add new point
-        for i=1,19 do
-            line_chart_state.target_points[i] = line_chart_state.target_points[i + 1]
+        for i = 1, 19 do
+            state.target_points[i] = state.target_points[i + 1]
         end
-        line_chart_state.target_points[20] = 0.2 + (math.random(100) % 60) / 100.0
+        state.target_points[20] = 0.2 + (math.random(100) % 60) / 100.0
     end
 
     local dl = imgui.GetWindowDrawList()
-    local scale = imgui.GetFontSize() / 13.0
+    local scale = imgui.GetStyle().FontScaleMain
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(imgui.GetContentRegionAvailVec().x, 140)
@@ -64,7 +66,7 @@ local function ShowUsecase_AnimatedLineChart()
     local chart_height = cs.y - margin * 2
 
     -- Grid lines
-    for i=1,5 do
+    for i = 1, 5 do
         local y = cp.y + margin + (i - 1) / 4.0 * chart_height
         dl:AddLine(ImVec2(cp.x + margin, y), ImVec2(cp.x + cs.x - margin, y),
             IM_COL32(45, 50, 60, 255))
@@ -72,14 +74,14 @@ local function ShowUsecase_AnimatedLineChart()
 
     -- Animate and draw line only (no dots, no fill)
     local prev_pt
-    for i=1,20 do
+    for i = 1, 20 do
         -- Animate each point
-        local id = line_chart_state.id + i
-        line_chart_state.data_points[i] = iam.TweenFloat(id, val_id, line_chart_state.target_points[i], 0.4,
+        local id = state.id + i
+        state.data_points[i] = iam.TweenFloat(id, val_id, state.target_points[i], 0.4,
             iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         local x = cp.x + margin + (i - 1) / 19.0 * chart_width
-        local y = cp.y + margin + (1.0 - line_chart_state.data_points[i]) * chart_height
+        local y = cp.y + margin + (1.0 - state.data_points[i]) * chart_height
         local pt = ImVec2(x, y)
 
         if i > 1 then
@@ -137,13 +139,15 @@ local gauge_meter_state = {
 }
 
 local function ShowUsecase_GaugeMeter()
+    local state = gauge_meter_state
+
     imgui.TextWrapped("Gauge meter with animated needle and gradient arc:")
 
-    gauge_meter_state.target_value, _ = imgui.SliderFloat("Value", gauge_meter_state.target_value, 0.0, 1.0)
+    state.target_value, _ = imgui.SliderFloat("Value", state.target_value, 0.0, 1.0)
 
     local dt = common.GetDeltaTime()
     local dl = imgui.GetWindowDrawList()
-    local scale = imgui.GetFontSize() / 13.0
+    local scale = imgui.GetStyle().FontScaleMain
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(imgui.GetContentRegionAvailVec().x, 250) -- 25% taller canvas
@@ -158,7 +162,7 @@ local function ShowUsecase_GaugeMeter()
     local inner_radius = 45 * scale
 
     -- Animate value
-    gauge_meter_state.gauge_value = iam.TweenFloat(gauge_meter_state.id, val_id, gauge_meter_state.target_value, 0.6,
+    state.gauge_value = iam.TweenFloat(state.id, val_id, state.target_value, 0.6,
         iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     -- Draw arc segments with gradient (semicircle pointing UP)
@@ -166,7 +170,7 @@ local function ShowUsecase_GaugeMeter()
     local end_angle = 3.14159 * 2   -- 360 degrees (right) - arc goes UP
     local segments = 50
 
-    for s=0,segments do
+    for s = 0, segments do
         local t = s / segments
         local a1 = start_angle + (end_angle - start_angle) * t
         local a2 = start_angle + (end_angle - start_angle) * (t + 1.0 / segments)
@@ -194,7 +198,7 @@ local function ShowUsecase_GaugeMeter()
     end
 
     -- Draw tick marks
-    for i=0,10 do
+    for i = 0, 10 do
         local t = i / 10.0
         local angle = start_angle + (end_angle - start_angle) * t
         local tick_inner = outer_radius + 3 * scale
@@ -218,7 +222,7 @@ local function ShowUsecase_GaugeMeter()
     end
 
     -- Draw needle
-    local needle_angle = start_angle + (end_angle - start_angle) * gauge_meter_state.gauge_value
+    local needle_angle = start_angle + (end_angle - start_angle) * state.gauge_value
     local needle_length = inner_radius - 5 * scale
 
     local needle_tip = ImVec2(center.x + math.cos(needle_angle) * needle_length,
@@ -233,7 +237,7 @@ local function ShowUsecase_GaugeMeter()
     dl:AddCircleFilled(center, 5 * scale, IM_COL32(220, 220, 230, 255))
 
     -- Value display (above the gauge)
-    local value_str = string.format('%.0f%%', gauge_meter_state.gauge_value * 100)
+    local value_str = string.format('%.0f%%', state.gauge_value * 100)
     local value_size = imgui.CalcTextSizeVec(value_str)
     dl:AddText(ImVec2(center.x - value_size.x * 0.5, cp.y + 20 * scale),
         IM_COL32(220, 220, 230, 255), value_str)
@@ -270,16 +274,18 @@ local sankey_flow_state = {
 }
 
 local function ShowUsecase_SankeyFlow()
+    local state = sankey_flow_state
+
     imgui.TextWrapped("Animated flow diagram with particle effects:")
 
     local dt = common.GetDeltaTime()
     local dl = imgui.GetWindowDrawList()
-    local scale = imgui.GetFontSize() / 13.0
+    local scale = imgui.GetStyle().FontScaleMain
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(imgui.GetContentRegionAvailVec().x, 320)
 
-    sankey_flow_state.flow_time = sankey_flow_state.flow_time + dt
+    state.flow_time = state.flow_time + dt
 
     -- Background
     dl:AddRectFilled(cp, ImVec2(cp.x + cs.x, cp.y + cs.y),
@@ -292,37 +298,37 @@ local function ShowUsecase_SankeyFlow()
 
     -- Draw source nodes
     local y_offset = cp.y + 30 * scale
-    for i=1,3 do
-        local node_height = flow_height * sankey_flow_state.source_weights[i]
+    for i = 1, 3 do
+        local node_height = flow_height * state.source_weights[i]
 
         -- Node rectangle
         dl:AddRectFilled(
             ImVec2(left_x, y_offset),
             ImVec2(left_x + node_width, y_offset + node_height),
-            sankey_flow_state.source_colors[i], 4.0)
+            state.source_colors[i], 4.0)
 
         -- Label
-        local label_size = imgui.CalcTextSizeVec(sankey_flow_state.sources[i])
+        local label_size = imgui.CalcTextSizeVec(state.sources[i])
         dl:AddText(ImVec2(left_x - label_size.x - 8 * scale, y_offset + (node_height - label_size.y) * 0.5),
-            IM_COL32(180, 180, 190, 255), sankey_flow_state.sources[i])
+            IM_COL32(180, 180, 190, 255), state.sources[i])
 
         y_offset = y_offset + node_height + 10 * scale
     end
 
     -- Draw target nodes
     y_offset = cp.y + 30 * scale
-    for i=1,3 do
-        local node_height = flow_height * sankey_flow_state.target_weights[i]
+    for i = 1, 3 do
+        local node_height = flow_height * state.target_weights[i]
 
         -- Node rectangle
         dl:AddRectFilled(
             ImVec2(right_x, y_offset),
             ImVec2(right_x + node_width, y_offset + node_height),
-            sankey_flow_state.target_colors[i], 4.0)
+            state.target_colors[i], 4.0)
 
         -- Label
         dl:AddText(ImVec2(right_x + node_width + 8 * scale, y_offset + (node_height - imgui.GetFontSize()) * 0.5),
-            IM_COL32(180, 180, 190, 255), sankey_flow_state.targets[i])
+            IM_COL32(180, 180, 190, 255), state.targets[i])
 
         y_offset = y_offset + node_height + 10 * scale
     end
@@ -334,16 +340,16 @@ local function ShowUsecase_SankeyFlow()
     local target_y, target_heights = {}, {}
 
     local sy = cp.y + 30 * scale
-    for i=1,3 do
+    for i = 1, 3 do
         source_y[i] = sy
-        source_heights[i] = flow_height * sankey_flow_state.source_weights[i]
+        source_heights[i] = flow_height * state.source_weights[i]
         sy = sy + source_heights[i] + 10 * scale
     end
 
     local ty = cp.y + 30 * scale
-    for i=1,3 do
+    for i = 1, 3 do
         target_y[i] = ty
-        target_heights[i] = flow_height * sankey_flow_state.target_weights[i]
+        target_heights[i] = flow_height * state.target_weights[i]
         ty = ty + target_heights[i] + 10 * scale
     end
 
@@ -351,10 +357,10 @@ local function ShowUsecase_SankeyFlow()
     local source_used = {0, 0, 0}
     local target_used = {0, 0, 0}
 
-    for f=1,9 do
-        local from = sankey_flow_state.flows[f].from
-        local to = sankey_flow_state.flows[f].to
-        local weight = sankey_flow_state.flows[f].weight
+    for f = 1, 9 do
+        local from = state.flows[f].from
+        local to = state.flows[f].to
+        local weight = state.flows[f].weight
 
         local band_height = flow_height * weight
 
@@ -382,7 +388,7 @@ local function ShowUsecase_SankeyFlow()
 
         -- Draw filled bezier band
         local steps = 20
-        for s=1,steps do
+        for s = 1, steps do
             local t1 = (s - 1) / steps
             local t2 = s / steps
 
@@ -399,8 +405,8 @@ local function ShowUsecase_SankeyFlow()
             -- bit32.bor(bit32.band(col, 0xffffff), bit32.lshift(a, 24))
             -- Blend color from source to target
             local blend = (t1 + t2) * 0.5
-            local col1 = sankey_flow_state.source_colors[from]
-            local col2 = sankey_flow_state.target_colors[to]
+            local col1 = state.source_colors[from]
+            local col2 = state.target_colors[to]
             local r = ((1 - blend) * (bit32.band(bit32.rshift(col1, 0), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 0), 0xFF)))
             local g = ((1 - blend) * (bit32.band(bit32.rshift(col1, 8), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 8), 0xFF)))
             local b = ((1 - blend) * (bit32.band(bit32.rshift(col1, 16), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 16), 0xFF)))
@@ -410,8 +416,8 @@ local function ShowUsecase_SankeyFlow()
 
         -- Animated flow particles
         local particle_count = weight * 20
-        for p=1,particle_count do
-            local pt = math.fmod(sankey_flow_state.flow_time * 0.3 + p / particle_count + f * 0.1, 1.0)
+        for p = 1, particle_count do
+            local pt = math.fmod(state.flow_time * 0.3 + p / particle_count + f * 0.1, 1.0)
 
             local mid_top = ImVec2(p1.x, (p1.y + p2.y) * 0.5)
             local mid_bot = ImVec2(p3.x, (p3.y + p4.y) * 0.5)
@@ -463,17 +469,19 @@ local progress_dashboard_state = {
 }
 
 local function ShowUsecase_ProgressDashboard()
+    local state = progress_dashboard_state
+
     imgui.TextWrapped("Dashboard with animated progress indicators:")
 
     if imgui.Button("Update Metrics##Dashboard") then
-        for i=1,4 do
-            progress_dashboard_state.targets[i] = 0.1 + (math.random(100) % 90) / 100.0
+        for i = 1, 4 do
+            state.targets[i] = 0.1 + (math.random(100) % 90) / 100.0
         end
     end
 
     local dt = common.GetDeltaTime()
     local dl = imgui.GetWindowDrawList()
-    local scale = imgui.GetFontSize() / 13.0
+    local scale = imgui.GetStyle().FontScaleMain
 
     local cp = imgui.GetCursorScreenPosVec()
     local cs = ImVec2(imgui.GetContentRegionAvailVec().x, 250) -- 25% taller canvas
@@ -486,10 +494,10 @@ local function ShowUsecase_ProgressDashboard()
     local ring_radius = 28 * scale
     local ring_thickness = 6 * scale
 
-    for i=1,4 do
+    for i = 1, 4 do
         -- Animate value
-        local id = progress_dashboard_state.id + i
-        progress_dashboard_state.metrics[i] = iam.TweenFloat(id, val_id, progress_dashboard_state.targets[i], 0.6,
+        local id = state.id + i
+        state.metrics[i] = iam.TweenFloat(id, val_id, state.targets[i], 0.6,
             iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         local center = ImVec2(cp.x + ring_spacing * (i - 1 + 0.5), cp.y + cs.y * 0.45)
@@ -499,10 +507,10 @@ local function ShowUsecase_ProgressDashboard()
 
         -- Progress arc
         local start_angle = -3.14159 * 0.5
-        local sweep = progress_dashboard_state.metrics[i] * 3.14159 * 2
+        local sweep = state.metrics[i] * 3.14159 * 2
         local segments = math.floor((sweep / 0.1) + 1)
 
-        for s=1,segments do
+        for s = 1, segments do
             local t1 = s / segments
             local t2 = (s + 1) / segments
             local a1 = start_angle + sweep * t1
@@ -517,19 +525,19 @@ local function ShowUsecase_ProgressDashboard()
             local p4 = ImVec2(center.x + math.cos(a2) * (ring_radius - ring_thickness * 0.5),
                 center.y + math.sin(a2) * (ring_radius - ring_thickness * 0.5))
 
-            dl:AddQuadFilled(p1, p2, p3, p4, progress_dashboard_state.colors[i])
+            dl:AddQuadFilled(p1, p2, p3, p4, state.colors[i])
         end
 
         -- Value text
-        local val_str = string.format('%.0f%%', progress_dashboard_state.metrics[i] * 100)
+        local val_str = string.format('%.0f%%', state.metrics[i] * 100)
         local val_size = imgui.CalcTextSizeVec(val_str)
         dl:AddText(ImVec2(center.x - val_size.x * 0.5, center.y - val_size.y * 0.5),
             IM_COL32(220, 220, 230, 255), val_str)
 
         -- Label
-        local label_size = imgui.CalcTextSizeVec(progress_dashboard_state.labels[i])
+        local label_size = imgui.CalcTextSizeVec(state.labels[i])
         dl:AddText(ImVec2(center.x - label_size.x * 0.5, center.y + ring_radius + 12 * scale),
-            IM_COL32(150, 150, 160, 255), progress_dashboard_state.labels[i])
+            IM_COL32(150, 150, 160, 255), state.labels[i])
     end
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + cs.y + 8))
