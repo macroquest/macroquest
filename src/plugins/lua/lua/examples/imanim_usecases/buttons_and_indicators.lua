@@ -175,9 +175,7 @@ local function ShowUsecase_ProgressBar()
     local dt = common.GetDeltaTime()
     local dl = imgui.GetWindowDrawList()
 
-    -- small helper: slider returns nil in some bindings, preserve value
-    local v, changed = imgui.SliderFloat("Progress", state.target_progress, 0.0, 1.0)
-    if changed then state.target_progress = v end
+    state.target_progress = imgui.SliderFloat("Progress", state.target_progress, 0.0, 1.0)
 
     local progress = iam.TweenFloat(state.id, state.value_id, state.target_progress, 0.5,
         iam.EasePreset(IamEaseType.OutExpo), IamPolicy.Crossfade, dt)
