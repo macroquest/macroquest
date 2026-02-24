@@ -507,7 +507,7 @@ private:
 			announce.set_port(m_port);
 
 			m_messageBuffer = std::make_unique<DiscoveryMessage>();
-			m_messageBuffer->m_length = announce.ByteSizeLong();
+			m_messageBuffer->m_length = static_cast<uint32_t>(announce.ByteSizeLong());
 			m_messageBuffer->m_payload = std::make_unique<uint8_t[]>(m_messageBuffer->m_length);
 			announce.SerializeToArray(m_messageBuffer->m_payload.get(), static_cast<int>(m_messageBuffer->m_length));
 

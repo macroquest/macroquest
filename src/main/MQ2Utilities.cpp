@@ -126,21 +126,6 @@ MQLIB_API void DebugSpewNoFile(const char* szFormat, ...)
 // Implemented in MQ2PluginHandler.cpp
 void PluginsWriteChatColor(const char* Line, int Color, int Filter);
 
-static void WriteChatColorMaybeDeferred(std::unique_ptr<char[]> Ptr, int Color, int Filter)
-{
-	if (IsMainThread())
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	}
-
-	// Queue it up to run on the main thread
-	PostToMainThread(
-		[Ptr = std::shared_ptr<char[]>{ std::move(Ptr) }, Color, Filter]()
-	{
-		PluginsWriteChatColor(Ptr.get(), Color, Filter);
-	});
-}
-
 void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
 {
 	// If we're already on the main thread, avoid copying anything and just call
@@ -166,49 +151,36 @@ void WriteChatColor(const char* Line, int Color /* = USERCOLOR_DEFAULT */, int F
 	});
 }
 
-void WriteChatf(const char* szFormat, ...)
+void VWriteChatColor(const char* szFormat, va_list args, int Color /* = USERCOLOR_DEFAULT */, int Filter /* = 0 */)
 {
-	va_list vaList;
-	va_start(vaList, szFormat);
-
 	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
+	int len = _vscprintf(szFormat, args) + 1;
 
 	auto out = std::make_unique<char[]>(len);
 	char* szOutput = out.get();
 
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
+	vsprintf_s(szOutput, len, szFormat, args);
+	WriteChatColor(szOutput, Color, Filter);
 }
 
-void WriteChatfSafe(const char* szFormat, ...)
+void WriteChatf(const char* szFormat, ...)
 {
-	va_list vaList;
-	va_start(vaList, szFormat);
+	va_list args;
+	va_start(args, szFormat);
 
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
+	VWriteChatColor(szFormat, args);
 
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput);
+	va_end(args);
 }
 
 void WriteChatColorf(const char* szFormat, int color, ...)
 {
-	va_list vaList;
-	va_start(vaList, color);
+	va_list args;
+	va_start(args, color);
 
-	// _vscprintf doesn't count // terminating '\0'
-	int len = _vscprintf(szFormat, vaList) + 1;
+	VWriteChatColor(szFormat, args, color);
 
-	auto out = std::make_unique<char[]>(len);
-	char* szOutput = out.get();
-
-	vsprintf_s(szOutput, len, szFormat, vaList);
-	WriteChatColor(szOutput, color);
+	va_end(args);
 }
 
 //============================================================================
