@@ -190,7 +190,7 @@ local function ShowUsecase_FABButton()
             -- Shadow (larger when hovered)
             local shadow_alpha = state.child_hovered[i] and 50.0 or 30.0
             dl:AddCircleFilled(ImVec2(child_center.x + 2, child_center.y + 3), child_radius * scale,
-                IM_COL32(0.0, 0.0, 0.0, shadow_alpha * alpha))
+                IM_COL32(0.0, 0.0, 0.0, math.floor(shadow_alpha * alpha)))
 
             -- Glow effect on hover
             if state.child_hovered[i] then
@@ -208,7 +208,7 @@ local function ShowUsecase_FABButton()
 
             -- Icon
             local text_size = imgui.CalcTextSizeVec(state.child_icons[i])
-            dl:AddText(child_center - text_size * 0.5, IM_COL32(255, 255, 255, 255 * alpha), state.child_icons[i])
+            dl:AddText(child_center - text_size * 0.5, IM_COL32(255, 255, 255, math.floor(255 * alpha)), state.child_icons[i])
         end
     end
 

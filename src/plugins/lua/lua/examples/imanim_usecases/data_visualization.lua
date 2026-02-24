@@ -427,7 +427,7 @@ local function ShowUsecase_SankeyFlow()
             local particle_pos = bezier(mid_top, ctrl1, ctrl2, mid_bot, pt)
 
             local alpha = math.sin(pt * 3.14159)
-            dl:AddCircleFilled(particle_pos, 3 * scale, IM_COL32(255, 255, 255, 180 * alpha))
+            dl:AddCircleFilled(particle_pos, 3 * scale, IM_COL32(255, 255, 255, math.floor(180 * alpha)))
         end
     end
 

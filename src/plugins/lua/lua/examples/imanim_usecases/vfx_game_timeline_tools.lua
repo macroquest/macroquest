@@ -202,7 +202,7 @@ local function ShowUsecase_DamageNumber()
 
         imgui.SetWindowFontScale(pop_scale * 1.5)
         local dmg_size = imgui.CalcTextSizeVec(dmg_str)
-        dl:AddText(ImVec2(target_center.x - dmg_size.x * 0.5, target_center.y - 30 * scale - float_y), IM_COL32(255, 100, 100, alpha*255), dmg_str)
+        dl:AddText(ImVec2(target_center.x - dmg_size.x * 0.5, target_center.y - 30 * scale - float_y), IM_COL32(255, 100, 100, math.floor(alpha*255)), dmg_str)
         imgui.SetWindowFontScale(1.0)
     end
 

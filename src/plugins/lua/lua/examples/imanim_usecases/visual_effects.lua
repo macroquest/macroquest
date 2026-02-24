@@ -73,7 +73,7 @@ local function ShowUsecase_PulseRing()
         local ring_radius = 15 * scale + ring_time * 30 * scale
         local ring_alpha = 1.0 - (ring_time / 1.5)
 
-        dl:AddCircle(center, ring_radius, IM_COL32(100, 150, 255, ring_alpha * 200), 0, 2 * scale)
+        dl:AddCircle(center, ring_radius, IM_COL32(100, 150, 255, math.floor(ring_alpha * 200)), 0, 2 * scale)
     end
 
     -- Center dot
