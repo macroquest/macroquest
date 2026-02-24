@@ -9,12 +9,77 @@ local glow_id = ImHashStr('glow')
 local hover_id = ImHashStr('hover_id')
 local rotation_id = ImHashStr('rotation')
 local scale_id = ImHashStr('scale')
+local width_id = ImHashStr('width')
 
 -- ============================================================
 -- USECASE 3: Sidebar Navigation with Slide Animation
 -- ============================================================
+local sidebar_state = {
+    open = true,
+    menu_items = {'Dashboard', 'Analytics', 'Projects', 'Settings', 'Help'},
+}
+
 local function ShowUsecase_SidebarNavigation()
-    -- TODO: Implement Sidebar Navigation with Slide Animation
+    imgui.TextWrapped("Collapsible sidebar with smooth slide animation. Menu items stagger their entrance for a polished feel.")
+
+    local dt = common.GetDeltaTime()
+    local dl = imgui.GetWindowDrawList()
+
+    if imgui.Button(sidebar_state.open and "Close Sidebar" or "Open Sidebar") then
+        sidebar_state.open = not sidebar_state.open
+        sidebar_toggle_time = 0.0
+    end
+
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 300)
+
+    -- Background (main content area)
+    dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        IM_COL32(30, 32, 40, 255), 4.0)
+
+    -- Animate sidebar width
+    local id = imgui.GetID('sidebar')
+    local target_width = sidebar_state.open and 180.0 or 0.0
+    local sidebar_width = iam.TweenFloat(id, width_id, target_width, 0.35,
+        iam.EasePreset(IamEaseType.OutExpo), IamPolicy.Crossfade, dt)
+
+    -- Draw sidebar
+    if sidebar_width > 1.0 then
+        dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + sidebar_width, canvas_pos.y + canvas_size.y),
+            IM_COL32(45, 48, 60, 255), 4.0, ImDrawFlags.RoundCornersLeft)
+
+        -- Menu items with stagger
+        local item_height = 36.0
+        local stagger_delay = 0.05
+
+        for i = 1, #sidebar_state.menu_items do
+            -- Calculate stagger offset for each item
+            local item_delay = (i - 1) * stagger_delay
+            local item_progress = 0.0
+
+            if sidebar_state.open then
+                -- Items slide in with stagger
+                local t = math.max(0, math.min(1, (sidebar_width / 180.0 - item_delay * 2.0) * 3.0))
+                item_progress = iam.EvalPreset(IamEaseType.OutCubic, t)
+            else
+                item_progress = sidebar_width / 180.0
+            end
+
+            local item_x = canvas_pos.x + 12.0 + (1.0 - item_progress) * (-50.0)
+            local item_y = canvas_pos.y + 16.0 + (i - 1) * item_height
+            local alpha = item_progress * 255
+
+            dl:AddText(ImVec2(item_x, item_y + (item_height - imgui.GetTextLineHeight()) * 0.5),
+                IM_COL32(200, 200, 210, alpha), sidebar_state.menu_items[i])
+        end
+    end
+
+    -- Content area indicator
+    local content_x = canvas_pos.x + sidebar_width + 20.0
+    dl:AddText(ImVec2(content_x, canvas_pos.y + canvas_size.y * 0.5 - 8.0),
+        IM_COL32(100, 100, 110, 255), "Main Content Area")
+
+    imgui.Dummy(canvas_size)
 end
 
 -- ============================================================
