@@ -65,6 +65,13 @@ static std::pair<MQColor, std::string_view> GetEffectInfo(ItemSpellTypes effectT
 class Settings
 {
 public:
+	static constexpr inline int default_windowX = 0;
+	static constexpr inline int default_windowY = 0;
+	static constexpr inline int default_windowWidth = 400;
+	static constexpr inline int default_windowHeight = 600;
+
+	static constexpr inline bool default_persistWindowBounds = false;
+
 	static constexpr inline bool default_lootButtonsEnabled = true;
 	static constexpr inline bool default_lucyButtonEnabled = true;
 	static constexpr inline bool default_showSpellInfoOnItems = true;
@@ -83,6 +90,16 @@ public:
 
 	inline bool IsShowSpellInfoOnSpellsEnabled() const { return m_showSpellInfoOnSpells; }
 	void SetShowSpellInfoOnSpellsEnabled(bool enabled);
+	inline int GetWindowX() const { return m_windowX; }
+	inline int GetWindowY() const { return m_windowY; }
+	inline int GetWindowWidth() const { return m_windowWidth; }
+	inline int GetWindowHeight() const { return m_windowHeight; }
+	inline bool PersistWindowBounds() const { return m_persistWindowBounds; }
+	void SetWindowX(int x);
+	void SetWindowY(int y);
+	void SetWindowWidth(int width);
+	void SetWindowHeight(int height);
+	void SetPersistWindowBounds(bool persist);
 
 	std::optional<MQColor> GetItemSpellColor(ItemSpellTypes effectType) const;
 	void SetItemSpellColor(ItemSpellTypes effectType, MQColor color);
@@ -100,6 +117,13 @@ public:
 	void Reset();
 
 private:
+	int m_windowX = default_windowX;
+	int m_windowY = default_windowY;
+	int m_windowWidth = default_windowWidth;
+	int m_windowHeight = default_windowHeight;
+
+	bool m_persistWindowBounds = default_persistWindowBounds;
+
 	bool m_lootButtonsEnabled = default_lootButtonsEnabled;
 	bool m_lucyButtonEnabled = default_lucyButtonEnabled;
 	bool m_showSpellInfoOnItems = default_showSpellInfoOnItems;
@@ -114,6 +138,14 @@ Settings s_settings;
 void Settings::Load()
 {
 	DeletePrivateProfileKey("Settings", "CompareTip", INIFileName); // Unused
+
+
+	m_windowX = GetPrivateProfileInt("Settings", "WindowX", default_windowX, INIFileName);
+	m_windowY = GetPrivateProfileInt("Settings", "WindowY", default_windowY, INIFileName);
+	m_windowWidth = GetPrivateProfileInt("Settings", "WindowWidth", default_windowWidth, INIFileName);
+	m_windowHeight = GetPrivateProfileInt("Settings", "WindowHeight", default_windowHeight, INIFileName);
+
+	m_persistWindowBounds = GetPrivateProfileBool("Settings", "PersistWindowBounds", default_persistWindowBounds, INIFileName);
 
 	m_lootButtonsEnabled = GetPrivateProfileBool("Settings", "LootButton", default_lootButtonsEnabled, INIFileName);
 	m_lucyButtonEnabled = GetPrivateProfileBool("Settings", "LucyButton", default_lucyButtonEnabled, INIFileName);
@@ -163,6 +195,48 @@ void Settings::Reset()
 	ResetItemColor();
 	ResetSpellColor();
 }
+
+void Settings::SetWindowX(int x)
+{
+	if (x == m_windowX)
+		return;
+
+	m_windowX = x;
+	WritePrivateProfileInt("Settings", "WindowX", m_windowX, INIFileName);
+}
+void Settings::SetWindowY(int y)
+{
+	if (y == m_windowY)
+		return;
+
+	m_windowY = y;
+	WritePrivateProfileInt("Settings", "WindowY", m_windowY, INIFileName);
+}
+void Settings::SetWindowWidth(int width)
+{
+	if (width == m_windowWidth)
+		return;
+
+	m_windowWidth = width;
+	WritePrivateProfileInt("Settings", "WindowWidth", m_windowWidth, INIFileName);
+}
+void Settings::SetWindowHeight(int height)
+{
+	if (height == m_windowHeight)
+		return;
+
+	m_windowHeight = height;
+	WritePrivateProfileInt("Settings", "WindowHeight", m_windowHeight, INIFileName);
+}
+void Settings::SetPersistWindowBounds(bool persist)
+{
+	if (persist == m_persistWindowBounds)
+		return;
+
+	m_persistWindowBounds = persist;
+	WritePrivateProfileBool("Settings", "PersistWindowBounds", m_persistWindowBounds, INIFileName);
+}
+
 
 std::optional<MQColor> Settings::GetItemSpellColor(ItemSpellTypes effectType) const
 {
@@ -1629,6 +1703,17 @@ public:
 		SetItem_Trampoline(pItem, flags);
 
 		s_inSetItem = false;
+
+		if (GetGameState() == GAMESTATE_INGAME && s_settings.PersistWindowBounds())
+		{
+			CXRect rc = GetLocation();
+			rc.left = s_settings.GetWindowX();
+			rc.top = s_settings.GetWindowY();
+			rc.right = s_settings.GetWindowX() + s_settings.GetWindowWidth();
+			rc.bottom = s_settings.GetWindowY() + s_settings.GetWindowHeight();
+
+			((CItemDisplayWnd*)this)->UpdateGeometry(rc, true, true, true, true);
+		}
 	}
 
 	//----------------------------------------------------------------------------
@@ -1674,6 +1759,23 @@ public:
 					description->AppendSTML(CXStr(spellText));
 				}
 			}
+		}
+	}
+
+	DETOUR_TRAMPOLINE_DEF(void, SetSpell_Trampoline, (int SpellID, int))
+	void SetSpell_Detour(int SpellID, int flags)
+	{
+		SetSpell_Trampoline(SpellID, flags);
+
+		if (GetGameState() == GAMESTATE_INGAME && s_settings.PersistWindowBounds())
+		{
+			CXRect rc = GetLocation();
+			rc.left = s_settings.GetWindowX();
+			rc.top = s_settings.GetWindowY();
+			rc.right = s_settings.GetWindowX() + s_settings.GetWindowWidth();
+			rc.bottom = s_settings.GetWindowY() + s_settings.GetWindowHeight();
+
+			UpdateGeometry(rc, true, true, true, true);
 		}
 	}
 };
@@ -1893,6 +1995,52 @@ void DrawItemDisplaySettingsPanel()
 		ImGui::PopID();
 	}
 
+	ImGui::NewLine();
+	ImGui::Text("Information Window Size and Locations");
+	ImGui::Separator();
+
+	bool persistWindowBounds = s_settings.PersistWindowBounds();
+	if (ImGui::Checkbox("Persist Window Bounds", &persistWindowBounds))
+	{
+		s_settings.SetPersistWindowBounds(persistWindowBounds);
+	}
+	if (persistWindowBounds)
+	{
+		ImGui::Columns(2, "##WindowSizeColumns", false);
+
+		ImGui::SetNextItemWidth(120.f);
+		int windowX = s_settings.GetWindowX();
+		if (ImGui::InputInt("Left", &windowX))
+		{
+			s_settings.SetWindowX(windowX);
+		}
+
+		ImGui::SetNextItemWidth(120.f);
+		int windowY = s_settings.GetWindowY();
+		if (ImGui::InputInt("Top", &windowY))
+		{
+			s_settings.SetWindowY(windowY);
+		}
+
+		ImGui::NextColumn();
+
+		ImGui::SetNextItemWidth(120.f);
+		int windowWidth = s_settings.GetWindowWidth();
+		if (ImGui::InputInt("Width", &windowWidth))
+		{
+			s_settings.SetWindowWidth(windowWidth);
+		}
+		ImGui::SetNextItemWidth(120.f);
+		int windowHeight = s_settings.GetWindowHeight();
+		if (ImGui::InputInt("Height", &windowHeight))
+		{
+			s_settings.SetWindowHeight(windowHeight);
+		}
+
+		ImGui::Columns(1);
+	}
+
+
 	ImGui::Separator();
 
 	if (ImGui::Button("Reload Settings"))
@@ -1911,6 +2059,7 @@ void DrawItemDisplaySettingsPanel()
 PLUGIN_API void InitializePlugin()
 {
 	EzDetour(CSpellDisplayWnd__UpdateStrings, &SpellDisplayHook::UpdateStrings_Detour, &SpellDisplayHook::UpdateStrings_Trampoline);
+	EzDetour(CSpellDisplayWnd__SetSpell, &SpellDisplayHook::SetSpell_Detour, &SpellDisplayHook::SetSpell_Trampoline);
 	EzDetour(CItemDisplayWnd__UpdateStrings, &CItemDisplayWndOverride::UpdateStrings_Detour, &CItemDisplayWndOverride::UpdateStrings_Trampoline);
 	EzDetour(CItemDisplayWnd__SetItem, &CItemDisplayWndOverride::SetItem_Detour, &CItemDisplayWndOverride::SetItem_Trampoline);
 
@@ -1934,6 +2083,7 @@ PLUGIN_API void ShutdownPlugin()
 	RemoveDetour(CItemDisplayWnd__UpdateStrings);
 	RemoveDetour(CItemDisplayWnd__SetItem);
 	RemoveDetour(CSpellDisplayWnd__UpdateStrings);
+	RemoveDetour(CSpellDisplayWnd__SetSpell);
 
 	s_itemDisplayExtraInfo.clear();
 
