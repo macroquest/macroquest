@@ -979,7 +979,7 @@ local function ShowUsecase_InlineConfirmation()
     -- Width animation
     local target_width = state.confirming and expanded_total or collapsed_width
     local animated_width = iam.TweenFloat(state.confirm_id, state.width_id,
-        target_width, 0.2, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
+        target_width, 0.2, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt, collapsed_width)
 
     -- Background
     local bg_col = state.confirming and IM_COL32(180, 60, 60, 255) or IM_COL32(60, 65, 75, 255)
