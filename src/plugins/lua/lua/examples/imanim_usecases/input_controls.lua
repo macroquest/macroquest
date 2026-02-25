@@ -43,16 +43,16 @@ local function ShowUsecase_ToggleSwitch()
 
         -- Animate thumb position
         local target_thumb = state.toggles[i + 1] and 1.0 or 0.0
-        local thumb_pos = iam.TweenFloat(id, state.thumb_id, target_thumb, 0.25, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        local thumb_pos = iam.TweenFloat(id, state.thumb_id, target_thumb, 0.25, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
         -- Animate background color (off: gray, on: green)
         local off_color = IM_COL32(76, 82, 97, 255)
         local on_color = IM_COL32(89, 194, 125, 255)
         local bg_color = state.toggles[i + 1] and on_color or off_color
         if thumb_pos > 0.01 and thumb_pos < 0.99 then
-            local r = bit.band(off_color, 0xFF) + (bit.band(on_color, 0xFF) - bit.band(off_color, 0xFF)) * thumb_pos
-            local g = bit.band(bit.rshift(off_color, 8), 0xFF) + (bit.band(bit.rshift(on_color, 8), 0xFF) - bit.band(bit.rshift(off_color, 8), 0xFF)) * thumb_pos
-            local b = bit.band(bit.rshift(off_color, 16), 0xFF) + (bit.band(bit.rshift(on_color, 16), 0xFF) - bit.band(bit.rshift(off_color, 16), 0xFF)) * thumb_pos
+            local r = bit32.band(off_color, 0xFF) + (bit32.band(on_color, 0xFF) - bit32.band(off_color, 0xFF)) * thumb_pos
+            local g = bit32.band(bit32.rshift(off_color, 8), 0xFF) + (bit32.band(bit32.rshift(on_color, 8), 0xFF) - bit32.band(bit32.rshift(off_color, 8), 0xFF)) * thumb_pos
+            local b = bit32.band(bit32.rshift(off_color, 16), 0xFF) + (bit32.band(bit32.rshift(on_color, 16), 0xFF) - bit32.band(bit32.rshift(off_color, 16), 0xFF)) * thumb_pos
             bg_color = IM_COL32(math.floor(r), math.floor(g), math.floor(b), 255)
         end
 
@@ -121,25 +121,25 @@ local function ShowUsecase_AnimatedCheckbox()
         -- Animate check state
         local target = state.checkboxes[i + 1] and 1.0 or 0.0
         local id = ImHashStr('check_anim_' .. i)
-        state.check_anims[i + 1] = iam.TweenFloat(id, state.check_id, target, 0.25, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        state.check_anims[i + 1] = iam.TweenFloat(id, state.check_id, target, 0.25, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
         local anim = state.check_anims[i + 1]
 
         -- Box background with color lerp
-        local r_off = bit.band(IM_COL32(50, 55, 65, 255), 0xFF)
-        local g_off = bit.band(bit.rshift(IM_COL32(50, 55, 65, 255), 8), 0xFF)
-        local b_off = bit.band(bit.rshift(IM_COL32(50, 55, 65, 255), 16), 0xFF)
+        local r_off = bit32.band(IM_COL32(50, 55, 65, 255), 0xFF)
+        local g_off = bit32.band(bit32.rshift(IM_COL32(50, 55, 65, 255), 8), 0xFF)
+        local b_off = bit32.band(bit32.rshift(IM_COL32(50, 55, 65, 255), 16), 0xFF)
 
-        local r_on = bit.band(IM_COL32(76, 175, 80, 255), 0xFF)
-        local g_on = bit.band(bit.rshift(IM_COL32(76, 175, 80, 255), 8), 0xFF)
-        local b_on = bit.band(bit.rshift(IM_COL32(76, 175, 80, 255), 16), 0xFF)
+        local r_on = bit32.band(IM_COL32(76, 175, 80, 255), 0xFF)
+        local g_on = bit32.band(bit32.rshift(IM_COL32(76, 175, 80, 255), 8), 0xFF)
+        local b_on = bit32.band(bit32.rshift(IM_COL32(76, 175, 80, 255), 16), 0xFF)
 
         local r = math.floor(r_off + (r_on - r_off) * anim)
         local g = math.floor(g_off + (g_on - g_off) * anim)
         local b = math.floor(b_off + (b_on - b_off) * anim)
         local box_bg = IM_COL32(r, g, b, 255)
 
-        local box_scale = 1.0 + iam.EvalPreset(iam.EaseOutBack, anim) * 0.1 - anim * 0.1
+        local box_scale = 1.0 + iam.EvalPreset(IamEaseType.OutBack, anim) * 0.1 - anim * 0.1
 
         local center = ImVec2((box_min.x + box_max.x) * 0.5, (box_min.y + box_max.y) * 0.5)
         local scaled_min = ImVec2(center.x - box_size * 0.5 * box_scale, center.y - box_size * 0.5 * box_scale)
@@ -223,18 +223,18 @@ local function ShowUsecase_AnimatedRadio()
         -- Animate selection
         local target = (state.selected == i) and 1.0 or 0.0
         local id = ImHashStr('radio_sel_' .. i)
-        state.selection_anims[i + 1] = iam.TweenFloat(id, state.radio_id, target, 0.2, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        state.selection_anims[i + 1] = iam.TweenFloat(id, state.radio_id, target, 0.2, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         local anim = state.selection_anims[i + 1]
 
         -- Outer circle (color transitions from gray to green)
-        local r_off = bit.band(IM_COL32(80, 85, 100, 255), 0xFF)
-        local g_off = bit.band(bit.rshift(IM_COL32(80, 85, 100, 255), 8), 0xFF)
-        local b_off = bit.band(bit.rshift(IM_COL32(80, 85, 100, 255), 16), 0xFF)
+        local r_off = bit32.band(IM_COL32(80, 85, 100, 255), 0xFF)
+        local g_off = bit32.band(bit32.rshift(IM_COL32(80, 85, 100, 255), 8), 0xFF)
+        local b_off = bit32.band(bit32.rshift(IM_COL32(80, 85, 100, 255), 16), 0xFF)
 
-        local r_on = bit.band(IM_COL32(76, 175, 80, 255), 0xFF)
-        local g_on = bit.band(bit.rshift(IM_COL32(76, 175, 80, 255), 8), 0xFF)
-        local b_on = bit.band(bit.rshift(IM_COL32(76, 175, 80, 255), 16), 0xFF)
+        local r_on = bit32.band(IM_COL32(76, 175, 80, 255), 0xFF)
+        local g_on = bit32.band(bit32.rshift(IM_COL32(76, 175, 80, 255), 8), 0xFF)
+        local b_on = bit32.band(bit32.rshift(IM_COL32(76, 175, 80, 255), 16), 0xFF)
 
         local r = math.floor(r_off + (r_on - r_off) * anim)
         local g = math.floor(g_off + (g_on - g_off) * anim)
@@ -245,7 +245,7 @@ local function ShowUsecase_AnimatedRadio()
 
         -- Inner dot with scale animation
         if anim > 0.01 then
-            local inner_radius = radio_size * 0.25 * iam.EvalPreset(iam.EaseOutBack, anim)
+            local inner_radius = radio_size * 0.25 * iam.EvalPreset(IamEaseType.OutBack, anim)
             dl:AddCircleFilled(center, inner_radius, IM_COL32(76, 175, 80, 255))
         end
 
@@ -323,7 +323,7 @@ local function ShowUsecase_RatingStars()
         local scale = 1.0
         if state.clicked_star == i and state.click_time > 0.0 then
             local t = 1.0 - (state.click_time / 0.5)
-            scale = 1.0 + iam.EvalPreset(iam.EaseOutBack, t) * 0.5 - t * 0.5
+            scale = 1.0 + iam.EvalPreset(IamEaseType.OutBack, t) * 0.5 - t * 0.5
         end
 
         -- Draw star shape

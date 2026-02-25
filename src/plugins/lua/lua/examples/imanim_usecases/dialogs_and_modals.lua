@@ -50,12 +50,12 @@ local function ShowUsecase_ModalDialog()
         local id = state.modal_id
 
         -- Animate backdrop
-        local backdrop = iam.TweenFloat(id, state.backdrop_id, 1.0, 0.25, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        local backdrop = iam.TweenFloat(id, state.backdrop_id, 1.0, 0.25, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         -- Animate modal scale and opacity
-        local scale = iam.TweenFloat(id, state.scale_id, 1.0, 0.3, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        local scale = iam.TweenFloat(id, state.scale_id, 1.0, 0.3, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
-        local opacity = iam.TweenFloat(id, state.opacity_id, 1.0, 0.2, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        local opacity = iam.TweenFloat(id, state.opacity_id, 1.0, 0.2, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         -- Draw backdrop
         dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
@@ -120,9 +120,9 @@ local function ShowUsecase_ModalDialog()
     else
         -- Reset animations
         local id = state.modal_id
-        iam.TweenFloat(id, state.backdrop_id, 0.0, 0.2, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
-        iam.TweenFloat(id, state.scale_id, 0.9, 0.2, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
-        iam.TweenFloat(id, state.opacity_id, 0.0, 0.15, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
+        iam.TweenFloat(id, state.backdrop_id, 0.0, 0.2, iam.EasePreset(IamEaseType.InCubic), IamPolicy.Crossfade, dt)
+        iam.TweenFloat(id, state.scale_id, 0.9, 0.2, iam.EasePreset(IamEaseType.InCubic), IamPolicy.Crossfade, dt)
+        iam.TweenFloat(id, state.opacity_id, 0.0, 0.15, iam.EasePreset(IamEaseType.InCubic), IamPolicy.Crossfade, dt)
     end
 
     imgui.Dummy(canvas_size)
@@ -191,13 +191,13 @@ local function ShowUsecase_ToastNotifications()
         local alpha = 1.0
 
         if t < 0.3 then
-            slide_progress = iam.EvalPreset(iam.EaseOutBack, t / 0.3)
+            slide_progress = iam.EvalPreset(IamEaseType.OutBack, t / 0.3)
         elseif t < 2.3 then
             slide_progress = 1.0
         elseif t < 2.6 then
             local fade_t = (t - 2.3) / 0.3
             slide_progress = 1.0
-            alpha = 1.0 - iam.EvalPreset(iam.EaseInQuad, fade_t)
+            alpha = 1.0 - iam.EvalPreset(IamEaseType.InQuad, fade_t)
         else
             state.active[i] = false
             goto toast_continue
@@ -298,7 +298,7 @@ local function ShowUsecase_TooltipAnimation()
         -- Animate with delay - smooth fade without bouncing/flickering (accessibility)
         local delay = 0.15
         local anim_t = math.max(0.0, math.min((state.tooltip_time - delay) / 0.2, 1.0))
-        local ease_t = iam.EvalPreset(iam.EaseOutCubic, anim_t)  -- Smooth ease without overshoot
+        local ease_t = iam.EvalPreset(IamEaseType.OutCubic, anim_t)  -- Smooth ease without overshoot
 
         if state.tooltip_time > delay then
             local item = state.items[state.hovered_item + 1]
@@ -391,7 +391,7 @@ local function ShowUsecase_PopoverMenu()
         state.popover_time = state.popover_time + dt
 
         local expand = iam.TweenFloat(state.popover_id, state.expand_id,
-            1.0, 0.2, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+            1.0, 0.2, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
         local popover_size = ImVec2(140 * scale, 120 * scale * expand)
 
@@ -408,14 +408,14 @@ local function ShowUsecase_PopoverMenu()
             local delay = i * 0.05
             local item_alpha = state.popover_time > delay and
                 iam.TweenFloat(state.popover_id, state.item_fade_ids[i + 1],
-                    1.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt) or 0.0
+                    1.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt) or 0.0
 
             if expand > 0.3 + i * 0.15 then
                 local y = popover_pos.y + 10 * scale + i * 26 * scale
                 local col = state.colors[i + 1]
-                local r = bit.band(col, 0xFF)
-                local g = bit.band(bit.rshift(col, 8), 0xFF)
-                local b = bit.band(bit.rshift(col, 16), 0xFF)
+                local r = bit32.band(col, 0xFF)
+                local g = bit32.band(bit32.rshift(col, 8), 0xFF)
+                local b = bit32.band(bit32.rshift(col, 16), 0xFF)
                 col = IM_COL32(r, g, b, math.floor(item_alpha * 255))
                 dl:AddText(ImVec2(popover_pos.x + 15 * scale, y), col, state.items[i + 1])
             end
@@ -434,7 +434,7 @@ local function ShowUsecase_PopoverMenu()
         end
     else
         iam.TweenFloat(state.popover_id, state.expand_id, 0.0, 0.15,
-            iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
         state.popover_time = 0.0
     end
 
@@ -504,7 +504,7 @@ local function ShowUsecase_AlertBanner()
         state.alert_timer = state.alert_timer + dt
 
         local slide = iam.TweenFloat(state.alert_id, state.slide_id,
-            1.0, 0.3, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+            1.0, 0.3, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
         local banner_size = ImVec2(canvas_size.x - 20 * scale, 50 * scale)
         local y_offset = (1.0 - slide) * -60 * scale
@@ -538,7 +538,7 @@ local function ShowUsecase_AlertBanner()
         end
     else
         iam.TweenFloat(state.alert_id, state.slide_id, 0.0, 0.2,
-            iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
     end
 
     imgui.Dummy(canvas_size)
@@ -581,7 +581,7 @@ local function ShowUsecase_BottomSheet()
     -- Sheet animation
     local sheet_height = 120 * scale
     local sheet_y = iam.TweenFloat(state.sheet_id, state.sheet_y_id,
-        state.open and container_size.y - sheet_height or container_size.y, 0.3, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        state.open and container_size.y - sheet_height or container_size.y, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
     -- Backdrop
     if sheet_y < container_size.y - 1 then
@@ -682,7 +682,7 @@ local function ShowUsecase_Snackbar()
     local banner_height = 160 * scale
     local target_y = state.show_banner and (container_size.y - banner_height) or container_size.y
     local banner_y = iam.TweenFloat(state.banner_id, state.banner_y_id,
-        target_y, 0.4, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        target_y, 0.4, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     if banner_y < container_size.y - 1 then
         local banner_pos = ImVec2(pos.x, pos.y + banner_y)
@@ -732,7 +732,7 @@ local function ShowUsecase_Snackbar()
 
             -- Animate hover
             local hover_val = iam.TweenFloat(state.banner_id, state.btn_hover_ids[i],
-                hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+                hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
             state.btn_hovers[i] = hover_val
 
             local btn_scale = 1.0 + hover_val * 0.08
@@ -744,9 +744,9 @@ local function ShowUsecase_Snackbar()
             -- Button background with hover color brightening
             local col = state.button_colors[i]
             if hover_val > 0.01 then
-                local r = bit.band(col, 0xFF)
-                local g = bit.band(bit.rshift(col, 8), 0xFF)
-                local b = bit.band(bit.rshift(col, 16), 0xFF)
+                local r = bit32.band(col, 0xFF)
+                local g = bit32.band(bit32.rshift(col, 8), 0xFF)
+                local b = bit32.band(bit32.rshift(col, 16), 0xFF)
                 r = math.min(255, math.floor(r + 30 * hover_val))
                 g = math.min(255, math.floor(g + 30 * hover_val))
                 b = math.min(255, math.floor(b + 30 * hover_val))
@@ -823,7 +823,7 @@ local function ShowUsecase_Lightbox()
 
     -- Lightbox overlay
     local lb_scale = iam.TweenFloat(state.lightbox_id, state.scale_id,
-        state.open and 1.0 or 0.0, 0.25, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        state.open and 1.0 or 0.0, 0.25, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     if lb_scale > 0.01 then
         -- Backdrop
@@ -901,9 +901,9 @@ local function ShowUsecase_CommandPalette()
 
     -- Palette animation
     local palette_scale = iam.TweenFloat(state.palette_id, state.scale_id,
-        state.open and 1.0 or 0.8, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        state.open and 1.0 or 0.8, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
     local palette_alpha = iam.TweenFloat(state.palette_id, state.alpha_id,
-        state.open and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        state.open and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
     if palette_alpha > 0.01 then
         -- Backdrop
@@ -979,7 +979,7 @@ local function ShowUsecase_InlineConfirmation()
     -- Width animation
     local target_width = state.confirming and expanded_total or collapsed_width
     local animated_width = iam.TweenFloat(state.confirm_id, state.width_id,
-        target_width, 0.2, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        target_width, 0.2, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
     -- Background
     local bg_col = state.confirming and IM_COL32(180, 60, 60, 255) or IM_COL32(60, 65, 75, 255)
@@ -996,7 +996,7 @@ local function ShowUsecase_InlineConfirmation()
 
         -- Animate delete button hover
         state.button_hovers.delete_hover = iam.TweenFloat(state.confirm_id, ImHashStr('dh'),
-            del_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            del_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
         -- Hover highlight
         if state.button_hovers.delete_hover > 0.01 then
@@ -1020,9 +1020,9 @@ local function ShowUsecase_InlineConfirmation()
 
         -- Animate hover states
         state.button_hovers.confirm_hover = iam.TweenFloat(state.confirm_id, ImHashStr('ch'),
-            confirm_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            confirm_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
         state.button_hovers.cancel_hover = iam.TweenFloat(state.confirm_id, ImHashStr('cah'),
-            cancel_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            cancel_hovered and 1.0 or 0.0, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
         -- Confirm button hover highlight
         if state.button_hovers.confirm_hover > 0.01 then

@@ -126,7 +126,7 @@ local function ShowUsecase_RippleEffect()
         local progress = state.ripple_time / duration
 
         if progress < 1.0 then
-            local ease_progress = iam.EvalPreset(iam.EasePreset(IamEaseType.EaseOutCubic), progress)
+            local ease_progress = iam.EvalPreset(IamEaseType.OutCubic, progress)
             local radius = max_dist * ease_progress
             local alpha = 0.3 * (1.0 - progress)
 
@@ -363,7 +363,7 @@ local function ShowUsecase_ParticleBurst()
                 local speed = 80.0 + (i % 3) * 30.0
                 local size = 4.0 + (i % 4) * 2.0
 
-                local eased_t = iam.EvalPreset(iam.EasePreset(IamEaseType.EaseOutExpo), t)
+                local eased_t = iam.EvalPreset(IamEaseType.OutExpo, t)
                 local dist = speed * eased_t * scale
 
                 local p = ImVec2(

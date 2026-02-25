@@ -202,7 +202,7 @@ local function ShowUsecase_GaugeMeter()
         local p3 = ImVec2(center.x + math.cos(a2) * outer_radius, center.y + math.sin(a2) * outer_radius)
         local p4 = ImVec2(center.x + math.cos(a2) * inner_radius, center.y + math.sin(a2) * inner_radius)
 
-        dl:AddQuadFilled(p1, p2, p3, p4, IM_COL32(r, g, b, 255))
+        dl:AddQuadFilled(p1, p2, p3, p4, IM_COL32(math.floor(r), math.floor(g), math.floor(b), 255))
     end
 
     -- Draw tick marks
@@ -418,8 +418,8 @@ local function ShowUsecase_SankeyFlow()
             local r = ((1 - blend) * (bit32.band(bit32.rshift(col1, 0), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 0), 0xFF)))
             local g = ((1 - blend) * (bit32.band(bit32.rshift(col1, 8), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 8), 0xFF)))
             local b = ((1 - blend) * (bit32.band(bit32.rshift(col1, 16), 0xFF)) + blend * (bit32.band(bit32.rshift(col2, 16), 0xFF)))
-            
-            dl:AddQuadFilled(top1, top2, bot2, bot1, IM_COL32(r, g, b, 120))
+
+            dl:AddQuadFilled(top1, top2, bot2, bot1, IM_COL32(math.floor(r), math.floor(g), math.floor(b), 120))
         end
 
         -- Animated flow particles

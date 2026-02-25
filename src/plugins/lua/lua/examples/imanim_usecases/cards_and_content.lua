@@ -38,15 +38,15 @@ local function ShowUsecase_CardHover()
 
         -- Animate lift (Y offset)
         local target_lift = state.hovered[i + 1] and -8.0 or 0.0
-        local lift = iam.TweenFloat(id, state.lift_id[i + 1], target_lift, 0.25, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        local lift = iam.TweenFloat(id, state.lift_id[i + 1], target_lift, 0.25, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         -- Animate shadow
         local target_shadow = state.hovered[i + 1] and 20.0 or 8.0
-        local shadow_blur = iam.TweenFloat(id, state.shadow_id[i + 1], target_shadow, 0.25, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        local shadow_blur = iam.TweenFloat(id, state.shadow_id[i + 1], target_shadow, 0.25, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         -- Animate description reveal
         local target_desc_alpha = state.hovered[i + 1] and 1.0 or 0.0
-        local desc_alpha = iam.TweenFloat(id, state.desc_id[i + 1], target_desc_alpha, 0.2, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        local desc_alpha = iam.TweenFloat(id, state.desc_id[i + 1], target_desc_alpha, 0.2, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         -- Apply lift
         local drawn_pos = ImVec2(card_pos.x, card_pos.y + lift)
@@ -111,7 +111,7 @@ local function ShowUsecase_FlipCard()
 
     -- Animate flip (0 = front, 1 = back)
     local target_flip = state.flipped and 1.0 or 0.0
-    local flip_progress = iam.TweenFloat(id, state.flip_id, target_flip, 0.6, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+    local flip_progress = iam.TweenFloat(id, state.flip_id, target_flip, 0.6, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     local pos = imgui.GetCursorScreenPosVec()
     local card_size = ImVec2(240, 150)
@@ -233,7 +233,7 @@ local function ShowUsecase_SwipeCards()
     local id = ImHashStr('swipe_cards')
     if state.swiping then
         local target_x = state.swipe_x >= 0 and 400.0 or - 400.0
-        state.swipe_x = iam.TweenFloat(id, state.swipe_x_id, target_x, 0.8, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+        state.swipe_x = iam.TweenFloat(id, state.swipe_x_id, target_x, 0.8, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
         state.swipe_rotation = state.swipe_x * 0.04
 
         if math.abs(state.swipe_x) > 350.0 then
@@ -242,7 +242,7 @@ local function ShowUsecase_SwipeCards()
             state.swipe_x = 0.0
             state.swipe_rotation = 0.0
             -- Reset tween
-            iam.TweenFloat(id, state.swipe_x_id, 0.0, 0.01, iam.EasePreset(IamEaseType.EaseLinear), IamPolicy.Cut, dt)
+            iam.TweenFloat(id, state.swipe_x_id, 0.0, 0.01, iam.EasePreset(IamEaseType.Linear), IamPolicy.Cut, dt)
         end
     end
 
@@ -383,7 +383,7 @@ local function ShowUsecase_Carousel()
     -- Animate slide position
     local id = ImHashStr('carousel')
     local target_offset = state.current_slide
-    local offset = iam.TweenFloat(id, state.offset_id, target_offset, 0.5, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+    local offset = iam.TweenFloat(id, state.offset_id, target_offset, 0.5, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
     -- Clip to carousel bounds
     local content_width = carousel_size.x - 80
@@ -514,7 +514,7 @@ local function ShowUsecase_ExpandableListItem()
     for i = 0, 2 do
         local is_expanded = (state.expanded_item == i)
         local expand_anim = iam.TweenFloat(ImHashStr('list_expand_' .. i), state.expand_ids[i + 1],
-            is_expanded and 1.0 or 0.0, 0.3, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+            is_expanded and 1.0 or 0.0, 0.3, iam.EasePreset(IamEaseType.OutCubic), IamPolicy.Crossfade, dt)
 
         local base_height = 45 * scale
         local item = state.items[i + 1]
@@ -572,9 +572,9 @@ local function ShowUsecase_ExpandableListItem()
                     local y_offset = base_height + 8 * scale + line * (line_height + 4 * scale)
 
                     -- Bullet point
-                    local r = bit.band(item.accent_color, 0xFF)
-                    local g = bit.band(bit.rshift(item.accent_color, 8), 0xFF)
-                    local b = bit.band(bit.rshift(item.accent_color, 16), 0xFF)
+                    local r = bit32.band(item.accent_color, 0xFF)
+                    local g = bit32.band(bit32.rshift(item.accent_color, 8), 0xFF)
+                    local b = bit32.band(bit32.rshift(item.accent_color, 16), 0xFF)
                     local bullet_col = IM_COL32(r, g, b, math.floor(line_alpha * 255))
                     dl:AddCircleFilled(
                         ImVec2(item_pos.x + 20 * scale, item_pos.y + y_offset + line_height * 0.5),
@@ -658,10 +658,10 @@ local function ShowUsecase_ImageGalleryGrid()
             local is_selected = (state.selected_image == idx)
 
             local hover_scale = iam.TweenFloat(ImHashStr('gallery_hover_' .. idx), state.hover_scale_ids[idx + 1],
-                is_hovered and 1.1 or 1.0, 0.15, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+                is_hovered and 1.1 or 1.0, 0.15, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
             local select_glow = iam.TweenFloat(ImHashStr('gallery_select_' .. idx), state.select_glow_ids[idx + 1],
-                is_selected and 1.0 or 0.0, 0.2, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+                is_selected and 1.0 or 0.0, 0.2, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
             local actual_size = cell_size * hover_scale
             local offset = (actual_size - cell_size) * 0.5
@@ -727,7 +727,7 @@ local function ShowUsecase_StackedCards()
     for i = 2, 0, -1 do
         local target_offset = state.expanded and i * 25 * scale or i * 5 * scale
         local offset = iam.TweenFloat(ImHashStr('card_' .. i), state.offset_ids[i + 1],
-            target_offset, 0.25, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+            target_offset, 0.25, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
         local card_pos = ImVec2(pos.x + offset, pos.y + offset * 0.5)
         local card_col = IM_COL32(50 + i * 15, 55 + i * 15, 65 + i * 15, 255)
@@ -772,7 +772,7 @@ local function ShowUsecase_NotificationCard()
 
     -- Slide animation
     local slide_x = iam.TweenFloat(ImHashStr('notif_x'), state.slide_id,
-        state.visible and 0.0 or - card_size.x - 20 * scale, 0.3, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+        state.visible and 0.0 or - card_size.x - 20 * scale, 0.3, iam.EasePreset(IamEaseType.OutBack), IamPolicy.Crossfade, dt)
 
     if slide_x > - card_size.x then
         local final_pos = ImVec2(card_pos.x + slide_x, card_pos.y)
@@ -873,7 +873,7 @@ local function ShowUsecase_ProductCard()
 
     -- Animated progress fill
     local animated_progress = iam.TweenFloat(ImHashStr('prog'), state.prog_id,
-        state.progress, 0.1, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        state.progress, 0.1, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
     dl:AddRectFilled(ImVec2(pos.x + 45 * scale, prog_y),
         ImVec2(pos.x + 45 * scale + prog_width * animated_progress, prog_y + 12 * scale),
         IM_COL32(150, 120, 200, 255), 6 * scale)
@@ -900,7 +900,7 @@ local function ShowUsecase_ProductCard()
     -- Animate play button
     local btn_hover = imgui.IsItemHovered() and 1.15 or 1.0
     local btn_scale = iam.TweenFloat(ImHashStr('btn_s'), state.btn_scale_id,
-        btn_hover, 0.15, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+        btn_hover, 0.15, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
     local btn_center = ImVec2(pos.x + card_size.x - 90 * scale, pos.y + 90 * scale)
     local btn_r = 36 * scale * btn_scale
@@ -951,7 +951,7 @@ local function ShowUsecase_TimelineCard()
         local item_progress = math.min(math.max((state.anim_time - i * 0.15) * 2.0, 0.0), 1.0)
 
         local item_x = iam.TweenFloat(ImHashStr('tl_x_' .. i), state.item_x_ids[i + 1],
-            item_progress > 0.5 and 0.0 or - 30 * scale, 0.3, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+            item_progress > 0.5 and 0.0 or - 30 * scale, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
 
         local item_alpha = item_progress
         local item_pos = ImVec2(pos.x + 20 * scale + item_x, pos.y + i * item_height)
