@@ -419,6 +419,11 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 			const std::vector<ImVec2>& vecs = points.value();
 			mThis.AddPolyline(&vecs[0], (int)vecs.size(), ImU32(col), ImDrawFlags(flags), thickness);
 		});
+	imDrawList.set_function("AddConcavePolyFilled", [](ImDrawList& mThis, const sol::as_table_t<std::vector<ImVec2>>& points, int col)
+		{
+			const std::vector<ImVec2>& vecs = points.value();
+			mThis.AddConcavePolyFilled(&vecs[0], (int)vecs.size(), ImU32(col));
+		});
 	imDrawList.set_function("AddConvexPolyFilled", [](ImDrawList& mThis, const sol::as_table_t<std::vector<ImVec2>>& points, int col)
 		{
 			const std::vector<ImVec2>& vecs = points.value();
