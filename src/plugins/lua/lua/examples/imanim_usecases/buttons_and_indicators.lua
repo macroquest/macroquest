@@ -13,8 +13,6 @@ local primary_btn_id = ImHashStr('btn_primary')
 local ghost_btn_id = ImHashStr('btn_ghost')
 local rotate_btn_id = ImHashStr('btn_icon')
 
-local IM_COL32_WHITE = IM_COL32(255, 255, 255, 255)
-
 -- ============================================================
 -- USECASE 1: Animated Button with Hover/Press States
 -- ============================================================
@@ -291,7 +289,7 @@ local function ShowUsecase_PulseBadge()
         if it.count > 0 then
             local count_text = (it.count > 99) and "99+" or tostring(it.count)
             local tx, ty = imgui.CalcTextSize(count_text)
-            dl:AddText(ImVec2(badge_center.x - tx * 0.5, badge_center.y - ty * 0.5), IM_COL32_WHITE, count_text)
+            dl:AddText(ImVec2(badge_center.x - tx * 0.5, badge_center.y - ty * 0.5), common.IM_COL32_WHITE, count_text)
         end
     end
 
