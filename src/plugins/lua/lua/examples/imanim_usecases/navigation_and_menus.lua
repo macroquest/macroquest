@@ -254,18 +254,18 @@ local function ShowUsecase_HamburgerMorph()
 end
 
 -- ============================================================
--- USECASE 24: Search Bar Expansion
--- ============================================================
-local function ShowUsecase_SearchExpand()
-    -- TODO: Implement Search Bar Expansion
-end
-
--- ============================================================
 -- 31. Slide-in Drawer
 -- Side panel that slides in/out smoothly
 -- ============================================================
 local function ShowUsecase_SlideDrawer()
     -- TODO: Implement Slide-in Drawer
+end
+
+-- ============================================================
+-- USECASE 24: Search Bar Expansion
+-- ============================================================
+local function ShowUsecase_SearchExpand()
+    -- TODO: Implement Search Bar Expansion
 end
 
 -- ============================================================

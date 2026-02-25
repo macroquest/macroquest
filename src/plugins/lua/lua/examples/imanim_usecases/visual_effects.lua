@@ -4,6 +4,74 @@ local iam = require('ImAnim')
 local common = require('common')
 
 -- ============================================================
+-- USECASE 18: Gradient Background Animation
+-- ============================================================
+local function ShowUsecase_GradientAnimation()
+    imgui.TextWrapped("Animated gradient backgrounds that shift colors smoothly.")
+
+    local dt = common.GetDeltaTime()
+    local dl = imgui.GetWindowDrawList()
+
+    if not ShowUsecase_GradientAnimation_time then ShowUsecase_GradientAnimation_time = 0.0 end
+    ShowUsecase_GradientAnimation_time = ShowUsecase_GradientAnimation_time + dt * 0.5
+
+    local cp = imgui.GetCursorScreenPosVec()
+    local avail = imgui.GetContentRegionAvailVec()
+    local pos = ImVec2(cp.x, cp.y)
+    local size = ImVec2(avail.x, 120)
+
+    local gradient_time = ShowUsecase_GradientAnimation_time
+
+    local hue1 = (gradient_time * 0.1) % 1.0
+    local hue2 = (gradient_time * 0.1 + 0.3) % 1.0
+    local hue3 = (gradient_time * 0.1 + 0.6) % 1.0
+
+    local function HueToColor(h, c, l)
+        local r = 0.5 + 0.5 * math.cos((h + 0.0 / 3.0) * 6.28318)
+        local g = 0.5 + 0.5 * math.cos((h + 1.0 / 3.0) * 6.28318)
+        local b = 0.5 + 0.5 * math.cos((h + 2.0 / 3.0) * 6.28318)
+        r = l + (r - 0.5) * c
+        g = l + (g - 0.5) * c
+        b = l + (b - 0.5) * c
+        return IM_COL32(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255), 255)
+    end
+
+    local col1 = HueToColor(hue1, 0.6, 0.3)
+    local col2 = HueToColor(hue2, 0.6, 0.25)
+    local col3 = HueToColor(hue3, 0.6, 0.35)
+
+    local segments = 20
+    local segment_width = size.x / segments
+    local function BlendColors(a, b, t)
+        local ra = bit32.band(a, 0xFF)
+        local ga = bit32.band(bit32.rshift(a, 8), 0xFF)
+        local ba = bit32.band(bit32.rshift(a, 16), 0xFF)
+        local rb = bit32.band(b, 0xFF)
+        local gb = bit32.band(bit32.rshift(b, 8), 0xFF)
+        local bb = bit32.band(bit32.rshift(b, 16), 0xFF)
+        local r = math.floor(ra + (rb - ra) * t)
+        local g = math.floor(ga + (gb - ga) * t)
+        local bch = math.floor(ba + (bb - ba) * t)
+        return IM_COL32(r, g, bch, 255)
+    end
+
+    for i = 0, segments - 1 do
+        local t1 = i / segments
+        local t2 = (i + 1) / segments
+        local wave = math.sin(t1 * 3.14159 * 2.0 + gradient_time * 2.0) * 0.5 + 0.5
+        local left_col = BlendColors(BlendColors(col1, col2, t1), col3, wave)
+        local right_col = BlendColors(BlendColors(col1, col2, t2), col3, wave)
+        dl:AddRectFilledMultiColor(ImVec2(pos.x + i * segment_width, pos.y), ImVec2(pos.x + (i + 1) * segment_width, pos.y + size.y), left_col, right_col, right_col, left_col)
+    end
+
+    local text = "Animated Gradient"
+    local text_size = imgui.CalcTextSizeVec(text)
+    dl:AddText(ImVec2(pos.x + (size.x - text_size.x) * 0.5, pos.y + (size.y - text_size.y) * 0.5), IM_COL32(255, 255, 255, 200), text)
+
+    imgui.Dummy(size)
+end
+
+-- ============================================================
 -- USECASE 15: Ripple Effect (Material Design)
 -- ============================================================
 local ShowUsecase_RippleEffect_state = {
@@ -82,74 +150,6 @@ local function ShowUsecase_RippleEffect()
 
     imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 16)
     imgui.Dummy(ImVec2(1, 1))
-end
-
--- ============================================================
--- USECASE 18: Gradient Background Animation
--- ============================================================
-local function ShowUsecase_GradientAnimation()
-    imgui.TextWrapped("Animated gradient backgrounds that shift colors smoothly.")
-
-    local dt = common.GetDeltaTime()
-    local dl = imgui.GetWindowDrawList()
-
-    if not ShowUsecase_GradientAnimation_time then ShowUsecase_GradientAnimation_time = 0.0 end
-    ShowUsecase_GradientAnimation_time = ShowUsecase_GradientAnimation_time + dt * 0.5
-
-    local cp = imgui.GetCursorScreenPosVec()
-    local avail = imgui.GetContentRegionAvailVec()
-    local pos = ImVec2(cp.x, cp.y)
-    local size = ImVec2(avail.x, 120)
-
-    local gradient_time = ShowUsecase_GradientAnimation_time
-
-    local hue1 = (gradient_time * 0.1) % 1.0
-    local hue2 = (gradient_time * 0.1 + 0.3) % 1.0
-    local hue3 = (gradient_time * 0.1 + 0.6) % 1.0
-
-    local function HueToColor(h, c, l)
-        local r = 0.5 + 0.5 * math.cos((h + 0.0 / 3.0) * 6.28318)
-        local g = 0.5 + 0.5 * math.cos((h + 1.0 / 3.0) * 6.28318)
-        local b = 0.5 + 0.5 * math.cos((h + 2.0 / 3.0) * 6.28318)
-        r = l + (r - 0.5) * c
-        g = l + (g - 0.5) * c
-        b = l + (b - 0.5) * c
-        return IM_COL32(math.floor(r * 255), math.floor(g * 255), math.floor(b * 255), 255)
-    end
-
-    local col1 = HueToColor(hue1, 0.6, 0.3)
-    local col2 = HueToColor(hue2, 0.6, 0.25)
-    local col3 = HueToColor(hue3, 0.6, 0.35)
-
-    local segments = 20
-    local segment_width = size.x / segments
-    local function BlendColors(a, b, t)
-        local ra = bit32.band(a, 0xFF)
-        local ga = bit32.band(bit32.rshift(a, 8), 0xFF)
-        local ba = bit32.band(bit32.rshift(a, 16), 0xFF)
-        local rb = bit32.band(b, 0xFF)
-        local gb = bit32.band(bit32.rshift(b, 8), 0xFF)
-        local bb = bit32.band(bit32.rshift(b, 16), 0xFF)
-        local r = math.floor(ra + (rb - ra) * t)
-        local g = math.floor(ga + (gb - ga) * t)
-        local bch = math.floor(ba + (bb - ba) * t)
-        return IM_COL32(r, g, bch, 255)
-    end
-
-    for i = 0, segments - 1 do
-        local t1 = i / segments
-        local t2 = (i + 1) / segments
-        local wave = math.sin(t1 * 3.14159 * 2.0 + gradient_time * 2.0) * 0.5 + 0.5
-        local left_col = BlendColors(BlendColors(col1, col2, t1), col3, wave)
-        local right_col = BlendColors(BlendColors(col1, col2, t2), col3, wave)
-        dl:AddRectFilledMultiColor(ImVec2(pos.x + i * segment_width, pos.y), ImVec2(pos.x + (i + 1) * segment_width, pos.y + size.y), left_col, right_col, right_col, left_col)
-    end
-
-    local text = "Animated Gradient"
-    local text_size = imgui.CalcTextSizeVec(text)
-    dl:AddText(ImVec2(pos.x + (size.x - text_size.x) * 0.5, pos.y + (size.y - text_size.y) * 0.5), IM_COL32(255, 255, 255, 200), text)
-
-    imgui.Dummy(size)
 end
 
 -- ============================================================

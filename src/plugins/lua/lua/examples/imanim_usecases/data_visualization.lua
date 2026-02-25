@@ -105,6 +105,14 @@ local function ShowUsecase_AnimatedPieChart()
 end
 
 -- ============================================================
+-- 54. Area Chart
+-- Stacked area chart with animated fill
+-- ============================================================
+local function ShowUsecase_AreaChart()
+    -- TODO: Implement Area Chart
+end
+
+-- ============================================================
 -- 47. Heat Map
 -- Animated heat map grid visualization
 -- ============================================================
@@ -542,14 +550,6 @@ local function ShowUsecase_ProgressDashboard()
 
     imgui.SetCursorScreenPos(ImVec2(cp.x, cp.y + cs.y + 8))
     imgui.Dummy(ImVec2(1, 1))
-end
-
--- ============================================================
--- 54. Area Chart
--- Stacked area chart with animated fill
--- ============================================================
-local function ShowUsecase_AreaChart()
-    -- TODO: Implement Area Chart
 end
 
 local function RunDataVisualizationDemo()

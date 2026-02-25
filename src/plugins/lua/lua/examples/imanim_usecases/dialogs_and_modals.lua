@@ -4,106 +4,6 @@ local iam = require('ImAnim')
 local common = require('common')
 
 -- ============================================================
--- USECASE 2: Notification Toast System
--- ============================================================
-local toast_notifications_state = {
-    active = { false, false, false },
-    timers = { 0.0, 0.0, 0.0 },
-    messages = {
-        'Operation completed successfully!',
-        'Warning: Check your settings',
-        'Error: Something went wrong'
-    },
-    colors = {
-        IM_COL32(51, 204, 102, 255),  -- Success
-        IM_COL32(230, 179, 51, 255),  -- Warning
-        IM_COL32(230, 77, 77, 255)    -- Error
-    }
-}
-
-local function ShowUsecase_ToastNotifications()
-    local state = toast_notifications_state
-    imgui.TextWrapped('Toast notifications that slide in, hold, then fade out. Uses clip-based animation with stagger for multiple toasts.')
-
-    local dt = common.GetDeltaTime()
-
-    -- Buttons to trigger toasts
-    if imgui.Button('Success Toast') then
-        state.active[1] = true
-        state.timers[1] = 0.0
-    end
-    imgui.SameLine()
-    if imgui.Button('Warning Toast') then
-        state.active[2] = true
-        state.timers[2] = 0.0
-    end
-    imgui.SameLine()
-    if imgui.Button('Error Toast') then
-        state.active[3] = true
-        state.timers[3] = 0.0
-    end
-
-    local canvas_pos = imgui.GetCursorScreenPosVec()
-    local content_avail = imgui.GetContentRegionAvailVec()
-    local canvas_size = ImVec2(content_avail.x, 180)
-    local dl = imgui.GetWindowDrawList()
-
-    -- Background
-    dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
-        IM_COL32(20, 20, 25, 255), 4.0)
-
-    local toast_height = 50.0
-    local toast_spacing = 8.0
-    local toast_padding = 32.0
-
-    for i = 1, 3 do
-        if not state.active[i] then goto toast_continue end
-
-        state.timers[i] = state.timers[i] + dt
-        local t = toast_notifications_state.timers[i]
-
-        local slide_progress = 0.0
-        local alpha = 1.0
-
-        if t < 0.3 then
-            slide_progress = iam.EvalPreset(iam.EaseOutBack, t / 0.3)
-        elseif t < 2.3 then
-            slide_progress = 1.0
-        elseif t < 2.6 then
-            local fade_t = (t - 2.3) / 0.3
-            slide_progress = 1.0
-            alpha = 1.0 - iam.EvalPreset(iam.EaseInQuad, fade_t)
-        else
-            state.active[i] = false
-            goto toast_continue
-        end
-
-        local text_size = imgui.CalcTextSizeVec(state.messages[i])
-        local toast_width = text_size.x + toast_padding
-
-        local base_x = canvas_pos.x + canvas_size.x - toast_width - 16.0
-        local base_y = canvas_pos.y + 16.0 + (i - 1) * (toast_height + toast_spacing)
-
-        local x = base_x + (1.0 - slide_progress) * (toast_width + 32.0)
-        local y = base_y
-
-        -- Draw toast
-        local bg_color = IM_COL32(40, 40, 50, math.floor(alpha * 230))
-
-        dl:AddRectFilled(ImVec2(x, y), ImVec2(x + toast_width, y + toast_height), bg_color, 6.0)
-        dl:AddRectFilled(ImVec2(x, y), ImVec2(x + 4.0, y + toast_height), state.colors[i], 6.0, ImDrawFlags.RoundCornersLeft)
-
-        -- Text
-        local text_color = IM_COL32(255, 255, 255, math.floor(alpha * 255))
-        dl:AddText(ImVec2(x + 16.0, y + (toast_height - imgui.GetFontSize()) * 0.5), text_color, state.messages[i])
-
-        ::toast_continue::
-    end
-
-    imgui.Dummy(canvas_size)
-end
-
--- ============================================================
 -- USECASE 8: Modal Dialog Animation
 -- ============================================================
 local modal_dialog_state = {
@@ -223,6 +123,106 @@ local function ShowUsecase_ModalDialog()
         iam.TweenFloat(id, state.backdrop_id, 0.0, 0.2, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
         iam.TweenFloat(id, state.scale_id, 0.9, 0.2, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
         iam.TweenFloat(id, state.opacity_id, 0.0, 0.15, iam.EasePreset(IamEaseType.EaseInCubic), IamPolicy.Crossfade, dt)
+    end
+
+    imgui.Dummy(canvas_size)
+end
+
+-- ============================================================
+-- USECASE 2: Notification Toast System
+-- ============================================================
+local toast_notifications_state = {
+    active = { false, false, false },
+    timers = { 0.0, 0.0, 0.0 },
+    messages = {
+        'Operation completed successfully!',
+        'Warning: Check your settings',
+        'Error: Something went wrong'
+    },
+    colors = {
+        IM_COL32(51, 204, 102, 255),  -- Success
+        IM_COL32(230, 179, 51, 255),  -- Warning
+        IM_COL32(230, 77, 77, 255)    -- Error
+    }
+}
+
+local function ShowUsecase_ToastNotifications()
+    local state = toast_notifications_state
+    imgui.TextWrapped('Toast notifications that slide in, hold, then fade out. Uses clip-based animation with stagger for multiple toasts.')
+
+    local dt = common.GetDeltaTime()
+
+    -- Buttons to trigger toasts
+    if imgui.Button('Success Toast') then
+        state.active[1] = true
+        state.timers[1] = 0.0
+    end
+    imgui.SameLine()
+    if imgui.Button('Warning Toast') then
+        state.active[2] = true
+        state.timers[2] = 0.0
+    end
+    imgui.SameLine()
+    if imgui.Button('Error Toast') then
+        state.active[3] = true
+        state.timers[3] = 0.0
+    end
+
+    local canvas_pos = imgui.GetCursorScreenPosVec()
+    local content_avail = imgui.GetContentRegionAvailVec()
+    local canvas_size = ImVec2(content_avail.x, 180)
+    local dl = imgui.GetWindowDrawList()
+
+    -- Background
+    dl:AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        IM_COL32(20, 20, 25, 255), 4.0)
+
+    local toast_height = 50.0
+    local toast_spacing = 8.0
+    local toast_padding = 32.0
+
+    for i = 1, 3 do
+        if not state.active[i] then goto toast_continue end
+
+        state.timers[i] = state.timers[i] + dt
+        local t = toast_notifications_state.timers[i]
+
+        local slide_progress = 0.0
+        local alpha = 1.0
+
+        if t < 0.3 then
+            slide_progress = iam.EvalPreset(iam.EaseOutBack, t / 0.3)
+        elseif t < 2.3 then
+            slide_progress = 1.0
+        elseif t < 2.6 then
+            local fade_t = (t - 2.3) / 0.3
+            slide_progress = 1.0
+            alpha = 1.0 - iam.EvalPreset(iam.EaseInQuad, fade_t)
+        else
+            state.active[i] = false
+            goto toast_continue
+        end
+
+        local text_size = imgui.CalcTextSizeVec(state.messages[i])
+        local toast_width = text_size.x + toast_padding
+
+        local base_x = canvas_pos.x + canvas_size.x - toast_width - 16.0
+        local base_y = canvas_pos.y + 16.0 + (i - 1) * (toast_height + toast_spacing)
+
+        local x = base_x + (1.0 - slide_progress) * (toast_width + 32.0)
+        local y = base_y
+
+        -- Draw toast
+        local bg_color = IM_COL32(40, 40, 50, math.floor(alpha * 230))
+
+        dl:AddRectFilled(ImVec2(x, y), ImVec2(x + toast_width, y + toast_height), bg_color, 6.0)
+        dl:AddRectFilled(ImVec2(x, y), ImVec2(x + 4.0, y + toast_height), state.colors[i], 6.0, ImDrawFlags.RoundCornersLeft)
+
+        -- Text
+        local text_color = IM_COL32(255, 255, 255, math.floor(alpha * 255))
+        dl:AddText(ImVec2(x + 16.0, y + (toast_height - imgui.GetFontSize()) * 0.5), text_color, state.messages[i])
+
+        ::toast_continue::
     end
 
     imgui.Dummy(canvas_size)
@@ -847,8 +847,8 @@ local function ShowUsecase_Lightbox()
             ImVec2(close_center.x + x_size, close_center.y + x_size),
             IM_COL32(255, 255, 255, math.floor(lb_scale * 255)), 2 * scale)
         dl:AddLine(ImVec2(close_center.x + x_size, close_center.y - x_size),
-			ImVec2(close_center.x - x_size, close_center.y + x_size),
-			IM_COL32(255, 255, 255, math.floor(lb_scale * 255)), 2 * scale)
+            ImVec2(close_center.x - x_size, close_center.y + x_size),
+            IM_COL32(255, 255, 255, math.floor(lb_scale * 255)), 2 * scale)
 
         -- Invisible button aligned with circle
         imgui.SetCursorScreenPos(close_center.x - close_radius, close_center.y - close_radius)

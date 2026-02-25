@@ -523,6 +523,56 @@ local function ShowUsecase_IconButtonRotation()
 end
 
 -- ============================================================
+-- USECASE: Button Glow Effect
+-- ============================================================
+local button_glow_state = {
+    focused = false,
+    glow_id = ImHashStr("glow"),
+    g_id = ImHashStr("g"),
+    pulse_id = ImHashStr("pulse")
+}
+
+local function ShowUsecase_ButtonGlow()
+    local state = button_glow_state
+
+    imgui.TextWrapped("Button with animated glow effect on focus/hover using iam_oscillate.")
+
+    local dt = common.GetDeltaTime()
+    local scale = imgui.GetStyle().FontScaleMain
+    local dl = imgui.GetWindowDrawList()
+
+    local pos = imgui.GetCursorScreenPosVec()
+    local btn_size = ImVec2(180 * scale, 45 * scale)
+
+    imgui.InvisibleButton("glow_btn", btn_size)
+    local hovered = imgui.IsItemHovered()
+    if imgui.IsItemClicked() then state.focused = not state.focused end
+
+    local glow_target = (state.focused or hovered) and 1.0 or 0.0
+    local glow = iam.TweenFloat(state.glow_id, state.g_id, glow_target, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
+
+    local pulse = 0.0
+    if state.focused then pulse = 0.5 + 0.5 * iam.Oscillate(state.pulse_id, 1.0, 2.0, IamWaveType.Sine, 0.0, dt) end
+
+    if glow > 0.01 then
+        for i = 3, 0, -1 do
+            local offset = (4 - i) * 4 * scale * glow
+            local alpha = math.floor(30 * glow * (1.0 + pulse * 0.5) / (i + 1))
+            dl:AddRectFilled(ImVec2(pos.x - offset, pos.y - offset), ImVec2(pos.x + btn_size.x + offset, pos.y + btn_size.y + offset), IM_COL32(100, 150, 255, alpha), 12 * scale)
+        end
+    end
+
+    local bg_col = state.focused and IM_COL32(70, 120, 200, 255) or IM_COL32(60, 65, 75, 255)
+    dl:AddRectFilled(pos, ImVec2(pos.x + btn_size.x, pos.y + btn_size.y), bg_col, 8 * scale)
+
+    local text = state.focused and "Focused (click)" or "Click to focus"
+    local tx, ty = imgui.CalcTextSize(text)
+    dl:AddText(ImVec2(pos.x + (btn_size.x - tx) * 0.5, pos.y + (btn_size.y - ty) * 0.5), IM_COL32(255, 255, 255, 255), text)
+
+    imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 10 * scale)
+end
+
+-- ============================================================
 -- USECASE: Like Heart Button
 -- ============================================================
 local like_heart_state = {
@@ -594,56 +644,6 @@ local function ShowUsecase_LikeHeartButton()
     dl:AddText(ImVec2(center.x - tx * 0.5, pos.y + heart_size * 2 + 10 * scale), IM_COL32(180, 180, 190, 255), text)
 
     imgui.SetCursorScreenPos(pos.x, pos.y + heart_size * 2 + 35 * scale)
-end
-
--- ============================================================
--- USECASE: Button Glow Effect
--- ============================================================
-local button_glow_state = {
-    focused = false,
-    glow_id = ImHashStr("glow"),
-    g_id = ImHashStr("g"),
-    pulse_id = ImHashStr("pulse")
-}
-
-local function ShowUsecase_ButtonGlow()
-    local state = button_glow_state
-
-    imgui.TextWrapped("Button with animated glow effect on focus/hover using iam_oscillate.")
-
-    local dt = common.GetDeltaTime()
-    local scale = imgui.GetStyle().FontScaleMain
-    local dl = imgui.GetWindowDrawList()
-
-    local pos = imgui.GetCursorScreenPosVec()
-    local btn_size = ImVec2(180 * scale, 45 * scale)
-
-    imgui.InvisibleButton("glow_btn", btn_size)
-    local hovered = imgui.IsItemHovered()
-    if imgui.IsItemClicked() then state.focused = not state.focused end
-
-    local glow_target = (state.focused or hovered) and 1.0 or 0.0
-    local glow = iam.TweenFloat(state.glow_id, state.g_id, glow_target, 0.3, iam.EasePreset(IamEaseType.OutQuad), IamPolicy.Crossfade, dt)
-
-    local pulse = 0.0
-    if state.focused then pulse = 0.5 + 0.5 * iam.Oscillate(state.pulse_id, 1.0, 2.0, IamWaveType.Sine, 0.0, dt) end
-
-    if glow > 0.01 then
-        for i = 3, 0, -1 do
-            local offset = (4 - i) * 4 * scale * glow
-            local alpha = math.floor(30 * glow * (1.0 + pulse * 0.5) / (i + 1))
-            dl:AddRectFilled(ImVec2(pos.x - offset, pos.y - offset), ImVec2(pos.x + btn_size.x + offset, pos.y + btn_size.y + offset), IM_COL32(100, 150, 255, alpha), 12 * scale)
-        end
-    end
-
-    local bg_col = state.focused and IM_COL32(70, 120, 200, 255) or IM_COL32(60, 65, 75, 255)
-    dl:AddRectFilled(pos, ImVec2(pos.x + btn_size.x, pos.y + btn_size.y), bg_col, 8 * scale)
-
-    local text = state.focused and "Focused (click)" or "Click to focus"
-    local tx, ty = imgui.CalcTextSize(text)
-    dl:AddText(ImVec2(pos.x + (btn_size.x - tx) * 0.5, pos.y + (btn_size.y - ty) * 0.5), IM_COL32(255, 255, 255, 255), text)
-
-    imgui.SetCursorScreenPos(pos.x, pos.y + btn_size.y + 10 * scale)
 end
 
 -- ============================================================

@@ -81,107 +81,8 @@ local function ShowUsecase_ToggleSwitch()
 end
 
 -- ============================================================
--- USECASE 27: Rating Stars
--- ============================================================
-local rating_stars_state = {
-    rating = 3,
-    hover_rating = 0,
-    click_time = 0.0,
-    clicked_star = -1,
-}
-
-local function ShowUsecase_RatingStars()
-    local state = rating_stars_state
-
-    imgui.TextWrapped('Interactive star rating with hover preview and click animation. Common pattern for reviews and feedback.')
-
-    local dt = common.GetDeltaTime()
-    local dl = imgui.GetWindowDrawList()
-
-    if imgui.Button('Reset Rating') then
-        state.rating = 0
-        state.click_time = 0.0
-    end
-
-    local pos = imgui.GetCursorScreenPosVec()
-    local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 80)
-
-    -- Background
-    dl:AddRectFilled(pos, ImVec2(pos.x + canvas_size.x, pos.y + canvas_size.y), IM_COL32(25, 27, 35, 255), 4.0)
-
-    local star_count = 5
-    local star_size = 24.0
-    local star_spacing = 40.0
-    local total_width = (star_count - 1) * star_spacing
-    local start_x = pos.x + (canvas_size.x - total_width) * 0.5
-    local center_y = pos.y + canvas_size.y * 0.5
-
-    -- Update click animation
-    if state.click_time > 0.0 then
-        state.click_time = state.click_time - dt
-    end
-
-    state.hover_rating = 0
-
-    for i = 0, star_count - 1 do
-        local star_center = ImVec2(start_x + i * star_spacing, center_y)
-
-        -- Hit testing
-        imgui.SetCursorScreenPos(star_center.x - star_size, star_center.y - star_size)
-        if imgui.InvisibleButton('##star_' .. i, ImVec2(star_size * 2, star_size * 2)) then
-            state.rating = i + 1
-            state.click_time = 0.5
-            state.clicked_star = i
-        end
-        if imgui.IsItemHovered() then
-            state.hover_rating = i + 1
-        end
-
-        -- Determine if star should be filled
-        local display_rating = state.hover_rating > 0 and state.hover_rating or state.rating
-        local filled = i < display_rating
-
-        -- Click animation scale
-        local scale = 1.0
-        if state.clicked_star == i and state.click_time > 0.0 then
-            local t = 1.0 - (state.click_time / 0.5)
-            scale = 1.0 + iam.EvalPreset(iam.EaseOutBack, t) * 0.5 - t * 0.5
-        end
-
-        -- Draw star shape
-        local fill_color = filled and IM_COL32(255, 200, 50, 255) or IM_COL32(60, 65, 80, 255)
-        local outline_color = filled and IM_COL32(255, 220, 100, 255) or IM_COL32(80, 85, 100, 255)
-
-        -- Star shape using concave polygon (5-pointed star)
-        local outer_r = star_size * scale
-        local inner_r = outer_r * 0.4
-
-        local points = {}
-        for j = 0, 9 do
-            local angle = -math.pi * 0.5 + j * math.pi * 0.2
-            local r = (j % 2 == 0) and outer_r or inner_r
-            points[j + 1] = ImVec2(star_center.x + math.cos(angle) * r, star_center.y + math.sin(angle) * r)
-        end
-        -- Draw star (simplified as concave polygon equivalent)
-        dl:AddConcavePolyFilled(points, fill_color)
-
-        -- Draw outline edges
-        for j = 0, 9 do
-            dl:AddLine(points[j + 1], points[((j + 1) % 10) + 1], outline_color, 1.5)
-        end
-    end
-
-    -- Display text
-    local rating_text = string.format('Rating: %d / 5', state.rating)
-    local text_size = imgui.CalcTextSizeVec(rating_text)
-    imgui.SetCursorScreenPos(pos.x, pos.y + canvas_size.y - 20)
-    dl:AddText(ImVec2(pos.x + (canvas_size.x - text_size.x) * 0.5, pos.y + canvas_size.y - 18), IM_COL32(180, 180, 190, 255), rating_text)
-
-    imgui.SetCursorScreenPos(pos.x, pos.y + canvas_size.y + 8)
-end
-
--- ============================================================
 -- 30. Animated Checkbox
+-- Smooth checkmark drawing animation with scale effect
 -- ============================================================
 local checkbox_state = {
     checkboxes = { false, true, false },
@@ -284,6 +185,7 @@ end
 
 -- ============================================================
 -- 32. Animated Radio Buttons
+-- Radio button group with smooth selection animation
 -- ============================================================
 local radio_state = {
     selected = 0,
@@ -357,7 +259,108 @@ local function ShowUsecase_AnimatedRadio()
 end
 
 -- ============================================================
+-- USECASE 27: Rating Stars
+-- ============================================================
+local rating_stars_state = {
+    rating = 3,
+    hover_rating = 0,
+    click_time = 0.0,
+    clicked_star = -1,
+}
+
+local function ShowUsecase_RatingStars()
+    local state = rating_stars_state
+
+    imgui.TextWrapped('Interactive star rating with hover preview and click animation. Common pattern for reviews and feedback.')
+
+    local dt = common.GetDeltaTime()
+    local dl = imgui.GetWindowDrawList()
+
+    if imgui.Button('Reset Rating') then
+        state.rating = 0
+        state.click_time = 0.0
+    end
+
+    local pos = imgui.GetCursorScreenPosVec()
+    local canvas_size = ImVec2(imgui.GetContentRegionAvailVec().x, 80)
+
+    -- Background
+    dl:AddRectFilled(pos, ImVec2(pos.x + canvas_size.x, pos.y + canvas_size.y), IM_COL32(25, 27, 35, 255), 4.0)
+
+    local star_count = 5
+    local star_size = 24.0
+    local star_spacing = 40.0
+    local total_width = (star_count - 1) * star_spacing
+    local start_x = pos.x + (canvas_size.x - total_width) * 0.5
+    local center_y = pos.y + canvas_size.y * 0.5
+
+    -- Update click animation
+    if state.click_time > 0.0 then
+        state.click_time = state.click_time - dt
+    end
+
+    state.hover_rating = 0
+
+    for i = 0, star_count - 1 do
+        local star_center = ImVec2(start_x + i * star_spacing, center_y)
+
+        -- Hit testing
+        imgui.SetCursorScreenPos(star_center.x - star_size, star_center.y - star_size)
+        if imgui.InvisibleButton('##star_' .. i, ImVec2(star_size * 2, star_size * 2)) then
+            state.rating = i + 1
+            state.click_time = 0.5
+            state.clicked_star = i
+        end
+        if imgui.IsItemHovered() then
+            state.hover_rating = i + 1
+        end
+
+        -- Determine if star should be filled
+        local display_rating = state.hover_rating > 0 and state.hover_rating or state.rating
+        local filled = i < display_rating
+
+        -- Click animation scale
+        local scale = 1.0
+        if state.clicked_star == i and state.click_time > 0.0 then
+            local t = 1.0 - (state.click_time / 0.5)
+            scale = 1.0 + iam.EvalPreset(iam.EaseOutBack, t) * 0.5 - t * 0.5
+        end
+
+        -- Draw star shape
+        local fill_color = filled and IM_COL32(255, 200, 50, 255) or IM_COL32(60, 65, 80, 255)
+        local outline_color = filled and IM_COL32(255, 220, 100, 255) or IM_COL32(80, 85, 100, 255)
+
+        -- Star shape using concave polygon (5-pointed star)
+        local outer_r = star_size * scale
+        local inner_r = outer_r * 0.4
+
+        local points = {}
+        for j = 0, 9 do
+            local angle = -math.pi * 0.5 + j * math.pi * 0.2
+            local r = (j % 2 == 0) and outer_r or inner_r
+            points[j + 1] = ImVec2(star_center.x + math.cos(angle) * r, star_center.y + math.sin(angle) * r)
+        end
+        -- Draw star (simplified as concave polygon equivalent)
+        dl:AddConcavePolyFilled(points, fill_color)
+
+        -- Draw outline edges
+        for j = 0, 9 do
+            dl:AddLine(points[j + 1], points[((j + 1) % 10) + 1], outline_color, 1.5)
+        end
+    end
+
+    -- Display text
+    local rating_text = string.format('Rating: %d / 5', state.rating)
+    local text_size = imgui.CalcTextSizeVec(rating_text)
+    imgui.SetCursorScreenPos(pos.x, pos.y + canvas_size.y - 20)
+    dl:AddText(ImVec2(pos.x + (canvas_size.x - text_size.x) * 0.5, pos.y + canvas_size.y - 18), IM_COL32(180, 180, 190, 255), rating_text)
+
+    imgui.SetCursorScreenPos(pos.x, pos.y + canvas_size.y + 8)
+end
+
+-- ============================================================
 -- 38. Color Swatch Animation
+-- Color picker swatches with selection animation
 -- ============================================================
 local function ShowUsecase_ColorSwatches()
     -- TODO: Implement Color Swatch Animation

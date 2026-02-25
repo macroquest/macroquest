@@ -178,135 +178,6 @@ local function ShowUsecase_FlipCard()
 end
 
 -- ============================================================
--- USECASE 22: Carousel / Image Slider
--- ============================================================
-local carousel_state = {
-    slide_count = 4,
-    current_slide = 0,
-    auto_timer = 0.0,
-    auto_advance = true,
-    offset_id = ImHashStr('carousel_offset'),
-    slide_colors = {
-        IM_COL32(91, 194, 231, 255),
-        IM_COL32(204, 120, 88, 255),
-        IM_COL32(130, 200, 130, 255),
-        IM_COL32(200, 180, 100, 255)
-    },
-    slide_labels = { 'Slide 1', 'Slide 2', 'Slide 3', 'Slide 4' }
-}
-
-local function ShowUsecase_Carousel()
-    local state = carousel_state
-
-    imgui.TextWrapped('Image carousel with smooth slide transitions. Includes navigation dots and auto-advance option.')
-
-    local dt = common.GetDeltaTime()
-    local dl = imgui.GetWindowDrawList()
-
-    state.auto_advance = imgui.Checkbox('Auto-advance', state.auto_advance)
-
-    if state.auto_advance then
-        state.auto_timer = state.auto_timer + dt
-        if state.auto_timer > 3.0 then
-            state.current_slide = (state.current_slide + 1) % state.slide_count
-            state.auto_timer = 0.0
-        end
-    end
-
-    local pos = imgui.GetCursorScreenPosVec()
-    local carousel_size = ImVec2(imgui.GetContentRegionAvailVec().x, 140)
-
-    -- Background
-    dl:AddRectFilled(pos, ImVec2(pos.x + carousel_size.x, pos.y + carousel_size.y),
-        IM_COL32(20, 22, 30, 255), 8.0)
-
-    -- Animate slide position
-    local id = ImHashStr('carousel')
-    local target_offset = state.current_slide
-    local offset = iam.TweenFloat(id, state.offset_id, target_offset, 0.5, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
-
-    -- Clip to carousel bounds
-    local content_width = carousel_size.x - 80
-    local slide_width = content_width
-    local content_pos = ImVec2(pos.x + 40, pos.y + 10)
-    local content_size = ImVec2(content_width, carousel_size.y - 50)
-
-    dl:PushClipRect(content_pos, ImVec2(content_pos.x + content_size.x, content_pos.y + content_size.y), true)
-
-    -- Draw slides
-    for i = 0, state.slide_count - 1 do
-        local slide_x = content_pos.x + (i - offset) * slide_width
-
-        if slide_x > content_pos.x - slide_width and slide_x < content_pos.x + content_width then
-            dl:AddRectFilled(
-                ImVec2(slide_x + 4, content_pos.y),
-                ImVec2(slide_x + slide_width - 4, content_pos.y + content_size.y),
-                state.slide_colors[i + 1], 6.0)
-
-            -- Slide label
-            local label_size = imgui.CalcTextSizeVec(state.slide_labels[i + 1])
-            dl:AddText(
-                ImVec2(slide_x + (slide_width - label_size.x) * 0.5, content_pos.y + (content_size.y - label_size.y) * 0.5),
-                common.IM_COL32_WHITE, state.slide_labels[i + 1])
-        end
-    end
-
-    dl:PopClipRect()
-
-    -- Navigation arrows
-    local arrow_size = ImVec2(30, 30)
-
-    -- Left arrow
-    imgui.SetCursorScreenPos(pos.x + 5, pos.y + carousel_size.y * 0.5 - 25)
-    if imgui.InvisibleButton('##carousel_left', arrow_size) then
-        state.current_slide = (state.current_slide - 1 + state.slide_count) % state.slide_count
-        state.auto_timer = 0.0
-    end
-    local left_center = ImVec2(pos.x + 20, pos.y + carousel_size.y * 0.5 - 10)
-	dl:AddTriangleFilled(
-		ImVec2(left_center.x + 8, left_center.y - 10),
-		ImVec2(left_center.x + 8, left_center.y + 10),
-		ImVec2(left_center.x - 6, left_center.y),
-		imgui.IsItemHovered() and IM_COL32(255, 255, 255, 255) or IM_COL32(180, 180, 180, 255))
-
-    -- Right arrow
-    imgui.SetCursorScreenPos(pos.x + carousel_size.x - 35, pos.y + carousel_size.y * 0.5 - 25)
-    if imgui.InvisibleButton('##carousel_right', arrow_size) then
-        state.current_slide = (state.current_slide + 1) % state.slide_count
-        state.auto_timer = 0.0
-    end
-    local right_center = ImVec2(pos.x + carousel_size.x - 20, pos.y + carousel_size.y * 0.5 - 10)
-	dl:AddTriangleFilled(
-		ImVec2(right_center.x - 8, right_center.y - 10),
-		ImVec2(right_center.x - 8, right_center.y + 10),
-		ImVec2(right_center.x + 6, right_center.y),
-		imgui.IsItemHovered() and IM_COL32(255, 255, 255, 255) or IM_COL32(180, 180, 180, 255))
-
-    -- Navigation dots
-    local dots_y = pos.y + carousel_size.y - 25
-    local dots_start_x = pos.x + (carousel_size.x - (state.slide_count * 20)) * 0.5
-    for i = 0, state.slide_count - 1 do
-        local dot_center = ImVec2(dots_start_x + i * 20 + 6, dots_y)
-
-		imgui.SetCursorScreenPos(dot_center.x - 6, dot_center.y - 6)
-		local dot_id = string.format("##dot%d", i)
-		if imgui.InvisibleButton(dot_id, ImVec2(12, 12)) then
-			state.current_slide = i
-			state.auto_timer = 0.0
-		end
-
-		local dot_radius = (i == state.current_slide) and 5.0 or 4.0
-		local dot_color = (i == state.current_slide) and IM_COL32(91, 194, 231, 255) or IM_COL32(100, 100, 110, 255)
-		if imgui.IsItemHovered() then dot_color = IM_COL32(150, 150, 160, 255) end
-
-		dl:AddCircleFilled(dot_center, dot_radius, dot_color)
-    end
-
-    imgui.SetCursorScreenPos(pos.x, pos.y + carousel_size.y + 10)
-    imgui.Dummy(ImVec2(1, 1))
-end
-
--- ============================================================
 -- USECASE 17: Swipe Cards (Tinder-style)
 -- ============================================================
 local swipe_cards_state = {
@@ -464,6 +335,367 @@ local function ShowUsecase_SwipeCards()
 
     imgui.SetCursorScreenPos(canvas_pos.x, canvas_pos.y + canvas_size.y + 8)
     imgui.Dummy(ImVec2(1, 1))
+end
+
+-- ============================================================
+-- USECASE 22: Carousel / Image Slider
+-- ============================================================
+local carousel_state = {
+    slide_count = 4,
+    current_slide = 0,
+    auto_timer = 0.0,
+    auto_advance = true,
+    offset_id = ImHashStr('carousel_offset'),
+    slide_colors = {
+        IM_COL32(91, 194, 231, 255),
+        IM_COL32(204, 120, 88, 255),
+        IM_COL32(130, 200, 130, 255),
+        IM_COL32(200, 180, 100, 255)
+    },
+    slide_labels = { 'Slide 1', 'Slide 2', 'Slide 3', 'Slide 4' }
+}
+
+local function ShowUsecase_Carousel()
+    local state = carousel_state
+
+    imgui.TextWrapped('Image carousel with smooth slide transitions. Includes navigation dots and auto-advance option.')
+
+    local dt = common.GetDeltaTime()
+    local dl = imgui.GetWindowDrawList()
+
+    state.auto_advance = imgui.Checkbox('Auto-advance', state.auto_advance)
+
+    if state.auto_advance then
+        state.auto_timer = state.auto_timer + dt
+        if state.auto_timer > 3.0 then
+            state.current_slide = (state.current_slide + 1) % state.slide_count
+            state.auto_timer = 0.0
+        end
+    end
+
+    local pos = imgui.GetCursorScreenPosVec()
+    local carousel_size = ImVec2(imgui.GetContentRegionAvailVec().x, 140)
+
+    -- Background
+    dl:AddRectFilled(pos, ImVec2(pos.x + carousel_size.x, pos.y + carousel_size.y),
+        IM_COL32(20, 22, 30, 255), 8.0)
+
+    -- Animate slide position
+    local id = ImHashStr('carousel')
+    local target_offset = state.current_slide
+    local offset = iam.TweenFloat(id, state.offset_id, target_offset, 0.5, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+
+    -- Clip to carousel bounds
+    local content_width = carousel_size.x - 80
+    local slide_width = content_width
+    local content_pos = ImVec2(pos.x + 40, pos.y + 10)
+    local content_size = ImVec2(content_width, carousel_size.y - 50)
+
+    dl:PushClipRect(content_pos, ImVec2(content_pos.x + content_size.x, content_pos.y + content_size.y), true)
+
+    -- Draw slides
+    for i = 0, state.slide_count - 1 do
+        local slide_x = content_pos.x + (i - offset) * slide_width
+
+        if slide_x > content_pos.x - slide_width and slide_x < content_pos.x + content_width then
+            dl:AddRectFilled(
+                ImVec2(slide_x + 4, content_pos.y),
+                ImVec2(slide_x + slide_width - 4, content_pos.y + content_size.y),
+                state.slide_colors[i + 1], 6.0)
+
+            -- Slide label
+            local label_size = imgui.CalcTextSizeVec(state.slide_labels[i + 1])
+            dl:AddText(
+                ImVec2(slide_x + (slide_width - label_size.x) * 0.5, content_pos.y + (content_size.y - label_size.y) * 0.5),
+                common.IM_COL32_WHITE, state.slide_labels[i + 1])
+        end
+    end
+
+    dl:PopClipRect()
+
+    -- Navigation arrows
+    local arrow_size = ImVec2(30, 30)
+
+    -- Left arrow
+    imgui.SetCursorScreenPos(pos.x + 5, pos.y + carousel_size.y * 0.5 - 25)
+    if imgui.InvisibleButton('##carousel_left', arrow_size) then
+        state.current_slide = (state.current_slide - 1 + state.slide_count) % state.slide_count
+        state.auto_timer = 0.0
+    end
+    local left_center = ImVec2(pos.x + 20, pos.y + carousel_size.y * 0.5 - 10)
+    dl:AddTriangleFilled(
+        ImVec2(left_center.x + 8, left_center.y - 10),
+        ImVec2(left_center.x + 8, left_center.y + 10),
+        ImVec2(left_center.x - 6, left_center.y),
+        imgui.IsItemHovered() and IM_COL32(255, 255, 255, 255) or IM_COL32(180, 180, 180, 255))
+
+    -- Right arrow
+    imgui.SetCursorScreenPos(pos.x + carousel_size.x - 35, pos.y + carousel_size.y * 0.5 - 25)
+    if imgui.InvisibleButton('##carousel_right', arrow_size) then
+        state.current_slide = (state.current_slide + 1) % state.slide_count
+        state.auto_timer = 0.0
+    end
+    local right_center = ImVec2(pos.x + carousel_size.x - 20, pos.y + carousel_size.y * 0.5 - 10)
+    dl:AddTriangleFilled(
+        ImVec2(right_center.x - 8, right_center.y - 10),
+        ImVec2(right_center.x - 8, right_center.y + 10),
+        ImVec2(right_center.x + 6, right_center.y),
+        imgui.IsItemHovered() and IM_COL32(255, 255, 255, 255) or IM_COL32(180, 180, 180, 255))
+
+    -- Navigation dots
+    local dots_y = pos.y + carousel_size.y - 25
+    local dots_start_x = pos.x + (carousel_size.x - (state.slide_count * 20)) * 0.5
+    for i = 0, state.slide_count - 1 do
+        local dot_center = ImVec2(dots_start_x + i * 20 + 6, dots_y)
+
+        imgui.SetCursorScreenPos(dot_center.x - 6, dot_center.y - 6)
+        local dot_id = string.format("##dot%d", i)
+        if imgui.InvisibleButton(dot_id, ImVec2(12, 12)) then
+            state.current_slide = i
+            state.auto_timer = 0.0
+        end
+
+        local dot_radius = (i == state.current_slide) and 5.0 or 4.0
+        local dot_color = (i == state.current_slide) and IM_COL32(91, 194, 231, 255) or IM_COL32(100, 100, 110, 255)
+        if imgui.IsItemHovered() then dot_color = IM_COL32(150, 150, 160, 255) end
+
+        dl:AddCircleFilled(dot_center, dot_radius, dot_color)
+    end
+
+    imgui.SetCursorScreenPos(pos.x, pos.y + carousel_size.y + 10)
+    imgui.Dummy(ImVec2(1, 1))
+end
+
+-- ============================================================
+-- USECASE: Expandable List Item
+-- ============================================================
+local expandable_list_state = {
+    expanded_item = -1,
+    expand_ids = { ImHashStr('expand_0'), ImHashStr('expand_1'), ImHashStr('expand_2') },
+    items = {
+        {
+            title = 'Quick Task',
+            subtitle = 'Due: Today',
+            details = { 'Status: In Progress', 'Priority: High' },
+            num_lines = 2,
+            accent_color = IM_COL32(76, 175, 80, 255)
+        },
+        {
+            title = 'Project Alpha',
+            subtitle = 'Due: Dec 15',
+            details = { 'Team: Alice, Bob, Charlie, Dana', 'Progress: 75% complete', 'Priority: Medium', 'Last updated: 2 hours ago' },
+            num_lines = 4,
+            accent_color = IM_COL32(33, 150, 243, 255)
+        },
+        {
+            title = 'Major Release v2.0',
+            subtitle = 'Due: Q1 2025',
+            details = { 'Components: UI, Backend, API, Docs', 'Teams involved: 3 departments', 'Budget: Approved', 'Risk level: Low', 'Dependencies: 12 items', 'Sign-off required: Yes' },
+            num_lines = 6,
+            accent_color = IM_COL32(255, 152, 0, 255)
+        }
+    }
+}
+
+local function ShowUsecase_ExpandableListItem()
+    local state = expandable_list_state
+
+    imgui.TextWrapped('List items that expand to reveal additional content with dynamic heights. Each item has different content lengths to demonstrate adaptive sizing.')
+
+    local dt = common.GetDeltaTime()
+    local scale = imgui.GetStyle().FontScaleMain
+
+    local pos = imgui.GetCursorScreenPosVec()
+    local dl = imgui.GetWindowDrawList()
+    local width = imgui.GetContentRegionAvailVec().x
+    local y_cursor = pos.y
+    local line_height = imgui.GetTextLineHeightWithSpacing()
+
+    for i = 0, 2 do
+        local is_expanded = (state.expanded_item == i)
+        local expand_anim = iam.TweenFloat(ImHashStr('list_expand_' .. i), state.expand_ids[i + 1],
+            is_expanded and 1.0 or 0.0, 0.3, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
+
+        local base_height = 45 * scale
+        local item = state.items[i + 1]
+        local content_height = item.num_lines * (line_height + 4 * scale) + 15 * scale
+        local expanded_height = base_height + content_height
+        local item_height = base_height + content_height * expand_anim
+
+        local item_pos = ImVec2(pos.x, y_cursor)
+        local item_size = ImVec2(width, item_height)
+
+        -- Background with hover effect
+        local bg_col = is_expanded and IM_COL32(55, 60, 75, 255) or IM_COL32(40, 45, 55, 255)
+        dl:AddRectFilled(item_pos, ImVec2(item_pos.x + item_size.x, item_pos.y + item_size.y),
+            bg_col, 8 * scale)
+
+        -- Left accent bar - different colors for different content sizes
+        dl:AddRectFilled(item_pos, ImVec2(item_pos.x + 4 * scale, item_pos.y + item_size.y),
+            item.accent_color, 8 * scale, ImDrawFlags.RoundCornersLeft)
+
+        -- Title
+        dl:AddText(ImVec2(item_pos.x + 15 * scale, item_pos.y + 8 * scale),
+            IM_COL32(255, 255, 255, 255), item.title)
+
+        -- Subtitle with line count hint
+        local subtitle_with_count = string.format('%s  (%d items)', item.subtitle, item.num_lines)
+        dl:AddText(ImVec2(item_pos.x + 15 * scale, item_pos.y + 30 * scale),
+            IM_COL32(140, 145, 155, 255), subtitle_with_count)
+
+        -- Expand indicator (chevron that rotates)
+        local arrow_rot = expand_anim * math.pi * 0.5
+        local arrow_center = ImVec2(item_pos.x + width - 25 * scale, item_pos.y + 22 * scale)
+        local arrow_size = 6 * scale
+        local p1 = ImVec2(arrow_center.x - arrow_size * math.cos(arrow_rot), arrow_center.y - arrow_size * math.sin(arrow_rot))
+        local p2 = ImVec2(arrow_center.x + arrow_size * math.sin(arrow_rot), arrow_center.y - arrow_size * math.cos(arrow_rot))
+        local p3 = ImVec2(arrow_center.x + arrow_size * math.cos(arrow_rot), arrow_center.y + arrow_size * math.sin(arrow_rot))
+        dl:AddTriangleFilled(p1, p2, p3, IM_COL32(180, 185, 195, 255))
+
+        -- Expanded content - each line fades in with slight stagger
+        if expand_anim > 0.05 then
+            local content_alpha = math.max(0.0, math.min((expand_anim - 0.05) / 0.5, 1.0))
+
+            -- Separator line
+            local sep_width = (width - 30 * scale) * math.min(expand_anim * 2.0, 1.0)
+            dl:AddLine(
+                ImVec2(item_pos.x + 15 * scale, item_pos.y + base_height - 2 * scale),
+                ImVec2(item_pos.x + 15 * scale + sep_width, item_pos.y + base_height - 2 * scale),
+                IM_COL32(80, 85, 95, math.floor(content_alpha * 200)))
+
+            -- Draw each detail line
+            for line = 0, item.num_lines - 1 do
+                local line_delay = line * 0.08
+                local line_alpha = math.max(0.0, math.min((expand_anim - 0.1 - line_delay) / 0.4, 1.0))
+
+                if line_alpha > 0.0 then
+                    local y_offset = base_height + 8 * scale + line * (line_height + 4 * scale)
+
+                    -- Bullet point
+                    local r = bit.band(item.accent_color, 0xFF)
+                    local g = bit.band(bit.rshift(item.accent_color, 8), 0xFF)
+                    local b = bit.band(bit.rshift(item.accent_color, 16), 0xFF)
+                    local bullet_col = IM_COL32(r, g, b, math.floor(line_alpha * 255))
+                    dl:AddCircleFilled(
+                        ImVec2(item_pos.x + 20 * scale, item_pos.y + y_offset + line_height * 0.5),
+                        3 * scale, bullet_col)
+
+                    -- Text
+                    dl:AddText(
+                        ImVec2(item_pos.x + 30 * scale, item_pos.y + y_offset),
+                        IM_COL32(200, 205, 215, math.floor(line_alpha * 255)),
+                        item.details[line + 1])
+                end
+            end
+        end
+
+        -- Click detection on header area
+        local mouse = imgui.GetMousePosVec()
+        if imgui.IsMouseClicked(0) and
+            mouse.x >= item_pos.x and mouse.x <= item_pos.x + item_size.x and
+            mouse.y >= item_pos.y and mouse.y <= item_pos.y + base_height then
+            state.expanded_item = is_expanded and - 1 or i
+        end
+
+        y_cursor = y_cursor + item_height + 8 * scale
+    end
+
+    imgui.SetCursorScreenPos(pos.x, y_cursor)
+end
+
+-- ============================================================
+-- USECASE: Image Gallery Grid
+-- ============================================================
+local gallery_grid_state = {
+    selected_image = -1,
+    hovered_image = -1,
+    hover_scale_ids = {
+        ImHashStr('gallery_hover_0'), ImHashStr('gallery_hover_1'), ImHashStr('gallery_hover_2'), ImHashStr('gallery_hover_3'),
+        ImHashStr('gallery_hover_4'), ImHashStr('gallery_hover_5'), ImHashStr('gallery_hover_6'), ImHashStr('gallery_hover_7')
+    },
+    select_glow_ids = {
+        ImHashStr('gallery_select_0'), ImHashStr('gallery_select_1'), ImHashStr('gallery_select_2'), ImHashStr('gallery_select_3'),
+        ImHashStr('gallery_select_4'), ImHashStr('gallery_select_5'), ImHashStr('gallery_select_6'), ImHashStr('gallery_select_7')
+    },
+    colors = {
+        IM_COL32(255, 107, 107, 255), IM_COL32(78, 205, 196, 255),
+        IM_COL32(199, 244, 100, 255), IM_COL32(255, 230, 109, 255),
+        IM_COL32(107, 185, 240, 255), IM_COL32(238, 130, 238, 255),
+        IM_COL32(255, 165, 0, 255),   IM_COL32(50, 205, 50, 255)
+    }
+}
+
+local function ShowUsecase_ImageGalleryGrid()
+    local state = gallery_grid_state
+
+    imgui.TextWrapped('Image gallery with hover zoom effect and selection animation. Grid items scale up smoothly on hover.')
+
+    local dt = common.GetDeltaTime()
+    local scale = imgui.GetStyle().FontScaleMain
+
+    local pos = imgui.GetCursorScreenPosVec()
+    local dl = imgui.GetWindowDrawList()
+
+    local cell_size = 70 * scale
+    local gap = 8 * scale
+    local cols = 4
+    local rows = 2
+
+    local mouse = imgui.GetMousePosVec()
+    state.hovered_image = -1
+
+    for row = 0, rows - 1 do
+        for col = 0, cols - 1 do
+            local idx = row * cols + col
+            local x = pos.x + col * (cell_size + gap)
+            local y = pos.y + row * (cell_size + gap)
+
+            -- Check hover
+            local is_hovered = mouse.x >= x and mouse.x <= x + cell_size and
+                               mouse.y >= y and mouse.y <= y + cell_size
+            if is_hovered then state.hovered_image = idx end
+
+            local is_selected = (state.selected_image == idx)
+
+            local hover_scale = iam.TweenFloat(ImHashStr('gallery_hover_' .. idx), state.hover_scale_ids[idx + 1],
+                is_hovered and 1.1 or 1.0, 0.15, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
+
+            local select_glow = iam.TweenFloat(ImHashStr('gallery_select_' .. idx), state.select_glow_ids[idx + 1],
+                is_selected and 1.0 or 0.0, 0.2, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
+
+            local actual_size = cell_size * hover_scale
+            local offset = (actual_size - cell_size) * 0.5
+
+            -- Selection glow
+            if select_glow > 0.01 then
+                dl:AddRectFilled(
+                    ImVec2(x - offset - 3 * scale, y - offset - 3 * scale),
+                    ImVec2(x - offset + actual_size + 3 * scale, y - offset + actual_size + 3 * scale),
+                    IM_COL32(255, 255, 255, math.floor(select_glow * 150)), 10 * scale)
+            end
+
+            -- Image placeholder (colored rectangle)
+            dl:AddRectFilled(
+                ImVec2(x - offset, y - offset),
+                ImVec2(x - offset + actual_size, y - offset + actual_size),
+                state.colors[idx + 1], 8 * scale)
+
+            -- Checkmark for selected
+            if select_glow > 0.5 then
+                local check_center = ImVec2(x - offset + actual_size - 15 * scale, y - offset + 15 * scale)
+                dl:AddCircleFilled(check_center, 10 * scale, IM_COL32(255, 255, 255, 255))
+                dl:AddText(ImVec2(check_center.x - 5 * scale, check_center.y - 7 * scale),
+                    IM_COL32(0, 150, 0, 255), '+')
+            end
+
+            -- Click to select
+            if is_hovered and imgui.IsMouseClicked(0) then
+                state.selected_image = is_selected and - 1 or idx
+            end
+        end
+    end
+
+    imgui.Dummy(ImVec2(cols * (cell_size + gap), rows * (cell_size + gap)))
 end
 
 -- ============================================================
@@ -746,239 +978,6 @@ local function ShowUsecase_TimelineCard()
         state.anim_time = 0.0
     end
 end
-
--- ============================================================
--- USECASE: Expandable List Item
--- ============================================================
-local expandable_list_state = {
-    expanded_item = -1,
-    expand_ids = { ImHashStr('expand_0'), ImHashStr('expand_1'), ImHashStr('expand_2') },
-    items = {
-        {
-            title = 'Quick Task',
-            subtitle = 'Due: Today',
-            details = { 'Status: In Progress', 'Priority: High' },
-            num_lines = 2,
-            accent_color = IM_COL32(76, 175, 80, 255)
-        },
-        {
-            title = 'Project Alpha',
-            subtitle = 'Due: Dec 15',
-            details = { 'Team: Alice, Bob, Charlie, Dana', 'Progress: 75% complete', 'Priority: Medium', 'Last updated: 2 hours ago' },
-            num_lines = 4,
-            accent_color = IM_COL32(33, 150, 243, 255)
-        },
-        {
-            title = 'Major Release v2.0',
-            subtitle = 'Due: Q1 2025',
-            details = { 'Components: UI, Backend, API, Docs', 'Teams involved: 3 departments', 'Budget: Approved', 'Risk level: Low', 'Dependencies: 12 items', 'Sign-off required: Yes' },
-            num_lines = 6,
-            accent_color = IM_COL32(255, 152, 0, 255)
-        }
-    }
-}
-
-local function ShowUsecase_ExpandableListItem()
-    local state = expandable_list_state
-
-    imgui.TextWrapped('List items that expand to reveal additional content with dynamic heights. Each item has different content lengths to demonstrate adaptive sizing.')
-
-    local dt = common.GetDeltaTime()
-    local scale = imgui.GetStyle().FontScaleMain
-
-    local pos = imgui.GetCursorScreenPosVec()
-    local dl = imgui.GetWindowDrawList()
-    local width = imgui.GetContentRegionAvailVec().x
-    local y_cursor = pos.y
-    local line_height = imgui.GetTextLineHeightWithSpacing()
-
-    for i = 0, 2 do
-        local is_expanded = (state.expanded_item == i)
-        local expand_anim = iam.TweenFloat(ImHashStr('list_expand_' .. i), state.expand_ids[i + 1],
-            is_expanded and 1.0 or 0.0, 0.3, iam.EasePreset(IamEaseType.EaseOutCubic), IamPolicy.Crossfade, dt)
-
-        local base_height = 45 * scale
-        local item = state.items[i + 1]
-        local content_height = item.num_lines * (line_height + 4 * scale) + 15 * scale
-        local expanded_height = base_height + content_height
-        local item_height = base_height + content_height * expand_anim
-
-        local item_pos = ImVec2(pos.x, y_cursor)
-        local item_size = ImVec2(width, item_height)
-
-        -- Background with hover effect
-        local bg_col = is_expanded and IM_COL32(55, 60, 75, 255) or IM_COL32(40, 45, 55, 255)
-        dl:AddRectFilled(item_pos, ImVec2(item_pos.x + item_size.x, item_pos.y + item_size.y),
-            bg_col, 8 * scale)
-
-        -- Left accent bar - different colors for different content sizes
-        dl:AddRectFilled(item_pos, ImVec2(item_pos.x + 4 * scale, item_pos.y + item_size.y),
-            item.accent_color, 8 * scale, ImDrawFlags.RoundCornersLeft)
-
-        -- Title
-        dl:AddText(ImVec2(item_pos.x + 15 * scale, item_pos.y + 8 * scale),
-            IM_COL32(255, 255, 255, 255), item.title)
-
-        -- Subtitle with line count hint
-        local subtitle_with_count = string.format('%s  (%d items)', item.subtitle, item.num_lines)
-        dl:AddText(ImVec2(item_pos.x + 15 * scale, item_pos.y + 30 * scale),
-            IM_COL32(140, 145, 155, 255), subtitle_with_count)
-
-        -- Expand indicator (chevron that rotates)
-        local arrow_rot = expand_anim * math.pi * 0.5
-        local arrow_center = ImVec2(item_pos.x + width - 25 * scale, item_pos.y + 22 * scale)
-        local arrow_size = 6 * scale
-        local p1 = ImVec2(arrow_center.x - arrow_size * math.cos(arrow_rot), arrow_center.y - arrow_size * math.sin(arrow_rot))
-        local p2 = ImVec2(arrow_center.x + arrow_size * math.sin(arrow_rot), arrow_center.y - arrow_size * math.cos(arrow_rot))
-        local p3 = ImVec2(arrow_center.x + arrow_size * math.cos(arrow_rot), arrow_center.y + arrow_size * math.sin(arrow_rot))
-        dl:AddTriangleFilled(p1, p2, p3, IM_COL32(180, 185, 195, 255))
-
-        -- Expanded content - each line fades in with slight stagger
-        if expand_anim > 0.05 then
-            local content_alpha = math.max(0.0, math.min((expand_anim - 0.05) / 0.5, 1.0))
-
-            -- Separator line
-            local sep_width = (width - 30 * scale) * math.min(expand_anim * 2.0, 1.0)
-            dl:AddLine(
-                ImVec2(item_pos.x + 15 * scale, item_pos.y + base_height - 2 * scale),
-                ImVec2(item_pos.x + 15 * scale + sep_width, item_pos.y + base_height - 2 * scale),
-                IM_COL32(80, 85, 95, math.floor(content_alpha * 200)))
-
-            -- Draw each detail line
-            for line = 0, item.num_lines - 1 do
-                local line_delay = line * 0.08
-                local line_alpha = math.max(0.0, math.min((expand_anim - 0.1 - line_delay) / 0.4, 1.0))
-
-                if line_alpha > 0.0 then
-                    local y_offset = base_height + 8 * scale + line * (line_height + 4 * scale)
-
-                    -- Bullet point
-                    local r = bit.band(item.accent_color, 0xFF)
-                    local g = bit.band(bit.rshift(item.accent_color, 8), 0xFF)
-                    local b = bit.band(bit.rshift(item.accent_color, 16), 0xFF)
-                    local bullet_col = IM_COL32(r, g, b, math.floor(line_alpha * 255))
-                    dl:AddCircleFilled(
-                        ImVec2(item_pos.x + 20 * scale, item_pos.y + y_offset + line_height * 0.5),
-                        3 * scale, bullet_col)
-
-                    -- Text
-                    dl:AddText(
-                        ImVec2(item_pos.x + 30 * scale, item_pos.y + y_offset),
-                        IM_COL32(200, 205, 215, math.floor(line_alpha * 255)),
-                        item.details[line + 1])
-                end
-            end
-        end
-
-        -- Click detection on header area
-        local mouse = imgui.GetMousePosVec()
-        if imgui.IsMouseClicked(0) and
-            mouse.x >= item_pos.x and mouse.x <= item_pos.x + item_size.x and
-            mouse.y >= item_pos.y and mouse.y <= item_pos.y + base_height then
-            state.expanded_item = is_expanded and - 1 or i
-        end
-
-        y_cursor = y_cursor + item_height + 8 * scale
-    end
-
-    imgui.SetCursorScreenPos(pos.x, y_cursor)
-end
-
--- ============================================================
--- USECASE: Image Gallery Grid
--- ============================================================
-local gallery_grid_state = {
-    selected_image = -1,
-    hovered_image = -1,
-    hover_scale_ids = {
-        ImHashStr('gallery_hover_0'), ImHashStr('gallery_hover_1'), ImHashStr('gallery_hover_2'), ImHashStr('gallery_hover_3'),
-        ImHashStr('gallery_hover_4'), ImHashStr('gallery_hover_5'), ImHashStr('gallery_hover_6'), ImHashStr('gallery_hover_7')
-    },
-    select_glow_ids = {
-        ImHashStr('gallery_select_0'), ImHashStr('gallery_select_1'), ImHashStr('gallery_select_2'), ImHashStr('gallery_select_3'),
-        ImHashStr('gallery_select_4'), ImHashStr('gallery_select_5'), ImHashStr('gallery_select_6'), ImHashStr('gallery_select_7')
-    },
-    colors = {
-        IM_COL32(255, 107, 107, 255), IM_COL32(78, 205, 196, 255),
-        IM_COL32(199, 244, 100, 255), IM_COL32(255, 230, 109, 255),
-        IM_COL32(107, 185, 240, 255), IM_COL32(238, 130, 238, 255),
-        IM_COL32(255, 165, 0, 255),   IM_COL32(50, 205, 50, 255)
-    }
-}
-
-local function ShowUsecase_ImageGalleryGrid()
-    local state = gallery_grid_state
-
-    imgui.TextWrapped('Image gallery with hover zoom effect and selection animation. Grid items scale up smoothly on hover.')
-
-    local dt = common.GetDeltaTime()
-    local scale = imgui.GetStyle().FontScaleMain
-
-    local pos = imgui.GetCursorScreenPosVec()
-    local dl = imgui.GetWindowDrawList()
-
-    local cell_size = 70 * scale
-    local gap = 8 * scale
-    local cols = 4
-    local rows = 2
-
-    local mouse = imgui.GetMousePosVec()
-    state.hovered_image = -1
-
-    for row = 0, rows - 1 do
-        for col = 0, cols - 1 do
-            local idx = row * cols + col
-            local x = pos.x + col * (cell_size + gap)
-            local y = pos.y + row * (cell_size + gap)
-
-            -- Check hover
-            local is_hovered = mouse.x >= x and mouse.x <= x + cell_size and
-                               mouse.y >= y and mouse.y <= y + cell_size
-            if is_hovered then state.hovered_image = idx end
-
-            local is_selected = (state.selected_image == idx)
-
-            local hover_scale = iam.TweenFloat(ImHashStr('gallery_hover_' .. idx), state.hover_scale_ids[idx + 1],
-                is_hovered and 1.1 or 1.0, 0.15, iam.EasePreset(IamEaseType.EaseOutBack), IamPolicy.Crossfade, dt)
-
-            local select_glow = iam.TweenFloat(ImHashStr('gallery_select_' .. idx), state.select_glow_ids[idx + 1],
-                is_selected and 1.0 or 0.0, 0.2, iam.EasePreset(IamEaseType.EaseOutQuad), IamPolicy.Crossfade, dt)
-
-            local actual_size = cell_size * hover_scale
-            local offset = (actual_size - cell_size) * 0.5
-
-            -- Selection glow
-            if select_glow > 0.01 then
-                dl:AddRectFilled(
-                    ImVec2(x - offset - 3 * scale, y - offset - 3 * scale),
-                    ImVec2(x - offset + actual_size + 3 * scale, y - offset + actual_size + 3 * scale),
-                    IM_COL32(255, 255, 255, math.floor(select_glow * 150)), 10 * scale)
-            end
-
-            -- Image placeholder (colored rectangle)
-            dl:AddRectFilled(
-                ImVec2(x - offset, y - offset),
-                ImVec2(x - offset + actual_size, y - offset + actual_size),
-                state.colors[idx + 1], 8 * scale)
-
-            -- Checkmark for selected
-            if select_glow > 0.5 then
-                local check_center = ImVec2(x - offset + actual_size - 15 * scale, y - offset + 15 * scale)
-                dl:AddCircleFilled(check_center, 10 * scale, IM_COL32(255, 255, 255, 255))
-                dl:AddText(ImVec2(check_center.x - 5 * scale, check_center.y - 7 * scale),
-                    IM_COL32(0, 150, 0, 255), '+')
-            end
-
-            -- Click to select
-            if is_hovered and imgui.IsMouseClicked(0) then
-                state.selected_image = is_selected and - 1 or idx
-            end
-        end
-    end
-
-    imgui.Dummy(ImVec2(cols * (cell_size + gap), rows * (cell_size + gap)))
-end
-
 
 local function RunCardsAndContentDemo()
     -- ========================================
