@@ -580,6 +580,11 @@ inline bool MaybeExactCompare(std::string_view haystack, std::string_view needle
 		needle = needle.substr(1);
 		exact = true;
 	}
+	else if (needle.size() >= 2 && needle.front() == '"' && needle.back() == '"')
+	{
+		needle = needle.substr(1, needle.size() - 2);
+		exact = true;
+	}
 
 	return ci_equals(haystack, needle, exact);
 }
