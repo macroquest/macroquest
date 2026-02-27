@@ -384,7 +384,6 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, int col, float rounding) { mThis.AddRectFilled(p1, p2, ImU32(col), rounding); },
 		&ImDrawList::AddRectFilled));
 	imDrawList.set_function("AddRectFilledMultiColor", &ImDrawList::AddRectFilledMultiColor);
-	imDrawList.set_function("AddRectFilledMultiColorRounded", &ImDrawList::AddRectFilledMultiColorRounded);
 	imDrawList.set_function("AddQuad", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int col) { mThis.AddQuad(p1, p2, p3, p4, ImU32(col)); },
 		&ImDrawList::AddQuad));
