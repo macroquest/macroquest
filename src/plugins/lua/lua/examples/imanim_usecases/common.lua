@@ -2,6 +2,7 @@ local imgui = require('ImGui')
 
 local common = {
     open_all = 0,
+    IM_COL32_WHITE = IM_COL32(255, 255, 255, 255)
 }
 
 function common.ApplyOpenAll()
