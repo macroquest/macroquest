@@ -59,12 +59,11 @@ local function RenderWin()
 		ImGui.Dummy(0, 10)
 
 		local dl = ImGui.GetWindowDrawList()
-		local startPos = ImGui.GetCursorScreenPosVec()
 		if ImGui.CollapsingHeader("Rects") then
 			ImGui.Text("For smoother color shift use ImAnim blending. \nThis is demo does not include that.")
 			local top_left = ImGui.GetCursorScreenPosVec()
 			local bottom_right = ImVec2(top_left.x + rectSize.width, top_left.y + rectSize.height)
-			startPos = top_left
+			local startPos = ImGui.GetCursorPosVec()
 			dl:AddRectFilledMultiColorRounded(
 				top_left,                  -- top left corner
 				bottom_right,              -- bottom right corner
@@ -104,9 +103,9 @@ local function RenderWin()
 				drawFlags[selectedFlag]
 			)
 
-			ImGui.SetCursorPos(startPos.x + rectSize.height + 2, startPos.y)
+			ImGui.SetCursorPos(startPos.x, startPos.y + rectSize.height + 2)
+			ImGui.Dummy(0, 0)
 		end
-		ImGui.Dummy(0, 20)
 	end
 	ImGui.End()
 end
