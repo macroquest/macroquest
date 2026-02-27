@@ -25,8 +25,21 @@
 
 #include "imgui/imgui.h"
 
-namespace mq::imgui
-{
-	// MQ extension: rounded + multicolor version of AddRectFilledMultiColor
-	IMGUI_API void AddRectFilledMultiColorRounded( ImDrawList& draw_list, const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding = 0.0f, ImDrawFlags flags = 0);
-}
+namespace mq {
+namespace imgui {
+
+// MQ extension: rounded + multicolor version of AddRectFilledMultiColor
+
+// AddRectFilledMultiColorRounded
+// ------------------------------
+// Draw a rounded rect filled with a 4-corner (bilinear) gradient.
+//
+// - We call PathRect() to generate the rounded outline points into draw_list._Path.
+// - We fill the interior using a triangle fan over the "inner" vertices.
+// - We generate an anti-aliased fringe ring around the shape (like ImDrawList::AddConvexPolyFilled),
+//   computing per-vertex normals from the outline.
+// - Each vertex color is computed by bilinear interpolation of the four corner colors based on its (u,v)
+//   position within the rectangle.
+IMGUI_API void AddRectFilledMultiColorRounded(ImDrawList& draw_list, const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding = 0.0f, ImDrawFlags flags = 0);
+
+}} // namespace mq::imgui
