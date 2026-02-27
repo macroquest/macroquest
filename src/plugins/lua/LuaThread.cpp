@@ -467,7 +467,7 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 		if (!ownerPlugin)
 			return 0;
 
-		using CreateLuaModule = sol::object (*)(sol::this_state);
+		using CreateLuaModule = bool (*)(sol::this_state, sol::object&);
 		auto module_proc = reinterpret_cast<CreateLuaModule>(
 			GetPluginProc(ownerPlugin->szFilename, "CreateLuaModule"));
 		if (!module_proc)
@@ -484,7 +484,7 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 				return sol::make_object(L, sol::nil);
 			}
 
-			using CreateLuaModule = sol::object (*)(sol::this_state);
+			using CreateLuaModule = bool (*)(sol::this_state, sol::object&);
 			auto proc = reinterpret_cast<CreateLuaModule>(
 				GetPluginProc(plugin->szFilename, "CreateLuaModule"));
 			if (!proc)
@@ -498,7 +498,14 @@ int LuaThread::PackageLoader(const std::string& pkg, lua_State* L)
 
 			try
 			{
-				return proc(L);
+				sol::object out_module = sol::make_object(L, sol::nil);
+				if (!proc(L, out_module))
+				{
+					luaL_error(L, "Module '%s' factory returned failure", module_name.c_str());
+					return sol::make_object(L, sol::nil);
+				}
+
+				return out_module;
 			}
 			catch (const std::exception& e)
 			{
