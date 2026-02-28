@@ -98,14 +98,15 @@ static LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
 // The original unhandled exception filter. We need to hold this so we can put it back if we unload.
 static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 
-// Annotations that should be added to crash reports
-static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
-static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
-static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
-static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
+// Annotations that should be added to crash reports.
+// normal minidump: buildTypeAnnotation("buildType"); Sentry.io: buildTypeAnnotation("sentry[tags][buildType]");
+static crashpad::StringAnnotation<32> buildTypeAnnotation("sentry[tags][buildType]");
+static crashpad::StringAnnotation<32> buildTimestampAnnotation("sentry[tags][eqVersion]");
+static crashpad::StringAnnotation<32> buildVersionAnnotation("sentry[tags][mqVersion]");
+static crashpad::StringAnnotation<36> buildCrashIdAnnotation("sentry[tags][crashId]");
 
-static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("mq.command");
-static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("mq.macro_data");
+static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("sentry[tags][mq.command]");
+static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("sentry[tags][mq.macro_data]");
 
 static std::string s_sessionUuid;
 
@@ -556,7 +557,7 @@ void CrashHandler_SetLastMacroData(const char* macroData)
 
 //----------------------------------------------------------------------------
 
-static crashpad::StringAnnotation<32> s_synthesizedAnnotation("synthesized");
+static crashpad::StringAnnotation<32> s_synthesizedAnnotation("sentry[tags][synthesized]");
 
 void DoCrash(PlayerClient*, const char* szLine)
 {
