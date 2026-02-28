@@ -23,7 +23,6 @@
 
 #include "pch.h"
 #include "ImGuiDrawListExtensions.h"
-#include "imanim/im_anim.h"
 #include "imgui/imgui_internal.h"
 
 // Helpers from imgui_draw.cpp
@@ -59,8 +58,6 @@ static inline void FixNormal2f(float& x, float& y)
 		y *= inv_len2;
 	}
 }
-
-
 
 namespace mq {
 namespace imgui {
@@ -205,49 +202,6 @@ void AddRectFilledMultiColorRounded(ImDrawList& draw_list, const ImVec2& p_min, 
 
 	draw_list._VtxCurrentIdx += (ImDrawIdx)vtx_count;
 	draw_list.PathClear();
-}
-
-//============================================================================
-
-// AddRectFilledMultiColorRoundedAnimated
-// -------------------------------------
-// Uses MQ's ImAnim to tween each corner color (UL/UR/BR/BL) and then draws using
-// AddRectFilledMultiColorRounded. This keeps the base draw call deterministic
-// and makes animation opt-in.
-void AddRectFilledMultiColorRoundedAnimated(ImDrawList& draw_list, ImGuiID anim_id, const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding, ImDrawFlags flags, float duration)
-{
-	// If no smoothing requested, draw directly.
-	if (duration <= 0.0f)
-	{
-		AddRectFilledMultiColorRounded(draw_list, p_min, p_max, col_upr_left, col_upr_right, col_bot_right, col_bot_left, rounding, flags);
-		return;
-	}
-
-	const float dt = ImGui::GetIO().DeltaTime;
-
-	// Pick sensible defaults (can be expanded later if needed).
-	const iam_ease_desc ease{ iam_ease_in_out_cubic, 0, 0, 0, 0 };
-	const int policy = iam_policy_crossfade;
-	const int color_space = iam_col_srgb;
-
-	const ImVec4 tgt_ul = ImGui::ColorConvertU32ToFloat4(col_upr_left);
-	const ImVec4 tgt_ur = ImGui::ColorConvertU32ToFloat4(col_upr_right);
-	const ImVec4 tgt_br = ImGui::ColorConvertU32ToFloat4(col_bot_right);
-	const ImVec4 tgt_bl = ImGui::ColorConvertU32ToFloat4(col_bot_left);
-
-	// Stable per-corner channels (hashed once per call; fine for this scope)
-	const ImGuiID ch_ul = ImHashStr("mq.imgui.rect_multicolor_rounded.ul");
-	const ImGuiID ch_ur = ImHashStr("mq.imgui.rect_multicolor_rounded.ur");
-	const ImGuiID ch_br = ImHashStr("mq.imgui.rect_multicolor_rounded.br");
-	const ImGuiID ch_bl = ImHashStr("mq.imgui.rect_multicolor_rounded.bl");
-
-	// Use target as init value so the first frame doesn't animate from default white.
-	const ImVec4 cur_ul = iam_tween_color(anim_id, ch_ul, tgt_ul, duration, ease, policy, color_space, dt, tgt_ul);
-	const ImVec4 cur_ur = iam_tween_color(anim_id, ch_ur, tgt_ur, duration, ease, policy, color_space, dt, tgt_ur);
-	const ImVec4 cur_br = iam_tween_color(anim_id, ch_br, tgt_br, duration, ease, policy, color_space, dt, tgt_br);
-	const ImVec4 cur_bl = iam_tween_color(anim_id, ch_bl, tgt_bl, duration, ease, policy, color_space, dt, tgt_bl);
-
-	AddRectFilledMultiColorRounded(draw_list, p_min, p_max, ImGui::ColorConvertFloat4ToU32(cur_ul), ImGui::ColorConvertFloat4ToU32(cur_ur), ImGui::ColorConvertFloat4ToU32(cur_br), ImGui::ColorConvertFloat4ToU32(cur_bl), rounding, flags);
 }
 
 }} // namespace mq::imgui

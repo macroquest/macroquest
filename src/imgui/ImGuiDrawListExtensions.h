@@ -24,7 +24,6 @@
 #pragma once
 
 #include "imgui/imgui.h"
-#include "imanim/im_anim.h"
 
 namespace mq {
 namespace imgui {
@@ -42,9 +41,5 @@ namespace imgui {
 // - Each vertex color is computed by bilinear interpolation of the four corner colors based on its (u,v)
 //   position within the rectangle.
 IMGUI_API void AddRectFilledMultiColorRounded(ImDrawList& draw_list, const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding = 0.0f, ImDrawFlags flags = 0);
-
-// Animated variant using MQ ImAnim (smoothly tweens the 4 corner colors over time).
-// anim_id should be stable across frames (e.g. ImGui::GetID("some key")).
-IMGUI_API void AddRectFilledMultiColorRoundedAnimated(ImDrawList& draw_list, ImGuiID anim_id, const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding = 0.0f, ImDrawFlags flags = 0, float duration = 0.10f);
 
 }} // namespace mq::imgui
