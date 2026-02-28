@@ -44,11 +44,13 @@ local function RenderWin()
             ImGui.EndCombo()
         end
 
-        roundingSize = ImGui.SliderFloat("Rounding Size", roundingSize, 0, rectSize.width / 2)
-        if roundingSize > rectSize.width / 2 then roundingSize = rectSize.width / 2 end
-
         rectSize.width = ImGui.SliderFloat("Rect Width", rectSize.width, 4, 400)
         rectSize.height = ImGui.SliderFloat("Rect Height", rectSize.height, 4, 400)
+
+        -- The rounding size should not be larger than half of the smaller dimension of the rectangle, otherwise it will look strange. So we calculate the larger dimension and use that to limit the rounding size.
+        local tmpLarger = rectSize.width > rectSize.height and rectSize.width or rectSize.height
+        if roundingSize > tmpLarger / 2 then roundingSize = tmpLarger / 2 end
+        roundingSize = ImGui.SliderFloat("Rounding Size", roundingSize, 0, tmpLarger / 2)
 
         c_blue = ImGui.ColorEdit4("Color1", c_blue, ImGuiColorEditFlags.NoInputs)
         ImGui.SameLine()
@@ -123,9 +125,9 @@ local function RenderWin()
             local startPos = ImGui.GetCursorPosVec()
 
             dl:AddRectFilledMultiColorRoundedAnimated(
-                1,                                     -- "ID_Value", -- integer ID for animation tracking
+                1,                                     -- integer ID for animation tracking
                 top_left,                              -- top left corner
-                bottom_right,                          -- bottom right corner/lrun
+                bottom_right,                          -- bottom right corner
                 ImGui.ColorConvertFloat4ToU32(c_blue), -- UL color
                 ImGui.ColorConvertFloat4ToU32(c_red),  -- UR color
                 ImGui.ColorConvertFloat4ToU32(c_red),  -- BR color
