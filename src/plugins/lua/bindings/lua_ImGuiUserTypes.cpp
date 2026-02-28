@@ -19,6 +19,7 @@
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/ImGuiDrawListExtensions.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "sol/sol.hpp"
 
@@ -384,6 +385,13 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, int col, float rounding) { mThis.AddRectFilled(p1, p2, ImU32(col), rounding); },
 		&ImDrawList::AddRectFilled));
 	imDrawList.set_function("AddRectFilledMultiColor", &ImDrawList::AddRectFilledMultiColor);
+	imDrawList.set_function("AddRectFilledMultiColorRounded", sol::overload(
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_ul, int col_ur, int col_br, int col_bl)
+			{ mq::imgui::AddRectFilledMultiColorRounded(mThis, p_min, p_max, ImU32(col_ul), ImU32(col_ur), ImU32(col_br), ImU32(col_bl), 0.0f, 0); },
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_ul, int col_ur, int col_br, int col_bl, float rounding)
+			{ mq::imgui::AddRectFilledMultiColorRounded( mThis, p_min, p_max, ImU32(col_ul), ImU32(col_ur), ImU32(col_br), ImU32(col_bl), rounding, 0); },
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max,	int col_ul, int col_ur, int col_br, int col_bl,	float rounding, int flags)
+			{ mq::imgui::AddRectFilledMultiColorRounded( mThis, p_min, p_max, ImU32(col_ul), ImU32(col_ur), ImU32(col_br), ImU32(col_bl),	rounding, ImDrawFlags(flags)); } ));
 	imDrawList.set_function("AddQuad", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int col) { mThis.AddQuad(p1, p2, p3, p4, ImU32(col)); },
 		&ImDrawList::AddQuad));

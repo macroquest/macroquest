@@ -126,6 +126,9 @@
     <ClInclude Include="imanim\im_anim_internal.h">
       <Filter>Header Files\imanim</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiDrawListExtensions.h">
+      <Filter>Header Files\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -193,6 +196,9 @@
     </ClCompile>
     <ClCompile Include="imanim\im_anim_demo.cpp">
       <Filter>Source Files\imanim</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiDrawListExtensions.cpp">
+      <Filter>Source Files\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
