@@ -8,12 +8,6 @@
 // Enables crashpad submissions
 #define CRASHPAD_SUBMISSIONS_ENABLED true
 
-// Product/application name sent as a crash annotation.
-#define CRASHPAD_SUBMISSION_PRODUCT "MacroQuest"
-
-// Optional backend-specific database annotation.
-// #define CRASHPAD_SUBMISSION_DATABASE ""
-
 // Optional environment annotation.
 // #define CRASHPAD_SUBMISSION_ENVIRONMENT "production"
 

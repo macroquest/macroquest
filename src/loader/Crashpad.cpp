@@ -50,14 +50,11 @@
 #if !defined(CRASHPAD_SUBMISSIONS_RATELIMITED)
 #define CRASHPAD_SUBMISSIONS_RATELIMITED true
 #endif
-#if !defined(CRASHPAD_SUBMISSION_DATABASE)
-#define CRASHPAD_SUBMISSION_DATABASE ""
-#endif
 #if !defined(CRASHPAD_SUBMISSION_PRODUCT)
-#define CRASHPAD_SUBMISSION_PRODUCT ""
+#define CRASHPAD_SUBMISSION_PRODUCT "MQ Loader"
 #endif
 #if !defined(CRASHPAD_SUBMISSION_ENVIRONMENT)
-#define CRASHPAD_SUBMISSION_ENVIRONMENT ""
+#define CRASHPAD_SUBMISSION_ENVIRONMENT "unknown"
 #endif
 
 using namespace crashpad;
@@ -95,11 +92,6 @@ bool InitializeCrashpad()
 
 	std::map<std::string, std::string> annotations;
 	annotations["format"] = "minidump";
-	const std::string database = CRASHPAD_SUBMISSION_DATABASE;
-	if (!database.empty())
-	{
-		annotations["database"] = database;
-	}
 	const std::string product = CRASHPAD_SUBMISSION_PRODUCT;
 	if (!product.empty())
 	{
