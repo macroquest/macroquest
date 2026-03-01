@@ -1,4 +1,4 @@
-﻿# Generated from Actors.vcxproj
+# Generated from Actors.vcxproj
 # This file is designed to work with add_subdirectory()
 
 # ---------------------------------------------------------------------
@@ -51,7 +51,7 @@ target_compile_definitions(Actors PRIVATE
 # Include directories
 # ---------------------------------------------------------------------
 target_include_directories(Actors PRIVATE
-    "${VCPKG_IncludeStatic}/crashpad-backtrace"
+    "${VCPKG_IncludeStatic}/crashpad"
     "${CMAKE_SOURCE_DIR}/src"
     "${CMAKE_SOURCE_DIR}/include"
 )

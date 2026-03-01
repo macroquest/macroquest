@@ -1,6 +1,6 @@
 //
 // To enable automatic submissions, remove the .example extension from
-// this header and set the submissions url to your crashpad submission endpoint.
+// this header and set the submission values for your crash backend.
 //
 
 #pragma once
@@ -8,7 +8,11 @@
 // Enables crashpad submissions
 #define CRASHPAD_SUBMISSIONS_ENABLED true
 
-// The submission URL used for submitting crash reports
+// Optional environment annotation.
+// #define CRASHPAD_SUBMISSION_ENVIRONMENT "production"
+
+// Crashpad submission endpoint URL.
+// Example: https://crash-reports.example.com/minidump
 #define CRASHPAD_SUBMISSIONS_URL ""
 
 // Enables the rate limit for crash submissions (1/hour)
