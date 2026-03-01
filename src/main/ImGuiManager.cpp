@@ -1276,7 +1276,7 @@ void ImGuiManager_CreateContext()
 	}
 	else
 	{
-		result = fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+		result = fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay/Default_Overlay.ini", mq::internal_paths::Config);
 	}
 	*result = '\0';
 
@@ -1290,11 +1290,11 @@ void ImGuiManager_CreateContext()
 
 	if (pLocalPC && pLocalPC->Name[0] != 0 && s_enablePerCharacterOverlayIni)
 	{
-		result = fmt::format_to(ImGuiLogFile, "{}//MacroQuest_Overlay/{}_{}_Overlay.log", mq::internal_paths::Logs, GetServerShortName(), pLocalPC->Name);
+		result = fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay/{}_{}_Overlay.log", mq::internal_paths::Logs, GetServerShortName(), pLocalPC->Name);
 	}
 	else
 	{
-		result = fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
+		result = fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay/Default_Overlay.log", mq::internal_paths::Logs);
 	}
 	*result = '\0';
 	io.LogFilename = &ImGuiLogFile[0];
@@ -1632,36 +1632,43 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	}
 	else if (ci_equals(szArg, "copy"))
 	{
-		char szParamServer[MAX_STRING] = { 0 };
-		char szParamCharacter[MAX_STRING] = { 0 };
-		GetArg(szParamCharacter, szLine, 2);
-		GetArg(szParamServer, szLine, 3);
-
-		if (!s_enablePerCharacterOverlayIni || szParamCharacter[0] == 0)
+		if (!pLocalPC || pLocalPC->Name[0] == 0)
 		{
 			showUsage = true;
 		}
 		else
 		{
-			if (szParamServer[0] == 0)
+			char szParamServer[MAX_STRING] = { 0 };
+			char szParamCharacter[MAX_STRING] = { 0 };
+
+			GetArg(szParamCharacter, szLine, 3);
+			if (szParamCharacter[0] == 0)
 			{
+				// Default server to current if not specified
+				GetArg(szParamCharacter, szLine, 2);
 				strcpy_s(szParamServer, GetServerShortName());
-			}
-
-			char sourceConfig[MAX_PATH] = { 0 };
-			char destinationConfig[MAX_PATH] = { 0 };
-			fmt::format_to(sourceConfig, "{}\\MacroQuest_Overlay\\{}_{}_Overlay.ini", mq::internal_paths::Config, szParamServer, szParamCharacter);
-			fmt::format_to(destinationConfig, "{}\\MacroQuest_Overlay\\{}_{}_Overlay.ini", mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
-
-			if (std::filesystem::exists(sourceConfig))
-			{
-				WriteChatf("Copying MacroQuest Overlay INI \ay%s\ax to \ay%s\ax", sourceConfig, destinationConfig);
-				std::filesystem::copy_file(sourceConfig, destinationConfig, std::filesystem::copy_options::overwrite_existing);
-				ImGui::LoadIniSettingsFromDisk(destinationConfig);
 			}
 			else
 			{
-				WriteChatf("\arMacroQuest Overlay INI copy failed. \ay%s\ax does not exist.\ax", sourceConfig);
+				GetArg(szParamServer, szLine, 2);
+			}
+
+			if (!s_enablePerCharacterOverlayIni || szParamCharacter[0] == 0)
+			{
+				showUsage = true;
+			}
+			else
+			{
+				std::string sourceConfig = fmt::format("{}/MacroQuest_Overlay/{}_{}_Overlay.ini", mq::internal_paths::Config, szParamServer, szParamCharacter);
+				std::string destinationConfig = fmt::format("{}/MacroQuest_Overlay/{}_{}_Overlay.ini", mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
+				std::error_code ec;
+
+				WriteChatf("Copying MacroQuest Overlay INI \ay%s\ax to \ay%s\ax", sourceConfig.c_str(), destinationConfig.c_str());
+				std::filesystem::copy_file(sourceConfig, destinationConfig, std::filesystem::copy_options::overwrite_existing, ec);
+				if (!ec)
+				{
+					ImGui::LoadIniSettingsFromDisk(destinationConfig.c_str());
+				}
 			}
 		}
 	}
@@ -1681,7 +1688,7 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		WriteChatf("\ay  start\ax     - Turns on the overlay.");
 		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no param will toggle).");
 		WriteChatf("\ay  perchar\ax \ag[on|off]\ax - Turn per character overlay INI file on/off (no param will toggle).");
-		WriteChatf("\ay  copy\ax \ag<character>\ax \ag[server]\ax - Copy the overlay INI configuration of the specified character and server (defaults to current server).");
+		WriteChatf("\ay  copy\ax \ag[server]\ax \ag<character>\ax - Copy the overlay INI configuration of the specified server character to the currently logged in character (defaults to current server).");
 	}
 }
 
