@@ -896,12 +896,12 @@ public:
 			{
 				m_resetOnNextPulse = true;
 			}
-#endif
 
 			ImGui::SameLine(); mq::imgui::HelpMarker(
 				"This is meant as a debugging tool. Resetting the device should *not* crash, but "
 				"sometimes it does, and that is an indicator that there is a bug that needs to be fixed."
 			);
+#endif
 
 			ImGui::NewLine();
 		}

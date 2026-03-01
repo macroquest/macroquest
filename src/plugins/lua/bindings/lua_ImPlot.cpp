@@ -266,352 +266,354 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 
 #pragma region Enums
 	// Axis indices
-	state.new_enum("ImAxis",
-		"X1", ImAxis_X1,
-		"X2", ImAxis_X2,
-		"X3", ImAxis_X3,
-		"Y1", ImAxis_Y1,
-		"Y2", ImAxis_Y2,
-		"Y3", ImAxis_Y3,
+	state.new_enum("ImAxis", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "X1"                           , ImAxis_X1 },
+		{ "X2"                           , ImAxis_X2 },
+		{ "X3"                           , ImAxis_X3 },
+		{ "Y1"                           , ImAxis_Y1 },
+		{ "Y2"                           , ImAxis_Y2 },
+		{ "Y3"                           , ImAxis_Y3 },
 
-		"COUNT", ImAxis_COUNT
-	);
+		{ "COUNT"                        , ImAxis_COUNT },
+	});
 
 	// Options for plots (see BeginPlot).
-	state.new_enum("ImPlotFlags",
-		"None", ImPlotFlags_None,
-		"NoTitle", ImPlotFlags_NoTitle,
-		"NoLegend", ImPlotFlags_NoLegend,
-		"NoMouseText", ImPlotFlags_NoMouseText,
-		"NoInputs", ImPlotFlags_NoInputs,
-		"NoMenus", ImPlotFlags_NoMenus,
-		"NoBoxSelect", ImPlotFlags_NoBoxSelect,
-		"NoFrame", ImPlotFlags_NoFrame,
-		"Equal", ImPlotFlags_Equal,
-		"Crosshairs", ImPlotFlags_Crosshairs,
-		"CanvasOnly", ImPlotFlags_CanvasOnly
-	);
+	state.new_enum("ImPlotFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotFlags_None },
+		{ "NoTitle"                      , ImPlotFlags_NoTitle },
+		{ "NoLegend"                     , ImPlotFlags_NoLegend },
+		{ "NoMouseText"                  , ImPlotFlags_NoMouseText },
+		{ "NoInputs"                     , ImPlotFlags_NoInputs },
+		{ "NoMenus"                      , ImPlotFlags_NoMenus },
+		{ "NoBoxSelect"                  , ImPlotFlags_NoBoxSelect },
+		{ "NoFrame"                      , ImPlotFlags_NoFrame },
+		{ "Equal"                        , ImPlotFlags_Equal },
+		{ "Crosshairs"                   , ImPlotFlags_Crosshairs },
+		{ "CanvasOnly"                   , ImPlotFlags_CanvasOnly },
+	});
 
 	// Options for plot axes (see SetupAxis).
-	state.new_enum("ImPlotAxisFlags",
-		"None", ImPlotAxisFlags_None,
-		"NoLabel", ImPlotAxisFlags_NoLabel,
-		"NoGridLines", ImPlotAxisFlags_NoGridLines,
-		"NoTickMarks", ImPlotAxisFlags_NoTickMarks,
-		"NoTickLabels", ImPlotAxisFlags_NoTickLabels,
-		"NoInitialFit", ImPlotAxisFlags_NoInitialFit,
-		"NoMenus", ImPlotAxisFlags_NoMenus,
-		"NoSideSwitch", ImPlotAxisFlags_NoSideSwitch,
-		"NoHighlight", ImPlotAxisFlags_NoHighlight,
-		"Opposite", ImPlotAxisFlags_Opposite,
-		"Foreground", ImPlotAxisFlags_Foreground,
-		"Invert", ImPlotAxisFlags_Invert,
-		"AutoFit", ImPlotAxisFlags_AutoFit,
-		"RangeFit", ImPlotAxisFlags_RangeFit,
-		"PanStretch", ImPlotAxisFlags_PanStretch,
-		"LockMin", ImPlotAxisFlags_LockMin,
-		"LockMax", ImPlotAxisFlags_LockMax,
-		"Lock", ImPlotAxisFlags_Lock,
-		"NoDecorations", ImPlotAxisFlags_NoDecorations,
-		"AuxDefault", ImPlotAxisFlags_AuxDefault
-	);
+	state.new_enum("ImPlotAxisFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotAxisFlags_None },
+		{ "NoLabel"                      , ImPlotAxisFlags_NoLabel },
+		{ "NoGridLines"                  , ImPlotAxisFlags_NoGridLines },
+		{ "NoTickMarks"                  , ImPlotAxisFlags_NoTickMarks },
+		{ "NoTickLabels"                 , ImPlotAxisFlags_NoTickLabels },
+		{ "NoInitialFit"                 , ImPlotAxisFlags_NoInitialFit },
+		{ "NoMenus"                      , ImPlotAxisFlags_NoMenus },
+		{ "NoSideSwitch"                 , ImPlotAxisFlags_NoSideSwitch },
+		{ "NoHighlight"                  , ImPlotAxisFlags_NoHighlight },
+		{ "Opposite"                     , ImPlotAxisFlags_Opposite },
+		{ "Foreground"                   , ImPlotAxisFlags_Foreground },
+		{ "Invert"                       , ImPlotAxisFlags_Invert },
+		{ "AutoFit"                      , ImPlotAxisFlags_AutoFit },
+		{ "RangeFit"                     , ImPlotAxisFlags_RangeFit },
+		{ "PanStretch"                   , ImPlotAxisFlags_PanStretch },
+		{ "LockMin"                      , ImPlotAxisFlags_LockMin },
+		{ "LockMax"                      , ImPlotAxisFlags_LockMax },
+		{ "Lock"                         , ImPlotAxisFlags_Lock },
+		{ "NoDecorations"                , ImPlotAxisFlags_NoDecorations },
+		{ "AuxDefault"                   , ImPlotAxisFlags_AuxDefault },
+	});
 
 	// Options for subplots (see BeginSubplot)
-	state.new_enum("ImPlotSubplotFlags",
-		"None", ImPlotSubplotFlags_None,
-		"NoTitle", ImPlotSubplotFlags_NoTitle,
-		"NoLegend", ImPlotSubplotFlags_NoLegend,
-		"NoMenus", ImPlotSubplotFlags_NoMenus,
-		"NoResize", ImPlotSubplotFlags_NoResize,
-		"NoAlign", ImPlotSubplotFlags_NoAlign,
-		"ShareItems", ImPlotSubplotFlags_ShareItems,
-		"LinkRows", ImPlotSubplotFlags_LinkRows,
-		"LinkCols", ImPlotSubplotFlags_LinkCols,
-		"LinkAllX", ImPlotSubplotFlags_LinkAllX,
-		"LinkAllY", ImPlotSubplotFlags_LinkAllY,
-		"ColMajor", ImPlotSubplotFlags_ColMajor
-	);
+	state.new_enum("ImPlotSubplotFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotSubplotFlags_None },
+		{ "NoTitle"                      , ImPlotSubplotFlags_NoTitle },
+		{ "NoLegend"                     , ImPlotSubplotFlags_NoLegend },
+		{ "NoMenus"                      , ImPlotSubplotFlags_NoMenus },
+		{ "NoResize"                     , ImPlotSubplotFlags_NoResize },
+		{ "NoAlign"                      , ImPlotSubplotFlags_NoAlign },
+		{ "ShareItems"                   , ImPlotSubplotFlags_ShareItems },
+		{ "LinkRows"                     , ImPlotSubplotFlags_LinkRows },
+		{ "LinkCols"                     , ImPlotSubplotFlags_LinkCols },
+		{ "LinkAllX"                     , ImPlotSubplotFlags_LinkAllX },
+		{ "LinkAllY"                     , ImPlotSubplotFlags_LinkAllY },
+		{ "ColMajor"                     , ImPlotSubplotFlags_ColMajor },
+	});
 
 	// Options for legends (see SetupLegend)
-	state.new_enum("ImPlotLegendFlags",
-		"None", ImPlotLegendFlags_None,
-		"NoButtons", ImPlotLegendFlags_NoButtons,
-		"NoHighlightItem", ImPlotLegendFlags_NoHighlightItem,
-		"NoHighlightAxis", ImPlotLegendFlags_NoHighlightAxis,
-		"NoMenus", ImPlotLegendFlags_NoMenus,
-		"Outside", ImPlotLegendFlags_Outside,
-		"Horizontal", ImPlotLegendFlags_Horizontal,
-		"Sort", ImPlotLegendFlags_Sort
-	);
+	state.new_enum("ImPlotLegendFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotLegendFlags_None },
+		{ "NoButtons"                    , ImPlotLegendFlags_NoButtons },
+		{ "NoHighlightItem"              , ImPlotLegendFlags_NoHighlightItem },
+		{ "NoHighlightAxis"              , ImPlotLegendFlags_NoHighlightAxis },
+		{ "NoMenus"                      , ImPlotLegendFlags_NoMenus },
+		{ "Outside"                      , ImPlotLegendFlags_Outside },
+		{ "Horizontal"                   , ImPlotLegendFlags_Horizontal },
+		{ "Sort"                         , ImPlotLegendFlags_Sort },
+		{ "Reverse"                      , ImPlotLegendFlags_Reverse },
+	});
 
 	// Options for mouse hover text (see SetupMouseText)
-	state.new_enum("ImPlotMouseTextFlags",
-		"None", ImPlotMouseTextFlags_None,
-		"NoAuxAxes", ImPlotMouseTextFlags_NoAuxAxes,
-		"NoFormat", ImPlotMouseTextFlags_NoFormat,
-		"ShowAlways", ImPlotMouseTextFlags_ShowAlways
-	);
+	state.new_enum("ImPlotMouseTextFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotMouseTextFlags_None },
+		{ "NoAuxAxes"                    , ImPlotMouseTextFlags_NoAuxAxes },
+		{ "NoFormat"                     , ImPlotMouseTextFlags_NoFormat },
+		{ "ShowAlways"                   , ImPlotMouseTextFlags_ShowAlways },
+	});
 
 	// Options for DragPoint, DragLine, DragRect
-	state.new_enum("ImPlotDragToolFlags",
-		"None", ImPlotDragToolFlags_None,
-		"NoCursors", ImPlotDragToolFlags_NoCursors,
-		"NoFit", ImPlotDragToolFlags_NoFit,
-		"NoInputs", ImPlotDragToolFlags_NoInputs,
-		"Delayed", ImPlotDragToolFlags_Delayed
-	);
+	state.new_enum("ImPlotDragToolFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotDragToolFlags_None },
+		{ "NoCursors"                    , ImPlotDragToolFlags_NoCursors },
+		{ "NoFit"                        , ImPlotDragToolFlags_NoFit },
+		{ "NoInputs"                     , ImPlotDragToolFlags_NoInputs },
+		{ "Delayed"                      , ImPlotDragToolFlags_Delayed },
+	});
 
 	// Flags for ColormapScale
-	state.new_enum("ImPlotColormapScaleFlags",
-		"None", ImPlotColormapScaleFlags_None,
-		"NoLabel", ImPlotColormapScaleFlags_NoLabel,
-		"Opposite", ImPlotColormapScaleFlags_Opposite,
-		"Invert", ImPlotColormapScaleFlags_Invert
-	);
+	state.new_enum("ImPlotColormapScaleFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotColormapScaleFlags_None },
+		{ "NoLabel"                      , ImPlotColormapScaleFlags_NoLabel },
+		{ "Opposite"                     , ImPlotColormapScaleFlags_Opposite },
+		{ "Invert"                       , ImPlotColormapScaleFlags_Invert },
+	});
 
 	// Flags for ANY PlotX function
-	state.new_enum("ImPlotItemFlags",
-		"None", ImPlotItemFlags_None,
-		"NoLegend", ImPlotItemFlags_NoLegend,
-		"NoFit", ImPlotItemFlags_NoFit
-	);
+	state.new_enum("ImPlotItemFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotItemFlags_None },
+		{ "NoLegend"                     , ImPlotItemFlags_NoLegend },
+		{ "NoFit"                        , ImPlotItemFlags_NoFit },
+	});
 
 	// Flags for PlotLine
-	state.new_enum("ImPlotLineFlags",
-		"None", ImPlotLineFlags_None,
-		"Segments", ImPlotLineFlags_Segments,
-		"Loop", ImPlotLineFlags_Loop,
-		"SkipNaN", ImPlotLineFlags_SkipNaN,
-		"NoClip", ImPlotLineFlags_NoClip,
-		"Shaded", ImPlotLineFlags_Shaded
-	);
+	state.new_enum("ImPlotLineFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotLineFlags_None },
+		{ "Segments"                     , ImPlotLineFlags_Segments },
+		{ "Loop"                         , ImPlotLineFlags_Loop },
+		{ "SkipNaN"                      , ImPlotLineFlags_SkipNaN },
+		{ "NoClip"                       , ImPlotLineFlags_NoClip },
+		{ "Shaded"                       , ImPlotLineFlags_Shaded },
+	});
 
 	// Flags for PlotScatter
-	state.new_enum("ImPlotScatterFlags",
-		"None", ImPlotScatterFlags_None,
-		"NoClip", ImPlotScatterFlags_NoClip
-	);
+	state.new_enum("ImPlotScatterFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotScatterFlags_None },
+		{ "NoClip"                       , ImPlotScatterFlags_NoClip },
+	});
 
 	// Flags for PlotStairs
-	state.new_enum("ImPlotStairsFlags",
-		"None", ImPlotStairsFlags_None,
-		"PreStep", ImPlotStairsFlags_PreStep,
-		"Shaded", ImPlotStairsFlags_Shaded
-	);
+	state.new_enum("ImPlotStairsFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotStairsFlags_None },
+		{ "PreStep"                      , ImPlotStairsFlags_PreStep },
+		{ "Shaded"                       , ImPlotStairsFlags_Shaded },
+	});
 
 	// Flags for PlotShaded (placeholder)
-	state.new_enum("ImPlotShadedFlags",
-		"None", ImPlotShadedFlags_None
-	);
+	state.new_enum("ImPlotShadedFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotShadedFlags_None },
+	});
 
 	// Flags for PlotBars
-	state.new_enum("ImPlotBarsFlags",
-		"None", ImPlotBarsFlags_None,
-		"Horizontal", ImPlotBarsFlags_Horizontal
-	);
+	state.new_enum("ImPlotBarsFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotBarsFlags_None },
+		{ "Horizontal"                   , ImPlotBarsFlags_Horizontal },
+	});
 
 	// Flags for PlotBarGroups
-	state.new_enum("ImPlotBarGroupsFlags",
-		"None", ImPlotBarGroupsFlags_None,
-		"Horizontal", ImPlotBarGroupsFlags_Horizontal,
-		"Stacked", ImPlotBarGroupsFlags_Stacked
-	);
+	state.new_enum("ImPlotBarGroupsFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotBarGroupsFlags_None },
+		{ "Horizontal"                   , ImPlotBarGroupsFlags_Horizontal },
+		{ "Stacked"                      , ImPlotBarGroupsFlags_Stacked },
+	});
 
 	// Flags for PlotErrorBars
-	state.new_enum("ImPlotErrorBarsFlags",
-		"None", ImPlotErrorBarsFlags_None,
-		"Horizontal", ImPlotErrorBarsFlags_Horizontal
-	);
+	state.new_enum("ImPlotErrorBarsFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotErrorBarsFlags_None },
+		{ "Horizontal"                   , ImPlotErrorBarsFlags_Horizontal },
+	});
 
 	// Flags for PlotStems
-	state.new_enum("ImPlotStemsFlags",
-		"None", ImPlotStemsFlags_None,
-		"Horizontal", ImPlotStemsFlags_Horizontal
-	);
+	state.new_enum("ImPlotStemsFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotStemsFlags_None },
+		{ "Horizontal"                   , ImPlotStemsFlags_Horizontal },
+	});
 
 	// Flags for PlotInfLines
-	state.new_enum("ImPlotInfLinesFlags",
-		"None", ImPlotInfLinesFlags_None,
-		"Horizontal", ImPlotInfLinesFlags_Horizontal
-	);
+	state.new_enum("ImPlotInfLinesFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotInfLinesFlags_None },
+		{ "Horizontal"                   , ImPlotInfLinesFlags_Horizontal },
+	});
 
 	// Flags for PlotPieChart
-	state.new_enum("ImPlotPieChartFlags",
-		"None", ImPlotPieChartFlags_None,
-		"Normalize", ImPlotPieChartFlags_Normalize,
-		"IgnoreHidden", ImPlotPieChartFlags_IgnoreHidden
-	);
+	state.new_enum("ImPlotPieChartFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotPieChartFlags_None },
+		{ "Normalize"                    , ImPlotPieChartFlags_Normalize },
+		{ "IgnoreHidden"                 , ImPlotPieChartFlags_IgnoreHidden },
+		{ "Exploding"                    , ImPlotPieChartFlags_Exploding },
+	});
 
 	// Flags for PlotHeatmap
-	state.new_enum("ImPlotHeatmapFlags",
-		"None", ImPlotHeatmapFlags_None,
-		"ColMajor", ImPlotHeatmapFlags_ColMajor
-	);
+	state.new_enum("ImPlotHeatmapFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotHeatmapFlags_None },
+		{ "ColMajor"                     , ImPlotHeatmapFlags_ColMajor },
+	});
 
 	// Flags for PlotHistogram and PlotHistogram2D
-	state.new_enum("ImPlotHistogramFlags",
-		"None", ImPlotHistogramFlags_None,
-		"Horizontal", ImPlotHistogramFlags_Horizontal,
-		"Cumulative", ImPlotHistogramFlags_Cumulative,
-		"Density", ImPlotHistogramFlags_Density,
-		"NoOutliers", ImPlotHistogramFlags_NoOutliers,
-		"ColMajor", ImPlotHistogramFlags_ColMajor
-	);
+	state.new_enum("ImPlotHistogramFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotHistogramFlags_None },
+		{ "Horizontal"                   , ImPlotHistogramFlags_Horizontal },
+		{ "Cumulative"                   , ImPlotHistogramFlags_Cumulative },
+		{ "Density"                      , ImPlotHistogramFlags_Density },
+		{ "NoOutliers"                   , ImPlotHistogramFlags_NoOutliers },
+		{ "ColMajor"                     , ImPlotHistogramFlags_ColMajor },
+	});
 
 	// Flags for PlotDigital (placeholder)
-	state.new_enum("ImPlotDigitalFlags",
-		"None", ImPlotDigitalFlags_None
-	);
+	state.new_enum("ImPlotDigitalFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotDigitalFlags_None },
+	});
 
 	// Flags for PlotImage (placeholder)
-	state.new_enum("ImPlotImageFlags",
-		"None", ImPlotImageFlags_None
-	);
+	state.new_enum("ImPlotImageFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotImageFlags_None },
+	});
 
 	// Flags for PlotText
-	state.new_enum("ImPlotTextFlags",
-		"None", ImPlotTextFlags_None,
-		"Vertical", ImPlotTextFlags_Vertical
-	);
+	state.new_enum("ImPlotTextFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotTextFlags_None },
+		{ "Vertical"                     , ImPlotTextFlags_Vertical },
+	});
 
 	// Flags for PlotDummy (placeholder)
-	state.new_enum("ImPlotDummyFlags",
-		"None", ImPlotDummyFlags_None
-	);
+	state.new_enum("ImPlotDummyFlags", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotDummyFlags_None },
+	});
 
 	// Represents a condition for SetupAxisLimits etc. (same as ImGuiCond, but we only support a subset of those enums)
-	state.new_enum("ImPlotCond",
-		"None", ImPlotCond_None,
-		"Always", ImPlotCond_Always,
-		"Once", ImPlotCond_Once
-	);
+	state.new_enum("ImPlotCond", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotCond_None },
+		{ "Always"                       , ImPlotCond_Always },
+		{ "Once"                         , ImPlotCond_Once },
+	});
 
 	// Plot styling colors.
-	state.new_enum("ImPlotCol",
+	state.new_enum("ImPlotCol", std::initializer_list<std::pair<std::string_view, int>>{
 		// item styling colors
-		"Line", ImPlotCol_Line,
-		"Fill", ImPlotCol_Fill,
-		"MarkerOutline", ImPlotCol_MarkerOutline,
-		"MarkerFill", ImPlotCol_MarkerFill,
-		"ErrorBar", ImPlotCol_ErrorBar,
+		{ "Line"                         , ImPlotCol_Line },
+		{ "Fill"                         , ImPlotCol_Fill },
+		{ "MarkerOutline"                , ImPlotCol_MarkerOutline },
+		{ "MarkerFill"                   , ImPlotCol_MarkerFill },
+		{ "ErrorBar"                     , ImPlotCol_ErrorBar },
 		// plot styling colors
-		"FrameBg", ImPlotCol_FrameBg,
-		"PlotBg", ImPlotCol_PlotBg,
-		"PlotBorder", ImPlotCol_PlotBorder,
-		"LegendBg", ImPlotCol_LegendBg,
-		"LegendBorder", ImPlotCol_LegendBorder,
-		"LegendText", ImPlotCol_LegendText,
-		"TitleText", ImPlotCol_TitleText,
-		"InlayText", ImPlotCol_InlayText,
-		"AxisText", ImPlotCol_AxisText,
-		"AxisGrid", ImPlotCol_AxisGrid,
-		"AxisTick", ImPlotCol_AxisTick,
-		"AxisBg", ImPlotCol_AxisBg,
-		"AxisBgHovered", ImPlotCol_AxisBgHovered,
-		"AxisBgActive", ImPlotCol_AxisBgActive,
-		"Selection", ImPlotCol_Selection,
-		"Crosshairs", ImPlotCol_Crosshairs,
-		"COUNT", ImPlotCol_COUNT
-	);
+		{ "FrameBg"                      , ImPlotCol_FrameBg },
+		{ "PlotBg"                       , ImPlotCol_PlotBg },
+		{ "PlotBorder"                   , ImPlotCol_PlotBorder },
+		{ "LegendBg"                     , ImPlotCol_LegendBg },
+		{ "LegendBorder"                 , ImPlotCol_LegendBorder },
+		{ "LegendText"                   , ImPlotCol_LegendText },
+		{ "TitleText"                    , ImPlotCol_TitleText },
+		{ "InlayText"                    , ImPlotCol_InlayText },
+		{ "AxisText"                     , ImPlotCol_AxisText },
+		{ "AxisGrid"                     , ImPlotCol_AxisGrid },
+		{ "AxisTick"                     , ImPlotCol_AxisTick },
+		{ "AxisBg"                       , ImPlotCol_AxisBg },
+		{ "AxisBgHovered"                , ImPlotCol_AxisBgHovered },
+		{ "AxisBgActive"                 , ImPlotCol_AxisBgActive },
+		{ "Selection"                    , ImPlotCol_Selection },
+		{ "Crosshairs"                   , ImPlotCol_Crosshairs },
+		{ "COUNT"                        , ImPlotCol_COUNT },
+	});
 
 	// Plot styling variables.
-	state.new_enum("ImPlotStyleVar",
+	state.new_enum("ImPlotStyleVar", std::initializer_list<std::pair<std::string_view, int>>{
 		// item styling variables
-		"LineWeight", ImPlotStyleVar_LineWeight,
-		"Marker", ImPlotStyleVar_Marker,
-		"MarkerSize", ImPlotStyleVar_MarkerSize,
-		"MarkerWeight", ImPlotStyleVar_MarkerWeight,
-		"FillAlpha", ImPlotStyleVar_FillAlpha,
-		"ErrorBarSize", ImPlotStyleVar_ErrorBarSize,
-		"ErrorBarWeight", ImPlotStyleVar_ErrorBarWeight,
-		"DigitalBitHeight", ImPlotStyleVar_DigitalBitHeight,
-		"DigitalBitGap", ImPlotStyleVar_DigitalBitGap,
+		{ "LineWeight"                   , ImPlotStyleVar_LineWeight },
+		{ "Marker"                       , ImPlotStyleVar_Marker },
+		{ "MarkerSize"                   , ImPlotStyleVar_MarkerSize },
+		{ "MarkerWeight"                 , ImPlotStyleVar_MarkerWeight },
+		{ "FillAlpha"                    , ImPlotStyleVar_FillAlpha },
+		{ "ErrorBarSize"                 , ImPlotStyleVar_ErrorBarSize },
+		{ "ErrorBarWeight"               , ImPlotStyleVar_ErrorBarWeight },
+		{ "DigitalBitHeight"             , ImPlotStyleVar_DigitalBitHeight },
+		{ "DigitalBitGap"                , ImPlotStyleVar_DigitalBitGap },
 		// plot styling variables
-		"PlotBorderSize", ImPlotStyleVar_PlotBorderSize,
-		"MinorAlpha", ImPlotStyleVar_MinorAlpha,
-		"MajorTickLen", ImPlotStyleVar_MajorTickLen,
-		"MinorTickLen", ImPlotStyleVar_MinorTickLen,
-		"MajorTickSize", ImPlotStyleVar_MajorTickSize,
-		"MinorTickSize", ImPlotStyleVar_MinorTickSize,
-		"MajorGridSize", ImPlotStyleVar_MajorGridSize,
-		"MinorGridSize", ImPlotStyleVar_MinorGridSize,
-		"PlotPadding", ImPlotStyleVar_PlotPadding,
-		"LabelPadding", ImPlotStyleVar_LabelPadding,
-		"LegendPadding", ImPlotStyleVar_LegendPadding,
-		"LegendInnerPadding", ImPlotStyleVar_LegendInnerPadding,
-		"LegendSpacing", ImPlotStyleVar_LegendSpacing,
-		"MousePosPadding", ImPlotStyleVar_MousePosPadding,
-		"AnnotationPadding", ImPlotStyleVar_AnnotationPadding,
-		"FitPadding", ImPlotStyleVar_FitPadding,
-		"PlotDefaultSize", ImPlotStyleVar_PlotDefaultSize,
-		"PlotMinSize", ImPlotStyleVar_PlotMinSize,
-		"COUNT", ImPlotStyleVar_COUNT
-	);
+		{ "PlotBorderSize"               , ImPlotStyleVar_PlotBorderSize },
+		{ "MinorAlpha"                   , ImPlotStyleVar_MinorAlpha },
+		{ "MajorTickLen"                 , ImPlotStyleVar_MajorTickLen },
+		{ "MinorTickLen"                 , ImPlotStyleVar_MinorTickLen },
+		{ "MajorTickSize"                , ImPlotStyleVar_MajorTickSize },
+		{ "MinorTickSize"                , ImPlotStyleVar_MinorTickSize },
+		{ "MajorGridSize"                , ImPlotStyleVar_MajorGridSize },
+		{ "MinorGridSize"                , ImPlotStyleVar_MinorGridSize },
+		{ "PlotPadding"                  , ImPlotStyleVar_PlotPadding },
+		{ "LabelPadding"                 , ImPlotStyleVar_LabelPadding },
+		{ "LegendPadding"                , ImPlotStyleVar_LegendPadding },
+		{ "LegendInnerPadding"           , ImPlotStyleVar_LegendInnerPadding },
+		{ "LegendSpacing"                , ImPlotStyleVar_LegendSpacing },
+		{ "MousePosPadding"              , ImPlotStyleVar_MousePosPadding },
+		{ "AnnotationPadding"            , ImPlotStyleVar_AnnotationPadding },
+		{ "FitPadding"                   , ImPlotStyleVar_FitPadding },
+		{ "PlotDefaultSize"              , ImPlotStyleVar_PlotDefaultSize },
+		{ "PlotMinSize"                  , ImPlotStyleVar_PlotMinSize },
+		{ "COUNT"                        , ImPlotStyleVar_COUNT },
+	});
 
 	// Axis scale
-	state.new_enum("ImPlotScale",
-		"Linear", ImPlotScale_Linear,
-		"Time", ImPlotScale_Time,
-		"Log10", ImPlotScale_Log10,
-		"SymLog", ImPlotScale_SymLog
-	);
+	state.new_enum("ImPlotScale", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Linear"                       , ImPlotScale_Linear },
+		{ "Time"                         , ImPlotScale_Time },
+		{ "Log10"                        , ImPlotScale_Log10 },
+		{ "SymLog"                       , ImPlotScale_SymLog },
+	});
 
 	// Marker specifications.
-	state.new_enum("ImPlotMarker",
-		"None", ImPlotMarker_None,
-		"Circle", ImPlotMarker_Circle,
-		"Square", ImPlotMarker_Square,
-		"Diamond", ImPlotMarker_Diamond,
-		"Up", ImPlotMarker_Up,
-		"Down", ImPlotMarker_Down,
-		"Left", ImPlotMarker_Left,
-		"Right", ImPlotMarker_Right,
-		"Cross", ImPlotMarker_Cross,
-		"Plus", ImPlotMarker_Plus,
-		"Asterisk", ImPlotMarker_Asterisk,
-		"COUNT", ImPlotMarker_COUNT
-	);
+	state.new_enum("ImPlotMarker", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "None"                         , ImPlotMarker_None },
+		{ "Circle"                       , ImPlotMarker_Circle },
+		{ "Square"                       , ImPlotMarker_Square },
+		{ "Diamond"                      , ImPlotMarker_Diamond },
+		{ "Up"                           , ImPlotMarker_Up },
+		{ "Down"                         , ImPlotMarker_Down },
+		{ "Left"                         , ImPlotMarker_Left },
+		{ "Right"                        , ImPlotMarker_Right },
+		{ "Cross"                        , ImPlotMarker_Cross },
+		{ "Plus"                         , ImPlotMarker_Plus },
+		{ "Asterisk"                     , ImPlotMarker_Asterisk },
+		{ "COUNT"                        , ImPlotMarker_COUNT },
+	});
 
 	// Built-in colormaps
-	state.new_enum("ImPlotColormap",
-		"Deep", ImPlotColormap_Deep,
-		"Dark", ImPlotColormap_Dark,
-		"Pastel", ImPlotColormap_Pastel,
-		"Paired", ImPlotColormap_Paired,
-		"Viridis", ImPlotColormap_Viridis,
-		"Plasma", ImPlotColormap_Plasma,
-		"Hot", ImPlotColormap_Hot,
-		"Cool", ImPlotColormap_Cool,
-		"Pink", ImPlotColormap_Pink,
-		"Jet", ImPlotColormap_Jet,
-		"Twilight", ImPlotColormap_Twilight,
-		"RdBu", ImPlotColormap_RdBu,
-		"BrBG", ImPlotColormap_BrBG,
-		"PiYG", ImPlotColormap_PiYG,
-		"Spectral", ImPlotColormap_Spectral,
-		"Greys", ImPlotColormap_Greys
-	);
+	state.new_enum("ImPlotColormap", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Deep"                         , ImPlotColormap_Deep },
+		{ "Dark"                         , ImPlotColormap_Dark },
+		{ "Pastel"                       , ImPlotColormap_Pastel },
+		{ "Paired"                       , ImPlotColormap_Paired },
+		{ "Viridis"                      , ImPlotColormap_Viridis },
+		{ "Plasma"                       , ImPlotColormap_Plasma },
+		{ "Hot"                          , ImPlotColormap_Hot },
+		{ "Cool"                         , ImPlotColormap_Cool },
+		{ "Pink"                         , ImPlotColormap_Pink },
+		{ "Jet"                          , ImPlotColormap_Jet },
+		{ "Twilight"                     , ImPlotColormap_Twilight },
+		{ "RdBu"                         , ImPlotColormap_RdBu },
+		{ "BrBG"                         , ImPlotColormap_BrBG },
+		{ "PiYG"                         , ImPlotColormap_PiYG },
+		{ "Spectral"                     , ImPlotColormap_Spectral },
+		{ "Greys"                        , ImPlotColormap_Greys },
+	});
 
 	// Used to position items on a plot (e.g. legends, labels, etc.)
-	state.new_enum("ImPlotLocation",
-		"Center", ImPlotLocation_Center,
-		"North", ImPlotLocation_North,
-		"South", ImPlotLocation_South,
-		"West", ImPlotLocation_West,
-		"East", ImPlotLocation_East,
-		"NorthWest", ImPlotLocation_NorthWest,
-		"NorthEast", ImPlotLocation_NorthEast,
-		"SouthWest", ImPlotLocation_SouthWest,
-		"SouthEast", ImPlotLocation_SouthEast
-	);
+	state.new_enum("ImPlotLocation", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Center"                       , ImPlotLocation_Center },
+		{ "North"                        , ImPlotLocation_North },
+		{ "South"                        , ImPlotLocation_South },
+		{ "West"                         , ImPlotLocation_West },
+		{ "East"                         , ImPlotLocation_East },
+		{ "NorthWest"                    , ImPlotLocation_NorthWest },
+		{ "NorthEast"                    , ImPlotLocation_NorthEast },
+		{ "SouthWest"                    , ImPlotLocation_SouthWest },
+		{ "SouthEast"                    , ImPlotLocation_SouthEast },
+	});
 
 	// Enums for different automatic histogram binning methods (k = bin count or w = bin width)
-	state.new_enum("ImPlotBin",
-		"Sqrt", ImPlotBin_Sqrt,
-		"Sturges", ImPlotBin_Sturges,
-		"Rice", ImPlotBin_Rice,
-		"Scott", ImPlotBin_Scott
-	);
+	state.new_enum("ImPlotBin", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Sqrt"                         , ImPlotBin_Sqrt },
+		{ "Sturges"                      , ImPlotBin_Sturges },
+		{ "Rice"                         , ImPlotBin_Rice },
+		{ "Scott"                        , ImPlotBin_Scott },
+	});
 #pragma endregion
 
 #pragma region User Types
@@ -826,8 +828,8 @@ sol::table RegisterBindings_ImPlot(sol::this_state L)
 	ImPlot.set_function("PlotHistogram", &PlotHistogram);
 	ImPlot.set_function("PlotHistogram2D", &PlotHistogram2D);
 	ImPlot.set_function("PlotDigital", sol::overload(&PlotDigital, &PlotDigitalG));
-	ImPlot.set_function("PlotImage", [](const char* label_id, ImTextureID user_texture_id, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<int> flags) {
-		ImPlot::PlotImage(label_id, user_texture_id, bounds_min, bounds_max, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), flags.value_or(0));
+	ImPlot.set_function("PlotImage", [](const char* label_id, const ImTextureRef& tex_ref, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<int> flags) {
+		ImPlot::PlotImage(label_id, tex_ref, bounds_min, bounds_max, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), flags.value_or(0));
 	});
 	ImPlot.set_function("PlotText", [](const char* text, double x, double y, std::optional<ImVec2> pix_offset, std::optional<int> flags) { ImPlot::PlotText(text, x, y, pix_offset.value_or(ImVec2(0, 0)), flags.value_or(0)); });
 	ImPlot.set_function("PlotDummy", [](const char* label_id, std::optional<int> flags) { ImPlot::PlotDummy(label_id, flags.value_or(0)); });

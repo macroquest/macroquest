@@ -28,7 +28,7 @@ function Convert-MSBuildVariable {
             -replace '\$\(MSBuildProjectDirectory\)', '${CMAKE_CURRENT_SOURCE_DIR}' `
             -replace '\$\(MSBuildProjectName\)', '${PROJECT_NAME}' `
             -replace '\$\(ProjectName\)', '${PROJECT_NAME}' `
-            -replace '\$\(ProjectDir\)', '${CMAKE_CURRENT_LIST_DIR}' `
+            -replace '\$\(ProjectDir\)', '${CMAKE_CURRENT_LIST_DIR}/' `
             -replace '\$\(Configuration\)', '$<CONFIG>' `
             -replace '\$\(Platform\)', '${CMAKE_GENERATOR_PLATFORM}' `
             -replace '\$\(MQBuildDirectory\)', '${CMAKE_BINARY_DIR}/' `

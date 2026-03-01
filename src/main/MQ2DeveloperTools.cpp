@@ -20,6 +20,7 @@
 #include "imgui/implot/implot.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/imanim/im_anim.h"
 #include "mq/imgui/Widgets.h"
 
 #include "fmt/format.h"
@@ -180,6 +181,58 @@ public:
 	}
 };
 static ImPlotDemoWindow s_imPlotDemoWindow;
+
+#pragma endregion
+
+#pragma region ImAnim Demo Containers
+
+class ImAnimDemoWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimDemoWindow() : ImGuiWindowBase("ImAnimDemoWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimDemoWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimDemoWindow s_imAnimDemoWindow;
+
+class ImAnimDocWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimDocWindow() : ImGuiWindowBase("ImAnimDocWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimDocWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimDocWindow s_imAnimDocWindow;
+
+class ImAnimUsecaseWindow : public ImGuiWindowBase
+{
+public:
+	ImAnimUsecaseWindow() : ImGuiWindowBase("ImAnimUsecaseWindow") {}
+
+	virtual void Update() override
+	{
+		if (m_open)
+		{
+			::ImAnimUsecaseWindow(m_open.get_ptr());
+			m_open.Update();
+		}
+	}
+};
+static ImAnimUsecaseWindow s_imAnimUsecaseWindow;
 
 #pragma endregion
 
@@ -2200,28 +2253,45 @@ public:
 		ImGui::Text("Rounding Mode: %s", roundingMode);
 	}
 
-	void DrawFonts()
+	static CFontManager* GetFontManager(CResourceManagerInterface* resourceMgr)
 	{
-		if (!pGraphicsEngine) return;
-		auto resourceMgr = pGraphicsEngine->pResourceManager;
-		if (!resourceMgr) return;
-
+		EStatus status;
 		CCachedFont* pCachedFont;
-		CCachedFont* pSelectedFont = nullptr;
-		EStatus status = eStatusFailure;
 
 		// GetCachedFont may crash here if the font manager hasn't been created yet, but we're
 		// using this routine to get access to the font manager. If it throws an access violation,
 		// the application state is fine, we can just bail on this attempt.
 		__try {
 			status = resourceMgr->GetCachedFont(0, reinterpret_cast<CCachedFontInterface**>(&pCachedFont));
-		} __except (EXCEPTION_EXECUTE_HANDLER) {
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
 			status = eStatusFailure;
 		}
 
-		if (status != eStatusSuccess) return;
-		CFontManager* fontMgr = pCachedFont->pFontManager;
-		if (!fontMgr) return;
+		if (status != eStatusSuccess)
+			return nullptr;
+
+		if (!pCachedFont)
+			return nullptr;
+
+		return pCachedFont->pFontManager;
+	}
+
+	void DrawFonts()
+	{
+		if (!pGraphicsEngine)
+			return;
+
+		auto resourceMgr = pGraphicsEngine->pResourceManager;
+		if (!resourceMgr)
+			return;
+
+		CCachedFont* pSelectedFont = nullptr;
+		CCachedFont* pCachedFont;
+
+		CFontManager* fontMgr = GetFontManager(resourceMgr);
+		if (!fontMgr)
+			return;
 
 		ImVec2 availSize = ImGui::GetContentRegionAvail();
 		if (m_rightPaneSize == 0.0f)
@@ -3473,9 +3543,9 @@ public:
 			for (auto& p : access->playersToGroups)
 			{
 				ImGui::TableNextRow();
-				ImGui::TableNextColumn(); ImGui::Text("%s", p.second.c_str());
+				ImGui::TableNextColumn(); ImGui::Text("%s", p.key().c_str());
 				ImGui::TableNextColumn(); ImGui::Text("%s (%d)",
-					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.first)), p.first);
+					RealEstateAccessGroupToString(static_cast<RealEstateAccessGroups>(p.value())), p.value());
 			}
 
 			ImGui::TreePop();
@@ -3504,7 +3574,7 @@ public:
 		ImGui::TableNextColumn();
 		if (ImGui::TreeNode("realEstateItems"))
 		{
-			for (const auto& [item, id] : *items)
+			for (const auto& [id, item] : *items)
 			{
 				char label[256];
 				sprintf_s(label, "%s (%d)", item->GetItem()->GetName(), item->GetRealEstateItemId());
@@ -3761,11 +3831,11 @@ public:
 					ImGui::TableNextColumn();
 
 					char label[64];
-					sprintf_s(label, "%d##%p", p.second, (void*)&p);
+					sprintf_s(label, "%d##%p", p.key(), (void*)&p);
 
 					if (ImGui::TreeNode(label))
 					{
-						RealEstate* realEstate = p.first;
+						RealEstate* realEstate = p.value();
 
 						DrawRealEstateTableRow(realEstate);
 
@@ -3790,11 +3860,11 @@ public:
 					ImGui::TableNextColumn();
 
 					char label[64];
-					sprintf_s(label, "%s##%p", p.second.c_str(), (void*)&p);
+					sprintf_s(label, "%s##%p", p.key().c_str(), (void*)&p);
 
 					if (ImGui::TreeNode(label))
 					{
-						RealEstate* realEstate = p.first;
+						RealEstate* realEstate = p.value();
 
 						DrawRealEstateTableRow(realEstate);
 
@@ -3847,7 +3917,7 @@ public:
 
 			if (ImGui::TreeNode("accessLists"))
 			{
-				for (auto& [accessList, realEstateId] : pMgr->accessLists)
+				for (auto& [realEstateId, accessList] : pMgr->accessLists)
 				{
 					char label[64];
 					sprintf_s(label, "%d", realEstateId);
@@ -3875,7 +3945,7 @@ public:
 
 			if (ImGui::TreeNode("itemLists"))
 			{
-				for (auto& [itemsClient, realEstateId] : pMgr->itemLists)
+				for (auto& [realEstateId, itemsClient] : pMgr->itemLists)
 				{
 					char label[64];
 					sprintf_s(label, "%d", realEstateId);
@@ -3904,7 +3974,7 @@ public:
 			{
 				for (const auto& p : pMgr->definitions->definitions)
 				{
-					const RealEstateDefinition& def = p.first;
+					const RealEstateDefinition& def = p.value();
 
 					char label[64];
 					sprintf_s(label, "%d", def.id);
@@ -5253,7 +5323,7 @@ public:
 				char label[32];
 				sprintf_s(label, "%d", pSwitch->ID);
 
-				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap))
+				if (ImGui::Selectable(label, selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap))
 				{
 					if (ImGui::GetIO().KeyCtrl)
 						ShowSwitchViewer(pSwitch->ID, true);
@@ -5890,18 +5960,6 @@ static bool s_inspectorMenusDirty = false;
 
 void DeveloperTools_DrawMenu()
 {
-	if (ImGui::BeginMenu("Windows"))
-	{
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
-			s_demoWindow.Toggle();
-		if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
-			s_imPlotDemoWindow.Toggle();
-
-		ImGui::EndMenu();
-	}
-
 	if (s_inspectorMenusDirty)
 	{
 		std::sort(s_inspectorMenus.begin(), s_inspectorMenus.end(),
@@ -5914,12 +5972,43 @@ void DeveloperTools_DrawMenu()
 	bool isMenuOpen = false;
 	const std::string* lastMenu = nullptr;
 
+	auto endMenu = [&lastMenu, &isMenuOpen]()
+	{
+		if (lastMenu && isMenuOpen)
+		{
+			if (*lastMenu == "Tools")
+			{
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("ImGui Demo", nullptr, s_demoWindow.IsOpen()))
+					s_demoWindow.Toggle();
+				if (ImGui::MenuItem("ImPlot Demo", nullptr, s_imPlotDemoWindow.IsOpen()))
+					s_imPlotDemoWindow.Toggle();
+
+				if (ImGui::BeginMenu("ImAnim"))
+				{
+					if (ImGui::MenuItem("ImAnim Demo", nullptr, s_imAnimDemoWindow.IsOpen()))
+						s_imAnimDemoWindow.Toggle();
+
+					if (ImGui::MenuItem("ImAnim Documentation", nullptr, s_imAnimDocWindow.IsOpen()))
+						s_imAnimDocWindow.Toggle();
+
+					if (ImGui::MenuItem("ImAnim UI Usecases", nullptr, s_imAnimUsecaseWindow.IsOpen()))
+						s_imAnimUsecaseWindow.Toggle();
+
+					ImGui::EndMenu();
+				}
+			}
+
+			ImGui::EndMenu();
+		}
+	};
+
 	for (const auto& entry : s_inspectorMenus)
 	{
 		if (!lastMenu || *lastMenu != entry.menuName)
 		{
-			if (lastMenu && isMenuOpen)
-				ImGui::EndMenu();
+			endMenu();
 
 			isMenuOpen = ImGui::BeginMenu(entry.menuName.c_str());
 			lastMenu = &entry.menuName;
@@ -5940,10 +6029,7 @@ void DeveloperTools_DrawMenu()
 		}
 	}
 
-	if (lastMenu && isMenuOpen)
-	{
-		ImGui::EndMenu();
-	}
+	endMenu();
 }
 
 void DeveloperTools_RegisterMenuItem(ImGuiWindowBase* window, const char* itemName, const char* menuName)

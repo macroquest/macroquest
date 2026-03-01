@@ -69,15 +69,16 @@ class ServerPostOffice : public postoffice::PostOffice
 
 public:
 	ServerPostOffice(const std::string& name, const std::string& pipeName,
-		uint16_t peerPort = mq::DEFAULT_NETWORK_PEER_PORT);
+		const NetworkConfiguration& configuration);
 	virtual ~ServerPostOffice() override;
 
 	const std::string& GetName() const { return m_name; }
 
 	void AddNetworkHost(const std::string& address, uint16_t port) const;
 	void RemoveNetworkHost(const std::string& address, uint16_t port) const;
-	uint16_t GetPeerPort() const { return m_peerPort; }
 	const std::string& GetPipeName() const { return m_pipeName; }
+	uint16_t GetPeerPort() const { return m_peerPort; }
+	const NetworkConfiguration& GetNetworkConfiguration() const {  return m_configuration; }
 
 	bool IsRecipient(const proto::routing::Address& address, const ActorIdentification& id);
 
@@ -95,7 +96,7 @@ public:
 
 	// add this for testing
 	uint32_t GetIdentityCount() const { return static_cast<uint32_t>(m_identities.size()); }
-	std::vector<const ActorStats*> GetStats(); // uuid is internal, so just turn this into a vector to return it
+	std::vector<const ActorStats*> GetStats(bool showDropped = false); // uuid is internal, so just turn this into a vector to return it
 	void SetStatLookback(uint32_t seconds) { m_statsLookbackSeconds = seconds; }
 	uint32_t GetStatLookback() { return m_statsLookbackSeconds; }
 
@@ -140,16 +141,17 @@ private:
 
 protected:
 	uint16_t m_peerPort;
+	const NetworkConfiguration m_configuration;
 	std::string m_name;
 	std::string m_pipeName;
-	std::chrono::seconds m_heartBeatDuuration{ 2 };
+	std::chrono::seconds m_heartBeatDuration{ 2 };
 
 	IdentitiesMap m_identities;
 
 	const std::unique_ptr<LocalConnection> m_localConnection;
 	const std::unique_ptr<PeerConnection> m_peerConnection;
 
-	std::vector<NetworkAddress> m_reconnectingHosts;
+	std::unordered_set<NetworkAddress> m_persistentHosts;
 
 	std::vector<MessagePtr> m_outgoingMessages;
 	std::mutex m_outgoingMutex;
@@ -307,6 +309,7 @@ public:
 	virtual void Start() override;
 	virtual void Stop() override;
 
+	void EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const;
 	void AddHost(const std::string& address, uint16_t port) const;
 	void RemoveHost(const std::string& address, uint16_t port) const;
 	bool HasHost(const std::string& address, uint16_t port) const;

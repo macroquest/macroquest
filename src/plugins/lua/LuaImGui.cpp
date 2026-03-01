@@ -18,6 +18,8 @@
 
 #include "bindings/lua_Bindings.h"
 #include "imgui/implot/implot.h"
+#include "imgui/imanim/im_anim.h"
+#include "imgui/imgui_internal.h"
 #include <mq/Plugin.h>
 
 namespace mq::lua {
@@ -52,6 +54,38 @@ bool LuaImGuiProcessor::HasCallback(std::string_view name)
 	) != m_imguis.cend();
 }
 
+static float GetSafeDeltaTime()
+{
+	float dt = ImGui::GetIO().DeltaTime;
+	if (dt <= 0.0f) dt = 1.0f / 60.0f;
+	if (dt > 0.1f) dt = 0.1f;
+	return dt;
+}
+
+struct ScopedImAnimContext
+{
+	ScopedImAnimContext(std::unique_ptr<LuaImAnimState>& state)
+	{
+		if (state)
+		{
+			orig_context = iam_context_get_current();
+			iam_context_set_current(state->ctx);
+
+			iam_clip_update(GetSafeDeltaTime());
+		}
+	}
+
+	~ScopedImAnimContext()
+	{
+		if (orig_context)
+		{
+			iam_context_set_current(orig_context);
+		}
+	}
+
+	iam_context* orig_context = nullptr;
+};
+
 void LuaImGuiProcessor::Pulse()
 {
 	if (m_thread->IsPaused()) return;
@@ -59,6 +93,8 @@ void LuaImGuiProcessor::Pulse()
 	// Backup context and set our own
 	ImPlotContext* context = ImPlot::GetCurrentContext();
 	ImPlot::SetCurrentContext(m_imPlotContext.get());
+
+	ScopedImAnimContext scoped_iam_context(m_imAnimState);
 
 	// remove any existing hooks, they will be re-installed when running in onpulse
 	// this is to help prevent us from yielding from the thread while we're running imgui stuff.
@@ -72,6 +108,23 @@ void LuaImGuiProcessor::Pulse()
 
 	// Restore context
 	ImPlot::SetCurrentContext(context);
+}
+
+LuaImAnimState::LuaImAnimState()
+{
+	ctx = iam_context_create();
+	iam_context_set_user_data(ctx, this);
+}
+
+LuaImAnimState::~LuaImAnimState()
+{
+	iam_context_destroy(ctx);
+	ctx = nullptr;
+}
+
+void LuaImGuiProcessor::InitImAnimContext()
+{
+	m_imAnimState = std::make_unique<LuaImAnimState>();
 }
 
 //============================================================================
@@ -96,16 +149,25 @@ bool LuaImGui::Pulse() const
 	bool success = true;
 	try
 	{
-		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+		std::shared_ptr<LuaThread> luaThread = LuaThread::get_from(m_thread.state());
+		ScopedYieldDisabler disableYield(luaThread);
 
 		sol::function_result result = m_coroutine();
+
 		if (!result.valid())
 		{
-			LuaError("ImGui Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
-			result.abandon();
+			sol::table stackTraces = luaThread->GetState().registry()["mq2lua.tracebacks"];
+			sol::error err = result;
 
+			DebugStackTrace(result.lua_state(), err, stackTraces);
+			result.abandon();
 			success = false;
 		}
+	}
+	catch (const ImGuiException& e)
+	{
+		LuaError("ImGui Exception:\n%s", e.what());
+		success = false;
 	}
 	catch (const sol::error& e)
 	{
@@ -113,6 +175,11 @@ bool LuaImGui::Pulse() const
 		success = false;
 	}
 	catch (const std::runtime_error& e)
+	{
+		LuaError("ImGui Failure:\n%s", e.what());
+		success = false;
+	}
+	catch (const std::exception& e)
 	{
 		LuaError("ImGui Failure:\n%s", e.what());
 		success = false;

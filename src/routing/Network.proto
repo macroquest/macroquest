@@ -48,3 +48,8 @@ message NetworkMessage {
 		bytes routed = 10;
 	}
 }
+
+message Announce {
+    string address = 1;
+    uint32 port = 2;
+}

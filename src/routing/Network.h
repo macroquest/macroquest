@@ -21,6 +21,8 @@
 #include <functional>
 #include <memory>
 
+#include "Routing.h"
+
 namespace mq {
 
 // create an address type for use in keying and lookup
@@ -43,6 +45,16 @@ struct NetworkAddress
 
 using NetworkMessagePtr = std::unique_ptr<peernetwork::NetworkMessage>;
 
+// configuration options
+struct NetworkConfiguration
+{
+	uint16_t Port = DEFAULT_NETWORK_PEER_PORT; // port to bring peer up on
+	uint32_t MulticastPeriod = 1000; // milliseconds between multicast announces
+	uint16_t MulticastPort = 30000 + DEFAULT_NETWORK_PEER_PORT; // port the udp multicast sender sends to
+	std::string MulticastAddress = "239.255.77.81"; // multicast address to use (http://en.wikipedia.org/wiki/Multicast_address)
+	std::string MulticastListenAddress = "0.0.0.0"; // multicast address to listen on
+};
+
 // this serves as the signature for sending and receiving messages
 using PeerMessageHandler = std::function<void(const NetworkAddress&, NetworkMessagePtr)>;
 
@@ -57,7 +69,7 @@ class NetworkPeerAPI
 
 public:
 	static NetworkPeerAPI GetOrCreate(
-		uint16_t port,
+		const NetworkConfiguration& configuration,
 		PeerMessageHandler receive,
 		OnSessionConnectedHandler connected,
 		OnSessionDisconnectedHandler disconnected,
@@ -76,6 +88,7 @@ public:
 
 	void Shutdown() const;
 
+	void EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const;
 	void AddHost(const std::string& address, uint16_t port) const;
 	void RemoveHost(const std::string& address, uint16_t port) const;
 	bool HasHost(const std::string& address, uint16_t port) const;

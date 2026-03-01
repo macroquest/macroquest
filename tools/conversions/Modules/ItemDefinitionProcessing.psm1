@@ -25,6 +25,81 @@ $script:LinkerOptionNames = @(
     'FixedBaseAddress', 'BaseAddress'
 )
 
+# Helper to get text value from an XmlElement or string
+function Get-XmlTextValue {
+    param($Element)
+
+    if ($Element -is [System.Xml.XmlElement]) {
+        $Element.InnerText
+    } elseif ($Element -is [string]) {
+        $Element
+    } else {
+        "$Element"
+    }
+}
+
+# Helper to process XML elements that may be arrays with conditions
+function Process-ConditionalElements {
+    param(
+        [object]$Elements,
+        [array]$ParentCondition,
+        [hashtable]$TargetHash,
+        [string[]]$ExcludePatterns = @(),
+        [string]$Delimiter = ';',
+        [switch]$ForPropsFile,
+        [string]$PropsName,
+        [scriptblock]$ValueConverter = $null
+    )
+
+    # Normalize to array
+    $elemArray = @($Elements)
+
+    foreach ($elem in $elemArray) {
+        # Get text value and element-specific condition
+        if ($elem -is [System.Xml.XmlElement]) {
+            $textValue = $elem.InnerText
+            $elemCondition = @($ParentCondition)
+            if ($elem.Condition) {
+                $elemCondition += $elem.Condition
+            }
+        } else {
+            $textValue = "$elem"
+            $elemCondition = @($ParentCondition)
+        }
+
+        # Skip empty values
+        if ([string]::IsNullOrWhiteSpace($textValue)) { continue }
+
+        # Parse delimited values
+        $values = Get-DelimitedValues -Value $textValue -ExcludePatterns $ExcludePatterns -Delimiter $Delimiter
+
+        foreach ($val in $values) {
+            # Apply optional value converter
+            $finalValue = if ($ValueConverter) {
+                & $ValueConverter $val
+            } else {
+                Convert-MSBuildVariable -Value $val -ForPropsFile:$ForPropsFile -PropsName $PropsName
+            }
+
+            # Handle converters that return multiple values (space-separated)
+            $finalValues = if ($finalValue -match ' ' -and $Delimiter -ne ' ') {
+                $finalValue -split ' ' | Where-Object { $_ }
+            } else {
+                @($finalValue)
+            }
+
+            foreach ($fv in $finalValues) {
+                if (-not [string]::IsNullOrWhiteSpace($fv)) {
+                    if (-not $TargetHash.ContainsKey($fv)) {
+                        $TargetHash[$fv] = @()
+                    }
+                    $TargetHash[$fv] += $elemCondition
+                }
+            }
+        }
+    }
+}
+
 # Helper to collect options from ClCompile element
 function Collect-CompilerSettings {
     param(
@@ -39,50 +114,69 @@ function Collect-CompilerSettings {
 
     # Collect preprocessor definitions
     if ($CompileElement.PreprocessorDefinitions) {
-        $defs = Get-DelimitedValues -Value $CompileElement.PreprocessorDefinitions -ExcludePatterns @('%\(PreprocessorDefinitions\)')
-        foreach ($def in $defs) {
-            $converted = Convert-MSBuildVariable -Value $def -ForPropsFile:$ForPropsFile -PropsName $PropsName
-            if (-not $PreprocessorDefs.ContainsKey($converted)) {
-                $PreprocessorDefs[$converted] = @()
-            }
-            $PreprocessorDefs[$converted] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $CompileElement.PreprocessorDefinitions `
+            -ParentCondition $Condition `
+            -TargetHash $PreprocessorDefs `
+            -ExcludePatterns @('%\(PreprocessorDefinitions\)') `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 
     # Collect include directories
     if ($CompileElement.AdditionalIncludeDirectories) {
-        $includes = Get-DelimitedValues -Value $CompileElement.AdditionalIncludeDirectories -ExcludePatterns @('%\(AdditionalIncludeDirectories\)', '\$\(AdditionalIncludeDirectories\)')
-        foreach ($inc in $includes) {
-            $converted = Convert-MSBuildVariable -Value $inc -ForPropsFile:$ForPropsFile -PropsName $PropsName
-            if (-not $IncludeDirs.ContainsKey($converted)) {
-                $IncludeDirs[$converted] = @()
-            }
-            $IncludeDirs[$converted] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $CompileElement.AdditionalIncludeDirectories `
+            -ParentCondition $Condition `
+            -TargetHash $IncludeDirs `
+            -ExcludePatterns @('%\(AdditionalIncludeDirectories\)', '\$\(AdditionalIncludeDirectories\)') `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 
-    # Collect compiler options
+    # Collect compiler options from named option elements
     foreach ($optName in $script:CompilerOptionNames) {
-        if ($CompileElement.$optName) {
-            $value = Convert-CompilerOption -OptionName $optName -OptionValue $CompileElement.$optName
-            if ($value) {
-                if (-not $CompileOptions.ContainsKey($value)) {
-                    $CompileOptions[$value] = @()
+        $optElements = $CompileElement.$optName
+        if ($optElements) {
+            $elemArray = @($optElements)
+            foreach ($elem in $elemArray) {
+                # Get text value and element-specific condition
+                if ($elem -is [System.Xml.XmlElement]) {
+                    $optValue = $elem.InnerText
+                    $elemCondition = @($Condition)
+                    if ($elem.Condition) {
+                        $elemCondition += $elem.Condition
+                    }
+                } else {
+                    $optValue = "$elem"
+                    $elemCondition = @($Condition)
                 }
-                $CompileOptions[$value] += $Condition
+
+                $converted = Convert-CompilerOption -OptionName $optName -OptionValue $optValue
+                if ($converted) {
+                    # Handle options that return multiple values (space-separated like /wd4018 /wd4244)
+                    $convertedValues = $converted -split ' ' | Where-Object { $_ }
+                    foreach ($cv in $convertedValues) {
+                        if (-not $CompileOptions.ContainsKey($cv)) {
+                            $CompileOptions[$cv] = @()
+                        }
+                        $CompileOptions[$cv] += $elemCondition
+                    }
+                }
             }
         }
     }
 
     # Collect AdditionalOptions
     if ($CompileElement.AdditionalOptions) {
-        $additionalOpts = Get-DelimitedValues -Value $CompileElement.AdditionalOptions -ExcludePatterns @('%\(AdditionalOptions\)') -Delimiter ' '
-        foreach ($opt in $additionalOpts) {
-            if (-not $CompileOptions.ContainsKey($opt)) {
-                $CompileOptions[$opt] = @()
-            }
-            $CompileOptions[$opt] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $CompileElement.AdditionalOptions `
+            -ParentCondition $Condition `
+            -TargetHash $CompileOptions `
+            -ExcludePatterns @('%\(AdditionalOptions\)') `
+            -Delimiter ' ' `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 }
 
@@ -90,7 +184,7 @@ function Collect-CompilerSettings {
 function Collect-LinkerSettings {
     param(
         [System.Xml.XmlElement]$LinkElement,
-        [string]$Condition,
+        [array]$Condition,
         [hashtable]$LibDirs,
         [hashtable]$LinkLibraries,
         [hashtable]$LinkOptions,
@@ -100,50 +194,69 @@ function Collect-LinkerSettings {
 
     # Collect library directories
     if ($LinkElement.AdditionalLibraryDirectories) {
-        $libs = Get-DelimitedValues -Value $LinkElement.AdditionalLibraryDirectories -ExcludePatterns @('%\(AdditionalLibraryDirectories\)')
-        foreach ($lib in $libs) {
-            $converted = Convert-MSBuildVariable -Value $lib -ForPropsFile:$ForPropsFile -PropsName $PropsName
-            if (-not $LibDirs.ContainsKey($converted)) {
-                $LibDirs[$converted] = @()
-            }
-            $LibDirs[$converted] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $LinkElement.AdditionalLibraryDirectories `
+            -ParentCondition $Condition `
+            -TargetHash $LibDirs `
+            -ExcludePatterns @('%\(AdditionalLibraryDirectories\)') `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 
     # Collect additional dependencies
     if ($LinkElement.AdditionalDependencies) {
-        $deps = Get-DelimitedValues -Value $LinkElement.AdditionalDependencies -ExcludePatterns @('%\(AdditionalDependencies\)')
-        foreach ($dep in $deps) {
-            $converted = Convert-MSBuildVariable -Value $dep -ForPropsFile:$ForPropsFile -PropsName $PropsName
-            if (-not $LinkLibraries.ContainsKey($converted)) {
-                $LinkLibraries[$converted] = @()
-            }
-            $LinkLibraries[$converted] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $LinkElement.AdditionalDependencies `
+            -ParentCondition $Condition `
+            -TargetHash $LinkLibraries `
+            -ExcludePatterns @('%\(AdditionalDependencies\)') `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 
-    # Collect linker options
+    # Collect linker options from named option elements
     foreach ($optName in $script:LinkerOptionNames) {
-        if ($LinkElement.$optName) {
-            $value = Convert-LinkerOption -OptionName $optName -OptionValue $LinkElement.$optName
-            if ($value) {
-                if (-not $LinkOptions.ContainsKey($value)) {
-                    $LinkOptions[$value] = @()
+        $optElements = $LinkElement.$optName
+        if ($optElements) {
+            $elemArray = @($optElements)
+            foreach ($elem in $elemArray) {
+                # Get text value and element-specific condition
+                if ($elem -is [System.Xml.XmlElement]) {
+                    $optValue = $elem.InnerText
+                    $elemCondition = @($Condition)
+                    if ($elem.Condition) {
+                        $elemCondition += $elem.Condition
+                    }
+                } else {
+                    $optValue = "$elem"
+                    $elemCondition = @($Condition)
                 }
-                $LinkOptions[$value] += $Condition
+
+                $converted = Convert-LinkerOption -OptionName $optName -OptionValue $optValue
+                if ($converted) {
+                    # Handle options that return multiple values (space-separated)
+                    $convertedValues = $converted -split ' ' | Where-Object { $_ }
+                    foreach ($cv in $convertedValues) {
+                        if (-not $LinkOptions.ContainsKey($cv)) {
+                            $LinkOptions[$cv] = @()
+                        }
+                        $LinkOptions[$cv] += $elemCondition
+                    }
+                }
             }
         }
     }
 
     # Collect AdditionalOptions
     if ($LinkElement.AdditionalOptions) {
-        $additionalOpts = Get-DelimitedValues -Value $LinkElement.AdditionalOptions -ExcludePatterns @('%\(AdditionalOptions\)') -Delimiter ' '
-        foreach ($opt in $additionalOpts) {
-            if (-not $LinkOptions.ContainsKey($opt)) {
-                $LinkOptions[$opt] = @()
-            }
-            $LinkOptions[$opt] += $Condition
-        }
+        Process-ConditionalElements `
+            -Elements $LinkElement.AdditionalOptions `
+            -ParentCondition $Condition `
+            -TargetHash $LinkOptions `
+            -ExcludePatterns @('%\(AdditionalOptions\)') `
+            -Delimiter ' ' `
+            -ForPropsFile:$ForPropsFile `
+            -PropsName $PropsName
     }
 }
 

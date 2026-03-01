@@ -20,6 +20,7 @@
 #include "Logging.h"
 
 #include "mq/api/RenderDoc.h"
+#include "imgui/imgui_internal.h"
 
 #include <cfenv>
 
@@ -200,7 +201,7 @@ uint32_t ProcessKeyboardEvents_Detour()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-		if (io.WantCaptureKeyboard)
+		if (io.WantTextInput || (io.WantCaptureKeyboard && !io.WantCaptureMouse))
 		{
 			// FlushDxKeyboard will consume any keyboard data that is currently
 			// buffered by direct input so that the keyboard inputs don't get
@@ -506,7 +507,7 @@ void MQGraphicsEngine::ImGui_DrawFrame()
 
 	try
 	{
-		ImGui::NewFrame();
+		ImGuiManager_NewFrame();
 
 		ImGuiManager_DrawFrame();
 

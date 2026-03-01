@@ -29,7 +29,7 @@ using namespace std::chrono_literals;
 
 namespace mq {
 
-static bool gbShowSettingsWindow = false;
+bool gbShowSettingsWindow = false;
 imgui::ImGuiTreePanelWindow* gSettingsWindow = nullptr;
 std::map<const char*, fPanelDrawFunction> s_pendingPanels;
 
@@ -71,7 +71,6 @@ void RemoveSettingsPanel(const char* name)
 
 void ImGuiTools_DrawWindowsMenu()
 {
-	ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
 }
 
 //----------------------------------------------------------------------------

@@ -36,6 +36,9 @@
     <ClCompile Include="LuaImGui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LuaModuleRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,6 +81,9 @@
     <ClCompile Include="bindings\lua_EQBindings.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\lua_ImAnim.cpp">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
     <ClCompile Include="bindings\lua_ImPlot.cpp">
       <Filter>Source Files\bindings</Filter>
     </ClCompile>
@@ -96,6 +102,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LuaImGui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaModuleRegistry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">

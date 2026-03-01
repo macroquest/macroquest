@@ -49,8 +49,8 @@ static ImU32 GetStyleModulatedColor(ZepColor color)
 class ZepFont_ImGui : public Zep::ZepFont
 {
 public:
-	ZepFont_ImGui(ZepDisplay& display, ImFont* pFont)
-		: ZepFont(display, static_cast<int>(pFont->FontSize))
+	ZepFont_ImGui(ZepDisplay& display, ImFont* pFont, int fontSize)
+		: ZepFont(display, fontSize)
 		, m_pFont(pFont)
 	{
 	}
@@ -59,7 +59,6 @@ public:
 	{
 		// This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
 		// need as we draw one character at a time...
-		const float font_size = m_pFont->FontSize;
 		ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
 		if (text_size.x == 0.0)
 		{
@@ -79,6 +78,8 @@ private:
 
 //----------------------------------------------------------------------------
 
+constexpr int DEFAULT_CONSOLE_FONT_SIZE = 13;
+
 class ZepEditor_ImGui : public Zep::ZepDisplay, public Zep::ZepEditor
 {
 public:
@@ -86,6 +87,10 @@ public:
 		: Zep::ZepDisplay(pixelScale)
 		, Zep::ZepEditor(this, root, flags, pFileSystem)
 	{
+		m_fonts[static_cast<int>(Zep::ZepTextType::Text)] =
+			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, DEFAULT_CONSOLE_FONT_SIZE);
+		m_fonts[static_cast<int>(Zep::ZepTextType::UI)] =
+			std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont, DEFAULT_CONSOLE_FONT_SIZE);
 	}
 
 	void HandleInput();
@@ -193,25 +198,7 @@ void ZepEditor_ImGui::DrawRectFilled(const NRectf& rc, ZepColor col) const
 
 ZepFont& ZepEditor_ImGui::GetFont(ZepTextType type)
 {
-	const int fontType = static_cast<int>(type);
-	ZepFont* font = m_fonts[fontType].get();
-
-	if (font == nullptr)
-	{
-		switch (type)
-		{
-		case Zep::ZepTextType::Text:
-			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont);
-			break;
-
-		case Zep::ZepTextType::UI:
-		default:
-			m_fonts[fontType] = std::make_shared<ZepFont_ImGui>(*this, mq::imgui::ConsoleFont);
-			break;
-		}
-
-		font = m_fonts[fontType].get();
-	}
+	ZepFont* font = m_fonts[static_cast<int>(type)].get();
 
 	return *font;
 }
@@ -562,9 +549,9 @@ void ImGuiZepEditor::DispatchMouseEvent(const std::shared_ptr<Zep::ZepMessage>& 
 {
 }
 
-void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont)
+void ImGuiZepEditor::SetFont(Zep::ZepTextType type, ImFont* pFont, int fontSize)
 {
-	m_editor->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_editor, pFont));
+	m_editor->SetFont(type, std::make_shared<ZepFont_ImGui>(*m_editor, pFont, fontSize));
 }
 
 ZepEditor& ImGuiZepEditor::GetEditor() const
@@ -679,7 +666,7 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 
 		m_editor->HandleInput();
 
-		ImGui::PushAllowKeyboardFocus(true);
+		ImGui::PushItemFlag(ImGuiItemFlags_NoTabStop, false);
 
 		m_editor->SetHasFocus(ImGui::IsWindowFocused());
 		if (ImGui::IsWindowFocused())
@@ -689,7 +676,7 @@ void ImGuiZepEditor::Render(const char* id, const ImVec2& displaySize)
 		}
 		m_editor->Display();
 
-		ImGui::PopAllowKeyboardFocus();
+		ImGui::PopItemFlag();
 	}
 
 	ImGui::EndChild();

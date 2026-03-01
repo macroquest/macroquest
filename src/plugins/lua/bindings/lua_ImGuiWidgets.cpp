@@ -758,22 +758,50 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](float fraction, float sizeX, float sizeY, std::optional<const char*> overlay) { ImGui::ProgressBar(fraction, { sizeX, sizeY }, overlay.value_or(nullptr)); }
 	));
 	ImGui.set_function("Bullet", &ImGui::Bullet);
+	ImGui.set_function("TextLink", sol::overload(
+		[](const char* text) { ImGui::TextLink(text); },
+		[](sol::variadic_args va, sol::this_state s) { std::string text = format_text(s, va); ImGui::TextLink(text.c_str()); }
+	));
+	ImGui.set_function("TextLinkOpenURL", sol::overload(
+		[](const char* text, const char* url) { ImGui::TextLinkOpenURL(text, url); },
+		[](const char* text) { ImGui::TextLinkOpenURL(text); }
+	));
 	#pragma endregion
 
 	#pragma region Widgets: Images
-	ImGui.set_function("Image", [](ImTextureID texture_id, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<ImVec4> tint_col, std::optional<ImVec4> border_col) {
-		ImGui::Image(texture_id, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), border_col.value_or(ImVec4(0, 0, 0, 0)));
-	});
+	ImGui.set_function("Image", sol::overload(
+		[](const ImTextureRef& tex_ref, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1)
+		{
+			ImGui::Image(tex_ref, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)));
+		},
+		// DEPRECATED
+		[](const ImTextureRef& tex_ref, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
+			std::optional<ImVec4> tint_col, std::optional<ImVec4> border_col)
+		{
+			ImGui::Image(tex_ref, size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), tint_col.value_or(ImVec4(1, 1, 1, 1)), border_col.value_or(ImVec4(0, 0, 0, 0)));
+		}
+	));
+	ImGui.set_function("ImageWithBg",
+		[](const ImTextureRef& tex_ref, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
+			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col)
+		{
+			ImGui::ImageWithBg(tex_ref, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), 
+				bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1)));
+		});
 	ImGui.set_function("ImageButton", sol::overload(
-		[](const char* str_id, ImTextureID texture_id, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
-			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col) { return ImGui::ImageButton(str_id, texture_id, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)), bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1))); },
+		[](const char* str_id, const ImTextureRef& tex_ref, const ImVec2& image_size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1,
+			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col)
+		{
+			return ImGui::ImageButton(str_id, tex_ref, image_size, uv0.value_or(ImVec2(0, 0)), uv1.value_or(ImVec2(1, 1)),
+				bg_col.value_or(ImVec4(0, 0, 0, 0)), tint_col.value_or(ImVec4(1, 1, 1, 1)));
+		},
 		// OBSOLETE:
-		[](ImTextureID texture_id, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<int> frame_padding,
+		[](const ImTextureRef& tex_ref, const ImVec2& size, std::optional<ImVec2> uv0, std::optional<ImVec2> uv1, std::optional<int> frame_padding,
 			std::optional<ImVec4> bg_col, std::optional<ImVec4> tint_col)
 		{
 			return ImGui::ImageButton(
 				"##NOID",
-				texture_id,
+				tex_ref,
 				size,
 				uv0.value_or(ImVec2(0, 0)),
 				uv1.value_or(ImVec2(1, 1)),
@@ -870,6 +898,7 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* label, std::optional<bool> open_, std::optional<int> flags) { bool open = open_.value_or(true); bool show = ImGui::CollapsingHeader(label, open_.has_value() ? &open : nullptr, flags.value_or(0)); return std::make_tuple(open, show); }
 	));
 	ImGui.set_function("SetNextItemOpen", [](bool is_open, std::optional<int> cond) { ImGui::SetNextItemOpen(is_open, cond.value_or(0)); });
+	// SetNextItemStorageID
 	ImGui.set_function("TreeAdvanceToLabelPos", []() { ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing()); });
 	#pragma endregion
 
@@ -880,6 +909,8 @@ void RegisterBindings_ImGuiWidgets(sol::table& ImGui)
 		[](const char* label, bool selected, int flags, float sizeX, float sizeY) { bool pressed = ImGui::Selectable(label, &selected, flags, { sizeX, sizeY }); return std::make_tuple(selected, pressed); }
 	));
 	#pragma endregion
+
+	// MultiSelect?
 
 	#pragma region Widgets: List Boxes
 	ImGui.set_function("BeginListBox", [](const char* label, std::optional<ImVec2> size) { return ImGui::BeginListBox(label, size.value_or(ImVec2(0, 0))); });

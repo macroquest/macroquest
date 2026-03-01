@@ -39,9 +39,10 @@ static void SetThreadName(const wchar_t* threadName)
 	}
 }
 
-ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, uint16_t peerPort)
+ServerPostOffice::ServerPostOffice(const std::string& name, const std::string& pipeName, const NetworkConfiguration& configuration)
 	: PostOffice(ActorIdentification(ActorContainer(ActorContainer::CurrentProcess, CreateUUID()), "launcher"))
-	, m_peerPort(peerPort)
+	, m_peerPort(configuration.Port)
+	, m_configuration(configuration)
 	, m_pipeName(pipeName)
 	, m_localConnection(std::make_unique<LocalConnection>(this))
 	, m_peerConnection(std::make_unique<PeerConnection>(this))
@@ -114,7 +115,7 @@ void ServerPostOffice::ThreadProc()
 	{
 		{
 			std::unique_lock lock(m_processMutex);
-			m_needsProcessing.wait_for(lock, m_heartBeatDuuration,
+			m_needsProcessing.wait_for(lock, m_heartBeatDuration,
 				[this] { return m_hasMessages || !m_running; });
 
 			// set this before we process to allow for processes to request additional processing
@@ -482,17 +483,6 @@ void ServerPostOffice::ProcessDropContainer(const ActorContainer& container)
 	auto iter = m_identities.find(container.uuid);
 	if (iter != m_identities.end())
 		m_identities.erase(iter);
-
-	std::visit(overload{
-		[this](const ActorContainer::Process&)
-		{
-		},
-		[this](const ActorContainer::Network& net)
-		{
-			std::unique_lock lock(m_processMutex);
-			m_reconnectingHosts.emplace_back(NetworkAddress{net.IP, net.Port});
-		}
-	}, container.value);
 }
 
 void ServerPostOffice::SendIdentities(const ActorContainer& requester)
@@ -527,20 +517,8 @@ void ServerPostOffice::ProcessSendIdentities(const ActorContainer& requester)
 
 void ServerPostOffice::ProcessReconnects()
 {
-	std::unique_lock lock(m_processMutex);
-
-	if (!m_reconnectingHosts.empty())
-	{
-		std::vector<NetworkAddress> hosts;
-		std::swap(hosts, m_reconnectingHosts);
-
-		lock.unlock();
-
-		for (const auto& host : hosts)
-		{
-			AddNetworkHost(host.IP, host.Port);
-		}
-	}
+	if (!m_persistentHosts.empty())
+		m_peerConnection->EnsureHosts(m_persistentHosts);
 }
 
 void ServerPostOffice::FillAndSend(MessagePtr message, const std::function<bool(const ActorIdentification&)>& predicate)
@@ -648,7 +626,7 @@ void ServerPostOffice::OnDeliver(const std::string& localAddress, MessagePtr& me
 	RequestProcessEvents();
 }
 
-std::vector<const ActorStats*> ServerPostOffice::GetStats()
+std::vector<const ActorStats*> ServerPostOffice::GetStats(bool showDropped)
 {
 	auto now = std::chrono::system_clock::now();
 	auto lookback = now - std::chrono::seconds(m_statsLookbackSeconds);
@@ -656,17 +634,20 @@ std::vector<const ActorStats*> ServerPostOffice::GetStats()
 	std::vector<const ActorStats*> stats;
 	stats.reserve(m_stats.size());
 
-	for (auto& [_, stat] : m_stats)
+	for (auto& [uuid, stat] : m_stats)
 	{
-		stat.Sent.erase(std::remove_if(stat.Sent.begin(), stat.Sent.end(),
-			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
-			stat.Sent.end());
+		if (showDropped || m_identities.find(uuid) != m_identities.end())
+		{
+			stat.Sent.erase(std::remove_if(stat.Sent.begin(), stat.Sent.end(),
+				[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+				stat.Sent.end());
 
-		stat.Received.erase(std::remove_if(stat.Received.begin(), stat.Received.end(),
-			[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
-			stat.Received.end());
+			stat.Received.erase(std::remove_if(stat.Received.begin(), stat.Received.end(),
+				[&lookback](const std::chrono::system_clock::time_point& t) { return t < lookback; }),
+				stat.Received.end());
 
-		stats.push_back(&stat);
+			stats.push_back(&stat);
+		}
 	}
 
 	return stats;

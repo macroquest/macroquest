@@ -27,10 +27,12 @@
 #include <queue>
 #include <map>
 #include <atomic>
+#include <iphlpapi.h>
 #include <optional>
 
-// TODO: Unit tests
-// TODO: Leader (later work, get internal networking done first):
+#pragma comment(lib, "Iphlpapi.lib")
+
+// Some stubbing for leader work has been done if it is desirable to implement it later
 //	-- leader gets PAT from router
 //	-- only leader will have the external IP in hosts
 //	-- does leader need to be an explicitly configured option? maybe can detect external IPs in hosts?
@@ -440,18 +442,225 @@ private:
 	bool m_reading = false;
 };
 
+struct DiscoveryMessage
+{
+	uint32_t m_length = 0;
+	std::unique_ptr<uint8_t[]> m_payload;
+	asio::ip::udp::endpoint m_endpoint;
+};
+
+class Announcer
+{
+public:
+	Announcer(
+		asio::io_service& io, // io service to use
+		const uint16_t port, // port where the peer exists
+		const uint32_t multicastPeriod = 1000, // milliseconds for the loop to resend multicasts
+		const uint16_t multicastPort = 30000 + DEFAULT_NETWORK_PEER_PORT, // port the udp multicast sender sends to
+		const asio::ip::address& multicastAddress = asio::ip::address::from_string("239.255.77.81")) // multicast address to use (http://en.wikipedia.org/wiki/Multicast_address)
+		: m_endpoint(multicastAddress, multicastPort)
+		, m_socket(io, m_endpoint.protocol())
+		, m_period(std::chrono::milliseconds(multicastPeriod))
+		, m_timer(io)
+		, m_port(port)
+	{
+		WriteMessage(); // kickoff write loop
+	}
+
+private:
+	void HandleSend(const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("HandleSend: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		             m_port, ec.value(), ec.message());
+		else
+		{
+			m_timer.expires_from_now(m_period);
+			m_timer.async_wait([this](const std::error_code& _ec)
+			{
+				this->HandleTimeout(_ec);
+			});
+		}
+	}
+
+	void HandleTimeout(const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("HandleTimeout: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		             m_port, ec.value(), ec.message());
+		else
+			WriteMessage(); // restart write loop
+	}
+
+	void WriteMessage()
+	{
+		asio::error_code ec;
+		std::string ip = asio::ip::host_name(ec);
+
+		if (ec)
+			SPDLOG_WARN("WriteMessage: {}:{} ({}): error {}: {}", m_endpoint.address().to_string(), m_endpoint.port(),
+		            m_port, ec.value(), ec.message());
+		else
+		{
+			peernetwork::Announce announce;
+			announce.set_address(ip);
+			announce.set_port(m_port);
+
+			m_messageBuffer = std::make_unique<DiscoveryMessage>();
+			m_messageBuffer->m_length = static_cast<uint32_t>(announce.ByteSizeLong());
+			m_messageBuffer->m_payload = std::make_unique<uint8_t[]>(m_messageBuffer->m_length);
+			announce.SerializeToArray(m_messageBuffer->m_payload.get(), static_cast<int>(m_messageBuffer->m_length));
+
+			m_messageBuffer->m_length = htonl(m_messageBuffer->m_length);
+			std::vector<asio::const_buffer> buffers{
+				asio::buffer(&(m_messageBuffer->m_length), sizeof(uint32_t)),
+				asio::buffer(m_messageBuffer->m_payload.get(), announce.ByteSizeLong()),
+			};
+
+			m_socket.async_send_to(
+				buffers, m_endpoint,
+				[this](const asio::error_code& _ec, size_t /* bytes_transferred */)
+				{
+					this->HandleSend(_ec);
+				});
+		}
+	}
+
+	asio::ip::udp::endpoint m_endpoint;
+	asio::ip::udp::socket m_socket;
+	std::chrono::steady_clock::duration m_period;
+	asio::steady_timer m_timer;
+	const uint16_t m_port;
+
+	// mutable variable for passing the discovery message
+	std::unique_ptr<DiscoveryMessage> m_messageBuffer;
+};
+
+class Discoverer
+{
+public:
+	using OnPeerDiscovered = std::function<void(const std::string& address, uint16_t port)>;
+
+	Discoverer(
+		asio::io_service& io,
+		OnPeerDiscovered onPeerDiscovered, // gets called when a peer is discovered
+		const uint16_t multicastPort = 30000 + DEFAULT_NETWORK_PEER_PORT, // the UDP multicast port to listen on
+		const asio::ip::address& listenAddress = asio::ip::address::from_string("0.0.0.0"), // address to listen on
+		const asio::ip::address& multicastAddress = asio::ip::address::from_string("239.255.77.81")) // must match the one used in Announcer
+		: m_onPeerDiscovered(std::move(onPeerDiscovered))
+		, m_socket(io)
+	{
+		asio::ip::udp::endpoint listenEndpoint(listenAddress, multicastPort);
+		m_socket.open(listenEndpoint.protocol());
+		m_socket.set_option(asio::ip::udp::socket::reuse_address(true));
+		m_socket.bind(listenEndpoint);
+
+		// join the multicast group
+		m_socket.set_option(asio::ip::multicast::join_group(multicastAddress));
+
+		Receive();
+	}
+
+private:
+	void HandleMessage(const std::shared_ptr<DiscoveryMessage>& message) const
+	{
+		try
+		{
+			peernetwork::Announce announce;
+			announce.ParseFromArray(message->m_payload.get(), static_cast<int>(message->m_length));
+
+			m_onPeerDiscovered(message->m_endpoint.address().to_string(), announce.port());
+		}
+		catch (const std::exception& e)
+		{
+			SPDLOG_WARN("HandleMessage: Failed to parse message: {}", e.what());
+		}
+	}
+
+	void ReceiveFrom(const std::shared_ptr<DiscoveryMessage>& message, const asio::error_code& ec)
+	{
+		if (ec)
+			SPDLOG_ERROR("ReceiveFrom error {}: {}", ec.value(), ec.message());
+		else
+		{
+			message->m_length = ntohl(message->m_length);
+			this->HandleMessage(message);
+		}
+
+		// always restart the receive loop
+		this->Receive();
+	}
+
+	void Receive(const asio::error_code& ec)
+	{
+		if (ec)
+		{
+			SPDLOG_ERROR("Receive error {}: {}", ec.value(), ec.message());
+			this->Receive(); // restart the receive loop without trying to handle the message
+		}
+		else
+		{
+			size_t available = m_socket.available();
+
+			auto message = std::make_shared<DiscoveryMessage>();
+			message->m_payload = std::make_unique<uint8_t[]>(available - sizeof(uint32_t));
+
+			std::vector<asio::mutable_buffer> buffers{
+				asio::buffer(&message->m_length, sizeof(uint32_t)),
+				asio::buffer(message->m_payload.get(), available - sizeof(uint32_t))
+			};
+
+			m_socket.async_receive_from(
+				buffers,
+				message->m_endpoint,
+				[this, message](const asio::error_code& _ec, std::size_t)
+				{
+					this->ReceiveFrom(message, _ec);
+				});
+		}
+	}
+
+	void Receive()
+	{
+		m_socket.async_receive(
+			asio::null_buffers(),
+			[this](const asio::error_code& ec, std::size_t)
+			{
+				this->Receive(ec);
+			});
+	}
+
+	const OnPeerDiscovered m_onPeerDiscovered;
+	asio::ip::udp::socket m_socket;
+
+	std::set<std::string> m_connected;
+};
+
 class NetworkPeer
 {
 public:
 	NetworkPeer(
-		uint16_t port,
+		const NetworkConfiguration& configuration,
 		PeerMessageHandler receiveHandler,
 		OnSessionConnectedHandler connectedHandler,
 		OnSessionDisconnectedHandler disconnectedHandler,
 		OnRequestProcessHandler requestProcessHandler)
-		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), port))
+		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), configuration.Port))
 		, m_port(m_acceptor.local_endpoint().port())
 		, m_uuid(CreateUUID())
+	    , m_selfHosts(GetAdaptersAddresses())
+		, m_announcer(m_ioContext, m_port, configuration.MulticastPeriod, configuration.MulticastPort,
+			asio::ip::address::from_string(configuration.MulticastAddress))
+		, m_discoverer(m_ioContext,
+			[this](const std::string& address, uint16_t port)
+			{
+				NetworkAddress addr{ address, port };
+				if (!this->HasHost(addr) && !m_selfHosts.contains(address))
+					this->AddHost(addr);
+			},
+			configuration.MulticastPort,
+			asio::ip::address::from_string(configuration.MulticastListenAddress),
+			asio::ip::address::from_string(configuration.MulticastAddress))
 		, m_receiveHandler(std::move(receiveHandler))
 		, m_sessionConnectedHandler(std::move(connectedHandler))
 		, m_sessionDisconnectedHandler(std::move(disconnectedHandler))
@@ -567,6 +776,26 @@ public:
 		}
 	}
 
+	void EnsureHosts(const std::unordered_set<NetworkAddress>& addresses)
+	{
+		if (m_running)
+		{
+			std::unique_lock lock(m_hostMutex);
+
+			for (const auto& address : addresses)
+			{
+				if (m_knownHosts.find(address) == m_knownHosts.end())
+				{
+					m_queuedConnects.push_back(address);
+					m_knownHosts.insert(address);
+				}
+			}
+
+			if (!m_queuedConnects.empty())
+				m_ioContext.post([this] { AddConnections(); });
+		}
+	}
+
 	void AddHost(const NetworkAddress& address)
 	{
 		if (m_running)
@@ -613,6 +842,7 @@ public:
 
 	bool HasHost(const NetworkAddress& address)
 	{
+		std::unique_lock lock(m_hostMutex);
 		return m_running && m_knownHosts.find(address) != m_knownHosts.end();
 	}
 
@@ -668,7 +898,8 @@ private:
 				else
 				{
 					// connection refused is when the peer is not available, don't throw an error for that
-					if (m_running && ec != asio::error::connection_refused)
+					// also don't worry about timing out for the same reason
+					if (m_running && ec != asio::error::connection_refused && ec != asio::error::timed_out)
 						SPDLOG_ERROR("{}: Connect failed with ERR {}: {}", m_port, ec.value(), ec.message());
 
 					// make sure to close the socket on failure
@@ -676,6 +907,8 @@ private:
 
 					// if the session has failed then let the user handle it
 					m_sessionDisconnectedHandler(address);
+					std::unique_lock lock(m_hostMutex);
+					m_knownHosts.erase(address);
 				}
 
 				// no matter the outcome, remove one instance of this address from pending connects
@@ -883,12 +1116,16 @@ private:
 	void PruneSessions()
 	{
 		auto do_disco = [this](NetworkAddress addr)
+		{
+			AddProcess([this, addr = std::move(addr)]
 			{
-				AddProcess([this, addr = std::move(addr)]
 				{
-					m_sessionDisconnectedHandler(addr);
-				});
-			};
+					std::unique_lock lock(m_hostMutex);
+					m_knownHosts.erase(addr);
+				}
+				m_sessionDisconnectedHandler(addr);
+			});
+		};
 
 		m_duplicateSessions.erase(std::remove_if(m_duplicateSessions.begin(), m_duplicateSessions.end(),
 			[](std::unique_ptr<NetworkSession>& session)
@@ -1091,13 +1328,85 @@ private:
 
 		m_requestProcessHandler();
 	}
-	
+
 	void AddProcess(const NetworkAddress& address, NetworkMessagePtr message)
 	{
 		std::unique_lock lock(m_processMutex);
 		m_receiveQueue.emplace_back(address, std::move(message));
 
 		m_requestProcessHandler();
+	}
+
+	static std::unordered_set<std::string> GetAdaptersAddresses()
+	{
+		DWORD outLen = 1 << 12; // start with 4k
+		IP_ADAPTER_ADDRESSES* addresses = nullptr;
+		DWORD retVal = 0;
+		size_t iterations = 0;
+
+		do
+		{
+			addresses = new IP_ADAPTER_ADDRESSES[outLen];
+			if (addresses != nullptr)
+			{
+				retVal = ::GetAdaptersAddresses(
+					AF_UNSPEC,
+					GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER,
+					NULL,
+					addresses,
+					&outLen);
+
+				if (retVal == ERROR_BUFFER_OVERFLOW)
+				{
+					// only clear this out if we are going to iterate again
+					delete addresses;
+					addresses = nullptr;
+				}
+			}
+			else
+				retVal = ERROR_OUTOFMEMORY;
+
+			++iterations;
+		}
+		while (retVal == ERROR_BUFFER_OVERFLOW && iterations < 3);
+
+		std::unordered_set<std::string> addrs;
+		if (retVal == NO_ERROR)
+		{
+			IP_ADAPTER_ADDRESSES* currentAddress = addresses;
+			while (currentAddress != nullptr)
+			{
+				if (currentAddress->OperStatus == IfOperStatusUp)
+				{
+					for (IP_ADAPTER_UNICAST_ADDRESS* a = currentAddress->FirstUnicastAddress; a != nullptr; a = a->Next)
+					{
+						if (a->Address.lpSockaddr->sa_family == AF_INET)
+						{
+							auto* si = reinterpret_cast<sockaddr_in*>(a->Address.lpSockaddr);
+							char str[INET_ADDRSTRLEN] = {};
+							if (inet_ntop(AF_INET, &si->sin_addr, str, sizeof(str)) != nullptr)
+								addrs.insert(str);
+						}
+						else if (a->Address.lpSockaddr->sa_family == AF_INET6)
+						{
+							auto* si = reinterpret_cast<sockaddr_in6*>(a->Address.lpSockaddr);
+							char str[INET6_ADDRSTRLEN] = {};
+							if (inet_ntop(AF_INET6, &si->sin6_addr, str, sizeof(str)) != nullptr)
+								addrs.insert(str);
+						}
+					}
+				}
+				currentAddress = currentAddress->Next;
+			}
+		}
+
+		if (addresses != nullptr)
+		{
+			delete addresses;
+			addresses = nullptr;
+		}
+
+		return addrs;
 	}
 
 	asio::io_context m_ioContext{};
@@ -1110,6 +1419,7 @@ private:
 	std::vector<NetworkAddress> m_queuedConnects;
 	std::unordered_set<NetworkAddress> m_pendingConnects;
 	std::unordered_set<NetworkAddress> m_knownHosts;
+	std::unordered_set<std::string> m_selfHosts;
 	std::mutex m_hostMutex; // we need to prevent situations where we try to connect to already discovered hosts
 
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_sessions;
@@ -1117,6 +1427,9 @@ private:
 	std::unordered_map<NetworkAddress, std::unique_ptr<NetworkSession>> m_connectingSessions;
 	std::vector<std::unique_ptr<NetworkSession>> m_duplicateSessions;
 	std::mutex m_sessionMutex; // ensure we block while testing for duplicate sessions
+
+	Announcer m_announcer;
+	Discoverer m_discoverer;
 
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks
@@ -1165,18 +1478,18 @@ NetworkPeerAPI::NetworkPeerAPI(uint16_t port)
 {}
 
 NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
-	uint16_t port,
+	const NetworkConfiguration& configuration,
 	PeerMessageHandler receive,
 	OnSessionConnectedHandler connected,
 	OnSessionDisconnectedHandler disconnected,
 	OnRequestProcessHandler process)
 {
-	auto peer_it = s_peers.find(port);
+	auto peer_it = s_peers.find(configuration.Port);
 	if (peer_it == s_peers.end())
 	{
 		// TODO: when leader logic is implemented, the relay to other peers would happen as a wrapper to these callbacks
 		auto peer = std::make_unique<NetworkPeer>(
-			port, std::move(receive), std::move(connected), std::move(disconnected), std::move(process));
+			configuration, std::move(receive), std::move(connected), std::move(disconnected), std::move(process));
 		auto peer_port = peer->GetPort();
 		peer_it = s_peers.emplace(peer_port, std::move(peer)).first;
 
@@ -1185,7 +1498,7 @@ NetworkPeerAPI NetworkPeerAPI::GetOrCreate(
 		return NetworkPeerAPI(peer_port);
 	}
 
-	return NetworkPeerAPI(port);
+	return NetworkPeerAPI(configuration.Port);
 }
 
 void NetworkPeerAPI::Send(const std::string& address, uint16_t port, NetworkMessagePtr message) const
@@ -1239,6 +1552,13 @@ void NetworkPeerAPI::Shutdown() const
 		peer->second->Shutdown();
 		s_peers.erase(peer);
 	}
+}
+
+void NetworkPeerAPI::EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const
+{
+	const auto peer = s_peers.find(m_port);
+	if (peer != s_peers.end())
+		peer->second->EnsureHosts(hosts);
 }
 
 void NetworkPeerAPI::AddHost(const std::string& address, uint16_t port) const

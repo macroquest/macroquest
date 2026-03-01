@@ -62,7 +62,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQRoot)contrib\vcpkg\installed\x86-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_EXCEPTIONS_SAFE_PROPAGATION=0;SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -76,7 +76,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQRoot)contrib\vcpkg\installed\x64-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_EXCEPTIONS_SAFE_PROPAGATION=0;SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -89,7 +89,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQRoot)contrib\vcpkg\installed\x86-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_EXCEPTIONS_SAFE_PROPAGATION=0;SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -102,7 +102,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(MQRoot)contrib\vcpkg\installed\x64-windows-static\include\luajit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_EXCEPTIONS_SAFE_PROPAGATION=0;SOL_LUAJIT=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -126,6 +126,7 @@
     <ClCompile Include="bindings\lua_ImGuiEnums.cpp" />
     <ClCompile Include="bindings\lua_ImGuiWidgets.cpp" />
     <ClCompile Include="bindings\lua_ImGuiUserTypes.cpp" />
+    <ClCompile Include="bindings\lua_ImAnim.cpp" />
     <ClCompile Include="bindings\lua_ImPlot.cpp" />
     <ClCompile Include="bindings\lua_MQBindings.cpp" />
     <ClCompile Include="bindings\lua_MQMacroData.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="LuaImGui.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="LuaModuleRegistry.cpp" />
     <ClCompile Include="LuaThread.cpp" />
     <ClCompile Include="MQ2Lua.cpp" />
     <ClCompile Include="pch.cpp">
@@ -161,6 +163,7 @@
     <ClInclude Include="LuaEvent.h" />
     <ClInclude Include="LuaCoroutine.h" />
     <ClInclude Include="LuaImGui.h" />
+    <ClInclude Include="LuaModuleRegistry.h" />
     <ClInclude Include="LuaThread.h" />
     <ClInclude Include="LuaInterface.h" />
     <ClInclude Include="pch.h" />

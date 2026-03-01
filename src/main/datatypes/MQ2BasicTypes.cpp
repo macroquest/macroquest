@@ -1783,7 +1783,7 @@ bool MQ2TimeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 
 			return true;
 		}
-		catch (const std::exception& e)
+		catch (const std::exception&)
 		{
 			MacroError("Invalid format string: %s", Index);
 		}

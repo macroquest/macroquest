@@ -91,7 +91,7 @@ protobuf_generate(
 )
 
 # Link the proto library to main project
-target_link_libraries(routing PRIVATE
+target_link_libraries(routing PUBLIC
     routing-proto
 )
 

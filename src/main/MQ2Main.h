@@ -105,11 +105,9 @@ constexpr int CHAT_CHAT = 0x0100;
 
 // Logging / Console output
 MQLIB_API void WriteChatColor(const char* Line, int Color = USERCOLOR_DEFAULT, int Filter = 0);
+MQLIB_API void VWriteChatColor(const char* szFormat, va_list args, int Color = USERCOLOR_DEFAULT, int Filter = 0);
 MQLIB_API void WriteChatf(const char* Format, ...);
 MQLIB_API void WriteChatColorf(const char* szFormat, int color, ...);
-
-MQLIB_API DEPRECATE("Use WriteChatf instead")
-void WriteChatfSafe(const char* szFormat, ...);
 
 MQLIB_API void DebugSpew(const char* szFormat, ...);
 MQLIB_API void DebugSpewAlways(const char* szFormat, ...);

@@ -254,7 +254,7 @@ std::shared_ptr<mq::PipeConnection> LocalConnection::GetConnection(const std::st
 PeerConnection::PeerConnection(ServerPostOffice* postOffice)
 	: Connection(postOffice)
 	, m_network(std::make_unique<NetworkPeerAPI>(NetworkPeerAPI::GetOrCreate(
-		postOffice->GetPeerPort(),
+		postOffice->GetNetworkConfiguration(),
 		[this](const NetworkAddress& address, NetworkMessagePtr message) { PeerMessageHandler(address, std::move(message)); },
 		[this](const NetworkAddress& address) { OnSessionConnectedHandler(address); },
 		[this](const NetworkAddress& address) { OnSessionDisconnectedHandler(address); },
@@ -399,6 +399,11 @@ void PeerConnection::Start()
 void PeerConnection::Stop()
 {
 	m_network->Shutdown();
+}
+
+void PeerConnection::EnsureHosts(const std::unordered_set<NetworkAddress>& hosts) const
+{
+	m_network->EnsureHosts(hosts);
 }
 
 void PeerConnection::AddHost(const std::string& address, uint16_t port) const

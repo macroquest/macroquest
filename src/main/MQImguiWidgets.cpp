@@ -564,6 +564,11 @@ void DrawSpellGem(ImDrawList* drawList,
 
 //----------------------------------------------------------------------------
 
+ImFont* GetEQImFont(int eqFontStyle)
+{
+	return ImGuiManager_GetEQImFont(eqFontStyle);
+}
+
 void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXRect& rect,
 	MQColor color, uint16_t flags)
 {
@@ -591,15 +596,19 @@ void DrawEQText(ImDrawList* drawList, int fontStyle, const char* text, const CXR
 			yOffset += std::max<int>(0, (rect.GetHeight() - totalLineHeight) / 2) + 1;
 		}
 
+		ImGui::PushFont(eqFont, eqFont->LegacySize);
+
 		for (auto& textLine : textLines)
 		{
 			for (auto& charPos : textLine.arCharPos)
 			{
-				eqFont->RenderChar(drawList, eqFont->FontSize,
+				eqFont->RenderChar(drawList, static_cast<float>(font->nHeight),
 					ImVec2(static_cast<float>(textLine.nXOffset + charPos.x), static_cast<float>(textLine.y + yOffset)),
 					color.ToImU32(), charPos.c);
 			}
 		}
+
+		ImGui::PopFont();
 
 		drawList->PopClipRect();
 	}

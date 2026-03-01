@@ -939,7 +939,7 @@ if ($protobufFiles.Count -gt 0) {
     $cmake += ")`n`n"
 
     $cmake += "# Link the proto library to main project`n"
-    $cmake += "target_link_libraries($ProjectName PRIVATE`n"
+    $cmake += "target_link_libraries($ProjectName PUBLIC`n"
     $cmake += "    ${ProjectName}-proto`n"
     $cmake += ")`n`n"
 }
@@ -972,6 +972,9 @@ if ($vcpkgDependencies.Count -gt 0) {
             "curl"               { "CURL::libcurl" }
             "rapidjson"          { "rapidjson" }
             "sdl2"               { "SDL2::SDL2main" }
+            "directxtk"          { "Microsoft::DirectXTK" }
+            "entt"               { "EnTT::EnTT" }
+            "taskflow"           { "Taskflow::Taskflow" }
             default              { "${dep}::${dep}" }
         }
 

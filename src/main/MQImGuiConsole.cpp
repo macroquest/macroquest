@@ -442,71 +442,79 @@ public:
 		// Here we create a context menu only available from the title bar.
 		if (ImGui::BeginMenuBar())
 		{
-			if (ImGui::BeginMenu("Options"))
+			if (ImGui::BeginMenu("MacroQuest"))
 			{
-				bool autoScroll = m_zepConsole->GetAutoScroll();
-				if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
-				{
-					m_zepConsole->SetAutoScroll(autoScroll);
-					WritePrivateProfileBool("Console", "AutoScroll", autoScroll, internal_paths::MQini);
-				}
-
-				bool localEcho = GetLocalEcho();
-				if (ImGui::MenuItem("Local Echo", nullptr, &m_localEcho))
-					SetLocalEcho(localEcho);
+				ImGui::MenuItem("Settings", nullptr, &gbShowSettingsWindow);
 
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("Close Console"))
-					*pOpen = false;
-				if (ImGui::MenuItem("Reset Position"))
-					s_resetConsolePosition = true;
-
-				ImGui::Separator();
-
-				if (ImGui::MenuItem("Clear Console"))
-					ClearLog();
-
-				if (ImGui::BeginMenu("Extras"))
+				if (ImGui::BeginMenu("Console"))
 				{
-					if (ImGui::MenuItem("Color Test"))
+					bool autoScroll = m_zepConsole->GetAutoScroll();
+					if (ImGui::MenuItem("Auto-scroll", nullptr, &autoScroll))
 					{
-						WriteChatColor("\ayYELLOW    \a-yDARK YELLOW");
-						WriteChatColor("\aoORANGE    \a-oDARK ORANGE");
-						WriteChatColor("\agGREEN     \a-gDARK GREEN");
-						WriteChatColor("\auBLUE      \a-uDARK BLUE");
-						WriteChatColor("\arRED       \a-rDARK RED");
-						WriteChatColor("\atTEAL      \a-tDARK TEAL");
-						WriteChatColor("\abBLACK");
-						WriteChatColor("\amMAGENTA   \a-mDARK MAGENTA");
-						WriteChatColor("\apPURPLE    \a-pDARK PURPLE");
-						WriteChatColor("\awWHITE     \a-wGREY");
-
-						MakeColorGradient(.3f, .3f, .3f, 0, 2, 4);
+						m_zepConsole->SetAutoScroll(autoScroll);
+						WritePrivateProfileBool("Console", "AutoScroll", autoScroll, internal_paths::MQini);
 					}
 
-					if (m_zepConsole)
-					{
-						if (ImGui::MenuItem("Hyperlink Test"))
-						{
-							DoHyperlinkTest();
-						}
-						if (ImGui::MenuItem("Achievement link Test"))
-						{
-							DoAchievementLinkTest();
-						}
-					}
+					bool localEcho = GetLocalEcho();
+					if (ImGui::MenuItem("Local Echo", nullptr, &m_localEcho))
+						SetLocalEcho(localEcho);
 
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Close Console"))
+						*pOpen = false;
+					if (ImGui::MenuItem("Reset Position"))
+						s_resetConsolePosition = true;
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Clear Console"))
+						ClearLog();
+
+					if (ImGui::BeginMenu("Extras"))
+					{
+						if (ImGui::MenuItem("Color Test"))
+						{
+							WriteChatColor("\ayYELLOW    \a-yDARK YELLOW");
+							WriteChatColor("\aoORANGE    \a-oDARK ORANGE");
+							WriteChatColor("\agGREEN     \a-gDARK GREEN");
+							WriteChatColor("\auBLUE      \a-uDARK BLUE");
+							WriteChatColor("\arRED       \a-rDARK RED");
+							WriteChatColor("\atTEAL      \a-tDARK TEAL");
+							WriteChatColor("\abBLACK");
+							WriteChatColor("\amMAGENTA   \a-mDARK MAGENTA");
+							WriteChatColor("\apPURPLE    \a-pDARK PURPLE");
+							WriteChatColor("\awWHITE     \a-wGREY");
+
+							MakeColorGradient(.3f, .3f, .3f, 0, 2, 4);
+						}
+
+						if (m_zepConsole)
+						{
+							if (ImGui::MenuItem("Hyperlink Test"))
+							{
+								DoHyperlinkTest();
+							}
+							if (ImGui::MenuItem("Achievement link Test"))
+							{
+								DoAchievementLinkTest();
+							}
+						}
+
+						ImGui::EndMenu();
+					}
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Windows"))
-			{
-				ImGuiTools_DrawWindowsMenu();
-				ImGui::EndMenu();
-			}
+			//if (ImGui::BeginMenu("Windows"))
+			//{
+			//	ImGuiTools_DrawWindowsMenu();
+			//	ImGui::EndMenu();
+			//}
 
 			DeveloperTools_DrawMenu();
 
@@ -766,7 +774,7 @@ public:
 //============================================================================
 
 static ImGuiDockNodeFlags s_dockspace_flags = ImGuiDockNodeFlags_None
-	| ImGuiDockNodeFlags_NoDockingInCentralNode
+	| ImGuiDockNodeFlags_NoDockingOverCentralNode
 	| ImGuiDockNodeFlags_PassthruCentralNode;
 
 void DrawDockSpace(bool* p_open)

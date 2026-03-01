@@ -132,34 +132,34 @@ public:
 			{
 			case ContextMenu_TradeskillItemsId:
 				gbAutoBankTradeSkillItems = !gbAutoBankTradeSkillItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, INIFileName);
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTradeSkillItems);
 				break;
 
 			case ContextMenu_CollectibleItemsId:
 				gbAutoBankCollectibleItems = !gbAutoBankCollectibleItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, INIFileName);
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankCollectibleItems);
 				break;
 
 			case ContextMenu_QuestItemsId:
 				gbAutoBankQuestItems = !gbAutoBankQuestItems;
-				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, INIFileName);
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankQuestItems);
 				break;
 
 			case ContextMenu_CheckedItemsId:
 				gbAutoInventoryItems = !gbAutoInventoryItems;
-				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, INIFileName);
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoInventoryItems);
 				break;
 			case ContextMenu_TrophysId:
 				gbAutoBankTrophiesWithTradeskill = !gbAutoBankTrophiesWithTradeskill;
-				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, INIFileName);
 
 				AutoBankMenu->CheckMenuItem(iItemID, gbAutoBankTrophiesWithTradeskill);
 				break;
@@ -205,19 +205,19 @@ static void AddAutoBankMenu()
 			AutoBankMenu = pContextMenuManager->GetMenu(s_bankCustomMenu);
 			AutoBankMenu->RemoveAllMenuItems();
 
-			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, gPathConfig);
-			gbAutoBankTrophiesWithTradeskill = GetPrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", true, gPathConfig);
-			gbAutoBankCollectibleItems = GetPrivateProfileBool("AutoBank", "AutoBankCollectibleItems", false, gPathConfig);
-			gbAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", false, gPathConfig);
-			gbAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", false, gPathConfig);
+			gbAutoBankTradeSkillItems = GetPrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", false, INIFileName);
+			gbAutoBankTrophiesWithTradeskill = GetPrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", true, INIFileName);
+			gbAutoBankCollectibleItems = GetPrivateProfileBool("AutoBank", "AutoBankCollectibleItems", false, INIFileName);
+			gbAutoBankQuestItems = GetPrivateProfileInt("AutoBank", "AutoBankQuestItems", false, INIFileName);
+			gbAutoInventoryItems = GetPrivateProfileInt("AutoBank", "AutoInventoryItems", false, INIFileName);
 
 			if (gbWriteAllConfig)
 			{
-				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, gPathConfig);
-				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, gPathConfig);
-				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, gPathConfig);
-				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, gPathConfig);
-				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, gPathConfig);
+				WritePrivateProfileBool("AutoBank", "AutoBankTradeSkillItems", gbAutoBankTradeSkillItems, INIFileName);
+				WritePrivateProfileBool("AutoBank", "AutoBankTrophiesWithTradeskill", gbAutoBankTrophiesWithTradeskill, INIFileName);
+				WritePrivateProfileBool("AutoBank", "AutoBankCollectibleItems", gbAutoBankCollectibleItems, INIFileName);
+				WritePrivateProfileBool("AutoBank", "AutoBankQuestItems", gbAutoBankQuestItems, INIFileName);
+				WritePrivateProfileBool("AutoBank", "AutoInventoryItems", gbAutoInventoryItems, INIFileName);
 			}
 
 			AutoBankMenu->AddMenuItem("Tradeskill Items", ContextMenu_TradeskillItemsId, gbAutoBankTradeSkillItems);
@@ -347,9 +347,17 @@ static void AutoBankPulse()
 	if (pProfile->GetInventorySlot(InvSlot_Cursor) != nullptr)
 	{
 		if (gbAutoInventoryInProgress)
+		{
 			DoCommandf("/autoinventory");
+		}
 		else
+		{
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+			DoCommandf("/notify BigBankWnd BIGB_AutoButton leftmouseup");
+#else
 			DoCommandf("/autobank");
+#endif
+		}
 		return;
 	}
 
