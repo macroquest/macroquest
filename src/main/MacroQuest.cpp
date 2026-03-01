@@ -396,8 +396,11 @@ bool InitDirectories(const std::string& iniToRead)
 		strcpy_s(gPathResources, mq::internal_paths::Resources.c_str());
 		strcpy_s(gPathEverQuest, mq::internal_paths::EverQuest.c_str());
 
-		std::filesystem::create_directories(mq::internal_paths::Config + "\\MacroQuest_Overlay", ec);
-		std::filesystem::create_directories(mq::internal_paths::Logs + "\\MacroQuest_Overlay", ec);
+		std::filesystem::create_directories(mq::internal_paths::Config + "/MacroQuest_Overlay", ec);
+		std::filesystem::create_directories(mq::internal_paths::Logs + "/MacroQuest_Overlay", ec);
+		std::string oldOverlay = fmt::format("{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+		std::string newOverlay = fmt::format("{}/MacroQuest_Overlay/Default_Overlay.ini", mq::internal_paths::Config);
+		std::filesystem::copy_file(oldOverlay, newOverlay, std::filesystem::copy_options::skip_existing, ec);
 
 		return true;
 	}
