@@ -395,7 +395,11 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		"Flags"                        , &ImFontAtlas::Flags,
 		"TexID"                        , &ImFontAtlas::TexID,
 		"TexWidth"                     , sol::readonly(&ImFontAtlas::TexWidth),
-		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight)
+		"TexHeight"                    , sol::readonly(&ImFontAtlas::TexHeight),
+
+		"AddFontFromFileTTF"           , [](ImFontAtlas* atlas, const char* filename, float size_pixels) -> ImFont* {
+		                                     return atlas->AddFontFromFileTTF(filename, size_pixels);
+		                                 }
 	);
 
 
