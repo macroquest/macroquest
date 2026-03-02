@@ -1,4 +1,4 @@
-﻿# Generated from MacroQuest.vcxproj
+# Generated from MacroQuest.vcxproj
 # This file is designed to work with add_subdirectory()
 
 # ---------------------------------------------------------------------
@@ -114,7 +114,7 @@ target_link_libraries(MacroQuest PRIVATE imgui login routing)
 # Include directories
 # ---------------------------------------------------------------------
 target_include_directories(MacroQuest PRIVATE
-    "${VCPKG_IncludeStatic}/crashpad-backtrace"
+    "${VCPKG_IncludeStatic}/crashpad"
     "${CMAKE_SOURCE_DIR}/include"
 )
 
