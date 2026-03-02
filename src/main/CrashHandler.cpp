@@ -50,6 +50,12 @@
 #if !defined(CRASHPAD_SUBMISSIONS_RATELIMITED)
 #define CRASHPAD_SUBMISSIONS_RATELIMITED true
 #endif
+#if !defined(CRASHPAD_SUBMISSION_PRODUCT)
+#define CRASHPAD_SUBMISSION_PRODUCT "MacroQuest"
+#endif
+#if !defined(CRASHPAD_SUBMISSION_ENVIRONMENT)
+#define CRASHPAD_SUBMISSION_ENVIRONMENT "unknown"
+#endif
 
 namespace fs = std::filesystem;
 
@@ -89,14 +95,15 @@ static LPTOP_LEVEL_EXCEPTION_FILTER lpCrashpadTopLevelExceptionFilter = nullptr;
 // The original unhandled exception filter. We need to hold this so we can put it back if we unload.
 static LPTOP_LEVEL_EXCEPTION_FILTER lpOrigTopLevelExceptionFilter = nullptr;
 
-// Annotations that should be added to crash reports
-static crashpad::StringAnnotation<32> buildTypeAnnotation("buildType");
-static crashpad::StringAnnotation<32> buildTimestampAnnotation("eqVersion");
-static crashpad::StringAnnotation<32> buildVersionAnnotation("mqVersion");
-static crashpad::StringAnnotation<36> buildCrashIdAnnotation("crashId");
+// Annotations that should be added to crash reports.
+// normal minidump: buildTypeAnnotation("buildType"); Sentry.io: buildTypeAnnotation("sentry[tags][buildType]");
+static crashpad::StringAnnotation<32> buildTypeAnnotation("sentry[tags][buildType]");
+static crashpad::StringAnnotation<32> buildTimestampAnnotation("sentry[tags][eqVersion]");
+static crashpad::StringAnnotation<32> buildVersionAnnotation("sentry[tags][mqVersion]");
+static crashpad::StringAnnotation<36> buildCrashIdAnnotation("sentry[tags][crashId]");
 
-static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("mq.command");
-static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("mq.macro_data");
+static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("sentry[tags][mq.command]");
+static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("sentry[tags][mq.macro_data]");
 
 static std::string s_sessionUuid;
 
@@ -127,6 +134,24 @@ bool InitializeCrashpad()
 		return true;
 
 	std::map<std::string, std::string> annotations;
+	annotations["format"] = "minidump";
+	const std::string product = CRASHPAD_SUBMISSION_PRODUCT;
+	if (!product.empty())
+	{
+		annotations["product"] = product;
+	}
+	annotations["version"] = MQMAIN_VERSION;
+	std::string release = MQMAIN_VERSION;
+	if (!product.empty())
+	{
+		release = product + "@" + release;
+	}
+	annotations["sentry[release]"] = release;
+	const std::string environment = CRASHPAD_SUBMISSION_ENVIRONMENT;
+	if (!environment.empty())
+	{
+		annotations["sentry[environment]"] = environment;
+	}
 	std::vector<std::string> arguments;
 
 	// This is the directory you will use to store and queue crash data.
@@ -137,9 +162,7 @@ bool InitializeCrashpad()
 	// crash handlers. This path may be relative.
 	std::wstring handlerPath(utf8_to_wstring(mq::internal_paths::MQRoot + "\\crashpad_handler.exe"));
 
-	// This should point to your server dump submission port (labeled as "http/writer"
-	// in the listener configuration pane. Preferably, the SSL enabled port should
-	// be used. If Backtrace is hosting your instance, the default port is 6098.
+	// This should point to your server dump submission endpoint.
 	std::string url(gCrashpadSubmissionURL);
 
 	if (!gEnableRateLimit)
@@ -526,7 +549,7 @@ void CrashHandler_SetLastMacroData(const char* macroData)
 
 //----------------------------------------------------------------------------
 
-static crashpad::StringAnnotation<32> s_synthesizedAnnotation("synthesized");
+static crashpad::StringAnnotation<32> s_synthesizedAnnotation("sentry[tags][synthesized]");
 
 void DoCrash(PlayerClient*, const char* szLine)
 {

@@ -257,6 +257,17 @@ function Get-VcpkgTable {
 
 $vcpkgTable = Get-VcpkgTable
 
+# Remove crashpad-backtrace if installed (conflicts with crashpad)
+$tripletsToCheck = @($vcpkgTable.Keys)
+foreach ($triplet in $tripletsToCheck) {
+    if ($vcpkgTable[$triplet].ContainsKey("crashpad-backtrace")) {
+        Write-Warning "Removing crashpad-backtrace:$triplet (conflicts with crashpad)..."
+        & ./vcpkg.exe remove crashpad-backtrace:$triplet --recurse
+        # Rebuild the table after removal
+        $vcpkgTable = Get-VcpkgTable
+    }
+}
+
 # If we did a bootstrap and we already had installed packages
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
     & ./vcpkg.exe upgrade --no-dry-run
