@@ -7,7 +7,7 @@
       "dxsdk-d3dx:x86-windows"
   ],
   "dependencies": [
-      "crashpad-backtrace",
+      "crashpad",
       "fmt",
       "wil",
       "date",

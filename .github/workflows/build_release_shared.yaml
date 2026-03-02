@@ -18,11 +18,16 @@ on:
 
 env:
   platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
+  scoop_packages: "sentry-cli"
 
 jobs:
   build:
     if: github.repository == 'macroquest/macroquest'
     runs-on: [fast, self-hosted, Windows, X64]
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: macroquest
+      SENTRY_PROJECT: macroquest
     steps:
       - name: Install and cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
@@ -135,6 +140,56 @@ jobs:
           }
           $resourceFile | Set-Content $resourceFilePath
 
+      - name: Check Scoop Installation
+        id: check_scoop
+        shell: pwsh
+        run: |
+          $scoopPath = "$env:USERPROFILE\scoop"
+          $packages = "${{ env.scoop_packages }}" -split '\s+'
+          $allInstalled = $true
+
+          if (Test-Path $scoopPath) {
+            foreach ($pkg in $packages) {
+              if (-not (Test-Path "$scoopPath\apps\$pkg")) {
+                $allInstalled = $false
+                break
+              }
+            }
+          } else {
+            $allInstalled = $false
+          }
+
+          $hash = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes("${{ env.scoop_packages }}"))) -Algorithm SHA256).Hash.Substring(0,16)
+
+          echo "scoop_ready=$allInstalled" >> $env:GITHUB_OUTPUT
+          echo "scoop_packages_hash=$hash" >> $env:GITHUB_OUTPUT
+
+      - name: Restore Scoop Cache
+        if: steps.check_scoop.outputs.scoop_ready != 'true'
+        id: restore_scoop_cache
+        uses: actions/cache@v4
+        with:
+          path: '~/scoop'
+          key: ${{ runner.os }}-scoop-${{ steps.check_scoop.outputs.scoop_packages_hash }}
+
+      - name: Install Scoop
+        if: steps.check_scoop.outputs.scoop_ready != 'true' && steps.restore_scoop_cache.outputs.cache-hit != 'true'
+        uses: MinoruSekine/setup-scoop@v4.0.2
+        with:
+          install_scoop: 'true'
+          buckets: extras
+          apps: ${{ env.scoop_packages }}
+          scoop_update: 'true'
+          update_path: 'true'
+
+      - name: Setup Scoop PATH
+        if: steps.check_scoop.outputs.scoop_ready != 'true' && steps.restore_scoop_cache.outputs.cache-hit == 'true'
+        uses: MinoruSekine/setup-scoop@v4.0.2
+        with:
+          install_scoop: 'false'
+          scoop_update: 'false'
+          update_path: 'true'
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
         with:
@@ -147,8 +202,19 @@ jobs:
         run: |
           nuget restore src/MacroQuestCustom.sln
 
-      - name: Handle vcpkg Cache
-        if: false # Disabled for build server speed improvements
+      - name: Check vcpkg Installation
+        id: check_vcpkg
+        shell: pwsh
+        run: |
+          $installedPath = "${{ github.workspace }}/contrib/vcpkg/installed"
+          if ((Test-Path $installedPath) -and (Get-ChildItem $installedPath -Directory | Measure-Object).Count -gt 0) {
+            echo "vcpkg_installed=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "vcpkg_installed=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Restore vcpkg Cache
+        if: steps.check_vcpkg.outputs.vcpkg_installed != 'true'
         uses: actions/cache@v4
         with:
           path: |
@@ -171,6 +237,11 @@ jobs:
 
       - name: Create Symbols Archive
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb
+
+      - name: Upload Symbols to Sentry
+        shell: pwsh
+        run: |
+          sentry-cli debug-files upload --wait --include-sources "${{ github.workspace }}\build\bin\Release"
 
       - name: Upload Symbols Artifact
         uses: actions/upload-artifact@v4

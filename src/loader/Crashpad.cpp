@@ -50,6 +50,12 @@
 #if !defined(CRASHPAD_SUBMISSIONS_RATELIMITED)
 #define CRASHPAD_SUBMISSIONS_RATELIMITED true
 #endif
+#if !defined(CRASHPAD_SUBMISSION_PRODUCT)
+#define CRASHPAD_SUBMISSION_PRODUCT "MQ Loader"
+#endif
+#if !defined(CRASHPAD_SUBMISSION_ENVIRONMENT)
+#define CRASHPAD_SUBMISSION_ENVIRONMENT "unknown"
+#endif
 
 using namespace crashpad;
 CrashpadClient client;
@@ -85,6 +91,24 @@ bool InitializeCrashpad()
 	}
 
 	std::map<std::string, std::string> annotations;
+	annotations["format"] = "minidump";
+	const std::string product = CRASHPAD_SUBMISSION_PRODUCT;
+	if (!product.empty())
+	{
+		annotations["product"] = product;
+	}
+	annotations["version"] = MQMAIN_VERSION;
+	std::string release = MQMAIN_VERSION;
+	if (!product.empty())
+	{
+		release = product + "@" + release;
+	}
+	annotations["sentry[release]"] = release;
+	const std::string environment = CRASHPAD_SUBMISSION_ENVIRONMENT;
+	if (!environment.empty())
+	{
+		annotations["sentry[environment]"] = environment;
+	}
 	std::vector<std::string> arguments;
 
 	// This is the directory you will use to store and queue crash data.
@@ -95,9 +119,7 @@ bool InitializeCrashpad()
 	// crash handlers. This path may be relative.
 	std::string handlerPath(internal_paths::MQRoot + "\\crashpad_handler.exe");
 
-	// This should point to your server dump submission port (labeled as "http/writer"
-	// in the listener configuration pane. Preferrably, the SSL enabled port should
-	// be used. If Backtrace is hosting your instance, the default port is 6098.
+	// This should point to your server dump submission endpoint.
 	std::string url(gCrashpadSubmissionURL);
 
 	if (!gEnableRateLimit)
