@@ -5757,10 +5757,6 @@ void RemoveAugCmd(PlayerClient* pChar, const char* szLine)
 
 		if (index >= 0 && index < pItemDisplayManager->GetCount())
 		{
-			auto itemDis = pItemDisplayManager->GetWindow(index);
-
-			itemDis->SetItem(pTargetItem, 0);
-
 			if (pAugItem)
 			{
 				ItemPtr pItemSolvent = FindAugmentSolvent(pAugItem);
@@ -5773,8 +5769,15 @@ void RemoveAugCmd(PlayerClient* pChar, const char* szLine)
 
 				if (pItemSolvent)
 				{
+#if IS_CLIENT_DATE(20260205u) // I don't know when exactly this changed
+					CItemDisplayWnd::RemoveAugmentRequest(pTargetItem, foundAugment.GetDeepestSlot());
+#else
+					auto itemDis = pItemDisplayManager->GetWindow(index);
+					itemDis->SetItem(pTargetItem, 0);
+
 					// we shouldnt do the solvent thing for removals, people who macro this can click the ok button on the confirmation window...
 					itemDis->RemoveAugmentRequest(foundAugment.GetDeepestSlot());
+#endif
 				}
 				else
 				{
