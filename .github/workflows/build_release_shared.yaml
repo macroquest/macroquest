@@ -24,10 +24,6 @@ jobs:
   build:
     if: github.repository == 'macroquest/macroquest'
     runs-on: [fast, self-hosted, Windows, X64]
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_ORG: macroquest
-      SENTRY_PROJECT: macroquest
     steps:
       - name: Install and cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
@@ -239,9 +235,13 @@ jobs:
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb
 
       - name: Upload Symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: macroquest
+          SENTRY_PROJECT: macroquest
         shell: pwsh
         run: |
-          sentry-cli debug-files upload --wait --include-sources "${{ github.workspace }}\build\bin\Release"
+          sentry-cli debug-files upload --wait "${{ github.workspace }}\build\bin\Release"
 
       - name: Upload Symbols Artifact
         uses: actions/upload-artifact@v4
