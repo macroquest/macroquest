@@ -287,6 +287,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="imanim\im_anim_internal.h" />
     <ClInclude Include="imanim\im_anim.h" />
+    <ClInclude Include="ImGuiDrawListExtensions.h" />
     <ClInclude Include="ImGuiFileDialog.h" />
     <ClInclude Include="ImGuiFileDialogConfig.h" />
     <ClInclude Include="ImGuiMemoryEditor.h" />
@@ -313,6 +314,7 @@
     <ClCompile Include="imanim\im_anim_demo.cpp" />
     <ClCompile Include="imanim\im_anim_doc.cpp" />
     <ClCompile Include="imanim\im_anim_usecase.cpp" />
+    <ClCompile Include="ImGuiDrawListExtensions.cpp" />
     <ClCompile Include="ImGuiFileDialog.cpp" />
     <ClCompile Include="ImGuiTextEditor.cpp" />
     <ClCompile Include="ImGuiUtils.cpp" />
