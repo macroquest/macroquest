@@ -4,6 +4,12 @@ Updated to crashpad from the crashpad-backtrace fork we were previously using.
 - For local builders you should remove crashpad-backtrace to prevent conflicts
 - `vcpkg remove crashpad-backtrace:x64-windows-static` and/or `vcpkg remove crashpad-backtrace:x86-windows-static`
 
+### Bug fixes
+
+- live/test: Fix /removeaug (#974)
+- emu: Fix CTargetWnd buff accessor (#975)
+
+
 ## 2/22/2026
 
 ### ImAnim Integration
