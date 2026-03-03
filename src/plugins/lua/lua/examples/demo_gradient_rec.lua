@@ -4,10 +4,11 @@ local isRunning = true
 
 local roundingSize = 0
 local rectSize = { width = 100, height = 100, }
-local startCol = ImVec4(1, 1, 0, 1)
-local endCol = ImVec4(0,1, 0 ,1)
+local startCol = ImVec4(0.835, 0.189, 0.025, 1.000)
+local endCol = ImVec4(0.0, 0.354, 1.000, 1.000)
 
-local selectedGradientDir = 'Horizontal'
+local selectedGradientDir = ImGradientDir.Horizontal
+local selectedDrawFlag = ImDrawFlags.RoundCornersAll
 
 local function RenderWin()
     ImGui.SetNextWindowSize(ImVec2(400, 400), ImGuiCond.FirstUseEver)
@@ -18,6 +19,7 @@ local function RenderWin()
 
         ImGui.Spacing()
 
+        ImGui.SeparatorText("Demo 1: Basic Usage")
         ImGui.Text("This demonstrates the basic usage of 2 color Gradient Rect and options")
 
         rectSize.width = ImGui.SliderFloat("Rect Width", rectSize.width, 4, 400)
@@ -28,20 +30,28 @@ local function RenderWin()
         if roundingSize > tmpLarger / 2 then roundingSize = tmpLarger / 2 end
         roundingSize = ImGui.SliderFloat("Rounding Size", roundingSize, 0, tmpLarger / 2)
 
-        if ImGui.RadioButton("Horizontal Gradient", selectedGradientDir == 'Horizontal') then
-            selectedGradientDir = 'Horizontal'
-        end
-        ImGui.SameLine()
-        if ImGui.RadioButton("Vertical Gradient", selectedGradientDir == 'Vertical') then
-            selectedGradientDir = 'Vertical'
+        if ImGui.BeginCombo("ImDrawFlags##Combo", "Select Flag") then
+            for k, v in pairs(getmetatable(ImDrawFlags).__index) do
+                local isSelected = selectedDrawFlag == v
+                if ImGui.Selectable(k, isSelected) then
+                    selectedDrawFlag = v
+                end
+                if isSelected then ImGui.SetItemDefaultFocus() end
+            end
+
+            ImGui.EndCombo()
         end
 
-        if ImGui.RadioButton("Diagonal TL-BR Gradient", selectedGradientDir == 'DiagTopLeftBottomRight') then
-            selectedGradientDir = 'DiagTopLeftBottomRight'
-        end
-        ImGui.SameLine()
-        if ImGui.RadioButton("Diagonal TR-BL Gradient", selectedGradientDir == 'DiagTopRightBottomLeft') then
-            selectedGradientDir = 'DiagTopRightBottomLeft'
+        if ImGui.BeginCombo("ImGradientDir##Combo", "Select Gradient Direction") then
+            for k, v in pairs(getmetatable(ImGradientDir).__index) do
+                local isSelected = selectedGradientDir == v
+                if ImGui.Selectable(k, isSelected) then
+                    selectedGradientDir = v
+                end
+                if isSelected then ImGui.SetItemDefaultFocus() end
+            end
+
+            ImGui.EndCombo()
         end
 
         startCol = ImGui.ColorEdit4("StartColor", startCol, ImGuiColorEditFlags.NoInputs)
@@ -61,12 +71,14 @@ local function RenderWin()
             top_left, bottom_right,
             ImGui.GetColorU32(startCol),
             ImGui.GetColorU32(endCol),
-            ImGradientDir[selectedGradientDir],
+            selectedGradientDir,
             roundingSize,
-            ImDrawFlags.RoundCornersAll
+            selectedDrawFlag
         )
+
         ImGui.SetCursorPos(startPos.x, startPos.y + rectSize.height + 5)
         ImGui.Dummy(0, 0)
+
     end
     ImGui.End()
 end
