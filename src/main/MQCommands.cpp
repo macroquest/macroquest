@@ -5769,7 +5769,7 @@ void RemoveAugCmd(PlayerClient* pChar, const char* szLine)
 
 				if (pItemSolvent)
 				{
-#if IS_CLIENT_DATE(20260205u) // I don't know when exactly this changed
+#if IS_CLIENT_DATE(20260202u) // I don't know when exactly this changed
 					CItemDisplayWnd::RemoveAugmentRequest(pTargetItem, foundAugment.GetDeepestSlot());
 #else
 					auto itemDis = pItemDisplayManager->GetWindow(index);
