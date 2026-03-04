@@ -137,6 +137,7 @@ jobs:
           $resourceFile | Set-Content $resourceFilePath
 
       - name: Check Scoop Installation
+        if: false # Disable scoop since we're not using sentry integration
         id: check_scoop
         shell: pwsh
         run: |
@@ -161,7 +162,8 @@ jobs:
           echo "scoop_packages_hash=$hash" >> $env:GITHUB_OUTPUT
 
       - name: Restore Scoop Cache
-        if: steps.check_scoop.outputs.scoop_ready != 'true'
+        if: false # Disable scoop since we're not using sentry integration
+        # if: steps.check_scoop.outputs.scoop_ready != 'true'
         id: restore_scoop_cache
         uses: actions/cache@v4
         with:
@@ -169,7 +171,8 @@ jobs:
           key: ${{ runner.os }}-scoop-${{ steps.check_scoop.outputs.scoop_packages_hash }}
 
       - name: Install Scoop
-        if: steps.check_scoop.outputs.scoop_ready != 'true' && steps.restore_scoop_cache.outputs.cache-hit != 'true'
+        if: false # Disable scoop since we're not using sentry integration
+        # if: steps.check_scoop.outputs.scoop_ready != 'true' && steps.restore_scoop_cache.outputs.cache-hit != 'true'
         uses: MinoruSekine/setup-scoop@v4.0.2
         with:
           install_scoop: 'true'
@@ -179,7 +182,8 @@ jobs:
           update_path: 'true'
 
       - name: Setup Scoop PATH
-        if: steps.check_scoop.outputs.scoop_ready == 'true' || steps.restore_scoop_cache.outputs.cache-hit == 'true'
+        if: false # Disable scoop since we're not using sentry integration
+        # if: steps.check_scoop.outputs.scoop_ready == 'true' || steps.restore_scoop_cache.outputs.cache-hit == 'true'
         uses: MinoruSekine/setup-scoop@v4.0.2
         with:
           install_scoop: 'false'
@@ -235,6 +239,7 @@ jobs:
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb
 
       - name: Upload Symbols to Sentry
+        if: false # Disable sentry integration
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: macroquest
