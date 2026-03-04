@@ -146,6 +146,7 @@ bool InitializeCrashpad()
 
 		crashpad::UUID uuid;
 		s_database->GetSettings()->GetClientID(&uuid);
+		annotations["sentry[user][id]"] = uuid.ToString();
 		SPDLOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 	else

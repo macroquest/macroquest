@@ -102,6 +102,7 @@ static crashpad::StringAnnotation<32> buildTimestampAnnotation("sentry[tags][eqV
 static crashpad::StringAnnotation<32> buildVersionAnnotation("sentry[tags][mqVersion]");
 static crashpad::StringAnnotation<36> buildCrashIdAnnotation("sentry[tags][crashId]");
 
+static crashpad::StringAnnotation<36> s_clientIdAnnotation("sentry[user][id]");
 static crashpad::StringAnnotation<MAX_STRING> s_currentCommandAnnotation("sentry[tags][mq.command]");
 static crashpad::StringAnnotation<MAX_STRING> s_currentMacroData("sentry[tags][mq.macro_data]");
 
@@ -187,6 +188,7 @@ bool InitializeCrashpad()
 
 		crashpad::UUID uuid;
 		s_database->GetSettings()->GetClientID(&uuid);
+		s_clientIdAnnotation.Set(uuid.ToString());
 		LOG_INFO("Crash report guid: {}", uuid.ToString());
 	}
 	else
@@ -257,6 +259,7 @@ void InitializeCrashpadPipe(const std::string& pipeName)
 
 		crashpad::UUID uuid;
 		database->GetSettings()->GetClientID(&uuid);
+		s_clientIdAnnotation.Set(uuid.ToString());
 		LOG_INFO("Enabling shared crash reporter. Crash report guid: {}", uuid.ToString());
 
 		gCrashpadClient = new crashpad::CrashpadClient();
