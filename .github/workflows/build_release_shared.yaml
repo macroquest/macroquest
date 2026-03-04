@@ -179,7 +179,7 @@ jobs:
           update_path: 'true'
 
       - name: Setup Scoop PATH
-        if: steps.check_scoop.outputs.scoop_ready != 'true' && steps.restore_scoop_cache.outputs.cache-hit == 'true'
+        if: steps.check_scoop.outputs.scoop_ready == 'true' || steps.restore_scoop_cache.outputs.cache-hit == 'true'
         uses: MinoruSekine/setup-scoop@v4.0.2
         with:
           install_scoop: 'false'
