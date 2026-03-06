@@ -16,6 +16,7 @@
 
 #include "eqlib/game/UITextures.h"
 #include "mq/imgui/Widgets.h"
+#include "imgui/ImGuiDrawListExtensions.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -138,6 +139,14 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		static_cast<ImVec4(*)(sol::this_state, sol::table)>(&LuaImColor),
 		static_cast<ImVec4(*)(const ImVec4&)>(&LuaImColor)
 	));
+
+	// ImGradientDir, sets gradient direction for AddRectGradientFilled
+	lua.new_enum("ImGradientDir",
+		"Horizontal", mq::imgui::ImGradientDir::Horizontal,
+		"Vertical", mq::imgui::ImGradientDir::Vertical,
+		"DiagTopLeftBottomRight", mq::imgui::ImGradientDir::DiagTopLeftBottomRight,
+		"DiagTopRightBottomLeft", mq::imgui::ImGradientDir::DiagTopRightBottomLeft
+	);
 
 	// ImGuiStyle
 	lua.new_usertype<ImGuiStyle>(
@@ -384,6 +393,15 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, int col, float rounding) { mThis.AddRectFilled(p1, p2, ImU32(col), rounding); },
 		&ImDrawList::AddRectFilled));
 	imDrawList.set_function("AddRectFilledMultiColor", &ImDrawList::AddRectFilledMultiColor);
+	imDrawList.set_function("AddRectGradientFilled", sol::overload(
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_start, int col_end)
+		{mq::imgui::AddRectGradientFilled(mThis, p_min, p_max, ImU32(col_start), ImU32(col_end), mq::imgui::ImGradientDir::Horizontal, 0.0f, 0); },
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_start, int col_end, int dir)
+		{mq::imgui::AddRectGradientFilled(mThis, p_min, p_max, ImU32(col_start), ImU32(col_end), static_cast<mq::imgui::ImGradientDir>(dir), 0.0f, 0); },
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_start, int col_end, int dir, float rounding)
+		{mq::imgui::AddRectGradientFilled(mThis, p_min, p_max, ImU32(col_start), ImU32(col_end), static_cast<mq::imgui::ImGradientDir>(dir), rounding, 0); },
+		[](ImDrawList& mThis, const ImVec2& p_min, const ImVec2& p_max, int col_start, int col_end, int dir, float rounding, int flags)
+		{mq::imgui::AddRectGradientFilled(mThis, p_min, p_max, ImU32(col_start), ImU32(col_end), static_cast<mq::imgui::ImGradientDir>(dir), rounding, ImDrawFlags(flags)); }));
 	imDrawList.set_function("AddQuad", sol::overload(
 		[](ImDrawList& mThis, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, int col) { mThis.AddQuad(p1, p2, p3, p4, ImU32(col)); },
 		&ImDrawList::AddQuad));
