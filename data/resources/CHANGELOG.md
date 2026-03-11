@@ -1,3 +1,9 @@
+## 3/11/2026
+
+emu: Spell links within the item display window will now open a spell
+display window when clicked.
+
+
 ## 3/5/2026
 
 Add support for teek and tormax
