@@ -1,3 +1,8 @@
+## 3/5/2026
+
+Add support for teek and tormax
+
+
 ## 3/1/2026
 
 Updated to crashpad from the crashpad-backtrace fork we were previously using.

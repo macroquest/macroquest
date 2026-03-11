@@ -1302,6 +1302,26 @@ public:
 			}
 #endif
 		}
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // RoF2 or earlier
+		else if (message == XWM_SPELL_LINK)
+		{
+			std::string_view spellLinkText = std::string_view(static_cast<const char*>(data));
+
+			// Format like a spell link so we can parse it using the link parser
+			fmt::memory_buffer buf;
+			fmt::format_to(fmt::appender(buf), "{}{}{}{}", ITEM_TAG_CHAR, static_cast<int>(ETAG_SPELL), spellLinkText, ITEM_TAG_CHAR);
+
+			SpellLinkInfo linkInfo;
+			ParseSpellLink(std::string_view(buf.data(), buf.size()), linkInfo);
+
+			if (linkInfo.spellID != 0 && pSpellDisplayManager)
+			{
+				pSpellDisplayManager->ShowSpell(linkInfo.spellID, !pWndMgr->IsShiftKey(), true, SpellDisplayType_SpellBookWnd);
+			}
+
+			return 0;
+		}
+#endif
 
 		return Super::WndNotification(sender, message, data);
 	}
