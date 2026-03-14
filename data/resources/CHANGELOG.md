@@ -2,6 +2,10 @@
 
 Update for live patch
 
+### Bug Fixes
+
+- Fix crash in ItemDisplayWnd
+
 
 ## 3/5/2026
 
