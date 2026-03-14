@@ -40,6 +40,8 @@ const int BUTTON_GROUP_HEIGHT = 34;
 static bool s_refreshItemDisplay = false;
 static bool s_refreshSpellDisplay = false;
 
+static bool s_inOnCleanUI = false;
+
 struct ItemEffectConfig {
 	ItemSpellTypes effectType;
 	MQColor color;
@@ -1664,6 +1666,10 @@ private:
 
 	void OnAboutToUnhook()
 	{
+		// Skip cleaning up after ourselves if we're already destroying the UI
+		if (s_inOnCleanUI)
+			return;
+
 		// Reset strings back to the way they were before.
 		UpdateStrings_Trampoline();
 	}
@@ -1969,6 +1975,7 @@ PLUGIN_API void ShutdownPlugin()
 PLUGIN_API void OnCleanUI()
 {
 	s_itemDisplayExtraInfo.clear();
+	s_inOnCleanUI = true;
 
 	if (pItemDisplayManager && pItemDisplayManager->GetCount() > 0)
 	{
@@ -1991,6 +1998,8 @@ PLUGIN_API void OnCleanUI()
 			}
 		}
 	}
+
+	s_inOnCleanUI = false;
 }
 
 PLUGIN_API void OnPulse()
