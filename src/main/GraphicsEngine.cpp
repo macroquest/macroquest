@@ -278,7 +278,7 @@ LRESULT WINAPI WndProc_Detour(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 1;
 
 	if (hWnd != nullptr && hWnd != reinterpret_cast<HWND>(EQADDR_HWND))
-		return DefWindowProcW(hWnd, msg, wParam, lParam);
+		return DefWindowProcA(hWnd, msg, wParam, lParam);
 
 	return WndProc_Trampoline(hWnd, msg, wParam, lParam);
 }
