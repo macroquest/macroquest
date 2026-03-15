@@ -1,3 +1,8 @@
+## 3/14/2026
+
+- Fix Me.RangeReady
+
+
 ## 3/13/2026
 
 Update for live patch
