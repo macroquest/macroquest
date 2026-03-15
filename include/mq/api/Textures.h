@@ -19,6 +19,7 @@
 #include "eqlib/game/UITypes.h"
 #include "imgui/imconfig.h"
 
+#include <memory>
 #include <string_view>
 #include <string>
 
