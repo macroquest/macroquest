@@ -40,6 +40,8 @@ const int BUTTON_GROUP_HEIGHT = 34;
 static bool s_refreshItemDisplay = false;
 static bool s_refreshSpellDisplay = false;
 
+static bool s_inOnCleanUI = false;
+
 struct ItemEffectConfig {
 	ItemSpellTypes effectType;
 	MQColor color;
@@ -1302,6 +1304,26 @@ public:
 			}
 #endif
 		}
+#if !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF) // RoF2 or earlier
+		else if (message == XWM_SPELL_LINK)
+		{
+			std::string_view spellLinkText = std::string_view(static_cast<const char*>(data));
+
+			// Format like a spell link so we can parse it using the link parser
+			fmt::memory_buffer buf;
+			fmt::format_to(fmt::appender(buf), "{}{}{}{}", ITEM_TAG_CHAR, static_cast<int>(ETAG_SPELL), spellLinkText, ITEM_TAG_CHAR);
+
+			SpellLinkInfo linkInfo;
+			ParseSpellLink(std::string_view(buf.data(), buf.size()), linkInfo);
+
+			if (linkInfo.spellID != 0 && pSpellDisplayManager)
+			{
+				pSpellDisplayManager->ShowSpell(linkInfo.spellID, !pWndMgr->IsShiftKey(), true, SpellDisplayType_SpellBookWnd);
+			}
+
+			return 0;
+		}
+#endif
 
 		return Super::WndNotification(sender, message, data);
 	}
@@ -1644,6 +1666,10 @@ private:
 
 	void OnAboutToUnhook()
 	{
+		// Skip cleaning up after ourselves if we're already destroying the UI
+		if (s_inOnCleanUI)
+			return;
+
 		// Reset strings back to the way they were before.
 		UpdateStrings_Trampoline();
 	}
@@ -1949,6 +1975,7 @@ PLUGIN_API void ShutdownPlugin()
 PLUGIN_API void OnCleanUI()
 {
 	s_itemDisplayExtraInfo.clear();
+	s_inOnCleanUI = true;
 
 	if (pItemDisplayManager && pItemDisplayManager->GetCount() > 0)
 	{
@@ -1971,6 +1998,8 @@ PLUGIN_API void OnCleanUI()
 			}
 		}
 	}
+
+	s_inOnCleanUI = false;
 }
 
 PLUGIN_API void OnPulse()
