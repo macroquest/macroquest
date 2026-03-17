@@ -655,7 +655,7 @@ public:
 			[this](const std::string& address, uint16_t port)
 			{
 				NetworkAddress addr{ address, port };
-				if (!this->HasHost(addr) && !m_selfHosts.contains(address))
+				if (!this->HasHost(addr) && !m_selfHosts.count(address))
 					this->AddHost(addr);
 			},
 			configuration.MulticastPort,
