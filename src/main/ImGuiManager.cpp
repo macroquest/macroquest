@@ -1296,7 +1296,7 @@ void ImGuiManager_CreateContext()
 			mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
 		*out = 0;
 
-		std::filesystem::create_directories(fs::path(mq::internal_paths::Config) / "MacroQuest_Overlay", ec);
+		fs::create_directories(fs::path(mq::internal_paths::Config) / "MacroQuest_Overlay", ec);
 		if (ec)
 		{
 			LOG_ERROR("Failed to create directory for ImGui configs: {}", ec.message());
@@ -1308,8 +1308,8 @@ void ImGuiManager_CreateContext()
 			if (!fs::is_regular_file(ImGuiCharacterSpecificSettingsFile, ec)
 				&& fs::is_regular_file(ImGuiDefaultSettingsFile, ec))
 			{
-				std::filesystem::copy_file(ImGuiDefaultSettingsFile, ImGuiCharacterSpecificSettingsFile,
-					std::filesystem::copy_options::skip_existing, ec);
+				fs::copy_file(ImGuiDefaultSettingsFile, ImGuiCharacterSpecificSettingsFile,
+					fs::copy_options::skip_existing, ec);
 			}
 
 			io.IniFilename = ImGuiCharacterSpecificSettingsFile;
@@ -1320,11 +1320,11 @@ void ImGuiManager_CreateContext()
 
 	if (s_deferredClearSettings)
 	{
-		if (std::filesystem::is_regular_file(io.IniFilename, ec))
+		if (fs::is_regular_file(io.IniFilename, ec))
 		{
 			LOG_INFO("Clearing ImGui configuration file: {}", io.IniFilename);
 
-			std::filesystem::remove(io.IniFilename, ec);
+			fs::remove(io.IniFilename, ec);
 		}
 
 		s_deferredClearSettings = false;
@@ -1752,8 +1752,8 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 				{
 					WriteChatf("Copying MacroQuest Overlay INI \ay%s\ax to \ay%s\ax", sourceConfig.c_str(), ImGuiCharacterSpecificSettingsFile);
 
-					std::filesystem::copy_file(sourceConfig, ImGuiCharacterSpecificSettingsFile,
-						std::filesystem::copy_options::overwrite_existing, ec);
+					fs::copy_file(sourceConfig, ImGuiCharacterSpecificSettingsFile,
+						fs::copy_options::overwrite_existing, ec);
 					if (!ec)
 					{
 						ImGui::LoadIniSettingsFromDisk(ImGuiCharacterSpecificSettingsFile);
