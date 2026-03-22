@@ -1,3 +1,18 @@
+## 3/22/2026
+
+### Per-Character ImGui Configuration
+
+ImGui configuration can now be saved on a per-character basis. This is now enabled
+by default. The first time a per-character config is loaded, it will be copied from the
+default config if it exists.
+
+Per-character configuration can be toggled from the overlay settings (/mqsettings overlay)
+or via command with /mqoverlay perchar. Changing this option requires a reload of the
+overlay (/mqoverlay reload)
+
+Per-character overlay configuration is saved like: Config/MacroQuest_Overlay/server_character.ini
+
+
 ## 3/14/2026
 
 - Fix Me.RangeReady
