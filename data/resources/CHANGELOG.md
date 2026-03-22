@@ -12,6 +12,11 @@ overlay (/mqoverlay reload)
 
 Per-character overlay configuration is saved like: Config/MacroQuest_Overlay/server_character.ini
 
+### Bug fixes
+
+- Fix issue where viewports were not parented to the main viewport. This was preventing them from
+  being brought forward when the game window was focused. (#971)
+
 
 ## 3/14/2026
 

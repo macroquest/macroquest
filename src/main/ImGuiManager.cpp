@@ -1356,6 +1356,7 @@ void ImGuiManager_CreateContext()
 
 	io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
 	io.ConfigDockingWithShift = s_shiftToDock;
+	io.ConfigViewportsNoDefaultParent = false;
 
 	if (s_keyboardNavImGui)
 	{
