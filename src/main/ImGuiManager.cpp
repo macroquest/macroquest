@@ -363,6 +363,7 @@ static DebugTab s_selectedDebugTab = DebugTab::None;
 static DebugTab s_selectDebugTab = DebugTab::None;
 static bool s_overlayDebug = false;
 static bool s_enableCursorAttachment = true;
+static bool s_enablePerCharacterOverlayIni = false;
 static bool s_shiftToDock = false;
 static bool s_keyboardNavImGui = false;
 static bool s_imguiIgnoreClampWindow = false;
@@ -1268,7 +1269,16 @@ void ImGuiManager_CreateContext()
 
 	ImGuiIO& io = ImGui::GetIO();
 
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	char* result;
+	if (pLocalPC && pLocalPC->Name[0] != 0 && s_enablePerCharacterOverlayIni)
+	{
+		result = fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay/{}_{}_Overlay.ini", mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
+	}
+	else
+	{
+		result = fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay/Default_Overlay.ini", mq::internal_paths::Config);
+	}
+	*result = '\0';
 
 	if (s_deferredClearSettings)
 	{
@@ -1278,7 +1288,15 @@ void ImGuiManager_CreateContext()
 	}
 	io.IniFilename = &ImGuiSettingsFile[0];
 
-	fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
+	if (pLocalPC && pLocalPC->Name[0] != 0 && s_enablePerCharacterOverlayIni)
+	{
+		result = fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay/{}_{}_Overlay.log", mq::internal_paths::Logs, GetServerShortName(), pLocalPC->Name);
+	}
+	else
+	{
+		result = fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay/Default_Overlay.log", mq::internal_paths::Logs);
+	}
+	*result = '\0';
 	io.LogFilename = &ImGuiLogFile[0];
 
 	ImGui::StyleColorsDark();
@@ -1385,6 +1403,14 @@ void ImGuiManager_OverlaySettings()
 	}
 	ImGui::Unindent();
 	ImGui::EndDisabled();
+
+	if (ImGui::Checkbox("Enable per character overlay INI", &s_enablePerCharacterOverlayIni))
+	{
+		WritePrivateProfileBool("Overlay", "EnablePerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, MacroQuest will create per server per character INI\n"
+		"files for the MacroQuest Overlay. Takes effect on next zone or overlay reload.");
 
 	if (ImGui::Checkbox("Emulate EverQuest Cursor", &s_enableCursorAttachment))
 	{
@@ -1577,6 +1603,75 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 	}
+	else if (ci_equals(szArg, "perchar"))
+	{
+		char szParam[MAX_STRING] = { 0 };
+		GetArg(szParam, szLine, 2);
+
+		if (ci_equals(szParam, "on"))
+		{
+			s_enablePerCharacterOverlayIni = true;
+		}
+		else if (ci_equals(szParam, "off"))
+		{
+			s_enablePerCharacterOverlayIni = false;
+		}
+		else if (szParam[0])
+		{
+			showUsage = true;
+		}
+		else
+		{
+			s_enablePerCharacterOverlayIni = !s_enablePerCharacterOverlayIni;
+		}
+
+		WriteChatf("Overlay INI per character is now: %s",
+			s_enablePerCharacterOverlayIni ? "\agOn" : "\arOff");
+
+		WritePrivateProfileBool("Overlay", "EnablePerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
+	}
+	else if (ci_equals(szArg, "copy"))
+	{
+		if (!pLocalPC || pLocalPC->Name[0] == 0)
+		{
+			showUsage = true;
+		}
+		else
+		{
+			char szParamServer[MAX_STRING] = { 0 };
+			char szParamCharacter[MAX_STRING] = { 0 };
+
+			GetArg(szParamCharacter, szLine, 3);
+			if (szParamCharacter[0] == 0)
+			{
+				// Default server to current if not specified
+				GetArg(szParamCharacter, szLine, 2);
+				strcpy_s(szParamServer, GetServerShortName());
+			}
+			else
+			{
+				GetArg(szParamServer, szLine, 2);
+			}
+
+			if (!s_enablePerCharacterOverlayIni || szParamCharacter[0] == 0)
+			{
+				showUsage = true;
+			}
+			else
+			{
+				std::string sourceConfig = fmt::format("{}/MacroQuest_Overlay/{}_{}_Overlay.ini", mq::internal_paths::Config, szParamServer, szParamCharacter);
+				std::string destinationConfig = fmt::format("{}/MacroQuest_Overlay/{}_{}_Overlay.ini", mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
+				std::error_code ec;
+
+				WriteChatf("Copying MacroQuest Overlay INI \ay%s\ax to \ay%s\ax", sourceConfig.c_str(), destinationConfig.c_str());
+				std::filesystem::copy_file(sourceConfig, destinationConfig, std::filesystem::copy_options::overwrite_existing, ec);
+				if (!ec)
+				{
+					ImGui::LoadIniSettingsFromDisk(destinationConfig.c_str());
+				}
+			}
+		}
+	}
 	else
 	{
 		showUsage = true;
@@ -1592,6 +1687,8 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 		WriteChatf("\ay  stop\ax      - Turns off the overlay. This state does not persist between MQ sessions.");
 		WriteChatf("\ay  start\ax     - Turns on the overlay.");
 		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no param will toggle).");
+		WriteChatf("\ay  perchar\ax \ag[on|off]\ax - Turn per character overlay INI file on/off (no param will toggle).");
+		WriteChatf("\ay  copy\ax \ag[server]\ax \ag<character>\ax - Copy the overlay INI configuration of the specified server character to the currently logged in character (defaults to current server).");
 	}
 }
 
@@ -1608,6 +1705,7 @@ void ImGuiManager_Initialize()
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
 	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	s_enablePerCharacterOverlayIni = GetPrivateProfileBool("Overlay", "EnablePerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
 	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
 	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
 	s_useFreeType = GetPrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
@@ -1619,6 +1717,7 @@ void ImGuiManager_Initialize()
 		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "EnablePerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
