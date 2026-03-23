@@ -41,6 +41,7 @@ bool gbEnableImGuiViewports = false;
 bool gbDeviceAcquired = false;
 
 static bool s_inObjectPreview = false;
+static bool s_renderedImGuiThisFrame = false;
 
 //============================================================================
 //============================================================================
@@ -492,9 +493,13 @@ void MQGraphicsEngine::PostUpdateScene()
 {
 	if (m_deviceAcquired && m_imguiReady && !m_needResetOverlay)
 	{
-		if (gGameState != GAMESTATE_LOGGINGIN && gbRenderImGui)
+		if (gGameState != GAMESTATE_LOGGINGIN
+			&& gbRenderImGui
+			&& !s_renderedImGuiThisFrame)
 		{
 			ImGui_DrawFrame();
+
+			s_renderedImGuiThisFrame = true;
 		}
 	}
 }
@@ -542,6 +547,8 @@ void MQGraphicsEngine::PostEndScene()
 
 void MQGraphicsEngine::OnUpdateFrame()
 {
+	s_renderedImGuiThisFrame = false;
+
 	OnUpdateFrame_Internal();
 
 	// Reset the device hooks between game states. Some of them may alter

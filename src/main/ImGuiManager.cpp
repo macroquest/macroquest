@@ -33,6 +33,10 @@
 #include "imgui/implot/implot_internal.h"
 #include "misc/freetype/imgui_freetype.h"
 
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 namespace ImGui
 {
 	// https://github.com/forrestthewoods/lib_fts
@@ -363,6 +367,7 @@ static DebugTab s_selectedDebugTab = DebugTab::None;
 static DebugTab s_selectDebugTab = DebugTab::None;
 static bool s_overlayDebug = false;
 static bool s_enableCursorAttachment = true;
+static bool s_enablePerCharacterOverlayIni = true;
 static bool s_shiftToDock = false;
 static bool s_keyboardNavImGui = false;
 static bool s_imguiIgnoreClampWindow = false;
@@ -382,10 +387,13 @@ static ImFontAtlas* s_eqFontAtlas = nullptr;
 static bool s_useFreeType = true;
 static std::chrono::steady_clock::time_point s_lastImAnimGc = {};
 
-static char ImGuiSettingsFile[MAX_PATH] = { 0 };
-static char ImGuiLogFile[MAX_PATH] = { 0 };
+static char ImGuiCharacterSpecificSettingsFile[MAX_PATH] = {};
+static char ImGuiDefaultSettingsFile[MAX_PATH] = {};
+static char ImGuiCharacterSpecificLogFile[MAX_PATH] = {};
+static char ImGuiDefaultLogFile[MAX_PATH] = {};
 
 static bool s_deferredClearSettings = false;
+static bool s_needReloadForChangedSettings = false;
 extern bool gbToggleConsoleRequested;
 extern bool gbAutoDockspaceViewport;
 extern bool gbAutoDockspacePreserveRatio;
@@ -1220,6 +1228,10 @@ void ImGuiManager_ReloadContext()
 
 void ImGuiManager_CreateContext()
 {
+	LOG_INFO("Creating ImGui Context");
+
+	s_needReloadForChangedSettings = false;
+
 	bool buildFonts = false;
 	if (s_fontAtlas == nullptr)
 	{
@@ -1267,25 +1279,84 @@ void ImGuiManager_CreateContext()
 	}
 
 	ImGuiIO& io = ImGui::GetIO();
+	std::error_code ec;
 
-	fmt::format_to(ImGuiSettingsFile, "{}/MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	// Set up the ini file
+
+	char* out = fmt::format_to(ImGuiDefaultSettingsFile, "{}\\MacroQuest_Overlay.ini", mq::internal_paths::Config);
+	*out = 0;
+
+	io.IniFilename = ImGuiDefaultSettingsFile;
+	int gameState = GetGameState();
+
+	if (s_enablePerCharacterOverlayIni
+		&& pLocalPC && pLocalPC->Name[0] != 0)
+	{
+		out = fmt::format_to(ImGuiCharacterSpecificSettingsFile, "{}\\MacroQuest_Overlay\\{}_{}.ini",
+			mq::internal_paths::Config, GetServerShortName(), pLocalPC->Name);
+		*out = 0;
+
+		fs::create_directories(fs::path(mq::internal_paths::Config) / "MacroQuest_Overlay", ec);
+		if (ec)
+		{
+			LOG_ERROR("Failed to create directory for ImGui configs: {}", ec.message());
+			WriteChatf("\arFailed to create directory for ImGui configs: %s", ec.message().c_str());
+		}
+		else
+		{
+			// If this is a new configuration, copy from the default.
+			if (!fs::is_regular_file(ImGuiCharacterSpecificSettingsFile, ec)
+				&& fs::is_regular_file(ImGuiDefaultSettingsFile, ec))
+			{
+				fs::copy_file(ImGuiDefaultSettingsFile, ImGuiCharacterSpecificSettingsFile,
+					fs::copy_options::skip_existing, ec);
+			}
+
+			io.IniFilename = ImGuiCharacterSpecificSettingsFile;
+		}
+	}
+
+	LOG_INFO("Using ImGui configuration file: {}", io.IniFilename);
 
 	if (s_deferredClearSettings)
 	{
-		std::error_code ec;
-		if (std::filesystem::is_regular_file(ImGuiSettingsFile, ec))
-			std::filesystem::remove(ImGuiSettingsFile, ec);
-	}
-	io.IniFilename = &ImGuiSettingsFile[0];
+		if (fs::is_regular_file(io.IniFilename, ec))
+		{
+			LOG_INFO("Clearing ImGui configuration file: {}", io.IniFilename);
 
-	fmt::format_to(ImGuiLogFile, "{}/MacroQuest_Overlay.log", mq::internal_paths::Logs);
-	io.LogFilename = &ImGuiLogFile[0];
+			fs::remove(io.IniFilename, ec);
+		}
+
+		s_deferredClearSettings = false;
+	}
+
+	// Set up the log file
+
+	out = fmt::format_to(ImGuiDefaultLogFile, "{}\\MacroQuest_Overlay.log", mq::internal_paths::Logs);
+	*out = 0;
+
+	io.LogFilename = ImGuiDefaultLogFile;
+
+	if (s_enablePerCharacterOverlayIni
+		&& pLocalPC && pLocalPC->Name[0] != 0)
+	{
+		out = fmt::format_to(ImGuiCharacterSpecificLogFile, "{}\\MacroQuest_Overlay_{}_{}.log",
+			mq::internal_paths::Logs, GetServerShortName(), pLocalPC->Name);
+		*out = 0;
+
+		io.LogFilename = ImGuiCharacterSpecificLogFile;
+	}
+
+	LOG_INFO("Using ImGui log file: {}", io.LogFilename);
+
+	// Style
 
 	ImGui::StyleColorsDark();
 	mq::imgui::ConfigureStyle();
 
 	io.IgnoreClampWindow = s_imguiIgnoreClampWindow;
 	io.ConfigDockingWithShift = s_shiftToDock;
+	io.ConfigViewportsNoDefaultParent = false;
 
 	if (s_keyboardNavImGui)
 	{
@@ -1331,6 +1402,8 @@ static bool CheckDestroyFontAtlas(ImFontAtlas*& fontAtlas)
 
 void ImGuiManager_DestroyContext()
 {
+	LOG_INFO("Destroying ImGui Context");
+
 	// Detach our atlas/fonts from render state
 	CleanFontAtlasForContextDestroy(s_fontAtlas);
 	CleanFontAtlasForContextDestroy(s_eqFontAtlas);
@@ -1352,7 +1425,7 @@ void ImGuiManager_OverlaySettings()
 	if (ImGui::Checkbox("Enable Viewports", &gbEnableImGuiViewports))
 	{
 		WritePrivateProfileBool("Overlay", "EnableViewports", gbEnableImGuiViewports, mq::internal_paths::MQini);
-		ResetOverlay();
+		s_needReloadForChangedSettings = true;
 	}
 
 	ImGui::SameLine();
@@ -1385,6 +1458,15 @@ void ImGuiManager_OverlaySettings()
 	}
 	ImGui::Unindent();
 	ImGui::EndDisabled();
+
+	if (ImGui::Checkbox("Enable per character overlay INI", &s_enablePerCharacterOverlayIni))
+	{
+		WritePrivateProfileBool("Overlay", "PerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
+		s_needReloadForChangedSettings = true;
+	}
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, MacroQuest will create per server per character INI\n"
+		"files for the MacroQuest Overlay. Takes effect on next zone or overlay reload.");
 
 	if (ImGui::Checkbox("Emulate EverQuest Cursor", &s_enableCursorAttachment))
 	{
@@ -1453,6 +1535,18 @@ void ImGuiManager_OverlaySettings()
 		"Will affect the appearance of text in the overlay.");
 
 	ImGui::NewLine();
+
+	ImGui::Separator();
+
+	if (ImGui::Button("Reload Overlay"))
+	{
+		ResetOverlay();
+	}
+	if (s_needReloadForChangedSettings)
+	{
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(1.0, 1.0, 0, 1.0), "Some changes require a reload to take effect.");
+	}
 
 	if (ImGui::Button("Clear Saved ImGui Window Settings"))
 	{
@@ -1577,6 +1671,102 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
 	}
+	else if (ci_equals(szArg, "perchar"))
+	{
+		char szParam[MAX_STRING] = { 0 };
+		GetArg(szParam, szLine, 2);
+
+		if (ci_equals(szParam, "on"))
+		{
+			s_enablePerCharacterOverlayIni = true;
+		}
+		else if (ci_equals(szParam, "off"))
+		{
+			s_enablePerCharacterOverlayIni = false;
+		}
+		else if (szParam[0])
+		{
+			showUsage = true;
+		}
+		else
+		{
+			s_enablePerCharacterOverlayIni = !s_enablePerCharacterOverlayIni;
+		}
+
+		WriteChatf("Overlay INI per character is now: %s \a-w(run \a-y/mqoverlay reload\ax to apply right away)", s_enablePerCharacterOverlayIni ? "\agOn" : "\arOff");
+		WritePrivateProfileBool("Overlay", "EnablePerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
+	}
+	else if (ci_equals(szArg, "copy"))
+	{
+		if (!pLocalPC || pLocalPC->Name[0] == 0)
+		{
+			showUsage = true;
+			WriteChatf("\arYou must be logged in to a character to use this command.");
+		}
+		else
+		{
+			char szParamServer[MAX_STRING] = {};
+			char szParamCharacter[MAX_STRING] = {};
+
+			GetArg(szParamCharacter, szLine, 3);
+			if (szParamCharacter[0] == 0)
+			{
+				// Default server to current if not specified
+				GetArg(szParamCharacter, szLine, 2);
+				strcpy_s(szParamServer, GetServerShortName());
+			}
+			else
+			{
+				GetArg(szParamServer, szLine, 2);
+			}
+
+			if (!s_enablePerCharacterOverlayIni
+				|| ImGuiCharacterSpecificSettingsFile[0] == 0)
+			{
+				showUsage = true;
+
+				WriteChatf("\arEnabled per-character configuration with \ay/mqoverlay perchar\ax first to copy an overlay configuration!");
+			}
+			else if (szParamCharacter[0] == 0)
+			{
+				showUsage = true;
+			}
+			else
+			{
+				std::string sourceConfig;
+
+				if (ci_equals(szParamCharacter, "default"))
+				{
+					sourceConfig = ImGuiDefaultSettingsFile;
+				}
+				else
+				{
+					sourceConfig = fmt::format("{}\\MacroQuest_Overlay\\{}_{}.ini", mq::internal_paths::Config, szParamServer, szParamCharacter);
+				}
+
+				std::error_code ec;
+				if (!fs::is_regular_file(sourceConfig, ec))
+				{
+					WriteChatf("\arConfiguration file not found: %s", sourceConfig.c_str());
+				}
+				else
+				{
+					WriteChatf("Copying MacroQuest Overlay INI \ay%s\ax to \ay%s\ax", sourceConfig.c_str(), ImGuiCharacterSpecificSettingsFile);
+
+					fs::copy_file(sourceConfig, ImGuiCharacterSpecificSettingsFile,
+						fs::copy_options::overwrite_existing, ec);
+					if (!ec)
+					{
+						ImGui::LoadIniSettingsFromDisk(ImGuiCharacterSpecificSettingsFile);
+					}
+					else
+					{
+						WriteChatf("\arFailed to copy \ay%s\ax to \ay%s\ax", sourceConfig.c_str(), ImGuiCharacterSpecificSettingsFile);
+					}
+				}
+			}
+		}
+	}
 	else
 	{
 		showUsage = true;
@@ -1586,12 +1776,15 @@ void MQOverlayCommand(SPAWNINFO* pSpawn, char* szLine)
 	{
 		WriteChatf("\ayUsage: /mqoverlay <options>");
 		WriteChatf("\ayOverlay Control Options:");
-		//WriteChatf("\ay  [reload | resume | debug | stop | start]")
-		WriteChatf("\ay  reload\ax    - Reload the overlay by shutting it down and starting it back up again.");
-		WriteChatf("\ay  resume\ax    - Resumes the overlay in the event that an error has occurred.");
-		WriteChatf("\ay  stop\ax      - Turns off the overlay. This state does not persist between MQ sessions.");
-		WriteChatf("\ay  start\ax     - Turns on the overlay.");
+		WriteChatf("\ay  reload\ax - Reload the overlay by shutting it down and starting it back up again.");
+		WriteChatf("\ay  resume\ax - Resumes the overlay in the event that an error has occurred.");
+		WriteChatf("\ay  stop\ax - Turns off the overlay. This state does not persist between MQ sessions.");
+		WriteChatf("\ay  start\ax - Turns on the overlay.");
 		WriteChatf("\ay  cursor\ax \ag[on|off]\ax - Turn cursor attachment emulation on/off (no param will toggle).");
+		WriteChatf("\ay  perchar\ax \ag[on|off]\ax - Turn per character overlay INI file on/off (no param will toggle).");
+		WriteChatf("\ay  copy\ax \ag[server]\ax \ag<character>\ax - Copy the overlay INI configuration of the specified "
+			 "server+character to the currently logged in character (defaults to current server).");
+		WriteChatf("\ay    Use \ag/mqoverlay copy default\ax to copy from the default overlay ini file");
 	}
 }
 
@@ -1608,6 +1801,7 @@ void ImGuiManager_Initialize()
 	gbAutoDockspacePreserveRatio = GetPrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", false, mq::internal_paths::MQini);
 	s_imguiIgnoreClampWindow = GetPrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", false, mq::internal_paths::MQini);
 	s_enableCursorAttachment = GetPrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+	s_enablePerCharacterOverlayIni = GetPrivateProfileBool("Overlay", "PerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
 	s_shiftToDock = GetPrivateProfileBool("Overlay", "DockingWithShift", false, mq::internal_paths::MQini);
 	s_keyboardNavImGui = GetPrivateProfileBool("Overlay", "EnableKeyboardNav", false, mq::internal_paths::MQini);
 	s_useFreeType = GetPrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
@@ -1619,6 +1813,7 @@ void ImGuiManager_Initialize()
 		WritePrivateProfileBool("Overlay", "ResizeEQViewportPreserveRatio", gbAutoDockspacePreserveRatio, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "ImGuiIgnoreClampWindow", s_imguiIgnoreClampWindow, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "CursorAttachment", s_enableCursorAttachment, mq::internal_paths::MQini);
+		WritePrivateProfileBool("Overlay", "PerCharacterOverlayIni", s_enablePerCharacterOverlayIni, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "DockingWithShift", s_shiftToDock, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "EnableKeyboardNav", s_keyboardNavImGui, mq::internal_paths::MQini);
 		WritePrivateProfileBool("Overlay", "UseFreeType", s_useFreeType, mq::internal_paths::MQini);
