@@ -443,6 +443,9 @@ public:
 
 	MQLIB_OBJECT bool GetMemberID(const char* Name, int& Result) const;
 
+	MQLIB_OBJECT const char* GetMethodName(int ID) const;
+	MQLIB_OBJECT bool GetMethodID(const char* Name, int& Result) const;
+
 	MQLIB_OBJECT MQTypeMember* FindMember(const char* Name);
 	MQLIB_OBJECT MQTypeMember* FindMember(const std::string& Name);
 	MQLIB_OBJECT MQTypeMember* FindMethod(const char* Name);
