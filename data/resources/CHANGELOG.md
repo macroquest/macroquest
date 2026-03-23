@@ -1,3 +1,37 @@
+## 3/22/2026
+
+### Per-Character ImGui Configuration
+
+ImGui configuration can now be saved on a per-character basis. This is now enabled
+by default. The first time a per-character config is loaded, it will be copied from the
+default config if it exists.
+
+Per-character configuration can be toggled from the overlay settings (/mqsettings overlay)
+or via command with /mqoverlay perchar. Changing this option requires a reload of the
+overlay (/mqoverlay reload)
+
+Per-character overlay configuration is saved like: Config/MacroQuest_Overlay/server_character.ini
+
+### Bug fixes
+
+- Fix issue where viewports were not parented to the main viewport. This was preventing them from
+  being brought forward when the game window was focused. (#971)
+
+
+## 3/14/2026
+
+- Fix Me.RangeReady
+
+
+## 3/13/2026
+
+Update for live patch
+
+### Bug Fixes
+
+- Fix crash in ItemDisplayWnd
+
+
 ## 3/11/2026
 
 emu: Spell links within the item display window will now open a spell
