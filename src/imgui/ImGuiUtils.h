@@ -95,5 +95,22 @@ IMGUI_API void ColumnHeaders(const char* columnsId, ColumnHeader* headers, int c
 IMGUI_API void BeginColumnHeadersSync(const char* columnsId, ColumnHeader* headers, int count, bool border = true);
 IMGUI_API void EndColumnHeadersSync(ColumnHeader* headers, int count);
 
+//----------------------------------------------------------------------------
+// Nine-slice image drawing
+
+// Draws a texture using the nine-slice (9-patch) pattern onto draw_list.
+// margins defines the size of the fixed corner/edge regions in screen-space pixels:
+//   x = left, y = top, z = right, w = bottom
+// UV slice positions are derived proportionally from the margins relative to the
+// destination rect size. If margins.x + margins.z exceed the dest width (or
+// margins.y + margins.w exceed the height), they are scaled down proportionally.
+// Segments with zero width or height are skipped (no zero-area quads submitted).
+IMGUI_API void AddImageNineSlice(ImDrawList* draw_list, ImTextureRef tex_ref,
+	const ImVec2& p_min, const ImVec2& p_max,
+	const ImVec4& margins,
+	const ImVec4& uv_margins,
+	const ImVec2& uv_min = ImVec2(0.0f, 0.0f), const ImVec2& uv_max = ImVec2(1.0f, 1.0f),
+	ImU32 col = IM_COL32_WHITE);
+
 
 }} // namespace mq::imgui
