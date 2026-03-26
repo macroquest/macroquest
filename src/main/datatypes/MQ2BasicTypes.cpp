@@ -1497,6 +1497,7 @@ enum class TypeMembers
 	Name,
 	Member,
 	InheritedType,
+	Method,
 };
 
 MQ2TypeType::MQ2TypeType() : MQ2Type("type")
@@ -1504,6 +1505,7 @@ MQ2TypeType::MQ2TypeType() : MQ2Type("type")
 	ScopedTypeMember(TypeMembers, Name);
 	ScopedTypeMember(TypeMembers, Member);
 	ScopedTypeMember(TypeMembers, InheritedType);
+	ScopedTypeMember(TypeMembers, Method);
 }
 
 bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -1545,6 +1547,33 @@ bool MQ2TypeType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQ
 			{
 				Dest.Type = pIntType;
 				Dest.Int = memberID;
+				return true;
+			}
+		}
+
+		return false;
+
+	case TypeMembers::Method:
+		if (!Index[0])
+			return false;
+
+		if (IsNumber(Index))
+		{
+			// name by number
+			if (Dest.Ptr = (void*)pType->GetMethodName(GetIntFromString(Index, 0)))
+			{
+				Dest.Type = pStringType;
+				return true;
+			}
+		}
+		else
+		{
+			// number by name
+			int methodID;
+			if (pType->GetMethodID(Index, methodID))
+			{
+				Dest.Type = pIntType;
+				Dest.Int = methodID;
 				return true;
 			}
 		}

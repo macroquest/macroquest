@@ -1726,6 +1726,32 @@ bool MQ2Type::GetMemberID(const char* Name, int& result) const
 	return true;
 }
 
+const char* MQ2Type::GetMethodName(int ID) const
+{
+	for (const auto& pMethod : Methods)
+	{
+		if (pMethod && pMethod->ID == ID)
+		{
+			return &pMethod->Name[0];
+		}
+	}
+
+	return nullptr;
+}
+
+bool MQ2Type::GetMethodID(const char* Name, int& result) const
+{
+	std::scoped_lock lock(m_mutex);
+
+	auto iter = MethodMap.find(Name);
+	if (iter == MethodMap.end())
+		return false;
+
+	int index = iter->second;
+	result = Methods[index]->ID;
+	return true;
+}
+
 mq::MQTypeMember* MQ2Type::FindMember(const char* Name)
 {
 	std::scoped_lock lock(m_mutex);
