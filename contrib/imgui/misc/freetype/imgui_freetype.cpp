@@ -48,6 +48,7 @@
 #include FT_GLYPH_H             // <freetype/ftglyph.h>
 #include FT_SIZES_H             // <freetype/ftsizes.h>
 #include FT_SYNTHESIS_H         // <freetype/ftsynth.h>
+#include FT_STROKER_H           // <freetype/ftstroker.h>
 
 // Handle LunaSVG and PlutoSVG
 #if defined(IMGUI_ENABLE_FREETYPE_LUNASVG) && defined(IMGUI_ENABLE_FREETYPE_PLUTOSVG)
@@ -146,6 +147,7 @@ struct ImGui_ImplFreeType_Data
 {
     FT_Library                      Library;
     FT_MemoryRec_                   MemoryManager;
+    FT_Stroker                      Stroker;
     ImGui_ImplFreeType_Data()       { memset((void*)this, 0, sizeof(*this)); }
 };
 
@@ -366,6 +368,9 @@ static bool ImGui_ImplFreeType_LoaderInit(ImFontAtlas* atlas)
     // If you don't call FT_Add_Default_Modules() the rest of code may work, but FreeType won't use our custom allocator.
     FT_Add_Default_Modules(bd->Library);
 
+    // Create stroker for outline support
+    FT_Stroker_New(bd->Library, &bd->Stroker);
+
 #ifdef IMGUI_ENABLE_FREETYPE_LUNASVG
     // Install svg hooks for FreeType
     // https://freetype.org/freetype2/docs/reference/ft2-properties.html#svg-hooks
@@ -388,6 +393,7 @@ static void ImGui_ImplFreeType_LoaderShutdown(ImFontAtlas* atlas)
 {
     ImGui_ImplFreeType_Data* bd = (ImGui_ImplFreeType_Data*)atlas->FontLoaderData;
     IM_ASSERT(bd != nullptr);
+    FT_Stroker_Done(bd->Stroker);
     FT_Done_Library(bd->Library);
     IM_DELETE(bd);
     atlas->FontLoaderData = nullptr;
@@ -516,6 +522,113 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
 
     // Render glyph into a bitmap (currently held by FreeType)
     FT_Render_Mode render_mode = (bd_font_data->UserFlags & ImGuiFreeTypeLoaderFlags_Monochrome) ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
+
+    // Outline path: bake white fill with black outline into RGBA atlas glyph
+    if (bd_font_data->UserFlags & ImGuiFreeTypeLoaderFlags_Outline)
+    {
+        ImGui_ImplFreeType_Data* bd = (ImGui_ImplFreeType_Data*)atlas->FontLoaderData;
+        FT_Fixed outline_thickness = 1 * 64; // 1 pixel in 26.6 fixed-point
+
+        // 1) Render filled glyph to bitmap
+        FT_Glyph filled_glyph = nullptr;
+        FT_Get_Glyph(slot, &filled_glyph);
+        FT_Glyph_To_Bitmap(&filled_glyph, render_mode, nullptr, true);
+        FT_BitmapGlyph filled_bmp = (FT_BitmapGlyph)filled_glyph;
+
+        // 2) Reload glyph, stroke it, render to bitmap
+        ImGui_ImplFreeType_LoadGlyph(bd_font_data, codepoint);
+        FT_Glyph stroked_glyph = nullptr;
+        FT_Get_Glyph(face->glyph, &stroked_glyph);
+        FT_Stroker_Set(bd->Stroker, outline_thickness,
+                       FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+        FT_Glyph_StrokeBorder(&stroked_glyph, bd->Stroker, false, true);
+        FT_Glyph_To_Bitmap(&stroked_glyph, render_mode, nullptr, true);
+        FT_BitmapGlyph stroked_bmp = (FT_BitmapGlyph)stroked_glyph;
+
+        const int w = (int)stroked_bmp->bitmap.width;
+        const int h = (int)stroked_bmp->bitmap.rows;
+        const bool is_visible = (w != 0 && h != 0);
+
+        out_glyph->Codepoint = codepoint;
+        out_glyph->AdvanceX = advance_x;
+
+        if (is_visible)
+        {
+            ImFontAtlasRectId pack_id = ImFontAtlasPackAddRect(atlas, w, h);
+            if (pack_id == ImFontAtlasRectId_Invalid)
+            {
+                FT_Done_Glyph(filled_glyph);
+                FT_Done_Glyph(stroked_glyph);
+                IM_ASSERT(pack_id != ImFontAtlasRectId_Invalid && "Out of texture memory.");
+                return false;
+            }
+            ImTextureRect* r = ImFontAtlasPackGetRect(atlas, pack_id);
+
+            atlas->Builder->TempBuffer.resize(w * h * 4);
+            uint32_t* buf = (uint32_t*)atlas->Builder->TempBuffer.Data;
+            memset(buf, 0, w * h * 4);
+
+            // Blit outline as black (0,0,0) with stroke alpha
+            const uint8_t* stroke_row = stroked_bmp->bitmap.buffer;
+            for (int sy = 0; sy < h; sy++, stroke_row += stroked_bmp->bitmap.pitch)
+                for (int sx = 0; sx < w; sx++)
+                    buf[sy * w + sx] = IM_COL32(0, 0, 0, stroke_row[sx]);
+
+            // Composite white fill over black outline (src_over blend)
+            int dx = filled_bmp->left - stroked_bmp->left;
+            int dy = stroked_bmp->top  - filled_bmp->top;
+            const uint8_t* fill_row = filled_bmp->bitmap.buffer;
+            for (int fy = 0; fy < (int)filled_bmp->bitmap.rows; fy++, fill_row += filled_bmp->bitmap.pitch)
+            {
+                for (int fx = 0; fx < (int)filled_bmp->bitmap.width; fx++)
+                {
+                    int ox = fx + dx, oy = fy + dy;
+                    if (ox < 0 || ox >= w || oy < 0 || oy >= h)
+                        continue;
+                    uint8_t fa = fill_row[fx];
+                    if (fa == 0)
+                        continue;
+
+                    uint32_t dst = buf[oy * w + ox];
+                    uint8_t da = (uint8_t)((dst >> IM_COL32_A_SHIFT) & 0xFF);
+                    uint8_t out_a = (uint8_t)(fa + da - ((uint32_t)fa * da + 127) / 255);
+                    uint8_t out_c = out_a > 0
+                        ? (uint8_t)(((uint32_t)fa * 255 + out_a / 2) / out_a)
+                        : 0;
+                    buf[oy * w + ox] = IM_COL32(out_c, out_c, out_c, out_a);
+                }
+            }
+
+            const float ref_size = baked->OwnerFont->Sources[0]->SizePixels;
+            const float offsets_scale = (ref_size != 0.0f) ? (baked->Size / ref_size) : 1.0f;
+            float font_off_x = (src->GlyphOffset.x * offsets_scale);
+            float font_off_y = (src->GlyphOffset.y * offsets_scale) + baked->Ascent;
+            if (src->PixelSnapH)
+                font_off_x = IM_ROUND(font_off_x);
+            if (src->PixelSnapV)
+                font_off_y = IM_ROUND(font_off_y);
+            float recip_h = 1.0f / rasterizer_density;
+            float recip_v = 1.0f / rasterizer_density;
+
+            float glyph_off_x = (float)stroked_bmp->left;
+            float glyph_off_y = (float)-stroked_bmp->top;
+            out_glyph->X0 = glyph_off_x * recip_h + font_off_x;
+            out_glyph->Y0 = glyph_off_y * recip_v + font_off_y;
+            out_glyph->X1 = (glyph_off_x + w) * recip_h + font_off_x;
+            out_glyph->Y1 = (glyph_off_y + h) * recip_v + font_off_y;
+            out_glyph->Visible = true;
+            out_glyph->Colored = true;
+            out_glyph->PackId = pack_id;
+            ImFontAtlasBakedSetFontGlyphBitmap(atlas, baked, src, out_glyph, r,
+                (const unsigned char*)buf, ImTextureFormat_RGBA32, w * 4);
+        }
+
+        FT_Done_Glyph(filled_glyph);
+        FT_Done_Glyph(stroked_glyph);
+        return true;
+    }
+
+    // Standard (non-outline) path
     FT_Error error = FT_Render_Glyph(slot, render_mode);
     const FT_Bitmap* ft_bitmap = &slot->bitmap;
     if (error != 0 || ft_bitmap == nullptr)
@@ -617,6 +730,7 @@ bool ImGuiFreeType::DebugEditFontLoaderFlags(unsigned int* p_font_loader_flags)
     edited |= ImGui::CheckboxFlags("Monochrome",   p_font_loader_flags, ImGuiFreeTypeLoaderFlags_Monochrome);
     edited |= ImGui::CheckboxFlags("LoadColor",    p_font_loader_flags, ImGuiFreeTypeLoaderFlags_LoadColor);
     edited |= ImGui::CheckboxFlags("Bitmap",       p_font_loader_flags, ImGuiFreeTypeLoaderFlags_Bitmap);
+    edited |= ImGui::CheckboxFlags("Outline",      p_font_loader_flags, ImGuiFreeTypeLoaderFlags_Outline);
     return edited;
 }
 

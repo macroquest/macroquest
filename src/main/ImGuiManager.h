@@ -30,7 +30,7 @@ bool ImGuiManager_HandleWndProcEx(HWND hWnd, uint32_t msg, uintptr_t wparam, int
 bool ImGuiManager_HandleWndProc(HWND hWnd, uint32_t msg, uintptr_t wparam, intptr_t lparam);
 
 void ImGuiManager_BuildFonts(ImFontAtlas* fontAtlas);
-ImFont* ImGuiManager_GetEQImFont(int fontID);
+MQLIB_OBJECT ImFont* ImGuiManager_GetEQImFont(int fontID);
 
 
 void ImGuiManager_ReloadContext();

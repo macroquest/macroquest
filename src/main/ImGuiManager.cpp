@@ -540,7 +540,7 @@ std::unique_ptr<uint8_t[]> GetRawFontData(HFONT hFont, HDC hdc, uint32_t& dataSi
 	return fontData;
 }
 
-static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData)
+static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData, bool outline)
 {
 	// Load font data from HFONT
 	uint32_t fontDataSize = 0;
@@ -556,6 +556,8 @@ static bool LoadFontData(ImFontAtlas* fontAtlas, EQFontData& fontData)
 	fontData.fontConfig.OversampleH = 2;
 	fontData.fontConfig.OversampleV = 2;
 	fontData.fontConfig.PixelSnapH = true;
+	fontData.fontConfig.FontLoaderFlags = outline ? ImGuiFreeTypeLoaderFlags_Outline : 0;
+
 	strcpy_s(fontData.fontConfig.Name, fontData.fontName.c_str());
 
 	// FreeType renders the fonts slightly bigger than the renderer that EQ uses. To compensate, we
@@ -627,7 +629,7 @@ static void BuildEQFonts(ImFontAtlas* fontAtlas)
 		fontData.hFont = font->hFont;
 		fontData.valid = false;
 
-		LoadFontData(fontAtlas, fontData);
+		LoadFontData(fontAtlas, fontData, i == FontStyle_NameFont);
 	}
 }
 
