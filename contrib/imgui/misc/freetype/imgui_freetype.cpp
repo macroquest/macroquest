@@ -523,42 +523,43 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
     // Render glyph into a bitmap (currently held by FreeType)
     FT_Render_Mode render_mode = (bd_font_data->UserFlags & ImGuiFreeTypeLoaderFlags_Monochrome) ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
 
-    // Outline path: bake white fill with black outline into RGBA atlas glyph
+    // Outline path: bake white fill with black outline into RGBA atlas glyph.
+    // Uses distance-weighted dilation of the rasterized fill bitmap for smooth anti-aliased outlines.
     if (bd_font_data->UserFlags & ImGuiFreeTypeLoaderFlags_Outline)
     {
-        ImGui_ImplFreeType_Data* bd = (ImGui_ImplFreeType_Data*)atlas->FontLoaderData;
-        FT_Fixed outline_thickness = 1 * 64; // 1 pixel in 26.6 fixed-point
+        // Render the filled glyph normally
+        FT_Error error = FT_Render_Glyph(slot, render_mode);
+        const FT_Bitmap* ft_bitmap = &slot->bitmap;
+        if (error != 0 || ft_bitmap == nullptr)
+            return false;
 
-        // 1) Render filled glyph to bitmap
-        FT_Glyph filled_glyph = nullptr;
-        FT_Get_Glyph(slot, &filled_glyph);
-        FT_Glyph_To_Bitmap(&filled_glyph, render_mode, nullptr, true);
-        FT_BitmapGlyph filled_bmp = (FT_BitmapGlyph)filled_glyph;
+        const int fill_w = (int)ft_bitmap->width;
+        const int fill_h = (int)ft_bitmap->rows;
+        const int fill_left = face->glyph->bitmap_left;
+        const int fill_top  = face->glyph->bitmap_top;
 
-        // 2) Reload glyph, stroke it, render to bitmap
-        ImGui_ImplFreeType_LoadGlyph(bd_font_data, codepoint);
-        FT_Glyph stroked_glyph = nullptr;
-        FT_Get_Glyph(face->glyph, &stroked_glyph);
-        FT_Stroker_Set(bd->Stroker, outline_thickness,
-                       FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
-        FT_Glyph_StrokeBorder(&stroked_glyph, bd->Stroker, false, true);
-        FT_Glyph_To_Bitmap(&stroked_glyph, render_mode, nullptr, true);
-        FT_BitmapGlyph stroked_bmp = (FT_BitmapGlyph)stroked_glyph;
-
-        const int w = (int)stroked_bmp->bitmap.width;
-        const int h = (int)stroked_bmp->bitmap.rows;
-        const bool is_visible = (w != 0 && h != 0);
+        // Outline parameters
+        const float outline_radius = 1.5f;
+        const int pad = (int)(outline_radius + 1.0f);
+        const int w = fill_w + pad * 2;
+        const int h = fill_h + pad * 2;
 
         out_glyph->Codepoint = codepoint;
         out_glyph->AdvanceX = advance_x;
 
-        if (is_visible)
+        if (fill_w > 0 && fill_h > 0)
         {
+            // Extract fill alpha into a flat buffer
+            ImVector<uint8_t> fill_alpha;
+            fill_alpha.resize(fill_w * fill_h);
+            const uint8_t* src_row = ft_bitmap->buffer;
+            for (int y = 0; y < fill_h; y++, src_row += ft_bitmap->pitch)
+                for (int x = 0; x < fill_w; x++)
+                    fill_alpha[y * fill_w + x] = src_row[x];
+
             ImFontAtlasRectId pack_id = ImFontAtlasPackAddRect(atlas, w, h);
             if (pack_id == ImFontAtlasRectId_Invalid)
             {
-                FT_Done_Glyph(filled_glyph);
-                FT_Done_Glyph(stroked_glyph);
                 IM_ASSERT(pack_id != ImFontAtlasRectId_Invalid && "Out of texture memory.");
                 return false;
             }
@@ -568,34 +569,50 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
             uint32_t* buf = (uint32_t*)atlas->Builder->TempBuffer.Data;
             memset(buf, 0, w * h * 4);
 
-            // Blit outline as black (0,0,0) with stroke alpha
-            const uint8_t* stroke_row = stroked_bmp->bitmap.buffer;
-            for (int sy = 0; sy < h; sy++, stroke_row += stroked_bmp->bitmap.pitch)
-                for (int sx = 0; sx < w; sx++)
-                    buf[sy * w + sx] = IM_COL32(0, 0, 0, stroke_row[sx]);
-
-            // Composite white fill over black outline (src_over blend)
-            int dx = filled_bmp->left - stroked_bmp->left;
-            int dy = stroked_bmp->top  - filled_bmp->top;
-            const uint8_t* fill_row = filled_bmp->bitmap.buffer;
-            for (int fy = 0; fy < (int)filled_bmp->bitmap.rows; fy++, fill_row += filled_bmp->bitmap.pitch)
+            // For each pixel in padded space, compute outline alpha via distance-weighted
+            // dilation of the fill bitmap, then composite white fill over black outline.
+            const int search = pad;
+            for (int y = 0; y < h; y++)
             {
-                for (int fx = 0; fx < (int)filled_bmp->bitmap.width; fx++)
+                for (int x = 0; x < w; x++)
                 {
-                    int ox = fx + dx, oy = fy + dy;
-                    if (ox < 0 || ox >= w || oy < 0 || oy >= h)
-                        continue;
-                    uint8_t fa = fill_row[fx];
-                    if (fa == 0)
-                        continue;
+                    int cx = x - pad; // corresponding fill-buffer coordinate
+                    int cy = y - pad;
 
-                    uint32_t dst = buf[oy * w + ox];
-                    uint8_t da = (uint8_t)((dst >> IM_COL32_A_SHIFT) & 0xFF);
-                    uint8_t out_a = (uint8_t)(fa + da - ((uint32_t)fa * da + 127) / 255);
-                    uint8_t out_c = out_a > 0
-                        ? (uint8_t)(((uint32_t)fa * 255 + out_a / 2) / out_a)
-                        : 0;
-                    buf[oy * w + ox] = IM_COL32(out_c, out_c, out_c, out_a);
+                    // Get fill alpha at this position
+                    uint8_t fill_a = 0;
+                    if (cx >= 0 && cx < fill_w && cy >= 0 && cy < fill_h)
+                        fill_a = fill_alpha[cy * fill_w + cx];
+
+                    // Compute outline alpha: max weighted contribution from nearby fill pixels
+                    float outline_coverage = 0.0f;
+                    for (int dy = -search; dy <= search; dy++)
+                    {
+                        for (int dx = -search; dx <= search; dx++)
+                        {
+                            int fx = cx + dx;
+                            int fy = cy + dy;
+                            if (fx < 0 || fx >= fill_w || fy < 0 || fy >= fill_h)
+                                continue;
+                            uint8_t fa = fill_alpha[fy * fill_w + fx];
+                            if (fa == 0)
+                                continue;
+                            float dist = ImSqrt((float)(dx * dx + dy * dy));
+                            float coverage = outline_radius + 0.5f - dist;
+                            if (coverage <= 0.0f)
+                                continue;
+                            coverage = ImMin(coverage, 1.0f) * (fa / 255.0f);
+                            outline_coverage = ImMax(outline_coverage, coverage);
+                        }
+                    }
+                    uint8_t outline_a = (uint8_t)(outline_coverage * 255.0f);
+
+                    // Composite: fill_a drives RGB (0=black, 255=white), max alpha for coverage
+                    if (fill_a > 0 || outline_a > 0)
+                    {
+                        uint8_t out_a = ImMax(fill_a, outline_a);
+                        buf[y * w + x] = IM_COL32(fill_a, fill_a, fill_a, out_a);
+                    }
                 }
             }
 
@@ -610,8 +627,9 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
             float recip_h = 1.0f / rasterizer_density;
             float recip_v = 1.0f / rasterizer_density;
 
-            float glyph_off_x = (float)stroked_bmp->left;
-            float glyph_off_y = (float)-stroked_bmp->top;
+            // Adjust glyph offsets to account for padding around the original fill bitmap
+            float glyph_off_x = (float)(fill_left - pad);
+            float glyph_off_y = (float)-(fill_top + pad);
             out_glyph->X0 = glyph_off_x * recip_h + font_off_x;
             out_glyph->Y0 = glyph_off_y * recip_v + font_off_y;
             out_glyph->X1 = (glyph_off_x + w) * recip_h + font_off_x;
@@ -623,8 +641,6 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
                 (const unsigned char*)buf, ImTextureFormat_RGBA32, w * 4);
         }
 
-        FT_Done_Glyph(filled_glyph);
-        FT_Done_Glyph(stroked_glyph);
         return true;
     }
 
