@@ -2336,11 +2336,11 @@ public:
 				if (ImGui::CollapsingHeader("Textures"))
 				{
 					int index = 0;
-					for (CD3DTexturePointerNode* ptr : pSelectedFont->arTextures)
+					for (const CD3DTexturePointerNodePtr& ptr : pSelectedFont->arTextures)
 					{
 						ImGui::Text("%d:", index++);
 
-						ImTextureID TexID = ptr->pTexture;
+						ImTextureID TexID = ptr.node->pTexture;
 
 						ImGui::Image(TexID, ImVec2(pSelectedFont->fTextureSize, pSelectedFont->fTextureSize));
 					}
