@@ -92,8 +92,8 @@ void PersistedBool::Update()
 }
 
 class ImGuiWindowBase;
-ImGuiWindowBase* s_imguiBaseWindows = nullptr;
-ImGuiWindowBase* s_lastImguiBaseWindow = nullptr;
+
+static std::vector<ImGuiWindowBase*> s_imguiBaseWindows;
 
 ImGuiWindowBase::ImGuiWindowBase(std::string_view windowId, std::string_view windowTitle)
 	: m_open("Developer Tools", windowId)
@@ -101,25 +101,20 @@ ImGuiWindowBase::ImGuiWindowBase(std::string_view windowId, std::string_view win
 {
 	SetWindowTitle(windowTitle);
 
-	if (!s_lastImguiBaseWindow)
-	{
-		s_imguiBaseWindows = s_lastImguiBaseWindow = this;
-	}
-	else
-	{
-		m_prev = s_lastImguiBaseWindow;
-		m_prev->m_next = this;
-		s_lastImguiBaseWindow = this;
-	}
+	s_imguiBaseWindows.push_back(this);
 }
 
 ImGuiWindowBase::~ImGuiWindowBase()
 {
-	// Unlink from the chain
-	if (m_next)
-		m_next->m_prev = m_prev;
-	if (m_prev)
-		m_prev->m_next = m_next;
+	std::erase(s_imguiBaseWindows, this);
+}
+
+void ImGuiWindowBase::UpdateAll()
+{
+	for (ImGuiWindowBase* window : s_imguiBaseWindows)
+	{
+		window->Update();
+	}
 }
 
 void ImGuiWindowBase::Update()
@@ -6171,14 +6166,7 @@ static void DeveloperTools_SetGameState(int gameState)
 
 static void DeveloperTools_UpdateImGui()
 {
-	ImGuiWindowBase* baseWindow = s_imguiBaseWindows;
-	while (baseWindow)
-	{
-		baseWindow->Update();
-		baseWindow = baseWindow->GetNext();
-	}
-
-	//s_windowDebugPanel.Draw();
+	ImGuiWindowBase::UpdateAll();
 }
 
 } // namespace mq
