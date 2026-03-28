@@ -644,7 +644,115 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
         return true;
     }
 
-    // Standard (non-outline) path
+    // Drop shadow path: bake white fill with black shadow offset into RGBA atlas glyph.
+    if (bd_font_data->UserFlags & ImGuiFreeTypeLoaderFlags_DropShadow)
+    {
+        const int shadow_offset_x = 2;
+        const int shadow_offset_y = 2;
+
+        // Render the filled glyph normally
+        FT_Error error = FT_Render_Glyph(slot, render_mode);
+        const FT_Bitmap* ft_bitmap = &slot->bitmap;
+        if (error != 0 || ft_bitmap == nullptr)
+            return false;
+
+        const int fill_w = (int)ft_bitmap->width;
+        const int fill_h = (int)ft_bitmap->rows;
+        const int fill_left = face->glyph->bitmap_left;
+        const int fill_top  = face->glyph->bitmap_top;
+
+        // expand canvas to fit both fill and shadow
+        const int pad_left   = ImMax(0, -shadow_offset_x);
+        const int pad_top    = ImMax(0, -shadow_offset_y);
+        const int pad_right  = ImMax(0, shadow_offset_x);
+        const int pad_bottom = ImMax(0, shadow_offset_y);
+        const int w = fill_w + pad_left + pad_right;
+        const int h = fill_h + pad_top + pad_bottom;
+
+        out_glyph->Codepoint = codepoint;
+        out_glyph->AdvanceX = advance_x;
+
+        if (fill_w > 0 && fill_h > 0)
+        {
+            // Extract fill alpha into a flat buffer
+            ImVector<uint8_t> fill_alpha;
+            fill_alpha.resize(fill_w * fill_h);
+            const uint8_t* src_row = ft_bitmap->buffer;
+            for (int y = 0; y < fill_h; y++, src_row += ft_bitmap->pitch)
+                for (int x = 0; x < fill_w; x++)
+                    fill_alpha[y * fill_w + x] = src_row[x];
+
+            ImFontAtlasRectId pack_id = ImFontAtlasPackAddRect(atlas, w, h);
+            if (pack_id == ImFontAtlasRectId_Invalid)
+            {
+                IM_ASSERT(pack_id != ImFontAtlasRectId_Invalid && "Out of texture memory.");
+                return false;
+            }
+            ImTextureRect* r = ImFontAtlasPackGetRect(atlas, pack_id);
+
+            atlas->Builder->TempBuffer.resize(w * h * 4);
+            uint32_t* buf = (uint32_t*)atlas->Builder->TempBuffer.Data;
+            memset(buf, 0, w * h * 4);
+
+            // Blit shadow (black) at offset
+            for (int fy = 0; fy < fill_h; fy++)
+            {
+                for (int fx = 0; fx < fill_w; fx++)
+                {
+                    uint8_t sa = fill_alpha[fy * fill_w + fx];
+                    if (sa == 0)
+                        continue;
+                    int ox = fx + pad_left + shadow_offset_x;
+                    int oy = fy + pad_top  + shadow_offset_y;
+                    if (ox >= 0 && ox < w && oy >= 0 && oy < h)
+                        buf[oy * w + ox] = IM_COL32(0, 0, 0, sa);
+                }
+            }
+
+            for (int fy = 0; fy < fill_h; fy++)
+            {
+                for (int fx = 0; fx < fill_w; fx++)
+                {
+                    uint8_t fa = fill_alpha[fy * fill_w + fx];
+                    if (fa == 0)
+                        continue;
+                    int ox = fx + pad_left;
+                    int oy = fy + pad_top;
+                    uint32_t dst = buf[oy * w + ox];
+                    uint8_t da = (uint8_t)((dst >> IM_COL32_A_SHIFT) & 0xFF);
+                    uint8_t out_a = ImMax(fa, da);
+                    buf[oy * w + ox] = IM_COL32(fa, fa, fa, out_a);
+                }
+            }
+
+            const float ref_size = baked->OwnerFont->Sources[0]->SizePixels;
+            const float offsets_scale = (ref_size != 0.0f) ? (baked->Size / ref_size) : 1.0f;
+            float font_off_x = (src->GlyphOffset.x * offsets_scale);
+            float font_off_y = (src->GlyphOffset.y * offsets_scale) + baked->Ascent;
+            if (src->PixelSnapH)
+                font_off_x = IM_ROUND(font_off_x);
+            if (src->PixelSnapV)
+                font_off_y = IM_ROUND(font_off_y);
+            float recip_h = 1.0f / rasterizer_density;
+            float recip_v = 1.0f / rasterizer_density;
+
+            float glyph_off_x = (float)(fill_left - pad_left);
+            float glyph_off_y = (float)-(fill_top + pad_top);
+            out_glyph->X0 = glyph_off_x * recip_h + font_off_x;
+            out_glyph->Y0 = glyph_off_y * recip_v + font_off_y;
+            out_glyph->X1 = (glyph_off_x + w) * recip_h + font_off_x;
+            out_glyph->Y1 = (glyph_off_y + h) * recip_v + font_off_y;
+            out_glyph->Visible = true;
+            out_glyph->Colored = true;
+            out_glyph->PackId = pack_id;
+            ImFontAtlasBakedSetFontGlyphBitmap(atlas, baked, src, out_glyph, r,
+                (const unsigned char*)buf, ImTextureFormat_RGBA32, w * 4);
+        }
+
+        return true;
+    }
+
+    // Standard (non-outline/shadow) path
     FT_Error error = FT_Render_Glyph(slot, render_mode);
     const FT_Bitmap* ft_bitmap = &slot->bitmap;
     if (error != 0 || ft_bitmap == nullptr)
@@ -747,6 +855,7 @@ bool ImGuiFreeType::DebugEditFontLoaderFlags(unsigned int* p_font_loader_flags)
     edited |= ImGui::CheckboxFlags("LoadColor",    p_font_loader_flags, ImGuiFreeTypeLoaderFlags_LoadColor);
     edited |= ImGui::CheckboxFlags("Bitmap",       p_font_loader_flags, ImGuiFreeTypeLoaderFlags_Bitmap);
     edited |= ImGui::CheckboxFlags("Outline",      p_font_loader_flags, ImGuiFreeTypeLoaderFlags_Outline);
+    edited |= ImGui::CheckboxFlags("DropShadow",   p_font_loader_flags, ImGuiFreeTypeLoaderFlags_DropShadow);
     return edited;
 }
 

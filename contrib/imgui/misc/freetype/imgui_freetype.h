@@ -40,6 +40,7 @@ enum ImGuiFreeTypeLoaderFlags_
     ImGuiFreeTypeLoaderFlags_Bitmap        = 1 << 9,   // Enable FreeType bitmap glyphs
 
     ImGuiFreeTypeLoaderFlags_Outline       = 1 << 10,  // Enable stroke outline
+    ImGuiFreeTypeLoaderFlags_DropShadow    = 1 << 11,  // Enable drop shadow
 
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     ImGuiFreeTypeBuilderFlags_NoHinting     = ImGuiFreeTypeLoaderFlags_NoHinting,
