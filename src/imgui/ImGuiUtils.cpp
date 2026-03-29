@@ -473,6 +473,70 @@ void EndColumnHeadersSync(ColumnHeader* headers, int count)
 	ImGui::EndChild();
 }
 
+//============================================================================
+
+void AddImageNineSlice(ImDrawList* draw_list, ImTextureRef tex_ref,
+	const ImVec2& p_min, const ImVec2& p_max,
+	const ImVec4& margins,
+	const ImVec4& uv_margins,
+	const ImVec2& uv_min, const ImVec2& uv_max,
+	ImU32 col)
+{
+	if ((col & IM_COL32_A_MASK) == 0)
+		return;
+
+	const float W = p_max.x - p_min.x;
+	const float H = p_max.y - p_min.y;
+	const float uvW = uv_max.x - uv_min.x;
+	const float uvH = uv_max.y - uv_min.y;
+	if (W <= 0.0f || H <= 0.0f || uvW <= 0.0f || uvH <= 0.0f)
+		return;
+
+	// margins are UV-space distances from the respective edges (same units as uv_min/uv_max).
+	// Clamp to non-negative, then scale pairs down if their sum would exceed the UV range.
+	float ml = ImMax(0.0f, margins.x);
+	float mt = ImMax(0.0f, margins.y);
+	float mr = ImMax(0.0f, margins.z);
+	float mb = ImMax(0.0f, margins.w);
+
+	// Screen: clamp pixel margins against W/H
+	if (ml + mr > W) { float s = W / (ml + mr); ml *= s; mr *= s; }
+	if (mt + mb > H) { float s = H / (mt + mb); mt *= s; mb *= s; }
+
+	const float cw[3] = { ml, W - ml - mr, mr };
+	const float ch[3] = { mt, H - mt - mb, mb };
+	const float px[4] = { p_min.x, p_min.x + ml, p_max.x - mr, p_max.x };
+	const float py[4] = { p_min.y, p_min.y + mt, p_max.y - mb, p_max.y };
+
+	// UV: clamp UV margins against uvW/uvH - completely independent
+	float umr = ImMax(0.0f, uv_margins.z);
+	float uml = ImMax(0.0f, uv_margins.x);
+	float umt = ImMax(0.0f, uv_margins.y);
+	float umb = ImMax(0.0f, uv_margins.w);
+	if (uml + umr > uvW) { float s = uvW / (uml + umr); uml *= s; umr *= s; }
+	if (umt + umb > uvH) { float s = uvH / (umt + umb); umt *= s; umb *= s; }
+
+	const float uvx[4] = { uv_min.x, uv_min.x + uml, uv_max.x - umr, uv_max.x };
+	const float uvy[4] = { uv_min.y, uv_min.y + umt, uv_max.y - umb, uv_max.y };
+
+	for (int row = 0; row < 3; ++row)
+	{
+		if (ch[row] == 0.0f)
+			continue;
+		for (int c = 0; c < 3; ++c)
+		{
+			if (cw[c] == 0.0f)
+				continue;
+			draw_list->AddImage(tex_ref,
+				ImVec2(px[c], py[row]),
+				ImVec2(px[c + 1], py[row + 1]),
+				ImVec2(uvx[c], uvy[row]),
+				ImVec2(uvx[c + 1], uvy[row + 1]),
+				col);
+		}
+	}
+}
+
 }} // namespace mq::imgui
 
 
