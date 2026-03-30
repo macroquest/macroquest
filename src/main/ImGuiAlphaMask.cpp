@@ -170,7 +170,7 @@ static void ClearFbAlpha_ImplDX11(const ImDrawList*, const ImDrawCmd*)
 	rs->DeviceContext->OMSetDepthStencilState(rs->DefaultDSS, 0);
 }
 
-static void CreateConverageMaskLayerk_ImplDX11(const ImDrawList*, const ImDrawCmd*)
+static void CreateConverageMaskLayer_ImplDX11(const ImDrawList*, const ImDrawCmd*)
 {
 	auto* rs = static_cast<ImGui_ImplDX11_RenderState*>(ImGui::GetPlatformIO().Renderer_RenderState);
 	if (!rs)
