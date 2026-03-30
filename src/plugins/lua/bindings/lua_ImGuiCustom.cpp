@@ -69,7 +69,7 @@ void RegisterBindings_ImGuiCustom(sol::state_view lua, sol::table& ImGui)
 		"uv_margins", &mq::imgui::NineSliceImageParams::uv_margins,
 		"texture_size", &mq::imgui::NineSliceImageParams::texture_size
 	);
-	ImGui.set_function("ImageNinceSlice",
+	ImGui.set_function("ImageNineSlice",
 		[](const ImTextureRef& tex_ref, const mq::imgui::NineSliceImageParams& image_params, const ImVec2& size, std::optional<ImU32> tint_col)
 		{
 			mq::imgui::ImageNineSlice(tex_ref, image_params, size, tint_col.value_or(IM_COL32_WHITE));
