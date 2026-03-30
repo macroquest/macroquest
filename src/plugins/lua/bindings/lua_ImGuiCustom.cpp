@@ -14,6 +14,7 @@
 
 #include "pch.h"
 
+#include "mq/imgui/AlphaMask.h"
 #include "mq/imgui/ConsoleWidget.h"
 #include "mq/imgui/ImGuiUtils.h"
 #include "mq/imgui/Widgets.h"
@@ -33,7 +34,7 @@ namespace mq::lua::bindings {
 void lua_addimgui(std::string_view name, sol::function function, sol::this_state s);
 void lua_removeimgui(std::string_view name, sol::this_state s);
 
-void RegisterBindings_ImGuiCustom(sol::table& ImGui)
+void RegisterBindings_ImGuiCustom(sol::state_view lua, sol::table& ImGui)
 {
 	// Variables
 	ImGui.set("ConsoleFont", mq::imgui::ConsoleFont);
@@ -53,6 +54,45 @@ void RegisterBindings_ImGuiCustom(sol::table& ImGui)
 		[](CTextureAnimation* anim) { return mq::imgui::DrawTextureAnimation(anim); }
 	));
 	ImGui.set_function("GetEQImFont", &mq::imgui::GetEQImFont);
+
+	// NineSlice image drawing
+	ImGui.new_usertype<mq::imgui::NineSliceImageParams>(
+		"NineSliceImageParams",
+		"WithTextureCoords", &mq::imgui::NineSliceImageParams::WithTextureCoords,
+		"WithPixelCoords", &mq::imgui::NineSliceImageParams::WithPixelCoords,
+
+		"p_min", &mq::imgui::NineSliceImageParams::p_min,
+		"p_max", &mq::imgui::NineSliceImageParams::p_max,
+		"uv_min", &mq::imgui::NineSliceImageParams::uv_min,
+		"uv_max", &mq::imgui::NineSliceImageParams::uv_max,
+		"p_margins", &mq::imgui::NineSliceImageParams::p_margins,
+		"uv_margins", &mq::imgui::NineSliceImageParams::uv_margins,
+		"texture_size", &mq::imgui::NineSliceImageParams::texture_size
+	);
+	ImGui.set_function("ImageNinceSlice",
+		[](const ImTextureRef& tex_ref, const mq::imgui::NineSliceImageParams& image_params, const ImVec2& size, std::optional<ImU32> tint_col)
+		{
+			mq::imgui::ImageNineSlice(tex_ref, image_params, size, tint_col.value_or(IM_COL32_WHITE));
+		});
+	// AddImageNineSlice -> found on ImDrawList bindings
+
+	// Masking
+
+	lua.new_enum("AlphaMaskOp", std::initializer_list<std::pair<std::string_view, int>>{
+		{ "Intersect"                    , static_cast<int>(mq::imgui::AlphaMaskOp::Intersect) },
+		{ "Union"                        , static_cast<int>(mq::imgui::AlphaMaskOp::Union) },
+		{ "Subtract"                     , static_cast<int>(mq::imgui::AlphaMaskOp::Subtract) },
+		{ "Complement"                   , static_cast<int>(mq::imgui::AlphaMaskOp::Complement) },
+	});
+	ImGui.set_function("CreateMaskLayer", &mq::imgui::CreateMaskLayer);
+	ImGui.set_function("BeginMaskedDraw", [](ImDrawList* draw_list, int op)
+		{
+			mq::imgui::BeginMaskedDraw(draw_list, static_cast<mq::imgui::AlphaMaskOp>(op));
+		});
+	ImGui.set_function("EndMaskedDraw", &mq::imgui::EndMaskedDraw);
+	ImGui.set_function("CreateCoverageMaskLayer", &mq::imgui::CreateCoverageMaskLayer);
+	ImGui.set_function("BeginCoverageMaskedDraw", &mq::imgui::BeginCoverageMaskedDraw);
+	ImGui.set_function("EndCoverageMaskedDraw", &mq::imgui::EndCoverageMaskedDraw);
 
 	// Widgets: Utility
 	ImGui.set_function("HelpMarker", [](const char* text, std::optional<float> width, std::optional<ImFont*> font) { mq::imgui::HelpMarker(text, width.value_or(450), font.value_or(nullptr)); });

@@ -551,6 +551,29 @@ void AddImageNineSlice(ImDrawList* draw_list, ImTextureRef tex_ref, const NineSl
 	}
 }
 
+void ImageNineSlice(ImTextureRef tex_ref, const NineSliceImageParams& image_params,
+	const ImVec2& image_size, ImU32 tint_col)
+{
+	using namespace ImGui;
+
+	ImGuiContext& g = *GetCurrentContext();
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return;
+
+	const ImVec2 padding(g.Style.ImageBorderSize, g.Style.ImageBorderSize);
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + image_size + padding * 2.0f);
+	ItemSize(bb);
+	if (!ItemAdd(bb, 0))
+		return;
+
+	// Render
+	if (g.Style.ImageBorderSize > 0.0f)
+		window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border), 0.0f, ImDrawFlags_None, g.Style.ImageBorderSize);
+
+	AddImageNineSlice(window->DrawList, tex_ref, image_params, bb.Min + padding, bb.Max - padding, tint_col);
+}
+
 } // namespace mq::imgui
 
 
