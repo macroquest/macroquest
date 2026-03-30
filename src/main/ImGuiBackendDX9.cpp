@@ -94,6 +94,11 @@ struct ImGui_ImplDX9_Data
 	int                                            IndexBufferSize = 10000;
 	bool                                           HasRgbaSupport;
 
+	// Alpha mask stencil support
+	IDirect3DSurface9*                             pStencilSurface = nullptr;
+	int                                            StencilWidth = 0;
+	int                                            StencilHeight = 0;
+
 	ImGui_ImplDX9_Data()
 	{
 	}
@@ -129,6 +134,23 @@ static void ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 
 //----------------------------------------------------------------------------
 //
+static void ImGui_ImplDX9_CreateStencilResources(int w, int h)
+{
+	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
+
+	if (bd->pStencilSurface) { bd->pStencilSurface->Release(); bd->pStencilSurface = nullptr; }
+
+	bd->pd3dDevice->CreateDepthStencilSurface(
+		(UINT)w, (UINT)h,
+		D3DFMT_D24S8,
+		D3DMULTISAMPLE_NONE, 0,
+		TRUE,
+		&bd->pStencilSurface,
+		nullptr);
+	bd->StencilWidth  = w;
+	bd->StencilHeight = h;
+}
+
 void ImGui_ImplDX9_SetupRenderState(ImDrawData* drawData)
 {
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
@@ -212,6 +234,12 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
 	auto device = bd->pd3dDevice;
 
+	// Create or resize the dedicated stencil surface if the display size changed.
+	int fb_width  = (int)drawData->DisplaySize.x;
+	int fb_height = (int)drawData->DisplaySize.y;
+	if (fb_width > 0 && fb_height > 0 && (fb_width != bd->StencilWidth || fb_height != bd->StencilHeight))
+		ImGui_ImplDX9_CreateStencilResources(fb_width, fb_height);
+
 	// Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to do.
 	// (This almost always points to ImGui::GetPlatformIO().Textures[] but is part of ImDrawData to allow overriding or disabling texture updates).
 	if (drawData->Textures != nullptr)
@@ -262,6 +290,15 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	device->GetTransform(D3DTS_VIEW, &lastView);
 	device->GetTransform(D3DTS_PROJECTION, &lastProjection);
 
+	// Bind our dedicated stencil surface for this frame and clear all stencil bits.
+	wil::com_ptr_nothrow<IDirect3DSurface9> prevDepthStencil;
+	if (bd->pStencilSurface)
+	{
+		device->GetDepthStencilSurface(&prevDepthStencil);
+		device->SetDepthStencilSurface(bd->pStencilSurface);
+		device->Clear(0, nullptr, D3DCLEAR_STENCIL, 0, 1.0f, 0);
+	}
+
 	// Allocate buffers
 	CUSTOMVERTEX* vtxDst;
 	ImDrawIdx* idxDst;
@@ -303,6 +340,13 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	device->SetStreamSource(0, bd->pVB.get(), 0, sizeof(CUSTOMVERTEX));
 	device->SetIndices(bd->pIB.get());
 	device->SetFVF(D3DFVF_CUSTOMVERTEX);
+
+	// Setup render state structure (for callbacks and custom texture bindings)
+	ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+	ImGui_ImplDX9_RenderState render_state;
+	render_state.Device              = bd->pd3dDevice.get();
+	render_state.StencilSurface      = bd->pStencilSurface;
+	platform_io.Renderer_RenderState = &render_state;
 
 	// Setup desired DX state
 	ImGui_ImplDX9_SetupRenderState(drawData);
@@ -358,8 +402,14 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* drawData)
 	device->SetTransform(D3DTS_VIEW, &lastView);
 	device->SetTransform(D3DTS_PROJECTION, &lastProjection);
 
+	// Restore depth-stencil surface binding
+	if (bd->pStencilSurface)
+		device->SetDepthStencilSurface(prevDepthStencil.get());
+
 	// Restore the DX9 state
 	d3d9StateBlock->Apply();
+
+	platform_io.Renderer_RenderState = nullptr;
 }
 
 static bool ImGui_ImplDX9_CheckFormatSupport(LPDIRECT3DDEVICE9 pDevice, D3DFORMAT format)
@@ -532,6 +582,13 @@ void ImGui_ImplDX9_InvalidateDeviceObjects()
 		tex->SetStatus(ImTextureStatus_WantDestroy);
 		ImGui_ImplDX9_UpdateTexture(tex);
 	}
+
+	if (bd->pStencilSurface)
+	{
+		bd->pStencilSurface->Release();
+		bd->pStencilSurface = nullptr;
+	}
+	bd->StencilWidth = bd->StencilHeight = 0;
 
 	bd->pVB.reset();
 	bd->pIB.reset();

@@ -94,6 +94,7 @@ struct ImGui_ImplDX11_Data
 	ID3D11InputLayout*          pInputLayout;
 	ID3D11Buffer*               pVertexConstantBuffer;
 	ID3D11PixelShader*          pPixelShader;
+	ID3D11PixelShader*          pAlphaDiscardPS;        // discards pixels with alpha < 0.5
 	ID3D11SamplerState*         pTexSamplerLinear;
 	ID3D11RasterizerState*      pRasterizerState;
 	ID3D11BlendState*           pBlendState;
@@ -101,6 +102,19 @@ struct ImGui_ImplDX11_Data
 	int                         VertexBufferSize;
 	int                         IndexBufferSize;
 	ImVector<DXGI_SWAP_CHAIN_DESC> SwapChainDescsForViewports;
+
+	// Alpha mask stencil support
+	ID3D11Texture2D*            pStencilTexture;
+	ID3D11DepthStencilView*     pStencilDSV;
+	ID3D11DepthStencilState*    pStencilWriteDSS[8];       // [i] = WriteMask (1<<i)
+	ID3D11DepthStencilState*    pStencilTestEqualDSS;      // (stencil & 0xFF) == ref
+	ID3D11DepthStencilState*    pStencilTestNotEqualDSS;   // (stencil & 0xFF) != ref
+	ID3D11BlendState*           pNoColorBlendState;
+	ID3D11BlendState*           pAlphaWriteBlendState;     // writes only framebuffer alpha; for soft mask phase 1
+	ID3D11BlendState*           pZeroAlphaBlendState;      // forces fb alpha to 0; RGB unchanged; for soft mask clear
+	ID3D11BlendState*           pDestAlphaBlendState;      // blends RGB using framebuffer alpha; for soft mask phase 2
+	int                         StencilWidth;
+	int                         StencilHeight;
 
     ImGui_ImplDX11_Data()       { memset((void*)this, 0, sizeof(*this)); VertexBufferSize = 5000; IndexBufferSize = 10000; }
 };
@@ -122,6 +136,37 @@ static void ImGui_ImplDX11_InitMultiViewportSupport();
 static void ImGui_ImplDX11_ShutdownMultiViewportSupport();
 
 // Functions
+static void ImGui_ImplDX11_CreateStencilResources(int w, int h)
+{
+	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
+
+	if (bd->pStencilDSV)
+	{
+		bd->pStencilDSV->Release();
+		bd->pStencilDSV = nullptr;
+	}
+	if (bd->pStencilTexture)
+	{
+		bd->pStencilTexture->Release();
+		bd->pStencilTexture = nullptr;
+	}
+
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width             = (UINT)w;
+	texDesc.Height            = (UINT)h;
+	texDesc.MipLevels         = 1;
+	texDesc.ArraySize         = 1;
+	texDesc.Format            = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	texDesc.SampleDesc.Count  = 1;
+	texDesc.Usage             = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags         = D3D11_BIND_DEPTH_STENCIL;
+	if (SUCCEEDED(bd->pd3dDevice->CreateTexture2D(&texDesc, nullptr, &bd->pStencilTexture)))
+		bd->pd3dDevice->CreateDepthStencilView(bd->pStencilTexture, nullptr, &bd->pStencilDSV);
+
+	bd->StencilWidth  = w;
+	bd->StencilHeight = h;
+}
+
 static void ImGui_ImplDX11_SetupRenderState(const ImDrawData* draw_data, ID3D11DeviceContext* device_ctx)
 {
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
@@ -188,6 +233,16 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
 	ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
 	ID3D11DeviceContext* device = bd->pd3dDeviceContext;
+
+	// Create or resize the stencil surface if the display size changed.
+	int fb_width  = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+	int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+	if (fb_width > 0 && fb_height > 0 && (fb_width != bd->StencilWidth || fb_height != bd->StencilHeight))
+		ImGui_ImplDX11_CreateStencilResources(fb_width, fb_height);
+
+	// Frame-start stencil clear - resets all bitmask layers from the previous frame.
+	if (bd->pStencilDSV)
+		device->ClearDepthStencilView(bd->pStencilDSV, D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to do.
 	// (This almost always points to ImGui::GetPlatformIO().Textures[] but is part of ImDrawData to allow overriding or
@@ -298,10 +353,23 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 	// Setup render state structure (for callbacks and custom texture bindings)
 	ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 	ImGui_ImplDX11_RenderState render_state;
-	render_state.Device = bd->pd3dDevice;
-	render_state.DeviceContext = bd->pd3dDeviceContext;
-	render_state.SamplerDefault = bd->pTexSamplerLinear;
-	render_state.VertexConstantBuffer = bd->pVertexConstantBuffer;
+	render_state.Device                 = bd->pd3dDevice;
+	render_state.DeviceContext          = bd->pd3dDeviceContext;
+	render_state.SamplerDefault         = bd->pTexSamplerLinear;
+	render_state.VertexConstantBuffer   = bd->pVertexConstantBuffer;
+	render_state.StencilDSV             = bd->pStencilDSV;
+	for (int i = 0; i < 8; ++i)
+		render_state.StencilWriteDSS[i] = bd->pStencilWriteDSS[i];
+	render_state.StencilTestEqualDSS    = bd->pStencilTestEqualDSS;
+	render_state.StencilTestNotEqualDSS = bd->pStencilTestNotEqualDSS;
+	render_state.DefaultDSS             = bd->pDepthStencilState;
+	render_state.DefaultBlendState      = bd->pBlendState;
+	render_state.NoColorBlendState      = bd->pNoColorBlendState;
+	render_state.AlphaWriteBlendState   = bd->pAlphaWriteBlendState;
+	render_state.ZeroAlphaBlendState    = bd->pZeroAlphaBlendState;
+	render_state.DestAlphaBlendState    = bd->pDestAlphaBlendState;
+	render_state.DefaultPS              = bd->pPixelShader;
+	render_state.AlphaDiscardPS         = bd->pAlphaDiscardPS;
 	platform_io.Renderer_RenderState = &render_state;
 
 	// Render command lists
@@ -593,6 +661,35 @@ float4 main(PS_INPUT input) : SV_Target
 		pixelShaderBlob->Release();
 	}
 
+	// Create the alpha-discard pixel shader (discards texels with alpha < 0.5)
+	{
+		static const char* alphaDiscardPS = R"(
+struct PS_INPUT
+{
+	float4 pos : SV_POSITION;
+	float4 col : COLOR0;
+	float2 uv  : TEXCOORD0;
+};
+
+sampler sampler0;
+Texture2D texture0;
+
+float4 main(PS_INPUT input) : SV_Target
+{
+	float4 out_col = input.col * texture0.Sample(sampler0, input.uv);
+	if (out_col.a < 0.5) discard;
+	return out_col;
+}
+)";
+
+		ID3DBlob* alphaDiscardBlob;
+		if (SUCCEEDED(D3DCompile(alphaDiscardPS, strlen(alphaDiscardPS), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &alphaDiscardBlob, nullptr)))
+		{
+			bd->pd3dDevice->CreatePixelShader(alphaDiscardBlob->GetBufferPointer(), alphaDiscardBlob->GetBufferSize(), nullptr, &bd->pAlphaDiscardPS);
+			alphaDiscardBlob->Release();
+		}
+	}
+
 	// Create the blending setup
 	{
 		D3D11_BLEND_DESC desc;
@@ -607,6 +704,48 @@ float4 main(PS_INPUT input) : SV_Target
 		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		bd->pd3dDevice->CreateBlendState(&desc, &bd->pBlendState);
+	}
+
+	// Soft alpha mask - clear: force fb alpha to exactly 0, RGB unchanged
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = true;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+		bd->pd3dDevice->CreateBlendState(&desc, &bd->pZeroAlphaBlendState);
+	}
+
+	// Soft alpha mask - phase 1: write only framebuffer alpha (RGB unchanged)
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = true;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+		bd->pd3dDevice->CreateBlendState(&desc, &bd->pAlphaWriteBlendState);
+	}
+
+	// Soft alpha mask - phase 2: blend RGB using framebuffer alpha as coverage
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = true;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_DEST_ALPHA;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_DEST_ALPHA;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;        // preserve fb alpha - mask must survive all content draws
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		bd->pd3dDevice->CreateBlendState(&desc, &bd->pDestAlphaBlendState);
 	}
 
 	// Create the rasterizer state
@@ -632,6 +771,60 @@ float4 main(PS_INPUT input) : SV_Target
 		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 		desc.BackFace = desc.FrontFace;
 		bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pDepthStencilState);
+	}
+
+	// Create stencil write states - one per bit; [i] writes only bit (1<<i), func=ALWAYS, op=REPLACE
+	for (int i = 0; i < 8; ++i)
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = false;
+		desc.StencilEnable = true;
+		desc.StencilReadMask = 0xFF;
+		desc.StencilWriteMask = static_cast<UINT8>(1 << i);
+		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_REPLACE;
+		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_REPLACE;
+		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		desc.BackFace = desc.FrontFace;
+		bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pStencilWriteDSS[i]);
+	}
+
+	// Create stencil test EQUAL state - (stencil & 0xFF) == ref, no writes
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = false;
+		desc.StencilEnable = true;
+		desc.StencilReadMask = 0xFF;
+		desc.StencilWriteMask = 0x00;
+		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+		desc.BackFace = desc.FrontFace;
+		bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pStencilTestEqualDSS);
+	}
+
+	// Create stencil test NOT_EQUAL state - (stencil & 0xFF) != ref, no writes
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = false;
+		desc.StencilEnable = true;
+		desc.StencilReadMask = 0xFF;
+		desc.StencilWriteMask = 0x00;
+		desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		desc.FrontFace.StencilFunc = D3D11_COMPARISON_NOT_EQUAL;
+		desc.BackFace = desc.FrontFace;
+		bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pStencilTestNotEqualDSS);
+	}
+
+	// Create no-color blend state - all color channel writes disabled
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = false;
+		desc.RenderTarget[0].RenderTargetWriteMask = 0;
+		bd->pd3dDevice->CreateBlendState(&desc, &bd->pNoColorBlendState);
 	}
 
 	// Create texture sampler
@@ -676,9 +869,28 @@ void ImGui_ImplDX11_InvalidateDeviceObjects()
 	if (bd->pDepthStencilState) { bd->pDepthStencilState->Release(); bd->pDepthStencilState = nullptr; }
 	if (bd->pRasterizerState) { bd->pRasterizerState->Release(); bd->pRasterizerState = nullptr; }
 	if (bd->pPixelShader) { bd->pPixelShader->Release(); bd->pPixelShader = nullptr; }
+	if (bd->pAlphaDiscardPS) { bd->pAlphaDiscardPS->Release(); bd->pAlphaDiscardPS = nullptr; }
 	if (bd->pVertexConstantBuffer) { bd->pVertexConstantBuffer->Release(); bd->pVertexConstantBuffer = nullptr; }
 	if (bd->pInputLayout) { bd->pInputLayout->Release(); bd->pInputLayout = nullptr; }
 	if (bd->pVertexShader) { bd->pVertexShader->Release(); bd->pVertexShader = nullptr; }
+
+	// Alpha mask state
+	if (bd->pNoColorBlendState) { bd->pNoColorBlendState->Release(); bd->pNoColorBlendState = nullptr; }
+	if (bd->pZeroAlphaBlendState) { bd->pZeroAlphaBlendState->Release(); bd->pZeroAlphaBlendState = nullptr; }
+	if (bd->pAlphaWriteBlendState) { bd->pAlphaWriteBlendState->Release(); bd->pAlphaWriteBlendState = nullptr; }
+	if (bd->pDestAlphaBlendState) { bd->pDestAlphaBlendState->Release(); bd->pDestAlphaBlendState = nullptr; }
+	if (bd->pStencilTestNotEqualDSS) { bd->pStencilTestNotEqualDSS->Release(); bd->pStencilTestNotEqualDSS = nullptr; }
+	if (bd->pStencilTestEqualDSS) { bd->pStencilTestEqualDSS->Release(); bd->pStencilTestEqualDSS = nullptr; }
+	if (bd->pStencilDSV) { bd->pStencilDSV->Release(); bd->pStencilDSV = nullptr; }
+	if (bd->pStencilTexture) { bd->pStencilTexture->Release(); bd->pStencilTexture = nullptr; }
+
+	for (int i = 0; i < 8; ++i)
+	{
+		if (bd->pStencilWriteDSS[i])
+		{
+			bd->pStencilWriteDSS[i]->Release(); bd->pStencilWriteDSS[i] = nullptr;
+		}
+	}
 }
 
 bool ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_context)

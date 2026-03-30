@@ -113,11 +113,12 @@ public:
 	MQLIB_OBJECT void Toggle() { if (m_open) Close(); else Show(); }
 	MQLIB_OBJECT virtual void Update();
 
-	MQLIB_OBJECT ImGuiWindowBase* GetNext() { return m_next; }
 	MQLIB_OBJECT void SetDefaultSize(const ImVec2& size) { m_defaultSize = size; }
 
 	MQLIB_OBJECT void SetWindowTitle(std::string_view windowTitle);
 	inline const std::string& GetWindowTitle() const { return m_windowTitle; }
+
+	static void UpdateAll();
 
 protected:
 	// Override this to set some properties before the window is drawn. If this returns false
@@ -137,8 +138,6 @@ protected:
 	PersistedBool m_open;
 
 private:
-	ImGuiWindowBase* m_next = nullptr;
-	ImGuiWindowBase* m_prev = nullptr;
 	ImVec2 m_defaultSize;
 };
 

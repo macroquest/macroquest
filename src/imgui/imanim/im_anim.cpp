@@ -594,9 +594,6 @@ static float g_time_scale = 1.0f;
 // Global frame counter for oscillators and procedural animations
 static unsigned g_frame = 0;
 
-// Lazy initialization - defer channel creation until animation is needed
-static bool g_lazy_init_enabled = true;
-
 // ----------------------------------------------------
 // Profiler data structures
 // ----------------------------------------------------
@@ -742,11 +739,11 @@ float iam_get_global_time_scale() {
 // ----------------------------------------------------
 
 void iam_set_lazy_init(bool enable) {
-	iam_detail::g_lazy_init_enabled = enable;
+	iam_detail::g_current_context->lazy_init_enabled = enable;
 }
 
 bool iam_is_lazy_init_enabled() {
-	return iam_detail::g_lazy_init_enabled;
+	return iam_detail::g_current_context->lazy_init_enabled;
 }
 
 // ----------------------------------------------------
@@ -886,7 +883,7 @@ float iam_tween_float(ImGuiID id, ImGuiID channel_id, float target, float dur, i
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
-		if (g_lazy_init_enabled && fabsf(target - init_value) <= 1e-6f) {
+		if (iam_detail::g_current_context->lazy_init_enabled && fabsf(target - init_value) <= 1e-6f) {
 			return target;
 		}
 		c = context->g_float.get(key);
@@ -931,7 +928,7 @@ ImVec2 iam_tween_vec2(ImGuiID id, ImGuiID channel_id, ImVec2 target, float dur, 
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
-		if (g_lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) <= 1e-6f) {
+		if (iam_detail::g_current_context->lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) <= 1e-6f) {
 			return target;
 		}
 		c = context->g_vec2.get(key);
@@ -967,7 +964,7 @@ ImVec4 iam_tween_vec4(ImGuiID id, ImGuiID channel_id, ImVec4 target, float dur, 
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
-		if (g_lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) + fabsf(target.z - init_value.z) + fabsf(target.w - init_value.w) <= 1e-6f) {
+		if (iam_detail::g_current_context->lazy_init_enabled && fabsf(target.x - init_value.x) + fabsf(target.y - init_value.y) + fabsf(target.z - init_value.z) + fabsf(target.w - init_value.w) <= 1e-6f) {
 			return target;
 		}
 		c = context->g_vec4.get(key);
@@ -1003,7 +1000,7 @@ int iam_tween_int(ImGuiID id, ImGuiID channel_id, int target, float dur, iam_eas
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
-		if (g_lazy_init_enabled && target == init_value) {
+		if (iam_detail::g_current_context->lazy_init_enabled && target == init_value) {
 			return target;
 		}
 		c = context->g_int.get(key);
@@ -1037,7 +1034,7 @@ ImVec4 iam_tween_color(ImGuiID id, ImGuiID channel_id, ImVec4 target_srgb, float
 	bool const is_new = (c == nullptr);
 
 	if (is_new) {
-		if (g_lazy_init_enabled && fabsf(target_srgb.x - init_value.x) + fabsf(target_srgb.y - init_value.y) + fabsf(target_srgb.z - init_value.z) + fabsf(target_srgb.w - init_value.w) <= 1e-6f) {
+		if (iam_detail::g_current_context->lazy_init_enabled && fabsf(target_srgb.x - init_value.x) + fabsf(target_srgb.y - init_value.y) + fabsf(target_srgb.z - init_value.z) + fabsf(target_srgb.w - init_value.w) <= 1e-6f) {
 			return target_srgb;
 		}
 		c = context->g_color.get(key);

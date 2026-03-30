@@ -494,4 +494,7 @@ struct iam_context {
 	uint32_t transform_frame = 0;
 
 	ImGuiStorage drag_states;
+
+	// Lazy initialization - defer channel creation until animation is needed
+	bool lazy_init_enabled = true;
 };

@@ -191,13 +191,6 @@ public:
 	~NetworkSession()
 	{
 		SPDLOG_TRACE("{}: Session destroyed {}:{} ({}:{})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.IP, m_knownAddress.Port);
-
-		// this should have already shut down gracefully but in the case we had an issue then call cancel to force it to close
-		if (m_socket.is_open())
-		{
-			SPDLOG_WARN("{}: session did not close gracefully, canceling the socket {}:{} ({})", m_peerPort, m_address.IP, m_address.Port, m_knownAddress.Port);
-			m_socket.cancel();
-		}
 	}
 
 	NetworkSession(const NetworkSession&) = delete;
@@ -213,9 +206,15 @@ public:
 			std::error_code ec;
 
 			// only shutdown writes. shutting down both will cause forced socket closures on the other end
-			(void)m_socket.shutdown(asio::socket_base::shutdown_send, ec);
-			if (ec)
+			if (m_socket.shutdown(asio::socket_base::shutdown_send, ec))
+			{
 				SPDLOG_WARN("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
+
+				asio::error_code c_ec;
+				if (m_socket.close(c_ec))
+					SPDLOG_WARN("{}: Received error when closing down socket {}: {}", m_peerPort, c_ec.value(), c_ec.message());
+			}
+
 			m_active = false;
 		}
 	}
@@ -225,8 +224,7 @@ public:
 		if (m_socket.is_open() && !m_reading && !m_writing)
 		{
 			std::error_code ec;
-			m_socket.close(ec);
-			if (ec)
+			if (m_socket.close(ec))
 				SPDLOG_WARN("{}: Received error when closing down socket {}: {}", m_peerPort, ec.value(), ec.message());
 		}
 	}
@@ -543,23 +541,48 @@ public:
 
 	Discoverer(
 		asio::io_service& io,
-		OnPeerDiscovered onPeerDiscovered, // gets called when a peer is discovered
+		OnPeerDiscovered onPeerDiscovered) // gets called when a peer is discovered
+		: m_onPeerDiscovered(std::move(onPeerDiscovered))
+		, m_socket(io)
+	{}
+	
+	asio::error_code Initialize(
 		const uint16_t multicastPort = 30000 + DEFAULT_NETWORK_PEER_PORT, // the UDP multicast port to listen on
 		const asio::ip::address& listenAddress = asio::ip::address::from_string("0.0.0.0"), // address to listen on
 		const asio::ip::address& multicastAddress = asio::ip::address::from_string("239.255.77.81")) // must match the one used in Announcer
-		: m_onPeerDiscovered(std::move(onPeerDiscovered))
-		, m_socket(io)
 	{
 		asio::ip::udp::endpoint listenEndpoint(listenAddress, multicastPort);
-		m_socket.open(listenEndpoint.protocol());
-		m_socket.set_option(asio::ip::udp::socket::reuse_address(true));
-		m_socket.bind(listenEndpoint);
+		asio::error_code ec;
 
-		// join the multicast group
-		m_socket.set_option(asio::ip::multicast::join_group(multicastAddress));
+		if (m_socket.open(listenEndpoint.protocol(), ec))
+		{
+			asio::error_code s_ec;
+			SPDLOG_ERROR("Failed to open socket for {}:{} with {}: {}", listenAddress.to_string(s_ec), multicastPort, ec.value(), ec.message());
+		}
+		else if (m_socket.set_option(asio::ip::udp::socket::reuse_address(true), ec))
+		{
+			asio::error_code s_ec;
+			SPDLOG_ERROR("Failed to set reuse address for {}:{} with {}: {}", listenAddress.to_string(s_ec), multicastPort, ec.value(), ec.message());
+		}
+		else if (m_socket.bind(listenEndpoint, ec))
+		{
+			asio::error_code s_ec;
+			SPDLOG_ERROR("Failed to bind address {}:{} with {}: {}", listenAddress.to_string(s_ec), multicastPort, ec.value(), ec.message());
+		}
+		else if (m_socket.set_option(asio::ip::multicast::join_group(multicastAddress), ec))
+		{
+			// join the multicast group
+			asio::error_code s_ec;
+			SPDLOG_ERROR("Failed to join multicast {} with {}: {}", multicastAddress.to_string(s_ec), ec.value(), ec.message());
+		}
+		else
+		{
+			Receive();
+		}
 
-		Receive();
+		return ec;
 	}
+
 
 private:
 	void HandleMessage(const std::shared_ptr<DiscoveryMessage>& message) const
@@ -648,7 +671,7 @@ public:
 		: m_acceptor(m_ioContext, tcp::endpoint(tcp::v4(), configuration.Port))
 		, m_port(m_acceptor.local_endpoint().port())
 		, m_uuid(CreateUUID())
-	    , m_selfHosts(GetAdaptersAddresses())
+		, m_selfHosts(GetAdaptersAddresses())
 		, m_announcer(m_ioContext, m_port, configuration.MulticastPeriod, configuration.MulticastPort,
 			asio::ip::address::from_string(configuration.MulticastAddress))
 		, m_discoverer(m_ioContext,
@@ -657,10 +680,12 @@ public:
 				NetworkAddress addr{ address, port };
 				if (!this->HasHost(addr) && !m_selfHosts.contains(address))
 					this->AddHost(addr);
-			},
+			})
+		, m_discovererRetry([&configuration, this] { return m_discoverer.Initialize(
 			configuration.MulticastPort,
 			asio::ip::address::from_string(configuration.MulticastListenAddress),
-			asio::ip::address::from_string(configuration.MulticastAddress))
+			asio::ip::address::from_string(configuration.MulticastAddress)); })
+		, m_discovererError(m_discovererRetry())
 		, m_receiveHandler(std::move(receiveHandler))
 		, m_sessionConnectedHandler(std::move(connectedHandler))
 		, m_sessionDisconnectedHandler(std::move(disconnectedHandler))
@@ -1198,6 +1223,9 @@ private:
 				++it;
 		}
 
+		if (m_discovererError)
+			m_discovererError = m_discovererRetry();
+
 		//SPDLOG_DEBUG("RunOne() pending sessions: {} active sessions: {}", m_pendingSessions.size(), m_sessions.size());
 	}
 
@@ -1430,6 +1458,8 @@ private:
 
 	Announcer m_announcer;
 	Discoverer m_discoverer;
+	std::function<asio::error_code()> m_discovererRetry;
+	asio::error_code m_discovererError;
 
 	// TODO: need to revisit the leader logic
 	std::optional<NetworkAddress> m_leaderAddress; // the leader is for communicating across networks

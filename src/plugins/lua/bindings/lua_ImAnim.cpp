@@ -508,6 +508,10 @@ sol::table RegisterBindings_ImAnim(sol::this_state L)
 	});
 	ImAnim.set_function("ShowDebugTimeline", &iam_show_debug_timeline);
 
+	// Lazy Init
+	ImAnim.set_function("SetLazyInitEnabled", &iam_set_lazy_init);
+	ImAnim.set_function("IsLazyInitEnabled", &iam_is_lazy_init_enabled);
+
 	// Performance Profiler
 	ImAnim.set_function("ProfilerIsEnabled", &iam_profiler_is_enabled);
 	ImAnim.set_function("ProfilerBegin", &iam_profiler_begin);

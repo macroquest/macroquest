@@ -27,9 +27,6 @@ enum class GroundMembers
 	Heading,
 	Name,
 	HeadingTo,
-	N,
-	W,
-	U,
 	LineOfSight,
 	DisplayName,
 	Distance3D,
@@ -155,19 +152,16 @@ bool MQ2GroundType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			Dest.Type = pIntType;
 			return true;
 
-		case GroundMembers::W:
 		case GroundMembers::X:
 			Dest.Set(pGroundSpawn->Position().X);
 			Dest.Type = pFloatType;
 			return true;
 
-		case GroundMembers::N:
 		case GroundMembers::Y:
 			Dest.Set(pGroundSpawn->Position().Y);
 			Dest.Type = pFloatType;
 			return true;
 
-		case GroundMembers::U:
 		case GroundMembers::Z:
 			Dest.Set(pGroundSpawn->Position().Z);
 			Dest.Type = pFloatType;
