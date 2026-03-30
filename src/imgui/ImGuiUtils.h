@@ -196,7 +196,7 @@ public:
 	}
 
 	// Named constructor used to disambiguate between constructing using texture coordinates and pixel coordinates
-	constexpr NineSliceImageParams WithPixelCoords(
+	static constexpr NineSliceImageParams WithPixelCoords(
 		const ImVec2& texture_size_,                       // full size of texture that contains the image being drawn
 		const ImVec4& p_margins_,                          // pixel sizes of the margins from each edge used to slice, left top right bottom.
 		const ImVec2& p_min_ = ImVec2(0.0f, 0.0f),         // the upper left corner of the image to draw in pixels (defaults to upper left)
