@@ -13,7 +13,7 @@
  */
 
 #include "pch.h"
-#include "ImGuiAlphaMask.h"
+#include "mq/imgui/AlphaMask.h"
 #include "ImGuiBackend.h"
 
 #include "eqlib/BuildType.h"
@@ -170,7 +170,7 @@ static void ClearFbAlpha_ImplDX11(const ImDrawList*, const ImDrawCmd*)
 	rs->DeviceContext->OMSetDepthStencilState(rs->DefaultDSS, 0);
 }
 
-static void CreateConverageMaskLayer_ImplDX11(const ImDrawList*, const ImDrawCmd*)
+static void CreateCoverageMaskLayer_ImplDX11(const ImDrawList*, const ImDrawCmd*)
 {
 	auto* rs = static_cast<ImGui_ImplDX11_RenderState*>(ImGui::GetPlatformIO().Renderer_RenderState);
 	if (!rs)
@@ -323,7 +323,7 @@ static void ClearFbAlpha_ImplDX9(const ImDrawList*, const ImDrawCmd*)
 	device->SetRenderState(D3DRS_STENCILENABLE, FALSE);
 }
 
-static void CreateConverageMaskLayer_ImplDX9(const ImDrawList*, const ImDrawCmd*)
+static void CreateCoverageMaskLayer_ImplDX9(const ImDrawList*, const ImDrawCmd*)
 {
 	auto* rs = static_cast<ImGui_ImplDX9_RenderState*>(ImGui::GetPlatformIO().Renderer_RenderState);
 	if (!rs)
@@ -384,7 +384,7 @@ static ImDrawCallback s_createLayerCallback = nullptr;
 static ImDrawCallback s_beginMaskedDrawCallback = nullptr;
 static ImDrawCallback s_endMaskedDrawCallback = nullptr;
 static ImDrawCallback s_clearFbAlphaCallback = nullptr;
-static ImDrawCallback s_createConverageMaskLayerCallback = nullptr;
+static ImDrawCallback s_createCoverageMaskLayerCallback = nullptr;
 static ImDrawCallback s_beginAlphaBlendedDrawCallback = nullptr;
 static ImDrawCallback s_endAlphaBlendedDrawCallback = nullptr;
 
@@ -398,7 +398,7 @@ static void EnsureCallbacksResolved()
 	s_beginMaskedDrawCallback = BeginMaskedDraw_ImplDX11;
 	s_endMaskedDrawCallback = EndMaskedDraw_ImplDX11;
 	s_clearFbAlphaCallback = ClearFbAlpha_ImplDX11;
-	s_createConverageMaskLayerCallback = CreateConverageMaskLayer_ImplDX11;
+	s_createCoverageMaskLayerCallback = CreateCoverageMaskLayer_ImplDX11;
 	s_beginAlphaBlendedDrawCallback = BeginAlphaBlendedDraw_ImplDX11;
 	s_endAlphaBlendedDrawCallback = EndAlphaBlendedDraw_ImplDX11;
 #endif
@@ -408,13 +408,13 @@ static void EnsureCallbacksResolved()
 	s_beginMaskedDrawCallback = BeginMaskedDraw_ImplDX9;
 	s_endMaskedDrawCallback = EndMaskedDraw_ImplDX9;
 	s_clearFbAlphaCallback = ClearFbAlpha_ImplDX9;
-	s_createConverageMaskLayerCallback = CreateConverageMaskLayer_ImplDX9;
+	s_createCoverageMaskLayerCallback = CreateCoverageMaskLayer_ImplDX9;
 	s_beginAlphaBlendedDrawCallback = BeginAlphaBlendedDraw_ImplDX9;
 	s_endAlphaBlendedDrawCallback = EndAlphaBlendedDraw_ImplDX9;
 #endif
 }
 
-void CreateAlphaMaskLayer(ImDrawList* draw_list)
+void CreateMaskLayer(ImDrawList* draw_list)
 {
 	EnsureCallbacksResolved();
 
@@ -463,7 +463,7 @@ void EndMaskedDraw(ImDrawList* draw_list)
 	s_next_bit = 1;
 }
 
-void CreateConverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max)
+void CreateCoverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max)
 {
 	EnsureCallbacksResolved();
 
@@ -474,17 +474,17 @@ void CreateConverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const 
 	draw_list->AddRectFilled(p_min, p_max, IM_COL32(0, 0, 0, 255));
 
 	// Step 2: switch to alpha-write mode so the mask image writes its alpha to fb.
-	draw_list->AddCallback(s_createConverageMaskLayerCallback, nullptr, 0);
+	draw_list->AddCallback(s_createCoverageMaskLayerCallback, nullptr, 0);
 }
 
-void BeginAlphaBlendedDraw(ImDrawList* draw_list)
+void BeginCoverageMaskedDraw(ImDrawList* draw_list)
 {
 	EnsureCallbacksResolved();
 
 	draw_list->AddCallback(s_beginAlphaBlendedDrawCallback, nullptr, 0);
 }
 
-void EndAlphaBlendedDraw(ImDrawList* draw_list)
+void EndCoverageMaskedDraw(ImDrawList* draw_list)
 {
 	EnsureCallbacksResolved();
 

@@ -14,9 +14,12 @@
 
 #pragma once
 
+#include "mq/base/Common.h"
+
 #include <cstdint>
 
 struct ImDrawList;
+struct ImVec2;
 
 namespace mq::imgui {
 
@@ -66,16 +69,16 @@ enum class AlphaMaskOp : uint8_t
 // (up to 8 per session). Draw mask image(s) after this call using AddImage or
 // AddImageNineSlice - only texels with alpha >= 0.5 write to the stencil.
 // Call up to 8 times before BeginMaskedDraw.
-MQLIB_API void CreateMaskLayer(ImDrawList* draw_list);
+MQLIB_OBJECT void CreateMaskLayer(ImDrawList* draw_list);
 
 // Commits all mask layers and begins the masked drawing scope. The given op controls
 // how multiple layers are combined. All draw calls between here and EndMaskedDraw are
 // clipped to the combined mask shape.
-MQLIB_API void BeginMaskedDraw(ImDrawList* draw_list, AlphaMaskOp op = AlphaMaskOp::Union);
+MQLIB_OBJECT void BeginMaskedDraw(ImDrawList* draw_list, AlphaMaskOp op = AlphaMaskOp::Union);
 
 // Ends the masked drawing scope and restores default render state.
 // Stencil bits are reclaimed automatically at the next frame start.
-MQLIB_API void EndMaskedDraw(ImDrawList* draw_list);
+MQLIB_OBJECT void EndMaskedDraw(ImDrawList* draw_list);
 
 
 //============================================================================
@@ -87,7 +90,7 @@ MQLIB_API void EndMaskedDraw(ImDrawList* draw_list);
 // unlike the hard-edged stencil variant above.
 //
 // Usage:
-//   mq::imgui::CreateConverageMaskLayer(draw_list, pos_min, pos_max);
+//   mq::imgui::CreateCoverageMaskLayer(draw_list, pos_min, pos_max);
 //     draw_list->AddImage(...);       // write to fb alpha
 //   mq::imgui::BeginCoverageMaskedDraw(draw_list);
 //     draw_list->AddRectFilled(...);  // blended by fb alpha coverage
@@ -95,7 +98,7 @@ MQLIB_API void EndMaskedDraw(ImDrawList* draw_list);
 //   mq::imgui::EndCoverageMaskedDraw(draw_list);
 //
 // Notes:
-//   - CreateConverageMaskLayer pushes a clip rect to p_min/p_max and clears
+//   - CreateCoverageMaskLayer pushes a clip rect to p_min/p_max and clears
 //     the framebuffer alpha in that region to exactly 0 before mask drawing begins.
 //   - EndAlphaBlendedDraw pops that clip rect and restores the default blend state.
 //   - Only one coverage-mask session should be open at a time.
@@ -104,15 +107,15 @@ MQLIB_API void EndMaskedDraw(ImDrawList* draw_list);
 // Begins a coverage mask for the given screen region. Pushes a clip rect,
 // clears framebuffer alpha to 0 inside the region, and switches to alpha-write
 // mode. Draw the mask texture(s) after this call.
-MQLIB_API void CreateConverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max);
+MQLIB_OBJECT void CreateCoverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max);
 
 // Commits the mask and begins the coverage-masked drawing scope. Draw calls issued
 // between here and EndAlphaBlendedDraw are blended using the framebuffer alpha
 // written by the mask textures as per-pixel coverage.
-MQLIB_API void BeginCoverageMaskedDraw(ImDrawList* draw_list);
+MQLIB_OBJECT void BeginCoverageMaskedDraw(ImDrawList* draw_list);
 
 // Ends the coverage-masked drawing scope, restores the default blend state, and
-// pops the clip rect pushed by CreateConverageMaskLayer.
-MQLIB_API void EndCoverageMaskedDraw(ImDrawList* draw_list);
+// pops the clip rect pushed by CreateCoverageMaskLayer.
+MQLIB_OBJECT void EndCoverageMaskedDraw(ImDrawList* draw_list);
 
 } // namespace mq::imgui

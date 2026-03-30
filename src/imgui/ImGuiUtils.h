@@ -100,8 +100,8 @@ IMGUI_API void EndColumnHeadersSync(ColumnHeader* headers, int count);
 // Params describing the souurce image being used for a nine-slice image operation. This doesn't
 // need to change between draw calls for the same image and could be made static. Use the named
 // constructors to construct this struct using either pixel coordinates or texture coordinates:
-// - NineSliceImageParamsUV for drawing with texture coordinates
-// - NineSliceImageParamsP for drawing with pixel coordinates
+// - WithTextureCoords for drawing with texture coordinates
+// - WithPixelCoords for drawing with pixel coordinates
 struct NineSliceImageParams
 {
 	// Image size
@@ -183,31 +183,26 @@ protected:
 
 		return out_margins;
 	}
-};
 
-// Named constructor used to disambiguate between constructing using texture coordinates and pixel coordinates
-struct NineSliceImageParamsUV : NineSliceImageParams
-{
-	constexpr NineSliceImageParamsUV(
+public:
+	// Named constructor used to disambiguate between constructing using texture coordinates and pixel coordinates
+	static constexpr NineSliceImageParams WithTextureCoords(
 		const ImVec2& texture_size_,                       // full size of texture that contains the image being drawn
 		const ImVec4& p_margins_,                          // pixel sizes of the margins from each edge used to slice, left top right bottom.
 		const ImVec2& uv_min_ = ImVec2(0.0f, 0.00f),       // the upper left corner of the image to draw in texture coordinates (defaults to upper left)
 		const ImVec2& uv_max_ = ImVec2(1.0f, 1.0f))        // the lower right corner of the image to draw in texture coordinates (defaults to full texture)
-		: NineSliceImageParams(init_with_uv_coords{}, texture_size_, p_margins_, uv_min_, uv_max_)
 	{
+		return NineSliceImageParams(NineSliceImageParams::init_with_uv_coords{}, texture_size_, p_margins_, uv_min_, uv_max_);
 	}
-};
 
-// Named constructor used to disambiguate between constructing using texture coordinates and pixel coordinates
-struct NineSliceImageParamsPixels : NineSliceImageParams
-{
-	constexpr NineSliceImageParamsPixels(
+	// Named constructor used to disambiguate between constructing using texture coordinates and pixel coordinates
+	constexpr NineSliceImageParams WithPixelCoords(
 		const ImVec2& texture_size_,                       // full size of texture that contains the image being drawn
 		const ImVec4& p_margins_,                          // pixel sizes of the margins from each edge used to slice, left top right bottom.
 		const ImVec2& p_min_ = ImVec2(0.0f, 0.0f),         // the upper left corner of the image to draw in pixels (defaults to upper left)
 		const ImVec2& p_max_ = ImVec2(-1.0f, -1.0f))       // the lower right corner of the image to draw in pixels (defaults to full texture)
-		: NineSliceImageParams(init_with_p_coords{}, texture_size_, p_margins_, p_min_, p_max_)
 	{
+		return NineSliceImageParams(NineSliceImageParams::init_with_p_coords{}, texture_size_, p_margins_, p_min_, p_max_);
 	}
 };
 
@@ -224,5 +219,12 @@ IMGUI_API void AddImageNineSlice(
 	const ImVec2& p_min,                          // min screen coordinate of where to draw
 	const ImVec2& p_max,                          // max screen coordinate of where to draw
 	ImU32 col = IM_COL32_WHITE);                  // color fill
+
+IMGUI_API void ImageNineSlice(
+	ImTextureRef tex_ref,                         // texture
+	const NineSliceImageParams& image_params,     // description of the image
+	const ImVec2& size,                           // size to draw the image
+	ImU32 col = IM_COL32_WHITE
+);
 
 } // namespace mq::imgui
