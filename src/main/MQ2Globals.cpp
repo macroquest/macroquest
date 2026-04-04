@@ -42,7 +42,7 @@ char gszVersion[32] = __ExpectedVersionDate;
 char gszTime[32] = __ExpectedVersionTime;
 
 #if defined(EMULATOR)
-int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU (ROF2)
+int gBuild = static_cast<int>(BuildTarget::Emu);                // EMU
 #elif defined(TEST)
 int gBuild = static_cast<int>(BuildTarget::Test);               // TEST
 #else

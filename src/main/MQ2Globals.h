@@ -30,7 +30,7 @@ struct CaseInsensitiveLess
 };
 
 // Probably move these to eqlib but for now these are all contained within MQ
-#if defined(EMULATOR)
+#if defined(EMULATOR) && !IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
 #define HAS_CHAT_TIMESTAMPS 1
 #else
 #define HAS_CHAT_TIMESTAMPS 0

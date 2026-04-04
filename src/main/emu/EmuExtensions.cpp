@@ -23,6 +23,7 @@
 #include "imgui/ImGuiUtils.h"
 
 #if IS_EMU_CLIENT
+
 namespace mq {
 
 static void EmuExtensions_Initialize();
@@ -455,4 +456,5 @@ void EmuExtensions_ReloadUI()
 }
 
 } // namespace mq
+
 #endif // IS_EMU_CLIENT
