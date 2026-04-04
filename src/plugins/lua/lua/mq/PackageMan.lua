@@ -87,7 +87,7 @@ PackageMan.Install = function(package_name)
             print("DEBUG: Executing the following command:")
             print(execute_string)
         end
-        local command = string.format('"%s"', execute_string)
+        local command = string.format('"%s" 2>&1', execute_string)
         local handle = io.popen(command)
         if handle then
             local result = handle:read("*a")
