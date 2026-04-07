@@ -37,6 +37,9 @@ jobs:
         run: git -C src/eqlib reset --hard
         continue-on-error: true
 
+      - name: Sync submodule URLs
+        run: git submodule sync --recursive
+
       - name: Update builtin submodules
         run: git submodule update --init --recursive --depth=1
 

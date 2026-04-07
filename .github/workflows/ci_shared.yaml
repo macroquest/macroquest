@@ -18,6 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Sync submodule URLs
+        run: git submodule sync --recursive
+
       - name: Checkout submodules excluding eqlib
         run: git -c submodule."src/eqlib".update=none submodule update --init --recursive --depth=1
 
