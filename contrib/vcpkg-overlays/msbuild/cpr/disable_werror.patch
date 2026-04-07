@@ -5,7 +5,7 @@ index 68b5343..fce2518 100644
 @@ -103,7 +103,7 @@ if(CPR_ENABLE_CPPCHECK)
      include(cmake/cppcheck.cmake)
  endif()
-
+ 
 -if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 +if (1)
  else()

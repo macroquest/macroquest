@@ -8,6 +8,6 @@ index 1976b33af959..b3425e55feec 100644
     */
 -/* #define FT_CONFIG_OPTION_SUBPIXEL_RENDERING */
 +#define FT_CONFIG_OPTION_SUBPIXEL_RENDERING
-
-
+ 
+ 
    /**************************************************************************
