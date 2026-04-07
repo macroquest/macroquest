@@ -1,0 +1,86 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1b19c681d..75a3c955d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -68,9 +68,9 @@ include(Macros)
+ include(CMakeDependentOption)
+ include(CheckCCompilerFlag)
+ 
+-project(CURL C)
++project(CURL-84 C)
+ 
+-file(STRINGS ${CURL_SOURCE_DIR}/include/curl/curlver.h CURL_VERSION_H_CONTENTS REGEX "#define LIBCURL_VERSION( |_NUM )")
++file(STRINGS ${CURL-84_SOURCE_DIR}/include/curl/curlver.h CURL_VERSION_H_CONTENTS REGEX "#define LIBCURL_VERSION( |_NUM )")
+ string(REGEX MATCH "#define LIBCURL_VERSION \"[^\"]*"
+   CURL_VERSION ${CURL_VERSION_H_CONTENTS})
+ string(REGEX REPLACE "[^\"]+\"" "" CURL_VERSION ${CURL_VERSION})
+@@ -94,7 +94,7 @@ else()
+   set(OS "\"${CMAKE_SYSTEM_NAME}\"")
+ endif()
+ 
+-include_directories(${CURL_SOURCE_DIR}/include)
++include_directories(${CURL-84_SOURCE_DIR}/include)
+ 
+ set(CMAKE_UNITY_BUILD_BATCH_SIZE 0)
+ 
+@@ -1264,7 +1264,7 @@ endif()
+ check_type_size("off_t"  SIZEOF_OFF_T)
+ 
+ # include this header to get the type
+-set(CMAKE_REQUIRED_INCLUDES "${CURL_SOURCE_DIR}/include")
++set(CMAKE_REQUIRED_INCLUDES "${CURL-84_SOURCE_DIR}/include")
+ set(CMAKE_EXTRA_INCLUDE_FILES "curl/system.h")
+ check_type_size("curl_off_t"  SIZEOF_CURL_OFF_T)
+ set(CMAKE_EXTRA_INCLUDE_FILES "curl/curl.h")
+@@ -1454,8 +1454,8 @@ endif()
+ # Ugly (but functional) way to include "Makefile.inc" by transforming it (= regenerate it).
+ function(transform_makefile_inc INPUT_FILE OUTPUT_FILE)
+   file(READ ${INPUT_FILE} MAKEFILE_INC_TEXT)
+-  string(REPLACE "$(top_srcdir)"   "\${CURL_SOURCE_DIR}" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
+-  string(REPLACE "$(top_builddir)" "\${CURL_BINARY_DIR}" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
++  string(REPLACE "$(top_srcdir)"   "\${CURL-84_SOURCE_DIR}" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
++  string(REPLACE "$(top_builddir)" "\${CURL-84_BINARY_DIR}" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
+ 
+   string(REGEX REPLACE "\\\\\n" "!π!α!" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
+   string(REGEX REPLACE "([a-zA-Z_][a-zA-Z0-9_]*)[\t ]*=[\t ]*([^\n]*)" "SET(\\1 \\2)" MAKEFILE_INC_TEXT ${MAKEFILE_INC_TEXT})
+@@ -1671,9 +1671,9 @@ set(VERSIONNUM              "${CURL_VERSION_NUM}")
+ # Use:
+ # * ENABLE_SHARED
+ # * ENABLE_STATIC
+-configure_file("${CURL_SOURCE_DIR}/curl-config.in"
+-               "${CURL_BINARY_DIR}/curl-config" @ONLY)
+-install(FILES "${CURL_BINARY_DIR}/curl-config"
++configure_file("${CURL-84_SOURCE_DIR}/curl-config.in"
++               "${CURL-84_BINARY_DIR}/curl-config" @ONLY)
++install(FILES "${CURL-84_BINARY_DIR}/curl-config"
+         DESTINATION ${CMAKE_INSTALL_BINDIR}
+         PERMISSIONS
+           OWNER_READ OWNER_WRITE OWNER_EXECUTE
+@@ -1681,9 +1681,9 @@ install(FILES "${CURL_BINARY_DIR}/curl-config"
+           WORLD_READ WORLD_EXECUTE)
+ 
+ # Finally generate a pkg-config file matching this config
+-configure_file("${CURL_SOURCE_DIR}/libcurl.pc.in"
+-               "${CURL_BINARY_DIR}/libcurl.pc" @ONLY)
+-install(FILES "${CURL_BINARY_DIR}/libcurl.pc"
++configure_file("${CURL-84_SOURCE_DIR}/libcurl.pc.in"
++               "${CURL-84_BINARY_DIR}/libcurl.pc" @ONLY)
++install(FILES "${CURL-84_BINARY_DIR}/libcurl.pc"
+         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+ 
+ # install headers
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 6f849199c..58a4fe2a3 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -21,8 +21,8 @@
+ # SPDX-License-Identifier: curl
+ #
+ ###########################################################################
+-set(LIB_NAME libcurl)
+-set(LIBCURL_OUTPUT_NAME libcurl CACHE STRING "Basename of the curl library")
++set(LIB_NAME libcurl-84)
++set(LIBCURL_OUTPUT_NAME libcurl-84 CACHE STRING "Basename of the curl library")
+ add_definitions(-DBUILDING_LIBCURL)
+ 
+ configure_file(curl_config.h.cmake

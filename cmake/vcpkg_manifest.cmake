@@ -279,7 +279,7 @@ function(create_vcpkg_overlays)
     )
 
     # Format overlay ports path as JSON array, always include our project-level custom ports
-    list(APPEND PORT_DIRS "${CMAKE_SOURCE_DIR}/contrib/vcpkg-ports")
+    list(APPEND PORT_DIRS "${CMAKE_SOURCE_DIR}/contrib/vcpkg-overlays/cmake")
     format_list_as_json("${PORT_DIRS}" VCPKG_OVERLAY_PORTS_PATH)
     configure_file(
             "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/vcpkg-configuration.json.in"

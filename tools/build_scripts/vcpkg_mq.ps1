@@ -39,11 +39,12 @@ Param (
 $env:VCPKG_FORCE_DOWNLOADED_BINARIES = "1"
 
 $vcpkg_root = "$MQRoot\contrib\vcpkg"
+$vcpkg_overlay_ports = "$MQRoot\contrib\vcpkg-overlays\msbuild"
 $vcpkg_triplet = "$Platform-windows-static"
 $vcpkg_mq_file = "vcpkg_mq.txt"
 $vcpkg_mq_file_platform = "vcpkg_mq_$Platform.txt"
 
-$vcpkg_last_bootstrap_file = "vcpkg_mq_last_bootstrap-$Platform.txt"
+$vcpkg_last_bootstrap_file = "$MQRoot\contrib\vcpkg-overlays\msbuild\vcpkg_mq_last_bootstrap-$Platform.txt"
 
 function Wait-Process {
     [CmdletBinding()]
@@ -180,7 +181,7 @@ if (-Not (Test-Path "./vcpkg.exe")) {
 }
 elseif ($gitAvailable) {
     $currentCommit = git rev-parse HEAD
-    if (-Not ((Test-Path -Path "./$vcpkg_last_bootstrap_file") -And ($currentCommit -eq (Get-Content -Path "./$vcpkg_last_bootstrap_file" -TotalCount 1)))) {
+    if (-Not ((Test-Path -Path "$vcpkg_last_bootstrap_file") -And ($currentCommit -eq (Get-Content -Path "$vcpkg_last_bootstrap_file" -TotalCount 1)))) {
         $performBootstrap = $true
     }
 }
@@ -189,7 +190,7 @@ if ($performBootstrap) {
     RunPreCheck
     & "./bootstrap-vcpkg.bat"
     if ($gitAvailable -AND $LASTEXITCODE -eq 0) {
-        $currentCommit | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
+        $currentCommit | Out-File "$vcpkg_last_bootstrap_file" -NoNewline
     }
 }
 
@@ -270,11 +271,11 @@ foreach ($triplet in $tripletsToCheck) {
 
 # If we did a bootstrap and we already had installed packages
 if ($performBootstrap -And $vcpkgTable.Count -ne 0) {
-    & ./vcpkg.exe upgrade --no-dry-run
+    & ./vcpkg.exe upgrade --no-dry-run --overlay-ports="$vcpkg_overlay_ports"
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "vcpkg upgrade failed - your vcpkg installation may need to be manually fixed. Save this log before trying again."
         # if the upgrade failed, the bootstrap file should show accordingly
-        "Upgrade Error" | Out-File "./$vcpkg_last_bootstrap_file" -NoNewline
+        "Upgrade Error" | Out-File "$vcpkg_last_bootstrap_file" -NoNewline
         # Attempt automatic cleanup
         Write-Warning "vcpkg is now attempting to remove outdated packages"
         & ./vcpkg.exe remove --outdated --recurse
@@ -352,7 +353,7 @@ foreach ($file in $vcpkg_file_list) {
 
 if ($vcpkgInstallTable.Count -ne 0) {
     RunPreCheck
-    $vcpkg_command = "install --x-wait-for-lock"
+    $vcpkg_command = "install --x-wait-for-lock --overlay-ports=`"$vcpkg_overlay_ports`""
     foreach ($triplet in $vcpkgInstallTable.GetEnumerator()) {
         if ($triplet.Value.Count -ne 0) {
             foreach ($node in $triplet.Value.GetEnumerator()) {

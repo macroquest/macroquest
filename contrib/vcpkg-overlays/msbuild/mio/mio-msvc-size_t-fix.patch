@@ -1,0 +1,32 @@
+diff --git a/include/mio/detail/mmap.ipp b/include/mio/detail/mmap.ipp
+index 716a171..f318dab 100644
+--- a/include/mio/detail/mmap.ipp
++++ b/include/mio/detail/mmap.ipp
+@@ -147,7 +147,7 @@ inline size_t query_file_size(file_handle_type handle, std::error_code& error)
+         error = detail::last_error();
+         return 0;
+     }
+-	return static_cast<int64_t>(file_size.QuadPart);
++    return static_cast<size_t>(file_size.QuadPart);
+ #else // POSIX
+     struct stat sbuf;
+     if(::fstat(handle, &sbuf) == -1)
+@@ -169,13 +169,13 @@ struct mmap_context
+ #endif
+ };
+ 
+-inline mmap_context memory_map(const file_handle_type file_handle, const int64_t offset,
+-    const int64_t length, const access_mode mode, std::error_code& error)
++inline mmap_context memory_map(const file_handle_type file_handle, const size_t offset,
++    const size_t length, const access_mode mode, std::error_code& error)
+ {
+-    const int64_t aligned_offset = make_offset_page_aligned(offset);
+-    const int64_t length_to_map = offset - aligned_offset + length;
++    const size_t aligned_offset = make_offset_page_aligned(offset);
++    const size_t length_to_map = offset - aligned_offset + length;
+ #ifdef _WIN32
+-    const int64_t max_file_size = offset + length;
++    const size_t max_file_size = offset + length;
+     const auto file_mapping_handle = ::CreateFileMapping(
+             file_handle,
+             0,

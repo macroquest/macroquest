@@ -1,0 +1,14 @@
+diff --git a/include/spdlog/tweakme.h b/include/spdlog/tweakme.h
+index 31e417ab..3a48b895 100644
+--- a/include/spdlog/tweakme.h
++++ b/include/spdlog/tweakme.h
+@@ -112,6 +112,9 @@
+ // Macros like SPDLOG_DEBUG(..), SPDLOG_INFO(..)  will expand to empty statements if not enabled
+ //
+ // #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
++#ifndef SPDLOG_ACTIVE_LEVEL
++  #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
++#endif
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+ ///////////////////////////////////////////////////////////////////////////////

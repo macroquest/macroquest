@@ -1,0 +1,15 @@
+diff --git a/include/dpp/export.h b/include/dpp/export.h
+index 24d6bfe8..431f15f1 100644
+--- a/include/dpp/export.h
++++ b/include/dpp/export.h
+@@ -118,7 +118,9 @@ extern bool DPP_EXPORT validate_configuration();
+ #ifndef _WIN32
+ 	#define SOCKET int
+ #else
+-	#define NOMINMAX
++	#ifndef NOMINMAX
++		#define NOMINMAX
++	#endif
+ 
+ 	#include <WinSock2.h>
+ #endif

@@ -1,0 +1,46 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 03462271..dbd8b63e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1311,7 +1311,7 @@ if(MSVC)
+   set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4221")
+   set(PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+   set(PDB_NAME
+-      "lib${ZMQ_OUTPUT_BASENAME}${MSVC_TOOLSET}-mt-gd-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}")
++      "lib${ZMQ_OUTPUT_BASENAME}${MSVC_TOOLSET}-mt-gd")
+   function(enable_vs_guideline_checker target)
+     set_target_properties(
+       ${target} PROPERTIES VS_GLOBAL_EnableCppCoreCheck true VS_GLOBAL_CodeAnalysisRuleSet CppCoreCheckRules.ruleset
+@@ -1347,11 +1347,11 @@ if(MSVC)
+     set_target_properties(
+       libzmq
+       PROPERTIES PUBLIC_HEADER "${public_headers}"
+-                 RELEASE_POSTFIX "${MSVC_TOOLSET}-mt-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
++                 RELEASE_POSTFIX "${MSVC_TOOLSET}-mt"
+                  RELWITHDEBINFO_POSTFIX
+-                 "${MSVC_TOOLSET}-mt-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
+-                 MINSIZEREL_POSTFIX "${MSVC_TOOLSET}-mt-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
+-                 DEBUG_POSTFIX "${MSVC_TOOLSET}-mt-gd-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
++                 "${MSVC_TOOLSET}-mt"
++                 MINSIZEREL_POSTFIX "${MSVC_TOOLSET}-mt"
++                 DEBUG_POSTFIX "${MSVC_TOOLSET}-mt-gd"
+                  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+                  COMPILE_DEFINITIONS "DLL_EXPORT"
+                  OUTPUT_NAME "lib${ZMQ_OUTPUT_BASENAME}")
+@@ -1365,12 +1365,12 @@ if(MSVC)
+     set_target_properties(
+       libzmq-static
+       PROPERTIES PUBLIC_HEADER "${public_headers}"
+-                 RELEASE_POSTFIX "${MSVC_TOOLSET}-mt-s-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
++                 RELEASE_POSTFIX "${MSVC_TOOLSET}-mt-s"
+                  RELWITHDEBINFO_POSTFIX
+-                 "${MSVC_TOOLSET}-mt-s-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
++                 "${MSVC_TOOLSET}-mt-s"
+                  MINSIZEREL_POSTFIX
+-                 "${MSVC_TOOLSET}-mt-s-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
+-                 DEBUG_POSTFIX "${MSVC_TOOLSET}-mt-sgd-${ZMQ_VERSION_MAJOR}_${ZMQ_VERSION_MINOR}_${ZMQ_VERSION_PATCH}"
++                 "${MSVC_TOOLSET}-mt-s"
++                 DEBUG_POSTFIX "${MSVC_TOOLSET}-mt-sgd"
+                  COMPILE_FLAGS "/DZMQ_STATIC"
+                  OUTPUT_NAME "lib${ZMQ_OUTPUT_BASENAME}")
+   endif()
