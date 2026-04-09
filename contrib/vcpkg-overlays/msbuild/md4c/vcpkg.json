@@ -1,6 +1,0 @@
-{
-  "name": "md4c",
-  "version": "0.4.8",
-  "description": "Markdown parser implementation in C",
-  "homepage": "https://github.com/mity/md4c"
-}

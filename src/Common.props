@@ -22,8 +22,8 @@
     <MQ2LibDir>$(MQLibDir)</MQ2LibDir>
 
     <!-- Dependencies for DLLs -->
-    <MQ2MainLibs Condition="'$(MQConfig)' == 'Debug'">fmtd.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib</MQ2MainLibs>
-    <MQ2MainLibs Condition="'$(MQConfig)' == 'Release'">fmt.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;base.lib;common.lib;client.lib;util.lib;sqlite3.lib</MQ2MainLibs>
+    <MQ2MainLibs Condition="'$(MQConfig)' == 'Debug'">fmtd.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vcpkg_crashpad_base.lib;vcpkg_crashpad_client_common.lib;vcpkg_crashpad_client.lib;vcpkg_crashpad_util.lib;sqlite3.lib</MQ2MainLibs>
+    <MQ2MainLibs Condition="'$(MQConfig)' == 'Release'">fmt.lib;psapi.lib;version.lib;pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;vcpkg_crashpad_base.lib;vcpkg_crashpad_client_common.lib;vcpkg_crashpad_client.lib;vcpkg_crashpad_util.lib;sqlite3.lib</MQ2MainLibs>
     <ImGuiLibs Condition="'$(MQConfig)' == 'Debug'">freetyped.lib</ImGuiLibs>
     <ImGuiLibs Condition="'$(MQConfig)' == 'Release'">freetype.lib</ImGuiLibs>
 

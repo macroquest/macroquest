@@ -10,7 +10,7 @@
       "spdlog",
       "wil",
       "date",
-      { "name": "curl-84", "features": [ "schannel" ] },
+      { "name": "curl", "features": [ "schannel" ] },
       "cpr",
       "pe-parse",
       "protobuf"

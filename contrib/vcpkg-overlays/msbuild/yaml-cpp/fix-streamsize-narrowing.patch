@@ -1,0 +1,24 @@
+diff --git a/include/yaml-cpp/emitter.h b/include/yaml-cpp/emitter.h
+--- a/include/yaml-cpp/emitter.h
++++ b/include/yaml-cpp/emitter.h
+@@ -187,7 +187,7 @@
+   }
+ 
+   if (!special) {
+-    stream << FpToString(value, stream.precision());
++    stream << FpToString(value, static_cast<size_t>(stream.precision()));
+   }
+   m_stream << stream.str();
+ 
+diff --git a/include/yaml-cpp/node/convert.h b/include/yaml-cpp/node/convert.h
+--- a/include/yaml-cpp/node/convert.h
++++ b/include/yaml-cpp/node/convert.h
+@@ -130,7 +130,7 @@
+       stream << ".inf";
+     }
+   } else {
+-    stream << FpToString(rhs, stream.precision());
++    stream << FpToString(rhs, static_cast<size_t>(stream.precision()));
+   }
+ }
+ 

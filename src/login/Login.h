@@ -19,11 +19,7 @@
 #include <filesystem>
 #include <optional>
 
-#ifdef _DEBUG
-#pragma comment(lib, "libprotobufd")
-#else
-#pragma comment(lib, "libprotobuf")
-#endif
+#include "extras/protobuf/ProtobufLibs.h"
 
 #pragma comment(lib, "login")
 

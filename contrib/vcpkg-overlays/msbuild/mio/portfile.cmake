@@ -6,7 +6,7 @@ vcpkg_from_github(
     SHA512 444131d4839f2244dd88722f5bfad2cfa47336e2a4405518a2ff8f0d80f2755321d7d627f8d5b890864a5dc3f3f810a1c7dd6588ff3e9039a6ef7d010e0f2f06
     HEAD_REF master
         PATCHES
-            "mio-msvc-size_t-fix.patch"
+            "mq-mio-msvc-size_t-fix.patch"
 )
 
 vcpkg_cmake_configure(

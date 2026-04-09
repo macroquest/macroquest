@@ -29,11 +29,7 @@
 
 #include "common/StringUtils.h"
 
-#ifdef _DEBUG
-#pragma comment(lib, "libprotobufd")
-#else
-#pragma comment(lib, "libprotobuf")
-#endif
+#include "extras/protobuf/ProtobufLibs.h"
 
 namespace mq::lua {
 using namespace mq::postoffice;

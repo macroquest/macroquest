@@ -2,7 +2,7 @@ crashpad
 spdlog
 wil
 date
-curl-84[schannel]
+curl
 cpr
 pe-parse
 protobuf

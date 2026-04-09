@@ -968,7 +968,6 @@ if ($vcpkgDependencies.Count -gt 0) {
             "czmq"               { "czmq-static" }
             "zyre"               { "zyre-static" }
             "sleepy-discord"     { "sleepy-discord" }
-            "curl-84"            { "CURL-84::libcurl" }
             "curl"               { "CURL::libcurl" }
             "rapidjson"          { "rapidjson" }
             "sdl2"               { "SDL2::SDL2main" }
