@@ -1,0 +1,12 @@
+diff --git a/include/sleepy_discord/asio_websocketconnection.h b/include/sleepy_discord/asio_websocketconnection.h
+--- a/include/sleepy_discord/asio_websocketconnection.h
++++ b/include/sleepy_discord/asio_websocketconnection.h
+@@ -615,7 +615,7 @@
+ 				constexpr bool pointerIsTooSmall = pointerMax < (std::numeric_limits<uint64_t>::max)();
+ 				if ( // on a 32 bit or 16 bit system, we can't put the message in memory
+ 					// the compiler should be smart enough to get rid of this on 64-bit systems
+-					pointerIsTooSmall && (pointerMax < payloadLength)
++					pointerIsTooSmall && (pointerMax < temp)
+ 					) { // doubt that Discord would ever sent a 4 GB websocket payload, so just kill it
+ 					std::cerr << "Can't read message larger then max pointer value\n";
+ 					disconnect(1009, "sizeof(PTR)<MSG");

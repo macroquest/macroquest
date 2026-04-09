@@ -1,0 +1,13 @@
+diff --git a/include/sleepy_discord/snowflake.h b/include/sleepy_discord/snowflake.h
+index 02ceefc..5c2efa8 100644
+--- a/include/sleepy_discord/snowflake.h
++++ b/include/sleepy_discord/snowflake.h
+@@ -70,7 +70,7 @@ namespace SleepyDiscord {
+ 		template<class iterator>
+ 		inline iterator findObject(iterator begin, iterator end) const {
+ 			return std::find_if(begin, end, [&](const DiscordObject& object) {
+-				return operator==(static_cast<DiscordObject>(object));
++				return this->operator==(static_cast<DiscordObject>(object));
+ 			});
+ 		}
+ 
