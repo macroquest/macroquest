@@ -96,6 +96,7 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem plugins -Directory | ForEach-Object { Write-Host "Checking for beta branch in $($_.Name)"; git -C "$($_.FullName)" checkout beta 2>$null }
+          exit 0
 
       - name: Update Plugin Submodules
         shell: pwsh
