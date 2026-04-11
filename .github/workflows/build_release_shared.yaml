@@ -15,9 +15,10 @@ on:
         - live
         - test
         - emu
+        - beta-emu-rof2
 
 env:
-  platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
+  platform: "${{ (inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2')) && 'Win32' || 'x64' }}"
   scoop_packages: "sentry-cli"
 
 jobs:
@@ -321,12 +322,12 @@ jobs:
           Remove-Item -Force "${{ github.workspace }}/build/ReleaseNotes.md" -ErrorAction SilentlyContinue
           $ReleaseDescription | Out-File "${{ github.workspace }}/build/ReleaseNotes.md"
 
-      - name: Remove Release 'rel-${{ inputs.client_target }}'
+      - name: Remove Release '${{ github.ref_name }}'
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
         run: |
-          $output = gh release delete rel-${{ inputs.client_target }} --yes 2>&1
+          $output = gh release delete ${{ github.ref_name }} --yes 2>&1
           if (!$? -And -Not($output -like "*release not found*")) {
             throw $output
           }
@@ -337,7 +338,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
         run: |
-          gh release create rel-${{ inputs.client_target }} --title "MacroQuest (${{ inputs.client_target }} server) v$($env:MQVERSION_INFO)" --notes-file "${{ github.workspace }}/build/ReleaseNotes.md" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
+          gh release create ${{ github.ref_name }} --title "MacroQuest (${{ inputs.client_target }}) v$($env:MQVERSION_INFO)" --notes-file "${{ github.workspace }}/build/ReleaseNotes.md" $(if ($${{ inputs.client_target == 'live' }}) {"--latest"} else {"--prerelease"}) build/bin/MacroQuest.zip
 
       - name: Update Published Version Information
         shell: pwsh
@@ -392,7 +393,7 @@ jobs:
           $LuaRockServerRoot = "$LuaRockServer"
           $LuaYaml = "$LuaRockServerRoot\mq_luarocks.yaml"
           $GitURL = "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/luarocks.git"
-          $Platform = "$(if ($${{ inputs.client_target == 'emu' }}) {"x86"} else {"x64"})"
+          $Platform = "$(if ($${{ inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2')}}) {"x86"} else {"x64"})"
           $env:LUAROCKS_CONFIG = "$LuaRocksDir\luarocks_working_config_$($Platform).cfg"
           $systreeNode = "\$Platform"
           $vcpkg_mq = "${{ github.workspace }}\tools\build_scripts\vcpkg_mq.ps1"
@@ -481,7 +482,7 @@ jobs:
 
               # Load vcvars for luarocks
               $vcvars_txt = "${{ github.workspace }}\build\vcvars.txt"
-              $architecture = "$(if ($${{ inputs.client_target == 'emu' }}) {"x64_x86"} else {"x64"})"
+              $architecture = "$(if ($${{ inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2') }}) {"x64_x86"} else {"x64"})"
               & cmd.exe /c "call `"$($env:ProgramFiles)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat`" $architecture && set > `"$vcvars_txt`""
               Get-Content $vcvars_txt | ForEach-Object {
                 if ($_ -match "^(.*?)=(.*)$") {

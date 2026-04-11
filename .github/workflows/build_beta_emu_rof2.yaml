@@ -1,0 +1,17 @@
+name: Build MacroQuest Emu RoF2 Beta
+
+on:
+  push:
+    tags:
+      - beta-emu-rof2
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/build_release_shared.yaml
+    with:
+      client_target: beta-emu-rof2
+    secrets: inherit
