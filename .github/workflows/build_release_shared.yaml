@@ -91,6 +91,12 @@ jobs:
             }
           }
 
+      - name: Checkout beta branch for plugins
+        if: contains(inputs.client_target, 'beta')
+        shell: pwsh
+        run: |
+          Get-ChildItem plugins -Directory | ForEach-Object { Write-Host "Checking for beta branch in $($_.Name)"; git -C "$($_.FullName)" checkout beta 2>$null }
+
       - name: Update Plugin Submodules
         shell: pwsh
         run: |
