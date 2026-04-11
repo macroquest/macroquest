@@ -181,7 +181,8 @@ Wait-Process -Name "powershell.exe" -Filter "*scripts\bootstrap.ps1*"
 
 if (Test-Path env:VCPKG_ROOT)
 {
-    Write-Warning "VCPKG_ROOT environment variable is set which means another installation of vcpkg is trying to override this one.  Temporarily resolving this issue, but there may be other issues with global vcpkg config."
+    # Starting with Visual Studio 2026's vcpkg integration, VCPKG_ROOT is always set. We're not going to warn, just overwrite.
+    # Write-Warning "VCPKG_ROOT environment variable is set which means another installation of vcpkg is trying to override this one.  Temporarily resolving this issue, but there may be other issues with global vcpkg config."
     $env:VCPKG_ROOT = $vcpkg_root
 }
 
