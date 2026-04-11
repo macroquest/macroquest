@@ -32,7 +32,7 @@ jobs:
           modules-to-cache: powershell-yaml
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Reset eqlib
         run: git -C src/eqlib reset --hard
@@ -176,7 +176,7 @@ jobs:
         if: false # Disable scoop since we're not using sentry integration
         # if: steps.check_scoop.outputs.scoop_ready != 'true'
         id: restore_scoop_cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: '~/scoop'
           key: ${{ runner.os }}-scoop-${{ steps.check_scoop.outputs.scoop_packages_hash }}
@@ -202,12 +202,12 @@ jobs:
           update_path: 'true'
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
         with:
           msbuild-architecture: x64
 
       - name: Setup NuGet
-        uses: nuget/setup-nuget@v2
+        uses: nuget/setup-nuget@v3
 
       - name: Restore NuGet packages
         run: |
@@ -226,7 +226,7 @@ jobs:
 
       - name: Restore vcpkg Cache
         if: steps.check_vcpkg.outputs.vcpkg_installed != 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             contrib/vcpkg/buildtrees
@@ -260,7 +260,7 @@ jobs:
           sentry-cli debug-files upload --wait "${{ github.workspace }}\build\bin\Release"
 
       - name: Upload Symbols Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: symbols-${{ inputs.client_target }}
           path: build/bin/MacroQuest-Symbols.zip
@@ -297,7 +297,7 @@ jobs:
         run: echo "MQVERSION_INFO=$((Get-Item build/bin/release/MQ2Main.dll).VersionInfo.FileVersion)" >> $env:GITHUB_ENV
 
       - name: Restore Last Changelog
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/build/changelog/CHANGELOG.md
           key: changelog-${{ env.platform }}-${{ inputs.client_target }}-${{ github.run_id }}
@@ -382,7 +382,7 @@ jobs:
         continue-on-error: true
 
       - name: Handle LuaRocks Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             build/Lua
@@ -700,7 +700,7 @@ jobs:
     runs-on: [symbol, self-hosted, Windows, X64]
     steps:
       - name: Download Symbols Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: symbols-${{ inputs.client_target }}
           path: ${{ github.workspace }}

@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Sync submodule URLs
         run: git submodule sync --recursive
@@ -30,13 +30,13 @@ jobs:
           git -C src/eqlib checkout ${{ inputs.client_target }}
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v3
         with:
           msbuild-architecture: x64
 
       - name: vcpkg Cache
         id: cache-vcpkg
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             contrib/vcpkg/buildtrees
