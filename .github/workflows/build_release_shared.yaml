@@ -397,7 +397,7 @@ jobs:
             ${{ runner.os }}-luarocks-
 
       - name: Update LuaRocks binaries
-        shell: pwsh
+        shell: powershell
         run: |
           $debug = $true
           $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
@@ -568,8 +568,20 @@ jobs:
                 }
 
                 if (-NOT ($VersionSearch -eq $UpstreamVersionSearch)) {
-                    #TODO: Send to Discord
-                    Write-Warning "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
+                    $discordMessage = "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
+                    Write-Warning $discordMessage
+                    [System.Collections.ArrayList]$embedArray = @()
+                    $embedObject = [PSCustomObject]@{
+                        color = "16705372"
+                        title = "Newer version of Moonrock [$LuaRock] upstream (${{ github.ref_name }})"
+                        description = $discordMessage
+                    }
+                    $embedArray.Add($embedObject) | Out-Null
+                    $discordPayload = [PSCustomObject]@{
+                        embeds = $embedArray
+                    } | ConvertTo-Json
+                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                    Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_DEV_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
                 }
 
                 $installModule = $false
