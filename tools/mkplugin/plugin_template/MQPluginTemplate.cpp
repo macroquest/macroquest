@@ -107,6 +107,29 @@ PLUGIN_API void OnDrawHUD()
 }
 
 /**
+ * @fn OnLoginFrontendEntered
+ *
+ * This is called when the login frontend has been entered. This is the appropriate
+ * time to set up any hooks or detours on EQMain functions.
+ */
+PLUGIN_API void OnLoginFrontendEntered()
+{
+	// DebugSpewAlways("MQPluginTemplate::OnLoginFrontendEntered()");
+}
+
+/**
+ * @fn OnLoginFrontendExited
+ *
+ * This is called just before the login frontend is exited. This is the appropriate
+ * time to remove any hooks or detours on EQMain functions before the module is
+ * unmapped from memory.
+ */
+PLUGIN_API void OnLoginFrontendExited()
+{
+	// DebugSpewAlways("MQPluginTemplate::OnLoginFrontendExited()");
+}
+
+/**
  * @fn SetGameState
  *
  * This is called when the GameState changes.  It is also called once after the

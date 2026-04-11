@@ -52,5 +52,7 @@ void PluginsEndZone();
 void ModulesUpdateImGui();
 void PluginsMacroStart(const char* Name);
 void PluginsMacroStop(const char* Name);
+void PluginsLoginFrontendEntered();
+void PluginsLoginFrontendExited();
 
 } // namespace mq

@@ -994,6 +994,16 @@ void MacroQuest::OnEQMainDllLoadedStateChanged(bool loaded)
 	}
 }
 
+void MacroQuest::OnLoginFrontendEntered()
+{
+	PluginsLoginFrontendEntered();
+}
+
+void MacroQuest::OnLoginFrontendExited()
+{
+	PluginsLoginFrontendExited();
+}
+
 //============================================================================
 
 HMODULE GetCurrentModule()

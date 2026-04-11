@@ -709,21 +709,28 @@ static bool DoesProfileMatchCurrentSession(const ProfileRecord& record)
 		&& (record.accountName.empty() || ci_equals(record.accountName, GetLoginName()));
 }
 
-PLUGIN_API void SetGameState(int GameState)
+PLUGIN_API void OnLoginFrontendEntered()
 {
-	// this works because we will always have a gamestate change after loading or unloading eqmain
-	// GAMESTATE_PRECHARSELECT when transitioning from character select to server select, and
-	// GAMESTATE_CHARSELECT when transitioning to character select from server select
 	if (s_joinServer != EQMain__LoginServerAPI__JoinServer)
 	{
-		if (s_joinServer != 0)
-			RemoveDetour(s_joinServer);
-
 		s_joinServer = EQMain__LoginServerAPI__JoinServer;
 
 		if (s_joinServer != 0)
 			EzDetour(s_joinServer, &LoginServer_Hook::JoinServer_Detour, &LoginServer_Hook::JoinServer_Trampoline);
 	}
+}
+
+PLUGIN_API void OnLoginFrontendExited()
+{
+	if (s_joinServer != 0)
+	{
+		RemoveDetour(s_joinServer);
+		s_joinServer = 0;
+	}
+}
+
+PLUGIN_API void SetGameState(int GameState)
+{
 
 	if (GameState == GAMESTATE_CHARSELECT)
 	{

@@ -30,27 +30,29 @@ namespace mq {
 class PluginInterface;
 
 // Plugin Function Types
-using fMQWriteChatColor      = int (*)(const char*, uint32_t, uint32_t);
-using fMQPulse               = void(*)();
-using fMQIncomingChat        = bool(*)(const char* Line, uint32_t Color);
-using fMQInitializePlugin    = void(*)();
-using fMQShutdownPlugin      = void(*)();
-using fMQZoned               = void(*)();
-using fMQReloadUI            = void(*)();
-using fMQCleanUI             = void(*)();
-using fMQDrawHUD             = void(*)();
-using fMQSetGameState        = void(*)(int GameState);
-using fMQSpawn               = void(*)(eqlib::PlayerClient*);
-using fMQGroundItem          = void(*)(eqlib::EQGroundItem*);
-using fMQBeginZone           = void(*)();
-using fMQEndZone             = void(*)();
-using fMQUpdateImGui         = void(*)();
-using fMQMacroStart          = void(*)(const char*);
-using fMQMacroStop           = void(*)(const char*);
-using fMQLoadPlugin          = void(*)(const char*);
-using fMQUnloadPlugin        = void(*)(const char*);
-using fMQGetPluginInterface  = PluginInterface* (*)();
-using fMQPostUnloadPlugin    = void(*)(const char*);
+using fMQWriteChatColor       = int (*)(const char*, uint32_t, uint32_t);
+using fMQPulse                = void(*)();
+using fMQIncomingChat         = bool(*)(const char* Line, uint32_t Color);
+using fMQInitializePlugin     = void(*)();
+using fMQShutdownPlugin       = void(*)();
+using fMQZoned                = void(*)();
+using fMQReloadUI             = void(*)();
+using fMQCleanUI              = void(*)();
+using fMQDrawHUD              = void(*)();
+using fMQSetGameState         = void(*)(int GameState);
+using fMQSpawn                = void(*)(eqlib::PlayerClient*);
+using fMQGroundItem           = void(*)(eqlib::EQGroundItem*);
+using fMQBeginZone            = void(*)();
+using fMQEndZone              = void(*)();
+using fMQUpdateImGui          = void(*)();
+using fMQMacroStart           = void(*)(const char*);
+using fMQMacroStop            = void(*)(const char*);
+using fMQLoadPlugin           = void(*)(const char*);
+using fMQUnloadPlugin         = void(*)(const char*);
+using fMQGetPluginInterface   = PluginInterface* (*)();
+using fMQPostUnloadPlugin     = void(*)(const char*);
+using fMQLoginFrontendEntered = void(*)();
+using fMQLoginFrontendExited  = void(*)();
 
 /**
  * Structure representing a loaded plugin.
@@ -85,6 +87,8 @@ struct MQPlugin
 	fMQUnloadPlugin      UnloadPlugin = nullptr;
 	fMQGetPluginInterface GetPluginInterface = nullptr;
 	fMQPostUnloadPlugin  OnPostUnloadPlugin = nullptr;
+	fMQLoginFrontendEntered LoginFrontendEntered = nullptr;
+	fMQLoginFrontendExited  LoginFrontendExited = nullptr;
 
 	MQPlugin*            pLast = nullptr;
 	MQPlugin*            pNext = nullptr;
@@ -113,7 +117,7 @@ enum LoadPluginResult
  *
  * @param pluginName Name of the plugin to load. MQ or MQ2 prefix is not required.
  * @param save If true, save this plugin so that it is loaded automatically.
- * 
+ *
  * @return A value from the LoadPluginResult enumeration, indicating the result of this
  * plugin load attempt.
  */

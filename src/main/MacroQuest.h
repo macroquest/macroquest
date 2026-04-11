@@ -44,6 +44,8 @@ public:
 
 	// EventInterface
 	virtual void OnEQMainDllLoadedStateChanged(bool loaded) override;
+	virtual void OnLoginFrontendEntered() override;
+	virtual void OnLoginFrontendExited() override;
 
 	// TLOs
 	virtual bool AddTopLevelObject(const char* name, MQTopLevelObjectFunction callback, const MQPluginHandle& pluginHandle) override;

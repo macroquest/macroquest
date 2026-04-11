@@ -568,6 +568,8 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	pPlugin->UnloadPlugin      = (fMQUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnUnloadPlugin");
 	pPlugin->GetPluginInterface = (fMQGetPluginInterface)GetProcAddress(pPlugin->hModule, "GetPluginInterface");
 	pPlugin->OnPostUnloadPlugin = (fMQPostUnloadPlugin)GetProcAddress(pPlugin->hModule, "OnPostUnloadPlugin");
+	pPlugin->LoginFrontendEntered = (fMQLoginFrontendEntered)GetProcAddress(pPlugin->hModule, "OnLoginFrontendEntered");
+	pPlugin->LoginFrontendExited  = (fMQLoginFrontendExited)GetProcAddress(pPlugin->hModule, "OnLoginFrontendExited");
 
 	float* ftmp = (float*)GetProcAddress(pPlugin->hModule, "?MQ2Version@@3MA");
 	if (ftmp)
@@ -1303,6 +1305,40 @@ static void PluginsPostUnloadPlugin(const char* Name)
 			if (mod->OnPostUnloadPlugin)
 			{
 				mod->OnPostUnloadPlugin(Name);
+			}
+		});
+}
+
+void PluginsLoginFrontendEntered()
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	PluginDebug("PluginsLoginFrontendEntered()");
+
+	ForEachPlugin([](const MQPlugin* plugin)
+		{
+			if (plugin->LoginFrontendEntered)
+			{
+				DebugSpew("%s->LoginFrontendEntered()", plugin->szFilename);
+				plugin->LoginFrontendEntered();
+			}
+		});
+}
+
+void PluginsLoginFrontendExited()
+{
+	if (!s_pluginsInitialized)
+		return;
+
+	PluginDebug("PluginsLoginFrontendExited()");
+
+	ForEachPlugin([](const MQPlugin* plugin)
+		{
+			if (plugin->LoginFrontendExited)
+			{
+				DebugSpew("%s->LoginFrontendExited()", plugin->szFilename);
+				plugin->LoginFrontendExited();
 			}
 		});
 }
