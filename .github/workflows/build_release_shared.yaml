@@ -364,9 +364,14 @@ jobs:
           Set-Content -NoNewLine -Path "$versionDir/CurrentVersion.txt" -Value $env:MQVERSION_INFO
           git -C "$versionDir" add CurrentVersion.txt
           git -C "$versionDir" commit -m "Update ${{ inputs.client_target }} version to $($env:MQVERSION_INFO)"
-          git -C "$versionDir" push
+          if ($remoteBranch) {
+            git -C "$versionDir" push
+          } else {
+            git -C "$versionDir" push --set-upstream origin $branch
+          }
 
       - name: Send Discord Notice
+        shell: pwsh
         run: |
           [System.Collections.ArrayList]$embedArray = @()
           $embedObject = [PSCustomObject]@{
