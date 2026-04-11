@@ -354,10 +354,12 @@ jobs:
           git clone "https://x-access-token:${{ secrets.MQGITBOT_AUTH }}@github.com/MacroQuest/MQCurrentVersions.git" "$versionDir"
           git -C "$versionDir" config user.email "mqgitbot@gmail.com"
           git -C "$versionDir" config user.name "MQGitBot"
-          git -C "$versionDir" checkout ${{ inputs.client_target }}
-          $branch_name = git -C "$versionDir" rev-parse --abbrev-ref HEAD
-          if ($branch_name -ne "${{ inputs.client_target }}") {
-            throw "Failed to checkout branch ${{ inputs.client_target }}"
+          $branch = "${{ inputs.client_target }}"
+          $remoteBranch = git -C "$versionDir" ls-remote --heads origin $branch
+          if ($remoteBranch) {
+            git -C "$versionDir" checkout $branch
+          } else {
+            git -C "$versionDir" checkout -b $branch
           }
           Set-Content -NoNewLine -Path "$versionDir/CurrentVersion.txt" -Value $env:MQVERSION_INFO
           git -C "$versionDir" add CurrentVersion.txt
