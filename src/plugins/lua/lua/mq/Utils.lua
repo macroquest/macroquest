@@ -15,16 +15,7 @@ Utils.File = {
     ---@param filename string
     ---@return string
     Sanitize = function(filename)
-            local invalid_chars = {
-                '&',
-                '|',
-                ';',
-                '"',
-            }
-            for order, char in ipairs(invalid_chars) do
-                filename = filename:gsub(char, "")
-            end
-            return filename
+            return filename:gsub("[^%w%-%._]", "")
         end,
 }
 
@@ -43,11 +34,12 @@ Utils.String = {
     ---@param delimiter string
     ---@return string[]
     Split = function(s, delimiter)
-        result = {};
-        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-            table.insert(result, match);
+        local result = {}
+        local escaped = delimiter:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
+        for match in (s..delimiter):gmatch("(.-)"..escaped) do
+            table.insert(result, match)
         end
-        return result;
+        return result
     end,
 }
 
@@ -55,13 +47,7 @@ Utils.URL = {
     ---@param url string
     ---@return string
     Sanitize = function(url)
-        local invalid_chars = {
-            '"',
-        }
-        for order, char in ipairs(invalid_chars) do
-            url = url:gsub(char, "")
-        end
-        return url
+        return url:gsub("[^%w%-%._~:/?#%[%]@!%$&'%(%)%*%+,;=%%]", "")
     end,
 }
 

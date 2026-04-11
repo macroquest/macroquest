@@ -5,16 +5,19 @@ require 'ImGui'
 
 ImguiHelper.Popup = {
     Modal = function(title, text, buttons)
+            if not buttons or #buttons == 0 then
+                return 0
+            end
             local last_return = 0
             local openGUI = true
             local shouldDrawGUI = true
 
-            function DisplayModalGUI()
+            local function DisplayModalGUI()
                 if not openGUI then return end
                 local flags = bit32.bor(ImGuiWindowFlags.NoDecoration, ImGuiWindowFlags.NoInputs, ImGuiWindowFlags.NoNav, ImGuiWindowFlags.NoDocking)
                 ImGui.SetNextWindowBgAlpha(0)
                 ImGui.SetNextWindowSize(0, 0)
-                openGUI, shouldDrawGUI = ImGui.Begin('Modal Demo', openGUI, flags)
+                openGUI, shouldDrawGUI = ImGui.Begin('##' .. title, openGUI, flags)
                 if shouldDrawGUI then
                     ImGui.OpenPopup(title)
                     if ImGui.BeginPopupModal(title) then
@@ -28,18 +31,20 @@ ImguiHelper.Popup = {
                             end
                             ImGui.SameLine()
                         end
+                        ImGui.EndPopup()
                     end
-                    ImGui.EndPopup()
                 end
                 ImGui.End()
             end
 
-            ImGui.Register('DisplayModalGUI'..title, DisplayModalGUI)
+            ImGui.Register(title, DisplayModalGUI)
 
             local startModal = os.time()
             while openGUI and os.difftime(os.time(), startModal) < 30 do
                 mq.delay(10)
             end
+
+            ImGui.Unregister(title)
 
             return last_return
         end,

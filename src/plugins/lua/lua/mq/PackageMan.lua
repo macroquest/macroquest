@@ -48,9 +48,20 @@ PackageMan.Install = function(package_name)
     end
 
     local callString = 'unknown'
-    local callerInfo = debug.getinfo(3,'Sl')
-    if callerInfo and callerInfo.short_src ~= nil and callerInfo.short_src ~= '=[C]' then
-        callString = callerInfo.short_src:match("[^\\^/]*.lua$")
+    for level = 2, 10 do
+        local callerInfo = debug.getinfo(level, 'Sl')
+        if not callerInfo then break end
+        if callerInfo.short_src and callerInfo.short_src ~= '=[C]' then
+            local filename = callerInfo.short_src:match("[^\\^/]*.lua$")
+            if filename and filename ~= 'PackageMan.lua' then
+                if filename == 'init.lua' then
+                    callString = callerInfo.short_src:match("([^\\^/]+)[/\\]init%.lua$") or filename
+                else
+                    callString = filename
+                end
+                break
+            end
+        end
     end
 
     if Utils.File.Exists(cliLuarocksPath) then
@@ -90,13 +101,13 @@ PackageMan.Install = function(package_name)
         local command = string.format('"%s" 2>&1', execute_string)
         local handle = io.popen(command)
         if handle then
-            local result = handle:read("*a")
+            local output = handle:read("*a")
             handle:close()
             if PackageMan.debug then
                 print("DEBUG: Command output:")
-                print(result)
+                print(output)
             end
-            if not string.find(result, "is now installed") then
+            if not string.find(output, "is now installed") then
                 if PackageMan.debug then
                     print("DEBUG: Package install failed - 'is now installed' not found in output")
                 end
@@ -138,6 +149,11 @@ end
 ---@param fail_message? string Override fail message if package fails to load
 ---@return any
 PackageMan.Require = function(package_name, require_name, fail_message)
+    if not package_name then
+        print("\arPackageMan.Require: Package Name cannot be nil")
+        mq.exit()
+    end
+
     require_name = require_name or package_name
 
     if not fail_message then
@@ -147,18 +163,16 @@ PackageMan.Require = function(package_name, require_name, fail_message)
         end
     end
 
-    if package_name then
-        local my_package = Utils.Library.Include(require_name)
-        local result_message = nil
-        if not my_package then
-            my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
-        end
-        if my_package then
-            return my_package
-        end
-        if result_message then
-            fail_message = fail_message .. " :: " .. result_message
-        end
+    local my_package = Utils.Library.Include(require_name)
+    local result_message = nil
+    if not my_package then
+        my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
+    end
+    if my_package then
+        return my_package
+    end
+    if result_message then
+        fail_message = fail_message .. " :: " .. result_message
     end
 
     print(fail_message)

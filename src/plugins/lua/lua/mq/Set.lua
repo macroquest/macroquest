@@ -2,9 +2,10 @@ local Set = { _version = '1.0', author = 'Coldblooded' }
 Set.__index = Set
 
 ---Creates a new set from a table of values
----@param t any
+---@param t table
 ---@return table
 function Set.new(t)
+    assert(type(t) == 'table', 'Set.new requires a table')
     local newSet = setmetatable({}, Set)
     for _, value in ipairs(t) do
         newSet[value] = true

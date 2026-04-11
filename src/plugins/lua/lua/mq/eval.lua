@@ -19,7 +19,7 @@ local function drawControlButtons()
     end
     imgui.SameLine()
     imgui.PushStyleColor(ImGuiCol.Button, .6, 0, 0, 1)
-    if ImGui.Button('Clear') then
+    if imgui.Button('Clear') then
         inputs = {}
     end
     imgui.PopStyleColor()
@@ -57,7 +57,8 @@ local function handleEvalEntry(input)
     imgui.TextColored(0,1,1,1,'Output:')
     imgui.SameLine()
     imgui.SetCursorPosX(60)
-    imgui.PushTextWrapPos(imgui.GetContentRegionAvail() + 50)
+    local availX, _ = imgui.GetContentRegionAvail()
+    imgui.PushTextWrapPos(availX + 50)
     imgui.Text('%s', output)
     imgui.PopTextWrapPos()
     imgui.TextColored(0,1,1,1,'Type:')
@@ -74,7 +75,8 @@ local function handleEvalEntry(input)
         imgui.TextColored(0,1,1,1,'Note:')
         imgui.SameLine()
         imgui.SetCursorPosX(60)
-        imgui.PushTextWrapPos(imgui.GetContentRegionAvail() + 50)
+        local availX, _ = imgui.GetContentRegionAvail()
+        imgui.PushTextWrapPos(availX + 50)
         imgui.Text('Add () to resolve userdata to a primitive lua type')
         imgui.PopTextWrapPos()
     end
@@ -96,6 +98,7 @@ local evalui = function()
 
             if imgui.Button('X##'..i) then
                 table.remove(inputs, i)
+                break
             end
 
             handleEvalEntry(inputs[i])
