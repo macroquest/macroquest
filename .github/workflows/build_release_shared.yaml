@@ -397,7 +397,7 @@ jobs:
             ${{ runner.os }}-luarocks-
 
       - name: Update LuaRocks binaries
-        shell: powershell
+        shell: pwsh
         run: |
           $debug = $true
           $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
@@ -580,7 +580,6 @@ jobs:
                     $discordPayload = [PSCustomObject]@{
                         embeds = $embedArray
                     } | ConvertTo-Json
-                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                     Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_DEV_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
                 }
 
@@ -614,7 +613,7 @@ jobs:
                             $_ | Out-File $LuaRocksDir/vcpkg_mq.txt
                         }
                         # Write-Debug "Running vcpkg_mq for dependencies..."
-                        & "$vcpkg_mq" -ProjectName LuaRocks -ProjectDirectory "$LuaRocksDir" -MQRoot "${{ github.workspace }}" -Platform $Platform -Toolchain v143
+                        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$vcpkg_mq" -ProjectName LuaRocks -ProjectDirectory "$LuaRocksDir" -MQRoot "${{ github.workspace }}" -Platform $Platform -Toolchain v143
                         # Write-Debug "Done Running vcpkg_mq"
                     } else {
                         # Write-Debug "No dependencies needed"
