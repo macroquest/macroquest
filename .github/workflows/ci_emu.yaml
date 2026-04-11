@@ -6,6 +6,7 @@ on:
       - emu
     tags-ignore:
       - rel-*
+      - beta-*
 
 concurrency:
   group: ${{ github.workflow }}

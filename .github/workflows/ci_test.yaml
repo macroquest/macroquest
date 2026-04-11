@@ -6,6 +6,7 @@ on:
       - test
     tags-ignore:
       - rel-*
+      - beta-*
 
 concurrency:
   group: ${{ github.workflow }}
