@@ -10,10 +10,7 @@
     <MQStaticBuild>false</MQStaticBuild>
     <MQStaticBuild Condition="$(Configuration.EndsWith('-Static'))">true</MQStaticBuild>
 
-    <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
-    <MQBuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' == '1'">$(MQRoot)build\$(eqlibClientTarget)\</MQBuildDirectory>
-    <MQBuildDirectory Condition="'$(MQ_BUILD_SEPARATE)' != '1'">$(MQRoot)build\</MQBuildDirectory>
-
+    <MQBuildDirectory>$(MQRoot)build\</MQBuildDirectory>
     <MQLibDir>$(MQBuildDirectory)lib\$(Platform)\$(MQBinaryDirName)\</MQLibDir>
 
     <!-- Deprecated variables, but kept for backwards compatibility -->
@@ -34,7 +31,7 @@
     <VCPKG_InstalledRoot>$(MQRoot)contrib\vcpkg\installed\</VCPKG_InstalledRoot>
     <VCPKG_Triplet Condition="'$(Platform)'=='Win32'">x86-windows</VCPKG_Triplet>
     <VCPKG_Triplet Condition="'$(Platform)'=='x64'">x64-windows</VCPKG_Triplet>
-  
+
     <VCPKG_IncludeStatic>$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\include</VCPKG_IncludeStatic>
     <VCPKG_IncludeDynamic>$(VCPKG_InstalledRoot)$(VCPKG_Triplet)\include</VCPKG_IncludeDynamic>
     <VCPKG_LibraryDirs Condition="'$(MQConfig)' == 'Debug'">$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\debug\lib;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)-static\debug\lib\manual-link;$(VCPKG_InstalledRoot)$(VCPKG_Triplet)\debug\lib</VCPKG_LibraryDirs>
@@ -47,6 +44,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!-- Changes here should be replicated in the MQ_BUILD_SEPARATE section below -->
     <IntDir>$(MQBuildDirectory)obj\$(Platform)\$(MQBinaryDirName)\$(ProjectName)\</IntDir>
     <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQBuildDirectory)bin\$(MQBinaryDirName)\</OutDir>
     <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQLibDir)</OutDir>
@@ -86,17 +84,6 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
 
-    <!-- Shared linker settings -->
-    <Link>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(MQLibDir);$(PlatformLibraryDirectories);$(VCPKG_LibraryDirs);$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-    </Link>
-
     <!-- Static Build Settings -->
     <ClCompile Condition="'$(MQStaticBuild)' == 'true'">
       <PreprocessorDefinitions>IMGUI_STATIC;MQLIB_STATIC;EQLIB_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -117,6 +104,30 @@
     <Import Project=".\private\Common-private.props" Condition="exists('.\private\Common-private.props')" />
     <Import Project=".\eqlib\eqlib.props" Condition="exists('.\eqlib\eqlib.props')" />
   </ImportGroup>
+
+  <!-- MQ_BUILD_SEPARATE is an environment variable to allow for turning the separate ClientTarget folders on and off -->
+  <!-- Re-evaluate MQBuildDirectory now that eqlibClientTarget is available from eqlib.props -->
+  <PropertyGroup Condition="'$(MQ_BUILD_SEPARATE)' == '1'">
+    <!-- Changes here should be replicated in the non-MQ_BUILD_SEPARATE section above -->
+    <MQBuildDirectory>$(MQRoot)build\$(eqlibClientTarget)\</MQBuildDirectory>
+    <MQLibDir>$(MQBuildDirectory)lib\$(Platform)\$(MQBinaryDirName)\</MQLibDir>
+    <IntDir>$(MQBuildDirectory)obj\$(Platform)\$(MQBinaryDirName)\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(ConfigurationType)'!='StaticLibrary'">$(MQBuildDirectory)bin\$(MQBinaryDirName)\</OutDir>
+    <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(MQLibDir)</OutDir>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <!-- Shared linker settings -->
+    <Link>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MQLibDir);$(PlatformLibraryDirectories);$(VCPKG_LibraryDirs);$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
 
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(MQRoot)tools\build_scripts\protoc\protobuf.targets" />
