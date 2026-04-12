@@ -1,3 +1,7 @@
+## 4/11/2026
+
+- PackageMan bug fixes
+
 ## 4/10/2026
 
 ### New Plugin Callbacks
