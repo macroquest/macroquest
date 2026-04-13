@@ -103,6 +103,31 @@ jobs:
         run: |
           Get-ChildItem plugins -Directory | ForEach-Object { Write-Host "$($_.Name)"; git -C "$($_.FullName)" submodule update --init --recursive --depth=1 }
 
+      - name: Validate Plugin Projects
+        shell: pwsh
+        run: |
+          $result = & "${{ github.workspace }}/tools/build_scripts/Validate_Plugin_Projects.ps1" -PluginsDirectory "${{ github.workspace }}/plugins" -Whitelist @("MQ2Nav")
+          $exitCode = $LASTEXITCODE
+          $discordMessage = ($result -join "`n")
+          if ($discordMessage.Length -gt 4000) {
+            $discordMessage = $discordMessage.Substring(0, 4000)
+          }
+          if ($exitCode -ne 0) {
+            Write-Warning $discordMessage
+            [System.Collections.ArrayList]$embedArray = @()
+            $embedObject = [PSCustomObject]@{
+                color = "15548997"
+                title = "Plugin validation failed (${{ github.ref_name }})"
+                description = $discordMessage
+            }
+            $embedArray.Add($embedObject) | Out-Null
+            $discordPayload = [PSCustomObject]@{
+                embeds = $embedArray
+            } | ConvertTo-Json
+            Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
+            exit 1
+          }
+
       - name: Get SLN file from docs site
         shell: pwsh
         run: |
@@ -383,7 +408,7 @@ jobs:
           $discordPayload = [PSCustomObject]@{
               embeds = $embedArray
           } | ConvertTo-Json
-          Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
+          Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
         continue-on-error: true
 
       - name: Handle LuaRocks Cache
@@ -580,7 +605,7 @@ jobs:
                     $discordPayload = [PSCustomObject]@{
                         embeds = $embedArray
                     } | ConvertTo-Json
-                    Invoke-RestMethod -Uri ${{ secrets.MQDISCORD_DEV_WEBHOOK }} -Method Post -Body $discordPayload -ContentType 'application/json'
+                    Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
                 }
 
                 $installModule = $false
