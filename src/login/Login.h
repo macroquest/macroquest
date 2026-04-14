@@ -19,7 +19,7 @@
 #include <filesystem>
 #include <optional>
 
-#include "extras/protobuf/ProtobufLibs.h"
+#include "mq/contrib/protobuf/ProtobufLibs.h"
 
 #pragma comment(lib, "login")
 

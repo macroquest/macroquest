@@ -29,7 +29,7 @@
 
 #include "common/StringUtils.h"
 
-#include "extras/protobuf/ProtobufLibs.h"
+#include "mq/contrib/protobuf/ProtobufLibs.h"
 
 namespace mq::lua {
 using namespace mq::postoffice;

@@ -50,6 +50,6 @@ struct RpcRequest
 	std::chrono::steady_clock::time_point sendTime; // for timeouts
 };
 
-#include "extras/protobuf/ProtobufLibs.h"
+#include "mq/contrib/protobuf/ProtobufLibs.h"
 
 #pragma comment(lib, "routing")
