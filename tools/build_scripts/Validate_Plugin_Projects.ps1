@@ -153,4 +153,5 @@ if ($failures.Count -gt 0) {
     exit 1
 } else {
     Write-Output "VALIDATION PASSED - All plugin projects are clean."
+    exit 0
 }
