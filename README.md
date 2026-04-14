@@ -1,6 +1,6 @@
 # MacroQuest
 
-[![Live Build](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_live.yaml) [![Test Build](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml/badge.svg?branch=test)](https://github.com/macroquest/macroquest/actions/workflows/ci_test.yaml) [![Emu Build](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_emu.yaml)
+[![Emu RoF2 Build](https://github.com/macroquest/macroquest/actions/workflows/ci_emu_rof2.yaml/badge.svg)](https://github.com/macroquest/macroquest/actions/workflows/ci_emu_rof2.yaml)
 
 ---
 

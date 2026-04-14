@@ -1,4 +1,4 @@
-name: CI Live
+name: CI Emu RoF2
 
 on:
   push:
@@ -16,5 +16,5 @@ jobs:
   call_build:
     uses: ./.github/workflows/ci_shared.yaml
     with:
-      client_target: live
+      client_target: emu-tob
     secrets: inherit

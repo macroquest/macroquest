@@ -8,7 +8,7 @@ on:
         type: string
 
 env:
-  platform: "${{ inputs.client_target == 'emu' && 'Win32' || 'x64' }}"
+  platform: "${{ inputs.client_target == 'emu-rof2' && 'Win32' || 'x64' }}"
 
 jobs:
   build:

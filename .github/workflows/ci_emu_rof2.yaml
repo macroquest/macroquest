@@ -1,9 +1,9 @@
-name: CI Emu
+name: CI Emu RoF2
 
 on:
   push:
     branches:
-      - emu
+      - master
     tags-ignore:
       - rel-*
       - beta-*
@@ -16,5 +16,5 @@ jobs:
   call_build:
     uses: ./.github/workflows/ci_shared.yaml
     with:
-      client_target: emu
+      client_target: emu-rof2
     secrets: inherit

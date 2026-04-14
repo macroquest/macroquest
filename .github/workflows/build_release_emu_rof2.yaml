@@ -1,9 +1,10 @@
-name: Build MacroQuest Test Release
+name: Build MacroQuest Emu Release
 
 on:
   push:
     tags:
-      - rel-test
+      - rel-emu
+      - rel-emu-rof2
 
 concurrency:
   group: ${{ github.workflow }}
@@ -13,5 +14,5 @@ jobs:
   call_build:
     uses: ./.github/workflows/build_release_shared.yaml
     with:
-      client_target: test
+      client_target: emu-rof2
     secrets: inherit

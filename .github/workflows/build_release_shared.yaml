@@ -12,13 +12,13 @@ on:
         required: true
         type: choice
         options:
-        - live
-        - test
-        - emu
+        - emu-rof2
+        - emu-tob
         - beta-emu-rof2
+        - beta-emu-tob
 
 env:
-  platform: "${{ (inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2')) && 'Win32' || 'x64' }}"
+  platform: "${{ contains(inputs.client_target, 'rof2') && 'Win32' || 'x64' }}"
   scoop_packages: "sentry-cli"
 
 jobs:
@@ -76,11 +76,10 @@ jobs:
             }
           }
 
-      - name: Checkout plugins that work on Emu clients
-        #if: ${{ inputs.client_target == 'emu' }}
+      - name: Checkout plugins that work on RoF2 clients
         shell: pwsh
         run: |
-          $start = Select-String -Path plugin-quick-list.md -Pattern "^# Emu only" -CaseSensitive
+          $start = Select-String -Path plugin-quick-list.md -Pattern "^# RoF2 only" -CaseSensitive
           $end = Select-String -Path plugin-quick-list.md -Pattern "^(#|``)" | Where-Object { $_.LineNumber -gt $start.LineNumber } | Select-Object -First 1
           $content = Get-Content plugin-quick-list.md | Select-Object -Index ($start.LineNumber..($end.LineNumber - 2))
           $content | ForEach-Object {
@@ -432,7 +431,7 @@ jobs:
           $LuaRockServerRoot = "$LuaRockServer"
           $LuaYaml = "$LuaRockServerRoot\mq_luarocks.yaml"
           $GitURL = "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/luarocks.git"
-          $Platform = "$(if ($${{ inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2')}}) {"x86"} else {"x64"})"
+          $Platform = "$(if ($${{ contains(inputs.client_target, 'rof2')}}) {"x86"} else {"x64"})"
           $env:LUAROCKS_CONFIG = "$LuaRocksDir\luarocks_working_config_$($Platform).cfg"
           $systreeNode = "\$Platform"
           $vcpkg_mq = "${{ github.workspace }}\tools\build_scripts\vcpkg_mq.ps1"
@@ -521,7 +520,7 @@ jobs:
 
               # Load vcvars for luarocks
               $vcvars_txt = "${{ github.workspace }}\build\vcvars.txt"
-              $architecture = "$(if ($${{ inputs.client_target == 'emu' || contains(inputs.client_target, 'rof2') }}) {"x64_x86"} else {"x64"})"
+              $architecture = "$(if ($${{ contains(inputs.client_target, 'rof2') }}) {"x64_x86"} else {"x64"})"
               & cmd.exe /c "call `"$($env:ProgramFiles)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat`" $architecture && set > `"$vcvars_txt`""
               Get-Content $vcvars_txt | ForEach-Object {
                 if ($_ -match "^(.*?)=(.*)$") {
