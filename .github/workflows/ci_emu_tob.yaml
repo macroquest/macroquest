@@ -1,4 +1,4 @@
-name: CI Emu RoF2
+name: CI Emu TOB
 
 on:
   push:
