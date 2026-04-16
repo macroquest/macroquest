@@ -1,3 +1,9 @@
+## 4/16/2026
+
+### Bug fixes
+
+- Fix issue where /mapfilter commands would not take effect until the map plugin was reloaded
+
 ## 4/11/2026
 
 - PackageMan bug fixes

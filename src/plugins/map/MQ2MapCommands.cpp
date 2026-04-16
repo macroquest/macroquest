@@ -161,7 +161,7 @@ void MapFilterSetting(PlayerClient* pChar, MapFilter nMapFilter, const char* szV
 void MapFilterColorSetting(MapFilter nMapFilter, const char* szValue)
 {
 	char szArg[MAX_STRING] = { 0 };
-	MapFilterOption option = MapFilterOptions[static_cast<size_t>(nMapFilter)];
+	MapFilterOption& option = MapFilterOptions[static_cast<size_t>(nMapFilter)];
 
 	if (!option.HasColor())
 	{
