@@ -11,6 +11,7 @@ on:
       client_target:
         required: true
         type: choice
+        # These should also be updated in the version_rev map below when adding new targets
         options:
         - emu-rof2
         - emu-tob
@@ -20,12 +21,28 @@ on:
 env:
   platform: "${{ contains(inputs.client_target, 'rof2') && 'Win32' || 'x64' }}"
   scoop_packages: "sentry-cli"
+  # Version revision map -- update this when adding new client targets
+  version_rev: >-
+    ${{ fromJSON('{
+      "live":          1,
+      "test":          2,
+      "beta-emu-rof2": 3,
+      "emu-rof2":      4,
+      "beta-emu-tob":  5,
+      "emu-tob":       6
+    }')[inputs.client_target] }}
 
 jobs:
   build:
     if: github.repository == 'macroquest/macroquest'
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
+      - name: Validate version revision
+        if: env.version_rev == ''
+        run: |
+          echo "::error:: Target '${{ inputs.client_target }}' has no version_rev defined. Update the version revision map in the env block."
+          exit 1
+
       - name: Install and cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
         with:
@@ -146,6 +163,7 @@ jobs:
         run: |
           $versionFile = "src/main/MQVersionInfo.h"
           $versionInfo = Get-Content $versionFile
+          $versionInfo = $versionInfo -replace '#define MQMAIN_VERSION_REV\s+\d+', "#define MQMAIN_VERSION_REV   ${{ env.version_rev }}"
           $versionInfo = $versionInfo -replace '#define MQMAIN_VERSION_BUILD (\d+)', "#define MQMAIN_VERSION_BUILD ${{ github.run_number }}"
           $versionInfo = $versionInfo -replace '#define MQMAIN_GIT_HASH "(.*)"', "#define MQMAIN_GIT_HASH `"$(git rev-parse --short HEAD)`""
           $versionInfo | Set-Content $versionFile
