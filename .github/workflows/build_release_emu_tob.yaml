@@ -1,10 +1,9 @@
-name: Build MacroQuest Emu RoF2 Release
+name: Build MacroQuest Emu TOB Release
 
 on:
   push:
     tags:
-      - rel-emu
-      - rel-emu-rof2
+      - rel-emu-tob
 
 concurrency:
   group: ${{ github.workflow }}
@@ -14,5 +13,5 @@ jobs:
   call_build:
     uses: ./.github/workflows/build_release_shared.yaml
     with:
-      client_target: emu-rof2
+      client_target: emu-tob
     secrets: inherit
