@@ -332,6 +332,101 @@ static void Command_PrintSEHChain(PlayerClient*, const char*)
 #endif // EMU_POP_EXCEPTION_HANDLER_ENABLED
 
 //--------------------------------------------------------------------------
+// ROF2 CEffect Crash Workaround
+//--------------------------------------------------------------------------
+
+#if EMU_CEFFECT_CRASH_WORKAROUND
+
+// ID3DXEffect vtable index for GetParameterByName
+constexpr int VTABLE_INDEX_GetParameterByName = 9;
+
+static uintptr_t s_GetParameterByNameAddress = 0;
+static bool s_GetParameterByNameHooked = false;
+
+DETOUR_TRAMPOLINE_DEF(D3DXHANDLE WINAPI, GetParameterByName_Trampoline, (ID3DXEffect*, D3DXHANDLE, LPCSTR));
+D3DXHANDLE WINAPI GetParameterByName_Detour(ID3DXEffect* pEffect, D3DXHANDLE hParameter, LPCSTR pName)
+{
+	if (pName)
+	{
+		char localBuffer[64] = {};
+		strncpy_s(localBuffer, pName, _TRUNCATE);
+
+		return GetParameterByName_Trampoline(pEffect, hParameter, localBuffer);
+	}
+
+	return GetParameterByName_Trampoline(pEffect, hParameter, pName);
+}
+
+static ID3DXEffect* FindValidEffect()
+{
+	if (!pGraphicsEngine || !pGraphicsEngine->pRender)
+		return nullptr;
+
+	CRender* pRender = pGraphicsEngine->pRender;
+	for (int effectIndex = 0; effectIndex < MAX_EFFECTS; ++effectIndex)
+	{
+		CEffect* effect = pRender->apEffects[effectIndex];
+		if (effect && effect->pD3DXEffect)
+		{
+			return effect->pD3DXEffect;
+		}
+	}
+
+	return nullptr;
+}
+
+void EmuHookGetParameterByName()
+{
+	if (s_GetParameterByNameHooked)
+		return;
+
+	ID3DXEffect* pEffect = FindValidEffect();
+	if (!pEffect)
+		return;
+
+	// Get vtable
+	uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(pEffect);
+	s_GetParameterByNameAddress = vtable[VTABLE_INDEX_GetParameterByName];
+
+	DebugSpewAlways("Hooking ID3DXEffect::GetParameterByName at %p", (void*)s_GetParameterByNameAddress);
+
+	EzDetour(s_GetParameterByNameAddress, &GetParameterByName_Detour, &GetParameterByName_Trampoline);
+	s_GetParameterByNameHooked = true;
+}
+
+void EmuUnhookGetParameterByName()
+{
+	if (s_GetParameterByNameHooked && s_GetParameterByNameAddress != 0)
+	{
+		RemoveDetour(s_GetParameterByNameAddress);
+		s_GetParameterByNameAddress = 0;
+		s_GetParameterByNameHooked = false;
+	}
+}
+
+//--------------------------------------------------------------------------
+
+void EmuCheckEffectsInitialize()
+{
+}
+
+void EmuCheckEffectsShutdown()
+{
+	EmuUnhookGetParameterByName();
+}
+
+void EmuCheckEffectsOnFrameBegin()
+{
+	// Try to hook GetParameterByName once we have a valid effect
+	if (!s_GetParameterByNameHooked)
+	{
+		EmuHookGetParameterByName();
+	}
+}
+
+#endif
+
+//--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
 
 static void EmuExtensions_SettingsPanel()
@@ -358,6 +453,9 @@ static void EmuExtensions_Initialize()
 	EzDetour(__ConvertItemTags, &ConvertItemTags_Detour, &ConvertItemTags_Trampoline);
 	EzDetour(CChatWindow__WndNotification, &CChatWindowHook::WndNotification_Detour, &CChatWindowHook::WndNotification_Trampoline);
 #endif
+#if EMU_CEFFECT_CRASH_WORKAROUND
+	EmuCheckEffectsInitialize();
+#endif
 
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
 	AddCommand("/printsehchain", Command_PrintSEHChain);
@@ -371,6 +469,9 @@ static void EmuExtensions_Shutdown()
 #if EMU_SPELL_LINKS_ENABLED
 	RemoveDetour(__ConvertItemTags);
 	RemoveDetour(CChatWindow__WndNotification);
+#endif
+#if EMU_CEFFECT_CRASH_WORKAROUND
+	EmuCheckEffectsShutdown();
 #endif
 
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
@@ -453,6 +554,15 @@ static void EmuExtensions_CleanUI()
 void EmuExtensions_ReloadUI()
 {
 	
+}
+
+void EmuExtensions_RenderScene_Hook()
+{
+	// Called from within the RenderScene hook.
+
+#if EMU_CEFFECT_CRASH_WORKAROUND
+	EmuCheckEffectsOnFrameBegin();
+#endif
 }
 
 } // namespace mq

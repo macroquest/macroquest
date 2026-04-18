@@ -37,6 +37,10 @@ extern float gCurrentCPU;
 using MQ2Args = Args<&WriteChatf>;
 using MQ2HelpArgument = HelpArgument;
 
+#if MQ_EXPANSION_LEVEL == EXPANSION_LEVEL_ROF
+void EmuExtensions_RenderScene_Hook();
+#endif
+
 #pragma region analysis
 
 class CpuUsage
@@ -283,6 +287,9 @@ public:
 	DETOUR_TRAMPOLINE_DEF(void, RenderScene_Trampoline, ())
 	void RenderScene_Detour()
 	{
+#if MQ_EXPANSION_LEVEL == EXPANSION_LEVEL_ROF
+		EmuExtensions_RenderScene_Hook();
+#endif
 		if (RenderScene_Hook())
 		{
 			MQScopedBenchmark bm(bmRenderScene);
