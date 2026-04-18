@@ -1,3 +1,10 @@
+## 4/18/2026
+
+### Bug fixes
+
+- ROF2: Add fix for D3DXEffects::CEffect::FindValue crash when game client goes over 2GB of used memory
+
+
 ## 4/16/2026
 
 ### Bug fixes
