@@ -1957,7 +1957,7 @@ class CDisplay_Detours
 public:
 	void ZoneMainUI_Detour()
 	{
-#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_COTF)
+#if IS_EXPANSION_LEVEL(EXPANSION_LEVEL_SOR)
 		if (GetServerIDFromServerName(GetServerShortName()) == ServerID::Invalid)
 		{
 			// unload
