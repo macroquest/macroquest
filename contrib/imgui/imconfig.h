@@ -210,6 +210,8 @@ class ImGuiTextureObject
 {
 public:
     ImGuiTextureObject() = default;
+    ImGuiTextureObject(const ImGuiTextureObject&) = default;
+    ImGuiTextureObject(ImGuiTextureObject&&) = default;
 
     ImGuiTextureObject(void* value)
         : value(reinterpret_cast<uintptr_t>(value))
@@ -233,10 +235,6 @@ public:
         SetTexture(texture);
     }
 
-    ImGuiTextureObject(const ImGuiTextureObject& other)
-        : value(other.value)
-    {}
-
     ImGuiTextureObject(int value)
         : value(value)
     {
@@ -248,12 +246,7 @@ public:
     {
     }
 
-    ImGuiTextureObject& operator=(const ImGuiTextureObject& other)
-    {
-        value = other.value;
-
-        return *this;
-    }
+    ImGuiTextureObject& operator=(const ImGuiTextureObject& other) = default;
 
     ImGuiTextureObject& operator=(int value)
     {
