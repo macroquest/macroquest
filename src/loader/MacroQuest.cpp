@@ -1073,6 +1073,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT MSG, WPARAM wParam, LPARAM lParam)
 				break;
 
 			case WM_RBUTTONUP:
+				::SetForegroundWindow(hWnd);
 				LauncherImGui::OpenContextMenu();
 				break;
 			}
