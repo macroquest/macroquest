@@ -8,7 +8,7 @@ ImguiHelper.Popup = {
             if not buttons or #buttons == 0 then
                 return 0
             end
-            if not mq.candelay() then
+            if not mq.canDelay() then
                 print("ImguiHelper.Popup.Modal cannot block in the current context (yielding is disabled, typically during require). Ensure the caller is not loading as a module.", 2)
                 mq.exit()
             end

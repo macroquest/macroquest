@@ -166,7 +166,7 @@ PackageMan.Require = function(package_name, require_name, fail_message)
     local my_package = Utils.Library.Include(require_name)
     local result_message = nil
     if not my_package then
-        if not mq.candelay() then
+        if not mq.canDelay() then
             printf("%s :: package '%s' (require '%s') is not installed and cannot prompt to install. Check how this method is being called.", fail_message, package_name, require_name)
             mq.exit()
         end

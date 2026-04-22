@@ -539,7 +539,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 
 	// thread bindings
 	mq.set_function("delay",                     &lua_delay);
-	mq.set_function("candelay",                  &lua_canDelay);
+	mq.set_function("canDelay",                  &lua_canDelay);
 	mq.set_function("exit",                      &lua_exit);
 
 	// event bindings
