@@ -4,6 +4,8 @@
 
 - Fixed an issue where the lua imgui binding for BeginPopupModal was not properly allowing flags
 - Added some brute force tactics to `/foreground` so that it will work in more situations
+- Fix context menu losing focus and not closing on focus
+- rof2: Fix crash when opening alt ability inspector
 
 ### Features
 
