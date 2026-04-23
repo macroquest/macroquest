@@ -77,6 +77,7 @@ enum class SpellMembers
 	SpellGroup,
 	SubSpellGroup,
 	Beneficial,
+	PreventsRegen,
 	IsActiveAA,
 	CalcIndex,
 	NumEffects,
@@ -174,6 +175,7 @@ MQ2SpellType::MQ2SpellType() : MQ2Type("spell")
 	ScopedTypeMember(SpellMembers, SpellGroup);
 	ScopedTypeMember(SpellMembers, SubSpellGroup);
 	ScopedTypeMember(SpellMembers, Beneficial);
+	ScopedTypeMember(SpellMembers, PreventsRegen);
 	ScopedTypeMember(SpellMembers, IsActiveAA);
 	ScopedTypeMember(SpellMembers, CalcIndex);
 	ScopedTypeMember(SpellMembers, NumEffects);
@@ -1185,6 +1187,11 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 	case SpellMembers::Beneficial:
 		Dest.Set(pSpell->SpellType != 0);
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpellMembers::PreventsRegen:
+		Dest.Set(!pSpell->IsBeneficialSpell() && !pSpell->BypassRegenCheck);
 		Dest.Type = pBoolType;
 		return true;
 
