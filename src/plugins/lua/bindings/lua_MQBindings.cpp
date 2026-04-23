@@ -112,6 +112,15 @@ static void lua_delay(sol::object delayObj, std::optional<sol::object> condition
 	}
 }
 
+static bool lua_canDelay(sol::this_state s)
+{
+	if (std::shared_ptr<LuaThread> thread_ptr = LuaThread::get_from(s))
+	{
+		return thread_ptr->GetAllowYield();
+	}
+	return false;
+}
+
 // also exposed as os.exit
 void lua_exit(sol::this_state s)
 {
@@ -530,6 +539,7 @@ void RegisterBindings_MQ(LuaThread* thread, sol::table& mq)
 
 	// thread bindings
 	mq.set_function("delay",                     &lua_delay);
+	mq.set_function("canDelay",                  &lua_canDelay);
 	mq.set_function("exit",                      &lua_exit);
 
 	// event bindings

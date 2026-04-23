@@ -696,7 +696,7 @@ sol::table RegisterBindings_ImGui(sol::state_view state)
 	#pragma region Popups, Modals
 	ImGui.set_function("BeginPopup", [](const char* str_id, std::optional<int> flags) { return ImGui::BeginPopup(str_id, flags.value_or(0)); });
 	ImGui.set_function("BeginPopupModal", sol::overload(
-		[](const char* name, std::optional<bool> open, std::optional<bool> flags)
+		[](const char* name, std::optional<bool> open, std::optional<int> flags)
 		{
 			bool open_ = open.value_or(true);
 			bool show = ImGui::BeginPopupModal(name, open.has_value() ? &open_ : nullptr, flags.value_or(0));
