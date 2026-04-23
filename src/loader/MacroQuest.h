@@ -75,6 +75,7 @@ namespace internal_paths
 	extern std::string CrashDumps;
 	extern std::string Plugins;
 	extern std::string Resources;
+	extern std::string Lua;
 }; // namespace internal_paths
 
 //----------------------------------------------------------------------------
@@ -139,4 +140,3 @@ std::string GetLocalPlayer(DWORD pid);
 void InitializeAutoLogin();
 void ShutdownAutoLogin();
 void AutoLoginRemoveProcess(uint32_t process_id);
-
