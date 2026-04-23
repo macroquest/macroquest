@@ -1,3 +1,20 @@
+## 4/22/2026
+
+### Bug fixes
+
+- Fixed an issue where the lua imgui binding for BeginPopupModal was not properly allowing flags
+- Added some brute force tactics to `/foreground` so that it will work in more situations
+
+### Features
+
+- Added mq.canDelay() - returns true if the script is in a state where delay is allowed
+
+### PackageMan improvements
+
+- Cleaned up workarounds in PackageMan.lua for the flag issue
+- Added a fail state in PackageMan to prevent use if it is in a state that will for sure fail. This is a prospective fix for the blocking issue.
+- Added a fail state in ImguiHelper to prevent use in a similar scenario (should not reach from PackageMan, but just in case)
+
 ## 4/18/2026
 
 ### Bug fixes

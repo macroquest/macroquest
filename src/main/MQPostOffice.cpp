@@ -100,12 +100,31 @@ void MQPostOffice::NotifyIsForegroundWindow(bool isForeground)
 
 void MQPostOffice::RequestActivateWindow(HWND hWnd, bool sendMessage)
 {
+	// The order in which we activate this matters. This is also duplicated in
+	// the loader's MacroQuest.cpp SetForegroundWindowInternal function so changes
+	// here should be replicated there.
+	const DWORD ourThread = ::GetCurrentThreadId();
+	const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
+	const bool attached = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+	auto detach = wil::scope_exit([&]
+		{
+			if (attached)
+			{
+				::AttachThreadInput(ourThread, fgThread, false);
+			}
+		});
+
+	::BringWindowToTop(hWnd);
+	::SetForegroundWindow(hWnd);
+
 	if (IsIconic(hWnd))
 	{
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
-	if (::SetForegroundWindow(hWnd))
+	::SetFocus(hWnd);
+
+	if (::GetForegroundWindow() == hWnd)
 		return;
 
 	if (sendMessage && m_pipeClient.IsConnected())

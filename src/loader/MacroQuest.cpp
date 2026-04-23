@@ -689,10 +689,33 @@ void SetForegroundWindowInternal(HWND hWnd)
 {
 	if (IsWindow(hWnd))
 	{
-		if (IsIconic(hWnd))
-			ShowWindow(hWnd, SW_RESTORE);
+		// The order in which we activate this matters. This is also duplicated in
+		// the MQPostOffice.cpp RequestActivateWindow function so changes
+		// here should be replicated there. One future update if this stops working
+		// is to cross-thread the attach to the destination hWnd, but it does not
+		// appear to be needed now and it's easier to keep these two in sync.
+		const DWORD ourThread = ::GetCurrentThreadId();
+		const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
+		const bool attached = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+		auto detach = wil::scope_exit([&]
+			{
+				if (attached)
+				{
+					::AttachThreadInput(ourThread, fgThread, false);
+				}
+			});
 
-		if (!::SetForegroundWindow(hWnd) && !SendSetForegroundWindow(hWnd, gFocusProcessID))
+		::BringWindowToTop(hWnd);
+		::SetForegroundWindow(hWnd);
+
+		if (IsIconic(hWnd))
+		{
+			ShowWindow(hWnd, SW_RESTORE);
+		}
+
+		::SetFocus(hWnd);
+
+		if (::GetForegroundWindow() != hWnd && !SendSetForegroundWindow(hWnd, gFocusProcessID))
 		{
 			SPDLOG_DEBUG("Failed to set foreground window. Doing it with min/restore.");
 
