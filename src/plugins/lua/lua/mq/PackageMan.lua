@@ -167,7 +167,7 @@ PackageMan.Require = function(package_name, require_name, fail_message)
     local result_message = nil
     if not my_package then
         if not mq.canDelay() then
-            printf("%s :: package '%s' (require '%s') is not installed and cannot prompt to install. Check how this method is being called.", fail_message, package_name, require_name)
+            printf("%s :: package '%s' (require '%s') is not installed and cannot prompt to install. Ensure the caller is the main script and not a module.", fail_message, package_name, require_name)
             mq.exit()
         end
         my_package, result_message = PackageMan.InstallAndLoad(package_name, require_name)
