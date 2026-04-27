@@ -1,34 +1,114 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
-{% block content %}
-<div class="min-h-screen flex items-center justify-center -mt-6">
-  <div class="w-full max-w-sm bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-700">
-    <div class="text-center mb-6">
-      <span class="text-4xl">⚙</span>
-      <h1 class="text-2xl font-bold text-orange-400 mt-2">MQ Admin</h1>
-      <p class="text-gray-400 text-sm mt-1">MacroQuest Build Panel</p>
+
+{% block title %}Sign In{% endblock %}
+
+{% block auth_content %}
+<div class="w-full max-w-sm" x-data="{ loading: false }">
+
+    <!-- Brand mark -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-red-700/80 shadow-lg mb-4">
+            <span class="text-white font-bold text-xl select-none">MQ</span>
+        </div>
+        <h1 class="text-xl font-semibold text-gray-100">MacroQuest Admin</h1>
+        <p class="text-sm text-gray-500 mt-1">Build Pipeline Control Panel</p>
     </div>
-    {% for flash in flashes %}
-    <div class="mb-4 px-3 py-2 rounded text-sm {% if flash.level == 'error' %}bg-red-900 border border-red-600{% else %}bg-blue-900 border border-blue-600{% endif %}">
-      {{ flash.message }}
+
+    <!-- Card -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700/50 shadow-2xl p-8">
+
+        <!-- Error banner -->
+        {% if error %}
+        <div class="flex items-center gap-2 mb-5 px-3 py-2.5 rounded-lg bg-red-900/50 border border-red-700/50 text-red-300 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="post" action="/auth/login" @submit="loading = true" class="space-y-5">
+
+            <!-- CSRF token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+
+            <!-- Username -->
+            <div>
+                <label for="username" class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Username
+                </label>
+                <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    required
+                    autofocus
+                    autocomplete="username"
+                    value="{{ username or '' }}"
+                    class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-600
+                           focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50
+                           transition-colors duration-150"
+                    placeholder="admin"
+                />
+            </div>
+
+            <!-- Password -->
+            <div x-data="{ showPw: false }">
+                <label for="password" class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Password
+                </label>
+                <div class="relative">
+                    <input
+                        id="password"
+                        name="password"
+                        :type="showPw ? 'text' : 'password'"
+                        required
+                        autocomplete="current-password"
+                        class="w-full px-3 py-2.5 pr-10 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-600
+                               focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50
+                               transition-colors duration-150"
+                        placeholder="••••••••"
+                    />
+                    <button
+                        type="button"
+                        @click="showPw = !showPw"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
+                        tabindex="-1"
+                    >
+                        <svg x-show="!showPw" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <svg x-show="showPw" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button
+                type="submit"
+                :disabled="loading"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-600
+                       disabled:opacity-60 disabled:cursor-not-allowed
+                       text-white text-sm font-semibold rounded-lg
+                       focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-gray-800
+                       transition-colors duration-150 mt-2"
+            >
+                <svg x-show="loading" x-cloak class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span x-show="!loading">Sign in</span>
+                <span x-show="loading" x-cloak>Signing in…</span>
+            </button>
+
+        </form>
     </div>
-    {% endfor %}
-    <form method="post" action="/auth/login" class="space-y-4">
-      <div>
-        <label class="block text-sm text-gray-300 mb-1">Username</label>
-        <input name="username" type="text" required autofocus
-               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
-      </div>
-      <div>
-        <label class="block text-sm text-gray-300 mb-1">Password</label>
-        <input name="password" type="password" required
-               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
-      </div>
-      <button type="submit"
-              class="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 rounded transition">
-        Sign In
-      </button>
-    </form>
-  </div>
+
+    <p class="mt-6 text-center text-xs text-gray-600">
+        MacroQuest Build Pipeline &mdash; Authorized access only
+    </p>
 </div>
 {% endblock %}

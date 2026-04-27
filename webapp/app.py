@@ -28,6 +28,35 @@ BASE_DIR = os.path.dirname(__file__)
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
+
+def _duration_filter(seconds: int) -> str:
+    m, s = divmod(int(seconds), 60)
+    return f"{m}m {s}s" if m else f"{s}s"
+
+
+def _datetimeformat_filter(value: str | datetime | None) -> str:
+    if not value:
+        return "—"
+    if isinstance(value, str):
+        try:
+            value = datetime.strptime(value.rstrip("Z"), "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            return value
+    return value.strftime("%b %d %H:%M UTC")
+
+
+def _filesizeformat_filter(value: int) -> str:
+    for unit in ("B", "KB", "MB", "GB"):
+        if value < 1024:
+            return f"{value:.1f} {unit}"
+        value /= 1024
+    return f"{value:.1f} TB"
+
+
+templates.env.filters["duration"] = _duration_filter
+templates.env.filters["datetimeformat"] = _datetimeformat_filter
+templates.env.filters["filesizeformat"] = _filesizeformat_filter
+
 ENVS = ["live", "test", "emu"]
 WORKFLOW_MAP = {
     "live": "build_custom_live.yaml",
@@ -99,9 +128,13 @@ def _get_flashes(request: Request) -> list[dict]:
 
 def _render(request: Request, template: str, db: Session, **ctx):
     user = _get_current_user(request, db)
+    # csrf_token is empty — SameSite=Strict cookies provide CSRF protection
+    csrf_token = request.session.get("csrf_token") or secrets.token_hex(16)
+    request.session["csrf_token"] = csrf_token
     return templates.TemplateResponse(
         template,
-        {"request": request, "current_user": user, "flashes": _get_flashes(request), **ctx},
+        {"request": request, "current_user": user, "flashes": _get_flashes(request),
+         "csrf_token": csrf_token, **ctx},
     )
 
 
@@ -231,17 +264,34 @@ async def logout(request: Request):
 # Dashboard
 # ---------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, db: Session = Depends(get_db),
                     current_user: User = Depends(get_current_user)):
-    runs_by_env: dict[str, list] = {}
+    env_builds: dict[str, dict] = {}
     for env in ENVS:
         try:
-            runs_by_env[env] = await gh.get_workflow_runs_for_workflow(WORKFLOW_MAP[env], limit=3)
+            runs = await gh.get_workflow_runs_for_workflow(WORKFLOW_MAP[env], limit=1)
+            if runs:
+                run = runs[0]
+                b = _run_to_build(run)
+                b["last_build_at"] = run.get("run_started_at") or run.get("created_at")
+                b["branch"] = run.get("head_branch", "custom-release")
+                b["triggered_by"] = run.get("triggering_actor", {}).get("login") if run.get("triggering_actor") else None
+                env_builds[env] = b
+            else:
+                env_builds[env] = {}
         except Exception:
-            runs_by_env[env] = []
+            env_builds[env] = {}
 
-    all_runs = await gh.get_workflow_runs(limit=15)
-    return _render(request, "dashboard.html", db, runs_by_env=runs_by_env, all_runs=all_runs, envs=ENVS)
+    all_runs = await gh.get_workflow_runs(limit=20)
+    recent_builds = []
+    for run in all_runs:
+        b = _run_to_build(run)
+        b["started_at"] = run.get("run_started_at") or run.get("created_at")
+        b["triggered_by"] = run.get("triggering_actor", {}).get("login") if run.get("triggering_actor") else None
+        recent_builds.append(b)
+
+    return _render(request, "dashboard.html", db, env_builds=env_builds, recent_builds=recent_builds)
 
 
 # ---------------------------------------------------------------------------
@@ -252,20 +302,79 @@ async def trigger_build(request: Request, db: Session = Depends(get_db),
                         current_user: User = Depends(get_current_user),
                         client_target: str = Form(...)):
     if client_target not in ENVS:
+        if request.headers.get("accept") == "application/json":
+            return {"error": f"Unknown environment: {client_target}"}
         _flash(request, f"Unknown environment: {client_target}", "error")
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/dashboard", status_code=303)
     ok = await gh.trigger_workflow(WORKFLOW_MAP[client_target])
+    if request.headers.get("accept") == "application/json":
+        return {"ok": ok, "env": client_target}
     if ok:
         _flash(request, f"Build triggered for {client_target.upper()}", "success")
     else:
         _flash(request, f"Failed to trigger build for {client_target}", "error")
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+def _run_to_build(run: dict) -> dict:
+    """Normalize a GitHub API run dict to the build context expected by logs.html."""
+    name = run.get("name", "")
+    env = "live"
+    for e in ENVS:
+        if e in name.lower():
+            env = e
+            break
+    status = run.get("status", "queued")
+    conclusion = run.get("conclusion")
+    if status == "completed":
+        status = conclusion or "success"
+    started = run.get("run_started_at") or run.get("created_at", "")
+    updated = run.get("updated_at", "")
+    duration = None
+    if started and updated and status in ("success", "failure"):
+        try:
+            from datetime import datetime as _dt
+            fmt = "%Y-%m-%dT%H:%M:%SZ"
+            duration = int((_dt.strptime(updated, fmt) - _dt.strptime(started, fmt)).total_seconds())
+        except Exception:
+            pass
+    return {
+        "run_id": run.get("id"),
+        "run_number": run.get("run_number"),
+        "environment": env,
+        "status": status,
+        "progress": 100 if status in ("success", "failure") else 0,
+        "duration_seconds": duration,
+        "html_url": run.get("html_url", ""),
+    }
 
 
 @app.get("/builds/{run_id}", response_class=HTMLResponse)
+@app.get("/builds/{run_id}/logs", response_class=HTMLResponse)
 async def build_log_page(run_id: int, request: Request, db: Session = Depends(get_db),
                          current_user: User = Depends(get_current_user)):
-    return _render(request, "logs.html", db, run_id=run_id)
+    try:
+        run = await gh.get_run(run_id)
+        build = _run_to_build(run)
+        build["last_build_at"] = run.get("run_started_at") or run.get("created_at")
+    except Exception:
+        build = {"run_id": run_id, "run_number": run_id, "environment": "unknown",
+                 "status": "queued", "progress": 0, "duration_seconds": None, "html_url": ""}
+    return _render(request, "logs.html", db, build=build)
+
+
+@app.get("/builds/{run_id}/logs/json")
+async def build_log_json(run_id: int, request: Request, db: Session = Depends(get_db),
+                         current_user: User = Depends(get_current_user)):
+    log_text = await gh.get_run_log_text(run_id)
+    return {"lines": log_text.splitlines()}
+
+
+@app.get("/builds/{run_id}/logs/raw")
+async def build_log_raw(run_id: int, request: Request, db: Session = Depends(get_db),
+                        current_user: User = Depends(get_current_user)):
+    log_text = await gh.get_run_log_text(run_id)
+    return Response(content=log_text, media_type="text/plain")
 
 
 @app.get("/builds/{run_id}/stream")
@@ -273,6 +382,7 @@ async def build_log_stream(run_id: int, request: Request, db: Session = Depends(
                            current_user: User = Depends(get_current_user)):
     async def event_gen():
         seen_lines = 0
+        build_start = None
         for _ in range(120):  # ~6 min timeout
             if await request.is_disconnected():
                 break
@@ -295,13 +405,27 @@ async def build_log_stream(run_id: int, request: Request, db: Session = Depends(
                     yield f"event: log\ndata: {json.dumps(line)}\n\n"
 
                 yield f"event: progress\ndata: {progress}\n\n"
+                yield f"event: status\ndata: {status}\n\n"
 
-                if status in ("completed", "failure"):
-                    yield f"event: complete\ndata: {status}\n\n"
+                # ETA: estimate from progress + elapsed (use BuildHistory avg if available)
+                if progress > 5 and build_start is not None:
+                    import time
+                    elapsed = time.time() - build_start
+                    estimated_total = elapsed / (progress / 100)
+                    eta = max(0, int(estimated_total - elapsed))
+                    yield f"event: eta\ndata: {eta}\n\n"
+
+                if status == "completed":
+                    run = await gh.get_run(run_id)
+                    conclusion = run.get("conclusion", "success")
+                    yield f"event: complete\ndata: {json.dumps({'status': conclusion})}\n\n"
                     break
             except Exception as e:
                 yield f"event: log\ndata: {json.dumps(f'[stream error] {e}')}\n\n"
 
+            if build_start is None:
+                import time
+                build_start = time.time()
             await asyncio.sleep(3)
 
     return StreamingResponse(event_gen(), media_type="text/event-stream",
@@ -352,35 +476,68 @@ async def plugins_save(request: Request, db: Session = Depends(get_db),
 @app.get("/eqlib", response_class=HTMLResponse)
 async def eqlib_page(request: Request, db: Session = Depends(get_db),
                      current_user: User = Depends(require_super_admin)):
-    eqlib_repo = await gh.get_variable("CUSTOM_EQLIB_REPO")
-    live_branch = await gh.get_variable("EQLIB_BRANCH_LIVE") or "live"
-    test_branch = await gh.get_variable("EQLIB_BRANCH_TEST") or "test"
-    emu_branch = await gh.get_variable("EQLIB_BRANCH_EMU") or "emu"
-    return _render(request, "eqlib.html", db, eqlib_repo=eqlib_repo,
-                   live_branch=live_branch, test_branch=test_branch, emu_branch=emu_branch)
+    repo_url = await gh.get_variable("CUSTOM_EQLIB_REPO")
+    visibility = await gh.get_variable("EQLIB_VISIBILITY") or "public"
+    eqlib = {
+        "repo_url": repo_url,
+        "visibility": visibility,
+        "pat_set": bool(await gh.get_variable("EQLIB_PAT_SET")),
+        "pat_placeholder": "••••••••••••••••••••" if await gh.get_variable("EQLIB_PAT_SET") else "",
+        "branch_live": await gh.get_variable("EQLIB_BRANCH_LIVE") or "live",
+        "branch_test": await gh.get_variable("EQLIB_BRANCH_TEST") or "test",
+        "branch_emu": await gh.get_variable("EQLIB_BRANCH_EMU") or "emu",
+    }
+    return _render(request, "eqlib.html", db, eqlib=eqlib)
 
 
 @app.post("/eqlib/save")
 async def eqlib_save(request: Request, db: Session = Depends(get_db),
                      current_user: User = Depends(require_super_admin)):
     form = await request.form()
-    eqlib_repo = form.get("eqlib_repo", "").strip()
-    pat = form.get("eqlib_pat", "").strip()
-    live_branch = form.get("live_branch", "live").strip()
-    test_branch = form.get("test_branch", "test").strip()
-    emu_branch = form.get("emu_branch", "emu").strip()
+    repo_url = form.get("repo_url", "").strip()
+    visibility = form.get("visibility", "public").strip()
+    pat = form.get("pat", "").strip()
+    live_branch = form.get("branch_live", "live").strip()
+    test_branch = form.get("branch_test", "test").strip()
+    emu_branch = form.get("branch_emu", "emu").strip()
 
     try:
-        await gh.set_variable("CUSTOM_EQLIB_REPO", eqlib_repo)
+        await gh.set_variable("CUSTOM_EQLIB_REPO", repo_url)
+        await gh.set_variable("EQLIB_VISIBILITY", visibility)
         await gh.set_variable("EQLIB_BRANCH_LIVE", live_branch)
         await gh.set_variable("EQLIB_BRANCH_TEST", test_branch)
         await gh.set_variable("EQLIB_BRANCH_EMU", emu_branch)
         if pat:
             await gh.set_secret("CUSTOM_EQLIB_PAT", pat)
+            await gh.set_variable("EQLIB_PAT_SET", "1")
         _flash(request, "eqlib configuration saved", "success")
     except Exception as e:
         _flash(request, f"Error saving eqlib config: {e}", "error")
     return RedirectResponse("/eqlib", status_code=303)
+
+
+@app.post("/eqlib/test")
+async def eqlib_test(request: Request, db: Session = Depends(get_db),
+                     current_user: User = Depends(require_super_admin)):
+    try:
+        from fastapi.responses import JSONResponse
+        body = await request.json()
+        repo_url = await gh.get_variable("CUSTOM_EQLIB_REPO")
+        if not repo_url:
+            return JSONResponse({"ok": False, "message": "No repository URL configured"})
+        # Test by checking the repo via GitHub API if it's a github.com URL
+        if "github.com" in repo_url:
+            parts = repo_url.rstrip("/").split("/")
+            owner, repo = parts[-2], parts[-1].removesuffix(".git")
+            async with gh._client() as c:
+                r = await c.get(f"https://api.github.com/repos/{owner}/{repo}")
+            if r.status_code == 200:
+                return JSONResponse({"ok": True, "message": f"Repository found: {r.json().get('full_name')}"})
+            elif r.status_code == 404:
+                return JSONResponse({"ok": False, "message": "Repository not found (check URL and PAT)"})
+        return JSONResponse({"ok": True, "message": "URL configured (reachability not verified for non-GitHub URLs)"})
+    except Exception as e:
+        return JSONResponse({"ok": False, "message": str(e)})
 
 
 # ---------------------------------------------------------------------------
@@ -389,11 +546,17 @@ async def eqlib_save(request: Request, db: Session = Depends(get_db),
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request, db: Session = Depends(get_db),
                         current_user: User = Depends(require_super_admin)):
-    rg_id_live = await gh.get_variable("REDGUIDES_RESOURCE_ID_LIVE")
-    rg_id_test = await gh.get_variable("REDGUIDES_RESOURCE_ID_TEST")
-    rg_id_emu = await gh.get_variable("REDGUIDES_RESOURCE_ID_EMU")
-    return _render(request, "settings.html", db,
-                   rg_id_live=rg_id_live, rg_id_test=rg_id_test, rg_id_emu=rg_id_emu)
+    cfg = {
+        "rg_resource_id_live": await gh.get_variable("REDGUIDES_RESOURCE_ID_LIVE"),
+        "rg_resource_id_test": await gh.get_variable("REDGUIDES_RESOURCE_ID_TEST"),
+        "rg_resource_id_emu": await gh.get_variable("REDGUIDES_RESOURCE_ID_EMU"),
+        "rg_api_key_placeholder": "••••••••••••••••••" if await gh.get_variable("RG_API_KEY_SET") else "",
+        "discord_webhook": await gh.get_variable("DISCORD_WEBHOOK_URL_PLAIN") or "",
+        "schedule_cron": await gh.get_variable("BUILD_SCHEDULE_CRON") or "0 4 * * *",
+        "schedule_enabled": (await gh.get_variable("BUILD_SCHEDULE_ENABLED") or "1") == "1",
+        "schedule_envs": (await gh.get_variable("BUILD_SCHEDULE_ENVS") or "live,test,emu").split(","),
+    }
+    return _render(request, "settings.html", db, settings=cfg)
 
 
 @app.post("/settings/save")
@@ -401,17 +564,70 @@ async def settings_save(request: Request, db: Session = Depends(get_db),
                         current_user: User = Depends(require_super_admin)):
     form = await request.form()
     try:
-        await gh.set_variable("REDGUIDES_RESOURCE_ID_LIVE", form.get("rg_id_live", ""))
-        await gh.set_variable("REDGUIDES_RESOURCE_ID_TEST", form.get("rg_id_test", ""))
-        await gh.set_variable("REDGUIDES_RESOURCE_ID_EMU", form.get("rg_id_emu", ""))
+        await gh.set_variable("REDGUIDES_RESOURCE_ID_LIVE", form.get("rg_resource_id_live", ""))
+        await gh.set_variable("REDGUIDES_RESOURCE_ID_TEST", form.get("rg_resource_id_test", ""))
+        await gh.set_variable("REDGUIDES_RESOURCE_ID_EMU", form.get("rg_resource_id_emu", ""))
         if api_key := form.get("rg_api_key", "").strip():
             await gh.set_secret("REDGUIDES_API_KEY", api_key)
+            await gh.set_variable("RG_API_KEY_SET", "1")
         if webhook := form.get("discord_webhook", "").strip():
             await gh.set_secret("DISCORD_WEBHOOK_URL", webhook)
+            await gh.set_variable("DISCORD_WEBHOOK_URL_PLAIN", webhook)
+        if cron := form.get("schedule_cron", "").strip():
+            await gh.set_variable("BUILD_SCHEDULE_CRON", cron)
+        schedule_envs = ",".join(form.getlist("schedule_envs")) or "live,test,emu"
+        await gh.set_variable("BUILD_SCHEDULE_ENVS", schedule_envs)
+        await gh.set_variable("BUILD_SCHEDULE_ENABLED", "1" if form.get("schedule_enabled") else "0")
         _flash(request, "Settings saved", "success")
     except Exception as e:
         _flash(request, f"Error: {e}", "error")
     return RedirectResponse("/settings", status_code=303)
+
+
+@app.post("/settings/cron-preview")
+async def settings_cron_preview(request: Request, db: Session = Depends(get_db),
+                                current_user: User = Depends(require_super_admin)):
+    from fastapi.responses import JSONResponse
+    try:
+        body = await request.json()
+        cron = body.get("cron", "").strip()
+        if not cron:
+            return JSONResponse({"error": "Empty cron expression"})
+        # Parse and show next 3 runs using basic cron parsing
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["python3", "-c",
+                 f"from croniter import croniter; from datetime import datetime; c=croniter('{cron}'); print('\\n'.join(str(c.get_next(datetime)) for _ in range(3)))"],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                runs = [l.strip() for l in result.stdout.strip().split("\n") if l.strip()]
+                return JSONResponse({"next_runs": runs})
+        except Exception:
+            pass
+        return JSONResponse({"next_runs": [], "error": None})
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
+
+@app.post("/settings/test-webhook")
+async def settings_test_webhook(request: Request, db: Session = Depends(get_db),
+                                current_user: User = Depends(require_super_admin)):
+    from fastapi.responses import JSONResponse
+    try:
+        import httpx as _httpx
+        # Use the stored variable (not the secret) as a plain URL for test
+        webhook_url = await gh.get_variable("DISCORD_WEBHOOK_URL_PLAIN")
+        if not webhook_url:
+            return JSONResponse({"ok": False, "message": "No webhook URL configured"})
+        async with _httpx.AsyncClient() as c:
+            r = await c.post(webhook_url, json={"content": "Test notification from MQ Admin Panel"})
+        if r.status_code in (200, 204):
+            return JSONResponse({"ok": True, "message": "Test message sent"})
+        return JSONResponse({"ok": False, "message": f"HTTP {r.status_code}"})
+    except Exception as e:
+        return JSONResponse({"ok": False, "message": str(e)})
 
 
 # ---------------------------------------------------------------------------

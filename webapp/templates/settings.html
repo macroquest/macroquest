@@ -1,61 +1,337 @@
 {% extends "base.html" %}
+
 {% block title %}Settings{% endblock %}
+{% block title_text %}Settings{% endblock %}
+
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Settings</h1>
-<form method="post" action="/settings/save" class="space-y-6 max-w-2xl">
+<div class="max-w-2xl space-y-6" x-data="settingsPage()">
 
-  <!-- RedGuides -->
-  <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-    <h2 class="font-semibold mb-4 text-orange-400">RedGuides Configuration</h2>
-    <div class="space-y-3">
-      <div class="grid grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs text-gray-400 mb-1">LIVE Resource ID</label>
-          <input name="rg_id_live" type="text" value="{{ rg_id_live }}" placeholder="1234"
-                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
-        </div>
-        <div>
-          <label class="block text-xs text-gray-400 mb-1">TEST Resource ID</label>
-          <input name="rg_id_test" type="text" value="{{ rg_id_test }}" placeholder="1235"
-                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
-        </div>
-        <div>
-          <label class="block text-xs text-gray-400 mb-1">EMU Resource ID</label>
-          <input name="rg_id_emu" type="text" value="{{ rg_id_emu }}" placeholder="1236"
-                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
-        </div>
-      </div>
-      <div x-data="{ show: false }">
-        <label class="block text-xs text-gray-400 mb-1">API Key</label>
-        <div class="flex gap-2">
-          <input name="rg_api_key" :type="show ? 'text' : 'password'" placeholder="Leave blank to keep existing"
-                 class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
-          <button type="button" @click="show=!show" class="text-xs text-gray-400 hover:text-gray-300 px-2">
-            <span x-text="show ? 'Hide' : 'Show'"></span>
-          </button>
-        </div>
-      </div>
+    <!-- Page header -->
+    <div>
+        <h2 class="text-lg font-semibold text-gray-100">Settings</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Configure integrations, API keys, and build scheduling</p>
     </div>
-  </div>
 
-  <!-- Discord -->
-  <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-    <h2 class="font-semibold mb-4 text-orange-400">Discord Notifications</h2>
-    <div x-data="{ show: false }">
-      <label class="block text-xs text-gray-400 mb-1">Webhook URL</label>
-      <div class="flex gap-2">
-        <input name="discord_webhook" :type="show ? 'text' : 'password'" placeholder="https://discord.com/api/webhooks/..."
-               class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
-        <button type="button" @click="show=!show" class="text-xs text-gray-400 hover:text-gray-300 px-2" x-text="show ? 'Hide' : 'Show'"></button>
-      </div>
-      <p class="text-xs text-gray-500 mt-1">Posted to a threads-only channel after each build. Leave blank to disable.</p>
-    </div>
-  </div>
+    <form method="post" action="/settings/save" class="space-y-6" @submit="saving = true">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
 
-  <div>
-    <button type="submit" class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded font-semibold text-sm transition">
-      Save Settings
-    </button>
-  </div>
-</form>
+        <!-- ── RedGuides Configuration ────────────────────────────── -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700/60 p-5 space-y-5">
+            <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                RedGuides Configuration
+            </h3>
+
+            <!-- Resource IDs row -->
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                    MacroQuest Resource IDs
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {% for env_key, env_label, env_color in [('live','LIVE','red'), ('test','TEST','yellow'), ('emu','EMU','blue')] %}
+                    <div>
+                        <label class="block text-xs mb-1
+                            {% if env_color == 'red' %}text-red-400
+                            {% elif env_color == 'yellow' %}text-yellow-400
+                            {% else %}text-blue-400{% endif %}">
+                            {{ env_label }} Resource ID
+                        </label>
+                        <input
+                            name="rg_resource_id_{{ env_key }}"
+                            type="text"
+                            pattern="[0-9]*"
+                            value="{{ settings.get('rg_resource_id_' + env_key, '') }}"
+                            placeholder="e.g. 1234"
+                            class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono placeholder-gray-600
+                                   focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                        />
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="mt-2 text-xs text-gray-600">
+                    Resource IDs used to upload build artifacts to RedGuides.com
+                </p>
+            </div>
+
+            <!-- API Key -->
+            <div x-data="{ showKey: false }">
+                <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                    RedGuides API Key
+                </label>
+                <div class="relative">
+                    <input
+                        name="rg_api_key"
+                        :type="showKey ? 'text' : 'password'"
+                        value="{{ settings.rg_api_key_placeholder or '' }}"
+                        placeholder="rg_live_xxxxxxxxxxxxxxxxxxxx"
+                        class="w-full px-3 py-2.5 pr-20 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono placeholder-gray-600
+                               focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                    />
+                    <button
+                        type="button"
+                        @click="showKey = !showKey"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                    >
+                        <svg x-show="!showKey" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg x-show="showKey" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                        </svg>
+                        <span x-show="!showKey">Show</span>
+                        <span x-show="showKey" x-cloak>Hide</span>
+                    </button>
+                </div>
+                <p class="mt-1.5 text-xs text-gray-600">
+                    Stored encrypted at rest.
+                    {% if settings.rg_api_key_set %}
+                    <span class="text-green-500">Key is set.</span> Leave blank to keep existing.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Discord ────────────────────────────────────────────── -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700/60 p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                <!-- Discord-ish icon -->
+                <svg class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.053a19.95 19.95 0 006.01 2.99.077.077 0 00.083-.026c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-2.99.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/>
+                </svg>
+                Discord Notifications
+            </h3>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Webhook URL
+                </label>
+                <input
+                    name="discord_webhook"
+                    type="url"
+                    value="{{ settings.discord_webhook or '' }}"
+                    placeholder="https://discord.com/api/webhooks/..."
+                    class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-600
+                           focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                />
+                <p class="mt-1.5 text-xs text-gray-600">
+                    Post build results to a Discord channel. Leave blank to disable.
+                </p>
+            </div>
+
+            <!-- Test webhook button -->
+            <div class="flex items-center gap-3">
+                <button
+                    type="button"
+                    @click="testWebhook()"
+                    :disabled="testingWebhook"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50
+                           text-gray-300 text-xs font-medium rounded-lg transition-colors"
+                >
+                    <svg x-show="testingWebhook" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span x-show="!testingWebhook">Send Test Message</span>
+                    <span x-show="testingWebhook" x-cloak>Sending…</span>
+                </button>
+                <span x-show="webhookResult !== null" x-cloak
+                      :class="webhookOk ? 'text-green-400' : 'text-red-400'"
+                      class="text-xs" x-text="webhookResult"></span>
+            </div>
+        </div>
+
+        <!-- ── Build Schedule ────────────────────────────────────── -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700/60 p-5 space-y-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Build Schedule
+                </h3>
+                <!-- Schedule enabled toggle -->
+                <label class="flex items-center gap-2.5 cursor-pointer" x-data>
+                    <span class="text-xs text-gray-400">Enabled</span>
+                    <button
+                        type="button"
+                        @click="scheduleEnabled = !scheduleEnabled"
+                        :class="scheduleEnabled ? 'bg-green-600' : 'bg-gray-600'"
+                        class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent
+                               transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                    >
+                        <span
+                            :class="scheduleEnabled ? 'translate-x-4' : 'translate-x-0'"
+                            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200"
+                        ></span>
+                    </button>
+                    <input type="hidden" name="schedule_enabled" :value="scheduleEnabled ? '1' : '0'" />
+                </label>
+            </div>
+
+            <div :class="scheduleEnabled ? '' : 'opacity-40 pointer-events-none'" class="space-y-4 transition-opacity duration-150">
+                <!-- Cron expression -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                        Cron Expression
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input
+                            name="schedule_cron"
+                            type="text"
+                            x-model="cronExpr"
+                            @input.debounce.500ms="previewCron()"
+                            value="{{ settings.schedule_cron or '0 4 * * *' }}"
+                            placeholder="0 4 * * *"
+                            class="flex-1 px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono placeholder-gray-600
+                                   focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                        />
+                        <div class="flex gap-1.5 flex-shrink-0">
+                            <button type="button" @click="cronExpr='0 4 * * *'; previewCron()"
+                                    class="px-2 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded text-gray-400 hover:text-gray-200 transition-colors"
+                                    title="Daily at 4 AM">Daily</button>
+                            <button type="button" @click="cronExpr='0 4 * * 0'; previewCron()"
+                                    class="px-2 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded text-gray-400 hover:text-gray-200 transition-colors"
+                                    title="Weekly on Sunday at 4 AM">Weekly</button>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="text-xs text-gray-600">
+                            <span class="font-mono">min hour day month weekday</span>
+                            &mdash; times in UTC
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Next run preview -->
+                <div x-show="nextRuns.length > 0" x-cloak class="bg-gray-900/60 rounded-lg px-4 py-3">
+                    <p class="text-xs font-medium text-gray-400 mb-2">Next scheduled runs:</p>
+                    <ul class="space-y-1">
+                        <template x-for="(run, i) in nextRuns" :key="i">
+                            <li class="flex items-center gap-2 text-xs">
+                                <span class="w-4 h-4 rounded-full bg-gray-700 text-gray-500 flex items-center justify-center text-[10px]" x-text="i+1"></span>
+                                <span class="font-mono text-gray-300" x-text="run"></span>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <div x-show="cronError" x-cloak class="text-xs text-red-400" x-text="cronError"></div>
+
+                <!-- Per-env toggle -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                        Build Environments
+                    </label>
+                    <div class="flex gap-4">
+                        {% for env_key, env_label, env_color in [('live','LIVE','red'), ('test','TEST','yellow'), ('emu','EMU','blue')] %}
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                name="schedule_envs"
+                                value="{{ env_key }}"
+                                {% if env_key in (settings.schedule_envs or ['live', 'test', 'emu']) %}checked{% endif %}
+                                class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-red-600 focus:ring-red-600/50"
+                            />
+                            <span class="text-sm font-semibold
+                                {% if env_color == 'red' %}text-red-400
+                                {% elif env_color == 'yellow' %}text-yellow-400
+                                {% else %}text-blue-400{% endif %}">
+                                {{ env_label }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save button -->
+        <div class="flex items-center gap-3">
+            <button
+                type="submit"
+                :disabled="saving"
+                class="flex items-center gap-2 px-5 py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-50
+                       text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-600"
+            >
+                <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <svg x-show="!saving" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span x-show="!saving">Save Settings</span>
+                <span x-show="saving" x-cloak>Saving…</span>
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function settingsPage() {
+    return {
+        saving: false,
+        scheduleEnabled: {{ 'true' if settings.schedule_enabled else 'false' }},
+        cronExpr: '{{ settings.schedule_cron or "0 4 * * *" }}',
+        nextRuns: [],
+        cronError: null,
+        testingWebhook: false,
+        webhookResult: null,
+        webhookOk: false,
+
+        init() {
+            this.previewCron();
+        },
+
+        async previewCron() {
+            if (!this.cronExpr.trim()) return;
+            try {
+                const res = await fetch('/settings/cron-preview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ cron: this.cronExpr }),
+                });
+                const json = await res.json();
+                if (json.error) {
+                    this.cronError = json.error;
+                    this.nextRuns = [];
+                } else {
+                    this.cronError = null;
+                    this.nextRuns = json.next_runs || [];
+                }
+            } catch (e) {
+                this.cronError = null;
+                this.nextRuns = [];
+            }
+        },
+
+        async testWebhook() {
+            this.testingWebhook = true;
+            this.webhookResult = null;
+            try {
+                const res = await fetch('/settings/test-webhook', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': '{{ csrf_token }}' },
+                });
+                const json = await res.json();
+                this.webhookOk = json.ok;
+                this.webhookResult = json.message || (json.ok ? 'Message sent!' : 'Failed');
+            } catch (e) {
+                this.webhookOk = false;
+                this.webhookResult = 'Request failed';
+            } finally {
+                this.testingWebhook = false;
+            }
+        }
+    }
+}
+</script>
 {% endblock %}

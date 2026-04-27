@@ -21,6 +21,13 @@ def _client() -> httpx.AsyncClient:
     return httpx.AsyncClient(headers=_HEADERS, timeout=30)
 
 
+async def get_run(run_id: int) -> dict:
+    async with _client() as c:
+        r = await c.get(f"{_REPO}/actions/runs/{run_id}")
+        r.raise_for_status()
+        return r.json()
+
+
 async def get_workflow_runs(limit: int = 20) -> list[dict]:
     async with _client() as c:
         r = await c.get(f"{_REPO}/actions/runs", params={"per_page": limit})
