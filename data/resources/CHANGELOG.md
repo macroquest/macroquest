@@ -1,3 +1,14 @@
+## 4/26/2026
+
+### Features
+
+Support for stencil and alpha masking is now available through ImGui to c++ and lua. This allows for
+creating more advanced effects like rounded corners on anything or gradient text.
+
+- For more info see [mq/imgui/AlphaMask.h](https://github.com/macroquest/macroquest/blob/master/include/mq/imgui/AlphaMask.h).
+- An example is available via `/lua run examples/imgui_mask_demo`
+
+
 ## 4/22/2026
 
 ### Bug fixes
