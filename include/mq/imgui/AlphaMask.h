@@ -67,7 +67,7 @@ enum class AlphaMaskOp : uint8_t
 
 // Begins a new mask layer. Each call auto-assigns the next available stencil bit
 // (up to 8 per session). Draw mask image(s) after this call using AddImage or
-// AddImageNineSlice - only texels with alpha >= 0.5 write to the stencil.
+// with other draw calls - only texels with alpha >= 0.5 write to the stencil.
 // Call up to 8 times before BeginMaskedDraw.
 MQLIB_OBJECT void CreateMaskLayer(ImDrawList* draw_list);
 
@@ -110,7 +110,7 @@ MQLIB_OBJECT void EndMaskedDraw(ImDrawList* draw_list);
 MQLIB_OBJECT void CreateCoverageMaskLayer(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max);
 
 // Commits the mask and begins the coverage-masked drawing scope. Draw calls issued
-// between here and EndAlphaBlendedDraw are blended using the framebuffer alpha
+// between here and EndAlphaMaskedDraw are blended using the framebuffer alpha
 // written by the mask textures as per-pixel coverage.
 MQLIB_OBJECT void BeginCoverageMaskedDraw(ImDrawList* draw_list);
 
