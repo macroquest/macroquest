@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Set Up 2FA{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center -mt-6">
+  <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-700">
+    <div class="text-center mb-6">
+      <h1 class="text-xl font-bold">Set Up Two-Factor Authentication</h1>
+      <p class="text-gray-400 text-sm mt-1">Scan the QR code with Google Authenticator or Authy</p>
+    </div>
+    {% for flash in flashes %}
+    <div class="mb-4 px-3 py-2 rounded text-sm bg-red-900 border border-red-600">{{ flash.message }}</div>
+    {% endfor %}
+    <div class="flex justify-center mb-4">
+      <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" class="rounded border border-gray-600">
+    </div>
+    <div class="mb-6">
+      <p class="text-xs text-gray-400 mb-1">Manual entry key:</p>
+      <code class="block bg-gray-900 px-3 py-2 rounded text-xs font-mono text-green-400 break-all">{{ totp_secret }}</code>
+    </div>
+    <form method="post" action="/auth/setup-2fa" class="space-y-4">
+      <div>
+        <label class="block text-sm text-gray-300 mb-1">Enter the 6-digit code to confirm enrollment</label>
+        <input name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+               required autofocus placeholder="000000"
+               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-3 text-2xl text-center tracking-widest text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+      </div>
+      <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 rounded transition">
+        Confirm & Enable 2FA
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

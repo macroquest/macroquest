@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Backup & Restore{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Backup &amp; Restore</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
+
+  <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
+    <h2 class="font-semibold mb-2 text-orange-400">Download Backup</h2>
+    <p class="text-sm text-gray-400 mb-4">Downloads a compressed archive containing the user database and configuration. Store this file securely — it contains encrypted secrets.</p>
+    <ul class="text-xs text-gray-500 mb-4 space-y-1">
+      <li>• User accounts and roles</li>
+      <li>• Build history</li>
+      <li>• Application configuration (.env)</li>
+    </ul>
+    <a href="/backup/download" class="inline-block bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold transition">
+      💾 Download Backup
+    </a>
+  </div>
+
+  <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
+    <h2 class="font-semibold mb-2 text-orange-400">Restore from Backup</h2>
+    <div class="bg-red-950 border border-red-800 rounded px-3 py-2 text-xs text-red-300 mb-4">
+      ⚠ Warning: Restoring will overwrite all current users, settings, and build history. The service will need to be restarted after restore.
+    </div>
+    <form method="post" action="/backup/restore" enctype="multipart/form-data" class="space-y-3"
+          onsubmit="return confirm('Overwrite all current data with this backup?')">
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Backup File (.tar.gz)</label>
+        <input name="backup_file" type="file" accept=".tar.gz,.gz"
+               class="w-full text-sm text-gray-300 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gray-700 file:text-gray-300 file:text-xs">
+      </div>
+      <button type="submit" class="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-semibold transition">
+        Restore Backup
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

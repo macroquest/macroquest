@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MQ Admin{% endblock %} — MacroQuest Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="h-full text-gray-100">
+<div class="flex h-full">
+
+  <!-- Sidebar -->
+  <aside class="w-56 bg-gray-800 flex flex-col flex-shrink-0 border-r border-gray-700">
+    <div class="px-4 py-5 border-b border-gray-700">
+      <span class="text-orange-400 font-bold text-lg">⚙ MQ Admin</span>
+    </div>
+    <nav class="flex-1 px-2 py-4 space-y-1">
+      <a href="/" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if request.url.path == '/' %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        🏠 Dashboard
+      </a>
+      {% if current_user %}
+      {% if current_user.role == 'super_admin' %}
+      <a href="/plugins" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/plugins' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        🔌 Plugins
+      </a>
+      <a href="/eqlib" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/eqlib' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        📦 eqlib Source
+      </a>
+      <a href="/settings" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/settings' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        ⚙ Settings
+      </a>
+      <a href="/users" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/users' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        👥 Users
+      </a>
+      <a href="/backup" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/backup' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        💾 Backup
+      </a>
+      {% endif %}
+      <a href="/account" class="flex items-center gap-2 px-3 py-2 rounded text-sm hover:bg-gray-700 {% if '/account' in request.url.path %}bg-gray-700 text-white{% else %}text-gray-300{% endif %}">
+        👤 My Account
+      </a>
+      <a href="/auth/logout" class="flex items-center gap-2 px-3 py-2 rounded text-sm text-gray-400 hover:bg-gray-700 hover:text-red-400">
+        🚪 Logout
+      </a>
+      {% endif %}
+    </nav>
+    {% if current_user %}
+    <div class="px-4 py-3 border-t border-gray-700 text-xs text-gray-400">
+      <div class="truncate">{{ current_user.username }}</div>
+      <div class="text-orange-400">{{ current_user.role | replace('_', ' ') | title }}</div>
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 overflow-auto">
+    <!-- Flash messages -->
+    {% if flashes %}
+    <div class="fixed top-4 right-4 z-50 space-y-2 w-96">
+      {% for flash in flashes %}
+      <div x-data="{ show: true }" x-show="show" x-transition
+           class="flex items-start gap-3 px-4 py-3 rounded shadow-lg
+                  {% if flash.level == 'success' %}bg-green-800 border border-green-600
+                  {% elif flash.level == 'error' %}bg-red-900 border border-red-600
+                  {% else %}bg-blue-900 border border-blue-600{% endif %}">
+        <span class="flex-1 text-sm">{{ flash.message }}</span>
+        <button @click="show = false" class="text-gray-300 hover:text-white ml-2">✕</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="p-6">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+</body>
+</html>

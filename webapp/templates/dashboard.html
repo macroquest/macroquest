@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Build Dashboard</h1>
+
+<!-- Environment cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+  {% for env in envs %}
+  {% set runs = runs_by_env.get(env, []) %}
+  {% set latest = runs[0] if runs else none %}
+  <div class="bg-gray-800 rounded-lg border border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <span class="font-bold text-lg uppercase">{{ env }}</span>
+      {% if latest %}
+        {% if latest.conclusion == 'success' %}
+        <span class="px-2 py-0.5 rounded text-xs bg-green-800 text-green-300">✓ Success</span>
+        {% elif latest.conclusion == 'failure' %}
+        <span class="px-2 py-0.5 rounded text-xs bg-red-800 text-red-300">✗ Failed</span>
+        {% elif latest.status == 'in_progress' %}
+        <span class="px-2 py-0.5 rounded text-xs bg-yellow-800 text-yellow-300 animate-pulse">⟳ Running</span>
+        {% else %}
+        <span class="px-2 py-0.5 rounded text-xs bg-gray-600 text-gray-300">{{ latest.status }}</span>
+        {% endif %}
+      {% else %}
+      <span class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">No builds</span>
+      {% endif %}
+    </div>
+    {% if latest %}
+    <div class="text-xs text-gray-400 mb-1">Run #{{ latest.run_number }}</div>
+    <div class="text-xs text-gray-500 mb-3">{{ latest.created_at[:19] | replace('T',' ') }} UTC</div>
+    {% if latest.status == 'in_progress' %}
+    <a href="/builds/{{ latest.id }}" class="block text-center text-xs bg-yellow-700 hover:bg-yellow-600 text-white py-1.5 rounded mb-2 transition">
+      View Live Logs →
+    </a>
+    {% endif %}
+    {% endif %}
+    <form method="post" action="/builds/trigger">
+      <input type="hidden" name="client_target" value="{{ env }}">
+      <button type="submit"
+              class="w-full text-sm bg-orange-700 hover:bg-orange-600 text-white py-2 rounded font-semibold transition">
+        Trigger {{ env | upper }} Build
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Recent runs table -->
+<div class="bg-gray-800 rounded-lg border border-gray-700">
+  <div class="px-5 py-3 border-b border-gray-700">
+    <h2 class="font-semibold">Recent Builds</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-900 text-gray-400 text-xs uppercase">
+        <tr>
+          <th class="px-4 py-2 text-left">Run</th>
+          <th class="px-4 py-2 text-left">Workflow</th>
+          <th class="px-4 py-2 text-left">Status</th>
+          <th class="px-4 py-2 text-left">Started</th>
+          <th class="px-4 py-2 text-left">Logs</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-700">
+        {% for run in all_runs %}
+        <tr class="hover:bg-gray-750">
+          <td class="px-4 py-2 font-mono text-gray-300">#{{ run.run_number }}</td>
+          <td class="px-4 py-2 text-gray-300 max-w-xs truncate">{{ run.name }}</td>
+          <td class="px-4 py-2">
+            {% if run.conclusion == 'success' %}
+            <span class="px-2 py-0.5 rounded text-xs bg-green-800 text-green-300">✓ Success</span>
+            {% elif run.conclusion == 'failure' %}
+            <span class="px-2 py-0.5 rounded text-xs bg-red-800 text-red-300">✗ Failed</span>
+            {% elif run.status == 'in_progress' %}
+            <span class="px-2 py-0.5 rounded text-xs bg-yellow-800 text-yellow-300">⟳ Running</span>
+            {% else %}
+            <span class="px-2 py-0.5 rounded text-xs bg-gray-600 text-gray-300">{{ run.status }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-gray-400 text-xs">{{ run.created_at[:19] | replace('T',' ') }}</td>
+          <td class="px-4 py-2">
+            <a href="/builds/{{ run.id }}" class="text-orange-400 hover:text-orange-300 text-xs">View →</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No builds yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

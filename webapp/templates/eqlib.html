@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}eqlib Source{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">eqlib Source Configuration</h1>
+<form method="post" action="/eqlib/save" x-data="{ isPrivate: false }">
+  <div class="bg-gray-800 rounded-lg border border-gray-700 p-6 space-y-5 max-w-2xl">
+
+    <div>
+      <label class="block text-sm text-gray-300 mb-1 font-medium">Repository URL</label>
+      <input name="eqlib_repo" type="text" value="{{ eqlib_repo }}"
+             placeholder="https://github.com/yourorg/eqlib"
+             class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+      <p class="text-xs text-gray-500 mt-1">Full HTTPS git URL of your eqlib fork.</p>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-300 mb-2 font-medium">Repository Visibility</label>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" @click="isPrivate=false" :checked="!isPrivate" class="accent-orange-500"> Public
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" @click="isPrivate=true" :checked="isPrivate" class="accent-orange-500"> Private (requires PAT)
+        </label>
+      </div>
+    </div>
+
+    <div x-show="isPrivate" x-transition>
+      <label class="block text-sm text-gray-300 mb-1 font-medium">Personal Access Token</label>
+      <input name="eqlib_pat" type="password" placeholder="ghp_... (leave blank to keep existing)"
+             class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+      <p class="text-xs text-gray-500 mt-1">Stored encrypted as a GitHub secret. Leave blank to keep the existing value.</p>
+    </div>
+
+    <div class="border-t border-gray-700 pt-4">
+      <label class="block text-sm text-gray-300 mb-3 font-medium">Branch Names per Environment</label>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">LIVE branch</label>
+          <input name="live_branch" type="text" value="{{ live_branch }}"
+                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">TEST branch</label>
+          <input name="test_branch" type="text" value="{{ test_branch }}"
+                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">EMU branch</label>
+          <input name="emu_branch" type="text" value="{{ emu_branch }}"
+                 class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-2">
+      <button type="submit" class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded font-semibold text-sm transition">
+        Save eqlib Configuration
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Two-Factor Auth{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center -mt-6">
+  <div class="w-full max-w-sm bg-gray-800 rounded-lg shadow-xl p-8 border border-gray-700">
+    <div class="text-center mb-6">
+      <span class="text-4xl">🔐</span>
+      <h1 class="text-xl font-bold text-gray-100 mt-2">Two-Factor Authentication</h1>
+      <p class="text-gray-400 text-sm mt-1">Enter the 6-digit code from your authenticator app</p>
+    </div>
+    {% for flash in flashes %}
+    <div class="mb-4 px-3 py-2 rounded text-sm bg-red-900 border border-red-600">{{ flash.message }}</div>
+    {% endfor %}
+    <form method="post" action="/auth/totp" class="space-y-4">
+      <div>
+        <input name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+               required autofocus placeholder="000000"
+               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-3 text-2xl text-center tracking-widest text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+      </div>
+      <button type="submit"
+              class="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 rounded transition">
+        Verify
+      </button>
+    </form>
+    <div class="mt-4 text-center">
+      <a href="/auth/login" class="text-sm text-gray-400 hover:text-gray-300">← Back to login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

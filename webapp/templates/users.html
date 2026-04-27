@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">User Management</h1>
+</div>
+
+<!-- Users table -->
+<div class="bg-gray-800 rounded-lg border border-gray-700 mb-6 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-900 text-gray-400 text-xs uppercase">
+      <tr>
+        <th class="px-4 py-2 text-left">Username</th>
+        <th class="px-4 py-2 text-left">Role</th>
+        <th class="px-4 py-2 text-left">2FA</th>
+        <th class="px-4 py-2 text-left">Status</th>
+        <th class="px-4 py-2 text-left">Last Login</th>
+        <th class="px-4 py-2 text-left">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-700">
+      {% for u in users %}
+      <tr class="{% if not u.is_active %}opacity-50{% endif %}">
+        <td class="px-4 py-2 font-medium">{{ u.username }}</td>
+        <td class="px-4 py-2">
+          <span class="px-2 py-0.5 rounded text-xs {% if u.role == 'super_admin' %}bg-orange-800 text-orange-300{% else %}bg-blue-800 text-blue-300{% endif %}">
+            {{ u.role | replace('_', ' ') | title }}
+          </span>
+        </td>
+        <td class="px-4 py-2">
+          {% if u.totp_enrolled %}
+          <span class="text-green-400 text-xs">✓ Enrolled</span>
+          {% else %}
+          <span class="text-yellow-400 text-xs">⚠ Not set</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2">
+          {% if u.is_active %}
+          <span class="text-green-400 text-xs">Active</span>
+          {% else %}
+          <span class="text-gray-500 text-xs">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2 text-gray-400 text-xs">
+          {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'Never' }}
+        </td>
+        <td class="px-4 py-2">
+          {% if u.id != current_user.id %}
+          <div class="flex gap-2 flex-wrap">
+            <!-- Change role -->
+            <form method="post" action="/users/{{ u.id }}/role" class="inline">
+              <select name="role" onchange="this.form.submit()"
+                      class="bg-gray-700 border border-gray-600 text-xs rounded px-1 py-0.5 text-white">
+                <option value="builder" {% if u.role == 'builder' %}selected{% endif %}>Builder</option>
+                <option value="super_admin" {% if u.role == 'super_admin' %}selected{% endif %}>Super Admin</option>
+              </select>
+            </form>
+            <form method="post" action="/users/{{ u.id }}/reset-2fa" class="inline">
+              <button type="submit" class="text-xs text-yellow-400 hover:text-yellow-300">Reset 2FA</button>
+            </form>
+            <form method="post" action="/users/{{ u.id }}/deactivate" class="inline">
+              <button type="submit" class="text-xs {% if u.is_active %}text-orange-400 hover:text-orange-300{% else %}text-green-400 hover:text-green-300{% endif %}">
+                {{ 'Deactivate' if u.is_active else 'Activate' }}
+              </button>
+            </form>
+            <form method="post" action="/users/{{ u.id }}/delete" class="inline"
+                  onsubmit="return confirm('Delete user {{ u.username }}? This cannot be undone.')">
+              <button type="submit" class="text-xs text-red-400 hover:text-red-300">Delete</button>
+            </form>
+          </div>
+          {% else %}
+          <span class="text-xs text-gray-500">You</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add user form -->
+<div class="bg-gray-800 rounded-lg border border-gray-700 p-5 max-w-lg">
+  <h2 class="font-semibold mb-4">Add New User</h2>
+  <form method="post" action="/users/add" class="space-y-3">
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Username</label>
+      <input name="username" type="text" required
+             class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+    </div>
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Role</label>
+      <select name="role" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white">
+        <option value="builder">Builder</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+    <p class="text-xs text-gray-500">A temporary password will be generated and shown once. The user will be required to set up 2FA on first login.</p>
+    <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold transition">
+      Create User
+    </button>
+  </form>
+</div>
+{% endblock %}

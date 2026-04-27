@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Build Logs #{{ run_id }}{% endblock %}
+{% block content %}
+<div x-data="{
+  progress: 0,
+  eta: '',
+  status: 'connecting',
+  autoscroll: true,
+  lines: [],
+  connect() {
+    const es = new EventSource('/builds/{{ run_id }}/stream');
+    es.addEventListener('log', e => {
+      this.lines.push(JSON.parse(e.data));
+      if (this.autoscroll) this.$nextTick(() => {
+        const el = this.$refs.logbox;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
+    es.addEventListener('progress', e => { this.progress = parseInt(e.data); });
+    es.addEventListener('eta', e => { this.eta = e.data; });
+    es.addEventListener('complete', e => { this.status = e.data; es.close(); });
+    es.onerror = () => { this.status = 'error'; es.close(); };
+  }
+}" x-init="connect()">
+
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-xl font-bold">Build Logs</h1>
+      <p class="text-gray-400 text-sm">Run #{{ run_id }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span x-text="status === 'success' ? '✓ Complete' : status === 'failure' ? '✗ Failed' : status === 'error' ? '⚠ Stream error' : '⟳ Running'"
+            :class="status === 'success' ? 'text-green-400' : status === 'failure' ? 'text-red-400' : status === 'error' ? 'text-yellow-400' : 'text-yellow-300 animate-pulse'"
+            class="text-sm font-semibold"></span>
+      <button @click="autoscroll = !autoscroll"
+              :class="autoscroll ? 'bg-orange-700 hover:bg-orange-600' : 'bg-gray-700 hover:bg-gray-600'"
+              class="text-xs px-3 py-1 rounded transition">
+        <span x-text="autoscroll ? '↓ Auto-scroll ON' : '↓ Auto-scroll OFF'"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="bg-gray-700 rounded-full h-2.5 mb-2">
+    <div class="bg-orange-500 h-2.5 rounded-full transition-all duration-500"
+         :style="`width: ${progress}%`"></div>
+  </div>
+  <div class="flex justify-between text-xs text-gray-400 mb-4">
+    <span x-text="`${progress}% complete`"></span>
+    <span x-show="eta" x-text="`ETA: ${eta}`"></span>
+  </div>
+
+  <!-- Log terminal -->
+  <div x-ref="logbox"
+       class="bg-gray-950 border border-gray-700 rounded-lg p-4 h-[60vh] overflow-y-auto font-mono text-xs leading-relaxed">
+    <template x-for="(line, i) in lines" :key="i">
+      <div :class="{
+        'text-red-400': line.includes('error') || line.includes('Error') || line.includes('FAILED'),
+        'text-yellow-400': line.includes('warning') || line.includes('Warning') || line.includes('WARN'),
+        'text-green-400': line.includes('succeeded') || line.includes('Build succeeded'),
+        'text-gray-300': true
+      }" x-text="line" class="whitespace-pre-wrap break-all"></div>
+    </template>
+    <div x-show="lines.length === 0" class="text-gray-500 italic">Waiting for log output...</div>
+  </div>
+</div>
+{% endblock %}
