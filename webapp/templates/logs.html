@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}Build Logs #{{ build.run_number }}{% endblock %}
+{% block title_text %}Build Logs{% endblock %}
+
+{% block head %}
+<style>
+    .log-line { line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+    .log-error   { color: #f87171; }
+    .log-warn    { color: #fbbf24; }
+    .log-success { color: #4ade80; }
+    .log-info    { color: #94a3b8; }
+    .log-dim     { color: #4b5563; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4" x-data="logsPage()" x-init="init()">
+
+    <!-- Build header bar -->
+    <div class="flex flex-wrap items-center gap-3 justify-between">
+        <!-- Left: env + run number + status -->
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold tracking-widest px-2.5 py-1 rounded-md
+                {% if build.environment == 'live' %}text-red-300 bg-red-900/40 border border-red-800/40
+                {% elif build.environment == 'test' %}text-yellow-300 bg-yellow-900/40 border border-yellow-800/40
+                {% else %}text-blue-300 bg-blue-900/40 border border-blue-800/40{% endif %}">
+                {{ build.environment | upper }}
+            </span>
+            <span class="text-sm font-mono text-gray-400">Run #{{ build.run_number }}</span>
+
+            <!-- Status badge (live-updated) -->
+            <span
+                :class="{
+                    'bg-green-900/50 text-green-300 border-green-700/40': status === 'success',
+                    'bg-red-900/50 text-red-300 border-red-700/40': status === 'failure',
+                    'bg-yellow-900/50 text-yellow-300 border-yellow-700/40': status === 'in_progress',
+                    'bg-gray-700/50 text-gray-400 border-gray-600/40': status === 'queued' || status === 'cancelled',
+                }"
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border"
+            >
+                <span x-show="status === 'in_progress'"
+                      class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                <span x-text="statusLabel"></span>
+            </span>
+        </div>
+
+        <!-- Right: ETA + controls -->
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+            <!-- ETA -->
+            <span x-show="status === 'in_progress'" x-cloak class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span x-text="etaDisplay"></span>
+            </span>
+
+            <!-- Duration (shown when complete) -->
+            <span x-show="status !== 'in_progress' && status !== 'queued'" x-cloak class="flex items-center gap-1.5 text-gray-500">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ build.duration_seconds | duration if build.duration_seconds else '' }}
+            </span>
+
+            <!-- Auto-scroll toggle -->
+            <button
+                @click="autoScroll = !autoScroll"
+                :class="autoScroll ? 'text-green-400 hover:text-green-300' : 'text-gray-600 hover:text-gray-400'"
+                class="flex items-center gap-1.5 transition-colors"
+                :title="autoScroll ? 'Auto-scroll on — click to pause' : 'Auto-scroll paused — click to resume'"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+                <span x-text="autoScroll ? 'Auto-scroll' : 'Paused'"></span>
+            </button>
+
+            <!-- Copy logs -->
+            <button @click="copyLogs()"
+                    class="flex items-center gap-1.5 text-gray-500 hover:text-gray-300 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                Copy
+            </button>
+
+            <!-- Back to dashboard -->
+            <a href="/dashboard" class="text-gray-500 hover:text-gray-300 transition-colors">
+                &larr; Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div x-show="status === 'in_progress' || (status === 'success' && progress < 100)" class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs text-gray-500">
+            <span x-text="`${Math.round(progress)}% complete`"></span>
+            <span x-show="etaSeconds !== null" x-cloak x-text="etaDisplay"></span>
+        </div>
+        <div class="w-full bg-gray-700/60 rounded-full h-1.5 overflow-hidden">
+            <div
+                class="h-1.5 rounded-full transition-all duration-500"
+                :class="{
+                    'bg-yellow-500': status === 'in_progress',
+                    'bg-green-500': status === 'success',
+                    'bg-red-500': status === 'failure',
+                }"
+                :style="`width: ${progress}%`"
+            ></div>
+        </div>
+    </div>
+
+    <!-- Completed banner -->
+    <div x-show="status === 'success'" x-cloak
+         class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-900/30 border border-green-700/30 text-green-300 text-sm">
+        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        Build completed successfully.
+    </div>
+    <div x-show="status === 'failure'" x-cloak
+         class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-900/30 border border-red-700/30 text-red-300 text-sm">
+        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        Build failed. Check the log for details.
+    </div>
+
+    <!-- Log viewer -->
+    <div class="bg-gray-950 rounded-xl border border-gray-700/50 overflow-hidden flex flex-col"
+         style="height: calc(100vh - 320px); min-height: 400px;">
+
+        <!-- Log header -->
+        <div class="flex items-center justify-between px-4 py-2 bg-gray-900/80 border-b border-gray-700/50 flex-shrink-0">
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+                <div class="flex gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500/60"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500/60"></span>
+                </div>
+                <span>build.log</span>
+                <span class="text-gray-700">—</span>
+                <span x-text="`${lineCount} lines`" class="font-mono"></span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <!-- Search / filter -->
+                <input
+                    x-model="filterText"
+                    type="text"
+                    placeholder="Filter lines…"
+                    class="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600
+                           focus:outline-none focus:ring-1 focus:ring-red-600/50 w-32"
+                />
+                <!-- Error-only toggle -->
+                <button
+                    @click="errorsOnly = !errorsOnly"
+                    :class="errorsOnly ? 'text-red-400 bg-red-900/30 border-red-800/50' : 'text-gray-500 bg-gray-800 border-gray-700'"
+                    class="px-2 py-1 rounded border text-xs transition-colors"
+                >
+                    Errors only
+                </button>
+            </div>
+        </div>
+
+        <!-- Log content area -->
+        <div
+            id="log-container"
+            class="flex-1 overflow-y-auto overflow-x-auto log-scroll p-4 font-mono text-xs leading-relaxed"
+            @scroll="handleScroll($event)"
+        >
+            <template x-for="(line, idx) in filteredLines" :key="idx">
+                <div
+                    class="log-line"
+                    :class="{
+                        'log-error':   line.level === 'error',
+                        'log-warn':    line.level === 'warn',
+                        'log-success': line.level === 'success',
+                        'log-info':    line.level === 'info',
+                        'log-dim':     line.level === 'dim',
+                        'text-gray-300': !line.level,
+                    }"
+                    x-html="line.html"
+                ></div>
+            </template>
+
+            <!-- Cursor blink when in progress -->
+            <div x-show="status === 'in_progress'" x-cloak
+                 class="flex items-center gap-1 mt-1 text-gray-600 text-xs">
+                <span class="animate-pulse">█</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download raw log -->
+    <div class="flex justify-end">
+        <a href="/builds/{{ build.run_id }}/logs/raw"
+           class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download raw log
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function logsPage() {
+    return {
+        status: '{{ build.status }}',
+        progress: {{ build.progress or (100 if build.status in ['success','failure'] else 0) }},
+        etaSeconds: null,
+        etaDisplay: 'Calculating…',
+        autoScroll: true,
+        lineCount: 0,
+        filterText: '',
+        errorsOnly: false,
+        lines: [],
+        eventSource: null,
+
+        get statusLabel() {
+            const map = {
+                'in_progress': 'In Progress',
+                'success': 'Success',
+                'failure': 'Failed',
+                'queued': 'Queued',
+                'cancelled': 'Cancelled',
+            };
+            return map[this.status] || this.status;
+        },
+
+        get filteredLines() {
+            let lines = this.lines;
+            if (this.errorsOnly) {
+                lines = lines.filter(l => l.level === 'error');
+            }
+            if (this.filterText.trim()) {
+                const q = this.filterText.toLowerCase();
+                lines = lines.filter(l => l.raw.toLowerCase().includes(q));
+            }
+            return lines;
+        },
+
+        classifyLine(text) {
+            const t = text.toLowerCase();
+            if (/\b(error|failed|fatal|exception|traceback)\b/.test(t)) return 'error';
+            if (/\b(warning|warn)\b/.test(t)) return 'warn';
+            if (/\b(success|succeeded|done|complete|finished|passed)\b/.test(t)) return 'success';
+            if (/^\s*$/.test(t)) return 'dim';
+            return null;
+        },
+
+        escapeHtml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        },
+
+        appendLine(text) {
+            const level = this.classifyLine(text);
+            // Add line numbers
+            const num = this.lineCount + 1;
+            const numStr = String(num).padStart(4, ' ');
+            this.lines.push({
+                raw: text,
+                level,
+                html: `<span class="text-gray-700 select-none mr-3">${numStr}</span>${this.escapeHtml(text)}`,
+            });
+            this.lineCount = num;
+            if (this.autoScroll) {
+                this.$nextTick(() => this.scrollToBottom());
+            }
+        },
+
+        scrollToBottom() {
+            const el = document.getElementById('log-container');
+            if (el) el.scrollTop = el.scrollHeight;
+        },
+
+        handleScroll(event) {
+            const el = event.target;
+            const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+            // Re-enable auto-scroll if user scrolls back to bottom
+            if (atBottom) this.autoScroll = true;
+            else this.autoScroll = false;
+        },
+
+        updateEta(seconds) {
+            this.etaSeconds = seconds;
+            if (seconds === null || seconds < 0) {
+                this.etaDisplay = 'Calculating…';
+                return;
+            }
+            if (seconds === 0) {
+                this.etaDisplay = 'Almost done…';
+                return;
+            }
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            if (m > 0) {
+                this.etaDisplay = `Est. ${m}m ${s}s remaining`;
+            } else {
+                this.etaDisplay = `Est. ${s}s remaining`;
+            }
+        },
+
+        startSSE() {
+            if (this.status !== 'in_progress' && this.status !== 'queued') return;
+
+            const url = `/builds/{{ build.run_id }}/stream`;
+            this.eventSource = new EventSource(url);
+
+            this.eventSource.addEventListener('log', (e) => {
+                try { this.appendLine(JSON.parse(e.data)); } catch { this.appendLine(e.data); }
+            });
+
+            this.eventSource.addEventListener('progress', (e) => {
+                const val = parseFloat(e.data);
+                if (!isNaN(val)) this.progress = val;
+            });
+
+            this.eventSource.addEventListener('eta', (e) => {
+                const val = parseInt(e.data, 10);
+                this.updateEta(isNaN(val) ? null : val);
+            });
+
+            this.eventSource.addEventListener('status', (e) => {
+                this.status = e.data.trim();
+            });
+
+            this.eventSource.addEventListener('complete', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    this.status = data.status || 'success';
+                    this.progress = 100;
+                    this.etaDisplay = 'Complete';
+                    this.etaSeconds = 0;
+                } catch {
+                    this.status = 'success';
+                    this.progress = 100;
+                }
+                this.eventSource.close();
+                this.eventSource = null;
+                this.autoScroll = true;
+                this.$nextTick(() => this.scrollToBottom());
+            });
+
+            this.eventSource.onerror = () => {
+                // SSE connection dropped — mark as disconnected if still in progress
+                if (this.status === 'in_progress') {
+                    this.appendLine('[stream disconnected — refresh to reconnect]');
+                }
+                if (this.eventSource) {
+                    this.eventSource.close();
+                    this.eventSource = null;
+                }
+            };
+        },
+
+        async loadExistingLog() {
+            // Load buffered log lines for builds already completed or partially run
+            try {
+                const res = await fetch(`/builds/{{ build.run_id }}/logs/json`);
+                const json = await res.json();
+                (json.lines || []).forEach(line => this.appendLine(line));
+            } catch (e) {
+                // Not critical
+            }
+        },
+
+        copyLogs() {
+            const text = this.lines.map(l => l.raw).join('\n');
+            navigator.clipboard.writeText(text).catch(() => {});
+        },
+
+        init() {
+            this.loadExistingLog().then(() => {
+                this.startSSE();
+            });
+        },
+
+        destroy() {
+            if (this.eventSource) {
+                this.eventSource.close();
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

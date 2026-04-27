@@ -1,0 +1,21 @@
+name: Build Custom MacroQuest Test
+
+on:
+  push:
+    branches:
+      - custom-release
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  call_build:
+    uses: ./.github/workflows/build_custom_shared.yaml
+    with:
+      client_target: test
+      resource_id: ${{ vars.REDGUIDES_RESOURCE_ID_TEST }}
+    secrets: inherit

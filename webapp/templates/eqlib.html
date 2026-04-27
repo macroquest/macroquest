@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}eqlib Configuration{% endblock %}
+{% block title_text %}eqlib Configuration{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-6" x-data="eqlibPage()">
+
+    <!-- Page header -->
+    <div>
+        <h2 class="text-lg font-semibold text-gray-100">eqlib Repository</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Configure the eqlib source repository used across all build environments</p>
+    </div>
+
+    <form method="post" action="/eqlib/save" class="space-y-6" @submit="saving = true">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+
+        <!-- Repository URL -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700/60 p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Repository
+            </h3>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Repository URL</label>
+                <input
+                    name="repo_url"
+                    type="url"
+                    required
+                    value="{{ eqlib.repo_url or '' }}"
+                    placeholder="https://github.com/EQMacEmu/eqlib"
+                    class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-600
+                           focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                />
+                <p class="mt-1.5 text-xs text-gray-600">HTTPS URL of the eqlib repository</p>
+            </div>
+
+            <!-- Public / Private toggle -->
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Visibility</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input
+                            type="radio"
+                            name="visibility"
+                            value="public"
+                            x-model="visibility"
+                            class="w-4 h-4 border-gray-600 bg-gray-700 text-red-600 focus:ring-red-600/50"
+                        />
+                        <span class="text-sm text-gray-300 group-hover:text-white transition-colors">
+                            Public
+                        </span>
+                        <span class="text-xs text-gray-600">— no authentication required</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input
+                            type="radio"
+                            name="visibility"
+                            value="private"
+                            x-model="visibility"
+                            class="w-4 h-4 border-gray-600 bg-gray-700 text-red-600 focus:ring-red-600/50"
+                        />
+                        <span class="text-sm text-gray-300 group-hover:text-white transition-colors">
+                            Private
+                        </span>
+                        <span class="text-xs text-gray-600">— requires PAT</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- PAT field (shown only for private) -->
+            <div x-show="visibility === 'private'"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100">
+                <label class="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
+                    Personal Access Token (PAT)
+                </label>
+                <div class="relative" x-data="{ showPat: false }">
+                    <input
+                        name="pat"
+                        :type="showPat ? 'text' : 'password'"
+                        :required="visibility === 'private'"
+                        value="{{ eqlib.pat_placeholder or '' }}"
+                        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                        class="w-full px-3 py-2.5 pr-10 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-600 font-mono
+                               focus:outline-none focus:ring-2 focus:ring-red-600/50 focus:border-red-600/50 transition-colors"
+                    />
+                    <button
+                        type="button"
+                        @click="showPat = !showPat"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
+                        tabindex="-1"
+                    >
+                        <svg x-show="!showPat" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg x-show="showPat" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="mt-1.5 text-xs text-gray-600">
+                    GitHub PAT with <code class="text-gray-500">repo</code> scope. Stored encrypted at rest.
+                    {% if eqlib.pat_set %}
+                    <span class="text-green-500 ml-1">Token currently set.</span> Leave blank to keep existing.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Branch configuration -->
+        <div class="bg-gray-800 rounded-xl border border-gray-700/60 p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Branch Names per Environment
+            </h3>
+            <p class="text-xs text-gray-500">
+                Specify which branch to check out for each build environment.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {% set env_configs = [
+                    ('live', 'LIVE', 'live', 'red'),
+                    ('test', 'TEST', 'test', 'yellow'),
+                    ('emu', 'EMU', 'emu', 'blue'),
+                ] %}
+                {% for env_key, env_label, env_default, env_color in env_configs %}
+                <div>
+                    <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider
+                        {% if env_color == 'red' %}text-red-400
+                        {% elif env_color == 'yellow' %}text-yellow-400
+                        {% else %}text-blue-400{% endif %}">
+                        {{ env_label }} Branch
+                    </label>
+                    <div class="relative">
+                        <input
+                            name="branch_{{ env_key }}"
+                            type="text"
+                            value="{{ eqlib.get('branch_' + env_key, env_default) }}"
+                            placeholder="{{ env_default }}"
+                            class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono placeholder-gray-600
+                                   focus:outline-none focus:ring-2
+                                   {% if env_color == 'red' %}focus:ring-red-600/50 focus:border-red-600/50
+                                   {% elif env_color == 'yellow' %}focus:ring-yellow-600/50 focus:border-yellow-600/50
+                                   {% else %}focus:ring-blue-600/50 focus:border-blue-600/50{% endif %}
+                                   transition-colors"
+                        />
+                    </div>
+                    <!-- Current HEAD SHA -->
+                    {% if eqlib.get('head_sha_' + env_key) %}
+                    <div class="mt-1.5 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full
+                            {% if env_color == 'red' %}bg-red-500
+                            {% elif env_color == 'yellow' %}bg-yellow-500
+                            {% else %}bg-blue-500{% endif %}"></span>
+                        <code class="text-xs font-mono text-gray-500" title="Current HEAD SHA">
+                            {{ eqlib['head_sha_' + env_key][:12] }}
+                        </code>
+                    </div>
+                    {% else %}
+                    <p class="mt-1.5 text-xs text-gray-700 italic">HEAD SHA not yet fetched</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Save -->
+        <div class="flex items-center gap-3">
+            <button
+                type="submit"
+                :disabled="saving"
+                class="flex items-center gap-2 px-5 py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-50
+                       text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-600"
+            >
+                <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <svg x-show="!saving" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span x-show="!saving">Save Configuration</span>
+                <span x-show="saving" x-cloak>Saving…</span>
+            </button>
+
+            <!-- Test connection button -->
+            <button
+                type="button"
+                @click="testConnection()"
+                :disabled="testing || saving"
+                class="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50
+                       text-gray-300 text-sm font-medium rounded-lg transition-colors"
+            >
+                <svg x-show="testing" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span x-show="!testing">Test Connection</span>
+                <span x-show="testing" x-cloak>Testing…</span>
+            </button>
+
+            <!-- Connection test result -->
+            <span x-show="testResult !== null" x-cloak
+                  :class="testOk ? 'text-green-400' : 'text-red-400'"
+                  class="text-xs font-medium flex items-center gap-1">
+                <template x-if="testOk">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                </template>
+                <template x-if="!testOk">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                </template>
+                <span x-text="testResult"></span>
+            </span>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function eqlibPage() {
+    return {
+        visibility: '{{ eqlib.visibility or "public" }}',
+        saving: false,
+        testing: false,
+        testResult: null,
+        testOk: false,
+
+        async testConnection() {
+            this.testing = true;
+            this.testResult = null;
+            try {
+                const res = await fetch('/eqlib/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ visibility: this.visibility }),
+                });
+                const json = await res.json();
+                this.testOk = json.ok;
+                this.testResult = json.message || (json.ok ? 'Connection successful' : 'Connection failed');
+            } catch (e) {
+                this.testOk = false;
+                this.testResult = 'Request failed';
+            } finally {
+                this.testing = false;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

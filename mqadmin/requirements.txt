@@ -1,0 +1,4 @@
+textual>=0.61.0
+httpx>=0.27.0
+keyring>=25.0.0
+pyotp>=2.9.0

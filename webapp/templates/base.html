@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}MQ Admin{% endblock %} — MacroQuest Build Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#0a0a0f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .nav-link {
+            @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors duration-150;
+        }
+        .nav-link.active {
+            @apply bg-gray-800 text-gray-100;
+        }
+        /* Custom scrollbar for log viewer */
+        .log-scroll::-webkit-scrollbar { width: 6px; }
+        .log-scroll::-webkit-scrollbar-track { background: #111; }
+        .log-scroll::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        .log-scroll::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-gray-900 text-gray-100 antialiased">
+
+{% if current_user is defined and current_user %}
+<!-- Authenticated layout: sidebar + main -->
+<div class="flex h-full min-h-screen" x-data="{ sidebarOpen: true }">
+
+    <!-- Sidebar -->
+    <aside
+        :class="sidebarOpen ? 'w-56' : 'w-14'"
+        class="flex-shrink-0 flex flex-col bg-gray-900 border-r border-gray-800 transition-all duration-200 overflow-hidden"
+        style="min-height: 100vh;"
+    >
+        <!-- Logo / brand -->
+        <div class="flex items-center gap-2 h-14 px-3 border-b border-gray-800 flex-shrink-0">
+            <div class="flex-shrink-0 w-8 h-8 rounded bg-red-700 flex items-center justify-center text-white font-bold text-sm select-none">
+                MQ
+            </div>
+            <span
+                x-show="sidebarOpen"
+                x-cloak
+                class="font-semibold text-gray-100 whitespace-nowrap text-sm"
+            >MQ Admin</span>
+        </div>
+
+        <!-- Nav links -->
+        <nav class="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+
+            <a href="/dashboard"
+               class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                <!-- chart-bar icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Dashboard</span>
+            </a>
+
+            <a href="/plugins"
+               class="nav-link {% if request.url.path.startswith('/plugins') %}active{% endif %}">
+                <!-- puzzle-piece icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Plugins</span>
+            </a>
+
+            <a href="/eqlib"
+               class="nav-link {% if request.url.path.startswith('/eqlib') %}active{% endif %}">
+                <!-- code icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">eqlib</span>
+            </a>
+
+            <a href="/settings"
+               class="nav-link {% if request.url.path.startswith('/settings') %}active{% endif %}">
+                <!-- cog icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Settings</span>
+            </a>
+
+            {% if current_user.role == 'super_admin' %}
+            <a href="/users"
+               class="nav-link {% if request.url.path.startswith('/users') %}active{% endif %}">
+                <!-- users icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Users</span>
+            </a>
+            {% endif %}
+
+            <a href="/backup"
+               class="nav-link {% if request.url.path.startswith('/backup') %}active{% endif %}">
+                <!-- archive icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Backup</span>
+            </a>
+
+            <!-- Divider -->
+            <div class="my-2 border-t border-gray-800"></div>
+
+            <a href="/account"
+               class="nav-link {% if request.url.path.startswith('/account') %}active{% endif %}">
+                <!-- user-circle icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">My Account</span>
+            </a>
+
+            <a href="/auth/logout"
+               class="nav-link text-red-400 hover:text-red-300 hover:bg-red-900/20">
+                <!-- logout icon -->
+                <svg class="flex-shrink-0 w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span x-show="sidebarOpen" x-cloak class="whitespace-nowrap">Logout</span>
+            </a>
+        </nav>
+
+        <!-- Collapse toggle -->
+        <div class="p-2 border-t border-gray-800 flex-shrink-0">
+            <button
+                @click="sidebarOpen = !sidebarOpen"
+                class="w-full flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+                :title="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+            >
+                <svg
+                    :class="sidebarOpen ? '' : 'rotate-180'"
+                    class="w-4 h-4 transition-transform duration-200"
+                    fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main content area -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- Top bar -->
+        <header class="flex items-center justify-between h-14 px-6 bg-gray-900 border-b border-gray-800 flex-shrink-0">
+            <h1 class="text-sm font-semibold text-gray-300 truncate">{% block header_title %}{% block title_text %}{% endblock %}{% endblock %}</h1>
+            <div class="flex items-center gap-3 text-xs text-gray-500">
+                <span class="hidden sm:inline">{{ current_user.username }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                    {% if current_user.role == 'super_admin' %}bg-red-900/60 text-red-300
+                    {% else %}bg-gray-800 text-gray-400{% endif %}">
+                    {{ current_user.role | replace('_', ' ') | title }}
+                </span>
+            </div>
+        </header>
+
+        <!-- Flash messages -->
+        {% if flashes %}
+        <div class="px-6 pt-4 space-y-2 flex-shrink-0" x-data>
+            {% for flash in flashes %}
+            <div
+                x-data="{ show: true }"
+                x-show="show"
+                x-cloak
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="flex items-start gap-3 px-4 py-3 rounded-lg text-sm
+                    {% if flash.level == 'success' %}bg-green-900/50 border border-green-700/50 text-green-300
+                    {% elif flash.level == 'error' %}bg-red-900/50 border border-red-700/50 text-red-300
+                    {% elif flash.level == 'warning' %}bg-yellow-900/50 border border-yellow-700/50 text-yellow-300
+                    {% else %}bg-blue-900/50 border border-blue-700/50 text-blue-300{% endif %}"
+            >
+                <!-- icon -->
+                {% if flash.level == 'success' %}
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                {% elif flash.level == 'error' %}
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                {% elif flash.level == 'warning' %}
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                {% else %}
+                <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                {% endif %}
+                <span class="flex-1">{{ flash.message }}</span>
+                <button @click="show = false" class="flex-shrink-0 ml-auto opacity-60 hover:opacity-100">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page content -->
+        <main class="flex-1 overflow-y-auto p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+{% else %}
+<!-- Unauthenticated layout: centered -->
+<div class="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+    {% block auth_content %}{% endblock %}
+</div>
+{% endif %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
