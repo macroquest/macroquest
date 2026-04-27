@@ -597,6 +597,7 @@ std::string internal_paths::Logs = "Logs";
 std::string internal_paths::CrashDumps = internal_paths::Logs + "\\Dumps";
 std::string internal_paths::Plugins = "Plugins";
 std::string internal_paths::Resources = "Resources";
+std::string internal_paths::Lua = "lua";
 
 bool InitializeDirectory(std::string& strPathToInit,
 	const std::string& iniKey, const std::string& iniFile,
@@ -657,7 +658,8 @@ bool InitializePaths(const fs::path& rootPath)
 				&& InitializeDirectory(internal_paths::Logs, "LogPath", internal_paths::MQini, internal_paths::MQRoot)
 				&& InitializeDirectory(internal_paths::CrashDumps, "CrashDumpPath", internal_paths::MQini, internal_paths::MQRoot)
 				&& InitializeDirectory(internal_paths::Plugins, "PluginPath", internal_paths::MQini, internal_paths::MQRoot)
-				&& InitializeDirectory(internal_paths::Resources, "ResourcePath", internal_paths::MQini, internal_paths::MQRoot))
+				&& InitializeDirectory(internal_paths::Resources, "ResourcePath", internal_paths::MQini, internal_paths::MQRoot)
+				&& InitializeDirectory(internal_paths::Lua, "LuaPath", internal_paths::MQini, internal_paths::MQRoot))
 			{
 				return true;
 			}
@@ -1234,6 +1236,8 @@ void ShowMacroQuestMenu()
 			ShellExecuteA(nullptr, "explore", internal_paths::Macros.c_str(), nullptr, nullptr, SW_SHOW);
 		if (ImGui::MenuItem("Resources"))
 			ShellExecuteA(nullptr, "explore", internal_paths::Resources.c_str(), nullptr, nullptr, SW_SHOW);
+		if (ImGui::MenuItem("Lua"))
+			ShellExecuteA(nullptr, "explore", internal_paths::Lua.c_str(), nullptr, nullptr, SW_SHOW);
 		if (ImGui::MenuItem("Logs"))
 			ShellExecuteA(nullptr, "explore", internal_paths::Logs.c_str(), nullptr, nullptr, SW_SHOW);
 		if (ImGui::MenuItem("Crash Dumps"))
@@ -1691,6 +1695,7 @@ void CheckPaths()
 		internal_paths::Macros,
 		internal_paths::Plugins,
 		internal_paths::Resources,
+		internal_paths::Lua,
 	};
 
 	std::vector<std::string> failedPaths;
