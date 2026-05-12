@@ -335,10 +335,19 @@ jobs:
             Where-Object { $_.Name -ne "D3DX9_43.dll" }
           $signtool = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter signtool.exe |
             Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
+          $tsaServers = @('http://timestamp.digicert.com', 'http://timestamp.sectigo.com')
+          $tsaIndex = 0
+          $maxAttempts = 5
           ForEach ($file in $FileList) {
-            & $signtool sign /fd SHA256 /f $CertFile /csp "Google Cloud KMS Provider" /kc $env:KMS_KEY `
-              /tr http://timestamp.digicert.com /td sha256 "$file"
-            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $file" }
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+              $tsa = $tsaServers[$tsaIndex]
+              & $signtool sign /fd SHA256 /f $CertFile /csp "Google Cloud KMS Provider" /kc $env:KMS_KEY /tr $tsa /td sha256 "$file"
+              if ($LASTEXITCODE -eq 0) { break }
+              if ($attempt -eq $maxAttempts) { throw "Signing failed for $file after $maxAttempts attempts" }
+              Write-Host "Signing attempt $attempt failed for $file (TSA: $tsa), switching TSA and retrying in 2s..."
+              $tsaIndex = ($tsaIndex + 1) % $tsaServers.Length
+              Start-Sleep -Seconds 2
+            }
           }
           Remove-Item -Force $CertFile, $KeyFile
 
