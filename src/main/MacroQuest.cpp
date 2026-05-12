@@ -912,6 +912,8 @@ void MacroQuest::Shutdown()
 bool MacroQuest::InitializeEQLib()
 {
 	eqlib::LibraryConfig config;
+	// Some eqlib main hooks are duplicated in MQ2LoginFrontend.cpp, so before this is modified be sure to
+	// remove or guard the duplication so we do not get double fires.
 	config.flags = eqlib::ConfigFlags::NoMainHooks;
 	config.eventReceiver = this;
 	config.logger = m_eqlibLogger;

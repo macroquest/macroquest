@@ -66,9 +66,7 @@ public:
 			// Since we have ensured that we have window and sidl managers, load the pre-charselect windows
 			ReinitializeWindowList();
 
-			// Signal to others that we are loaded properly.
-			// Note: this is not really the proper way to do this since this isn't a game state, but autologin
-			// is the only one listening for it.
+			PluginsLoginFrontendEntered();
 		}
 
 		DoLoginPulse();
@@ -147,6 +145,16 @@ void ShutdownLoginFrontend()
 	{
 		LOG_DEBUG("Removing Login Detours");
 
+		if (s_inFrontend)
+		{
+			s_inFrontend = false;
+			s_waitingForFrontend = true;
+
+			PluginsLoginFrontendExited();
+
+			ReinitializeWindowList();
+		}
+
 		DeveloperTools_CloseLoginFrontend();
 
 		uintptr_t detours[] = {
@@ -159,14 +167,6 @@ void ShutdownLoginFrontend()
 
 		for (uintptr_t detour : detours)
 			RemoveDetour(detour);
-
-		if (s_inFrontend)
-		{
-			s_inFrontend = false;
-			s_waitingForFrontend = true;
-
-			ReinitializeWindowList();
-		}
 
 		s_initialized = false;
 	}

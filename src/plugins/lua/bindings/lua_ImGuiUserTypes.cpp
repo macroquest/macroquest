@@ -15,8 +15,9 @@
 #include "pch.h"
 
 #include "eqlib/game/UITextures.h"
-#include "mq/imgui/Widgets.h"
+#include "mq/imgui/AlphaMask.h"
 #include "mq/imgui/ImGuiUtils.h"
+#include "mq/imgui/Widgets.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -505,6 +506,17 @@ void RegisterBindings_ImGuiUserTypes(sol::state_view lua)
 		{
 			mq::imgui::AddImageNineSlice(&mThis, tex_ref, image_params, p_min, p_max, tint_col.value_or(IM_COL32_WHITE));
 		});
+
+	imDrawList.set_function("CreateMaskLayer", &mq::imgui::CreateMaskLayer);
+	imDrawList.set_function("BeginMaskedDraw", [](ImDrawList* draw_list, int op)
+		{
+			mq::imgui::BeginMaskedDraw(draw_list, static_cast<mq::imgui::AlphaMaskOp>(op));
+		});
+	imDrawList.set_function("EndMaskedDraw", &mq::imgui::EndMaskedDraw);
+
+	imDrawList.set_function("CreateCoverageMaskLayer", &mq::imgui::CreateCoverageMaskLayer);
+	imDrawList.set_function("BeginCoverageMaskedDraw", &mq::imgui::BeginCoverageMaskedDraw);
+	imDrawList.set_function("EndCoverageMaskedDraw", &mq::imgui::EndCoverageMaskedDraw);
 
 
 	lua.new_usertype<ImGuiTableColumnSortSpecs>(

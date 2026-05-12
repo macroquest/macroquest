@@ -106,7 +106,7 @@ struct NineSliceImageParams
 {
 	// Image size
 	ImVec2 p_min;               // pixel coordinates of the upper left corner of the image
-	ImVec2 p_max;               // pixel coordiantes of the upper right corner of the image
+	ImVec2 p_max;               // pixel coordiantes of the lower right corner of the image
 	ImVec2 uv_min;              // texture coordinates of the upper left corner of the image
 	ImVec2 uv_max;              // texture coordinates of the lower right corner of the image
 

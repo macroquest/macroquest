@@ -3,8 +3,8 @@
     url = https://github.com/macroquest/eqlib.git
 [submodule "contrib/vcpkg"]
 	path = contrib/vcpkg
-	url = https://github.com/macroquest/vcpkg.git
-	branch = macroquest
+	url = https://github.com/microsoft/vcpkg.git
+	branch = master
 [submodule "data/lua/IntegrationTests"]
 	path = src/plugins/lua/lua/IntegrationTests
 	url = https://github.com/macroquest/integration-tests.git

@@ -38,6 +38,12 @@ static std::vector<std::pair<std::string, std::function<void()>>> s_menus;
 // we want the context menu to call OpenPopup exactly once per right click, so we need a state toggle
 static bool s_contextOpen;
 
+// tracks that we need to call SetForegroundWindow on the popup viewport
+static bool s_contextNeedsFocus = false;
+
+// tracks if the popup viewport has ever held OS focus
+static bool s_contextGotFocus = false;
+
 // storage for filename strings for the backend
 static std::string s_iniFilename;
 static std::string s_logFilename;
@@ -508,6 +514,8 @@ void OpenContextMenu()
 	GetCursorPos(&cursor_pos);
 	ImGui::GetIO().AddMousePosEvent(static_cast<float>(cursor_pos.x), static_cast<float>(cursor_pos.y));
 	s_contextOpen = true;
+	s_contextNeedsFocus = true;
+	s_contextGotFocus = false;
 }
 
 void OpenMessageBox(ImGuiViewport* viewport, const std::string& message, const std::string& title, const ImVec2& size)
@@ -564,6 +572,23 @@ void MaybeShowContextMenu()
 
 	if (ImGui::BeginPopup("Context Popup", ImGuiWindowFlags_NoMove))
 	{
+		if (ImGuiViewport* vp = ImGui::GetWindowViewport())
+		{
+			if (HWND hwnd = static_cast<HWND>(vp->PlatformHandle))
+			{
+				if (s_contextNeedsFocus)
+				{
+					::SetForegroundWindow(hwnd);
+					s_contextNeedsFocus = false;
+				}
+
+				if (::GetForegroundWindow() == hwnd)
+					s_contextGotFocus = true;
+				else if (s_contextGotFocus)
+					ImGui::CloseCurrentPopup();
+			}
+		}
+
 		// at the top we always want a way to open the GUI
 		if (ImGui::MenuItem("Open UI"))
 			OpenMainWindow();
@@ -583,6 +608,11 @@ void MaybeShowContextMenu()
 			PostQuitMessage(0);
 
 		ImGui::EndPopup();
+	}
+	else
+	{
+		s_contextNeedsFocus = false;
+		s_contextGotFocus = false;
 	}
 
 	ImGui::PopStyleVar();

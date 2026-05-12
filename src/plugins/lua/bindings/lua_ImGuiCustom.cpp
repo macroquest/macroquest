@@ -58,9 +58,14 @@ void RegisterBindings_ImGuiCustom(sol::state_view lua, sol::table& ImGui)
 	// NineSlice image drawing
 	ImGui.new_usertype<mq::imgui::NineSliceImageParams>(
 		"NineSliceImageParams",
-		"WithTextureCoords", &mq::imgui::NineSliceImageParams::WithTextureCoords,
-		"WithPixelCoords", &mq::imgui::NineSliceImageParams::WithPixelCoords,
-
+		"WithTextureCoords", [](const ImVec2& texture_size, const ImVec4& p_margins, std::optional<ImVec2> uv_min, std::optional<ImVec2> uv_max)
+		{
+			return mq::imgui::NineSliceImageParams::WithTextureCoords(texture_size, p_margins, uv_min.value_or(ImVec2(0.0f, 0.0f)), uv_max.value_or(ImVec2(1.0f, 1.0f)));
+		},
+		"WithPixelCoords", [](const ImVec2& texture_size, const ImVec4& p_margins, std::optional<ImVec2> p_min, std::optional<ImVec2> p_max)
+		{
+			return mq::imgui::NineSliceImageParams::WithPixelCoords(texture_size, p_margins, p_min.value_or(ImVec2(0.0f, 0.0f)), p_max.value_or(ImVec2(-1.0f, -1.0f)));
+		},
 		"p_min", &mq::imgui::NineSliceImageParams::p_min,
 		"p_max", &mq::imgui::NineSliceImageParams::p_max,
 		"uv_min", &mq::imgui::NineSliceImageParams::uv_min,
@@ -76,7 +81,7 @@ void RegisterBindings_ImGuiCustom(sol::state_view lua, sol::table& ImGui)
 		});
 	// AddImageNineSlice -> found on ImDrawList bindings
 
-	// Masking
+	// Masking -> found on ImDrawList bindings
 
 	lua.new_enum("AlphaMaskOp", std::initializer_list<std::pair<std::string_view, int>>{
 		{ "Intersect"                    , static_cast<int>(mq::imgui::AlphaMaskOp::Intersect) },
@@ -84,15 +89,6 @@ void RegisterBindings_ImGuiCustom(sol::state_view lua, sol::table& ImGui)
 		{ "Subtract"                     , static_cast<int>(mq::imgui::AlphaMaskOp::Subtract) },
 		{ "Complement"                   , static_cast<int>(mq::imgui::AlphaMaskOp::Complement) },
 	});
-	ImGui.set_function("CreateMaskLayer", &mq::imgui::CreateMaskLayer);
-	ImGui.set_function("BeginMaskedDraw", [](ImDrawList* draw_list, int op)
-		{
-			mq::imgui::BeginMaskedDraw(draw_list, static_cast<mq::imgui::AlphaMaskOp>(op));
-		});
-	ImGui.set_function("EndMaskedDraw", &mq::imgui::EndMaskedDraw);
-	ImGui.set_function("CreateCoverageMaskLayer", &mq::imgui::CreateCoverageMaskLayer);
-	ImGui.set_function("BeginCoverageMaskedDraw", &mq::imgui::BeginCoverageMaskedDraw);
-	ImGui.set_function("EndCoverageMaskedDraw", &mq::imgui::EndCoverageMaskedDraw);
 
 	// Widgets: Utility
 	ImGui.set_function("HelpMarker", [](const char* text, std::optional<float> width, std::optional<ImFont*> font) { mq::imgui::HelpMarker(text, width.value_or(450), font.value_or(nullptr)); });

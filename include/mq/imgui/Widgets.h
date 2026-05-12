@@ -150,7 +150,7 @@ inline bool AddTextureAnimation(
 	return DrawTextureAnimation(drawList, textureAnimation, pos, size, tintColor, borderColor);
 }
 
-// Adds a CUITextureInfo to the specified draw list. This is thbe lowest level of the UI texture hierarchy, and represents a full individual texture.
+// Adds a CUITextureInfo to the specified draw list. This is the lowest level of the UI texture hierarchy, and represents a full individual texture.
 MQLIB_OBJECT bool DrawUITexture(
 	ImDrawList* drawList,
 	const eqlib::CUITextureInfo& textureInfo,
