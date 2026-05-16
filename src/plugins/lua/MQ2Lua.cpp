@@ -726,6 +726,8 @@ static void LuaStopCommand(std::optional<std::string> scriptName = std::nullopt)
 		// kill all scripts
 		for (RunningScript& script : s_globalState->runningScripts)
 		{
+			if (script.dead)
+				continue;
 			script.mainThread->Exit();
 		}
 
