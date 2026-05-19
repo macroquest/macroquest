@@ -160,7 +160,7 @@ void InitializeConsole()
 	{
 		// The logger already exists, so replace ring buffer sink with stdout sink.
 		auto logger = spdlog::default_logger();
-		
+
 		// Erase the ring buffer sink from the logger's list of sinks.
 		auto& sinks = logger->sinks();
 		sinks.erase(std::remove_if(sinks.begin(), sinks.end(), [](const auto& sink) { return sink == s_ringBufferSink; }), sinks.end());
@@ -690,30 +690,43 @@ void SetForegroundWindowInternal(HWND hWnd)
 	if (IsWindow(hWnd))
 	{
 		// The order in which we activate this matters. This is also duplicated in
-		// the MQPostOffice.cpp RequestActivateWindow function so changes
-		// here should be replicated there. One future update if this stops working
-		// is to cross-thread the attach to the destination hWnd, but it does not
-		// appear to be needed now and it's easier to keep these two in sync.
+		// the MQPostOffice.cpp RequestActivateWindow function so changes here
+		// should be replicated there.
+
+		// Attempt to restore the window before the activation dance
+		if (IsIconic(hWnd))
+		{
+			ShowWindow(hWnd, SW_RESTORE);
+		}
+
 		const DWORD ourThread = ::GetCurrentThreadId();
 		const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
-		const bool attached = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+		const DWORD tgtThread = ::GetWindowThreadProcessId(hWnd, nullptr);
+		const bool attachedFg = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+		const bool attachedTgt = tgtThread && tgtThread != ourThread && tgtThread != fgThread && ::AttachThreadInput(ourThread, tgtThread, true);
 		auto detach = wil::scope_exit([&]
 			{
-				if (attached)
+				if (attachedTgt)
+				{
+					::AttachThreadInput(ourThread, tgtThread, false);
+				}
+				if (attachedFg)
 				{
 					::AttachThreadInput(ourThread, fgThread, false);
 				}
 			});
 
-		::BringWindowToTop(hWnd);
 		::SetForegroundWindow(hWnd);
 
+		// Re-check: the first restore may fail before the activation dance.
+		// SetFocus below is what makes the restore stick.
 		if (IsIconic(hWnd))
 		{
 			ShowWindow(hWnd, SW_RESTORE);
 		}
 
 		::SetFocus(hWnd);
+		::SetActiveWindow(hWnd);
 
 		if (::GetForegroundWindow() != hWnd && !SendSetForegroundWindow(hWnd, gFocusProcessID))
 		{

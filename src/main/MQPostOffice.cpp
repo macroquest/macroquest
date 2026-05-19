@@ -103,26 +103,41 @@ void MQPostOffice::RequestActivateWindow(HWND hWnd, bool sendMessage)
 	// The order in which we activate this matters. This is also duplicated in
 	// the loader's MacroQuest.cpp SetForegroundWindowInternal function so changes
 	// here should be replicated there.
+
+	// Attempt to restore the window before the activation dance
+	if (IsIconic(hWnd))
+	{
+		ShowWindow(hWnd, SW_RESTORE);
+	}
+
 	const DWORD ourThread = ::GetCurrentThreadId();
 	const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
-	const bool attached = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+	const DWORD tgtThread = ::GetWindowThreadProcessId(hWnd, nullptr);
+	const bool attachedFg = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
+	const bool attachedTgt = tgtThread && tgtThread != ourThread && tgtThread != fgThread && ::AttachThreadInput(ourThread, tgtThread, true);
 	auto detach = wil::scope_exit([&]
 		{
-			if (attached)
+			if (attachedTgt)
+			{
+				::AttachThreadInput(ourThread, tgtThread, false);
+			}
+			if (attachedFg)
 			{
 				::AttachThreadInput(ourThread, fgThread, false);
 			}
 		});
 
-	::BringWindowToTop(hWnd);
 	::SetForegroundWindow(hWnd);
 
+	// Re-check: the first restore may fail before the activation dance.
+	// SetFocus below is what makes the restore stick.
 	if (IsIconic(hWnd))
 	{
 		ShowWindow(hWnd, SW_RESTORE);
 	}
 
 	::SetFocus(hWnd);
+	::SetActiveWindow(hWnd);
 
 	if (::GetForegroundWindow() == hWnd)
 		return;

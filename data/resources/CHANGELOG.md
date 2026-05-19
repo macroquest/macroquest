@@ -1,3 +1,11 @@
+## 5/18/2026
+
+### Bug fixes
+
+- Fix for /lua stop crash when a dead script was part of the stop call
+- Fixed some luarocks modules not building when a version already existed for another architecture
+- Prospective fix for autologin window hotkeys not behaving for some people after the last /foreground update.
+
 ## 4/26/2026
 
 ### Features
