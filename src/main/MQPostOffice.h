@@ -31,7 +31,7 @@ public:
 	virtual ~MQPostOffice() override;
 
 	void NotifyIsForegroundWindow(bool isForeground);
-	void RequestActivateWindow(HWND hWnd, bool sendMessage);
+	void RequestActivateWindow(HWND hWnd, bool isOriginator);
 	void SendNotification(const std::string& message, const std::string& title);
 	void SetGameState(int GameState);
 
@@ -54,7 +54,7 @@ namespace pipeclient {
 // the pipe connection
 
 void NotifyIsForegroundWindow(bool isForeground);
-void RequestActivateWindow(HWND hWnd, bool sendMessage = true);
+void RequestActivateWindow(HWND hWnd, bool isOriginator = true);
 void SendNotification(const std::string& message, const std::string& title);
 
 } // namespace pipeclient

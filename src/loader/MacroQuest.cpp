@@ -719,7 +719,6 @@ void SetForegroundWindowInternal(HWND hWnd)
 		::SetForegroundWindow(hWnd);
 
 		// Re-check: the first restore may fail before the activation dance.
-		// SetFocus below is what makes the restore stick.
 		if (IsIconic(hWnd))
 		{
 			ShowWindow(hWnd, SW_RESTORE);
@@ -728,12 +727,21 @@ void SetForegroundWindowInternal(HWND hWnd)
 		::SetFocus(hWnd);
 		::SetActiveWindow(hWnd);
 
-		if (::GetForegroundWindow() != hWnd && !SendSetForegroundWindow(hWnd, gFocusProcessID))
+		if (::GetForegroundWindow() != hWnd)
 		{
-			SPDLOG_DEBUG("Failed to set foreground window. Doing it with min/restore.");
+			SPDLOG_DEBUG("Failed to set foreground window directly. Passing the action on.");
 
-			ShowWindow(hWnd, SW_MINIMIZE);
-			ShowWindow(hWnd, SW_RESTORE);
+			// Try the foreground EQ first. If none is foreground, fall back to asking the
+			// target to min/restore itself in its own process.
+			if (!SendSetForegroundWindow(hWnd, gFocusProcessID))
+			{
+				SPDLOG_DEBUG("SendSetForegroundWindow failed (no foregrounded MQ process). Falling back to SendSelfMinRestore.");
+
+				if (!SendSelfMinRestore(hWnd))
+				{
+					SPDLOG_DEBUG("SendSelfMinRestore also failed (no pipe connection for target's owning process).");
+				}
+			}
 		}
 	}
 }
