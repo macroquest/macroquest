@@ -100,50 +100,34 @@ void MQPostOffice::NotifyIsForegroundWindow(bool isForeground)
 
 void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 {
-	// The order in which we activate this matters. This is also duplicated in
-	// the loader's MacroQuest.cpp SetForegroundWindowInternal function so changes
-	// here should be replicated there.
-
-	// Attempt to restore the window before the activation dance
-	if (IsIconic(hWnd))
-	{
-		ShowWindow(hWnd, SW_RESTORE);
-	}
-
-	const DWORD ourThread = ::GetCurrentThreadId();
-	const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
-	const DWORD tgtThread = ::GetWindowThreadProcessId(hWnd, nullptr);
-	const bool attachedFg = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
-	const bool attachedTgt = tgtThread && tgtThread != ourThread && tgtThread != fgThread && ::AttachThreadInput(ourThread, tgtThread, true);
-	auto detach = wil::scope_exit([&]
-		{
-			if (attachedTgt)
-			{
-				::AttachThreadInput(ourThread, tgtThread, false);
-			}
-			if (attachedFg)
-			{
-				::AttachThreadInput(ourThread, fgThread, false);
-			}
-		});
-
-	::SetForegroundWindow(hWnd);
-
-	// Re-check: the first restore may fail before the activation dance.
-	if (IsIconic(hWnd))
-	{
-		ShowWindow(hWnd, SW_RESTORE);
-	}
-
-	::SetFocus(hWnd);
-	::SetActiveWindow(hWnd);
-
 	if (::GetForegroundWindow() == hWnd)
-		return;
-
-	if (m_pipeClient.IsConnected())
 	{
-		if (isOriginator)
+		return;
+	}
+
+	if (!isOriginator)
+	{
+		// The launcher itself is foreground. 
+
+		// We should be the foreground instance. We have privilege, so grant it to the
+		// target and ask it to foreground itself. Us foregrounding it has odd behavior.
+		DWORD targetPid = 0;
+		::GetWindowThreadProcessId(hWnd, &targetPid);
+		if (targetPid != 0)
+		{
+			::AllowSetForegroundWindow(targetPid);
+		}
+
+		if (m_pipeClient.IsConnected())
+		{
+			MQMessageActivateWnd msg;
+			msg.hWnd = hWnd;
+			m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_SELF_FOREGROUND, &msg, sizeof(msg));
+		}
+	}
+	else
+	{
+		if (m_pipeClient.IsConnected())
 		{
 			MQMessageFocusRequest request;
 			request.focusMode = MQMessageFocusRequest::FocusMode::WantFocus;
@@ -153,22 +137,13 @@ void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 		}
 		else
 		{
-			// We are the foreground process and it still didn't work.
-			MQMessageActivateWnd msg;
-			msg.hWnd = hWnd;
+			ShowWindow(hWnd, SW_MINIMIZE);
+			ShowWindow(hWnd, SW_RESTORE);
 
-			m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_SELF_MIN_RESTORE, &msg, sizeof(msg));
-		}
-	}
-	else if (isOriginator)
-	{
-		// Last resort
-		ShowWindow(hWnd, SW_MINIMIZE);
-		ShowWindow(hWnd, SW_RESTORE);
-
-		if (::GetForegroundWindow() != hWnd)
-		{
-			WriteChatf("\ar/foreground: failed to activate the window locally and no pipe is available.");
+			if (::GetForegroundWindow() != hWnd)
+			{
+				WriteChatf("\ar/foreground: failed to activate the window locally and no pipe is available.");
+			}
 		}
 	}
 }
@@ -290,6 +265,33 @@ void MQPostOffice::OnIncomingMessage(PipeMessagePtr message)
 				if (::GetForegroundWindow() != hWnd)
 				{
 					WriteChatf("\ar/foreground: failed to activate window after multiple attempts.");
+				}
+			}
+		}
+		break;
+
+	case MQMessageId::MSG_MAIN_SELF_FOREGROUND:
+		if (message->size() >= sizeof(MQMessageActivateWnd))
+		{
+			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
+			if (IsWindow(hWnd) && ::GetForegroundWindow() != hWnd)
+			{
+				if (IsIconic(hWnd))
+				{
+					ShowWindow(hWnd, SW_RESTORE);
+				}
+
+				::SetForegroundWindow(hWnd);
+
+				if (::GetForegroundWindow() != hWnd)
+				{
+					ShowWindow(hWnd, SW_MINIMIZE);
+					ShowWindow(hWnd, SW_RESTORE);
+
+					if (::GetForegroundWindow() != hWnd)
+					{
+						WriteChatf("\ar/foreground: failed to activate window after granting privileges.");
+					}
 				}
 			}
 		}

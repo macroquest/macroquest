@@ -689,58 +689,39 @@ void SetForegroundWindowInternal(HWND hWnd)
 {
 	if (IsWindow(hWnd))
 	{
-		// The order in which we activate this matters. This is also duplicated in
-		// the MQPostOffice.cpp RequestActivateWindow function so changes here
-		// should be replicated there.
-
-		// Attempt to restore the window before the activation dance
-		if (IsIconic(hWnd))
+		if (::GetForegroundWindow() == hWnd)
 		{
-			ShowWindow(hWnd, SW_RESTORE);
+			return;
 		}
 
-		const DWORD ourThread = ::GetCurrentThreadId();
-		const DWORD fgThread = ::GetWindowThreadProcessId(::GetForegroundWindow(), nullptr);
-		const DWORD tgtThread = ::GetWindowThreadProcessId(hWnd, nullptr);
-		const bool attachedFg = fgThread && fgThread != ourThread && ::AttachThreadInput(ourThread, fgThread, true);
-		const bool attachedTgt = tgtThread && tgtThread != ourThread && tgtThread != fgThread && ::AttachThreadInput(ourThread, tgtThread, true);
-		auto detach = wil::scope_exit([&]
-			{
-				if (attachedTgt)
-				{
-					::AttachThreadInput(ourThread, tgtThread, false);
-				}
-				if (attachedFg)
-				{
-					::AttachThreadInput(ourThread, fgThread, false);
-				}
-			});
+		DWORD fgPid = 0;
+		::GetWindowThreadProcessId(::GetForegroundWindow(), &fgPid);
+		const bool weAreForeground = (fgPid == GetCurrentProcessId());
 
-		::SetForegroundWindow(hWnd);
-
-		// Re-check: the first restore may fail before the activation dance.
-		if (IsIconic(hWnd))
+		if (weAreForeground)
 		{
-			ShowWindow(hWnd, SW_RESTORE);
+			// The launcher itself is foreground. We have privilege, so grant it to the
+			// target and ask it to foreground itself. Us foregrounding it has odd behavior.
+			DWORD targetPid = 0;
+			::GetWindowThreadProcessId(hWnd, &targetPid);
+			if (targetPid != 0)
+			{
+				::AllowSetForegroundWindow(targetPid);
+			}
+
+			if (!SendSelfForeground(hWnd))
+			{
+				SPDLOG_DEBUG("SendSelfForeground failed (no pipe connection for target's owning process).");
+			}
 		}
-
-		::SetFocus(hWnd);
-		::SetActiveWindow(hWnd);
-
-		if (::GetForegroundWindow() != hWnd)
+		// If we don't have privilege then try to route via an EQ instance that does that does.
+		else if (!SendSetForegroundWindow(hWnd, gFocusProcessID))
 		{
-			SPDLOG_DEBUG("Failed to set foreground window directly. Passing the action on.");
+			SPDLOG_DEBUG("SendSetForegroundWindow failed (no foregrounded MQ process). Falling back to SendSelfMinRestore.");
 
-			// Try the foreground EQ first. If none is foreground, fall back to asking the
-			// target to min/restore itself in its own process.
-			if (!SendSetForegroundWindow(hWnd, gFocusProcessID))
+			if (!SendSelfMinRestore(hWnd))
 			{
-				SPDLOG_DEBUG("SendSetForegroundWindow failed (no foregrounded MQ process). Falling back to SendSelfMinRestore.");
-
-				if (!SendSelfMinRestore(hWnd))
-				{
-					SPDLOG_DEBUG("SendSelfMinRestore also failed (no pipe connection for target's owning process).");
-				}
+				SPDLOG_DEBUG("SendSelfMinRestore also failed (no pipe connection for target's owning process).");
 			}
 		}
 	}
