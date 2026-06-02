@@ -98,6 +98,38 @@ void MQPostOffice::NotifyIsForegroundWindow(bool isForeground)
 	m_pipeClient.SendMessage(MQMessageId::MSG_MAIN_FOCUS_REQUEST, &request, sizeof(request));
 }
 
+/**
+ * @fn MinRestoreWindow
+ *
+ * @brief Brings a window forward using the minimize/restore trick. Used with /foreground.
+ *
+ * If the window is already minimized, we have to skip the minimize call,
+ * on some systems it leaves the window stuck iconic and causes
+ * GetForegroundWindow() to falsely report success. Outputs the supplied failure
+ * message to chat (prefixed with "/foreground: ") if the window did not
+ * become foreground.
+ *
+ * @param hWnd The target window to bring forward
+ * @param failureMessage Text shown if activation fails
+ **/
+static void MinRestoreWindow(HWND hWnd, const char* failureMessage)
+{
+	if (IsIconic(hWnd))
+	{
+		ShowWindow(hWnd, SW_RESTORE);
+	}
+	else
+	{
+		ShowWindow(hWnd, SW_MINIMIZE);
+		ShowWindow(hWnd, SW_RESTORE);
+	}
+
+	if (::GetForegroundWindow() != hWnd)
+	{
+		WriteChatf("\ar/foreground: %s", failureMessage);
+	}
+}
+
 void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 {
 	if (::GetForegroundWindow() == hWnd)
@@ -107,7 +139,7 @@ void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 
 	if (!isOriginator)
 	{
-		// The launcher itself is foreground. 
+		// The launcher itself is foreground.
 
 		// We should be the foreground instance. We have privilege, so grant it to the
 		// target and ask it to foreground itself. Us foregrounding it has odd behavior.
@@ -137,13 +169,7 @@ void MQPostOffice::RequestActivateWindow(HWND hWnd, bool isOriginator)
 		}
 		else
 		{
-			ShowWindow(hWnd, SW_MINIMIZE);
-			ShowWindow(hWnd, SW_RESTORE);
-
-			if (::GetForegroundWindow() != hWnd)
-			{
-				WriteChatf("\ar/foreground: failed to activate the window locally and no pipe is available.");
-			}
+			MinRestoreWindow(hWnd, "failed to activate the window locally and no pipe is available.");
 		}
 	}
 }
@@ -259,13 +285,7 @@ void MQPostOffice::OnIncomingMessage(PipeMessagePtr message)
 			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
 			if (IsWindow(hWnd) && ::GetForegroundWindow() != hWnd)
 			{
-				ShowWindow(hWnd, SW_MINIMIZE);
-				ShowWindow(hWnd, SW_RESTORE);
-
-				if (::GetForegroundWindow() != hWnd)
-				{
-					WriteChatf("\ar/foreground: failed to activate window after multiple attempts.");
-				}
+				MinRestoreWindow(hWnd, "failed to activate window after multiple attempts.");
 			}
 		}
 		break;
@@ -285,13 +305,7 @@ void MQPostOffice::OnIncomingMessage(PipeMessagePtr message)
 
 				if (::GetForegroundWindow() != hWnd)
 				{
-					ShowWindow(hWnd, SW_MINIMIZE);
-					ShowWindow(hWnd, SW_RESTORE);
-
-					if (::GetForegroundWindow() != hWnd)
-					{
-						WriteChatf("\ar/foreground: failed to activate window after granting privileges.");
-					}
+					MinRestoreWindow(hWnd, "failed to activate window after granting privileges.");
 				}
 			}
 		}
