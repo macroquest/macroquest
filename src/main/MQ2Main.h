@@ -326,6 +326,20 @@ MQLIB_API bool TriggeringEffectSpell(SPELL* aSpell, int i);
 MQLIB_API bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects = false, bool bTriggeredEffectCheck = false);
 MQLIB_API bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell);
 MQLIB_API bool IsSpellTooPowerful(PlayerClient* caster, PlayerClient* target, EQ_Spell* spell);
+
+// RAII guard for stacking queries that target someone other than the local character.
+class ScopedIgnoreBuffBarFullForStacking
+{
+public:
+	ScopedIgnoreBuffBarFullForStacking();
+	~ScopedIgnoreBuffBarFullForStacking();
+
+	ScopedIgnoreBuffBarFullForStacking(const ScopedIgnoreBuffBarFullForStacking&) = delete;
+	ScopedIgnoreBuffBarFullForStacking& operator=(const ScopedIgnoreBuffBarFullForStacking&) = delete;
+
+private:
+	bool m_previous;
+};
 MQLIB_API uint32_t GetItemTimer(ItemClient* pItem);
 MQLIB_API ItemClient* GetItemContentsByName(const char* ItemName);
 MQLIB_API DWORD GetAvailableSlots(ItemClient* pContainer, ItemClient* pItem, int *firstavailableslot);

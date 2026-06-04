@@ -4339,12 +4339,40 @@ SpellAttributePredicate<CachedBuff> mq::EvaluateCachedBuffPredicate(std::string_
 
 //============================================================================
 
+static bool s_ignoreBuffBarFullForStacking = false;
+
+class CharacterZoneClient_StackHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(int, GetOpenEffectSlot_Trampoline, (bool, bool, int))
+	int GetOpenEffectSlot_Detour(bool bIsShortBuff, bool bIsMeleeSkill, int Index)
+	{
+		if (s_ignoreBuffBarFullForStacking)
+			return reinterpret_cast<CharacterZoneClient*>(this)->GetFirstEffectSlot(bIsShortBuff, bIsMeleeSkill);
+
+		return GetOpenEffectSlot_Trampoline(bIsShortBuff, bIsMeleeSkill, Index);
+	}
+};
+
+ScopedIgnoreBuffBarFullForStacking::ScopedIgnoreBuffBarFullForStacking()
+	: m_previous(s_ignoreBuffBarFullForStacking)
+{
+	s_ignoreBuffBarFullForStacking = true;
+}
+
+ScopedIgnoreBuffBarFullForStacking::~ScopedIgnoreBuffBarFullForStacking()
+{
+	s_ignoreBuffBarFullForStacking = m_previous;
+}
+
 static void InitializeSpells()
 {
+	EzDetour(CharacterZoneClient__GetOpenEffectSlot, &CharacterZoneClient_StackHook::GetOpenEffectSlot_Detour, &CharacterZoneClient_StackHook::GetOpenEffectSlot_Trampoline);
 }
 
 static void ShutdownSpells()
 {
+	RemoveDetour(CharacterZoneClient__GetOpenEffectSlot);
 }
 
 static void PulseSpells()
