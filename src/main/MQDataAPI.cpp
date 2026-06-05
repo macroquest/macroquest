@@ -1237,6 +1237,50 @@ std::string HandleParseParam(std::string_view strOriginal, const bool bParseOnce
 }
 
 /**
+ * @class MacroExpansionGuard
+ *
+ * @brief Detects and breaks self-referential macro variable expansion cycles
+ *
+ * Macro expansion recurses by re-parsing the result of a variable (see ParseMacroVar).
+ * A variable whose expansion reproduces itself - directly, or by routing
+ * through other variables - therefore recurses until the stack is exhausted and the client
+ * crashes.
+ *
+ * This guard records the tokens currently being expanded. Before a variable is
+ * (re-)expanded we check whether it is already in progress. If so, we have re-entered our own
+ * expansion (a cycle that cannot terminate) so we stop instead of recursing.
+ *
+ * @see ParseMacroVar
+ */
+class MacroExpansionGuard
+{
+public:
+	explicit MacroExpansionGuard(std::string_view token)
+	{
+		s_active.push_back(token);
+	}
+
+	~MacroExpansionGuard()
+	{
+		s_active.pop_back();
+	}
+
+	MacroExpansionGuard(const MacroExpansionGuard&) = delete;
+	MacroExpansionGuard& operator=(const MacroExpansionGuard&) = delete;
+
+	// Returns true if this exact variable token is already being expanded higher up the stack.
+	static bool IsExpanding(std::string_view token)
+	{
+		return std::find(s_active.begin(), s_active.end(), token) != s_active.end();
+	}
+
+private:
+	static std::vector<std::string_view> s_active;
+};
+
+std::vector<std::string_view> MacroExpansionGuard::s_active;
+
+/**
  * @fn ParseMacroVar
  *
  * @brief Parses a Macro Variable without tokenizing first, supports recursion
@@ -1299,21 +1343,32 @@ std::string ParseMacroVar(std::string_view strOriginal, const bool bParseOnce = 
 						// We're going to use this value a couple times so store it in a variable
 						std::string strVarToParse = strReturn.substr(iPosition, iCloseBrace - iPosition);
 
-						// Parse the variable (also going to use this a couple of times)
-						std::string strParsedVar = GetMacroVarData(strVarToParse);
-
-						// If the variable changed (otherwise no point in doing anything)
-						if (strVarToParse != strParsedVar)
+						// If we're already expanding this exact variable higher up the call stack
+						if (MacroExpansionGuard::IsExpanding(strVarToParse))
 						{
-							// If the variable contains a ${ and we are not in a parse once then we need to
-							// send it through the parser again
-							if (!bParseOnce && (strParsedVar.find("${") != std::string::npos))
-							{
-								strParsedVar = ModifyMacroString(strParsedVar);
-							}
+							MacroError("Aborted self-referential macro expansion: %s", strVarToParse.c_str());
+						}
+						else
+						{
+							// Mark this variable as in-progress for the duration of its expansion
+							MacroExpansionGuard expansionGuard(strVarToParse);
 
-							// Replace the variable in our return string with the parsed variable
-							strReturn.replace(iPosition, iCloseBrace - iPosition, strParsedVar);
+							// Parse the variable (also going to use this a couple of times)
+							std::string strParsedVar = GetMacroVarData(strVarToParse);
+
+							// If the variable changed (otherwise no point in doing anything)
+							if (strVarToParse != strParsedVar)
+							{
+								// If the variable contains a ${ and we are not in a parse once then we need to
+								// send it through the parser again
+								if (!bParseOnce && (strParsedVar.find("${") != std::string::npos))
+								{
+									strParsedVar = ModifyMacroString(strParsedVar);
+								}
+
+								// Replace the variable in our return string with the parsed variable
+								strReturn.replace(iPosition, iCloseBrace - iPosition, strParsedVar);
+							}
 						}
 					}
 				}
