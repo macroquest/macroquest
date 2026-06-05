@@ -4823,6 +4823,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
  * Takes two spells in order to test if they will stack. Any null checking should be
  * done before this function is called, assumes all values are non-null.
  *
+ * This briefly disables the buff bar full check so that the buff bar being full
+ * on the current character does not cause this function to return false when it
+ * otherwise would return true.
+ *
  * @param testSpell The spell that would hypothetically be cast (non-null)
  * @param existingSpell The spell that would hypothetically already exist (non-null)
  *
@@ -4841,6 +4845,10 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	buff.PopulateFromSpell(existingSpell);
 
 	int SlotIndex = -1;
+
+	// Callers of WillStackWith are not concerned with the current character's buff bar capacity
+	ScopedIgnoreBuffBarFullForStacking ignoreBuffBarFull;
+
 	EQ_Affect* ret = pLocalPC->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1);
 
 	return ret && SlotIndex != -1;

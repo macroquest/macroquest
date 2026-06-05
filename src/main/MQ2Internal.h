@@ -868,6 +868,20 @@ public:
 
 void RefreshKeyRingWindow();
 
+// RAII guard for stacking queries that target someone other than the local character.
+class ScopedIgnoreBuffBarFullForStacking
+{
+public:
+	ScopedIgnoreBuffBarFullForStacking();
+	~ScopedIgnoreBuffBarFullForStacking();
+
+	ScopedIgnoreBuffBarFullForStacking(const ScopedIgnoreBuffBarFullForStacking&) = delete;
+	ScopedIgnoreBuffBarFullForStacking& operator=(const ScopedIgnoreBuffBarFullForStacking&) = delete;
+
+private:
+	bool m_previous;
+};
+
 //----------------------------------------------------------------------------
 bool GetFilteredModules(HANDLE hProcess, HMODULE* hModule, DWORD cb, DWORD* lpcbNeeded,
 	const std::function<bool(HMODULE)>& filter);
