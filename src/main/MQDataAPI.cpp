@@ -1255,9 +1255,9 @@ std::string HandleParseParam(std::string_view strOriginal, const bool bParseOnce
 class MacroExpansionGuard
 {
 public:
-	explicit MacroExpansionGuard(std::string token)
+	explicit MacroExpansionGuard(std::string_view token)
 	{
-		s_active.push_back(std::move(token));
+		s_active.push_back(token);
 	}
 
 	~MacroExpansionGuard()
@@ -1269,16 +1269,16 @@ public:
 	MacroExpansionGuard& operator=(const MacroExpansionGuard&) = delete;
 
 	// Returns true if this exact variable token is already being expanded higher up the stack.
-	static bool IsExpanding(const std::string& token)
+	static bool IsExpanding(std::string_view token)
 	{
 		return std::find(s_active.begin(), s_active.end(), token) != s_active.end();
 	}
 
 private:
-	static std::vector<std::string> s_active;
+	static std::vector<std::string_view> s_active;
 };
 
-std::vector<std::string> MacroExpansionGuard::s_active;
+std::vector<std::string_view> MacroExpansionGuard::s_active;
 
 /**
  * @fn ParseMacroVar
