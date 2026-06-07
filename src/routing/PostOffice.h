@@ -16,6 +16,8 @@
 
 #include "Routing.h"
 
+#include "mq/base/String.h"
+
 #include "fmt/format.h"
 
 #include <string>
@@ -660,7 +662,7 @@ private:
 /**
  * Defines the type used for the container of mailboxes in the post office
  */
-using MailboxMap = std::unordered_map<std::string, std::unique_ptr<Mailbox>>;
+using MailboxMap = ci_unordered::map<std::string, std::unique_ptr<Mailbox>>;
 
 
 /**
