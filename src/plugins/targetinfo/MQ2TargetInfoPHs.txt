@@ -1372,3 +1372,57 @@ General Dotal^a Rallosian adjudicator^ls^pallomen^https://ls.eqresource.com/gene
 Queen Hotaria^a queensguard^ls^pallomen^https://ls.eqresource.com/queenhotaria.php
 Tonnar Blevak^a rallosian archivist^ls^pallomen^https://ls.eqresource.com/tonnarblevak.php
 Violet Violence^a Rallosian cabalist^ls^pallomen^https://ls.eqresource.com/violetviolence.php
+Alleza^an elder caiman^tob^hodstock^https://tob.eqresource.com/alleza.php
+Elewisa the Oathbound^a fallen champion^tob^hodstock^https://tob.eqresource.com/elewisatheoathbound.php
+Ephialtes^tribulation^tob^hodstock^https://tob.eqresource.com/ephialtes.php
+First Raider^a scalewrought raider^tob^hodstock^https://tob.eqresource.com/firstraider.php
+First Scout^a scalewrought assailant^tob^hodstock^https://tob.eqresource.com/firstscout.php
+First Soldier^a scalewrought soldier^tob^hodstock^https://tob.eqresource.com/firstsoldier.php
+First Stormer^a scalewrought stormer^tob^hodstock^https://tob.eqresrource.com/firststormer.php
+Muji^an elder badger^tob^hodstock^https://tob.eqresource.com/muji.php
+Queseris Trisleth^a bandit cutpurse^tob^hodstock^https://tob.eqresource.com/queseristrisleth.php
+Riptide^an elder shark^tob^hodstock^https://tob.eqresource.com/riptide.php
+Anguillifor^a tenacious moray^tob^toe^https://tob.eqresource.com/anguillifor.php
+Captain Luft the Oathbound^a shock trooper^tob^toe^https://tob.eqresource.com/captainluft.php
+Captain Riyu^a vicious trooper^tob^toe^https://tob.eqresource.com/captainriyu.php
+Chthamalus^a mature barnacle^tob^toe^https://tob.eqresource.com/chthamalus.php
+Copperworth^a respected servant^tob^toe^https://tob.eqresource.com/copperworth.php
+Diabollis^an abyssal terror^tob^toe^https://tob.eqresource.com/diabollis.php
+Eye of Mother^a reinforced scouter^tob^toe^https://tob.eqresrource.com/eyeofmother.php
+Mambatali^an elite guardian^tob^toe^https://tob.eqresource.com/mambatali.php
+Tatanami^an aetherial hydra^tob^toe^https://tob.eqresource.com/tatanami.php
+Unigami^a void conger^tob^toe^https://tob.eqresource.com/unigami.php
+scalewrought aerialist^a scalewrought skyguardian^tob^aureatecovert^https://tob.eqresource.com/scalewroughtaerialist.php
+scalewrought director^a scalewrought curator^tob^aureatecovert^https://tob.eqresource.com/scalewroughtdirector.php
+scalewrought driver^a scalewrought sentinel^tob^aureatecovert^https://tob.eqresource.com/scalewroughtdriver.php
+scalewrought manager^a scalewrought maker^tob^aureatecovert^https://tob.eqresource.com/scalewroughtmanager.php
+scalewrought marshal^a scalewrought skydefender^tob^aureatecovert^https://tob.eqresource.com/scalewroughtmarshal.php
+scalewrought quartermaster^a scalewrought craftsman^tob^aureatecovert^https://tob.eqresource.com/scalewroughtquartermaster.php
+scalewrought trainer^a scalewrought striker^tob^aureatecovert^https://tob.eqresource.com/scalewroughttrainer.php
+scalewrought watcher^a scalewrought inspector^tob^aureatecovert^https://tob.eqresource.com/scalewroughtwatcher.php
+Ma`Maie, the Nest Mother^a scalewrought guardian^tob^harbingerscradle^https://tob.eqresource.com/mamaiethenestmother.php
+scalewrought machinist^a scalewrought lookout^tob^harbingerscradle^https://tob.eqresource.com/scalewroughtmachinist.php
+scalewrought overseer^a scalewrought deliverer^tob^harbingerscradle^https://tob.eqresource.com/scalewroughtoverseer.php
+scalewrought rancher^a scalewrought caregiver^tob^harbingerscradle^https://tob.eqresource.com/scalewroughtrancher.php
+scalewrought servitor^a scalewrought farmhand^tob^harbingerscradle^https://tob.eqresource.com/scalewroughtservitor.php
+scalewrought trooper^a scalewrought sentry^tob^harbingerscradle^https://tob.eqresource.com/scalewroughttrooper.php
+scalewrought viceroy^a scalewrought supervisor^tob^harbingerscradle^https://tob.eqresource.com/scalewroughtviceroy.php
+Tha`k Rustae, the Butcher^a scalewrought harvester^tob^harbingerscradle^https://tob.eqresource.com/thakrustaethebutcher.php
+Kellis the Young^a scalewrought mender^tob^puissance^https://tob.eqresource.com/kellistheyoung.php
+scalewrought administrator^a scalewrought steward^tob^puissance^https://tob.eqresource.com/scalewroughtadministrator.php
+scalewrought archseer^a scalewrought gazer^tob^puissance^https://tob.eqresource.com/scalewroughtarchseer.php
+scalewrought foreman^a scalewrought repairer^tob^puissance^https://tob.eqresource.com/scalewroughtforeman.php
+scalewrought monitor^a scalewrought perceiver^tob^puissance^https://tob.eqresource.com/scalewroughtmonitor.php
+scalewrought operator^a scalewrought artificer^tob^puissance^https://tob.eqresource.com/scalewroughtoperator.php
+scalewrought skykeeper^a scalewrought skyterror^tob^puissance^https://tob.eqresource.com/scalewroughtskykeeper.php
+scalewrought skysearer^a scalewrought skysentry^tob^puissance^https://tob.eqresource.com/scalewroughtskysearer.php
+scalewrought vitalmancer^a scalewrought ehtermancer^tob^puissance^https://tob.eqresource.com/scalewroughtvitalmancer.php
+Mirala^Mirala^tob^gildedspire^https://tob.eqresource.com/mirala.php
+scalewrought breaker^A Scalewrought Striker^tob^gildedspire^https://tob.eqresource.com/scalewroughtbreaker.php
+scalewrought crusher^A Scalewrought Bruiser^tob^gildedspire^https://tob.eqresource.com/scalewroughtcrusher.php
+scalewrought nimbus^a scalewrought cloudguardian^tob^gildedspire^https://tob.eqresource.com/scalewroughtnimbus.php
+scalewrought overwatch^a scalewrought inspector^tob^gildedspire^https://tob.eqresource.com/scalewroughtoverwatch.php
+scalewrought skymarshal^a scalewrought skyguardian^tob^gildedspire^https://tob.eqresource.com/scalewroughtskymarshal.php
+scalewrought smasher^a scalewrought pounder^tob^gildedspire^https://tob.eqresource.com/scalewroughtsmasher.php
+scalewrought tool^a scalewrought maker^tob^gildedspire^https://tob.eqresource.com/scalewroughttool.php
+Zarek^Zarek^tob^gildedspire^https://tob.eqresource.com/zarek.php
