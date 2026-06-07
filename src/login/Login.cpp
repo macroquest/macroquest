@@ -1611,7 +1611,7 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 				FIRST_VALUE(level) OVER (PARTITION BY characters.id ORDER BY last_seen DESC) AS level,
 				account, server_type, profiles.sort_order,
 				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
-				end_after_select, char_select_delay, custom_client_ini, will_load
+				end_after_select, char_select_delay, custom_client_ini, will_load, additional_eqgame_args, sounds
 			FROM profiles
 			JOIN characters ON characters.id = character_id
 			JOIN accounts ON accounts.id = account_id
@@ -1659,6 +1659,11 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 
 			record.willLoad = sqlite3_column_int(stmt, 12) != 0;
 
+			if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
+				record.additionalEqgameArgs = ReadText(stmt, 13);
+
+			record.sounds = sqlite3_column_int(stmt, 14) != 0;
+
 			record.profileName = group;
 
 			return record;
@@ -1670,13 +1675,14 @@ std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
 {
 	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT hotkey, character, server, 
-				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path
+			SELECT hotkey, character, server,
+				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
+				additional_eqgame_args, sounds
 			FROM profiles
 			JOIN characters ON characters.id = character_id
 			JOIN profile_groups ON profile_groups.id = group_id
 			WHERE profile_groups.name = LOWER(?)
-			  AND will_load <> 0
+				AND will_load <> 0
 			ORDER BY profiles.sort_order ASC)",
 		[group](sqlite3_stmt* stmt, sqlite3*)
 		{
@@ -1695,6 +1701,11 @@ std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
 				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
 					profile.eqPath = ReadText(stmt, 3);
 
+				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
+					profile.additionalEqgameArgs = ReadText(stmt, 4);
+
+				profile.sounds = sqlite3_column_int(stmt, 5) != 0;
+
 				profile.profileName = group;
 
 				profiles.push_back(std::move(profile));
@@ -1708,9 +1719,9 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 {
 	WithDb::Query<void>(SQLITE_OPEN_READWRITE,
 		R"(
-			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, custom_client_ini, will_load)
-			VALUES((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, sort_order=excluded.sort_order, will_load=excluded.will_load)",
+			INSERT INTO profiles (character_id, group_id, eq_path, hotkey, end_after_select, char_select_delay, custom_client_ini, will_load, additional_eqgame_args, sounds)
+			VALUES((SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)), (SELECT id FROM profile_groups WHERE name = LOWER(?)), ?, ?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT(character_id, group_id) DO UPDATE SET eq_path=excluded.eq_path, hotkey=excluded.hotkey, sort_order=excluded.sort_order, will_load=excluded.will_load, additional_eqgame_args=excluded.additional_eqgame_args, sounds=excluded.sounds)",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			BindText(stmt, 1, profile.serverName);
@@ -1741,6 +1752,10 @@ void login::db::CreateProfile(const ProfileRecord& profile)
 
 			sqlite3_bind_int(stmt, 9, profile.willLoad ? 1 : 0);
 
+			BindText(stmt, 10, profile.additionalEqgameArgs);
+
+			sqlite3_bind_int(stmt, 11, profile.sounds ? 1 : 0);
+
 			sqlite3_step(stmt);
 		});
 }
@@ -1749,7 +1764,7 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 {
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, profiles.sort_order, end_after_select, char_select_delay, custom_client_ini, will_load
+			SELECT profiles.id, COALESCE(profiles.eq_path, profile_groups.eq_path), hotkey, profiles.sort_order, end_after_select, char_select_delay, custom_client_ini, will_load, additional_eqgame_args, sounds
 			FROM profiles
 			JOIN characters ON character_id = characters.id
 			JOIN profile_groups ON group_id = profile_groups.id
@@ -1784,6 +1799,11 @@ std::optional<unsigned int> login::db::ReadProfile(ProfileRecord& profile)
 
 				profile.willLoad = sqlite3_column_int(stmt, 7) != 0;
 
+				if (sqlite3_column_type(stmt, 8) != SQLITE_NULL)
+					profile.additionalEqgameArgs = ReadText(stmt, 8);
+
+				profile.sounds = sqlite3_column_int(stmt, 9) != 0;
+
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
@@ -1797,7 +1817,7 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 	// left join group here to allow for empty group (in the case where you want character/server, and it doesn't matter)
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT id, eq_path, hotkey, level, account, password, sort_order, server_type, end_after_select, char_select_delay, custom_client_ini, will_load
+			SELECT id, eq_path, hotkey, level, account, password, sort_order, server_type, end_after_select, char_select_delay, custom_client_ini, will_load, additional_eqgame_args, sounds
 			FROM profiles
 			JOIN (SELECT id AS character_id, account_id FROM characters WHERE server = LOWER(?) AND character = LOWER(?)) USING (character_id)
 			JOIN (SELECT id AS account_id, account, server_type FROM accounts) USING (account_id)
@@ -1844,6 +1864,11 @@ std::optional<unsigned int> login::db::ReadFullProfile(ProfileRecord& profile)
 
 				profile.willLoad = sqlite3_column_int(stmt, 11) != 0;
 
+				if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
+					profile.additionalEqgameArgs = ReadText(stmt, 12);
+
+				profile.sounds = sqlite3_column_int(stmt, 13) != 0;
+
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
@@ -1866,7 +1891,7 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 	// left join group here to allow for empty group (in the case where you want character/server, and it doesn't matter)
 	return WithDb::Query<std::optional<unsigned int>>(SQLITE_OPEN_READONLY,
 		R"(
-			SELECT p.id, COALESCE(p.eq_path, g.eq_path), hotkey, server_type, account, password, server, character, sort_order, end_after_select, char_select_delay, custom_client_ini
+			SELECT p.id, COALESCE(p.eq_path, g.eq_path), hotkey, server_type, account, password, server, character, sort_order, end_after_select, char_select_delay, custom_client_ini, additional_eqgame_args, sounds
 			FROM profiles p
 			JOIN (SELECT id AS character_id, character, server, account_id FROM characters) c USING (character_id)
 			JOIN (SELECT id AS account_id, account, password, server_type FROM accounts) a USING (account_id)
@@ -1910,6 +1935,11 @@ std::optional<unsigned> login::db::ReadFirstProfile(ProfileRecord& profile)
 				if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
 					profile.customClientIni = ReadText(stmt, 11);
 
+				if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
+					profile.additionalEqgameArgs = ReadText(stmt, 12);
+
+				profile.sounds = sqlite3_column_int(stmt, 13) != 0;
+
 				return static_cast<unsigned int>(sqlite3_column_int(stmt, 0));
 			}
 
@@ -1924,14 +1954,16 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 		R"(
 			UPDATE profiles
 			SET eq_path = ?,
-			    hotkey = ?,
-			    sort_order = ?,
-			    end_after_select = ?,
-			    char_select_delay = ?,
-			    custom_client_ini = ?,
-				will_load = ?
+				hotkey = ?,
+				sort_order = ?,
+				end_after_select = ?,
+				char_select_delay = ?,
+				custom_client_ini = ?,
+				will_load = ?,
+				additional_eqgame_args = ?,
+				sounds = ?
 			WHERE character_id IN (SELECT id FROM characters WHERE server = LOWER(?) AND character = LOWER(?))
-			  AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
+				AND group_id IN (SELECT id FROM profile_groups WHERE name = LOWER(?)))",
 		[&profile](sqlite3_stmt* stmt, sqlite3* db)
 		{
 			if (profile.eqPath)
@@ -1959,9 +1991,13 @@ void login::db::UpdateProfile(const ProfileRecord& profile)
 
 			sqlite3_bind_int(stmt, 7, profile.willLoad ? 1 : 0);
 
-			BindText(stmt, 8, profile.serverName);
-			BindText(stmt, 9, profile.characterName);
-			BindText(stmt, 10, profile.profileName);
+			BindText(stmt, 8, profile.additionalEqgameArgs);
+
+			sqlite3_bind_int(stmt, 9, profile.sounds ? 1 : 0);
+
+			BindText(stmt, 10, profile.serverName);
+			BindText(stmt, 11, profile.characterName);
+			BindText(stmt, 12, profile.profileName);
 
 			sqlite3_step(stmt);
 		});
@@ -2061,7 +2097,7 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 					SELECT DISTINCT a.account, a.password, c.server, c.character, p.hotkey, p.sort_order, p.eq_path,
 					    FIRST_VALUE(l.class) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS class,
 					    FIRST_VALUE(l.level) OVER (PARTITION BY c.id ORDER BY l.last_seen DESC) AS level,
-					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini, p.will_load
+					    a.server_type, p.end_after_select, p.char_select_delay, p.custom_client_ini, p.will_load, p.additional_eqgame_args, p.sounds
 					FROM profiles p
 					JOIN characters c ON p.character_id = c.id
 					JOIN accounts a ON c.account_id = a.id
@@ -2114,6 +2150,11 @@ std::vector<ProfileGroup> login::db::GetProfileGroups()
 						record.customClientIni = ReadText(stmt, 12);
 
 					record.willLoad = sqlite3_column_int(stmt, 13) != 0;
+
+					if (sqlite3_column_type(stmt, 14) != SQLITE_NULL)
+						record.additionalEqgameArgs = ReadText(stmt, 14);
+
+					record.sounds = sqlite3_column_int(stmt, 15) != 0;
 
 					group.records.push_back(std::move(record));
 				}
@@ -2532,6 +2573,15 @@ static bool MigrateVersion7Schema()
 	)");
 }
 
+// add eqgame args and sounds columns to profiles
+static bool MigrateVersion8Schema()
+{
+	return MigrateTableSchema(R"(
+		ALTER TABLE profiles ADD additional_eqgame_args text;
+		ALTER TABLE profiles ADD sounds integer not null default 1;
+	)");
+}
+
 // sqlite init concurrency should be solved by sqlite, if two processes try to create the db at the same time, one will lock
 bool login::db::InitDatabase(const std::string& path)
 {
@@ -2605,6 +2655,9 @@ bool login::db::InitDatabase(const std::string& path)
 		[[fallthrough]];
 	case 7:
 		migrations.push_back(&MigrateVersion7Schema);
+		[[fallthrough]];
+	case 8:
+		migrations.push_back(&MigrateVersion8Schema);
 		[[fallthrough]];
 	default:
 		break;
