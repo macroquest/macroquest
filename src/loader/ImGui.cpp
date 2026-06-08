@@ -172,13 +172,13 @@ bool ToggleSlider(const char* label, bool* v)
 
 	const ImU32 bg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]);
 
-	ImU32 fg_color;
-	if (ImGui::IsItemClicked())
-		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_ButtonActive]);
+	ImVec4 fg = ImLerp(style.Colors[ImGuiCol_Button], style.Colors[ImGuiCol_CheckMark], t);
+	if (ImGui::IsItemActive())
+		fg = ImLerp(fg, style.Colors[ImGuiCol_ButtonActive], 0.30f);
 	else if (ImGui::IsItemHovered())
-		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_ButtonHovered]);
-	else
-		fg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_Button]);
+		fg = ImLerp(fg, style.Colors[ImGuiCol_ButtonActive], 0.15f);
+
+	const ImU32 fg_color = ImGui::GetColorU32(fg);
 
 	window->DrawList->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + height), bg_color, height * 0.5f);
 	window->DrawList->AddCircleFilled(ImVec2(pos.x + radius + t * (width - radius * 2.f), pos.y + radius), radius - 1.5f, fg_color);

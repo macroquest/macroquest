@@ -1014,6 +1014,9 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 			profileInfo.eqPath = std::nullopt;
 		}
 
+		LauncherImGui::ToggleSlider("Sounds", &profileInfo.sounds);
+		ImGui::SetItemTooltip("When set to off, sounds will not be played on this client. Default: On");
+
 		DefaultOptional<int>(profileInfo.charSelectDelay, "Override Character Select Delay",
 			[]()
 			{
@@ -1067,6 +1070,9 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 
 		ImGui::SameLine();
 		ImGui::Text("%s", profileInfo.customClientIni ? profileInfo.customClientIni->c_str() : "<Default>");
+
+		ImGui::InputText("Additional eqgame arguments", &profileInfo.additionalEqgameArgs);
+		ImGui::SetItemTooltip("Extra command line arguments passed to eqgame.exe when this profile is launched. Default empty.");
 
 		DefaultModalButtons(ok_action);
 

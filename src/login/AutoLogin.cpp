@@ -424,6 +424,12 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 			{
 				std::string parameters = fmt::format(R"("{}" patchme "/login:{}")", eqgame.string(), arg);
 
+				if (!profile.sounds)
+					parameters += " nosound";
+
+				if (!profile.additionalEqgameArgs.empty())
+					parameters += fmt::format(" {}", profile.additionalEqgameArgs);
+
 				if (DWORD dwProcessID = LaunchProcess(parameters, eqPath))
 				{
 					auto [it, _] = s_loadedInstances.emplace(
