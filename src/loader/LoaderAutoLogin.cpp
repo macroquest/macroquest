@@ -24,6 +24,8 @@
 #include "mq/base/Config.h"
 #include "mq/base/String.h"
 
+#include "eqlib/game/ClassInfo.h"
+
 #include "fmt/format.h"
 #include "fmt/os.h"
 #include "spdlog/spdlog.h"
@@ -49,38 +51,11 @@ namespace internal_paths
 	std::string s_autoLoginIni;
 }
 
-// need a map of shortname to name (TODO: Use long names in the display)
-// order matters here in the logic, so we need to make sure these are in the same order as MQ2
-struct SClassInfo
-{
-	const char* Name;
-	const char* UCShortName;
-};
-
-static SClassInfo s_classInfo[] =
-{
-	{ "",             ""    },
-	{ "Warrior",      "WAR" },
-	{ "Cleric",       "CLR" },
-	{ "Paladin",      "PAL" },
-	{ "Ranger",       "RNG" },
-	{ "Shadowknight", "SHD" },
-	{ "Druid",        "DRU" },
-	{ "Monk",         "MNK" },
-	{ "Bard",         "BRD" },
-	{ "Rogue",        "ROG" },
-	{ "Shaman",       "SHM" },
-	{ "Necromancer",  "NEC" },
-	{ "Wizard",       "WIZ" },
-	{ "Mage",         "MAG" },
-	{ "Enchanter",    "ENC" },
-	{ "Beastlord",    "BST" },
-	{ "Berserker",    "BER" },
-};
-
 const char* GetClassShortName(const DWORD player_class)
 {
-	return s_classInfo[player_class].UCShortName;
+	if (player_class >= std::size(eqlib::ClassInfo))
+		return eqlib::ClassInfo[0].UCShortName;
+	return eqlib::ClassInfo[player_class].UCShortName;
 }
 
 void Post(uint32_t pid, const proto::login::MessageId& messageId, const std::string& data)

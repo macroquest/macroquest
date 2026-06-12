@@ -3699,11 +3699,25 @@ int GetPlayerClass(std::string_view name)
 	auto player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
 		[name](const SClassInfo& info)
 		{
-			return ci_equals(info.ShortName, name) || ci_equals(info.Name, name);
+			return ci_equals(info.ShortName, name) || ci_equals(info.LongName, name);
 		});
 
 	if (player_class != std::cend(ClassInfo))
 		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
+
+	// Fall back to the deprecated legacy name, announcing its deprecation.
+	player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
+		[name](const SClassInfo& info)
+		{
+#pragma warning(suppress : 4996) // ClassInfo.Name is deprecated, but we're announcing its deprecation here
+			return ci_equals(info.Name, name);
+		});
+
+	if (player_class != std::cend(ClassInfo))
+	{
+		WriteChatf("\ayWARNING: SpellFilter: Matching a class by \"%.*s\" is deprecated; use \"%s\" instead.\ax", static_cast<int>(name.size()), name.data(), player_class->LongName);
+		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
+	}
 
 	return 0;
 }
