@@ -12,18 +12,12 @@
  * GNU General Public License for more details.
  */
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
+#include "mq/base/String.h"
 
 #include <Windows.h>
 
-#include "mq/base/String.h"
-
-namespace
-{
 // The resolved custom ini path parsed from the command line. Empty means inactive.
-std::string s_customIni = {};
+static std::string s_customIni = {};
 
 /**
  * @fn IsEqClientIni
@@ -33,7 +27,7 @@ std::string s_customIni = {};
  * @param fileName the file name to test
  * @return true if fileName refers to eqclient.ini, false otherwise
  */
-bool IsEqClientIni(const char* fileName)
+static bool IsEqClientIni(const char* fileName)
 {
 	return fileName != nullptr && mq::ci_find_substr(fileName, "eqclient.ini") != -1;
 }
@@ -47,12 +41,12 @@ using GetPrivateProfileIntA_t = UINT(WINAPI*)(LPCSTR, LPCSTR, INT, LPCSTR);
 using WritePrivateProfileStringA_t = BOOL(WINAPI*)(LPCSTR, LPCSTR, LPCSTR, LPCSTR);
 using CreateFileA_t = HANDLE(WINAPI*)(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
 
-GetPrivateProfileStringA_t s_origGetString = &::GetPrivateProfileStringA;
-GetPrivateProfileIntA_t s_origGetInt = &::GetPrivateProfileIntA;
-WritePrivateProfileStringA_t s_origWriteString = &::WritePrivateProfileStringA;
-CreateFileA_t s_origCreateFileA = &::CreateFileA;
+static GetPrivateProfileStringA_t s_origGetString = &::GetPrivateProfileStringA;
+static GetPrivateProfileIntA_t s_origGetInt = &::GetPrivateProfileIntA;
+static WritePrivateProfileStringA_t s_origWriteString = &::WritePrivateProfileStringA;
+static CreateFileA_t s_origCreateFileA = &::CreateFileA;
 
-DWORD WINAPI Hook_GetPrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName)
+static DWORD WINAPI Hook_GetPrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName)
 {
 	if (!s_customIni.empty() && IsEqClientIni(lpFileName))
 		lpFileName = s_customIni.c_str();
@@ -60,7 +54,7 @@ DWORD WINAPI Hook_GetPrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, L
 	return s_origGetString(lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, lpFileName);
 }
 
-UINT WINAPI Hook_GetPrivateProfileIntA(LPCSTR lpAppName, LPCSTR lpKeyName, INT nDefault, LPCSTR lpFileName)
+static UINT WINAPI Hook_GetPrivateProfileIntA(LPCSTR lpAppName, LPCSTR lpKeyName, INT nDefault, LPCSTR lpFileName)
 {
 	if (!s_customIni.empty() && IsEqClientIni(lpFileName))
 		lpFileName = s_customIni.c_str();
@@ -68,7 +62,7 @@ UINT WINAPI Hook_GetPrivateProfileIntA(LPCSTR lpAppName, LPCSTR lpKeyName, INT n
 	return s_origGetInt(lpAppName, lpKeyName, nDefault, lpFileName);
 }
 
-BOOL WINAPI Hook_WritePrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpString, LPCSTR lpFileName)
+static BOOL WINAPI Hook_WritePrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpString, LPCSTR lpFileName)
 {
 	if (!s_customIni.empty() && IsEqClientIni(lpFileName))
 		lpFileName = s_customIni.c_str();
@@ -76,7 +70,7 @@ BOOL WINAPI Hook_WritePrivateProfileStringA(LPCSTR lpAppName, LPCSTR lpKeyName, 
 	return s_origWriteString(lpAppName, lpKeyName, lpString, lpFileName);
 }
 
-HANDLE WINAPI Hook_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+static HANDLE WINAPI Hook_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
 	if (!s_customIni.empty() && IsEqClientIni(lpFileName))
 		lpFileName = s_customIni.c_str();
@@ -98,7 +92,7 @@ HANDLE WINAPI Hook_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD d
  *
  * @return the custom ini path, or an empty string if the token is not present
  */
-std::string ParseCustomIniArg()
+static std::string ParseCustomIniArg()
 {
 	const char* cmdLine = ::GetCommandLineA();
 	if (cmdLine != nullptr)
@@ -145,7 +139,7 @@ std::string ParseCustomIniArg()
  *
  * @param hModule base address (HMODULE) of the loaded module to patch
  */
-void PatchImportsForModule(HMODULE hModule)
+static void PatchImportsForModule(HMODULE hModule)
 {
 	auto base = reinterpret_cast<BYTE*>(hModule);
 
@@ -221,8 +215,6 @@ void PatchImportsForModule(HMODULE hModule)
 		}
 	}
 }
-
-} // namespace
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*reserved*/)
 {
