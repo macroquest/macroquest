@@ -210,8 +210,12 @@ static void DefaultCombo(Info& info, const Action& select_action)
 		- ImGui::CalcTextSize(ICON_MD_ADD_BOX).x
 		- ImGui::CalcTextSize(ICON_MD_EDIT).x
 		- ImGui::GetStyle().FramePadding.x * 4;
+
+	// Anchor the dropdown popup to the combo box's bottom-left. (https://github.com/ocornut/imgui/issues/6207)
+	const ImVec2 comboPos = ImGui::GetCursorScreenPos();
+	ImGui::SetNextWindowPos(ImVec2(comboPos.x, comboPos.y + ImGui::GetFrameHeight()));
 	ImGui::SetNextItemWidth(width);
-	if (ImGui::BeginCombo(JoinLabels<hidden_prefix, Info::label>::literal, info.Preview().c_str(), ImGuiComboFlags_NoArrowButton))
+	if (ImGui::BeginCombo(JoinLabels<hidden_prefix, Info::label>::literal, info.Preview().c_str()))
 	{
 		info.List(select_action);
 

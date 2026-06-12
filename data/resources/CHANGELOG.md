@@ -1,3 +1,13 @@
+## 6/12/2026
+
+### Bug Fixes
+
+- Fix an issue where clicking on the right side of dropdown boxes in the loader would not open the dropdown.
+
+### Other Changes
+
+- Made modal dropdown boxes more clearly dropdown boxes in the loader
+
 ## 6/11/2026
 
 ### Features
