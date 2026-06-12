@@ -42,7 +42,7 @@ static mq::postoffice::Dropbox s_dropbox;
 static std::queue<std::pair<ProfileRecord, bool>> s_pendingLogins;
 static auto s_lastLoginTime = std::chrono::steady_clock::now();
 
-DWORD LaunchProcess(const std::string& process, const std::string& workingDir);
+DWORD LaunchProcess(const std::string& process, const std::string& workingDir, const std::string& earlyInjectDll = "");
 
 namespace internal_paths
 {

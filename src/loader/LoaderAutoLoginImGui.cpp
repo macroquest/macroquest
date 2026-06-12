@@ -370,7 +370,8 @@ static void SetEQFileModal(const char* label, std::optional<std::string>& path, 
 				{
 					const std::shared_ptr<char> selected_path(IGFD_GetCurrentPath(s_eqDirDialog), IGFD_DestroyString);
 					const std::shared_ptr<char> selected_file(IGFD_GetCurrentFileName(s_eqDirDialog, IGFD_ResultMode_KeepInputFile), IGFD_DestroyString);
-					if (std::error_code ec; selected_path && selected_file && exists(fs::path(selected_path.get()) / fs::path(selected_file.get()), ec))
+					// It's okay for the file to not exist, we'll create it.
+					if (std::error_code ec; selected_path && selected_file && selected_file.get()[0] != '\0' && fs::is_directory(fs::path(selected_path.get()), ec))
 					{
 						path = relative(fs::path(selected_path.get()) / fs::path(selected_file.get()), GetEQRoot(), ec).string();
 					}
@@ -1071,10 +1072,42 @@ void EditBehavior(ProfileInfo& profileInfo, const char* name, const Action& ok_a
 		ImGui::SameLine();
 		ImGui::Text("%s", profileInfo.customClientIni ? profileInfo.customClientIni->c_str() : "<Default>");
 
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##customini"))
+		{
+			profileInfo.customClientIni = std::nullopt;
+			custom_ini = std::nullopt;
+		}
+
 		ImGui::InputText("Additional eqgame arguments", &profileInfo.additionalEqgameArgs);
 		ImGui::SetItemTooltip("Extra command line arguments passed to eqgame.exe when this profile is launched. Default empty.");
 
-		DefaultModalButtons(ok_action);
+		DefaultModalButtons(
+			[&profileInfo, &ok_action]
+			{
+				// Seed the custom ini from the default ini so it's not just empty until write
+				if (profileInfo.customClientIni && !profileInfo.customClientIni->empty())
+				{
+					const fs::path target = fs::path(GetEQRoot()) / *profileInfo.customClientIni;
+					if (std::error_code ec; !fs::exists(target, ec))
+					{
+						const fs::path source = fs::path(GetEQRoot()) / "eqclient.ini";
+						if (fs::exists(source, ec))
+						{
+							if (fs::create_directories(target.parent_path(), ec); fs::copy_file(source, target, ec))
+								SPDLOG_INFO("Created custom character ini {} from {}", target.string(), source.string());
+							else
+								SPDLOG_ERROR("Failed to create custom character ini {}: {}", target.string(), ec.message());
+						}
+						else
+						{
+							SPDLOG_WARN("Cannot seed custom character ini {}, source {} does not exist", target.string(), source.string());
+						}
+					}
+				}
+
+				ok_action();
+			});
 
 		LauncherImGui::EndModal();
 	}
