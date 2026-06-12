@@ -1,3 +1,25 @@
+## 6/11/2026
+
+### Features
+
+- Full ini redirection is now supported for all game settings (eqclient.ini) when launching from a profile. Launch from a single directory, without sharing the settings! Setting the custom ini to an ini that doesn't exist will copy the default ini to that location. (#42)
+- You can now disable sound from within the profile as well, having some eqgame clients launch with sound and others launching without (#925)
+- You can also add any other custom parameters to the game launch, all within settings
+- Added a "clear" button for setting the custom client ini back to default
+
+### Other Changes
+
+- Updated the MacroQuest toggle buttons to be more clear about what is toggled on and off
+- Magician and "Shadow Knight" are now consistent across spawn searches. Using "Mage" or "shadowknight" will still work, but it will tell you that you're using the wrong one (#155 & #156)
+- mq.TLO.Me.BuffDuration[SomeBuff] will now report the same as mq.TLO.Me.Buff[SomeBuff].Duration instead of using CachedBuffs
+
+### Bug Fixes
+
+- /foreground should be more reliable now and account for different situations where Windows does not want you to foreground. If there are remaining cases, please report them on the issues page and reach out to Knightly (who very much loves working on /foreground) to troubleshoot
+- WillStackWith (StacksWith et al) now properly reports whether a buff stacks or not when your own buff bar is full (#793)
+- Post Office mailboxes (Actors) are no longer case sensitive. Fixes an issue where mailboxes could be different depending on how a plugin was loaded or across systems and messages would not be properly delivered. (#963)
+- A variable that expands into itself will no longer infinitely recurse and crash the client (but you still shouldn't do this) - Fixes echoing ${EverQuest.LastCommand} crashing the client (#45)
+
 ## 5/18/2026
 
 ### Bug fixes
