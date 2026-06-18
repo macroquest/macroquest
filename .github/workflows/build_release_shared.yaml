@@ -268,16 +268,13 @@ jobs:
 
       - name: Restore vcpkg Cache
         if: steps.check_vcpkg.outputs.vcpkg_installed != 'true'
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: |
-            contrib/vcpkg/buildtrees
-            contrib/vcpkg/downloads
             contrib/vcpkg/installed
-            contrib/vcpkg/packages
             contrib/vcpkg/vcpkg.exe
             contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
-          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ github.run_id }}
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-
           restore-keys: |
             ${{ runner.os }}-vcpkg-${{ env.platform }}-
             ${{ runner.os }}-vcpkg-
@@ -287,6 +284,15 @@ jobs:
 
       - name: Build ${{ env.platform }} Release for ${{ inputs.client_target }}
         run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m /p:PreferredToolArchitecture=x64
+
+      - name: Save vcpkg Cache
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            contrib/vcpkg/installed
+            contrib/vcpkg/vcpkg.exe
+            contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ hashFiles('contrib/vcpkg/installed/vcpkg/status') }}
 
       - name: Create Symbols Archive
         run: 7z a -tzip -r build/bin/MacroQuest-Symbols.zip build/bin/Release/*.exe build/bin/Release/*.dll build/bin/Release/*.pdb

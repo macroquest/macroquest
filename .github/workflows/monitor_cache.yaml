@@ -1,0 +1,40 @@
+name: Monitor Actions Cache
+
+on:
+  schedule:
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+env:
+  CACHE_LIMIT_GIB: 10
+  CACHE_WARN_PERCENT: 70
+
+jobs:
+  check_cache:
+    if: github.repository == 'macroquest/macroquest'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warn if Actions cache is filling up
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.MQGITBOT_AUTH }}
+        run: |
+          $limitBytes = [int64]$env:CACHE_LIMIT_GIB * 1GB
+          $warnPct = [double]$env:CACHE_WARN_PERCENT
+          $usage = gh api "repos/${{ github.repository }}/actions/cache/usage" | ConvertFrom-Json
+          $usedBytes = [int64]$usage.active_caches_size_in_bytes
+          $count = $usage.active_caches_count
+          $pct = [math]::Round(($usedBytes / $limitBytes) * 100, 1)
+          $usedGiB = [math]::Round($usedBytes / 1GB, 2)
+          Write-Host "Actions cache: $usedGiB GiB across $count entries ($pct% of $($env:CACHE_LIMIT_GIB) GiB)"
+          if ($pct -ge $warnPct) {
+            [System.Collections.ArrayList]$embedArray = @()
+            $embedObject = [PSCustomObject]@{
+                color = "16705372"
+                title = "Actions cache nearing limit (${{ github.repository }})"
+                description = "Cache usage is **$usedGiB GiB** ($pct%) across $count entries; limit is $($env:CACHE_LIMIT_GIB) GiB. Older caches will start evicting."
+            }
+            $embedArray.Add($embedObject) | Out-Null
+            $discordPayload = [PSCustomObject]@{ embeds = $embedArray } | ConvertTo-Json -Depth 4
+            Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
+          }
