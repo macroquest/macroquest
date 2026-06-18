@@ -1,3 +1,9 @@
+## 6/17/2026
+
+## Bug Fixes
+
+- Fix issue where /removeaug would not use Perfected Augmentation Distiller (#1007)
+
 ## 6/12/2026
 
 ### Bug Fixes
