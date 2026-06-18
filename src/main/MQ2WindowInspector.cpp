@@ -4180,7 +4180,7 @@ static void WindowProperties_SpellDisplayWindow(CSidlScreenWnd* pSidlWindow, ImG
 	ColumnText("Display Type", "%d", pWindow->SpellDisplayType);
 	ColumnElapsedTimestamp("Last Update Time", pWindow->LastUpdateTime - EQGetTime());
 #if IS_LIVE_CLIENT
-	ColumnText("Unknown", "%d", pWindow->Unknown);
+	ColumnText("CastAsLevel", "%d", pWindow->CastAsLevel);
 #endif
 }
 
