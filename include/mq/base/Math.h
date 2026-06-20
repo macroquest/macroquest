@@ -14,6 +14,11 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+
+#include "eqlib/game/PlayerClient.h"
+#include "mq/base/Deprecation.h"
+
 namespace mq {
 
 /**
@@ -94,7 +99,7 @@ inline float Get3DDistance(float X1, float Y1, float Z1, float X2, float Y2, flo
  * @param spawn2 The second spawn.
  * @return float The 2D Euclidean distance between the positions of the two spawns.
  */
-inline float GetDistance2D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
+inline float GetDistance2D(const PlayerClient* spawn1, const PlayerClient* spawn2)
 {
 	if (!spawn1 || !spawn2)
 		return 0.0f;
@@ -112,7 +117,7 @@ inline float GetDistance2D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
  * @param spawn2 The second spawn.
  * @return float The 3D Euclidean distance between the positions of the two spawns.
  */
-inline float GetDistance3D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
+inline float GetDistance3D(const PlayerClient* spawn1, const PlayerClient* spawn2)
 {
 	if (!spawn1 || !spawn2)
 		return 0.0f;
@@ -130,7 +135,7 @@ inline float GetDistance3D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
  * @param gameObj The game object.
  * @return float The 2D Euclidean distance between the positions of the spawn and game object.
  */
-inline float GetDistance2D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
+inline float GetDistance2D(const PlayerClient* spawn, const MQGameObject& gameObj)
 {
 	if (!spawn)
 		return 0.0f;
@@ -148,7 +153,7 @@ inline float GetDistance2D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
  * @param gameObj The game object.
  * @return float The 3D Euclidean distance between the positions of the spawn and game object.
  */
-inline float GetDistance3D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
+inline float GetDistance3D(const PlayerClient* spawn, const MQGameObject& gameObj)
 {
 	if (!spawn)
 		return 0.0f;
@@ -157,13 +162,13 @@ inline float GetDistance3D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
 }
 
 DEPRECATE("Use GetDistance2D instead.")
-inline float GetDistance(SPAWNINFO* spawn1, SPAWNINFO* spawn2)
+inline float GetDistance(PlayerClient* spawn1, PlayerClient* spawn2)
 {
 	return GetDistance2D(spawn1, spawn2);
 }
 
 DEPRECATE("Use GetDistance2D instead.")
-inline float DistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline float DistanceToSpawn(PlayerClient* pChar, PlayerClient* pSpawn)
 {
 	return GetDistance2D(pChar, pSpawn);
 }
@@ -293,7 +298,7 @@ inline float GetDistanceSquared(const glm::vec3& first, const glm::vec3& second)
  * @param spawn2 The second spawn.
  * @return float The squared Euclidean distance between the two points.
  */
-inline float GetDistanceSquared2D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
+inline float GetDistanceSquared2D(const PlayerClient* spawn1, const PlayerClient* spawn2)
 {
 	if (!spawn1 || !spawn2)
 		return 0.0f;
@@ -311,7 +316,7 @@ inline float GetDistanceSquared2D(const SPAWNINFO* spawn1, const SPAWNINFO* spaw
  * @param spawn2 The second spawn.
  * @return float The squared Euclidean distance between the two points.
  */
-inline float GetDistanceSquared3D(const SPAWNINFO* spawn1, const SPAWNINFO* spawn2)
+inline float GetDistanceSquared3D(const PlayerClient* spawn1, const PlayerClient* spawn2)
 {
 	if (!spawn1 || !spawn2)
 		return 0.0f;
@@ -329,7 +334,7 @@ inline float GetDistanceSquared3D(const SPAWNINFO* spawn1, const SPAWNINFO* spaw
  * @param gameObj The game object.
  * @return float The squared Euclidean distance between the two points.
  */
-inline float GetDistanceSquared2D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
+inline float GetDistanceSquared2D(const PlayerClient* spawn, const MQGameObject& gameObj)
 {
 	if (!spawn)
 		return 0.0f;
@@ -347,7 +352,7 @@ inline float GetDistanceSquared2D(const SPAWNINFO* spawn, const MQGameObject& ga
  * @param gameObj The game object.
  * @return float The squared Euclidean distance between the two points.
  */
-inline float GetDistanceSquared3D(const SPAWNINFO* spawn, const MQGameObject& gameObj)
+inline float GetDistanceSquared3D(const PlayerClient* spawn, const MQGameObject& gameObj)
 {
 	if (!spawn)
 		return 0.0f;
@@ -356,7 +361,7 @@ inline float GetDistanceSquared3D(const SPAWNINFO* spawn, const MQGameObject& ga
 }
 
 DEPRECATE("Use GetDistanceSquared2D instead")
-inline float GetDistanceSquared(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
+inline float GetDistanceSquared(PlayerClient* pChar, PlayerClient* pSpawn)
 {
 	return GetDistanceSquared2D(pChar, pSpawn);
 }
