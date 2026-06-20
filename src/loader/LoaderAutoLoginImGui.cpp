@@ -131,6 +131,23 @@ struct HasLabelOverride : std::false_type {};
 template <typename T>
 struct HasLabelOverride<T, decltype((void)T::label_override, std::string_view())> : std::true_type {};
 
+/**
+ * @brief Builds a per-call-site-unique ImGui window name from a base name
+ *
+ * ImGui uses a window's name as its identity, so two windows
+ * that share a name merge into one and render their bodies
+ * twice. This function allows us to use the same window name
+ * dynamically without that collision.
+ *
+ * @param base The human-readable window name/visible title
+ *
+ * @return A unique window name of the form "<base>##<id>"
+ */
+static std::string GetUniqueWindowName(const char* base)
+{
+	return fmt::format("{}##{}", base, ImGui::GetID(base));
+}
+
 template <typename Info>
 static void DefaultListBox(Info& info)
 {
@@ -149,12 +166,13 @@ static void DefaultListBox(Info& info)
 
 	static constexpr std::string_view add_prefix = "Add ";
 	static constexpr const char* add_name = JoinLabels<add_prefix, Info::label>::literal;
+	const std::string add_modal = GetUniqueWindowName(add_name);
 	if (ImGui::Button(add_name))
 	{
 		selected = {};
-		LauncherImGui::OpenModal(add_name);
+		LauncherImGui::OpenModal(add_modal);
 	}
-	EditBehavior(selected, add_name, [&info]
+	EditBehavior(selected, add_modal.c_str(), [&info]
 		{
 			selected.Update({});
 			info = selected;
@@ -162,6 +180,7 @@ static void DefaultListBox(Info& info)
 
 	static constexpr std::string_view edit_prefix = "Edit ";
 	static constexpr const char* edit_name = JoinLabels<edit_prefix, Info::label>::literal;
+	const std::string edit_modal = GetUniqueWindowName(edit_name);
 	ImGui::SameLine();
 	if (ImGui::Button(edit_name))
 	{
@@ -170,10 +189,10 @@ static void DefaultListBox(Info& info)
 			selected = info;
 			selected.Fill();
 
-			LauncherImGui::OpenModal(edit_name);
+			LauncherImGui::OpenModal(edit_modal);
 		}
 	}
-	EditBehavior(selected, edit_name, [&info]
+	EditBehavior(selected, edit_modal.c_str(), [&info]
 		{
 			selected.Update(info);
 			info = selected;
@@ -181,6 +200,7 @@ static void DefaultListBox(Info& info)
 
 	static constexpr std::string_view remove_prefix = "Remove ";
 	static constexpr const char* remove_name = JoinLabels<remove_prefix, Info::label>::literal;
+	const std::string remove_modal = GetUniqueWindowName(remove_name);
 	static std::string remove_message;
 	ImGui::SameLine();
 	if (ImGui::Button(remove_name) || ImGui::IsKeyPressed(ImGuiKey_Delete))
@@ -188,11 +208,11 @@ static void DefaultListBox(Info& info)
 		if (info.Valid())
 		{
 			remove_message = fmt::format("Are you sure you want to remove {} '{}'?\n\nAll dependent data will also be removed.", Info::label, info.Preview());
-			LauncherImGui::OpenModal(remove_name);
+			LauncherImGui::OpenModal(remove_modal);
 		}
 	}
 
-	DeleteModal(remove_name, remove_message, [&info]
+	DeleteModal(remove_modal, remove_message, [&info]
 		{
 			info.Delete();
 			info = {};
@@ -225,6 +245,7 @@ static void DefaultCombo(Info& info, const Action& select_action)
 	ImGui::SameLine(0.f, 0.f);
 	static constexpr std::string_view edit_prefix = "Edit ";
 	static constexpr const char* edit_name = JoinLabels<edit_prefix, Info::label>::literal;
+	const std::string edit_modal = GetUniqueWindowName(edit_name);
 	if (ImGui::Button(ICON_MD_EDIT))
 	{
 		if (info.Valid())
@@ -232,11 +253,11 @@ static void DefaultCombo(Info& info, const Action& select_action)
 			selected = info;
 			selected.Fill();
 
-			LauncherImGui::OpenModal(edit_name);
+			LauncherImGui::OpenModal(edit_modal);
 		}
 	}
 	ImGui::SetItemTooltip("Edit selected entry");
-	EditBehavior(selected, edit_name, [&info]
+	EditBehavior(selected, edit_modal.c_str(), [&info]
 		{
 			selected.Update(info);
 			info = selected;
@@ -245,13 +266,14 @@ static void DefaultCombo(Info& info, const Action& select_action)
 	ImGui::SameLine(0.f, 0.f);
 	static constexpr std::string_view add_prefix = "Add ";
 	static constexpr const char* add_name = JoinLabels<add_prefix, Info::label>::literal;
+	const std::string add_modal = GetUniqueWindowName(add_name);
 	if (ImGui::Button(ICON_MD_ADD_BOX))
 	{
 		selected = {};
-		LauncherImGui::OpenModal(add_name);
+		LauncherImGui::OpenModal(add_modal);
 	}
 	ImGui::SetItemTooltip("Create new entry");
-	EditBehavior(selected, add_name, [&info]
+	EditBehavior(selected, add_modal.c_str(), [&info]
 		{
 			selected.Update({});
 			info = selected;
