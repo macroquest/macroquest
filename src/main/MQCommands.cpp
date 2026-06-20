@@ -467,7 +467,7 @@ void Items(PlayerClient* pChar, const char* szLine)
 
 			if (szLine[0] == 0 || ci_find_substr(name, szLine) != -1)
 			{
-				float Distance = Get3DDistance(
+				float Distance = GetDistance(
 					pChar->X, pChar->Y, pChar->Z,
 					pItem->X, pItem->Y, pItem->Z);
 				int Angle = static_cast<int>((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
@@ -496,7 +496,7 @@ void Items(PlayerClient* pChar, const char* szLine)
 
 		if (szLine[0] == 0 || ci_find_substr(pItem->GetName(), szLine) != -1)
 		{
-			float Distance = Get3DDistance(
+			float Distance = GetDistance(
 				pChar->X, pChar->Y, pChar->Z,
 				pObj->X, pObj->Y, pObj->Z);
 
@@ -596,7 +596,7 @@ void Doors(PlayerClient* pChar, const char* szLine)
 
 		if (szLine[0] == 0 || ci_find_substr(pDoor->Name, szLine) != -1)
 		{
-			float distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, pDoor->X, pDoor->Y, pDoor->Z);
+			float distance = GetDistance(pChar->X, pChar->Y, pChar->Z, pDoor->X, pDoor->Y, pDoor->Z);
 			int angle = static_cast<int>((atan2f(pChar->X - pDoor->X, pChar->Y - pDoor->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
 
 			doorsMap.emplace(distance, doorinfo{ pDoor->Name, angle, pDoor->ID });
@@ -2232,7 +2232,7 @@ static void FaceObject(const MQGameObject& faceTarget, int flags)
 
 	if (flags & FaceFlags_Predict)
 	{
-		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
+		float distance = GetDistance3D(pControlledPlayer, faceTarget);
 
 		angle = atan2(
 			(faceTarget.x + (faceTarget.velocityX * distance)) - pControlledPlayer->X,
@@ -2249,7 +2249,7 @@ static void FaceObject(const MQGameObject& faceTarget, int flags)
 
 	if (!(flags & FaceFlags_NoLook))
 	{
-		float distance = Distance3DToSpawn(pControlledPlayer, faceTarget);
+		float distance = GetDistance3D(pControlledPlayer, faceTarget);
 		float charHeight = pControlledPlayer->AvatarHeight * StateHeightMultiplier(pControlledPlayer->StandState);
 		float targetHeight = faceTarget.height;
 		float rise = (faceTarget.z + faceTarget.height) - (pControlledPlayer->Z + charHeight);
@@ -2604,7 +2604,7 @@ void Where(PlayerClient* pChar, const char* szLine)
 			pSpawnClosest->Level,
 			pSpawnClosest->GetRaceString(),
 			GetClassDesc(pSpawnClosest->GetClass()),
-			Distance3DToSpawn(pChar, pSpawnClosest),
+			GetDistance3D(pChar, pSpawnClosest),
 			szHeading[Angle],
 			pSpawnClosest->Z - pChar->Z);
 	}
@@ -2828,7 +2828,7 @@ static void CastSplash(int Index, SPELL* pSpell, const CVector3* pos)
 		// check if splash can be cast in the location
 		if (pLocalPlayer->CanSee(vec3))
 		{
-			float dist = Get3DDistance(vec3.Y, vec3.X, vec3.Z, pMySpawn->X, pMySpawn->Y, pMySpawn->Z);
+			float dist = GetDistance(vec3.Y, vec3.X, vec3.Z, pMySpawn->X, pMySpawn->Y, pMySpawn->Z);
 
 			if (dist < pEverQuest->freeTargetTracker->spell->Range)
 			{

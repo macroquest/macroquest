@@ -1420,6 +1420,7 @@ const char* GetLightForSpawn(SPAWNINFO* pSpawn)
 // Function:    DistanceToSpawn3D
 // Description: Return the distance between two spawns, including Z
 // ***************************************************************************
+DEPRECATE("Use GetDistance3D instead")
 float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
 	if (pSpawn != nullptr)
@@ -1434,14 +1435,15 @@ float DistanceToSpawn3D(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 }
 
 // ***************************************************************************
-// Function:    DistanceToSpawn
-// Description: Return the distance between two spawns
+// Function:    EstimatedDistanceToSpawn
+// Description: Return the distance between two spawns assuming you don't
+//              care about distance, physics, or meaningful information
 // ***************************************************************************
 float EstimatedDistanceToSpawn(SPAWNINFO* pChar, SPAWNINFO* pSpawn)
 {
 	if (pSpawn != nullptr)
 	{
-		float RDistance = DistanceToSpawn(pChar, pSpawn);
+		float RDistance = GetDistance2D(pChar, pSpawn);
 		float X = pChar->X - (pSpawn->X + pSpawn->SpeedX * RDistance);
 		float Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
 		return sqrtf(X * X + Y * Y);
@@ -2531,7 +2533,7 @@ bool IsPCNear(SPAWNINFO* pSpawn, float Radius)
 	{
 		if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
 		{
-			if ((pClose != pSpawn) && (Distance3DToSpawn(pClose, pSpawn) < Radius))
+			if ((pClose != pSpawn) && (GetDistance3D(pClose, pSpawn) < Radius))
 				return true;
 		}
 		pClose = pClose->pNext;
@@ -2942,7 +2944,7 @@ SPAWNINFO* NthNearestSpawn(MQSpawnSearch* pSearchSpawn, int Nth, SPAWNINFO* pOri
 
 		if (SpawnMatchesSearch(pSearchSpawn, pOrigin, pSpawn))
 		{
-			float distSq = Get3DDistanceSquared(pOrigin->X, pOrigin->Y, pOrigin->Z,
+			float distSq = GetDistanceSquared(pOrigin->X, pOrigin->Y, pOrigin->Z,
 				pSpawn->X, pSpawn->Y, pSpawn->Z);
 
 			// Spawn matches our search, add it to our set.
@@ -3373,7 +3375,7 @@ bool SpawnMatchesSearch(MQSpawnSearch* pSearchSpawn, SPAWNINFO* pChar, SPAWNINFO
 			}
 		}
 	}
-	else if (pSearchSpawn->FRadius < 10000.0f && Distance3DToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+	else if (pSearchSpawn->FRadius < 10000.0f && GetDistance3D(pChar, pSpawn)>pSearchSpawn->FRadius)
 	{
 		return false;
 	}
@@ -3888,7 +3890,7 @@ bool GetClosestAlert(SPAWNINFO* pChar, uint32_t id)
 		{
 			if (SPAWNINFO* pSpawn = SearchThroughSpawns(&s, pChar))
 			{
-				const float SpawnDistance = Distance3DToSpawn(pChar, pSpawn);
+				const float SpawnDistance = GetDistance3D(pChar, pSpawn);
 				if (SpawnDistance < ClosestDistance)
 				{
 					ClosestDistance = SpawnDistance;
@@ -4244,7 +4246,7 @@ void SuperWhoDisplay(SPAWNINFO* pSpawn, DWORD Color)
 	if (gFilterSWho.Distance)
 	{
 		int Angle = static_cast<int>((atan2f(pLocalPlayer->X - pSpawn->X, pLocalPlayer->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-		sprintf_s(szTemp, " \a-u(\ax%1.2f %s\a-u,\ax %1.2fZ\a-u)\ax", GetDistance(pLocalPlayer, pSpawn), szHeadingShort[Angle], pSpawn->Z - pLocalPlayer->Z);
+		sprintf_s(szTemp, " \a-u(\ax%1.2f %s\a-u,\ax %1.2fZ\a-u)\ax", GetDistance2D(pLocalPlayer, pSpawn), szHeadingShort[Angle], pSpawn->Z - pLocalPlayer->Z);
 		strcat_s(szMsg, szTemp);
 	}
 
@@ -4326,7 +4328,7 @@ struct SuperWhoSortPredicate
 			return _stricmp(SpawnA->GetClassString(), SpawnB->GetClassString()) < 0;
 
 		case SearchSortBy::Distance:
-			return GetDistanceSquared(m_pOrigin, SpawnA) < GetDistanceSquared(m_pOrigin, SpawnB);
+			return GetDistanceSquared2D(m_pOrigin, SpawnA) < GetDistanceSquared2D(m_pOrigin, SpawnB);
 
 		case SearchSortBy::Guild:
 		{
@@ -7469,7 +7471,7 @@ EQSwitch* FindSwitchByName(const char* szName)
 		if ((!szName || szName[0] == 0 || ci_find_substr(pSwitch->Name, szName) == 0)
 			&& (gZFilter >= 10000.0f || (pSwitch->Z <= pLocalPlayer->Z + gZFilter && pSwitch->Z >= pLocalPlayer->Z - gZFilter)))
 		{
-			float Distance = Get3DDistanceSquared(pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z,
+			float Distance = GetDistanceSquared(pLocalPlayer->X, pLocalPlayer->Y, pLocalPlayer->Z,
 				pSwitch->X, pSwitch->Y, pSwitch->Z);
 			if (Distance < cDistance)
 			{

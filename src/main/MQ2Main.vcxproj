@@ -516,6 +516,7 @@
     <ClInclude Include="..\..\include\mq\base\GlobalBuffer.h" />
     <ClInclude Include="..\..\include\mq\base\Iterator.h" />
     <ClInclude Include="..\..\include\mq\base\Logging.h" />
+    <ClInclude Include="..\..\include\mq\base\Math.h" />
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h" />
     <ClInclude Include="..\..\include\mq\base\ScopeExit.h" />
     <ClInclude Include="..\..\include\mq\base\Signal.h" />
@@ -528,6 +529,7 @@
     <ClInclude Include="..\..\include\mq\imgui\ImGuiUtils.h" />
     <ClInclude Include="..\..\include\mq\imgui\MQConsoleDelegate.h" />
     <ClInclude Include="..\..\include\mq\imgui\Widgets.h" />
+    <ClInclude Include="..\..\include\mq\contrib\glm\glmUtils.h" />
     <ClInclude Include="..\..\include\mq\Plugin.h" />
     <ClInclude Include="..\..\include\mq\utils\Args.h" />
     <ClInclude Include="..\..\include\mq\utils\Benchmarks.h" />
