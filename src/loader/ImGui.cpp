@@ -152,7 +152,13 @@ bool ToggleSlider(const char* label, bool* v)
 	const ImVec2 pos = window->DC.CursorPos;
 	const ImRect total_bb(pos, pos + ImVec2(width + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
 
-	const bool pressed = ImGui::InvisibleButton(label, ImVec2(width, height), ImGuiButtonFlags_PressedOnClick);
+	ImGui::ItemSize(total_bb, style.FramePadding.y);
+	if (!ImGui::ItemAdd(total_bb, id))
+		return false;
+
+	bool hovered;
+	bool held;
+	const bool pressed = ImGui::ButtonBehavior(total_bb, id, &hovered, &held, ImGuiButtonFlags_PressedOnClick);
 	if (pressed)
 	{
 		*v = !*v;
@@ -173,9 +179,9 @@ bool ToggleSlider(const char* label, bool* v)
 	const ImU32 bg_color = ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]);
 
 	ImVec4 fg = ImLerp(style.Colors[ImGuiCol_Button], style.Colors[ImGuiCol_CheckMark], t);
-	if (ImGui::IsItemActive())
+	if (held)
 		fg = ImLerp(fg, style.Colors[ImGuiCol_ButtonActive], 0.30f);
-	else if (ImGui::IsItemHovered())
+	else if (hovered)
 		fg = ImLerp(fg, style.Colors[ImGuiCol_ButtonActive], 0.15f);
 
 	const ImU32 fg_color = ImGui::GetColorU32(fg);
