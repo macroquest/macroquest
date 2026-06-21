@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "mq/api/GameObject.h"
 #include "mq/api/MacroAPI.h"
 #include "mq/api/Main.h"
 #include "mq/api/PluginAPI.h"
@@ -737,16 +738,6 @@ struct MQGroundObject
 	MQGroundObject() { ZeroMemory(this, sizeof(MQGroundObject)); }
 };
 
-enum class eGameObjectType {
-	None,
-	GroundItem,
-	PlaceableItem,
-	Spawn,
-	SpawnTarget,
-	Location,
-	Switch,
-};
-
 enum eFaceCommandFlags : uint8_t {
 	FaceFlags_None                        = 0,
 	FaceFlags_FaceAway                    = 0x01,
@@ -754,38 +745,6 @@ enum eFaceCommandFlags : uint8_t {
 	FaceFlags_Fast                        = 0x04,
 	FaceFlags_NoLook                      = 0x08,
 	FaceFlags_HeadingOnly                 = 0x10,
-};
-
-// generic structure for storing positional information about an object
-struct MQGameObject
-{
-	eGameObjectType type = eGameObjectType::None;
-	uint32_t id = 0;
-	uint32_t subId = 0;
-	std::string name;
-
-	float y = 0.f;
-	float x = 0.f;
-	float z = 0.f;
-	float heading = 0.f;
-	std::string displayName;
-
-	// optional params
-	float velocityY = 0.f;
-	float velocityX = 0.f;
-	float velocityZ = 0.f;
-	float height = 0.f;
-	CActorInterface* actor = nullptr;
-
-	bool valid = false;
-
-	const std::string& GetDisplayName() const
-	{
-		if (!displayName.empty())
-			return displayName;
-
-		return name;
-	}
 };
 
 MQGameObject ToGameObject(const EQGroundItem& groundItem);

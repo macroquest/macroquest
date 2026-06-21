@@ -15,9 +15,40 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "mq/base/Math.h"
 #include "mq/base/String.h"
 
 namespace mq {
+
+/**
+ * @brief Calculates and returns the 3D Euclidean distance between two glm::vec3 points in a 3D space.
+ *
+ * @note If you don't need the actual distance, but only need to compare distances, you should
+ * use GetDistanceSquared instead.
+ *
+ * @param first The first glm::vec3 point.
+ * @param second The second glm::vec3 point.
+ * @return float The 3D Euclidean distance between the two glm::vec3 points.
+ */
+inline float GetDistance(const glm::vec3& first, const glm::vec3& second)
+{
+	return GetDistance(first.x, first.y, first.z, second.x, second.y, second.z);
+}
+
+/**
+ * @brief [3D] Calculates and returns the squared Euclidean distance between two glm::vec3 points in a 3D space.
+ *
+ * @note This function is often used when comparing distances, as squaring is cheaper than taking the square root.
+ * If you actually need the distance, use the GetDistance function instead.
+ *
+ * @param first The glm::vec3 coordinate of the first point.
+ * @param second The glm::vec3 coordinate of the second point.
+ * @return float The squared Euclidean distance between the two points.
+ */
+inline float GetDistanceSquared(const glm::vec3& first, const glm::vec3& second)
+{
+	return GetDistanceSquared(first.x, first.y, first.z, second.x, second.y, second.z);
+}
 
 /**
  * @brief Converts a string to a glm::vec3.

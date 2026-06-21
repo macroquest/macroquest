@@ -17,6 +17,7 @@
 #include "../common/Common.h"
 
 #include "mq/api/Spawns.h"
+#include "mq/api/SpawnUtils.h"
 #include "mq/api/Abilities.h"
 
  // string trim includes:
