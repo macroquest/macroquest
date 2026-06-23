@@ -168,6 +168,16 @@ public:
 		}
 	}
 
+	std::string_view GetSelectedPanel() const
+	{
+		if (m_selectedPanel != nullptr)
+		{
+			return std::string_view(m_selectedPanel->name);
+		}
+
+		return std::string_view();
+	}
+
 private:
 	void RegenerateTree()
 	{

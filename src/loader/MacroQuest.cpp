@@ -585,6 +585,26 @@ void ShowLoggingSettings()
 	}
 }
 
+void ShowUISettings()
+{
+	ImGui::PushFont(mq::imgui::LargeTextFont);
+	ImGui::Text("User Interface");
+	ImGui::PopFont();
+	ImGui::Separator();
+
+	bool showConsole = gbConsoleVisible;
+	if (ImGui::Checkbox("Show Debug Console", &showConsole))
+		UpdateShowConsole(showConsole, true);
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("Shows or hides the MacroQuest loader debug console window.");
+
+	bool persist = LauncherImGui::GetPersistMainWindow();
+	if (ImGui::Checkbox("Persist UI State", &persist))
+		LauncherImGui::SetPersistMainWindow(persist);
+	ImGui::SameLine();
+	mq::imgui::HelpMarker("When enabled, if the MacroQuest Loader UI (this window) is open when the loader closes, it reopens to the same place on the next launch.");
+}
+
 #pragma endregion
 
 #pragma region Paths and Configuration
@@ -1378,6 +1398,7 @@ void InitializeWindows()
 	LauncherImGui::AddMainPanel("MacroQuest Info", ShowMacroQuestInfo);
 	LauncherImGui::AddMainPanel("Logging", ShowLoggingSettings);
 	LauncherImGui::AddMainPanel("Processes", ShowProcessInfo);
+	LauncherImGui::AddMainPanel("UI Settings", ShowUISettings);
 	LauncherImGui::AddContextGroup("##MacroQuest", ShowMacroQuestMenu);
 }
 

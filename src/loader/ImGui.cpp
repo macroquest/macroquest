@@ -22,11 +22,18 @@
 #include "imgui/ImGuiTreePanelWindow.h"
 #include "login/AutoLogin.h"
 
+#include "mq/base/Config.h"
 #include "spdlog/spdlog.h"
 
  // map of panels in the main GUI window
 static mq::imgui::ImGuiTreePanelWindow* s_mainWindow = nullptr;
 static std::map<const char*, void(*)()> s_pendingPanels;
+
+// last selected panel we wrote to the ini so we can gate writes on changes
+static std::string s_lastPersistedPanel;
+
+// whether we persist/restore the main window panel between sessions
+static bool s_persistMainWindow = true;
 
 // map of viewport windows to render
 static std::map<std::string, std::function<bool()>> s_viewports;
@@ -348,6 +355,27 @@ void RemoveMainPanel(const char* name)
 		s_mainWindow->RemovePanel(name);
 }
 
+bool GetPersistMainWindow()
+{
+	return s_persistMainWindow;
+}
+
+void SetPersistMainWindow(bool persist)
+{
+	if (persist != s_persistMainWindow)
+	{
+		s_persistMainWindow = persist;
+		mq::WritePrivateProfileBool("MacroQuest", "PersistMainWindow", persist, internal_paths::MQini);
+
+		if (!persist)
+		{
+			// Forget any saved panels
+			s_lastPersistedPanel.clear();
+			mq::WritePrivateProfileString("MacroQuest", "MainWindowPanel", "", internal_paths::MQini);
+		}
+	}
+}
+
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback)
 {
 	s_menus.emplace_back(name, callback);
@@ -377,6 +405,14 @@ void Run(const std::function<bool()>& mainLoop)
 		s_mainWindow->AddPanel(name, callback);
 
 	s_pendingPanels.clear();
+
+	// Restore the UI window if it was open last exit (when enabled in UI Settings)
+	s_persistMainWindow = mq::GetPrivateProfileBool("MacroQuest", "PersistMainWindow", true, internal_paths::MQini);
+	if (s_persistMainWindow)
+	{
+		if (const std::string panel = mq::GetPrivateProfileString("MacroQuest", "MainWindowPanel", "", internal_paths::MQini); !panel.empty())
+			SelectMainPanel(panel);
+	}
 
 	s_iniFilename = (std::filesystem::path{ internal_paths::Config } / "MacroQuest_LauncherUI.ini").string();
 	s_logFilename = (std::filesystem::path{ internal_paths::Logs } / "MacroQuest_LauncherUI.log").string();
@@ -437,7 +473,16 @@ void Run(const std::function<bool()>& mainLoop)
 
 				ImGui::SetNextWindowClass(&s_viewportClass);
 				if (!it->second())
+				{
+					// Clear the saved panel so we don't reopen next run.
+					if (it->first == "MacroQuest")
+					{
+						s_lastPersistedPanel.clear();
+						mq::WritePrivateProfileString("MacroQuest", "MainWindowPanel", "", internal_paths::MQini);
+					}
+
 					it = s_viewports.erase(it);
+				}
 				else
 					++it;
 			}
@@ -501,7 +546,18 @@ void OpenMainWindow()
 			ImGui::SetNextWindowPos(monitor->WorkPos + (monitor->WorkSize * 0.5f), ImGuiCond_FirstUseEver, { 0.5f, 0.5f });
 
 			if (s_mainWindow != nullptr)
+			{
 				s_mainWindow->Draw(&is_open);
+
+				if (s_persistMainWindow)
+				{
+					if (const std::string_view panel = s_mainWindow->GetSelectedPanel(); !panel.empty() && panel != s_lastPersistedPanel)
+					{
+						s_lastPersistedPanel = std::string(panel);
+						mq::WritePrivateProfileString("MacroQuest", "MainWindowPanel", s_lastPersistedPanel, internal_paths::MQini);
+					}
+				}
+			}
 
 			ImGui::PopStyleVar();
 
