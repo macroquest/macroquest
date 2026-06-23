@@ -1,6 +1,21 @@
+## 6/23/2026
+
+### Features
+
+- Added a UI Settings menu to the loader
+- The loader's UI will now persist between sessions (if you had it open it remembers where you were). You can disable this in the new UI menu.
+
+### Bug Fixes
+
+- Fix loader showing edit dialogs twice in modals (popups)
+
+### Changes
+
+- Toggle Sliders will now behave like checkboxes in the loader
+
 ## 6/17/2026
 
-## Bug Fixes
+### Bug Fixes
 
 - Fix issue where /removeaug would not use Perfected Augmentation Distiller (#1007)
 
