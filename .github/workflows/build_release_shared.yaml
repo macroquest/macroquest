@@ -366,16 +366,43 @@ jobs:
             Where-Object { $_.Name -ne "D3DX9_43.dll" }
           $signtool = (Get-ChildItem -Recurse "${ENV:ProgramFiles(x86)}\Windows Kits" -Filter signtool.exe |
             Where-Object { $_.FullName -notmatch 'arm' } | Sort-Object LastWriteTime | Select-Object -last 1).FullName
-          $tsaServers = @('http://timestamp.digicert.com', 'http://timestamp.sectigo.com')
+          # Add a timeout to signtool since we're relying on cloud services and don't want hangs
+          function Invoke-Signtool {
+            param([string]$Exe, [string[]]$SignArgs, [int]$TimeoutSec)
+            $psi = [System.Diagnostics.ProcessStartInfo]::new($Exe)
+            foreach ($a in $SignArgs) { $psi.ArgumentList.Add($a) }
+            $psi.UseShellExecute = $false
+            $p = [System.Diagnostics.Process]::Start($psi)
+            if (-not $p.WaitForExit($TimeoutSec * 1000)) {
+              Write-Host "signtool exceeded ${TimeoutSec}s, killing..."
+              try { $p.Kill($true) } catch {}
+              return 1
+            }
+            return $p.ExitCode
+          }
+
+          $tsaServers = @('http://timestamp.digicert.com', 'http://timestamp.sectigo.com', 'http://ts.ssl.com')
           $tsaIndex = 0
           $maxAttempts = 5
-          ForEach ($file in $FileList) {
+          $chunkSize = 15
+          $budgetSecPerFile = 6
+          $baseArgs = @(
+            'sign', '/fd', 'SHA256',
+            '/f', $CertFile,
+            '/csp', 'Google Cloud KMS Provider',
+            '/kc', $env:KMS_KEY,
+            '/td', 'sha256'
+          )
+          $all = @($FileList.FullName)
+          for ($i = 0; $i -lt $all.Count; $i += $chunkSize) {
+            $chunk = @($all[$i..([Math]::Min($i + $chunkSize - 1, $all.Count - 1))])
+            $timeoutSec = 20 + $budgetSecPerFile * $chunk.Count
             for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
               $tsa = $tsaServers[$tsaIndex]
-              & $signtool sign /fd SHA256 /f $CertFile /csp "Google Cloud KMS Provider" /kc $env:KMS_KEY /tr $tsa /td sha256 "$file"
-              if ($LASTEXITCODE -eq 0) { break }
-              if ($attempt -eq $maxAttempts) { throw "Signing failed for $file after $maxAttempts attempts" }
-              Write-Host "Signing attempt $attempt failed for $file (TSA: $tsa), switching TSA and retrying in 2s..."
+              $rc = Invoke-Signtool -Exe $signtool -SignArgs ($baseArgs + @('/tr', $tsa) + $chunk) -TimeoutSec $timeoutSec
+              if ($rc -eq 0) { break }
+              if ($attempt -eq $maxAttempts) { throw "Signing failed for chunk at index $i ($($chunk.Count) files) after $maxAttempts attempts" }
+              Write-Host "Chunk at index $i attempt $attempt failed/timed out (TSA: $tsa), switching TSA and retrying in 2s..."
               $tsaIndex = ($tsaIndex + 1) % $tsaServers.Length
               Start-Sleep -Seconds 2
             }
