@@ -358,6 +358,7 @@ enum class CharacterMembers
 	PctRaidLeaderExp,
 	PersonaLevel,
 	MembershipLevel,
+	BuffDuration,
 };
 
 enum class CharacterMethods
@@ -706,11 +707,46 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, PctRaidLeaderExp);
 	ScopedTypeMember(CharacterMembers, PersonaLevel);
 	ScopedTypeMember(CharacterMembers, MembershipLevel);
+	ScopedTypeMember(CharacterMembers, BuffDuration);
 
 	ScopedTypeMethod(CharacterMethods, Stand);
 	ScopedTypeMethod(CharacterMethods, Sit);
 	ScopedTypeMethod(CharacterMethods, Dismount);
 	ScopedTypeMethod(CharacterMethods, StopCast);
+}
+
+/**
+ * @fn GetAbsoluteBuffSlot
+ *
+ * @brief Resolves a buff to an absolute slot
+ *
+ * Shared by the Buff, Song, and BuffDuration members so the index-resolution logic
+ * lives in one place. The Index may be either the slot number or a spell name. If it
+ * is the slot number, it is adjusted relative to the minSlot position to account for
+ * allowing lower number use on Songs. The resulting slot is validated to fall
+ * within [minSlot, maxSlot).
+ *
+ * @param Index The buff to resolve (a 1-based number or a spell name)
+ * @param minSlot The inclusive lower bound of the slot range to search
+ * @param maxSlot The exclusive upper bound of the slot range to search
+ *
+ * @return int The resolved buff slot, or -1 if the index is empty or out of range
+ */
+static int GetAbsoluteBuffSlot(const char* Index, int minSlot, int maxSlot)
+{
+	if (Index[0] != '\0')
+	{
+		int slot;
+		if (IsNumber(Index))
+			slot = GetIntFromString(Index, 0) - 1 + minSlot;
+		else
+			slot = FindBuffIndex(Index, minSlot, maxSlot);
+
+		if (slot >= minSlot && slot < maxSlot)
+			return slot;
+	}
+
+	return -1;
 }
 
 bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar& Dest)
@@ -950,60 +986,46 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 		return false;
 	}
 
-	// TODO:  Move this to a function for both Buff and Song since code is identical except for Short vs Long Buff.
 	case CharacterMembers::Buff:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_BuffWnd;
-		if (!Index[0])
-			return false;
-
-		if (IsNumber(Index))
 		{
-			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff > NUM_LONG_BUFFS)
+			int slot = GetAbsoluteBuffSlot(Index, 0, NUM_LONG_BUFFS);
+			if (slot < 0)
 				return false;
 
-			Dest.Int = nBuff;
+			Dest.Int = slot;
 			return true;
 		}
-
-		{
-			int buffID = FindBuffIndex(Index, 0, NUM_LONG_BUFFS);
-			if (buffID >= 0 && buffID < NUM_LONG_BUFFS)
-			{
-				Dest.Int = buffID;
-				return true;
-			}
-		}
-
-		return false;
 
 	case CharacterMembers::Song:
 		Dest.Type = pBuffType;
 		Dest.HighPart = SpellDisplayType_None;
-		if (!Index[0])
-			return false;
-
-		if (IsNumber(Index))
 		{
-			int nBuff = GetIntFromString(Index, 0) - 1;
-			if (nBuff < 0 || nBuff >= NUM_SHORT_BUFFS)
+			int slot = GetAbsoluteBuffSlot(Index, NUM_LONG_BUFFS, MAX_TOTAL_BUFFS);
+			if (slot < 0)
 				return false;
 
-			Dest.Int = nBuff + NUM_LONG_BUFFS;
+			Dest.Int = slot;
 			return true;
 		}
 
-		{
-			int buffID = FindBuffIndex(Index, NUM_LONG_BUFFS, MAX_TOTAL_BUFFS);
-			if (buffID >= NUM_LONG_BUFFS && buffID < MAX_TOTAL_BUFFS)
-			{
-				Dest.Int = buffID;
-				return true;
-			}
-		}
+	case CharacterMembers::BuffDuration:
+	{
+		Dest.UInt64 = 0;
+		Dest.Type = pTimeStampType;
 
-		return false;
+		int slot = GetAbsoluteBuffSlot(Index, 0, MAX_TOTAL_BUFFS);
+		if (slot < 0)
+			return false;
+
+		EQ_Affect& buff = pProfile->GetEffect(slot);
+		if (buff.SpellID <= 0)
+			return false;
+
+		Dest.UInt64 = GetSpellBuffTimer(buff.SpellID);
+		return true;
+	}
 
 	case CharacterMembers::FindBuff:
 	{

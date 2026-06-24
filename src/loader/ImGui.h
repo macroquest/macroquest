@@ -37,6 +37,8 @@ void OpenWindow(
 void SelectMainPanel(const std::string& name);
 void AddMainPanel(const char* name, void(*callback)());
 void RemoveMainPanel(const char* name);
+bool GetPersistMainWindow();
+void SetPersistMainWindow(bool persist);
 bool AddContextGroup(const std::string& name, const std::function<void()>& callback);
 bool RemoveContextGroup(const std::string& name);
 void Run(const std::function<bool()>& mainLoop);

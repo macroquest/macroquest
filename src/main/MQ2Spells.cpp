@@ -3699,11 +3699,25 @@ int GetPlayerClass(std::string_view name)
 	auto player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
 		[name](const SClassInfo& info)
 		{
-			return ci_equals(info.ShortName, name) || ci_equals(info.Name, name);
+			return ci_equals(info.ShortName, name) || ci_equals(info.LongName, name);
 		});
 
 	if (player_class != std::cend(ClassInfo))
 		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
+
+	// Fall back to the deprecated legacy name, announcing its deprecation.
+	player_class = std::find_if(std::cbegin(ClassInfo), std::cend(ClassInfo),
+		[name](const SClassInfo& info)
+		{
+#pragma warning(suppress : 4996) // ClassInfo.Name is deprecated, but we're announcing its deprecation here
+			return ci_equals(info.Name, name);
+		});
+
+	if (player_class != std::cend(ClassInfo))
+	{
+		WriteChatf("\ayWARNING: SpellFilter: Matching a class by \"%.*s\" is deprecated; use \"%s\" instead.\ax", static_cast<int>(name.size()), name.data(), player_class->LongName);
+		return static_cast<int>(std::distance(std::cbegin(ClassInfo), player_class));
+	}
 
 	return 0;
 }
@@ -4339,12 +4353,40 @@ SpellAttributePredicate<CachedBuff> mq::EvaluateCachedBuffPredicate(std::string_
 
 //============================================================================
 
+static bool s_ignoreBuffBarFullForStacking = false;
+
+class CharacterZoneClient_StackHook
+{
+public:
+	DETOUR_TRAMPOLINE_DEF(int, GetOpenEffectSlot_Trampoline, (bool, bool, int))
+	int GetOpenEffectSlot_Detour(bool bIsShortBuff, bool bIsMeleeSkill, int Index)
+	{
+		if (s_ignoreBuffBarFullForStacking)
+			return reinterpret_cast<CharacterZoneClient*>(this)->GetFirstEffectSlot(bIsShortBuff, bIsMeleeSkill);
+
+		return GetOpenEffectSlot_Trampoline(bIsShortBuff, bIsMeleeSkill, Index);
+	}
+};
+
+ScopedIgnoreBuffBarFullForStacking::ScopedIgnoreBuffBarFullForStacking()
+	: m_previous(s_ignoreBuffBarFullForStacking)
+{
+	s_ignoreBuffBarFullForStacking = true;
+}
+
+ScopedIgnoreBuffBarFullForStacking::~ScopedIgnoreBuffBarFullForStacking()
+{
+	s_ignoreBuffBarFullForStacking = m_previous;
+}
+
 static void InitializeSpells()
 {
+	EzDetour(CharacterZoneClient__GetOpenEffectSlot, &CharacterZoneClient_StackHook::GetOpenEffectSlot_Detour, &CharacterZoneClient_StackHook::GetOpenEffectSlot_Trampoline);
 }
 
 static void ShutdownSpells()
 {
+	RemoveDetour(CharacterZoneClient__GetOpenEffectSlot);
 }
 
 static void PulseSpells()

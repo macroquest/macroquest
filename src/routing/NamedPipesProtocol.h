@@ -41,6 +41,8 @@ enum class MQMessageId : uint16_t
 	MSG_MAIN_REQ_FORCEUNLOAD               = 1006,  // to mq: ask mq to less nicely unload.
 	MSG_MAIN_MESSAGEBOX                    = 1007,  // from mq: ask to display an imgui popup message
 	MSG_MAIN_TRAY_NOTIFY                   = 1008,  // from mq: ask to display a tray notification
+	MSG_MAIN_SELF_MIN_RESTORE              = 1009,  // to/from mq: target should try min/restore
+	MSG_MAIN_SELF_FOREGROUND               = 1010,  // to/from mq: target should call SetForegroundWindow on its own
 };
 
 enum class MQProtoVersion : uint8_t

@@ -45,6 +45,8 @@ struct ProfileRecord
 	std::optional<bool> endAfterSelect;
 	std::optional<int> charSelectDelay;
 	std::optional<std::string> customClientIni;
+	std::string additionalEqgameArgs;
+	bool sounds = true;
 
 	static ProfileRecord FromString(const std::string& input);
 	static ProfileRecord FromBlob(const std::string& blob);

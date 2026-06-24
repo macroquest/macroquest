@@ -34,21 +34,27 @@ jobs:
         with:
           msbuild-architecture: x64
 
-      - name: vcpkg Cache
+      - name: Restore vcpkg Cache
         id: cache-vcpkg
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: |
-            contrib/vcpkg/buildtrees
-            contrib/vcpkg/downloads
             contrib/vcpkg/installed
-            contrib/vcpkg/packages
             contrib/vcpkg/vcpkg.exe
             contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
-          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ github.run_id }}
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-
           restore-keys: |
             ${{ runner.os }}-vcpkg-${{ env.platform }}-
             ${{ runner.os }}-vcpkg-
 
       - name: Build ${{ env.platform }} Release
         run: msbuild src/MacroQuest.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }}
+
+      - name: Save vcpkg Cache
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            contrib/vcpkg/installed
+            contrib/vcpkg/vcpkg.exe
+            contrib/vcpkg/vcpkg_mq_last_bootstrap*.txt
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ hashFiles('contrib/vcpkg/installed/vcpkg/status') }}

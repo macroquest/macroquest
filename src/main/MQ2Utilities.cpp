@@ -3642,7 +3642,7 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 			pSearchSpawn->yLoc = GetFloatFromString(szArg, 0);
 			GetArg(szArg, szRest, 3);
 			pSearchSpawn->zLoc = GetFloatFromString(szArg, 0);
-			if (pSearchSpawn->zLoc == 0.0)
+			if (pSearchSpawn->zLoc == 0.0 && pControlledPlayer)
 			{
 				pSearchSpawn->zLoc = pControlledPlayer->Z;
 				szRest = GetNextArg(szRest, 2);
@@ -3709,7 +3709,10 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else if (!_stricmp(szArg, "guild"))
 		{
-			pSearchSpawn->GuildID = pLocalPC->GuildID;
+			if (pLocalPC)
+			{
+				pSearchSpawn->GuildID = pLocalPC->GuildID;
+			}
 		}
 		else if (!_stricmp(szArg, "guildname"))
 		{
@@ -3792,12 +3795,23 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		}
 		else
 		{
-			for (int index = 1; index < (int)lengthof(ClassInfo) - 1; index++)
+			if (pEverQuest)
 			{
-				if (!_stricmp(szArg, ClassInfo[index].Name) || !_stricmp(szArg, ClassInfo[index].ShortName))
+				for (int index = 1; index < static_cast<int>(lengthof(ClassInfo)) - 1; index++)
 				{
-					strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(index));
-					return szRest;
+					if (!_stricmp(szArg, pEverQuest->GetClassDesc(index)) || !_stricmp(szArg, ClassInfo[index].ShortName))
+					{
+						strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(index));
+						return szRest;
+					}
+
+#pragma warning(suppress : 4996) // ClassInfo.Name is deprecated, but we're announcing its deprecation here
+					if (!_stricmp(szArg, ClassInfo[index].Name))
+					{
+						strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(index));
+						WriteChatf("\ayWARNING: SpawnSearch: Matching a class by \"%s\" is deprecated; use \"%s\" instead.\ax", szArg, pEverQuest->GetClassDesc(index));
+						return szRest;
+					}
 				}
 			}
 
@@ -3826,6 +3840,21 @@ void ParseSearchSpawn(const char* Buffer, MQSpawnSearch* pSearchSpawn)
 {
 	bRunNextCommand = true;
 	const char* szFilter = Buffer;
+
+	// A class long name can contain a space (e.g. "Shadow Knight"), and "knight" is itself a
+	// spawn-search keyword. If the whole search string is a class long name, tokenizing it would
+	// mis-parse it (name "shadow" + the "knight" keyword), so match it as a class search up front.
+	if (pEverQuest && Buffer[0] != '\0')
+	{
+		for (int index = 1; index < static_cast<int>(lengthof(ClassInfo)) - 1; index++)
+		{
+			if (!_stricmp(Buffer, pEverQuest->GetClassDesc(index)))
+			{
+				strcpy_s(pSearchSpawn->szClass, pEverQuest->GetClassDesc(index));
+				return;
+			}
+		}
+	}
 
 	char szArg[MAX_STRING] = { 0 };
 
@@ -4823,6 +4852,10 @@ bool BuffStackTest(SPELL* aSpell, SPELL* bSpell, bool bIgnoreTriggeringEffects, 
  * Takes two spells in order to test if they will stack. Any null checking should be
  * done before this function is called, assumes all values are non-null.
  *
+ * This briefly disables the buff bar full check so that the buff bar being full
+ * on the current character does not cause this function to return false when it
+ * otherwise would return true.
+ *
  * @param testSpell The spell that would hypothetically be cast (non-null)
  * @param existingSpell The spell that would hypothetically already exist (non-null)
  *
@@ -4841,6 +4874,10 @@ bool WillStackWith(const EQ_Spell* testSpell, const EQ_Spell* existingSpell)
 	buff.PopulateFromSpell(existingSpell);
 
 	int SlotIndex = -1;
+
+	// Callers of WillStackWith are not concerned with the current character's buff bar capacity
+	ScopedIgnoreBuffBarFullForStacking ignoreBuffBarFull;
+
 	EQ_Affect* ret = pLocalPC->FindAffectSlot(testSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level, &buff, 1);
 
 	return ret && SlotIndex != -1;

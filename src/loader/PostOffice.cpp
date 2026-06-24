@@ -143,6 +143,30 @@ void LauncherPostOffice::OnIncomingMessage(mq::postoffice::LocalConnection* conn
 		}
 		break;
 
+	case mq::MQMessageId::MSG_MAIN_SELF_MIN_RESTORE:
+		// Route by hWnd payload since that's our target.
+		if (message->size() >= sizeof(MQMessageActivateWnd))
+		{
+			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
+			if (!SendSelfMinRestore(hWnd))
+			{
+				SPDLOG_DEBUG("MSG_MAIN_SELF_MIN_RESTORE: Routing failed.");
+			}
+		}
+		break;
+
+	case mq::MQMessageId::MSG_MAIN_SELF_FOREGROUND:
+		// Route by hWnd payload since that's our target.
+		if (message->size() >= sizeof(MQMessageActivateWnd))
+		{
+			const HWND hWnd = (HWND)message->get<MQMessageActivateWnd>()->hWnd;
+			if (!SendSelfForeground(hWnd))
+			{
+				SPDLOG_DEBUG("MSG_MAIN_SELF_FOREGROUND: Routing failed.");
+			}
+		}
+		break;
+
 	case mq::MQMessageId::MSG_MAIN_MESSAGEBOX:
 		if (const auto notification = ProtoMessage::Parse<proto::routing::Notification>(message);
 			notification.has_message())
@@ -239,7 +263,55 @@ bool SendSetForegroundWindow(HWND hWnd, uint32_t processID)
 			return true;
 		}
 	}
-	
+
+	return false;
+}
+
+bool SendSelfMinRestore(HWND hWnd)
+{
+	if (s_postOffice && hWnd)
+	{
+		DWORD pid = 0;
+		::GetWindowThreadProcessId(hWnd, &pid);
+		if (pid != 0)
+		{
+			if (auto pipeConnection = s_postOffice->GetConnectionForProcessId(pid))
+			{
+				mq::MQMessageActivateWnd message;
+				message.hWnd = hWnd;
+
+				s_postOffice->SendPipeMessage(pipeConnection->GetConnectionId(),
+					mq::MQMessageId::MSG_MAIN_SELF_MIN_RESTORE, &message, sizeof(message));
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool SendSelfForeground(HWND hWnd)
+{
+	if (s_postOffice && hWnd)
+	{
+		DWORD pid = 0;
+		::GetWindowThreadProcessId(hWnd, &pid);
+		if (pid != 0)
+		{
+			if (auto pipeConnection = s_postOffice->GetConnectionForProcessId(pid))
+			{
+				mq::MQMessageActivateWnd message;
+				message.hWnd = hWnd;
+
+				s_postOffice->SendPipeMessage(pipeConnection->GetConnectionId(),
+					mq::MQMessageId::MSG_MAIN_SELF_FOREGROUND, &message, sizeof(message));
+
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 

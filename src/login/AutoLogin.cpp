@@ -267,7 +267,48 @@ void LoginInstance::Update(uint32_t pid, const ProfileRecord& profile)
 	}
 }
 
-DWORD LaunchProcess(const std::string& process, const std::string& workingDir)
+static std::string GetCustomIniBootstrapPath()
+{
+	char path[MAX_PATH] = { 0 };
+	::GetModuleFileNameA(nullptr, path, MAX_PATH);
+
+	return (fs::path(path).parent_path() / "CustomClientINI.dll").string();
+}
+
+static void QueueEarlyInjectAPC(HANDLE hProcess, HANDLE hThread, const std::string& dllPath)
+{
+	const SIZE_T size = dllPath.size() + 1;
+
+	void* remoteMem = ::VirtualAllocEx(hProcess, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (remoteMem == nullptr)
+	{
+		SPDLOG_ERROR("{}", fmt::windows_error(GetLastError(), "Early inject: VirtualAllocEx failed").what());
+	}
+	else
+	{
+		if (!::WriteProcessMemory(hProcess, remoteMem, dllPath.c_str(), size, nullptr))
+		{
+			SPDLOG_ERROR("{}", fmt::windows_error(GetLastError(), "Early inject: WriteProcessMemory failed").what());
+			::VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+		}
+		else
+		{
+			auto loadLibrary = reinterpret_cast<PAPCFUNC>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "LoadLibraryA"));
+			if (loadLibrary == nullptr || ::QueueUserAPC(loadLibrary, hThread, reinterpret_cast<ULONG_PTR>(remoteMem)) == 0)
+			{
+				SPDLOG_ERROR("{}", fmt::windows_error(GetLastError(), "Early inject: QueueUserAPC failed").what());
+				::VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
+			}
+			else
+			{
+				// remoteMem is intentionally left allocated
+				SPDLOG_INFO("Early inject queued: {}", dllPath);
+			}
+		}
+	}
+}
+
+DWORD LaunchProcess(const std::string& process, const std::string& workingDir, const std::string& earlyInjectDll)
 {
 	// Find a suitable parent process for this process we are creating (and remember it for later)
 	wil::unique_process_handle hParent;
@@ -341,6 +382,12 @@ DWORD LaunchProcess(const std::string& process, const std::string& workingDir)
 
 	SetLastError(0);
 
+	// Freeze the client if we need to early inject
+	const bool earlyInject = !earlyInjectDll.empty();
+	DWORD creationFlags = EXTENDED_STARTUPINFO_PRESENT;
+	if (earlyInject)
+		creationFlags |= CREATE_SUSPENDED;
+
 	wil::unique_process_information pi;
 	if (CreateProcessA(
 		nullptr,
@@ -348,12 +395,18 @@ DWORD LaunchProcess(const std::string& process, const std::string& workingDir)
 		nullptr,
 		nullptr,
 		FALSE,
-		EXTENDED_STARTUPINFO_PRESENT,
+		creationFlags,
 		nullptr,
 		workingDir.c_str(),
 		(LPSTARTUPINFOA)&si,
 		&pi) && pi.hProcess != nullptr)
 	{
+		if (earlyInject)
+		{
+			QueueEarlyInjectAPC(pi.hProcess, pi.hThread, earlyInjectDll);
+			::ResumeThread(pi.hThread);
+		}
+
 		return pi.dwProcessId;
 	}
 
@@ -424,7 +477,34 @@ const LoginInstance* StartInstance(ProfileRecord& profile)
 			{
 				std::string parameters = fmt::format(R"("{}" patchme "/login:{}")", eqgame.string(), arg);
 
-				if (DWORD dwProcessID = LaunchProcess(parameters, eqPath))
+				if (!profile.sounds)
+					parameters += " nosound";
+
+				if (!profile.additionalEqgameArgs.empty())
+					parameters += fmt::format(" {}", profile.additionalEqgameArgs);
+
+				// /customini should be appended last: it is our own option and the client won't parse it anyway
+				std::string earlyInjectDll;
+				if (profile.customClientIni && !profile.customClientIni->empty())
+				{
+					fs::path customIni = *profile.customClientIni;
+					if (customIni.is_relative())
+						customIni = fs::path(eqPath) / customIni;
+
+					parameters += fmt::format(R"( /customini:"{}")", customIni.string());
+					// Only queue the early-inject bootstrap if it is actually present
+					std::string bootstrap = GetCustomIniBootstrapPath();
+					if (std::error_code ec; fs::exists(bootstrap, ec))
+					{
+						earlyInjectDll = std::move(bootstrap);
+					}
+					else
+					{
+						SPDLOG_WARN("Custom client ini bootstrap not found at {}, early redirect will not be applied", bootstrap);
+					}
+				}
+
+				if (DWORD dwProcessID = LaunchProcess(parameters, eqPath, earlyInjectDll))
 				{
 					auto [it, _] = s_loadedInstances.emplace(
 						LoginInstance::Key(profile),

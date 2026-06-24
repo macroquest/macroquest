@@ -1,0 +1,489 @@
+name: Update LuaRocks
+
+on:
+  workflow_call:
+    inputs:
+      client_target:
+        required: true
+        type: string
+      vcpkg_fingerprint:
+        required: true
+        type: string
+      debug:
+        required: false
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      client_target:
+        required: true
+        type: choice
+        options:
+        - emu-rof2
+        - emu-tob
+        - beta-emu-rof2
+        - beta-emu-tob
+      vcpkg_fingerprint:
+        description: "Fingerprint from the target build's run."
+        required: true
+        type: string
+      debug:
+        description: "Enable verbose output"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  # Serialize LuaRocks runs so two cannot race on the push to the moonrocks repo.
+  group: update-luarocks
+  cancel-in-progress: false
+
+env:
+  platform: "${{ contains(inputs.client_target, 'rof2') && 'Win32' || 'x64' }}"
+
+jobs:
+  update_luarocks:
+    if: github.repository == 'macroquest/macroquest'
+    runs-on: [fast, self-hosted, Windows, X64]
+    steps:
+      - name: Check on-disk vcpkg fingerprint
+        id: check_vcpkg
+        shell: pwsh
+        run: |
+          $want = "${{ inputs.vcpkg_fingerprint }}"
+          $script = "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1"
+          $have = if (Test-Path $script) { try { & $script -Mode Fingerprint } catch { "none" } } else { "none" }
+          if ($have -eq $want) {
+            echo "match=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "match=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Install and cache PowerShell modules
+        uses: Knightly1/psmodulecache@v6
+        with:
+          modules-to-cache: powershell-yaml
+
+      - name: Checkout code
+        if: steps.check_vcpkg.outputs.match != 'true'
+        uses: actions/checkout@v6
+
+      - name: Sync submodule URLs
+        if: steps.check_vcpkg.outputs.match != 'true'
+        run: git submodule sync --recursive
+
+      - name: Update builtin submodules
+        if: steps.check_vcpkg.outputs.match != 'true'
+        run: git submodule update --init --recursive --depth=1
+
+      - name: Setup MSBuild
+        if: steps.check_vcpkg.outputs.match != 'true'
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Resolve vcpkg cache paths
+        if: steps.check_vcpkg.outputs.match != 'true'
+        id: vcpkg_paths
+        shell: pwsh
+        run: |
+          $p = & "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1" -Mode CachePaths
+          "list<<__PATHS_END__" >> $env:GITHUB_OUTPUT
+          $p                    >> $env:GITHUB_OUTPUT
+          "__PATHS_END__"       >> $env:GITHUB_OUTPUT
+
+      - name: Restore vcpkg Cache (exact)
+        if: steps.check_vcpkg.outputs.match != 'true'
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ steps.vcpkg_paths.outputs.list }}
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ inputs.vcpkg_fingerprint }}
+          fail-on-cache-miss: true
+
+      - name: Verify vcpkg matches the build
+        shell: pwsh
+        run: |
+          $have = & "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1" -Mode Fingerprint
+          $want = "${{ inputs.vcpkg_fingerprint }}"
+          if ($have -ne $want) {
+            throw "vcpkg differs from the requested build (have=$have want=$want). Refusing to pack LuaRocks against a different vcpkg."
+          }
+
+      - name: Handle LuaRocks Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            build/Lua
+          key: ${{ runner.os }}-luarocks-${{ env.platform }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-luarocks-${{ env.platform }}-
+            ${{ runner.os }}-luarocks-
+
+      - name: Update LuaRocks binaries
+        shell: pwsh
+        run: |
+          $debug = ($env:RUNNER_DEBUG -eq '1') -or ('${{ inputs.debug }}' -eq 'true')
+          if ($debug) {
+            $DebugPreference = 'Continue'
+          }
+
+          $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
+          $LuaRocksDir = "$LuaCloneDir\LuaRocks"
+          $GitFolder = "${{ github.workspace }}\build\Lua\LuaRockServer"
+          $LuaRockServer = "$GitFolder"
+          $LuaRockServerRoot = "$LuaRockServer"
+          $LuaYaml = "$LuaRockServerRoot\mq_luarocks.yaml"
+          $GitURL = "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/luarocks.git"
+          $Platform = "$(if ($${{ contains(inputs.client_target, 'rof2')}}) {"x86"} else {"x64"})"
+          $env:LUAROCKS_CONFIG = "$LuaRocksDir\luarocks_working_config_$($Platform).cfg"
+          $systreeNode = "\$Platform"
+          $vcpkg_mq = "${{ github.workspace }}\tools\build_scripts\vcpkg_mq.ps1"
+
+          function Send-DiscordNotification {
+            param(
+              [Parameter(Mandatory)][string]$Title,
+              [Parameter(Mandatory)][string]$Description,
+              [Parameter(Mandatory)][string]$Color
+            )
+            [System.Collections.ArrayList]$embedArray = @()
+            $embedObject = [PSCustomObject]@{
+              color = $Color
+              title = $Title
+              description = $Description
+            }
+            $embedArray.Add($embedObject) | Out-Null
+            $discordPayload = [PSCustomObject]@{
+              embeds = $embedArray
+            } | ConvertTo-Json
+            Invoke-RestMethod -Uri '${{ secrets.MQDISCORD_DEV_WEBHOOK }}' -Method Post -Body $discordPayload -ContentType 'application/json'
+          }
+
+          $luajit = "${{ github.workspace }}\contrib\vcpkg\installed\$($Platform)-windows-static\tools\luajit.exe"
+
+          # Create Lua folder if it does not exist:
+          New-Item -Path "${{ github.workspace }}/build/Lua" -ItemType Directory -ErrorAction SilentlyContinue
+
+          If (-NOT (Test-Path $LuaCloneDir -PathType Container)) {
+            git clone "https://oauth2:${{ secrets.MQGITBOT_AUTH }}@github.com/macroquest/${{ vars.LUAROCKS_INSTALL_REPO }}.git" "$LuaCloneDir"
+          } else {
+            git -C "$LuaCloneDir" pull
+          }
+
+          $in_config = Get-Content "$LuaRocksDir\luarocks_config_$($Platform).cfg"
+          $out_config = $in_config -replace "LUA_REPLACE_PATH_FSLASH", "$($LuaRocksDir -replace '\\', '/')"
+          $out_config = $out_config -replace "LUA_REPLACE_PATH_BSLASH", "$($LuaRocksDir -replace '\\', '\\')"
+          $out_config = $out_config -replace "MQROOT_REPLACE_PATH_FSLASH", "$(`"${{ github.workspace }}`" -replace '\\', '/')"
+          $out_config = $out_config -replace "MQROOT_REPLACE_PATH_BSLASH", "$(`"${{ github.workspace }}`" -replace '\\', '\\')"
+          Set-Content -Path "$($env:LUAROCKS_CONFIG)" -Value $out_config
+
+          # Newer versions of vcpkg move the path
+          if (-Not (Test-Path $luajit -PathType Leaf)) {
+            # Update the path to the new location
+            $luajit = $luajit -replace "tools\\luajit.exe", "tools\\luajit\\luajit.exe"
+          }
+
+          $env:LUAROCKS_LJLOC = Split-Path -Path $luajit
+
+          $luajitOutput = (& $luajit -v)
+          $luajitVersion = ($luajitOutput.Split(' '))[1]
+          if ($luajitVersion -eq "") {
+            Write-Error "LuaRocks failed, luajit version get failed"
+            exit 1
+          }
+
+          $env:LUAROCKS_LJVER = $luajitVersion
+          $LuaRockServer = "$LuaRockServerRoot\$luajitVersion"
+
+          $gitQuiet = " --quiet "
+          if ($debug) {
+            $gitQuiet = " "
+          }
+
+          $luarocksQuiet = ""
+          if ($debug) {
+            $luarocksQuiet = " --verbose"
+          }
+
+          if (-NOT (Test-Path $GitFolder -PathType Container)) {
+            $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
+            # $cmd contains the OAuth token from $GitURL. We're relying on GitHub Actions to mask registered secrets in logs. If
+            # logs are ever shipped to a different destination the token should be masked before logging.
+            Write-Debug "Running: $cmd"
+            Invoke-Expression $cmd
+          } else {
+            $cmd = "git -C `"$GitFolder`" pull$gitQuiet --rebase"
+            Write-Debug "Running: $cmd"
+            Invoke-Expression $cmd
+            if (-NOT ($LASTEXITCODE -eq 0)) {
+              Write-Debug "Pull failed, removing folder: $GitFolder"
+              Remove-Item -Path $GitFolder -Force -Recurse
+              $cmd = "git clone$gitQuiet$GitURL `"$GitFolder`""
+              # $cmd contains the OAuth token from $GitURL. We're relying on GitHub Actions to mask registered secrets in logs. If
+              # logs are ever shipped to a different destination the token should be masked before logging.
+              Write-Debug "Running: $cmd"
+              Invoke-Expression $cmd
+            }
+          }
+
+          # Remove the old vcpkg_mq.txt so all output is from this script
+          if (Test-Path $LuaRocksDir/vcpkg_mq.txt -PathType Leaf) {
+            Remove-Item -Force -Path $LuaRocksDir/vcpkg_mq.txt
+          }
+
+          if (-NOT (Test-Path $LuaRockServer -PathType Container)) {
+            New-Item -Path $LuaRockServer -ItemType Directory -Force
+          }
+
+          [string[]]$fileContent = Get-Content $LuaYaml
+          $content = ''
+          foreach ($line in $fileContent) { $content = $content + "`n" + $line }
+          $yaml = ConvertFrom-YAML $content
+
+          if ($yaml -And ($yaml.Count -gt 0)) {
+            If (-NOT (Test-Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1" -PathType Leaf)) {
+              New-Item -Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1" -ItemType Directory -Force
+            }
+
+            # Load vcvars for luarocks
+            $vcvars_txt = "${{ github.workspace }}\build\vcvars.txt"
+            $architecture = "$(if ($${{ contains(inputs.client_target, 'rof2') }}) {"x64_x86"} else {"x64"})"
+            & cmd.exe /c "call `"$($env:ProgramFiles)\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat`" $architecture && set > `"$vcvars_txt`""
+            Get-Content $vcvars_txt | ForEach-Object {
+              if ($_ -match "^(.*?)=(.*)$") {
+                Set-Content "env:\$($matches[1])" "$($matches[2])"
+              }
+            }
+            Remove-Item -Path $vcvars_txt
+
+            Set-Location $LuaRocksDir
+
+            $updateManifest = $false
+            $installedThisRun = @{}
+            ForEach ($LuaRock in $yaml.Keys) {
+              $LuaSearchOutput = .\luarocks search $LuaRock
+              if (!$?) {
+                Write-Error "LuaRocks failed, search failed"
+                exit 1
+              }
+              $VersionSearch = ''
+              $CorrectSection = $false
+              $LuaSearchOutput | ForEach-Object {
+                if ([string]::IsNullOrWhiteSpace($VersionSearch)) {
+                  if ($CorrectSection) {
+                    if ($_ -match '\(') {
+                      $VersionSearch = $_.Split("(")[0].Trim()
+                    }
+                  } elseif ($_.Trim() -eq "$LuaRock")  {
+                    $CorrectSection = $true
+                  }
+                }
+              }
+
+              $UpstreamLuaSearchOutput = .\luarocks search --only-server "https://luarocks.org/" $LuaRock
+              if (!$?) {
+                Write-Error "luarocks upstream search failed"
+                exit 1
+              }
+
+              $UpstreamVersionSearch = ''
+              $CorrectSection = $false
+              $UpstreamLuaSearchOutput | ForEach-Object {
+                if ([string]::IsNullOrWhiteSpace($UpstreamVersionSearch)) {
+                  if ($CorrectSection) {
+                    if ($_ -match '\(') {
+                      $UpstreamVersionSearch = $_.Split("(")[0].Trim()
+                    }
+                  } elseif ($_.Trim() -eq "$LuaRock")  {
+                    $CorrectSection = $true
+                  }
+                }
+              }
+
+              $LuaListOutput = .\luarocks list $LuaRock
+              if (!$?) {
+                Write-Error "luarocks list failed"
+                exit 1
+              }
+              $VersionList = ''
+              $CorrectSection = $false
+              $LuaListOutput | ForEach-Object {
+                if ([string]::IsNullOrWhiteSpace($VersionList)) {
+                  if ($CorrectSection) {
+                    if ($_ -match "(installed)") {
+                      $VersionList = $_.Split("(")[0].Trim()
+                    }
+                  } elseif ($_.Trim() -eq "$LuaRock")  {
+                    $CorrectSection = $true
+                  }
+                }
+              }
+
+              $ignoredUpstream = @($yaml[$LuaRock].ignore_upstream)
+              if ((-NOT ($VersionSearch -eq $UpstreamVersionSearch)) -And ($ignoredUpstream -notcontains $UpstreamVersionSearch)) {
+                $discordMessage = "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
+                Write-Warning $discordMessage
+                Send-DiscordNotification `
+                  -Title "Newer version of Moonrock [$LuaRock] upstream (${{ github.ref_name }})" `
+                  -Description $discordMessage `
+                  -Color "16705372"
+              } elseif ((-NOT ($VersionSearch -eq $UpstreamVersionSearch)) -And ($ignoredUpstream -contains $UpstreamVersionSearch)) {
+                Write-Debug "Ignoring upstream version [$UpstreamVersionSearch] of $LuaRock (Ours: [$VersionSearch]) per ignore_upstream"
+              }
+
+              $installModule = $false
+              if (-NOT ($VersionList -eq $VersionSearch)) {
+                Write-Debug "Installing $LuaRock because current version [$VersionList] does not match latest version [$VersionSearch]"
+                $installModule = $true
+              }
+
+              if (-NOT $installModule) {
+                if ($yaml[$LuaRock].files.Count -gt 0) {
+                  $yaml[$LuaRock].files | ForEach-Object {
+                    $requiredFilePath = "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)"
+                    if (-NOT (Test-Path $requiredFilePath -PathType Leaf)) {
+                      Write-Debug "Installing $LuaRock because required file does not exist: $requiredFilePath"
+                      $installModule = $true
+                    }
+                  }
+                }
+              }
+
+              if ($yaml[$LuaRock].lua_only -eq $true) {
+                $rockFilter = "$LuaRock-*.all.rock"
+              } else {
+                $archTag = if ($Platform -eq 'x86') { 'win32-x86' } else { 'win32-x86_64' }
+                $rockFilter = "$LuaRock-*.$archTag.rock"
+              }
+              if ($installModule -Or (Get-ChildItem -File $LuaRockServer -Filter $rockFilter).Count -lt 1) {
+                if (-Not $installModule) {
+                  Write-Debug "Installing $LuaRock because the rock is missing for $rockFilter"
+                }
+                Write-Host "**** Installing $LuaRock ****"
+                Write-Debug "Checking Dependencies"
+                if ($yaml[$LuaRock].external_deps.Count -gt 0) {
+                  $yaml[$LuaRock].external_deps | ForEach-Object {
+                    $_ | Out-File $LuaRocksDir/vcpkg_mq.txt
+                  }
+                  Write-Debug "Running vcpkg_mq for dependencies..."
+                  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$vcpkg_mq" -ProjectName LuaRocks -ProjectDirectory "$LuaRocksDir" -MQRoot "${{ github.workspace }}" -Platform $Platform -Toolchain v143
+                  Write-Debug "Done Running vcpkg_mq"
+                } else {
+                  Write-Debug "No dependencies needed"
+                }
+                $cmd = ".\luarocks install $LuaRock$luarocksQuiet"
+                Write-Debug "Performing Install: $cmd"
+                $LuaInstallOutput = Invoke-Expression $cmd
+                $installSucceeded = $?
+                $LuaInstallOutput = $LuaInstallOutput -join "`r`n"
+                # Track every package luarocks reports as installed (including transitive deps)
+                # so a later iteration can recognize them even when the command says "already installed".
+                [regex]::Matches($LuaInstallOutput, '(\S+)\s+\S+\s+is now installed in') | ForEach-Object {
+                  $installedThisRun[$_.Groups[1].Value] = $true
+                }
+                if (-NOT $installSucceeded) {
+                  $failMsg = "FAILED: $cmd"
+                  Send-DiscordNotification `
+                    -Title "LuaRocks install command failed for [$LuaRock] (${{ github.ref_name }})" `
+                    -Description $failMsg `
+                    -Color "15548997"
+                  Write-Debug -Message $LuaInstallOutput
+                  Write-Error $failMsg
+                } else {
+                  if (-NOT $installedThisRun.ContainsKey($LuaRock)) {
+                    $failMsg = "Failed to install $LuaRock during this run."
+                    Send-DiscordNotification `
+                      -Title "LuaRocks install failed for [$LuaRock] (${{ github.ref_name }})" `
+                      -Description $failMsg `
+                      -Color "15548997"
+                    Write-Debug $LuaInstallOutput
+                    Write-Error $failMsg
+                  } else {
+                    $filesGood = $true
+                    if ($yaml[$LuaRock].files.Count -gt 0) {
+                      $yaml[$LuaRock].files | ForEach-Object {
+                        if (-NOT (Test-Path "$($LuaRocksDir)\$luajitVersion$($systreeNode)\systree\lib\lua\5.1\$($_)" -PathType Leaf)) {
+                          $filesGood = $false
+                          $failMsg = "LuaRocks error:  $LuaRock missing file $_"
+                          Send-DiscordNotification `
+                            -Title "LuaRocks missing file for [$LuaRock] (${{ github.ref_name }})" `
+                            -Description $failMsg `
+                            -Color "15548997"
+                          Write-Debug $LuaInstallOutput
+                          Write-Error $failMsg
+                        }
+                      }
+                    } elseif ($yaml[$LuaRock].lua_only -eq $true) {
+                      # Nothing else to check since this is pure lua.
+                    } elseif ((Get-ChildItem -File $LuaRockServer -Filter $rockFilter).Count -lt 1) {
+                      $filesGood = $false
+                      $failMsg = "LuaRocks error:  $LuaRock had no files and is missing rock."
+                      Send-DiscordNotification `
+                        -Title "LuaRocks missing rock for [$LuaRock] (${{ github.ref_name }})" `
+                        -Description $failMsg `
+                        -Color "15548997"
+                      Write-Debug -Message $LuaInstallOutput
+                      Write-Error $failMsg
+                    }
+                    if ($filesGood) {
+                      Set-Location $LuaRockServer
+                      $LuaPackOutput = (& "$LuaRocksDir\luarocks" pack $LuaRock)
+                      Set-Location $LuaRocksDir
+                      $updateManifest = $true
+                    }
+                  }
+                }
+              }
+            }
+
+            Write-Host "**** Updating RockServer ****"
+            Get-ChildItem -File $LuaRockServer -Filter *.rock | ForEach-Object {
+              $foundMatch = $false
+              $rockFileName = $_.Name
+              $rockFilePath = $_.FullName
+              ForEach ($LuaRock in $yaml.Keys) {
+                if ($rockFileName -match $LuaRock) {
+                  $foundMatch = $true
+                }
+              }
+
+              if (-NOT $foundMatch) {
+                Write-Host "**** Removing: $rockFileName ****"
+                Remove-Item -Path $rockFilePath -Force
+                $updateManifest = $true
+              }
+            }
+            if ($updateManifest) {
+              Write-Host "**** Updating RockServer Manifest ****"
+              git -C "$LuaRockServerRoot" config user.name "MQGitBot"
+              git -C "$LuaRockServerRoot" config user.email "mqgitbot@gmail.com"
+              $LuaManifestOutput = ./luarocks-admin make-manifest $LuaRockServer
+              if (!$?) {
+                Write-Error "Failed Updating Manifest: $LuaManifestOutput"
+              } else {
+                $gitStatusOutput = git -C "$LuaRockServerRoot" status --porcelain
+                                      # untracked files exist                            # uncommitted changes exist
+                if(($gitStatusOutput | Where-Object {$_ -match '^\?\?'}) -Or ($gitStatusOutput | Where-Object {$_ -notmatch '^\?\?'})) {
+                  $gitOutput = git -C "$LuaRockServerRoot" add "$LuaRockServerRoot"
+                  if (!$?) {
+                    Write-Error "LuaRocks could not add $LuaRockServerRoot -- $gitOutput"
+                  } else {
+                    $gitOutput = git -C "$LuaRockServerRoot" commit -m "Automatic update of LuaRocks $Platform"
+                    if (!$?) {
+                      Write-Error "LuaRocks could not commit changes -- $gitOutput"
+                    } else {
+                      $cmd = "git -C `"$LuaRockServerRoot`" push$gitQuiet"
+                      $cmd = $cmd.Trim()
+                      Write-Debug "Running: $cmd"
+                      $gitOutput = Invoke-Expression $cmd
+                      if (!$?) {
+                        Write-Error "LuaRocks could not push changes -- $gitOutput"
+                      }
+                    }
+                  }
+                } else {
+                  # tree is clean
+                  Write-Error "LuaRocks expected dirty tree, but nothing to commit"
+                }
+              }
+            }
+          }
