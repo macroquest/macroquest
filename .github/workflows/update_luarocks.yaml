@@ -9,6 +9,10 @@ on:
       vcpkg_fingerprint:
         required: true
         type: string
+      debug:
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       client_target:
@@ -23,6 +27,11 @@ on:
         description: "Fingerprint from the target build's run."
         required: true
         type: string
+      debug:
+        description: "Enable verbose output"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   # Serialize LuaRocks runs so two cannot race on the push to the moonrocks repo.
@@ -37,26 +46,44 @@ jobs:
     if: github.repository == 'macroquest/macroquest'
     runs-on: [fast, self-hosted, Windows, X64]
     steps:
+      - name: Check on-disk vcpkg fingerprint
+        id: check_vcpkg
+        shell: pwsh
+        run: |
+          $want = "${{ inputs.vcpkg_fingerprint }}"
+          $script = "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1"
+          $have = if (Test-Path $script) { try { & $script -Mode Fingerprint } catch { "none" } } else { "none" }
+          if ($have -eq $want) {
+            echo "match=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "match=false" >> $env:GITHUB_OUTPUT
+          }
+
       - name: Install and cache PowerShell modules
         uses: Knightly1/psmodulecache@v6
         with:
           modules-to-cache: powershell-yaml
 
       - name: Checkout code
+        if: steps.check_vcpkg.outputs.match != 'true'
         uses: actions/checkout@v6
 
       - name: Sync submodule URLs
+        if: steps.check_vcpkg.outputs.match != 'true'
         run: git submodule sync --recursive
 
       - name: Update builtin submodules
+        if: steps.check_vcpkg.outputs.match != 'true'
         run: git submodule update --init --recursive --depth=1
 
       - name: Setup MSBuild
+        if: steps.check_vcpkg.outputs.match != 'true'
         uses: microsoft/setup-msbuild@v3
         with:
           msbuild-architecture: x64
 
       - name: Resolve vcpkg cache paths
+        if: steps.check_vcpkg.outputs.match != 'true'
         id: vcpkg_paths
         shell: pwsh
         run: |
@@ -64,20 +91,6 @@ jobs:
           "list<<__PATHS_END__" >> $env:GITHUB_OUTPUT
           $p                    >> $env:GITHUB_OUTPUT
           "__PATHS_END__"       >> $env:GITHUB_OUTPUT
-
-      - name: Check vcpkg matches requested fingerprint
-        id: check_vcpkg
-        shell: pwsh
-        run: |
-          # We need the EXACT vcpkg the build produced. Skip the restore only if what is already on
-          # disk fingerprints to the requested value; otherwise we must restore the exact cache.
-          $want = "${{ inputs.vcpkg_fingerprint }}"
-          $have = try { & "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1" -Mode Fingerprint } catch { "none" }
-          if ($have -eq $want) {
-            echo "match=true" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "match=false" >> $env:GITHUB_OUTPUT
-          }
 
       - name: Restore vcpkg Cache (exact)
         if: steps.check_vcpkg.outputs.match != 'true'
@@ -109,7 +122,7 @@ jobs:
       - name: Update LuaRocks binaries
         shell: pwsh
         run: |
-          $debug = $env:ACTIONS_STEP_DEBUG -eq 'true'
+          $debug = ($env:RUNNER_DEBUG -eq '1') -or ('${{ inputs.debug }}' -eq 'true')
           if ($debug) {
             $DebugPreference = 'Continue'
           }
