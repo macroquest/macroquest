@@ -126,8 +126,6 @@ jobs:
           if ($debug) {
             $DebugPreference = 'Continue'
           }
-          $ErrorActionPreference = 'Continue'
-          $hadFailure = $false
 
           $LuaCloneDir = "${{ github.workspace }}\build\Lua\LuaRocks"
           $LuaRocksDir = "$LuaCloneDir\LuaRocks"
@@ -387,7 +385,6 @@ jobs:
                     -Color "15548997"
                   Write-Debug -Message $LuaInstallOutput
                   Write-Error $failMsg
-                  $hadFailure = $true
                 } else {
                   if (-NOT $installedThisRun.ContainsKey($LuaRock)) {
                     $failMsg = "Failed to install $LuaRock during this run."
@@ -397,7 +394,6 @@ jobs:
                       -Color "15548997"
                     Write-Debug $LuaInstallOutput
                     Write-Error $failMsg
-                    $hadFailure = $true
                   } else {
                     $filesGood = $true
                     if ($yaml[$LuaRock].files.Count -gt 0) {
@@ -411,7 +407,6 @@ jobs:
                             -Color "15548997"
                           Write-Debug $LuaInstallOutput
                           Write-Error $failMsg
-                          $hadFailure = $true
                         }
                       }
                     } elseif ($yaml[$LuaRock].lua_only -eq $true) {
@@ -425,7 +420,6 @@ jobs:
                         -Color "15548997"
                       Write-Debug -Message $LuaInstallOutput
                       Write-Error $failMsg
-                      $hadFailure = $true
                     }
                     if ($filesGood) {
                       Set-Location $LuaRockServer
@@ -462,7 +456,6 @@ jobs:
               $LuaManifestOutput = ./luarocks-admin make-manifest $LuaRockServer
               if (!$?) {
                 Write-Error "Failed Updating Manifest: $LuaManifestOutput"
-                $hadFailure = $true
               } else {
                 $gitStatusOutput = git -C "$LuaRockServerRoot" status --porcelain
                                       # untracked files exist                            # uncommitted changes exist
@@ -470,12 +463,10 @@ jobs:
                   $gitOutput = git -C "$LuaRockServerRoot" add "$LuaRockServerRoot"
                   if (!$?) {
                     Write-Error "LuaRocks could not add $LuaRockServerRoot -- $gitOutput"
-                    $hadFailure = $true
                   } else {
                     $gitOutput = git -C "$LuaRockServerRoot" commit -m "Automatic update of LuaRocks $Platform"
                     if (!$?) {
                       Write-Error "LuaRocks could not commit changes -- $gitOutput"
-                      $hadFailure = $true
                     } else {
                       $cmd = "git -C `"$LuaRockServerRoot`" push$gitQuiet"
                       $cmd = $cmd.Trim()
@@ -483,20 +474,13 @@ jobs:
                       $gitOutput = Invoke-Expression $cmd
                       if (!$?) {
                         Write-Error "LuaRocks could not push changes -- $gitOutput"
-                        $hadFailure = $true
                       }
                     }
                   }
                 } else {
                   # tree is clean
                   Write-Error "LuaRocks expected dirty tree, but nothing to commit"
-                  $hadFailure = $true
                 }
               }
             }
-          }
-
-          if ($hadFailure) {
-            Write-Error "LuaRocks update completed with one or more failures (see above)."
-            exit 1
           }

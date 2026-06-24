@@ -287,14 +287,6 @@ jobs:
             ${{ runner.os }}-vcpkg-${{ env.platform }}-
             ${{ runner.os }}-vcpkg-
 
-      - name: Fingerprint vcpkg (pre-build)
-        id: vcpkg_pre
-        shell: pwsh
-        run: |
-          # On a cold build vcpkg may not be installed yet, so a missing fingerprint is recorded as "none"
-          $h = try { & "$env:GITHUB_WORKSPACE/tools/build_scripts/Get-VcpkgState.ps1" -Mode Fingerprint } catch { "none" }
-          echo "hash=$h" >> $env:GITHUB_OUTPUT
-
       - name: Build MQ2Main:${{ env.platform }} Release for ${{ inputs.client_target }}
         run: msbuild src/MacroQuestCustom.sln /NoLogo /Verbosity:minimal /p:Configuration=Release /p:Platform=${{ env.platform }} /m /t:core\MQ2Main /p:PreferredToolArchitecture=x64
 
@@ -311,8 +303,17 @@ jobs:
           "## vcpkg fingerprint (copy for a luarocks-only dispatch)" >> $env:GITHUB_STEP_SUMMARY
           $h                                                         >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Look up existing vcpkg cache
+        id: vcpkg_cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ steps.vcpkg_paths.outputs.list }}
+          key: ${{ runner.os }}-vcpkg-${{ env.platform }}-${{ steps.vcpkg_post.outputs.hash }}
+          lookup-only: true
+
       - name: Save vcpkg Cache
-        if: steps.vcpkg_pre.outputs.hash != steps.vcpkg_post.outputs.hash
+        if: steps.vcpkg_cache.outputs.cache-hit != 'true'
+        continue-on-error: true
         uses: actions/cache/save@v5
         with:
           path: ${{ steps.vcpkg_paths.outputs.list }}
