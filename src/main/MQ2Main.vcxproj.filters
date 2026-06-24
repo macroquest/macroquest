@@ -57,6 +57,12 @@
     <Filter Include="Header Files\mq\api">
       <UniqueIdentifier>{5a764db5-6fa5-456d-b603-465edf27eec0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mq\contrib">
+      <UniqueIdentifier>{c7f8e1a2-4b3d-4e6f-9a1b-2c3d4e5f6a7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mq\contrib\glm">
+      <UniqueIdentifier>{f64a4be1-5971-4052-96b4-0e4e33ebe83b}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\api">
       <UniqueIdentifier>{eab18ae6-9d25-410f-a584-982be8ed8523}</UniqueIdentifier>
     </Filter>
@@ -577,6 +583,12 @@
     <ClInclude Include="..\..\include\mq\api\Spawns.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\GameObject.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\api\SpawnUtils.h">
+      <Filter>Header Files\mq\api</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\mq\api\MacroAPI.h">
       <Filter>Header Files\mq\api</Filter>
     </ClInclude>
@@ -630,6 +642,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\Logging.h">
       <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\base\Math.h">
+      <Filter>Header Files\mq\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\mq\contrib\glm\glmUtils.h">
+      <Filter>Header Files\mq\contrib\glm</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\mq\base\PluginHandle.h">
       <Filter>Header Files\mq\base</Filter>

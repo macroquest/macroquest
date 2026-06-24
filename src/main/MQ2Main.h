@@ -693,6 +693,7 @@ inline DEPRECATE("Use GetMembershipLevel instead of GetSubscriptionLevel") int G
 
 #include "mq/api/Achievements.h"
 #include "mq/api/Spells.h"
+#include "mq/base/Math.h"
 
 #include "GraphicsEngine.h"  // TODO: Move exports to mq/api header
 

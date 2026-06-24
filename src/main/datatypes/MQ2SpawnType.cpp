@@ -819,12 +819,12 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::Distance:
-		Dest.Float = GetDistance(pSpawn->X, pSpawn->Y);
+		Dest.Float = GetDistanceFromPlayer(pSpawn->X, pSpawn->Y);
 		Dest.Type = pFloatType;
 		return true;
 
 	case SpawnMembers::Distance3D:
-		Dest.Float = DistanceToSpawn3D(pControlledPlayer, pSpawn);
+		Dest.Float = GetDistance3D(pControlledPlayer, pSpawn);
 		Dest.Type = pFloatType;
 		return true;
 

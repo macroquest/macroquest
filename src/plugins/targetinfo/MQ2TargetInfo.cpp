@@ -855,7 +855,7 @@ PLUGIN_API void OnPulse()
 					// then distance
 					if(gBShowDistance)
 					{
-						float dist = Distance3DToSpawn(pLocalPlayer, pTarget);
+						float dist = GetDistance3D(pLocalPlayer, pTarget);
 						sprintf_s(szTargetDist, "%.2f", dist);
 
 						if (dist < 250)
