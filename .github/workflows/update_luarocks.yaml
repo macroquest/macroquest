@@ -270,7 +270,7 @@ jobs:
               $LuaSearchOutput | ForEach-Object {
                 if ([string]::IsNullOrWhiteSpace($VersionSearch)) {
                   if ($CorrectSection) {
-                    if ($_ -match "(src)") {
+                    if ($_ -match '\(') {
                       $VersionSearch = $_.Split("(")[0].Trim()
                     }
                   } elseif ($_.Trim() -eq "$LuaRock")  {
@@ -290,7 +290,7 @@ jobs:
               $UpstreamLuaSearchOutput | ForEach-Object {
                 if ([string]::IsNullOrWhiteSpace($UpstreamVersionSearch)) {
                   if ($CorrectSection) {
-                    if ($_ -match "(src)") {
+                    if ($_ -match '\(') {
                       $UpstreamVersionSearch = $_.Split("(")[0].Trim()
                     }
                   } elseif ($_.Trim() -eq "$LuaRock")  {
@@ -318,13 +318,16 @@ jobs:
                 }
               }
 
-              if (-NOT ($VersionSearch -eq $UpstreamVersionSearch)) {
+              $ignoredUpstream = @($yaml[$LuaRock].ignore_upstream)
+              if ((-NOT ($VersionSearch -eq $UpstreamVersionSearch)) -And ($ignoredUpstream -notcontains $UpstreamVersionSearch)) {
                 $discordMessage = "A newer version of $LuaRock exists upstream, the MQ moonrocks repository needs to be updated: (Ours: [$VersionSearch] Upstream: [$UpstreamVersionSearch])"
                 Write-Warning $discordMessage
                 Send-DiscordNotification `
                   -Title "Newer version of Moonrock [$LuaRock] upstream (${{ github.ref_name }})" `
                   -Description $discordMessage `
                   -Color "16705372"
+              } elseif ((-NOT ($VersionSearch -eq $UpstreamVersionSearch)) -And ($ignoredUpstream -contains $UpstreamVersionSearch)) {
+                Write-Debug "Ignoring upstream version [$UpstreamVersionSearch] of $LuaRock (Ours: [$VersionSearch]) per ignore_upstream"
               }
 
               $installModule = $false
