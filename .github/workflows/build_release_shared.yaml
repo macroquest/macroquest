@@ -175,7 +175,7 @@ jobs:
         run: |
           $versionFile = "src/eqlib/src/eqlibVersionInfo.h"
           $versionInfo = Get-Content $versionFile
-          $versionInfo = $versionInfo -replace '#define EQLIB_GIT_HASH "(.*)"', "#define EQLIB_GIT_HASH `"$eqlibCommitHash`""
+          $versionInfo = $versionInfo -replace '#define EQLIB_GIT_HASH "(.*)"', "#define EQLIB_GIT_HASH `"$(git -C src/eqlib rev-parse --short HEAD)`""
           $versionInfo | Set-Content $versionFile
 
       - name: Customize Loader Update URL
