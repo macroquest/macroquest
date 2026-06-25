@@ -3625,6 +3625,17 @@ const char* ParseSearchSpawnArgs(char* szArg, const char* szRest, MQSpawnSearch*
 		{
 			pSearchSpawn->bTargetable = true;
 		}
+		else if (!_stricmp(szArg, "name"))
+		{
+			GetArg(szArg, szRest, 1);
+			if (szArg[0] == '=')
+			{
+				pSearchSpawn->bExactName = true;
+				szArg++;
+			}
+			strcpy_s(pSearchSpawn->szName, szArg);
+			szRest = GetNextArg(szRest, 1);
+		}
 		else if (!_stricmp(szArg, "range"))
 		{
 			GetArg(szArg, szRest, 1);

@@ -1,3 +1,9 @@
+## 6/24/2026
+
+### Features
+
+- Added a `name` keyword to spawn searches for searching by name when the name would otherwise be interpreted as a class. For example, `name magician` searches for a spawn containing the name "magician" instead of matching the Magician class. Prefix the name with `=` for an exact match (e.g. `name =Magician`).
+
 ## 6/23/2026
 
 ### Features
