@@ -3,6 +3,7 @@
 // Used by MacroQuest.rc
 //
 #define IDI_ICON1                       108
+#define IDI_ICON2                       109
 
 // Next default values for new objects
 // 
