@@ -14,6 +14,9 @@
 
 #include "imgui_engine.h"
 
+// For icon access
+#include "../resource.h"
+
 #include "imgui/ImGuiUtils.h"
 
 #include "imgui/imgui.h"
@@ -22,6 +25,17 @@
 #include "imgui_impl_dx11.h"
 
 #include <d3d11.h>
+
+// For setting the settings UI taskbar icon
+#include <ShObjIdl.h>
+#include <shellapi.h>
+#include <propvarutil.h>
+#include <propkey.h>
+
+#include <string>
+
+#pragma comment(lib, "shell32")
+#pragma comment(lib, "ole32")
 
 // Data
 static ID3D11Device* s_d3dDevice = nullptr;
@@ -35,6 +49,54 @@ void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+static void (*s_origPlatformCreateWindow)(ImGuiViewport*) = nullptr;
+
+// Need both the normal icon set (alt-tab) and the AUM icon set (taskbar)
+static void ConfigureViewportWindow(HWND hwnd)
+{
+	if (hwnd == nullptr)
+		return;
+
+	static const HINSTANCE hInst = ::GetModuleHandleW(nullptr);
+	static const HICON hIconBig = static_cast<HICON>(::LoadImageW(hInst, MAKEINTRESOURCEW(IDI_ICON2), IMAGE_ICON, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON), 0));
+	static const HICON hIconSmall = static_cast<HICON>(::LoadImageW(hInst, MAKEINTRESOURCEW(IDI_ICON2), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0));
+
+	if (hIconBig != nullptr)
+		::SendMessageW(hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hIconBig));
+
+	if (hIconSmall != nullptr)
+		::SendMessageW(hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hIconSmall));
+
+	static const PROPERTYKEY kAppUserModelID = INIT_PKEY_AppUserModel_ID;
+	static const PROPERTYKEY kRelaunchIconResource = INIT_PKEY_AppUserModel_RelaunchIconResource;
+
+	IPropertyStore* store = nullptr;
+	if (SUCCEEDED(::SHGetPropertyStoreForWindow(hwnd, IID_PPV_ARGS(&store))) && store != nullptr)
+	{
+		PROPVARIANT pv;
+
+		if (SUCCEEDED(::InitPropVariantFromString(L"MacroQuest.MacroQuest.LauncherWindow", &pv)))
+		{
+			store->SetValue(kAppUserModelID, pv);
+			::PropVariantClear(&pv);
+		}
+
+		wchar_t modulePath[MAX_PATH];
+		if (::GetModuleFileNameW(nullptr, modulePath, MAX_PATH) != 0)
+		{
+			const std::wstring iconResource = std::wstring(modulePath) + L",-" + std::to_wstring(IDI_ICON2);
+			if (SUCCEEDED(::InitPropVariantFromString(iconResource.c_str(), &pv)))
+			{
+				store->SetValue(kRelaunchIconResource, pv);
+				::PropVariantClear(&pv);
+			}
+		}
+
+		store->Commit();
+		store->Release();
+	}
+}
 
 void LauncherImGui::Backend::Init(HWND hWnd, const char* iniFilename, const char* logFilename)
 {
@@ -63,6 +125,16 @@ void LauncherImGui::Backend::Init(HWND hWnd, const char* iniFilename, const char
 
 	ImGui_ImplWin32_Init(hWnd);
 	ImGui_ImplDX11_Init(s_d3dDevice, s_d3dDeviceContext);
+
+	// Hook viewport window creation so we can attach our icon
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	s_origPlatformCreateWindow = platformIO.Platform_CreateWindow;
+	platformIO.Platform_CreateWindow = [](ImGuiViewport* viewport)
+		{
+			if (s_origPlatformCreateWindow != nullptr)
+				s_origPlatformCreateWindow(viewport);
+			ConfigureViewportWindow(static_cast<HWND>(viewport->PlatformHandleRaw));
+		};
 
 	// setup fonts
 	io.Fonts->Clear();
