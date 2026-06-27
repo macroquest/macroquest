@@ -1673,46 +1673,15 @@ login::db::Results<ProfileRecord> login::db::GetProfiles(std::string_view group)
 
 std::vector<ProfileRecord> login::db::GetActiveProfiles(std::string_view group)
 {
-	return WithDb::Query<std::vector<ProfileRecord>>(SQLITE_OPEN_READONLY,
-		R"(
-			SELECT hotkey, character, server,
-				COALESCE(profiles.eq_path, profile_groups.eq_path) AS eq_path,
-				additional_eqgame_args, sounds
-			FROM profiles
-			JOIN characters ON characters.id = character_id
-			JOIN profile_groups ON profile_groups.id = group_id
-			WHERE profile_groups.name = LOWER(?)
-				AND will_load <> 0
-			ORDER BY profiles.sort_order ASC)",
-		[group](sqlite3_stmt* stmt, sqlite3*)
-		{
-			std::vector<ProfileRecord> profiles;
-			BindText(stmt, 1, group);
+	// There is information in this that we don't need, but the join time is negligble compared to the query drift debt
+	std::vector<ProfileRecord> profiles;
+	for (const ProfileRecord& profile : GetProfiles(group))
+	{
+		if (profile.willLoad)
+			profiles.push_back(profile);
+	}
 
-			while (sqlite3_step(stmt) == SQLITE_ROW)
-			{
-				ProfileRecord profile;
-				if (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
-					profile.hotkey = ReadText(stmt, 0);
-
-				profile.characterName = ReadText(stmt, 1);
-				profile.serverName = ReadText(stmt, 2);
-
-				if (sqlite3_column_type(stmt, 3) != SQLITE_NULL)
-					profile.eqPath = ReadText(stmt, 3);
-
-				if (sqlite3_column_type(stmt, 4) != SQLITE_NULL)
-					profile.additionalEqgameArgs = ReadText(stmt, 4);
-
-				profile.sounds = sqlite3_column_int(stmt, 5) != 0;
-
-				profile.profileName = group;
-
-				profiles.push_back(std::move(profile));
-			}
-
-			return profiles;
-		});
+	return profiles;
 }
 
 void login::db::CreateProfile(const ProfileRecord& profile)
