@@ -479,24 +479,25 @@ static void Pulse()
 	SPAWNINFO* pChar = pCharOrMount = pControlledPlayer;
 
 	// Drop out here if we're waiting for something.
-	if (!pChar || gZoning) return;
-	if (!pLocalPC) return;
+	if (!pChar || gZoning)
+		return;
+	if (!pLocalPC)
+		return;
 
 	if (pLocalPlayer)
 		pChar = pLocalPlayer;
 
 	static int16_t LastZone = -1;
-	static SPAWNINFO* pCharOld = nullptr;
 	static float LastX = 0.0f;
 	static float LastY = 0.0f;
 	static uint64_t LastMoveTick = 0;
 	static uint32_t MapDelay = 0;
 
-	if (pChar != pCharOld && WereWeZoning)
+	// This relies on the early out for pChar and pLocalPC above
+	if (WereWeZoning)
 	{
 		// Reset after zoning completes
 		WereWeZoning = false;
-		pCharOld = pChar;
 		gFaceAngle = 10000.0f;
 		gLookAngle = 10000.0f;
 		gbMoving = false;
