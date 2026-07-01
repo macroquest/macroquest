@@ -1,0 +1,12 @@
+diff --git a/sleepy_discord/client.cpp b/sleepy_discord/client.cpp
+--- a/sleepy_discord/client.cpp
++++ b/sleepy_discord/client.cpp
+@@ -437,6 +437,8 @@ namespace SleepyDiscord {
+ 
+ 	void BaseDiscordClient::reconnect(const unsigned int status) {
+ 		std::lock_guard<std::mutex> lock(connectionMutex);
++		if (isQuiting())
++			return; // Don't reconnect while shutting down, otherwise teardown never completes
+ 		if (isCurrentlyWaitingToReconnect == true)
+ 			return; //don't try to reconnect when waiting to reconnect
+ 		isCurrentlyWaitingToReconnect = true;

@@ -1,0 +1,12 @@
+diff --git a/include/sleepy_discord/asio_websocketconnection.h b/include/sleepy_discord/asio_websocketconnection.h
+--- a/include/sleepy_discord/asio_websocketconnection.h
++++ b/include/sleepy_discord/asio_websocketconnection.h
+@@ -116,7 +116,7 @@ namespace SleepyDiscord {
+ 			// 1.2 seconds sounds reasonable.
+ 			auto cancelSignal = std::make_shared<asio::cancellation_signal>();
+ 			using TimeoutTimerType = std::shared_ptr<asio::steady_timer>;
+-			TimeoutTimerType connectDeadline = makeTimer(std::chrono::duration<double>(1.2), [cancelSignal, self](const asio::error_code& err) {
++			TimeoutTimerType connectDeadline = makeTimer(std::chrono::duration<double>(10.0), [cancelSignal, self](const asio::error_code& err) {
+ 				if (err)
+ 					return;
+ 					

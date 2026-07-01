@@ -1,0 +1,30 @@
+diff --git a/include/sleepy_discord/asio_websocketconnection.h b/include/sleepy_discord/asio_websocketconnection.h
+--- a/include/sleepy_discord/asio_websocketconnection.h
++++ b/include/sleepy_discord/asio_websocketconnection.h
+@@ -672,13 +672,19 @@ namespace SleepyDiscord {
+ 				receiver.onMessage(payload);
+ 			} break;
+ 			case closeOp: {
+-				// first two bytes of the payload is the close code
+-				std::array<uint8_t, sizeof(uint16_t)> networkInt{};
+-				std::memcpy(networkInt.data(), payload.data(), networkInt.size());
+-				uint16_t closeCode = net2System16(networkInt);
+-				auto reasonStart = payload.begin();
+-				std::advance(reasonStart, networkInt.size());
+-				std::string reason = std::string{reasonStart, payload.end()};
++				// first two bytes of the payload is the close code, but a close frame is
++				// allowed to carry an empty or sub-2-byte payload. Advancing the iterator
++				// unconditionally then dereferences an out-of-range iterator
++				uint16_t closeCode = 0;
++				std::string reason;
++				if (payload.size() >= sizeof(uint16_t)) {
++					std::array<uint8_t, sizeof(uint16_t)> networkInt{};
++					std::memcpy(networkInt.data(), payload.data(), networkInt.size());
++					closeCode = net2System16(networkInt);
++					auto reasonStart = payload.begin();
++					std::advance(reasonStart, networkInt.size());
++					reason = std::string{reasonStart, payload.end()};
++				}
+ 				std::cout << "Close " << closeCode << ": " << reason << '\n';
+ 				receiver.onClose(closeCode, reason); // tell the receiver before closing
+ 				close(closeCode, reason, true); // echo close or close socket, can be both

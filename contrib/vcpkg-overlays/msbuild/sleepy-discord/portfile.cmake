@@ -15,6 +15,10 @@ vcpkg_from_github(
         fix-messing-header.patch
         fix-cpp20-error.patch
         fix-uninitialized-payload-length.patch
+        fix-close-frame-short-payload.patch
+        fix-connect-shutdown-use-after-free.patch
+        fix-connect-timeout.patch
+        fix-no-reconnect-while-quitting.patch
 )
 
 # Handle version data here to prevent issues from doing this twice in parallel

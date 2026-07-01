@@ -1,0 +1,17 @@
+diff --git a/include/sleepy_discord/asio_websocketconnection.h b/include/sleepy_discord/asio_websocketconnection.h
+--- a/include/sleepy_discord/asio_websocketconnection.h
++++ b/include/sleepy_discord/asio_websocketconnection.h
+@@ -122,11 +122,11 @@ namespace SleepyDiscord {
+ 					
+ 				cancelSignal->emit(asio::cancellation_type::all);
+ 				self->logError("connect took too long, canceling", err);
+-				self->socketPtr->async_shutdown([](const asio::error_code& _) {});
++				self->socketPtr->async_shutdown([self](const asio::error_code& _) {});
+ 			});
+ 
+ 			auto cleanUp = [self, connectDeadline]() {
+-				self->socketPtr->async_shutdown([](const asio::error_code& _) {});
++				self->socketPtr->async_shutdown([self](const asio::error_code& _) {});
+ 				connectDeadline->cancel();
+ 			};
+ 
