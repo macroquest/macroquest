@@ -457,18 +457,35 @@ void LuaDropbox::Receive(const std::shared_ptr<Message>& message)
 {
 	try
 	{
-		ScopedYieldDisabler disableYield(LuaThread::get_from(m_thread.state()));
+		std::shared_ptr<LuaThread> luaThread = LuaThread::get_from(m_thread.state());
+
+		// remove any existing hooks, they will be re-installed when running in onpulse.
+		// this prevents the forced-yield hook from suspending the message callback mid-
+		// execution, which would leave the coroutine suspended and corrupt it when the
+		// next message resumes it with a freshly pushed function and arguments.
+		if (luaThread)
+			lua_sethook(luaThread->GetLuaThread().lua_state(), nullptr, 0, 0);
+
+		ScopedYieldDisabler disableYield(luaThread);
 
 		sol::function_result result = m_coroutine(LuaMessage(this, message));
 		if (!result.valid())
 		{
 			LuaError("Lua Actor Failure:\n%s", sol::stack::get<std::string>(result.lua_state(), result.stack_index()).c_str());
 			result.abandon();
+
+			// an error in the callback leaves the coroutine's thread in a state that can never
+			// be resumed again, so recreate it to allow subsequent messages to be processed
+			m_thread = sol::thread::create(m_parentThread.state());
+			m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 		}
 	}
 	catch (std::runtime_error& e)
 	{
 		LuaError("Lua Actor Failure:\n%s", e.what());
+
+		m_thread = sol::thread::create(m_parentThread.state());
+		m_coroutine = sol::coroutine(m_thread.state(), m_callback);
 	}
 }
 
