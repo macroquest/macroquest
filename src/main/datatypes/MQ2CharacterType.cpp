@@ -1351,7 +1351,7 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::PlatinumShared:
 		Dest.DWord = pLocalPC->BankSharedPlat;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Cash:
@@ -1361,42 +1361,42 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::Platinum:
 		Dest.DWord = pLocalPC->GetPlatinum();
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CursorPlatinum:
 		Dest.DWord = pProfile->CursorPlat;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Gold:
 		Dest.DWord = pLocalPC->GetGold();
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CursorGold:
 		Dest.DWord = pProfile->CursorGold;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Silver:
 		Dest.DWord = pLocalPC->GetSilver();
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CursorSilver:
 		Dest.DWord = pProfile->CursorSilver;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::Copper:
 		Dest.DWord = pLocalPC->GetCopper();
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CursorCopper:
 		Dest.DWord = pProfile->CursorCopper;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CashBank:
@@ -1409,22 +1409,22 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::PlatinumBank:
 		Dest.DWord = pLocalPC->BankPlat;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::GoldBank:
 		Dest.DWord = pLocalPC->BankGold;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::SilverBank:
 		Dest.DWord = pLocalPC->BankSilver;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::CopperBank:
 		Dest.DWord = pLocalPC->BankCopper;
-		Dest.Type = pIntType;
+		Dest.Type = pInt64Type;
 		return true;
 
 	case CharacterMembers::AAExp:
