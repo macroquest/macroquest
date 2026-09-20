@@ -94,22 +94,22 @@ bool MQBankType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQT
 		return true;
 
 	case BankTypeMembers::Platinum:
-		Dest.Int64 = pLocalPC->BankPlat;
+		Dest.Set(pLocalPC->BankPlat);
 		Dest.Type = pInt64Type;
 		return true;
 
 	case BankTypeMembers::Gold:
-		Dest.Int64 = pLocalPC->BankGold;
+		Dest.Set(pLocalPC->BankGold);
 		Dest.Type = pInt64Type;
 		return true;
 
 	case BankTypeMembers::Silver:
-		Dest.Int64 = pLocalPC->BankSilver;
+		Dest.Set(pLocalPC->BankSilver);
 		Dest.Type = pInt64Type;
 		return true;
 
 	case BankTypeMembers::Copper:
-		Dest.Int64 = pLocalPC->BankCopper;
+		Dest.Set(pLocalPC->BankCopper);
 		Dest.Type = pInt64Type;
 		return true;
 
