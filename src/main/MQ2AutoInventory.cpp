@@ -1079,7 +1079,10 @@ static void FindItemPulse()
 
 	if (gbStartDeleting)
 	{
-		if (pCursorAttachment && pCursorAttachment->Type == eCursorAttachment_None)
+		// Wait until the cursor is empty before picking up the next item. We can't rely on
+		// pCursorAttachment->Type here because the game no longer resets it to eCursorAttachment_None.
+		PcProfile* pProfile = GetPcProfile();
+		if (pProfile && !pProfile->GetInventorySlot(InvSlot_Cursor))
 		{
 			// user wants us to delete stuff. Delete one item per frame.
 			if (!gDeleteList.empty())
