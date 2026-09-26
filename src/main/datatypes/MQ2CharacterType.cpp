@@ -105,7 +105,6 @@ enum class CharacterMembers
 	CopperBank,
 	Stunned,
 	RangedReady,
-	AltTimerReady,
 	MaxEndurance,
 	PctEndurance,
 	AltAbility,
@@ -452,7 +451,6 @@ MQ2CharacterType::MQ2CharacterType() : MQ2Type("character")
 	ScopedTypeMember(CharacterMembers, CopperBank);
 	ScopedTypeMember(CharacterMembers, Stunned);
 	ScopedTypeMember(CharacterMembers, RangedReady);
-	ScopedTypeMember(CharacterMembers, AltTimerReady);
 	ScopedTypeMember(CharacterMembers, MaxEndurance);
 	ScopedTypeMember(CharacterMembers, PctEndurance);
 	ScopedTypeMember(CharacterMembers, AltAbility);
@@ -2073,11 +2071,6 @@ bool MQ2CharacterType::GetMember(MQVarPtr VarPtr, const char* Member, char* Inde
 
 	case CharacterMembers::RangedReady:
 		Dest.Set(pEverQuestInfo->PrimaryAttackReady != 0);
-		Dest.Type = pBoolType;
-		return true;
-
-	case CharacterMembers::AltTimerReady:
-		Dest.Set(true); // this is broken and should be fixed or removed.
 		Dest.Type = pBoolType;
 		return true;
 
