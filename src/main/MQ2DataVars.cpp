@@ -878,6 +878,10 @@ void CheckChatForEvent(const char* szMsg)
 		strcpy_s(szClean, len + 64, out.c_str());
 	}
 
+	// Faction messages contain stml anchor tags (for example <a Faction="251">Frogloks of Guk</a>)
+	// instead of \x12 links. Strip the tags, keeping the inner text.
+	StripStmlAnchorTags(szClean);
+
 	strncpy_s(EventMsg, szClean, MAX_STRING - 1);
 	EventMsg[MAX_STRING - 1] = 0;
 	if (pMQ2Blech)

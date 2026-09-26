@@ -133,8 +133,9 @@ void LuaEventProcessor::Process(std::string_view line)
 	m_currentLine = nullptr;
 
 	// Split event handling by whether we have links in the string or not. If there are no links in
-	// the string then this is much simpler.
-	if (line.find_first_of('\x12') == std::string::npos)
+	// the string then this is much simpler. Faction messages contain stml anchor tags (for example
+	// <a Faction="251">Frogloks of Guk</a>) instead of \x12 links, so treat those as links too.
+	if (line.find_first_of('\x12') == std::string::npos && line.find("<a ") == std::string::npos)
 	{
 		StripMQChat(line, line_char);
 
@@ -155,6 +156,7 @@ void LuaEventProcessor::Process(std::string_view line)
 			CXStr line_str(line);
 			line_str = CleanItemTags(line_str, false);
 			StripMQChat(line_str, line_char_stripped);
+			StripStmlAnchorTags(line_char_stripped);
 			m_currentLineStripped = line_char_stripped;
 		}
 		else if (!m_blech->IsEmpty())
@@ -169,6 +171,7 @@ void LuaEventProcessor::Process(std::string_view line)
 			CXStr line_str(line);
 			line_str = CleanItemTags(line_str, false);
 			StripMQChat(line_str, line_char_stripped);
+			StripStmlAnchorTags(line_char_stripped);
 
 			m_currentLineStripped = line_char_stripped;
 			m_currentLine = line_char_stripped;
