@@ -1043,7 +1043,6 @@ static void FindItemPulse()
 			if (!gSellList.empty())
 			{
 				ItemGlobalIndex itemIndex = gSellList.front();
-				gSellList.pop_front();
 
 				if (ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(itemIndex))
 				{
@@ -1055,6 +1054,7 @@ static void FindItemPulse()
 							WriteChatf("Sold %d %s", pItem->GetItemCount(), pItem->GetName());
 							DoCommandf("/sellitem %d", pItem->GetItemCount());
 							SellTimer = GetTickCount64();
+							gSellList.pop_front();
 							didSell = true;
 						}
 					}
@@ -1063,6 +1063,10 @@ static void FindItemPulse()
 					{
 						pMerchantWnd->SelectBuySellSlot(itemIndex, itemIndex.GetTopSlot());
 					}
+				}
+				else
+				{
+					gSellList.pop_front();
 				}
 			}
 
