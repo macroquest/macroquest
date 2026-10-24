@@ -162,6 +162,7 @@ enum class SpawnMembers
 	MyBuff,
 	MyBuffCount,
 	MyBuffDuration,
+	Offline,
 };
 
 enum class SpawnMethods
@@ -316,6 +317,7 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, MyBuff);
 	ScopedTypeMember(SpawnMembers, MyBuffCount);
 	ScopedTypeMember(SpawnMembers, MyBuffDuration);
+	ScopedTypeMember(SpawnMembers, Offline);
 
 	ScopedTypeMethod(SpawnMethods, DoTarget);
 	ScopedTypeMethod(SpawnMethods, DoFace);
@@ -1582,6 +1584,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 			}
 		}
 		return false;
+
+	case SpawnMembers::Offline:
+		Dest.Set(pSpawn->bOfflineMode != 0);
+		Dest.Type = pBoolType;
+		return true;
 
 	default:
 		return false;
