@@ -22,7 +22,11 @@
 
 #include <mutex>
 #include <string_view>
+#include <array>
 #include <fstream>
+
+#include <regex>
+#include <misc/cpp/imgui_stdlib.h>
 
 using namespace mq::datatypes;
 
@@ -37,10 +41,13 @@ MQ2DisplayItemType* pDisplayItemType = nullptr;
 const int BUTTON_SPACING = 22;
 const int BUTTON_GROUP_HEIGHT = 34;
 
+const int MAX_CUSTOM_BUTTONS = 20;
+
 static bool s_refreshItemDisplay = false;
 static bool s_refreshSpellDisplay = false;
 
 static bool s_inOnCleanUI = false;
+static bool s_settingsChangedForImGui = false;
 
 struct ItemEffectConfig {
 	ItemSpellTypes effectType;
@@ -75,7 +82,8 @@ public:
 	static constexpr inline bool default_persistWindowBounds = false;
 
 	static constexpr inline bool default_lootButtonsEnabled = true;
-	static constexpr inline bool default_lucyButtonEnabled = true;
+	static const inline int default_customURLCount = 1;
+	static const inline int default_custombuttonCount = 0;
 	static constexpr inline bool default_showSpellInfoOnItems = true;
 	static constexpr inline bool default_showSpellInfoOnSpells = true;
 	static constexpr inline MQColor default_spellColor = "#00ffff";
@@ -84,8 +92,48 @@ public:
 	inline bool IsLootButtonsEnabled() const { return m_lootButtonsEnabled; }
 	void SetLootButtonsEnabled(bool enabled);
 
-	inline bool IsLucyButtonEnabled() const { return m_lucyButtonEnabled; }
-	void SetLucyButtonEnabled(bool enabled);
+	inline int GetCustomURLCount() const { return m_customURLCount; }
+	void SetCustomURLCount(int count);
+	inline int GetCustomButtonCount() const { return m_custombuttonCount; }
+	void SetCustomButtonCount(int count);
+
+	inline std::string ButtonURL(int idx) const;
+	inline std::string ButtonName(int idx) const;
+	void SetButtonURL(int idx, std::string url);
+	void SetButtonName(int idx, std::string name);
+
+	struct CustomButton
+	{
+		std::string action;
+		std::string name;
+		bool pickupEnabled;
+	};
+
+	static inline const std::vector<CustomButton> default_customURL = []() {
+		std::vector<CustomButton> configs;
+		configs.reserve(MAX_CUSTOM_BUTTONS);
+		configs.push_back({ "https://lucy.allakhazam.com/item.html?id=%id%", "Lucy", false });
+		for (int i = 2; i <= MAX_CUSTOM_BUTTONS; ++i) {
+			configs.push_back({ "", "Custom" + std::to_string(i), false });
+		}
+		return configs;
+		}();
+
+	static inline const std::vector<CustomButton> default_customButton = []() {
+		std::vector<CustomButton> configs;
+		configs.reserve(MAX_CUSTOM_BUTTONS);
+		for (int i = 1; i <= MAX_CUSTOM_BUTTONS; ++i) {
+			configs.push_back({ "", "Custom" + std::to_string(i), false });
+		}
+		return configs;
+		}();
+
+	inline std::string CustButtonAction(int idx) const;
+	inline std::string CustButtonName(int idx) const;
+	inline bool IsCustPickupItemEnabled(int idx) const;
+	void SetCustButtonAction(int idx, std::string action);
+	void SetCustButtonName(int idx, std::string name);
+	void SetCustPickupItemEnabled(int idx, bool enabled);
 
 	inline bool IsShowSpellInfoOnItemsEnabled() const { return m_showSpellInfoOnItems; }
 	void SetShowSpellInfoOnItemsEnabled(bool enabled);
@@ -127,7 +175,10 @@ private:
 	bool m_persistWindowBounds = default_persistWindowBounds;
 
 	bool m_lootButtonsEnabled = default_lootButtonsEnabled;
-	bool m_lucyButtonEnabled = default_lucyButtonEnabled;
+	int m_customURLCount = default_customURLCount;
+	int m_custombuttonCount = default_custombuttonCount;
+	std::vector<CustomButton> m_customURL = default_customURL;
+	std::vector<CustomButton> m_customButtons = default_customButton;
 	bool m_showSpellInfoOnItems = default_showSpellInfoOnItems;
 	bool m_showSpellInfoOnSpells = default_showSpellInfoOnSpells;
 	std::map<ItemSpellTypes, MQColor> m_customColors;
@@ -150,44 +201,108 @@ void Settings::Load()
 	m_persistWindowBounds = GetPrivateProfileBool("Settings", "PersistWindowBounds", default_persistWindowBounds, INIFileName);
 
 	m_lootButtonsEnabled = GetPrivateProfileBool("Settings", "LootButton", default_lootButtonsEnabled, INIFileName);
-	m_lucyButtonEnabled = GetPrivateProfileBool("Settings", "LucyButton", default_lucyButtonEnabled, INIFileName);
 	m_showSpellInfoOnItems = GetPrivateProfileBool("Settings", "ShowSpellsInfoOnItems", default_showSpellInfoOnItems, INIFileName);
 	m_showSpellInfoOnSpells = GetPrivateProfileBool("Settings", "ShowSpellInfoOnSpells", default_showSpellInfoOnSpells, INIFileName);
+
+	m_customURLCount = std::clamp(GetPrivateProfileInt("Settings", "CustomURLCount", default_customURLCount, INIFileName), 0, MAX_CUSTOM_BUTTONS);
+	m_custombuttonCount = std::clamp(GetPrivateProfileInt("Settings", "CustomButtonCount", default_custombuttonCount, INIFileName), 0, MAX_CUSTOM_BUTTONS);
+
+	for (int i = 1; i <= m_customURLCount; ++i)
+	{
+		std::string actionKey = fmt::format("Button{:02d}URL", i);
+		std::string nameKey = fmt::format("Button{:02d}Name", i);
+
+		m_customURL[i - 1].action = GetPrivateProfileString("Settings", actionKey.c_str(), default_customURL[i - 1].action, INIFileName);
+		m_customURL[i - 1].name = GetPrivateProfileString("Settings", nameKey.c_str(), default_customURL[i - 1].name, INIFileName);
+	}
+
+	for (int i = 1; i <= m_custombuttonCount; ++i)
+	{
+		std::string actionKey = fmt::format("Cust{:02d}Action", i);
+		std::string nameKey = fmt::format("Cust{:02d}Name", i);
+		std::string pickupKey = fmt::format("Cust{:02d}PickupItemEnabled", i);
+
+		m_customButtons[i - 1].action = GetPrivateProfileString("Settings", actionKey.c_str(), default_customButton[i - 1].action, INIFileName);
+		m_customButtons[i - 1].name = GetPrivateProfileString("Settings", nameKey.c_str(), default_customButton[i - 1].name, INIFileName);
+		m_customButtons[i - 1].pickupEnabled = GetPrivateProfileBool("Settings", pickupKey.c_str(), default_customButton[i - 1].pickupEnabled, INIFileName);
+	}
+
+	const auto validHexColor = [](const std::string& value) -> bool
+		{
+			if (value.size() != 7 || value[0] != '#')
+				return false;
+			for (size_t i = 1; i < 7; ++i)
+			{
+				unsigned char ch = static_cast<unsigned char>(value[i]);
+				if (!std::isxdigit(ch))
+					return false;
+			}
+			return true;
+		};
 
 	for (const auto& conf : s_itemEffectConfigs)
 	{
 		std::string setting = GetPrivateProfileString("Settings", fmt::format("CustomColor_{}", conf.label), std::string(), INIFileName);
-		if (setting.size() == 7 && setting[0] == '#') // #rrggbb
+		if (validHexColor(setting))
 		{
 			m_customColors[conf.effectType] = MQColor(setting.c_str());
 		}
 	}
 
 	std::string itemColor = GetPrivateProfileString("Settings", "CustomColor_Item", std::string(), INIFileName);
-	if (itemColor.size() == 7 && itemColor[0] == '#')
+	if (validHexColor(itemColor))
 	{
 		m_itemColor = MQColor(itemColor.c_str());
 	}
 
 	std::string spellColor = GetPrivateProfileString("Settings", "CustomColor_Spell", std::string(), INIFileName);
-	if (spellColor.size() == 7 && spellColor[0] == '#')
+	if (validHexColor(spellColor))
 	{
 		m_spellColor = MQColor(spellColor.c_str());
 	}
+
+	// Notify UI to refresh
+	s_refreshItemDisplay = true;
+	s_refreshSpellDisplay = true;
+	s_settingsChangedForImGui = true;
 }
 
 void Settings::Reset()
 {
 	m_customColors.clear();
+	m_windowX = default_windowX;
+	m_windowY = default_windowY;
+	m_windowWidth = default_windowWidth;
+	m_windowHeight = default_windowHeight;
+	m_persistWindowBounds = default_persistWindowBounds;
 	m_lootButtonsEnabled = default_lootButtonsEnabled;
-	m_lucyButtonEnabled = default_lucyButtonEnabled;
+	m_customURLCount = default_customURLCount;
+	m_custombuttonCount = default_custombuttonCount;
+	m_itemColor = default_itemColor;
+	m_spellColor = default_spellColor;
+	m_customURL = default_customURL;
+	m_customButtons = default_customButton;
 	m_showSpellInfoOnItems = default_showSpellInfoOnItems;
 	m_showSpellInfoOnSpells = default_showSpellInfoOnSpells;
 
 	DeletePrivateProfileKey("Settings", "LootButton", INIFileName);
-	DeletePrivateProfileKey("Settings", "LucyButton", INIFileName);
+	DeletePrivateProfileKey("Settings", "CustomURLCount", INIFileName);
+	DeletePrivateProfileKey("Settings", "CustomButtonCount", INIFileName);
+	DeletePrivateProfileKey("Settings", "PersistWindowBounds", INIFileName);
+	DeletePrivateProfileKey("Settings", "WindowX", INIFileName);
+	DeletePrivateProfileKey("Settings", "WindowY", INIFileName);
+	DeletePrivateProfileKey("Settings", "WindowWidth", INIFileName);
+	DeletePrivateProfileKey("Settings", "WindowHeight", INIFileName);
 	DeletePrivateProfileKey("Settings", "ShowSpellsInfoOnItems", INIFileName);
 	DeletePrivateProfileKey("Settings", "ShowSpellInfoOnSpells", INIFileName);
+	for (int i = 1; i <= MAX_CUSTOM_BUTTONS; ++i)
+	{
+		DeletePrivateProfileKey("Settings", fmt::format("Button{:02d}URL", i), INIFileName);
+		DeletePrivateProfileKey("Settings", fmt::format("Button{:02d}Name", i), INIFileName);
+		DeletePrivateProfileKey("Settings", fmt::format("Cust{:02d}Action", i), INIFileName);
+		DeletePrivateProfileKey("Settings", fmt::format("Cust{:02d}Name", i), INIFileName);
+		DeletePrivateProfileKey("Settings", fmt::format("Cust{:02d}PickupItemEnabled", i), INIFileName);
+	}
 
 	for (const auto& conf : s_itemEffectConfigs)
 	{
@@ -196,6 +311,11 @@ void Settings::Reset()
 
 	ResetItemColor();
 	ResetSpellColor();
+
+	// Notify UI to refresh
+	s_refreshItemDisplay = true;
+	s_refreshSpellDisplay = true;
+	s_settingsChangedForImGui = true;
 }
 
 void Settings::SetWindowX(int x)
@@ -256,7 +376,7 @@ void Settings::SetItemSpellColor(ItemSpellTypes effectType, MQColor color)
 	auto [_, name] = GetEffectInfo(effectType);
 
 	WritePrivateProfileString("Settings", fmt::format("CustomColor_{}", name),
-		fmt::format("#{:6X}", color.ToRGB()), INIFileName);
+		fmt::format("#{:06X}", color.ToRGB()), INIFileName);
 
 	s_refreshItemDisplay = true;
 }
@@ -325,14 +445,130 @@ void Settings::SetLootButtonsEnabled(bool enabled)
 	s_refreshItemDisplay = true;
 }
 
-void Settings::SetLucyButtonEnabled(bool enabled)
+void Settings::SetCustomURLCount(int count)
 {
-	if (enabled == m_lucyButtonEnabled)
+	count = std::clamp(count, 0, MAX_CUSTOM_BUTTONS);
+	if (count == m_customURLCount)
+		return;
+	m_customURLCount = count;
+	WritePrivateProfileInt("Settings", "CustomURLCount", m_customURLCount, INIFileName);
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
+
+void Settings::SetCustomButtonCount(int count)
+{
+	count = std::clamp(count, 0, MAX_CUSTOM_BUTTONS);
+	if (count == m_custombuttonCount)
 		return;
 
-	m_lucyButtonEnabled = enabled;
-	WritePrivateProfileBool("Settings", "LucyButton", m_lucyButtonEnabled, INIFileName);
+	m_custombuttonCount = count;
+	WritePrivateProfileInt("Settings", "CustomButtonCount", m_custombuttonCount, INIFileName);
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
 
+inline std::string Settings::ButtonURL(int idx) const
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customURL.size()))
+		return {};
+	return m_customURL[idx].action;
+}
+
+inline std::string Settings::ButtonName(int idx) const
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customURL.size()))
+		return {};
+	return m_customURL[idx].name;
+}
+
+void Settings::SetButtonURL(int idx, const std::string action)
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customURL.size()))
+		return;
+	if (action == m_customURL[idx].action)
+		return;
+
+	m_customURL[idx].action = action;
+	WritePrivateProfileString("Settings", fmt::format("Button{:02d}URL", idx + 1), m_customURL[idx].action, INIFileName);
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
+
+void Settings::SetButtonName(int idx, std::string name)
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customURL.size()))
+		return;
+	if (name == m_customURL[idx].name)
+		return;
+	if (name.empty())
+		name = default_customURL[idx].name;
+
+	m_customURL[idx].name = name;
+	WritePrivateProfileString("Settings", fmt::format("Button{:02d}Name", idx + 1), m_customURL[idx].name, INIFileName);
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
+
+std::string Settings::CustButtonAction(int idx) const
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return {};
+	return m_customButtons[idx].action;
+}
+
+std::string Settings::CustButtonName(int idx) const
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return {};
+	return m_customButtons[idx].name;
+}
+
+bool Settings::IsCustPickupItemEnabled(int idx) const
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return false;
+	return m_customButtons[idx].pickupEnabled;
+}
+
+void Settings::SetCustButtonAction(int idx, std::string action)
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return;
+	if (action == m_customButtons[idx].action)
+		return;
+
+	m_customButtons[idx].action = action;
+	WritePrivateProfileString("Settings", fmt::format("Cust{:02d}Action", idx + 1), m_customButtons[idx].action, INIFileName);
+
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
+
+void Settings::SetCustButtonName(int idx, std::string name)
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return;
+	if (name == m_customButtons[idx].name)
+		return;
+	if (name.empty())
+		name = default_customButton[idx].name;
+
+	m_customButtons[idx].name = name;
+	WritePrivateProfileString("Settings", fmt::format("Cust{:02d}Name", idx + 1), m_customButtons[idx].name, INIFileName);
+	s_refreshItemDisplay = true;
+	s_settingsChangedForImGui = true;
+}
+
+void Settings::SetCustPickupItemEnabled(int idx, bool enabled)
+{
+	if (idx < 0 || idx >= static_cast<int>(m_customButtons.size()))
+		return;
+	if (enabled == m_customButtons[idx].pickupEnabled)
+		return;
+
+	m_customButtons[idx].pickupEnabled = enabled;
+	WritePrivateProfileBool("Settings", fmt::format("Cust{:02d}PickupItemEnabled", idx + 1), m_customButtons[idx].pickupEnabled, INIFileName);
 	s_refreshItemDisplay = true;
 }
 
@@ -400,7 +636,8 @@ struct ItemDisplayExtraInfo
 	bool scribedReceived = false;
 
 	// Our extra buttons
-	std::unique_ptr<CButtonWnd> pLucyButton = nullptr;
+	std::array<std::unique_ptr<CButtonWnd>, MAX_CUSTOM_BUTTONS> pURLButtons{};
+	std::array<std::unique_ptr<CButtonWnd>, MAX_CUSTOM_BUTTONS> pCustButtons{};
 	std::unique_ptr<CLabelWnd> pHeader = nullptr;         // Loot buttons header
 	std::unique_ptr<CButtonWnd> pAlwaysNeedBtn = nullptr;
 	std::unique_ptr<CButtonWnd> pAlwaysGreedBtn = nullptr;
@@ -422,6 +659,7 @@ struct ItemDisplayExtraInfo
 	void ResetItem();
 
 	void SetLootButtonsPosition(const CXPoint& labelPos);
+	void SetCustomButtonsPosition(const CXPoint& labelPos);
 };
 
 void ItemDisplayExtraInfo::ResetItem()
@@ -445,7 +683,8 @@ void ItemDisplayExtraInfo::Reset()
 {
 	ResetItem();
 
-	pLucyButton.reset();
+	for (auto& b : pURLButtons) b.reset();
+	for (auto& b : pCustButtons) b.reset();
 	ResetLootButtons();
 }
 
@@ -487,27 +726,73 @@ void ItemDisplayExtraInfo::SetLootButtonsPosition(const CXPoint& labelPos)
 		pAutoRollBtn->SetLocation(buttonRect);
 	}
 
-	if (pLucyButton)
+	// URL Button Grid layout configuration
+	const int itemsPerColumn = 2;    // Number of rows before wrapping right
+	const int horizontalPitch = 36;  // Adjust based on your UI needs (button width 36 + padding)
+	const int verticalPitch = 20;    // Adjust based on BUTTON_SPACING or preferred row gap
+	const CXSize urlButtonSize(36, 20);
+
+	// Starting base offsets relative to headerRect
+	const int baseLeftOffset = pHeader ? (headerRect.GetWidth() + 6) : 0;
+	const int baseTopOffset = -10;
+
+	// Loop handles any number of URL buttons automatically
+	for (size_t i = 0; i < pURLButtons.size(); ++i)
 	{
-		const CXSize lucyButtonSize(36, 20);
+		if (!pURLButtons[i])
+			continue;
 
+		// Calculate 2D grid coordinates (Fills columns vertically first)
+		int row = static_cast<int>(i) % itemsPerColumn;
+		int col = static_cast<int>(i) / itemsPerColumn;
+
+		// Calculate dynamic position offsets
+		int leftOffset = baseLeftOffset + (col * horizontalPitch);
+		int topOffset = baseTopOffset + (row * verticalPitch);
+
+		// Apply positions safely
 		CXRect buttonRect = headerRect;
-		buttonRect.SetTop(buttonRect.top + 10);
+		buttonRect.SetLeft(buttonRect.left + leftOffset);
+		buttonRect.SetTop(buttonRect.top + topOffset);
+		buttonRect.SetSize(urlButtonSize);
 
-		if (!pHeader)
-		{
-			buttonRect.SetSize(lucyButtonSize);
+		pURLButtons[i]->SetLocation(buttonRect);
+	}
+}
+void ItemDisplayExtraInfo::SetCustomButtonsPosition(const CXPoint& labelPos)
+{
+	CXRect headerRect{ labelPos, CXSize(80, 12) };
 
-			pLucyButton->SetLocation(buttonRect);
-		}
-		else
-		{
-			// offset to the right
-			buttonRect.SetLeft(buttonRect.left + buttonRect.GetWidth() + 6);
-			buttonRect.SetSize(lucyButtonSize);
+	const int itemsPerColumn = 2;   // Number of rows before wrapping right
+	const int horizontalPitch = 44; // Distance between starting points of adjacent buttons
+	const int verticalPitch = 15;   // Distance between rows
+	const CXSize custButtonSize(44, 15);
 
-			pLucyButton->SetLocation(buttonRect);
-		}
+	// Starting offsets relative to headerRect
+	const int baseLeftOffset = 60;  // 80 - 20 from original code
+	const int baseTopOffset = -8;
+
+	// Loop scales automatically across X-axis first
+	for (size_t i = 0; i < pCustButtons.size(); ++i)
+	{
+		if (!pCustButtons[i])
+			continue;
+
+		// Calculate 2D grid coordinates (Filling columns vertically first)
+		int row = static_cast<int>(i) % itemsPerColumn;
+		int col = static_cast<int>(i) / itemsPerColumn;
+
+		// Calculate dynamic position offsets
+		int leftOffset = baseLeftOffset + (col * horizontalPitch);
+		int topOffset = baseTopOffset + (row * verticalPitch);
+
+		// Apply positions safely
+		CXRect buttonRect = headerRect;
+		buttonRect.SetLeft(buttonRect.left + leftOffset);
+		buttonRect.SetTop(buttonRect.top + topOffset);
+		buttonRect.SetSize(custButtonSize);
+
+		pCustButtons[i]->SetLocation(buttonRect);
 	}
 }
 
@@ -1305,13 +1590,43 @@ static void CreateItemText(fmt::memory_buffer& buffer_, const ItemPtr& item, con
 
 //============================================================================
 
-void HandleLucyButton(const ItemPtr& pItem)
+static std::string ReplaceCustomButtonVariables(const ItemPtr& pItem, std::string text)
 {
-	if (pItem)
+	std::regex name("%name%");
+	std::regex id("%id%");
+	std::regex count("%count%");
+	text = std::regex_replace(text, name, pItem->GetName());
+	text = std::regex_replace(text, id, std::to_string(pItem->GetID()));
+	text = std::regex_replace(text, count, std::to_string(FindInventoryItemCountByName(pItem->GetName())));
+	return text;
+}
+
+static void HandleURLButton(int index, const ItemPtr& pItem)
+{
+	if (!pItem) return;
+	if (s_settings.ButtonURL(index).empty()) return;
+
+	std::string replaced = ReplaceCustomButtonVariables(pItem, s_settings.ButtonURL(index));
+	ShellExecuteA(nullptr, "open", replaced.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
+
+static void HandleCustButton(int index, const ItemPtr& pItem)
+{
+	if (!pItem) return;
+	if (s_settings.CustButtonAction(index).empty()) return;
+
+	if (s_settings.IsCustPickupItemEnabled(index))
 	{
-		std::string url = fmt::format("https://lucy.allakhazam.com/item.html?id={}", pItem->GetID());
-		ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		PcProfile* pProfile = GetPcProfile();
+		ItemPtr pCursorItem = pProfile ? pProfile->GetInventorySlot(InvSlot_Cursor) : nullptr;
+		if (!pCursorItem || pCursorItem->ItemGUID != pItem->ItemGUID)
+		{
+			std::string pickupItem = fmt::format("/nomodkey /shiftkey /itemnotify \"{}\" leftmouseup", pItem->GetName());
+			EzCommand(pickupItem.c_str());
+		}
 	}
+
+	EzCommand(ReplaceCustomButtonVariables(pItem, s_settings.CustButtonAction(index)).c_str());
 }
 
 class CItemDisplayWndOverride : public WindowOverride<CItemDisplayWndOverride, CItemDisplayWnd>
@@ -1336,10 +1651,22 @@ public:
 		{
 			ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
 
-			if (extraInfo.pLucyButton.get() == sender)
+			for (int i = 0; i < s_settings.GetCustomURLCount(); ++i)
 			{
-				HandleLucyButton(pItem);
-				return 0;
+				if (extraInfo.pURLButtons[i].get() == sender)
+				{
+					HandleURLButton(i, pItem);
+					return 0;
+				}
+			}
+
+			for (int i = 0; i < s_settings.GetCustomButtonCount(); ++i)
+			{
+				if (extraInfo.pCustButtons[i].get() == sender)
+				{
+					HandleCustButton(i, pItem);
+					return 0;
+				}
 			}
 
 #if HAS_ADVANCED_LOOT
@@ -1422,29 +1749,75 @@ public:
 	{
 		ItemDisplayExtraInfo& extraInfo = s_itemDisplayExtraInfo[this];
 
-		if (!extraInfo.pLucyButton && s_settings.IsLucyButtonEnabled())
-		{
-			// create lucy button
-			if (CControlTemplate* btnTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"))
+		auto createOrReset = [&](bool create, const std::string& text, std::unique_ptr<CButtonWnd>& slot)
 			{
-				uint32_t oldfont = std::exchange(btnTemplate->nFont, 1);
+				if (create)
+				{
+					if (CControlTemplate* btnTemplate = (CControlTemplate*)pSidlMgr->FindScreenPieceTemplate("IDW_ModButton"))
+					{
+						uint32_t oldfont = std::exchange(btnTemplate->nFont, 1);
 
-				CXWnd* pAnchor = this;
-				if (CXWnd* pDescriptionTab = GetChildItem("ItemDescriptionTab"))
-					pAnchor = pDescriptionTab;
+						CXWnd* pAnchor = this;
+						if (CXWnd* pDescriptionTab = GetChildItem("ItemDescriptionTab"))
+							pAnchor = pDescriptionTab;
 
-				CButtonWnd* pBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btnTemplate);
-				pBtn->SetCRNormal(MQColor(255, 255, 0));
-				pBtn->SetWindowText("Lucy");
-				pBtn->SetDecalTint(MQColor(0, 255, 255));
-				extraInfo.pLucyButton.reset(pBtn);
+						CButtonWnd* pBtn = (CButtonWnd*)pSidlMgr->CreateXWndFromTemplate(pAnchor, btnTemplate);
+						pBtn->SetCRNormal(MQColor(255, 255, 0));
+						pBtn->SetWindowText(text.c_str());
+						pBtn->SetDecalTint(MQColor(0, 255, 255));
+						slot.reset(pBtn);
 
-				btnTemplate->nFont = oldfont;
-			}
+						btnTemplate->nFont = oldfont;
+					}
+				}
+				else
+				{
+					slot.reset();
+				}
+			};
+		// Custom buttons
+		struct Def { const std::string action; const std::string name; bool pickup; std::unique_ptr<CButtonWnd>* slot; };
+
+		std::vector<Def> URLdefs;
+		URLdefs.reserve(s_settings.GetCustomURLCount());
+		for (int i = 0; i < s_settings.GetCustomURLCount(); ++i) {
+			URLdefs.emplace_back(Def{
+				s_settings.ButtonURL(i),
+				s_settings.ButtonName(i),
+				false,
+				&extraInfo.pURLButtons[i]
+				});
 		}
-		else if (extraInfo.pLucyButton && !s_settings.IsLucyButtonEnabled())
+		std::vector<Def> Buttondefs;
+		Buttondefs.reserve(s_settings.GetCustomButtonCount());
+		for (int i = 0; i < s_settings.GetCustomButtonCount(); ++i) {
+			Buttondefs.emplace_back(Def{
+				s_settings.CustButtonAction(i),
+				s_settings.CustButtonName(i),
+				s_settings.IsCustPickupItemEnabled(i),
+				&extraInfo.pCustButtons[i]
+				});
+		}
+
+		for (auto& d : URLdefs)
 		{
-			extraInfo.pLucyButton.reset();
+			bool shouldCreate = !d.action.empty();
+			createOrReset(shouldCreate, d.name, *d.slot);
+		}
+		for (int i = s_settings.GetCustomURLCount(); i < MAX_CUSTOM_BUTTONS; ++i)
+		{
+			createOrReset(false, {}, extraInfo.pURLButtons[i]);
+		}
+
+		bool haveInventory = (pItem && FindInventoryItemCountByName(pItem->GetName()) > 0);
+		for (auto& d : Buttondefs)
+		{
+			bool shouldCreate = !d.action.empty() && (!d.pickup || (d.pickup && haveInventory));
+			createOrReset(shouldCreate, d.name, *d.slot);
+		}
+		for (int i = s_settings.GetCustomButtonCount(); i < MAX_CUSTOM_BUTTONS; ++i)
+		{
+			createOrReset(false, {}, extraInfo.pCustButtons[i]);
 		}
 
 #if HAS_ADVANCED_LOOT
@@ -1497,8 +1870,9 @@ public:
 			extraInfo.pAutoRollBtn.reset();
 		}
 #endif // HAS_ADVANCED_LOOT
-
-		if (extraInfo.pHeader || extraInfo.pLucyButton)
+		bool hasURLButton = false;
+		for (auto& b : extraInfo.pURLButtons) if (b) { hasURLButton = true; break; }
+		if (extraInfo.pHeader || hasURLButton)
 		{
 			//------------------------------------------------------------------------
 			// Update position of labels
@@ -1531,6 +1905,23 @@ public:
 						extraInfo.SetLootButtonsPosition(pos);
 					}
 				}
+			}
+		}
+		bool hasCustButton = false;
+		for (auto& b : extraInfo.pCustButtons) if (b) { hasCustButton = true; break; }
+		if (hasCustButton)
+		{
+			//------------------------------------------------------------------------
+			// Update position of labels
+
+			// Define the position of everything in terms of the upper left corner of
+			// the header label.
+
+			// Try to show it in the 2nd column, if it isn't taken.
+			CXWnd* tempWnd = GetChildItem("IDW_ModButtonLabel");
+			if (tempWnd)
+			{
+				extraInfo.SetCustomButtonsPosition(tempWnd->GetLocation().TopLeft());
 			}
 		}
 
@@ -1812,16 +2203,22 @@ void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 	{
 		WriteChatf("Usage:");
 		WriteChatf("    /itemdisplay LootButton [on|off]");
-		WriteChatf("    /itemdisplay LucyButton [on|off]");
+		WriteChatf("    /itemdisplay CustomURLCount [0-%d]", MAX_CUSTOM_BUTTONS);
+		WriteChatf("    /itemdisplay URL[01-%d] \"URL\" \"ButtonName\"", MAX_CUSTOM_BUTTONS);
+		WriteChatf("    /itemdisplay CustomButtonCount [0-%d]", MAX_CUSTOM_BUTTONS);
+		WriteChatf("    /itemdisplay Custom[01-%d] \"Action\" \"ButtonName\" [PickupItem on|off]", MAX_CUSTOM_BUTTONS);
+		WriteChatf("        Action variables: %%name%% %%id%% %%count%%");
 		WriteChatf("    /itemdisplay reload");
 		return;
 	}
 
 	char szArg1[MAX_STRING] = { 0 };
 	char szArg2[MAX_STRING] = { 0 };
+	char szArg3[MAX_STRING] = { 0 };
+	char szArg4[MAX_STRING] = { 0 };
 	GetArg(szArg1, szLine, 1);
 
-	if (ci_equals(szArg1, "lootbutton") || ci_equals(szArg1, "lucybutton"))
+	if (ci_equals(szArg1, "lootbutton"))
 	{
 		GetArg(szArg2, szLine, 2);
 		bool bOn = true;
@@ -1845,10 +2242,76 @@ void ItemDisplayCmd(SPAWNINFO* pChar, char* szLine)
 			s_settings.SetLootButtonsEnabled(bToggle ? !s_settings.IsLootButtonsEnabled() : bOn);
 			WriteChatf("Display of the loot filter buttons is now %s.", (s_settings.IsLootButtonsEnabled() ? "\agEnabled\ax" : "\arDisabled\ax"));
 		}
-		else if (ci_equals(szArg1, "lucybutton"))
+	}
+	else if (ci_equals(szArg1, "customurlcount"))
+	{
+		GetArg(szArg2, szLine, 2);
+		int count = std::clamp(GetIntFromString(szArg2, s_settings.GetCustomURLCount()), 0, MAX_CUSTOM_BUTTONS);
+		s_settings.SetCustomURLCount(count);
+		WriteChatf("Custom URL button count is now: %d", s_settings.GetCustomURLCount());
+	}
+	else if (ci_equals(szArg1, "custombuttoncount"))
+	{
+		GetArg(szArg2, szLine, 2);
+		int count = std::clamp(GetIntFromString(szArg2, s_settings.GetCustomButtonCount()), 0, MAX_CUSTOM_BUTTONS);
+		s_settings.SetCustomButtonCount(count);
+		WriteChatf("Custom button count is now: %d", s_settings.GetCustomButtonCount());
+	}
+	else if (std::string_view arg1Str{ szArg1 }; _strnicmp(szArg1, "custom", 6) == 0 || (_strnicmp(szArg1, "url", 3) == 0 && arg1Str.size() >= 6 && _stricmp(szArg1 + arg1Str.size() - 6, "button") == 0))
+	{
+		GetArg(szArg2, szLine, 2);
+		GetArg(szArg3, szLine, 3);
+		GetArg(szArg4, szLine, 4);
+		bool bOn = false;
+		bool bToggle = false;
+
+		if (szArg4 && szArg4[0] != '\0')
 		{
-			s_settings.SetLucyButtonEnabled(bToggle ? !s_settings.IsLucyButtonEnabled() : bOn);
-			WriteChatf("Display of the lucy button is now \ay%s\ax.", (s_settings.IsLucyButtonEnabled() ? "\agEnabled\ax" : "\agDisabled\ax"));
+			if (ci_equals(szArg4, "off"))
+			{
+				bToggle = true;
+				bOn = false;
+			}
+			else if (ci_equals(szArg4, "on"))
+			{
+				bToggle = true;
+				bOn = true;
+			}
+		}
+
+		if (_strnicmp(szArg1, "url", 3) == 0)
+		{
+			// Extract index from "urlXXbutton" (starts at index 3, length 2)
+			int displayNum = std::atoi(szArg1 + 3);
+			int index = displayNum - 1;
+
+			if (index >= 0 && index < MAX_CUSTOM_BUTTONS) // Safety bounds check for URL buttons
+			{
+				s_settings.SetButtonURL(index, szArg2);
+				s_settings.SetButtonName(index, szArg3);
+				WriteChatf("URL button \"\ay%s\ax\" is now: \ay%s\ax", s_settings.ButtonName(index).c_str(), s_settings.ButtonURL(index).c_str());
+			}
+		}
+		else if (_strnicmp(szArg1, "custom", 6) == 0)
+		{
+			// Extract index from "customXX" (starts at index 6, length 2)
+			int displayNum = std::atoi(szArg1 + 6);
+			int index = displayNum - 1;
+
+			if (index >= 0 && index < MAX_CUSTOM_BUTTONS) // Safety bounds check for Custom buttons
+			{
+				s_settings.SetCustButtonAction(index, szArg2);
+				s_settings.SetCustButtonName(index, szArg3);
+				if (bToggle)
+					s_settings.SetCustPickupItemEnabled(index, bOn);
+
+				WriteChatf("Custom button %02d \"\ay%s\ax\" action is now: \ay%s\ax", displayNum, s_settings.CustButtonName(index).c_str(), s_settings.CustButtonAction(index).c_str());
+
+				if (bToggle)
+				{
+					WriteChatf("Custom button %02d Pickup Item is now: \ay%s\ax", displayNum, (s_settings.IsCustPickupItemEnabled(index) ? "\agEnabled\ax" : "\arDisabled\ax"));
+				}
+			}
 		}
 	}
 	else if (ci_equals(szArg1, "reload"))
@@ -1912,12 +2375,6 @@ void DrawItemDisplaySettingsPanel()
 		s_settings.SetLootButtonsEnabled(showLootButtons);
 	}
 
-	bool showLucyButton = s_settings.IsLucyButtonEnabled();
-	if (ImGui::Checkbox("Show Lucy Button", &showLucyButton))
-	{
-		s_settings.SetLucyButtonEnabled(showLucyButton);
-	}
-
 	bool showItemSpells = s_settings.IsShowSpellInfoOnItemsEnabled();
 	if (ImGui::Checkbox("Show Spell Info on Items", &showItemSpells))
 	{
@@ -1930,6 +2387,137 @@ void DrawItemDisplaySettingsPanel()
 		s_settings.SetShowSpellInfoOnSpellsEnabled(showSpells);
 	}
 
+	ImGui::NewLine();
+	ImGui::Text("URL Buttons");
+	ImGui::SameLine();
+
+	int urlButtonCount = s_settings.GetCustomURLCount();
+	if (ImGui::SliderInt("##UrlButtonCount", &urlButtonCount, 0, MAX_CUSTOM_BUTTONS))
+	{
+		s_settings.SetCustomURLCount(urlButtonCount);
+	}
+	ImGui::Separator();
+
+	struct ButtonCache {
+		std::string name;
+		std::string action;
+	};
+	static std::vector<ButtonCache> urlButtons;
+
+	urlButtons.resize(urlButtonCount);
+	for (int i = 0; i < urlButtonCount; ++i)
+	{
+		// 1. Isolate IDs for each URL row to prevent ImGui conflicts
+		ImGui::PushID(i + 1000);
+
+		// 2. Render row label
+		ImGui::Text("%d. Name", i + 1);
+		ImGui::SameLine();
+
+		// 3. URL Name Input Field
+		ImGui::SetNextItemWidth(80.f);
+		urlButtons[i].name = s_settings.ButtonName(i);
+		std::string urlNameLabel = "URL##URLName" + std::to_string(i);
+
+		if (ImGui::InputTextWithHint(urlNameLabel.c_str(), s_settings.default_customURL[i].name.c_str(), & urlButtons[i].name))
+		{
+			s_settings.SetButtonName(i, urlButtons[i].name);
+		}
+		ImGui::SameLine();
+
+		// 4. URL Path Input Field
+		ImGui::SetNextItemWidth(-120.f);
+		urlButtons[i].action = s_settings.ButtonURL(i);
+		std::string urlPathLabel = "##URL" + std::to_string(i);
+
+		if (ImGui::InputTextWithHint(urlPathLabel.c_str(), s_settings.default_customURL[i].action.c_str(), &urlButtons[i].action))
+		{
+			s_settings.SetButtonURL(i, urlButtons[i].action);
+		}
+
+		ImGui::PopID();
+	}
+
+
+	ImGui::NewLine();
+	ImGui::Text("Custom Buttons");
+	ImGui::SameLine();
+	int customButtonCount = s_settings.GetCustomButtonCount();
+	if (ImGui::SliderInt("##CustomButtonCount", &customButtonCount, 0, MAX_CUSTOM_BUTTONS))
+	{
+		s_settings.SetCustomButtonCount(customButtonCount);
+	}
+	ImGui::Separator();
+	static std::vector<ButtonCache> customButtons;
+
+	customButtonCount = s_settings.GetCustomButtonCount();
+	customButtons.resize(customButtonCount);
+	for (int i = 0; i < customButtonCount; ++i)
+	{
+		// 1. Isolate IDs for each row to prevent ImGui widget conflicts
+		ImGui::PushID(i + 2000);
+
+		// 2. Render row label (1-indexed for the user)
+		ImGui::Text("%d. Name", i + 1);
+		ImGui::SameLine();
+
+		// 3. Name Input Field
+		ImGui::SetNextItemWidth(80.f);
+		customButtons[i].name = s_settings.CustButtonName(i);
+		// Unique runtime label via ## suffix
+		std::string nameLabel = "Action##Name" + std::to_string(i);
+
+		if (ImGui::InputTextWithHint(nameLabel.c_str(), s_settings.default_customButton[i].name.c_str(), &customButtons[i].name))
+		{
+			s_settings.SetCustButtonName(i, customButtons[i].name);
+		}
+		ImGui::SameLine();
+
+		// 4. Action Input Field
+		ImGui::SetNextItemWidth(-120.f);
+		customButtons[i].action = s_settings.CustButtonAction(i);
+
+		if (ImGui::InputText("##Action", &customButtons[i].action))
+		{
+			s_settings.SetCustButtonAction(i, customButtons[i].action);
+		}
+		ImGui::SameLine();
+
+		// 5. Pickup Checkbox
+		bool showPickupItem = s_settings.IsCustPickupItemEnabled(i);
+		// Unique runtime label via ## suffix
+		std::string checkboxLabel = "Pickup##" + std::to_string(i);
+
+		if (ImGui::Checkbox(checkboxLabel.c_str(), &showPickupItem))
+		{
+			s_settings.SetCustPickupItemEnabled(i, showPickupItem);
+		}
+
+		ImGui::PopID();
+	}
+
+
+	// If settings reloaded/reset elsewhere, refresh ImGui static buffers
+	if (s_settingsChangedForImGui)
+	{
+		for (int i = 0; i < urlButtonCount; ++i)
+		{
+			urlButtons[i].name = s_settings.ButtonName(i);
+			urlButtons[i].action = s_settings.ButtonURL(i);
+		}
+
+		for (int i = 0; i < customButtonCount; ++i)
+		{
+			customButtons[i].name = s_settings.CustButtonName(i);
+			customButtons[i].action = s_settings.CustButtonAction(i);
+		}
+
+		s_settingsChangedForImGui = false;
+	}
+
+	ImGui::Text("Custom variables: %%name%% %%id%% %%count%%");
+
+	ImGui::NewLine();
 	{
 		ImColor imColor = s_settings.GetItemColor().ToImColor();
 
@@ -1949,7 +2537,7 @@ void DrawItemDisplaySettingsPanel()
 		{
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(20.f);
-			if (ImGui::Button("Reset"))
+			if (ImGui::Button("Reset##ItemText"))
 			{
 				s_settings.ResetItemColor();
 			}
@@ -1977,7 +2565,7 @@ void DrawItemDisplaySettingsPanel()
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(20.f);
 
-			if (ImGui::Button("Reset"))
+			if (ImGui::Button("Reset##SpellText"))
 			{
 				s_settings.ResetSpellColor();
 			}
@@ -2008,11 +2596,11 @@ void DrawItemDisplaySettingsPanel()
 			s_settings.SetItemSpellColor(config.effectType, newColor);
 		}
 
-		if (customColor.has_value())
+		if (customColor.has_value() && customColor.value() != color)
 		{
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(20.f);
-			if (ImGui::Button("Reset"))
+			if (ImGui::Button("Reset##SpellColor"))
 			{
 				s_settings.ResetItemSpellColor(config.effectType);
 			}
