@@ -1467,6 +1467,25 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 					return;
 				}
 
+				// If the tribute master window is open, a left click should select the item as
+				// a donation instead of picking it up. That requires a real click on the slot's
+				// window, so open the container and send the click to it. The container is left
+				// open so that the selection remains valid until the donation is made.
+				if (pTributeMasterWnd && pTributeMasterWnd->IsVisible() && !ItemOnCursor()
+					&& globalIndex.GetLocation() == eItemContainerPossessions)
+				{
+					OpenContainer(pContainer, true);
+
+					CInvSlot* pInvSlot = GetInvSlot(globalIndex);
+
+					if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, szNotification))
+					{
+						WriteChatf("Could not select item in %s %s for tribute donation.", szArg2, szArg3);
+					}
+
+					return;
+				}
+
 				// Either drop the item or pick it up, depending on whether we have an item on the cursor or not.
 				if (ItemOnCursor())
 				{
@@ -1608,6 +1627,29 @@ void ItemNotify(PSPAWNINFO pChar, char* szLine)
 			{
 				if (!_strnicmp(szNotification, "leftmouseup", 11))
 				{
+					// If the tribute master window is open, a left click should select the item as
+					// a donation instead of picking it up. That requires a real click on the slot's
+					// window, so open the container and send the click to it. The container is left
+					// open so that the selection remains valid until the donation is made.
+					if (pTributeMasterWnd && pTributeMasterWnd->IsVisible() && !ItemOnCursor()
+						&& pItem->GetItemLocation().GetLocation() == eItemContainerPossessions)
+					{
+						if (IsItemInsideContainer(pItem))
+						{
+							if (ItemClient* pContainer = FindItemByGlobalIndex(pItem->GetItemLocation().GetParent()))
+								OpenContainer(pContainer, true);
+						}
+
+						CInvSlot* pInvSlot = GetInvSlot(pItem->GetItemLocation());
+
+						if (!pInvSlot || !pInvSlot->pInvSlotWnd || !SendWndClick2(pInvSlot->pInvSlotWnd, szNotification))
+						{
+							WriteChatf("Could not select '%s' for tribute donation.", pItem->GetName());
+						}
+
+						return;
+					}
+
 					if (ItemOnCursor())
 					{
 						DropItem(pItem->GetItemLocation());
