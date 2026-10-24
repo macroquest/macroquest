@@ -164,10 +164,8 @@ enum class SpawnMembers
 	MyBuffDuration,
 	Offline,
 #if HAS_ENCOUNTER_LOCKING
-	EncounterLockState,
-	EncounterLocked,
+	EncounterLockStatus,
 	EncounterLockOwner,
-	EncounterLockAccess,
 	CanEngage,
 #endif
 };
@@ -326,10 +324,8 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, MyBuffDuration);
 	ScopedTypeMember(SpawnMembers, Offline);
 #if HAS_ENCOUNTER_LOCKING
-	ScopedTypeMember(SpawnMembers, EncounterLockState);
-	ScopedTypeMember(SpawnMembers, EncounterLocked);
+	ScopedTypeMember(SpawnMembers, EncounterLockStatus);
 	ScopedTypeMember(SpawnMembers, EncounterLockOwner);
-	ScopedTypeMember(SpawnMembers, EncounterLockAccess);
 	ScopedTypeMember(SpawnMembers, CanEngage);
 #endif
 
@@ -1605,14 +1601,21 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 #if HAS_ENCOUNTER_LOCKING
-	case SpawnMembers::EncounterLockState:
-		Dest.DWord = pSpawn->EncounterLockState;
-		Dest.Type = pIntType;
-		return true;
-
-	case SpawnMembers::EncounterLocked:
-		Dest.Set(pSpawn->EncounterLockState != 0);
-		Dest.Type = pBoolType;
+		case SpawnMembers::EncounterLockStatus:
+		switch (GetEncounterLockStatus(pSpawn))
+		{
+		case EncounterLockStatus::Unlocked:
+			strcpy_s(DataTypeTemp, "Unlocked");
+			break;
+		case EncounterLockStatus::LockedToMe:
+			strcpy_s(DataTypeTemp, "Mine");
+			break;
+		case EncounterLockStatus::LockedToOther:
+			strcpy_s(DataTypeTemp, "Other");
+			break;
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
 		return true;
 
 	case SpawnMembers::EncounterLockOwner:
@@ -1620,7 +1623,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::CanEngage:
-	case SpawnMembers::EncounterLockAccess:
 		Dest.Set(GetEncounterLockStatus(pSpawn) != EncounterLockStatus::LockedToOther);
 		Dest.Type = pBoolType;
 		return true;

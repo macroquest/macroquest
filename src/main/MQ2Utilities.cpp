@@ -7083,7 +7083,7 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 }
 
 #if HAS_ENCOUNTER_LOCKING
-bool IsEncounterLockOwnerWithMe(PlayerClient* pOwner)
+static bool IsEncounterLockOwnerWithMe(PlayerClient* pOwner)
 {
 	if (!pOwner || !pLocalPlayer)
 		return false;

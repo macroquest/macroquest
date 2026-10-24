@@ -49,6 +49,7 @@ enum class EncounterLockStatus : int
 	LockedToMe = 1,  // locked to me, my group, or my raid
 	LockedToOther = 2, // locked to someone I'm not with
 };
+EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn);
 #endif
 
 } // namespace mq
