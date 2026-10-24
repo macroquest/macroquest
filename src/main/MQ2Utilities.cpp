@@ -7082,9 +7082,9 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		static_cast<int>(bufferSize));
 }
 
-#if HAS_ENCOUNTER_LOCKING
 static bool IsEncounterLockOwnerWithMe(PlayerClient* pOwner)
 {
+#if HAS_ENCOUNTER_LOCKING
 	if (!pOwner || !pLocalPlayer)
 		return false;
 
@@ -7098,10 +7098,14 @@ static bool IsEncounterLockOwnerWithMe(PlayerClient* pOwner)
 		return true;
 
 	return false;
+#else
+	return true;
+#endif
 }
 
 EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 {
+#if HAS_ENCOUNTER_LOCKING
 	if (!pSpawn || pSpawn->EncounterLockState != 1)
 	{
 		return EncounterLockStatus::Unlocked;
@@ -7110,9 +7114,10 @@ EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 	return IsEncounterLockOwnerWithMe(pSpawn->GetEncounterLockOwner())
 		? EncounterLockStatus::LockedToMe
 		: EncounterLockStatus::LockedToOther;
-}
-
+#else
+	return EncounterLockStatus::Unlocked;
 #endif
+}
 
 //============================================================================
 
