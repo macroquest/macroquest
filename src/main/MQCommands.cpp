@@ -4044,7 +4044,7 @@ void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 {
 	if (!szLine[0])
 	{
-		SyntaxError("Usage: /timed <deciseconds> <command>");
+		SyntaxError("Usage: /timed <deciseconds|#s|#m|#ms> <command>");
 		return;
 	}
 
@@ -4055,7 +4055,28 @@ void DoTimedCmd(PlayerClient* pChar, const char* szLine)
 	if (!szRest[0])
 		return;
 
-	pCommandAPI->TimedCommand(szRest, GetIntFromString(szArg, 0) * 100);
+	// Parse the number, then interpret the unit from the exact remainder of the string.
+	// No suffix means deciseconds, matching the historical behavior.
+	int value = 0;
+	const std::from_chars_result result = std::from_chars(szArg, szArg + strlen(szArg), value);
+	const std::string_view suffix = result.ptr;
+
+	int delayMs;
+	if (suffix.empty())
+		delayMs = value * 100;
+	else if (ci_equals(suffix, "ms"))
+		delayMs = value;
+	else if (ci_equals(suffix, "s"))
+		delayMs = value * 1000;
+	else if (ci_equals(suffix, "m"))
+		delayMs = value * 60000;
+	else
+	{
+		SyntaxError("Usage: /timed <deciseconds|#s|#m|#ms> <command>");
+		return;
+	}
+
+	pCommandAPI->TimedCommand(szRest, delayMs);
 }
 
 void ClearErrorsCmd(PlayerClient* pChar, const char* szLine)
