@@ -576,74 +576,13 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pBoolType;
 		return true;
 
-	case SpawnMembers::Invis: {
+	case SpawnMembers::Invis:
+		// The type of invisibility can only be determined for the local player - see
+		// Invis on the character type. For spawns, the client only knows whether they
+		// are invis at all.
+		Dest.Set(pSpawn->HideMode != 0);
 		Dest.Type = pBoolType;
-		Dest.Set(false);
-
-		if (!Index[0])
-		{
-			Dest.Set(pSpawn->HideMode != 0);
-			return true;
-		}
-
-		enum class InvisModes {
-			Any = 0,
-			Regular = 1,
-			Undead = 2,
-			Animal = 3,
-			SoS = 4,
-		};
-		InvisModes mode = InvisModes::Any;
-
-		if (IsNumber(Index))
-		{
-			mode = static_cast<InvisModes>(GetIntFromString(Index, -1));
-			if (mode < InvisModes::Any || mode > InvisModes::SoS)
-				return true;
-		}
-		else
-		{
-			if (ci_equals(Index, "ANY"))
-				mode = InvisModes::Any;
-			else if (ci_equals(Index, "NORMAL"))
-				mode = InvisModes::Regular;
-			else if (ci_equals(Index, "UNDEAD"))
-				mode = InvisModes::Undead;
-			else if (ci_equals(Index, "ANIMAL"))
-				mode = InvisModes::Animal;
-			else if (ci_equals(Index, "SOS"))
-				mode = InvisModes::SoS;
-			else
-				return true;
-		}
-
-		switch (mode)
-		{
-		case InvisModes::Any:
-			Dest.Set(pSpawn->HideMode != 0);
-			break;
-		case InvisModes::Regular:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eAll) != 0);
-			break;
-		case InvisModes::Undead:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eUndead) != 0);
-			break;
-		case InvisModes::Animal:
-			Dest.Set(pLocalPC->CalculateInvisLevel(eAnimal) != 0);
-			break;
-		case InvisModes::SoS:
-			if (PcProfile* pProfile = GetPcProfile())
-			{
-				int skill = pLocalPC->GetAdjustedSkill(EQSKILL_HIDE);
-				// SOS has additional ranks that add additional effects.  Level 105 would return 2 total effects.
-				if (pProfile->bHide && pLocalPC->TotalEffect(SPA_SHROUD_OF_STEALTH) > 0 && skill >= 100)
-					Dest.Set(true);
-			}
-			break;
-		}
-
 		return true;
-	}
 
 	case SpawnMembers::Height:
 		Dest.Float = pSpawn->AvatarHeight;
