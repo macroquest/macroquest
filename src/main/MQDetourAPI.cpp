@@ -145,8 +145,8 @@ int memcheck0(unsigned char* buffer, size_t count);
 DETOUR_TRAMPOLINE_DEF(int, memcheck1_tramp, (unsigned char* buffer, size_t count, mckey key))
 int memcheck1(unsigned char* buffer, size_t count, mckey key);
 #if defined(__MemChecker4_x)
-DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count))
-int WINAPI memcheck4(unsigned char* buffer, size_t* count);
+DETOUR_TRAMPOLINE_DEF(int WINAPI, memcheck4_tramp, (unsigned char* buffer, size_t* count, void* ptr))
+int WINAPI memcheck4(unsigned char* buffer, size_t* count, void* ptr);
 #endif
 
 struct OrderedPatchSet
@@ -261,7 +261,7 @@ int memcheck1(unsigned char* buffer, size_t count, mckey key)
 }
 
 #if defined(__MemChecker4_x)
-int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
+int WINAPI memcheck4(unsigned char* buffer, size_t* count_, void* ptr)
 {
 	uintptr_t addr = reinterpret_cast<uintptr_t>(buffer);
 	size_t count = *count_ & 0xff;
@@ -275,7 +275,7 @@ int WINAPI memcheck4(unsigned char* buffer, size_t* count_)
 	if (detourState != AddressDetourState::CodeDetour)
 	{
 		s_inMemCheck4 = 1;
-		int result = memcheck4_tramp(buffer, count_);
+		int result = memcheck4_tramp(buffer, count_, ptr);
 		s_inMemCheck4 = 0;
 		return result;
 	}
