@@ -163,6 +163,11 @@ enum class SpawnMembers
 	MyBuffCount,
 	MyBuffDuration,
 	Offline,
+#if HAS_ENCOUNTER_LOCKING
+	EncounterLockState,
+	EncounterLocked,
+	EncounterLockOwner,
+#endif
 };
 
 enum class SpawnMethods
@@ -318,6 +323,11 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, MyBuffCount);
 	ScopedTypeMember(SpawnMembers, MyBuffDuration);
 	ScopedTypeMember(SpawnMembers, Offline);
+#if HAS_ENCOUNTER_LOCKING
+	ScopedTypeMember(SpawnMembers, EncounterLockState);
+	ScopedTypeMember(SpawnMembers, EncounterLocked);
+	ScopedTypeMember(SpawnMembers, EncounterLockOwner);
+#endif
 
 	ScopedTypeMethod(SpawnMethods, DoTarget);
 	ScopedTypeMethod(SpawnMethods, DoFace);
@@ -1589,6 +1599,22 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Set(pSpawn->bOfflineMode != 0);
 		Dest.Type = pBoolType;
 		return true;
+
+#if HAS_ENCOUNTER_LOCKING
+	case SpawnMembers::EncounterLockState:
+		Dest.DWord = pSpawn->EncounterLockState;
+		Dest.Type = pIntType;
+		return true;
+
+	case SpawnMembers::EncounterLocked:
+		Dest.Set(pSpawn->EncounterLockState != 0);
+		Dest.Type = pBoolType;
+		return true;
+
+	case SpawnMembers::EncounterLockOwner:
+		Dest = pSpawnType->MakeTypeVar(pSpawn->GetEncounterLockOwner());
+		return true;
+#endif
 
 	default:
 		return false;
