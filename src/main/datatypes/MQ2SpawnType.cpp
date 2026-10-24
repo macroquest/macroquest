@@ -167,6 +167,8 @@ enum class SpawnMembers
 	EncounterLockState,
 	EncounterLocked,
 	EncounterLockOwner,
+	EncounterLockAccess,
+	CanEngage,
 #endif
 };
 
@@ -327,6 +329,8 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, EncounterLockState);
 	ScopedTypeMember(SpawnMembers, EncounterLocked);
 	ScopedTypeMember(SpawnMembers, EncounterLockOwner);
+	ScopedTypeMember(SpawnMembers, EncounterLockAccess);
+	ScopedTypeMember(SpawnMembers, CanEngage);
 #endif
 
 	ScopedTypeMethod(SpawnMethods, DoTarget);
@@ -1613,6 +1617,12 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 
 	case SpawnMembers::EncounterLockOwner:
 		Dest = pSpawnType->MakeTypeVar(pSpawn->GetEncounterLockOwner());
+		return true;
+
+	case SpawnMembers::CanEngage:
+	case SpawnMembers::EncounterLockAccess:
+		Dest.Set(GetEncounterLockStatus(pSpawn) != EncounterLockStatus::LockedToOther);
+		Dest.Type = pBoolType;
 		return true;
 #endif
 
