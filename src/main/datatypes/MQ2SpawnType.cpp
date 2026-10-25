@@ -321,11 +321,9 @@ MQ2SpawnType::MQ2SpawnType() : MQ2Type("spawn")
 	ScopedTypeMember(SpawnMembers, MyBuffCount);
 	ScopedTypeMember(SpawnMembers, MyBuffDuration);
 	ScopedTypeMember(SpawnMembers, Offline);
-#if HAS_ENCOUNTER_LOCKING
 	ScopedTypeMember(SpawnMembers, EncounterLockStatus);
 	ScopedTypeMember(SpawnMembers, EncounterLockOwner);
 	ScopedTypeMember(SpawnMembers, CanEngage);
-#endif
 
 	ScopedTypeMethod(SpawnMethods, DoTarget);
 	ScopedTypeMethod(SpawnMethods, DoFace);
