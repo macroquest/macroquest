@@ -163,11 +163,9 @@ enum class SpawnMembers
 	MyBuffCount,
 	MyBuffDuration,
 	Offline,
-#if HAS_ENCOUNTER_LOCKING
 	EncounterLockStatus,
 	EncounterLockOwner,
 	CanEngage,
-#endif
 };
 
 enum class SpawnMethods
@@ -1600,8 +1598,7 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Type = pBoolType;
 		return true;
 
-#if HAS_ENCOUNTER_LOCKING
-		case SpawnMembers::EncounterLockStatus:
+	case SpawnMembers::EncounterLockStatus:
 		switch (GetEncounterLockStatus(pSpawn))
 		{
 		case EncounterLockStatus::Unlocked:
@@ -1626,7 +1623,6 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		Dest.Set(GetEncounterLockStatus(pSpawn) != EncounterLockStatus::LockedToOther);
 		Dest.Type = pBoolType;
 		return true;
-#endif
 
 	default:
 		return false;

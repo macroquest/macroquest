@@ -7082,27 +7082,6 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		static_cast<int>(bufferSize));
 }
 
-static bool IsEncounterLockOwnerWithMe(PlayerClient* pOwner)
-{
-#if HAS_ENCOUNTER_LOCKING
-	if (!pOwner || !pLocalPlayer)
-		return false;
-
-	if (pOwner == pLocalPlayer)
-		return true;
-
-	if (IsGroupMember(pOwner))
-		return true;
-
-	if (pRaid && pRaid->Invited == RaidStateInRaid && IsRaidMember(pOwner))
-		return true;
-
-	return false;
-#else
-	return true;
-#endif
-}
-
 EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 {
 #if HAS_ENCOUNTER_LOCKING
@@ -7111,9 +7090,21 @@ EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 		return EncounterLockStatus::Unlocked;
 	}
 
-	return IsEncounterLockOwnerWithMe(pSpawn->GetEncounterLockOwner())
-		? EncounterLockStatus::LockedToMe
-		: EncounterLockStatus::LockedToOther;
+	PlayerClient* pOwner = pSpawn->GetEncounterLockOwner();
+
+	if (!pOwner || !pLocalPlayer)
+		return EncounterLockStatus::LockedToOther;
+
+	if (pOwner == pLocalPlayer)
+		return EncounterLockStatus::LockedToMe;
+
+	if (IsGroupMember(pOwner))
+		return EncounterLockStatus::LockedToMe;
+
+	if (pRaid && pRaid->Invited == RaidStateInRaid && IsRaidMember(pOwner))
+		return EncounterLockStatus::LockedToMe;
+
+	return EncounterLockStatus::LockedToOther;
 #else
 	return EncounterLockStatus::Unlocked;
 #endif
