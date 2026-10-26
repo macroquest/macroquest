@@ -783,7 +783,7 @@ void MemSpell(PlayerClient* pChar, const char* szLine)
 	if (!pSpell)
 		return; // did not find spell
 
-	if (pSpell->ClassLevel[pChar->GetClass()] > pChar->Level)
+	if (pSpell->GetSpellLevelNeeded(pChar->GetClass()) > pChar->Level)
 		return; // level requirement not met
 
 	int loadout[NUM_SPELL_GEMS];
