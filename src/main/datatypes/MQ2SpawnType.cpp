@@ -1614,7 +1614,11 @@ bool MQ2SpawnType::GetMember(SPAWNINFO* pSpawn, const char* Member, char* Index,
 		return true;
 
 	case SpawnMembers::EncounterLockOwner:
+#if HAS_ENCOUNTER_LOCKING
 		Dest = pSpawnType->MakeTypeVar(pSpawn->GetEncounterLockOwner());
+#else
+		Dest = pSpawnType->MakeTypeVar(nullptr);
+#endif
 		return true;
 
 	case SpawnMembers::CanEngage:
