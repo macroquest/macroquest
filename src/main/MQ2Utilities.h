@@ -42,4 +42,12 @@ void FormatMoneyString(char(&szBuffer)[Size], uint64_t moneyAmount, GetMoneyFrom
 	FormatMoneyString(szBuffer, Size, moneyAmount, format);
 }
 
+enum class EncounterLockStatus : int
+{
+	Unlocked = 0,  // state 0 (open) or 2 (/yell): anyone can engage
+	LockedToMe = 1,  // locked to me, my group, or my raid
+	LockedToOther = 2, // locked to someone I'm not with
+};
+EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn);
+
 } // namespace mq

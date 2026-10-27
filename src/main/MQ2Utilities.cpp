@@ -5806,7 +5806,7 @@ bool PickupItem(const ItemGlobalIndex& globalIndex)
 
 	pInvSlotMgr->MoveItem(From, To);
 
-	// Do we have an item in the cursor still? 
+	// Do we have an item in the cursor still?
 	if (ItemPtr pCursorItem = pLocalPC->GetItemByGlobalIndex(To))
 	{
 		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1,
@@ -5937,7 +5937,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 			WriteChatf("Could not find the %d itemslot", ToInvSlot);
 			return false;
 		}
-		
+
 		// just move it from cursor to the slot
 		pInvSlotMgr->MoveItem(pLocalPC->CreateItemGlobalIndex(InvSlot_Cursor), globalIndex);
 
@@ -5950,7 +5950,7 @@ bool DropItem(const ItemGlobalIndex& globalIndex)
 
 	pInvSlotMgr->MoveItem(From, To);
 
-	// Do we have an item in the cursor still? 
+	// Do we have an item in the cursor still?
 	if (ItemPtr pCursorItem = pLocalPC->GetItemByGlobalIndex(From))
 	{
 		pCursorAttachment->AttachToCursor(nullptr, nullptr, eCursorAttachment_Item, -1,
@@ -6344,7 +6344,7 @@ bool LootInProgress(CAdvancedLootWnd* pAdvLoot, CListWnd* pPersonalList, CListWn
 			}
 		}
 	}
-#endif 
+#endif
 
 	return false;
 }
@@ -7080,6 +7080,34 @@ void PrettifyNumber(char* string, size_t bufferSize, int decimals /* = 0 */)
 		&fmt,
 		string,
 		static_cast<int>(bufferSize));
+}
+
+EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
+{
+#if HAS_ENCOUNTER_LOCKING
+	if (!pSpawn || pSpawn->EncounterLockState != 1)
+	{
+		return EncounterLockStatus::Unlocked;
+	}
+
+	PlayerClient* pOwner = pSpawn->GetEncounterLockOwner();
+
+	if (!pOwner || !pLocalPlayer)
+		return EncounterLockStatus::LockedToOther;
+
+	if (pOwner == pLocalPlayer)
+		return EncounterLockStatus::LockedToMe;
+
+	if (IsGroupMember(pOwner))
+		return EncounterLockStatus::LockedToMe;
+
+	if (pRaid && pRaid->Invited == RaidStateInRaid && IsRaidMember(pOwner))
+		return EncounterLockStatus::LockedToMe;
+
+	return EncounterLockStatus::LockedToOther;
+#else
+	return EncounterLockStatus::Unlocked;
+#endif
 }
 
 //============================================================================
