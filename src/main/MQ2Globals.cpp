@@ -511,6 +511,7 @@ const char* szZoneExpansionName[] = {
 	"Laurion's Song",           // 30
 	"The Outer Brood",          // 31
 	"The Shattering of Ro",     // 32
+	"The Favors of Fortune",     // 33
 };
 
 const char* GetZoneExpansionName(int expansion)
