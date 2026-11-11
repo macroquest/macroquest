@@ -99,7 +99,8 @@ public:
 			{
 				char szTemp[20];
 				sprintf_s(szTemp, "0/%d", list->ItemsArray.Count);
-				pCountLabel->SetWindowText(szTemp);
+				if (pCountLabel)
+					pCountLabel->SetWindowText(szTemp);
 
 				// we really need the list to fit to the window so people can actually see this new feature.
 				CXRect rectmain = pFIWnd->GetClientRect();
@@ -361,7 +362,8 @@ public:
 
 							char szTemp[26];
 							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							pCountLabel->SetWindowText(szTemp);
+							if (pCountLabel)
+								pCountLabel->SetWindowText(szTemp);
 
 							if (Selected == 0)
 							{
@@ -412,7 +414,8 @@ public:
 
 							char szTemp[26];
 							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							pCountLabel->SetWindowText(szTemp);
+							if (pCountLabel)
+								pCountLabel->SetWindowText(szTemp);
 
 							if (Checked == 0)
 							{
@@ -494,7 +497,8 @@ public:
 
 								char szTemp[26];
 								sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-								pCountLabel->SetWindowText(szTemp);
+								if (pCountLabel)
+									pCountLabel->SetWindowText(szTemp);
 
 								if (bFound)
 								{
