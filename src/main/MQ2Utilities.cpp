@@ -7092,6 +7092,11 @@ EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 
 	PlayerClient* pOwner = pSpawn->GetEncounterLockOwner();
 
+	if (pOwner->MasterID) {
+		if (PlayerClient* pMaster = GetSpawnByID(pOwner->MasterID)) {
+			pOwner = pMaster;
+		}
+
 	if (!pOwner || !pLocalPlayer)
 		return EncounterLockStatus::LockedToOther;
 
