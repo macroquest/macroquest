@@ -800,7 +800,7 @@ bool LuaProxyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	auto iter = m_luaType->m_members.find(Member);
 	if (iter != m_luaType->m_members.end())
 	{
-		// Lua datatypes always store their data as a sol::object
+		// Lua datatypes always store their data as a sol::main_object
 		auto data = VarPtr.Get<sol::main_object>();
 		if (data)
 		{
@@ -839,7 +839,7 @@ bool LuaProxyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool LuaProxyType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	// Lua datatypes always store their data as a sol::object
+	// Lua datatypes always store their data as a sol::main_object
 	auto data = VarPtr.Get<sol::main_object>();
 	if (data)
 	{
