@@ -7101,6 +7101,7 @@ EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 		{
 			pOwner = pMaster;
 		}
+	}
 
 
 	if (pOwner == pLocalPlayer)
