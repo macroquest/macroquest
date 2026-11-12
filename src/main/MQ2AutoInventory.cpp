@@ -82,6 +82,16 @@ static int CompareMoneyStrings(SListWndSortInfo* sInfo, GetMoneyFromStringFormat
 
 #if HAS_FIND_ITEM_WINDOW
 
+static void UpdateCountLabel(int checked, int total)
+{
+	if (!pCountLabel)
+		return;
+
+	char szTemp[26];
+	sprintf_s(szTemp, "%d/%d", checked, total);
+	pCountLabel->SetWindowText(szTemp);
+}
+
 // CFindItemWnd hooks
 class AutoInventory::FindItemWnd_Hook
 {
@@ -97,10 +107,7 @@ public:
 		{
 			if (MarkCol && list->Columns.Count > MarkCol)
 			{
-				char szTemp[20];
-				sprintf_s(szTemp, "0/%d", list->ItemsArray.Count);
-				if (pCountLabel)
-					pCountLabel->SetWindowText(szTemp);
+				UpdateCountLabel(0, list->ItemsArray.Count);
 
 				// we really need the list to fit to the window so people can actually see this new feature.
 				CXRect rectmain = pFIWnd->GetClientRect();
@@ -360,10 +367,7 @@ public:
 								}
 							}
 
-							char szTemp[26];
-							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							if (pCountLabel)
-								pCountLabel->SetWindowText(szTemp);
+							UpdateCountLabel(Checked, list->ItemsArray.Count);
 
 							if (Selected == 0)
 							{
@@ -412,10 +416,7 @@ public:
 								}
 							}
 
-							char szTemp[26];
-							sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-							if (pCountLabel)
-								pCountLabel->SetWindowText(szTemp);
+							UpdateCountLabel(Checked, list->ItemsArray.Count);
 
 							if (Checked == 0)
 							{
@@ -495,10 +496,7 @@ public:
 									}
 								}
 
-								char szTemp[26];
-								sprintf_s(szTemp, "%d/%d", Checked, list->ItemsArray.Count);
-								if (pCountLabel)
-									pCountLabel->SetWindowText(szTemp);
+								UpdateCountLabel(Checked, list->ItemsArray.Count);
 
 								if (bFound)
 								{
