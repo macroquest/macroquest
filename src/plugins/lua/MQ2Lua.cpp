@@ -1987,6 +1987,8 @@ PLUGIN_API void OnPulse()
 
 			hasDeadScripts = true;
 			script.dead = true;
+
+			thread->RemoveAllDataObjects();
 		}
 	}
 

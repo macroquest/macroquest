@@ -40,20 +40,6 @@ static bool ConvertCallbackResultToMacroType(sol::function_result& result, MQTyp
 class LuaTableType;
 static LuaTableType* s_luaTableType = nullptr;
 
-static std::shared_ptr<sol::main_object> MakeStoredObject(const sol::object& object)
-{
-	std::weak_ptr<LuaThread> owner = LuaThread::get_from(object.lua_state());
-
-	return std::shared_ptr<sol::main_object>(new sol::main_object(object),
-		[owner](sol::main_object* ptr)
-		{
-			if (owner.expired())
-				ptr->abandon();
-
-			delete ptr;
-		});
-}
-
 class LuaProxyType;
 std::vector<LuaProxyType*> s_proxyTypes;
 
@@ -156,8 +142,8 @@ static sol::object ConvertTypeVarToLua(sol::this_state L, const MQTypeVar& resul
 	// Transfer a table type over to the new lua state
 	if (result.Type == s_luaTableType)
 	{
-		if (auto obj = result.Get<sol::main_object>())
-			return CloneObject(sol::object(*obj), L);
+		if (auto obj = result.Get<sol::object>())
+			return CloneObject(*obj, L);
 
 		return sol::nil;
 	}
@@ -214,7 +200,7 @@ static bool ConvertLuaToMacroType(sol::object object, MQTypeVar& Dest)
 	// another lua state in general.
 	if (sorted_contains(s_proxyTypes, Dest.Type))
 	{
-		Dest.Set(MakeStoredObject(object));
+		Dest.Set(object);
 		return true;
 	}
 
@@ -222,7 +208,7 @@ static bool ConvertLuaToMacroType(sol::object object, MQTypeVar& Dest)
 	{
 		if (object.is<sol::table>())
 		{
-			Dest.Set(MakeStoredObject(object));
+			Dest.Set(object);
 			return true;
 		}
 
@@ -285,7 +271,7 @@ static bool CreateMacroTypeFromLua(sol::object object, MQTypeVar& Dest)
 
 	case sol::type::table:
 		Dest.Type = s_luaTableType;
-		Dest.Set(MakeStoredObject(object));
+		Dest.Set<sol::object>(object);
 		return true;
 	}
 
@@ -800,8 +786,8 @@ bool LuaProxyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	auto iter = m_luaType->m_members.find(Member);
 	if (iter != m_luaType->m_members.end())
 	{
-		// Lua datatypes always store their data as a sol::main_object
-		auto data = VarPtr.Get<sol::main_object>();
+		// Lua datatypes always store their data as a sol::object
+		auto data = VarPtr.Get<sol::object>();
 		if (data)
 		{
 			// Execute the function in the context of the state that owns the type.
@@ -839,8 +825,8 @@ bool LuaProxyType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool LuaProxyType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	// Lua datatypes always store their data as a sol::main_object
-	auto data = VarPtr.Get<sol::main_object>();
+	// Lua datatypes always store their data as a sol::object
+	auto data = VarPtr.Get<sol::object>();
 	if (data)
 	{
 		auto& thread = m_luaType->m_thread;
@@ -1024,7 +1010,7 @@ bool LuaTableType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 	if (!pMember)
 		return false;
 
-	auto data = VarPtr.Get<sol::main_object>();
+	auto data = VarPtr.Get<sol::object>();
 	if (!data)
 		return false;
 
@@ -1084,7 +1070,7 @@ bool LuaTableType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 
 bool LuaTableType::ToString(MQVarPtr VarPtr, char* Destination)
 {
-	auto data = VarPtr.Get<sol::main_object>();
+	auto data = VarPtr.Get<sol::object>();
 	if (!data)
 		return false;
 
