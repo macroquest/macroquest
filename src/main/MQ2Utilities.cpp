@@ -7103,7 +7103,6 @@ EncounterLockStatus GetEncounterLockStatus(PlayerClient* pSpawn)
 		}
 	}
 
-
 	if (pOwner == pLocalPlayer)
 		return EncounterLockStatus::LockedToMe;
 
