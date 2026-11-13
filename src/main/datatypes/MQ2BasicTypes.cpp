@@ -492,6 +492,9 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			if (Len == 0)
 				return false;
 
+			if (Len > MAX_STRING - 1)
+				Len = MAX_STRING - 1;
+
 			if (Len < 0)
 			{
 				Len = -Len;
@@ -511,10 +514,10 @@ bool MQ2StringType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 			}
 			else
 			{
-				pStart = &pStart[strlen(pStart) - Len];
+				if (static_cast<size_t>(Len) > StrLen)
+					Len = static_cast<int>(StrLen);
 
-				if (pStart < szString)
-					pStart = szString;
+				pStart = &pStart[StrLen - Len];
 
 				memmove(DataTypeTemp, pStart, Len + 1);
 				Dest.Ptr = &DataTypeTemp[0];
