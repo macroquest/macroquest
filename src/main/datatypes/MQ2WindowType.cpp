@@ -504,16 +504,16 @@ bool MQ2WindowType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, 
 		if (pWnd->GetType() == UI_STMLBox)
 		{
 			CStmlWnd* cstmlwnd = static_cast<CStmlWnd*>(pWnd);
-			strcpy_s(DataTypeTemp, cstmlwnd->GetSTMLText().c_str());
+			strncpy_s(DataTypeTemp, cstmlwnd->GetSTMLText().c_str(), _TRUNCATE);
 		}
 		else if (pWnd->GetType() == UI_Page)
 		{
 			CPageWnd* pPageWnd = static_cast<CPageWnd*>(pWnd);
-			strcpy_s(DataTypeTemp, pPageWnd->TabText.c_str());
+			strncpy_s(DataTypeTemp, pPageWnd->TabText.c_str(), _TRUNCATE);
 		}
 		else
 		{
-			strcpy_s(DataTypeTemp, pWnd->GetWindowText().c_str());
+			strncpy_s(DataTypeTemp, pWnd->GetWindowText().c_str(), _TRUNCATE);
 		}
 
 		Dest.Ptr = &DataTypeTemp[0];
