@@ -392,7 +392,7 @@ MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVa
 
 	if (checkFirst)
 	{
-		if (!type->FindMember(Member) && !type->InheritedMember(Member))
+		if (!type->FindMember(Member) && !type->FindMethod(Member) && !type->InheritedMember(Member))
 		{
 			return EvaluateResult::NotFound;
 		}
@@ -406,7 +406,7 @@ MQDataAPI::EvaluateResult MQDataAPI::EvaluateMacroDataMember(MQ2Type* type, MQVa
 		return EvaluateResult::Success;
 	}
 
-	if (!type->FindMember(Member) && !type->InheritedMember(Member))
+	if (!type->FindMember(Member) && !type->FindMethod(Member) && !type->InheritedMember(Member))
 	{
 		return EvaluateResult::NotFound;
 	}
@@ -594,6 +594,9 @@ bool MQDataAPI::EvaluateDataExpression(MQTypeVar& Result, const char* pStart, ch
 		auto result = EvaluateMacroDataMember(pType, std::move(VarPtr), Result, pStart, pIndex, false);
 		if (result == EvaluateResult::NotFound)
 			MQ2DataError("No such '%s' member '%s'", pType->GetName(), pStart);
+		// a method that exists but failed reports accurately instead of as a missing member
+		else if (result == EvaluateResult::Failure && pType->FindMethod(pStart))
+			MQ2DataError("'%s' method '%s' failed", pType->GetName(), pStart);
 
 		if (result != EvaluateResult::Success)
 			return false;
