@@ -1201,14 +1201,17 @@ void LuaCommand(SPAWNINFO* pChar, char* Buffer)
 		});
 
 	args::Command parse(commands, "parse", "parse a lua string with an available mq namespace",
-		[](args::Subparser& parser)
+		[Buffer](args::Subparser& parser)
 		{
 			args::Group arguments(parser, "", args::Group::Validators::DontCare);
 			args::PositionalList<std::string> script(arguments, "script", "the text of the lua script to run");
 			auto h = HelpFlag(parser);
 			parser.Parse();
 
-			if (script) LuaParseCommand(join(script.Get(), " "));
+			// Pass the original text following the parse subcommand so that quoting is
+			// preserved. Tokenizing and rejoining the arguments strips quotes from lua
+			// string literals (e.g. /lua parse 'two' == 'one' would become two == one).
+			if (script) LuaParseCommand(GetNextArg(Buffer));
 		});
 
 	args::Command stop(commands, "stop", "stop one or all running lua scripts",
