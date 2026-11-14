@@ -657,6 +657,7 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		if (!pLocalPlayer) return false;
 
 		auto pPc = pLocalPlayer->GetPcClient();
+		if (!pPc) return false;
 
 		int SlotIndex = -1;
 		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
