@@ -754,7 +754,7 @@ LuaThread::RunResult LuaThread::RunOnce()
 	if (!m_coroutine->ShouldRun())
 	{
 		DataTypeTemp.pop_buffer();
-		return { m_coroutine->thread.status(), std::nullopt };
+		return { GetThreadStatus(), std::nullopt };
 	}
 
 	if (!m_yieldToFrame)

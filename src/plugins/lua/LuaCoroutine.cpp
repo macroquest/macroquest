@@ -89,13 +89,31 @@ bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
 
 		if (!result.valid())
 		{
-			luaL_error(thread.state(), "Error received from mq.delay callback");
+			if (lua_status(L) != LUA_YIELD)
+				luaL_error(L, "Error received from mq.delay callback");
+
+			sol::table stackTraces = luaThread->GetState().registry()["mq2lua.tracebacks"];
+			sol::error err = result;
+
+			DebugStackTrace(result.lua_state(), err, stackTraces);
+			result.abandon();
+			luaThread->Exit();
+			return false;
 		}
 
 		auto result_bool = result.get<sol::optional<bool>>();
 		if (!result_bool.has_value())
 		{
-			luaL_error(thread.state(), "Error in mq.delay callback result:\nexpected bool, got %s", sol::type_name(thread.state(), result.get_type()).c_str());
+			std::string message = fmt::format("Error in mq.delay callback result:\nexpected bool, got {}", sol::type_name(L, result.get_type()));
+			if (lua_status(L) != LUA_YIELD)
+				luaL_error(L, "%s", message.c_str());
+
+			luaL_traceback(check_thread.state(), L, message.c_str(), 0);
+			LuaError("%s", lua_tostring(check_thread.state(), -1));
+			lua_pop(check_thread.state(), 1);
+
+			luaThread->Exit();
+			return false;
 		}
 
 		return result_bool.value();
