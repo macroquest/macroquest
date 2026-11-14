@@ -2483,7 +2483,7 @@ void IGFD::FileManager::DrawPathComposer(const FileDialogInternal& vFileDialogIn
 
     if (IMGUI_BUTTON(editPathButtonString)) {
         inputPathActivated = !inputPathActivated;
-        if (inputPathActivated) {
+        if (inputPathActivated && !m_CurrentPathDecomposition.empty()) {
             auto endIt = m_CurrentPathDecomposition.end();
             m_CurrentPath = ComposeNewPath(--endIt);
             IGFD::Utils::SetBuffer(inputPathBuffer, MAX_PATH_BUFFER_SIZE, m_CurrentPath);
