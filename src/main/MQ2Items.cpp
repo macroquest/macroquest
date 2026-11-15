@@ -178,6 +178,14 @@ public:
 				ImGui::EndTabItem();
 			}
 
+#if HAS_PARCEL_MULTI_SELECT
+			if (ImGui::BeginTabItem("MultiSelect"))
+			{
+				Draw_SelectedSlotList();
+				ImGui::EndTabItem();
+			}
+#endif
+
 			ImGui::EndTabBar();
 		}
 	}
@@ -276,6 +284,163 @@ public:
 			ImGui::EndTable();
 		}
 	}
+
+#if HAS_PARCEL_MULTI_SELECT
+	void Draw_SelectedSlotList()
+	{
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_ScrollY
+			| ImGuiTableFlags_BordersV
+			| ImGuiTableFlags_BordersOuterH
+			| ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_RowBg;
+
+		// Columns:
+		// Icon, Index, Container?, ItemIndex?, LinkedItem?, Template
+		constexpr int columns = 8;
+
+		ImGui::Text("Selected Slots");
+
+		ImVec2 size = ImGui::GetContentRegionAvail();
+		size.y = size.y / 2 - 20;
+
+		if (ImGui::BeginTable("##SelectedSlotTable", columns, tableFlags, size))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("##Index", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("Container", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
+			ImGui::TableSetupColumn("Usable", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Locked", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Screen ID", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableHeadersRow();
+
+			for (CInvSlot* pInvSlot : pInvSlotMgr->SelectedSlots)
+			{
+				if (!pInvSlot->bEnabled)
+					continue;
+
+				ImGui::PushID(pInvSlot);
+
+				ImGui::TableNextRow();
+
+				ImGui::TableNextColumn(); // index
+				ImGui::Text("%d", pInvSlot->Index);
+
+				ImGui::TableNextColumn(); // icon
+				imgui::DrawTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
+
+				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
+				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(globalIndex);
+
+				ImGui::TableNextColumn(); // Container
+				if (globalIndex.IsValidLocation())
+					ImGui::Text("%s", GetNameForContainerInstance(globalIndex.GetLocation()));
+
+				ImGui::TableNextColumn(); // ItemIndex
+				if (globalIndex.IsValidIndex())
+				{
+					char szItemIndex[32];
+					globalIndex.GetIndex().FormatItemIndex(szItemIndex, lengthof(szItemIndex));
+					ImGui::Text("%s", szItemIndex);
+				}
+
+				ImGui::TableNextColumn(); // Item Name
+				if (pItem)
+				{
+					ImGui::PushID((void*)pItem.get());
+					if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+						pItemDisplayManager->ShowItem(pItem);
+					ImGui::PopID();
+				}
+
+				ImGui::TableNextColumn(); // Template
+				if (pInvSlot->pInvSlotWnd)
+				{
+					if (CXMLData* pXMLData = pInvSlot->pInvSlotWnd->GetXMLData())
+					{
+						ImGui::Text("%s", pXMLData->ScreenID.c_str());
+					}
+				}
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
+
+		ImGui::Text("Selected Items");
+
+		if (ImGui::BeginTable("##SelectedSlotTable2", columns, tableFlags, size))
+		{
+			ImGui::TableSetupScrollFreeze(0, 1);
+			ImGui::TableSetupColumn("##Index", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("##Icon", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize, -1.0f);
+			ImGui::TableSetupColumn("Container", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item Index", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch, -1.0f);
+			ImGui::TableSetupColumn("Usable", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Locked", ImGuiTableColumnFlags_WidthFixed, 20.0f);
+			ImGui::TableSetupColumn("Screen ID", ImGuiTableColumnFlags_WidthFixed, -1.0f);
+			ImGui::TableHeadersRow();
+
+			for (CInvSlot* pInvSlot : pInvSlotMgr->FindHighlightedSlots)
+			{
+				if (!pInvSlot->bEnabled)
+					continue;
+
+				ImGui::PushID(pInvSlot);
+
+				ImGui::TableNextRow();
+
+				ImGui::TableNextColumn(); // index
+				ImGui::Text("%d", pInvSlot->Index);
+
+				ImGui::TableNextColumn(); // icon
+				imgui::DrawTextureAnimation(pInvSlot->pInvSlotAnimation, CXSize(16, 16));
+
+				ItemGlobalIndex globalIndex = pInvSlot->pInvSlotWnd ? pInvSlot->pInvSlotWnd->ItemLocation : ItemGlobalIndex();
+				ItemPtr pItem = pLocalPC->GetItemByGlobalIndex(globalIndex);
+
+				ImGui::TableNextColumn(); // Container
+				if (globalIndex.IsValidLocation())
+					ImGui::Text("%s", GetNameForContainerInstance(globalIndex.GetLocation()));
+
+				ImGui::TableNextColumn(); // ItemIndex
+				if (globalIndex.IsValidIndex())
+				{
+					char szItemIndex[32];
+					globalIndex.GetIndex().FormatItemIndex(szItemIndex, lengthof(szItemIndex));
+					ImGui::Text("%s", szItemIndex);
+				}
+
+				ImGui::TableNextColumn(); // Item Name
+				if (pItem)
+				{
+					ImGui::PushID((void*)pItem.get());
+					if (imgui::ItemLinkText(pItem->GetName(), GetColorForChatColor(USERCOLOR_LINK)))
+						pItemDisplayManager->ShowItem(pItem);
+					ImGui::PopID();
+				}
+
+				ImGui::TableNextColumn(); // Template
+				if (pInvSlot->pInvSlotWnd)
+				{
+					if (CXMLData* pXMLData = pInvSlot->pInvSlotWnd->GetXMLData())
+					{
+						ImGui::Text("%s", pXMLData->ScreenID.c_str());
+					}
+				}
+
+				ImGui::PopID();
+			}
+
+			ImGui::EndTable();
+		}
+	}
+#endif
 
 	void Draw_InvSlotMapping()
 	{
