@@ -424,14 +424,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
 					if (texture != nullptr)
 					{
-						// Force a load of the texture if it hasn't been loaded yet.
-						if (texture->GetShaderResourceView() == nullptr)
-						{
-							gpD3D9Device->SetTexture(0, texture);
-							gpD3D9Device->SetTexture(0, nullptr);
-						}
-
-						texture_srv = texture->GetShaderResourceView();
+						// Force a load of the texture if it hasn't been loaded yet
+						texture_srv = texture->GetOrCreateShaderResourceView();
 					}
 				}
 				else
