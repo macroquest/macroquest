@@ -654,12 +654,10 @@ bool MQ2SpellType::GetMember(MQVarPtr VarPtr, const char* Member, char* Index, M
 		// check on stacks implies that we _don't_ want overwrites, but that means that any
 		// spell that will land but overwrites something will fail that check. So provide the
 		// raw "this will land on your target" check as well
-		if (!pLocalPlayer) return false;
-
-		auto pPc = pLocalPlayer->GetPcClient();
+		if (!pLocalPC || !pLocalPlayer) return false;
 
 		int SlotIndex = -1;
-		EQ_Affect* ret = pPc->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPlayer->Level);
+		EQ_Affect* ret = pLocalPC->FindAffectSlot(pSpell->ID, pLocalPlayer, &SlotIndex, true, pLocalPC->GetLevel());
 
 		Dest.Type = pIntType;
 		Dest.Set(SlotIndex + 1); // + 1 here because everything in macro land is 1-indexed and this allows someone to test as a BOOL (0 is falsey)
