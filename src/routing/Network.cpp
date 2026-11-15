@@ -211,8 +211,8 @@ public:
 				SPDLOG_WARN("{}: Received error while shutting down socket {}: {}", m_peerPort, ec.value(), ec.message());
 
 				asio::error_code c_ec;
-				if (m_socket.close(c_ec))
-					SPDLOG_WARN("{}: Received error when closing down socket {}: {}", m_peerPort, c_ec.value(), c_ec.message());
+				if (m_socket.cancel(c_ec))
+					SPDLOG_WARN("{}: Received error when cancelling socket operations {}: {}", m_peerPort, c_ec.value(), c_ec.message());
 			}
 
 			m_active = false;
