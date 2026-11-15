@@ -74,31 +74,62 @@ std::shared_ptr<LuaCoroutine> LuaCoroutine::Create(sol::thread thread, LuaThread
 	return co_ptr;
 }
 
-bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func)
+sol::table lua_set_traceback(lua_State* outL, lua_State* L1, std::string_view msg, int level);
+
+bool LuaCoroutine::CheckCondition(std::optional<sol::function>& func, bool fromLua)
 {
 	if (!func)
+	{
 		return false;
+	}
 
 	try
 	{
 		lua_State* L = thread.state();
-		auto check_thread = sol::thread::create(thread.state());
+
+		auto check_thread = sol::thread::create(L);
 
 		sol::protected_function check_func(check_thread.state(), *func);
 		sol::protected_function_result result = check_func();
 
-		if (!result.valid())
+		std::string errorMessage;
+
+		if (result.valid())
 		{
-			luaL_error(thread.state(), "Error received from mq.delay callback");
+			auto result_bool = result.get<sol::optional<bool>>();
+
+			if (result_bool.has_value())
+			{
+				return result_bool.value();
+			}
+
+			errorMessage = fmt::format("Error in mq.delay callback result:\nexpected bool, got {}",
+				sol::type_name(check_thread.state(), result.get_type()));
+		}
+		else
+		{
+			errorMessage = "Error received from mq.delay callback";
 		}
 
-		auto result_bool = result.get<sol::optional<bool>>();
-		if (!result_bool.has_value())
+		if (!errorMessage.empty())
 		{
-			luaL_error(thread.state(), "Error in mq.delay callback result:\nexpected bool, got %s", sol::type_name(thread.state(), result.get_type()).c_str());
-		}
+			// If we're being called from lua, we can throw the error directly back to lua.
+			if (fromLua)
+			{
+				luaL_error(L, "%s", errorMessage.c_str());
+				// luaL_error doesn't return
+			}
 
-		return result_bool.value();
+			// We're not being called from lua, we need to capture the stack trace and print
+			// the error ourselves.
+
+			lua_set_traceback(L, L, errorMessage, 0);
+
+			sol::table stackTraces = thread.state().registry()["mq2lua.tracebacks"];
+			DebugStackTrace(L, errorMessage, stackTraces);
+
+			luaThread->Exit();
+		}
 	}
 	catch (sol::error& ex)
 	{
@@ -161,7 +192,7 @@ void LuaCoroutine::SetDelay(uint64_t time, std::optional<sol::function> conditio
 	if (luaThread == nullptr)
 		return;
 
-	if (time > MQGetTickCount64() && !CheckCondition(condition))
+	if (time > MQGetTickCount64() && !CheckCondition(condition, true))
 	{
 		luaThread->DoYield();
 		//lua_yield(coroutine.lua_state(), 0); // only yield from the current coroutine
@@ -184,7 +215,7 @@ bool LuaCoroutine::ShouldRun()
 	}
 
 	// check delayed status
-	if (m_delayTime <= MQGetTickCount64() || CheckCondition(m_delayCondition))
+	if (m_delayTime <= MQGetTickCount64() || CheckCondition(m_delayCondition, false))
 	{
 		ClearDelay();
 		return true;

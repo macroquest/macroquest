@@ -220,6 +220,17 @@ static sol::table rich_traceback(sol::state_view L, sol::state_view L1, std::str
 	return t;
 }
 
+sol::table lua_set_traceback(lua_State* outL, lua_State* L1, std::string_view msg, int level)
+{
+	auto table = rich_traceback(outL, L1, msg, level);
+
+	sol::state_view sv{ outL };
+	sol::table tracebacks = sv.registry()["mq2lua.tracebacks"];
+	tracebacks.add(table);
+
+	return table;
+}
+
 static int lua_traceback_error_handler(lua_State* L)
 {
 	//return sol::default_traceback_error_handler(L);
@@ -228,11 +239,7 @@ static int lua_traceback_error_handler(lua_State* L)
 	std::string_view msg = sol::stack::pop<std::optional<sol::string_view>>(L).value_or(
 		"An unknown error has triggered the default error handler");
 
-	auto table = rich_traceback(L, L, msg, 1);
-
-	sol::table tracebacks = sv.registry()["mq2lua.tracebacks"];
-	tracebacks.add(table);
-
+	sol::table table = lua_set_traceback(L, L, msg, 1);
 	return sol::stack::push(L, table["formatted"]);
 }
 
@@ -754,7 +761,7 @@ LuaThread::RunResult LuaThread::RunOnce()
 	if (!m_coroutine->ShouldRun())
 	{
 		DataTypeTemp.pop_buffer();
-		return { m_coroutine->thread.status(), std::nullopt };
+		return { GetThreadStatus(), std::nullopt };
 	}
 
 	if (!m_yieldToFrame)
