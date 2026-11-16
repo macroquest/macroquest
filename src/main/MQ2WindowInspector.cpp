@@ -2700,12 +2700,12 @@ public:
 		if (ColumnTreeNodeType(label, component->GetTypeName().c_str(), ""))
 		{
 			ColumnText("Name", "%s", component->name.c_str());
-			ColumnText("Full Name", "%s", component->fullName.c_str());
+			ColumnText("Item Path", "%s", component->itemPath.c_str());
 			ColumnText("Model Prefix", "%s", component->modelPrefix.c_str());
-			ColumnWindow("Window", component->parent);
+			ColumnWindow("Window", component->target);
 			ColumnWindow("Parent Window", component->parent);
-			ColumnText("str_78", "%s", component->str_78.c_str());
-			ColumnText("u64_98", "%p", (uintptr_t)component->u64_98);
+			ColumnText("Tooltip", "%s", component->tooltip.c_str());
+			ColumnText("Event Position", "%d, %d", component->eventPosition.x, component->eventPosition.y);
 
 			ImGui::TreePop();
 		}
@@ -2717,7 +2717,7 @@ public:
 		if (BeginColorSection("CGFScreenWnd Properties", open))
 		{
 			DisplayUIComponent("Window Component", &pWnd->WindowComponent);
-			ColumnText("u8_a0", "%d", (int)pWnd->WindowComponent.u8_a0);
+			ColumnText("Opacity", "%d", (int)pWnd->WindowComponent.opacity);
 
 			if (ColumnTreeNode("Children Components", "%d", pWnd->ChildComponents.size()))
 			{

@@ -448,6 +448,7 @@
     <ClCompile Include="MQCommandAPI.cpp" />
     <ClCompile Include="MQCommands.cpp" />
     <ClCompile Include="MQ2DeveloperTools.cpp" />
+    <ClCompile Include="MQGameFaceInspector.cpp" />
     <ClCompile Include="MQInputAPI.cpp" />
     <ClCompile Include="MQ2Data.cpp" />
     <ClCompile Include="MQActorAPI.cpp" />
